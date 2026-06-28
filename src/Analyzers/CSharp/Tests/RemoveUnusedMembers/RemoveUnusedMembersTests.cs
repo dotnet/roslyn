@@ -1857,6 +1857,38 @@ public sealed class RemoveUnusedMembersTests
             }
             """, []);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72884")]
+    public Task PropertyIsRefReturningAndIncremented()
+    {
+        // BUG #72884: false positive — A is read via A++ (ref return), IDE0052 should not fire here.
+        return VerifyCS.VerifyAnalyzerAsync("""
+            class C1
+            {
+                int a;
+                private ref int {|#0:A|} => ref a;
+                public void Increment() => A++;
+            }
+            """, new DiagnosticResult(
+            CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+                .WithLocation(0)
+                .WithArguments("C1.A")
+                .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72884")]
+    public Task PropertyIsRefReturningAndRead()
+    {
+        // Observed behavior: no IDE0052 diagnostic; plain read usage of the ref-returning property is handled correctly.
+        return VerifyCS.VerifyAnalyzerAsync("""
+            class C1
+            {
+                int a;
+                private ref int A => ref a;
+                public int Read() => A;
+            }
+            """, []);
+    }
+
     [Fact]
     public async Task IndexerIsIncrementedAndValueUsed()
     {
