@@ -94,7 +94,7 @@ internal sealed class FindReferenceCache
         => _symbolInfoCache.GetOrAdd(node, static (n, arg) => arg.SemanticModel.GetSymbolInfo(n, arg.cancellationToken), (SemanticModel, cancellationToken));
 
     public IAliasSymbol? GetAliasInfo(
-        ISemanticFactsService semanticFacts, SyntaxToken token, CancellationToken cancellationToken)
+        ISemanticFactsService semanticFacts, SyntaxToken token, HashSet<string> globalAliases, CancellationToken cancellationToken)
     {
         if (_aliasNameSet == null)
         {
@@ -102,7 +102,11 @@ internal sealed class FindReferenceCache
             Interlocked.CompareExchange(ref _aliasNameSet, set, null);
         }
 
-        if (_aliasNameSet.Contains(token.ValueText))
+        // The alias name set only contains aliases declared within this file's using directives.  A token may also
+        // bind through a global alias declared in another file (e.g. `global using MyInt = int;`), in which case the
+        // name will be present in the set of global aliases we're currently searching for.  Consider both so that
+        // references bound through a global alias get their `Alias` populated.
+        if (_aliasNameSet.Contains(token.ValueText) || globalAliases.Contains(token.ValueText))
             return SemanticModel.GetAliasInfo(token.GetRequiredParent(), cancellationToken);
 
         return null;
