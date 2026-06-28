@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class)]
-internal class ExportLspWillRenameListenerAttribute(string glob) : ExportAttribute(typeof(ILspWillRenameListener)), ILspWillRenameListenerMetadata
+internal class ExportLspWillRenameListenerAttribute(string glob) : ExportAttribute(typeof(ILspWillRenameListener))
 {
     public string Glob { get; } = glob;
 }

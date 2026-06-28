@@ -23,7 +23,7 @@ internal sealed record class BuildOnlyDiagnosticIdsResult([property: JsonPropert
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class BuildOnlyDiagnosticIdsHandler(
-    [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> compilerBuildOnlyDiagnosticsProviders)
+    [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, LspBuildOnlyDiagnosticsMetadata>> compilerBuildOnlyDiagnosticsProviders)
     : ILspServiceRequestHandler<BuildOnlyDiagnosticIdsResult>
 {
     public const string BuildOnlyDiagnosticIdsMethodName = "workspace/buildOnlyDiagnosticIds";

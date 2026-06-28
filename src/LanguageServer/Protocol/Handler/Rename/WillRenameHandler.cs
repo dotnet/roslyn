@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class WillRenameHandler(
-    [ImportMany] IEnumerable<Lazy<ILspWillRenameListener, ILspWillRenameListenerMetadata>> renameListeners) : ILspServiceRequestHandler<LSP.RenameFilesParams, WorkspaceEdit?>
+    [ImportMany] IEnumerable<Lazy<ILspWillRenameListener, LspWillRenameListenerMetadata>> renameListeners) : ILspServiceRequestHandler<LSP.RenameFilesParams, WorkspaceEdit?>
 {
     public bool MutatesSolutionState => true;
     public bool RequiresLSPSolution => true;

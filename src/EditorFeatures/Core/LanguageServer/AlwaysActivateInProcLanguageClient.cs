@@ -40,11 +40,11 @@ internal sealed class AlwaysActivateInProcLanguageClient(
     IThreadingContext threadingContext,
     ExportProvider exportProvider,
     IDiagnosticSourceManager diagnosticSourceManager,
-    [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
+    [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, LspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
 {
     private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
     private readonly IDiagnosticSourceManager _diagnosticSourceManager = diagnosticSourceManager;
-    private readonly IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> _buildOnlyDiagnostics = buildOnlyDiagnostics;
+    private readonly IEnumerable<Lazy<ILspBuildOnlyDiagnostics, LspBuildOnlyDiagnosticsMetadata>> _buildOnlyDiagnostics = buildOnlyDiagnostics;
 
     protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
