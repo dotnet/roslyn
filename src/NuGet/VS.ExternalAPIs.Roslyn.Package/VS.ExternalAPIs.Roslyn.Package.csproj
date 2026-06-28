@@ -70,7 +70,7 @@
 
   <ItemGroup>
     <!-- Prevent downstream projects from trying to place the Sqlite assemblies from this package -->
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="SQLite3MC.PCLRaw.lib" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage">
