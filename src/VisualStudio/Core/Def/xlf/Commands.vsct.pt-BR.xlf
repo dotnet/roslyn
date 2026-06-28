@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
         <source>CleearStackTraceExplorerCommandName</source>
-        <target state="translated">CleearStackTraceExplorerCommandName</target>
+        <target state="new">CleearStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
@@ -64,92 +64,92 @@
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
         <source>&amp;Current Document</source>
-        <target state="translated">&amp;Documento Atual</target>
+        <target state="new">&amp;Current Document</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
         <source>AnalysisScopeCurrentDocument</source>
-        <target state="translated">AnalysisScopeCurrentDocument</target>
+        <target state="new">AnalysisScopeCurrentDocument</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|LocCanonicalName">
         <source>Current Document</source>
-        <target state="translated">Documento Atual</target>
+        <target state="new">Current Document</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeDefault|ButtonText">
         <source>&amp;Default</source>
-        <target state="translated">&amp;Padrão</target>
+        <target state="new">&amp;Default</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeDefault|CommandName">
         <source>AnalysisScopeDefault</source>
-        <target state="translated">AnalysisScopeDefault</target>
+        <target state="new">AnalysisScopeDefault</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeDefault|LocCanonicalName">
         <source>Default</source>
-        <target state="translated">Padrão</target>
+        <target state="new">Default</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeEntireSolution|ButtonText">
         <source>&amp;Entire Solution</source>
-        <target state="translated">&amp;Solução Inteira</target>
+        <target state="new">&amp;Entire Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeEntireSolution|CommandName">
         <source>AnalysisScopeEntireSolution</source>
-        <target state="translated">AnalysisScopeEntireSolution</target>
+        <target state="new">AnalysisScopeEntireSolution</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
         <source>Entire Solution</source>
-        <target state="translated">Solução Inteira</target>
+        <target state="new">Entire Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
         <source>&amp;None</source>
-        <target state="translated">&amp;Nenhum</target>
+        <target state="new">&amp;None</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeNone|CommandName">
         <source>AnalysisScopeNone</source>
-        <target state="translated">AnalysisScopeNone</target>
+        <target state="new">AnalysisScopeNone</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">Nenhum</target>
+        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
         <source>&amp;Open Documents</source>
-        <target state="translated">&amp;Abrir Documentos</target>
+        <target state="new">&amp;Open Documents</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
         <source>AnalysisScopeOpenDocuments</source>
-        <target state="translated">AnalysisScopeOpenDocuments</target>
+        <target state="new">AnalysisScopeOpenDocuments</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|LocCanonicalName">
         <source>Open Documents</source>
-        <target state="translated">Abrir Documentos</target>
+        <target state="new">Open Documents</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeSubMenu|ButtonText">
         <source>Set Analysis Scope</source>
-        <target state="translated">Definir escopo de análise</target>
+        <target state="new">Set Analysis Scope</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeSubMenu|CommandName">
         <source>Set Analysis Scope</source>
-        <target state="translated">Definir escopo de análise</target>
+        <target state="new">Set Analysis Scope</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeSubMenu|LocCanonicalName">
         <source>SetAnalysisScope</source>
-        <target state="translated">SetAnalysisScope</target>
+        <target state="new">SetAnalysisScope</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
