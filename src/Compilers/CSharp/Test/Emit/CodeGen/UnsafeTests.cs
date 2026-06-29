@@ -100,8 +100,15 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 11)
                 );
 
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // (6,9): error CS9363: 'C.M(int*)' must be used in an unsafe context because it has pointers in its signature
+                //         M(param);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "M(param)").WithArguments("C.M(int*)").WithLocation(6, 9),
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -129,8 +136,15 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 11)
                 );
 
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // (6,9): error CS9363: 'C.M(int*[])' must be used in an unsafe context because it has pointers in its signature
+                //         M(param);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "M(param)").WithArguments("C.M(int*[])").WithLocation(6, 9),
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -158,8 +172,15 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 11)
                 );
 
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // (6,9): error CS9363: 'C<T>.M(C<int*[]>[])' must be used in an unsafe context because it has pointers in its signature
+                //         M(param);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "M(param)").WithArguments("C<T>.M(C<int*[]>[])").WithLocation(6, 9),
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -187,8 +208,15 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 15)
                 );
 
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // (6,9): error CS9363: 'C.C(int*)' must be used in an unsafe context because it has pointers in its signature
+                //         new C(param);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new C(param)").WithArguments("C.C(int*)").WithLocation(6, 9),
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -216,8 +244,15 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 15)
                 );
 
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
-            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // (6,9): error CS9363: 'C.C(int*[])' must be used in an unsafe context because it has pointers in its signature
+                //         new C(param);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new C(param)").WithArguments("C.C(int*[])").WithLocation(6, 9),
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -11104,8 +11139,15 @@ unsafe struct S<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.Field").WithLocation(3, 5)
             );
 
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // (3,5): error CS9363: 'S<int>.Field' must be used in an unsafe context because it has pointers in its signature
+                // _ = c.Field is null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field").WithArguments("S<int>.Field").WithLocation(3, 5),
+            };
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
         #endregion Pointer comparison tests
