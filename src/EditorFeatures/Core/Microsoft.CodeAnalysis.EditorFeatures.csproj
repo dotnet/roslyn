@@ -110,7 +110,4 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="$(RepoRoot)eng\vs-mef.ContractNamesAssignability.txt" />
-  </ItemGroup>
 </Project>
