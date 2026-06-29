@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -862,6 +863,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        private MemberDeclarationSyntax? Syntax
+            => CSharpSyntaxNode as MemberDeclarationSyntax;
+#nullable disable
+
         internal SyntaxTree SyntaxTree
         {
             get
@@ -1019,7 +1025,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
             Location typeLocation = TypeLocation;
-            var location = GetFirstLocation();
             var compilation = DeclaringCompilation;
 
             Debug.Assert(typeLocation != null);
@@ -1046,10 +1051,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, typeLocation, modifyCompilation: true);
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
             {
-                var modifiers = (CSharpSyntaxNode as MemberDeclarationSyntax)?.Modifiers ?? default;
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(location), modifyCompilation: true);
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, GetFirstLocation()));
+            }
+
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+            {
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
+                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.UnsafeKeyword, GetFirstLocation()),
+                    modifyCompilation: true);
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
@@ -1076,8 +1088,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
 
-                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
             }
+        }
+
+        internal sealed override void AfterTypeMembersCompletedChecks(BindingDiagnosticBag diagnostics)
+        {
+            base.AfterTypeMembersCompletedChecks(diagnostics);
+
+            if (HasSafeModifier && (!(IsExtern || hasExplicitOrExtendedLayoutField()) || HasUnsafeModifier))
+            {
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, GetFirstLocation()));
+            }
+
+            return;
+
+            bool hasExplicitOrExtendedLayoutField() => BackingField != null && !IsStatic && (ContainingType.Layout.Kind == LayoutKind.Explicit || ContainingType.Layout.Kind == LayoutKind.Extended);
         }
 
         private void CheckAccessibility(Location location, BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
@@ -1430,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
@@ -1574,6 +1601,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // DynamicAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
+            }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 permitted: ReservedAttributes.NullableContextAttribute
                     | ReservedAttributes.NullablePublicOnlyAttribute
@@ -1628,10 +1659,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
-            }
-            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
-            {
-                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
             {
@@ -1717,6 +1744,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => FindAttributes(AttributeDescription.MemberNotNullWhenAttribute);
 
         internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
+
+        internal bool HasSafeModifier => (_modifiers & DeclarationModifiers.Safe) != 0;
 
         private SourceAttributeData FindAttribute(AttributeDescription attributeDescription)
             => (SourceAttributeData)GetAttributes().First(a => a.IsTargetAttribute(attributeDescription));

@@ -1,0 +1,13 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        UsingDirective - (41:2,1 [40] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - NumberPair = (int Left, int Right)
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                HtmlContent - (83:3,0 [2] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (83:3,0 [2] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (87:4,2 [66] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (87:4,2 [66] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    NumberPair pair = (1, 2);\n    _ = pair.Left + pair.Right;\n

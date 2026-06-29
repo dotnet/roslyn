@@ -80,12 +80,6 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
-      <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor.Features</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <PkgDefEntry>BindingRedirect</PkgDefEntry>
-    </ProjectReference>
     <ProjectReference Include="..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -179,6 +173,14 @@
            of binding redirects, it probably won't be useful for the .NET Framework one in practice. Customer use of MSBuildWorkspace inside Visual Studio is rare as it is;
            so while we could try to do a bunch of extra MSBuild trickery to get the right ngen attributes to the right binaries, it's just far easier to turn it off. -->
       <Ngen>false</Ngen>
+    </ProjectReference>
+    <!-- Workspaces.MSBuild embeds Contracts privately (it's not a transitive reference), so reference it directly to deploy it into the VSIX next to MSBuildWorkspace at runtime. -->
+    <ProjectReference Include="..\..\Workspaces\MSBuild\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="Contracts">
+      <Name>Workspaces.MSBuild.Contracts</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj">
       <Name>CSharpWorkspace</Name>
@@ -346,14 +348,13 @@
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" />
     <PackageReference Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" ForceIncludeInVsix="true" />
     <PackageReference Include="SQLitePCLRaw.core" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="SourceGear.Sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="SQLite3MC.PCLRaw.bundle" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
+    <PackageReference Include="SQLite3MC.PCLRaw.provider" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
+    <PackageReference Include="SQLite3MC.PCLRaw.lib" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(PkgSourceGear_Sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
-      <Link>e_sqlite3.dll</Link>
+    <Content Include="$(PkgSQLite3MC_PCLRaw_lib)\runtimes\win-x64\native\sqlite3mc.dll">
+      <Link>sqlite3mc.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <Visible>false</Visible>

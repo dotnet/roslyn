@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Logging;
 [InterpolatedStringHandler]
 internal ref struct LogMessageInterpolatedStringHandler
 {
-    private PooledObject<StringBuilder> _builder;
+    private Microsoft.AspNetCore.Razor.PooledObjects.PooledObject<StringBuilder> _builder;
     private readonly bool _isEnabled;
 
     public LogMessageInterpolatedStringHandler(int literalLength, int _, ILogger logger, LogLevel logLevel, out bool isEnabled)

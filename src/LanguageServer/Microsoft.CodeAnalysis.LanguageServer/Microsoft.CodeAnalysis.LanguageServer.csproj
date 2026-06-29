@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(NetVSCode)</TargetFramework>
@@ -79,10 +79,10 @@
     <ProjectReference Include="..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
     <ProjectReference Include="..\..\Features\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj" />
     <ProjectReference Include="..\ExternalAccess\VisualDiagnostics\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
+    <ProjectReference Include="..\ExternalAccess\TestDiscovery\Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.csproj" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\Xaml\Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />
     <ProjectReference Include="..\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
     <ProjectReference Include="..\ExternalAccess\Copilot\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj" />
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
     <!-- Ship the VS Code Razor entrypoint as a real runtime dependency so it participates in the server deps.json. -->
     <ProjectReference Include="..\..\Razor\src\Razor\src\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj" />
   </ItemGroup>
@@ -103,12 +103,13 @@
       Ensure we include the sqlite assemblies and their native dependencies in our package to enable persistent storage.
     -->
     <PackageReference Include="SQLitePCLRaw.core" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" />
-    <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" />
+    <PackageReference Include="SQLite3MC.PCLRaw.bundle" />
+    <PackageReference Include="SQLite3MC.PCLRaw.provider" />
   </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests" />
 
     <!--
       Only allow C# DevKit to use types from Microsoft.CodeAnalysis.Contracts namespace. The contracts should not introduce breaking changes between versions,
@@ -142,8 +143,8 @@
           BeforeTargets="Build">
     <PropertyGroup>
       <_SymbolExclusionsFile>$(RepoRoot)eng\SymbolPublishingExclusionsFile.txt</_SymbolExclusionsFile>
-      <_ExpectedArm64Entry>tools/$(TargetFramework)/linux-musl-arm64/libe_sqlite3.so</_ExpectedArm64Entry>
-      <_ExpectedX64Entry>tools/$(TargetFramework)/linux-musl-x64/libe_sqlite3.so</_ExpectedX64Entry>
+      <_ExpectedArm64Entry>tools/$(TargetFramework)/linux-musl-arm64/libsqlite3mc.so</_ExpectedArm64Entry>
+      <_ExpectedX64Entry>tools/$(TargetFramework)/linux-musl-x64/libsqlite3mc.so</_ExpectedX64Entry>
     </PropertyGroup>
 
     <ReadLinesFromFile File="$(_SymbolExclusionsFile)">

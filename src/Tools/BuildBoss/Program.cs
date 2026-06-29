@@ -103,6 +103,7 @@ namespace BuildBoss
 
             var artifactsDirectory = Path.Combine(repositoryDirectory, "artifacts");
 
+            allGood &= ProcessGeneratedFiles(repositoryDirectory);
             allGood &= ProcessTargets(repositoryDirectory);
             allGood &= ProcessPackages(repositoryDirectory, artifactsDirectory, configuration);
             allGood &= ProcessStructuredLog(artifactsDirectory, configuration);
@@ -137,6 +138,12 @@ namespace BuildBoss
         {
             var util = new SolutionCheckerUtil(solutionFilePath, isPrimarySolution);
             return CheckCore(util, $"Solution {solutionFilePath}");
+        }
+
+        private static bool ProcessGeneratedFiles(string repositoryDirectory)
+        {
+            var checker = new GeneratedFilesCheckerUtil(repositoryDirectory);
+            return CheckCore(checker, $"Generated files {repositoryDirectory}");
         }
 
         private static bool ProcessTargets(string repositoryDirectory)

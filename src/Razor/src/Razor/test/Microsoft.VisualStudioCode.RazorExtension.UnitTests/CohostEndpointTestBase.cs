@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
-using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.VisualStudioCode.RazorExtension.Configuration;
 using Microsoft.VisualStudioCode.RazorExtension.Services;
 using Xunit.Abstractions;
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper) : CohostTestBase(testOutputHelper)
 {
-    private VSCodeRemoteServiceInvoker? _remoteServiceInvoker;
+    private IRemoteServiceInvoker? _remoteServiceInvoker;
     private IFilePathService? _filePathService;
     private ISemanticTokensLegendService? _semanticTokensLegendService;
 
@@ -29,7 +29,8 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private protected override IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected ISemanticTokensLegendService SemanticTokensLegendService => _semanticTokensLegendService.AssumeNotNull();
 
-    private protected override TestComposition LocalComposition => TestComposition.RoslynFeatures;
+    private protected override TestComposition LocalComposition => TestComposition.RoslynFeatures
+        .AddAssemblies(typeof(RazorSourceGeneratedDocumentSpanMappingService).Assembly);
 
     protected override async Task InitializeAsync()
     {
@@ -37,13 +38,13 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
         InProcServiceFactory.TestAccessor.SetExportProvider(OOPExportProvider);
 
-        var workspaceProvider = new VSCodeWorkspaceProvider();
+        // Make sure we've hooked up our workspace to the workspace provider
+        var workspaceProvider = LocalExportProvider.GetExportedValue<VSCodeWorkspaceProvider>();
         workspaceProvider.SetWorkspace(LocalWorkspace);
 
-        _remoteServiceInvoker = new VSCodeRemoteServiceInvoker(workspaceProvider, LoggerFactory);
-        AddDisposable(_remoteServiceInvoker);
-
-        _filePathService = new VSCodeFilePathService();
+        // Grab a few things from the local MEF composition, for convenience
+        _remoteServiceInvoker = LocalExportProvider.GetExportedValue<IRemoteServiceInvoker>();
+        _filePathService = LocalExportProvider.GetExportedValue<IFilePathService>();
 
         _semanticTokensLegendService = new CohostSemanticTokensLegendService(new TestClientCapabilitiesService(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = false }));
     }

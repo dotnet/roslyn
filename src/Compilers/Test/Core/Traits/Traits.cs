@@ -17,6 +17,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string LanguageServerProtocol = nameof(LanguageServerProtocol);
         }
 
+        public const string TestGate = nameof(TestGate);
+        public static class TestGates
+        {
+            public const string RoslynVSIntegration = nameof(RoslynVSIntegration);
+        }
+
         public const string Feature = nameof(Feature);
         public static class Features
         {
@@ -221,6 +227,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseRangeOperator = "CodeActions.UseRangeOperator";
             public const string CodeActionsUseSimpleUsingStatement = "CodeActions.UseSimpleUsingStatement";
             public const string CodeActionsUseSystemHashCode = "CodeActions.UseSystemHashCode";
+            public const string CodeActionsUseLabeledJumpStatements = "CodeActions.UseLabeledJumpStatements";
             public const string CodeActionsUseSystemThreadingLock = "CodeActions.UseSystemThreadingLock";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
             public const string CodeActionsUseTupleSwap = "CodeActions.UseTupleSwap";
