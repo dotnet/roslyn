@@ -929,6 +929,11 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
     private void DumpFuzzReproCase(int iteration, List<FuzzOp> setupOps, List<FuzzOp> editOps)
     {
+        _testOutputHelper.WriteLine(BuildFuzzReproCase(iteration, setupOps, editOps));
+    }
+
+    private static string BuildFuzzReproCase(int iteration, List<FuzzOp> setupOps, List<FuzzOp> editOps)
+    {
         var sb = new System.Text.StringBuilder();
         sb.AppendLine($$"""
 
@@ -936,20 +941,10 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 public async Task Fuzz_{{iteration}}()
                 {
                     var tempDir = _tempRoot.CreateDirectory();
-                    DeferDeleteCacheDirectory(tempDir.Path);
-                    sb.AppendLine();
 
-                    await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-                    {
-                        ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-                        OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-                        WorkspaceFolders =
-                        [
-                            new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = \"workspace1\" }
-                        ]
-                    });
+                    await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+                    DeferDeleteCacheDirectory(testLspServer, tempDir.Path);
                     var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-                    sb.AppendLine();
 
                     // Setup
             """);
@@ -972,7 +967,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                     var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
                     // Delete cache
-                    var cacheDirectory = VirtualProjectHelpers.GetDiscoveryCacheDirectory(tempDir.Path);
+                    var fileBasedProgramService = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+                    var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(tempDir.Path);
                     Directory.Delete(cacheDirectory, recursive: true);
 
                     // Discovery without cache — should match
@@ -981,7 +977,68 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 }
             """);
 
-        _testOutputHelper.WriteLine(sb.ToString());
+        return sb.ToString();
+    }
+
+    [Fact]
+    public void DumpFuzzReproCase_ProducesCompilableTestMethod()
+    {
+        var setupOps = new List<FuzzOp>
+        {
+            new FuzzOp.CreateDir(@"sub1\sub3"),
+            new FuzzOp.WriteCsproj("Project0.csproj"),
+            new FuzzOp.WriteFbaFile(@"sub1\sub3\Fba1.cs"),
+            new FuzzOp.WriteOrdinaryCs(@"sub1\Ordinary4.cs"),
+        };
+        var editOps = new List<FuzzOp>
+        {
+            new FuzzOp.DeleteFile("Project0.csproj"),
+            new FuzzOp.RenameFile(@"sub1\sub3\Fba1.cs", @"sub1\sub3\NewFba64.cs"),
+        };
+
+        var reproMethod = BuildFuzzReproCase(iteration: 0, setupOps, editOps);
+
+        var source = $$"""
+            using System;
+            using System.IO;
+            using System.Linq;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using Microsoft.CodeAnalysis.Host;
+            using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
+            using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+            using Microsoft.CodeAnalysis.Test.Utilities;
+            using Microsoft.CodeAnalysis.FileBasedPrograms;
+            using Roslyn.Test.Utilities;
+            using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
+            using Xunit;
+
+            internal sealed class Skeleton
+            {
+                private readonly TempRoot {{nameof(_tempRoot)}} = new();
+                private const string {{nameof(FbaContent)}} = "", {{nameof(OrdinaryCsContent)}} = "", {{nameof(CsprojContent)}} = "";
+                private Task<TestLspServer> {{nameof(CreateDiscoveryTestServerAsync)}}(string p) => throw null!;
+                private void {{nameof(DeferDeleteCacheDirectory)}}(TestLspServer s, string p) { }
+            {{reproMethod}}
+            }
+            """;
+
+        var tree = CSharp.CSharpSyntaxTree.ParseText(SourceText.From(source));
+        var references = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
+            .Select(a => MetadataReference.CreateFromFile(a.Location))
+            .ToArray();
+        var compilation = CSharp.CSharpCompilation.Create(
+            GetType().Assembly.GetName().Name!,
+            [tree],
+            references,
+            new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var errors = compilation.GetDiagnostics()
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .Where(d => d.Id != "CS0281") // ignore IVT errors
+            .Select(d => $"{d.Id}: {d.GetMessage()}");
+        AssertEx.Empty(errors, "Generated fuzz repro case does not compile.");
     }
 
     #endregion
