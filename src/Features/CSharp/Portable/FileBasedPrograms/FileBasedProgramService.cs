@@ -20,6 +20,9 @@ internal sealed class FileBasedProgramService() : IFileBasedProgramService
     public string GetArtifactsPath(string entryPointFileFullPath, string? dotNetSubdirectory = null)
         => VirtualProjectBuilder.GetArtifactsPath(entryPointFileFullPath, dotNetSubdirectory);
 
+    public string GetTempSubdirectory(string? dotNetSubdirectory = null)
+        => VirtualProjectBuilder.GetTempSubdirectory(dotNetSubdirectory);
+
     public IDictionary<string, string> GetGlobalBuildProperties()
     {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

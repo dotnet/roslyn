@@ -13,6 +13,7 @@ internal interface IFileBasedProgramService : IWorkspaceService
 {
     string GetArtifactsPath(string entryPointFileFullPath, string? dotNetSubdirectory = null);
 
+    string GetTempSubdirectory(string? dotNetSubdirectory = null);
     IDictionary<string, string> GetGlobalBuildProperties();
 
     bool IsValidEntryPointPath(string entryPointFilePath);

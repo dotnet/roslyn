@@ -12,5 +12,5 @@ internal static class VirtualProjectHelpers
         => fileBasedProgramService.GetArtifactsPath(workspaceFolder, "runfile-discovery");
 
     internal static string GetDiscoveryCacheRootDirectory(this IFileBasedProgramService fileBasedProgramService)
-        => fileBasedProgramService.GetArtifactsPath("runfile-discovery");
+        => fileBasedProgramService.GetTempSubdirectory("runfile-discovery");
 }
