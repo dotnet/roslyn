@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -458,6 +459,82 @@ public partial class CohostDocumentPullDiagnosticsTest
                     },
                 ]
             }]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13191")]
+    public Task FilterPropertyNameOutsideAttribute()
+    {
+        TestCode input = """
+            @if (true)
+            {
+                <MudCard Outlined="true" Class="mud-width-full" Elevation="3"
+                         HeaderClass="@((SelectedFileId == DefaultMessageId) ? "selected" : "unselected")">
+                    <div class="d-flex flex-column align-center justify-center pa-3" style="height: 120px;">
+                        <span style="width: 179px; height: 100%; background-color: black;"></span>
+                    </div>
+
+                    <div class="d-flex card-actions-cursor" style="padding-bottom: 10px; padding-top: 10px; border-top: 1px solid var(--mud-palette-lines-default);">
+                        <span>Default message</span>
+                    </div>
+                </MudCard>
+            }
+
+            <div style="{|CSS024:/****/|}"></div>
+
+            @code
+            {
+                private string SelectedFileId { get; set; } = "";
+                private string DefaultMessageId { get; } = "Default";
+            }
+            """;
+
+        var sourceText = SourceText.From(input.Text);
+
+        // Sometimes the Html server will report the diagnostic range as the whole component, or even multiple.
+        var diagnosticStart = input.Text.IndexOf("    <MudCard");
+        var diagnosticEnd = input.Text.IndexOf("        <div class=\"d-flex card-actions-cursor\"");
+
+        return VerifyDiagnosticsAsync(
+            input,
+            htmlResponse: [new VSInternalDiagnosticReport
+            {
+                Diagnostics =
+                [
+                    new LspDiagnostic
+                    {
+                        Code = CSSErrorCodes.MissingPropertyName,
+                        Range = sourceText.GetRange(TextSpan.FromBounds(diagnosticStart, diagnosticEnd))
+                    },
+                    new LspDiagnostic
+                    {
+                        Code = CSSErrorCodes.MissingPropertyName,
+                        Range = sourceText.GetRange(new TextSpan(input.Text.IndexOf("/****/"), "/****/".Length))
+                    },
+                ]
+            }],
+            additionalFiles:
+            [
+                (FilePath("MudCard.razor"), """
+                    @code
+                    {
+                        [Parameter]
+                        public bool Outlined { get; set; }
+
+                        [Parameter]
+                        public string Class { get; set; }
+
+                        [Parameter]
+                        public int Elevation { get; set; }
+
+                        [Parameter]
+                        public string HeaderClass { get; set; }
+
+                        [Parameter]
+                        public RenderFragment ChildContent { get; set; }
+                    }
+                    """)
+            ]);
     }
 
     [Fact]
