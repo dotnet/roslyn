@@ -41,7 +41,7 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
         Uri[]? uris,
         CancellationToken cancellationToken)
     {
-        var sourceText = await context.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await context.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         if (!sourceText.TryGetAbsoluteIndex(span.Start, out var index))
         {
             // If the position is invalid then we shouldn't expect to be able to handle a Html response

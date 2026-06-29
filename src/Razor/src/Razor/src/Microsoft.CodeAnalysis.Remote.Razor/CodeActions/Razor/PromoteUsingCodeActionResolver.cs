@@ -37,7 +37,7 @@ internal sealed class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : I
             return null;
         }
 
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         var importsFileName = PromoteUsingCodeActionProvider.GetImportsFileName(documentContext.Snapshot.FileKind);
 

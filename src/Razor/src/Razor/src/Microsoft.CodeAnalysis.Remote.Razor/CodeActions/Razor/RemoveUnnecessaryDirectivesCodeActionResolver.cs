@@ -27,7 +27,7 @@ internal sealed class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCode
             return null;
         }
 
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         using var edits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
         foreach (var directiveSpan in actionParams.UnusedDirectiveSpans)

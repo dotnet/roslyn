@@ -45,7 +45,7 @@ internal sealed class ExtractToCssCodeActionResolver(
         var cssFilePath = $"{FilePathNormalizer.Normalize(documentContext.Snapshot.Uri.GetAbsoluteOrUNCPath())}.css";
         var cssFileUri = LspFactory.CreateFilePathUri(cssFilePath, _languageServerFeatureOptions);
 
-        var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var text = codeDocument.Source.Text;
 
         var cssContent = text.ToString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);

@@ -31,7 +31,7 @@ internal sealed class WrapAttributesCodeActionResolver : IRazorCodeActionResolve
         }
 
         var indentationString = FormattingUtilities.GetIndentationString(actionParams.IndentSize, options.InsertSpaces, options.TabSize);
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         using var edits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
 
         foreach (var position in actionParams.NewLinePositions)

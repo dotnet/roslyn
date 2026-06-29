@@ -132,7 +132,7 @@ internal static class CSharpCompletionItemFormatter
 
     private static async Task<TextEdit?> FormatTextEditsAsync(TextEdit[] textEdits, RemoteDocumentContext documentContext, RazorCSharpDocument csharpDocument, RazorFormattingOptions options, IRazorFormattingService formattingService, CancellationToken cancellationToken)
     {
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         var changes = textEdits.SelectAsArray(csharpDocument.Text.GetTextChange);
         var formattedTextChange = await formattingService.TryGetCSharpSnippetFormattingEditAsync(

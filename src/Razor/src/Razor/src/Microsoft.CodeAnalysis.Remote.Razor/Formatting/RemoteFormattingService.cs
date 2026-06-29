@@ -80,7 +80,7 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
     private async ValueTask<ImmutableArray<TextChange>> GetOnTypeFormattingEditsAsync(RemoteDocumentContext context, ImmutableArray<TextChange> htmlChanges, LinePosition linePosition, string triggerCharacter, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var sourceText = await context.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
         if (!sourceText.TryGetAbsoluteIndex(linePosition, out var hostDocumentIndex))
         {
             return [];

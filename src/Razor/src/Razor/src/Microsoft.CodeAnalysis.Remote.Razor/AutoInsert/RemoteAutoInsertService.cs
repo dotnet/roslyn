@@ -76,7 +76,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await remoteDocumentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         if (!sourceText.TryGetAbsoluteIndex(linePosition, out var index))
         {
             return Response.NoFurtherHandling;
@@ -205,7 +205,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
-        var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await remoteDocumentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         return Response.Results(
             new RemoteAutoInsertTextEdit(
                 sourceText.GetLinePositionSpan(change.Span),

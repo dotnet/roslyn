@@ -48,7 +48,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
         var codeBehindPath = FileUtilities.GenerateUniquePath(path, $"{Path.GetExtension(path)}.cs");
         var codeBehindUri = LspFactory.CreateFilePathUri(codeBehindPath, _languageServerFeatureOptions);
 
-        var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var text = codeDocument.Source.Text;
 
         var className = Path.GetFileNameWithoutExtension(path);
         var codeBlockContent = text.ToString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();

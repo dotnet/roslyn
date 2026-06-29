@@ -70,7 +70,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         Position position,
         CancellationToken cancellationToken)
     {
-        var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await remoteDocumentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         if (!sourceText.TryGetAbsoluteIndex(position, out var index))
         {
             return null;
