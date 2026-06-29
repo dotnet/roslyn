@@ -462,6 +462,31 @@ public partial class CohostDocumentPullDiagnosticsTest
     }
 
     [Fact]
+    public Task DontFilterPropertyNameInStyleBlock()
+    {
+        TestCode input = """
+            <style>
+                .foo {
+                    {|CSS024:/****/|}
+                }
+            </style>
+            """;
+
+        return VerifyDiagnosticsAsync(input,
+            htmlResponse: [new VSInternalDiagnosticReport
+            {
+                Diagnostics =
+                [
+                    new LspDiagnostic
+                    {
+                        Code = CSSErrorCodes.MissingPropertyName,
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("/"), "/****/".Length))
+                    },
+                ]
+            }]);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13191")]
     public Task FilterPropertyNameOutsideAttribute()
     {
