@@ -109,18 +109,18 @@ sealed class VirtualProjectBuilder
     internal static IEnumerable<KeyValuePair<string, string>> GetGlobalBuildProperties() =>
     [
         // See https://github.com/dotnet/msbuild/blob/main/documentation/specs/build-nonexistent-projects-by-default.md.
-        KeyValuePair.Create("_BuildNonexistentProjectsByDefault", bool.TrueString),
-        KeyValuePair.Create("RestoreUseSkipNonexistentTargets", bool.FalseString),
+        new KeyValuePair<string, string>("_BuildNonexistentProjectsByDefault", bool.TrueString),
+        new KeyValuePair<string, string>("RestoreUseSkipNonexistentTargets", bool.FalseString),
     ];
 
-    internal static string GetArtifactsPath(string entryPointFileFullPath)
+    internal static string GetArtifactsPath(string entryPointFileFullPath, string? dotNetSubdirectory = null)
     {
         // Include entry point file name so the directory name is not completely opaque.
         string fileName = Path.GetFileNameWithoutExtension(entryPointFileFullPath);
         string hash = Sha256Hasher.HashWithNormalizedCasing(entryPointFileFullPath);
         string directoryName = $"{fileName}-{hash}";
 
-        return GetTempSubpath(directoryName);
+        return GetTempSubpath(name: directoryName, dotNetSubdirectory: dotNetSubdirectory);
     }
 
     private const string CsprojExtension = ".csproj";
@@ -160,7 +160,7 @@ sealed class VirtualProjectBuilder
     /// <summary>
     /// Obtains a temporary subdirectory for file-based app artifacts, e.g., <c>/tmp/dotnet/runfile/</c>.
     /// </summary>
-    internal static string GetTempSubdirectory()
+    internal static string GetTempSubdirectory(string? dotNetSubdirectory = null)
     {
         // We want a location where permissions are expected to be restricted to the current user.
         string directory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -172,15 +172,15 @@ sealed class VirtualProjectBuilder
             throw new InvalidOperationException(FileBasedProgramsResources.EmptyTempPath);
         }
 
-        return Path.Combine(directory, "dotnet", "runfile");
+        return Path.Combine(directory, "dotnet", dotNetSubdirectory ?? "runfile");
     }
 
     /// <summary>
     /// Obtains a specific temporary path in a subdirectory for file-based app artifacts, e.g., <c>/tmp/dotnet/runfile/{name}</c>.
     /// </summary>
-    internal static string GetTempSubpath(string name)
+    internal static string GetTempSubpath(string name, string? dotNetSubdirectory = null)
     {
-        return Path.Combine(GetTempSubdirectory(), name);
+        return Path.Combine(GetTempSubdirectory(dotNetSubdirectory), name);
     }
 
     public static bool IsValidEntryPointPath(string entryPointFilePath)

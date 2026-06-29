@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 
 internal interface IFileBasedProgramService : IWorkspaceService
 {
+    string GetArtifactsPath(string entryPointFileFullPath, string? dotNetSubdirectory = null);
+
     IDictionary<string, string> GetGlobalBuildProperties();
 
     bool IsValidEntryPointPath(string entryPointFilePath);

@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class FileBasedProgramService() : IFileBasedProgramService
 {
+    public string GetArtifactsPath(string entryPointFileFullPath, string? dotNetSubdirectory = null)
+        => VirtualProjectBuilder.GetArtifactsPath(entryPointFileFullPath, dotNetSubdirectory);
+
     public IDictionary<string, string> GetGlobalBuildProperties()
     {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
