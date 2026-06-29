@@ -44,7 +44,7 @@ public class AnalyzerAndGeneratorTimingBenchmarks
     {
         var builder = ImmutableArray.CreateBuilder<SyntaxTree>(SourceFileCount);
         for (var i = 0; i < SourceFileCount; i++)
-            builder.Add(CSharpSyntaxTree.ParseText(CreateSource(i), s_parseOptions, path: $"BenchmarkFile{i}.cs", encoding: Encoding.UTF8));
+            builder.Add(CSharpSyntaxTree.ParseText(SourceText.From(CreateSource(i), Encoding.UTF8), s_parseOptions, path: $"BenchmarkFile{i}.cs"));
 
         _syntaxTrees = builder.ToImmutable();
         _references = Basic.Reference.Assemblies.Net100.References.All;
