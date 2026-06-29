@@ -40,6 +40,7 @@
   <ValueType Name="AccessorKind" />
   <ValueType Name="SafeContext" />
   <ValueType Name="InConversionGroupFlags" />
+  <ValueType Name="UnionMatchingMode" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -2493,10 +2494,13 @@
     <!-- The Union or Nullable<Union> type matched -->
     <Field Name="UnionMatchingInputType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="LeftOfPendingConjunction" Type="BoundPattern?"/>
-    <!-- Info for the corresponding IUnion.Value property -->    
+    <Field Name="ExclusiveInstancePattern" Type="BoundTypePattern?" Null="allow"/>
+    <!-- Info for the corresponding union Value property -->    
     <Field Name="ValueProperty" Type="BoundPropertySubpatternMember"/>
-    <!-- The pattern to match against the IUnion.Value property -->
-    <Field Name="ValuePattern" Type="BoundPattern"/>
+    <!-- The pattern to match against the union Value property -->
+    <Field Name="ExclusiveValuePattern" Type="BoundPattern"/>
+    <!-- The pattern that is conjunctively combined with ExclusiveInstancePattern and with ExclusiveValuePattern -->
+    <Field Name="SharedRightOfPendingConjunction" Type="BoundPattern?"/>
   </Node>
 
   <!-- NarrowedType is always the InputType -->
@@ -2605,7 +2609,7 @@
   <Node Name="BoundTypePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode"/>
   </Node>
 
   <!-- 

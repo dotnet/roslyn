@@ -985,7 +985,7 @@ start:
 
                 if (pattern is BoundTypePattern typePattern1)
                 {
-                    return typePattern1.Update(typePattern1.DeclaredType, typePattern1.IsExplicitNotNullTest, isUnionMatching: false, inputType, typePattern1.NarrowedType);
+                    return typePattern1.Update(typePattern1.DeclaredType, typePattern1.IsExplicitNotNullTest, unionMatchingMode: UnionMatchingMode.None, inputType, typePattern1.NarrowedType);
                 }
 
                 if (pattern is BoundRecursivePattern recursivePattern)
@@ -1035,7 +1035,7 @@ start:
 
                 BoundPattern typePattern = new BoundTypePattern(pattern.Syntax,
                     new BoundTypeExpression(pattern.Syntax, aliasOpt: null, pattern.InputType),
-                    isExplicitNotNullTest: false, isUnionMatching: false, inputType, narrowedType: pattern.InputType).MakeCompilerGenerated();
+                    isExplicitNotNullTest: false, unionMatchingMode: UnionMatchingMode.None, inputType, narrowedType: pattern.InputType).MakeCompilerGenerated();
 
                 var result = new BoundBinaryPattern(pattern.Syntax, disjunction: false, left: typePattern, right: pattern, inputType, pattern.NarrowedType);
 
@@ -1089,7 +1089,7 @@ start:
                 if (node.DeclaredType is not null)
                 {
                     // `Type`
-                    initialCheck = new BoundTypePattern(node.Syntax, node.DeclaredType, node.IsExplicitNotNullTest, isUnionMatching: false, node.InputType, node.NarrowedType, node.HasErrors);
+                    initialCheck = new BoundTypePattern(node.Syntax, node.DeclaredType, node.IsExplicitNotNullTest, unionMatchingMode: UnionMatchingMode.None, node.InputType, node.NarrowedType, node.HasErrors);
                 }
                 else if (node.InputType.CanContainNull())
                 {
