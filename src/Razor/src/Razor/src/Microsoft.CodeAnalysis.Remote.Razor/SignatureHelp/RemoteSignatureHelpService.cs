@@ -32,7 +32,7 @@ internal sealed class RemoteSignatureHelpService(in ServiceArgs args) : RazorDoc
 
     private async ValueTask<LspSignatureHelp?> GetSignatureHelpsAsync(RemoteDocumentContext context, Position position, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var linePosition = new LinePosition(position.Line, position.Character);
         var absoluteIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(linePosition);
 

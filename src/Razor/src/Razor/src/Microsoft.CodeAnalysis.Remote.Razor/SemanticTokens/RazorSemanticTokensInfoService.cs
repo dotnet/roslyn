@@ -79,7 +79,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
         bool colorBackground,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 

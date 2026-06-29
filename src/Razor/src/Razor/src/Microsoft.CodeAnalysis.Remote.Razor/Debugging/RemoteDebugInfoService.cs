@@ -37,7 +37,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
     public async ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(RemoteDocumentContext context, LinePositionSpan span, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!_documentMappingService.TryMapToCSharpDocumentLinePositionSpan(codeDocument, span, out var mappedSpan, out var inDeclDocument))
         {
@@ -66,7 +66,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
     private async ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(RemoteDocumentContext context, LinePosition position, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (!TryGetUsableProjectedIndex(codeDocument, position, out var projectedIndex, out var csharpDocument))
         {
             return null;
@@ -101,7 +101,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
     private async ValueTask<string[]?> ResolveProximityExpressionsAsync(RemoteDocumentContext context, LinePosition position, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (!TryGetUsableProjectedIndex(codeDocument, position, out var projectedIndex, out var csharpDocument))
         {
             return null;

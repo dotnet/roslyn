@@ -40,7 +40,7 @@ internal sealed class ExtractToCssCodeActionResolver(
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var cssFilePath = $"{FilePathNormalizer.Normalize(documentContext.Snapshot.Uri.GetAbsoluteOrUNCPath())}.css";
         var cssFileUri = LspFactory.CreateFilePathUri(cssFilePath, _languageServerFeatureOptions);

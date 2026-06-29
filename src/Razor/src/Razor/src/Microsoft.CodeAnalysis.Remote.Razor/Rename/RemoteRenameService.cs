@@ -58,7 +58,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         string newName,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var hostDocumentIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(position);
         hostDocumentIndex = codeDocument.AdjustPositionForComponentEndTag(hostDocumentIndex);
@@ -112,7 +112,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = codeDocument.Source.Text;
 
         if (!sourceText.TryGetAbsoluteIndex(position, out var hostDocumentIndex))

@@ -19,7 +19,7 @@ internal sealed class SortAndConsolidateUsingsCodeActionResolver : IRazorCodeAct
 
     public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!UsingDirectiveHelper.NeedsSortOrConsolidate(codeDocument))
         {

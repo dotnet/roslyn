@@ -45,7 +45,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return null;
         }
 
-        var componentDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var componentDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var text = componentDocument.Source.Text;
         var path = FilePathNormalizer.Normalize(documentContext.Snapshot.Uri.GetAbsoluteOrUNCPath());

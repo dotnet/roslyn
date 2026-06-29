@@ -82,7 +82,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
-        var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await remoteDocumentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var clientSettings = _clientSettingsManager.GetClientSettings();
 

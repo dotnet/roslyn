@@ -31,7 +31,7 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
 
     private async ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(RemoteDocumentContext context, bool useHierarchicalSymbols, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         // We only care about fields, properties, methods etc. in document symbols, and for components those will exist in the declaration document.
         // For legacy documents, there is no declaration document, so we use the implementation document. An edge case is components that have no

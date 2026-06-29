@@ -55,7 +55,7 @@ internal sealed class RemoteFoldingRangeService(in ServiceArgs args) : RazorDocu
 
         var convertedHtml = htmlRanges.SelectAsArray(RemoteFoldingRange.ToLspFoldingRange);
 
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         return _foldingRangeService.GetFoldingRanges(codeDocument, csharpRanges, declCSharpRanges, convertedHtml, cancellationToken)
             .SelectAsArray(RemoteFoldingRange.FromLspFoldingRange);
     }

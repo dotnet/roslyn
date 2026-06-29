@@ -35,7 +35,7 @@ internal sealed partial class RemoteWrapWithTagService(in ServiceArgs args) : Ra
         LinePositionSpan range,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (WrapWithTagHelper.TryGetValidWrappingRange(codeDocument, range, out var adjustedRange))
         {
             return Response.Results(adjustedRange);

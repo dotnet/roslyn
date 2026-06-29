@@ -34,7 +34,7 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
 
     private async ValueTask<CodeActionRequestInfo> GetCodeActionRequestInfoAsync(RemoteDocumentContext context, VSCodeActionParams request, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var absoluteIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(request.Range.Start);
         var positionInfo = GetPositionInfo(codeDocument, absoluteIndex);

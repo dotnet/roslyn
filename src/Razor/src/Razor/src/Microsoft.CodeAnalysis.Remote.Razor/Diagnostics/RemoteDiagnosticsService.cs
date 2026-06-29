@@ -53,7 +53,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         CancellationToken cancellationToken)
     {
         // We've got C# and Html, lets get Razor diagnostics
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         ImmutableArray<LspDiagnostic> allDiagnostics = [
             .. GetRazorDiagnostics(context, codeDocument),
@@ -170,7 +170,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         LspDiagnostic[] csharpDeclTaskItems,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
         diagnostics.AddRange(TaskListDiagnosticProvider.GetTaskListDiagnostics(codeDocument, _clientSettingsManager.GetClientSettings().AdvancedSettings.TaskListDescriptors));

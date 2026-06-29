@@ -46,7 +46,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var sourceText = codeDocument.Source.Text;
         if (!sourceText.TryGetAbsoluteIndex(position, out var hostDocumentIndex))

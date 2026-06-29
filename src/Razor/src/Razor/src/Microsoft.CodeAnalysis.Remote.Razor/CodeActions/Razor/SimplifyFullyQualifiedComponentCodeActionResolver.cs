@@ -33,7 +33,7 @@ internal sealed class SimplifyFullyQualifiedComponentCodeActionResolver : IRazor
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var text = codeDocument.Source.Text;
 
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Snapshot.Uri };

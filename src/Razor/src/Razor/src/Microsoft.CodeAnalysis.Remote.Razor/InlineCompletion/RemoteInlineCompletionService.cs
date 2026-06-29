@@ -32,7 +32,7 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
 
     public async ValueTask<InlineCompletionRequestInfo?> GetInlineCompletionInfoAsync(RemoteDocumentContext context, LinePosition linePosition, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(linePosition, out var hostDocumentPosition))
         {
@@ -62,7 +62,7 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
 
     private async ValueTask<FormattedInlineCompletionInfo?> FormatInlineCompletionAsync(RemoteDocumentContext context, bool inDeclDocument, RazorFormattingOptions options, LinePositionSpan span, string text, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
 
         if (!_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, span, out var razorRange))

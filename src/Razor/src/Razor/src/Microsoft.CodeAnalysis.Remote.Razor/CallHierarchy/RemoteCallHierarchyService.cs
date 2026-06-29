@@ -45,7 +45,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
         {

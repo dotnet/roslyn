@@ -45,7 +45,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
         {
@@ -153,7 +153,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
             return null;
         }
 
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetCSharpDocumentForHintName(identity.HintName);
 
         return await context.Snapshot.GetGeneratedDocumentAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);

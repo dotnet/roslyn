@@ -128,7 +128,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
         DocumentUri nestedFileUri,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var className = Path.GetFileNameWithoutExtension(razorFilePath);
 
         // Use the Razor compiler's namespace resolution which handles @namespace directives,

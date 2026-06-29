@@ -79,7 +79,7 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
 
     private async ValueTask<ImmutableArray<TextChange>> GetOnTypeFormattingEditsAsync(RemoteDocumentContext context, ImmutableArray<TextChange> htmlChanges, LinePosition linePosition, string triggerCharacter, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = codeDocument.Source.Text;
         if (!sourceText.TryGetAbsoluteIndex(linePosition, out var hostDocumentIndex))
         {
@@ -119,7 +119,7 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
 
     private async ValueTask<Response> GetOnTypeFormattingTriggerKindAsync(RemoteDocumentContext context, LinePosition linePosition, string triggerCharacter, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = codeDocument.Source.Text;
         if (!sourceText.TryGetAbsoluteIndex(linePosition, out var hostDocumentIndex))
         {

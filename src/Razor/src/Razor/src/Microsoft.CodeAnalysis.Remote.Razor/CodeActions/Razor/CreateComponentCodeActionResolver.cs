@@ -39,7 +39,7 @@ internal sealed class CreateComponentCodeActionResolver(LanguageServerFeatureOpt
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var newComponentUri = LspFactory.CreateFilePathUri(actionParams.Path, _languageServerFeatureOptions);
 
         using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();

@@ -66,7 +66,7 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
 
         static async ValueTask<RazorCSharpDocument> GetCSharpDocumentAsync(RemoteDocumentContext context, CancellationToken cancellationToken)
         {
-            var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
             // CodeLens items are only produced for the class members in a generated C# file, so they will always be in the
             // decl document if it exists.
             if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declCSharpDocument)

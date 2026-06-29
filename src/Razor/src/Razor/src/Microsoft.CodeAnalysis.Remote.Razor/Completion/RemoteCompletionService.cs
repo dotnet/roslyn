@@ -81,7 +81,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return null;
         }
 
-        var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await remoteDocumentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var positionInfo = GetPositionInfo(codeDocument, index);
 

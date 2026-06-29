@@ -32,7 +32,7 @@ internal static class CSharpCompletionItemFormatter
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument);
 
         // In VS Code, Roslyn does resolve via a custom command. Thats fine, but we have to modify the text edit sitting within it,

@@ -38,7 +38,7 @@ internal sealed class RemoteSelectionRangeService(in ServiceArgs args) : RazorDo
         Position[] positions,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         // Each position can map to either the implementation or declaration C# document. Keep the
         // position info in request order so we can query each generated document separately and still

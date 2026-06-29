@@ -43,7 +43,7 @@ internal sealed class RemoteLinkedEditingRangeService(in ServiceArgs args) : Raz
             return null;
         }
 
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (!codeDocument.Source.Text.TryGetSourceLocation(linePosition, out var validLocation))
         {
             return null;

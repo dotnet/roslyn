@@ -48,7 +48,7 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
             return Response.NoFurtherHandling;
         }
 
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var languageKind = codeDocument.GetLanguageKind(index, rightAssociative: true);
         if (languageKind is not RazorLanguageKind.Html)

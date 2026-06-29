@@ -40,7 +40,7 @@ internal sealed class RemoteDataTipRangeService(in ServiceArgs args) : RazorDocu
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var razorIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(position);
 
         if (!_documentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, razorIndex, out var csharpPosition, out _, out var inDeclDocument))

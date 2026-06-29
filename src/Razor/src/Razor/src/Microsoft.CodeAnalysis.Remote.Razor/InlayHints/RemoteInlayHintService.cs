@@ -40,7 +40,7 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
 
     private async ValueTask<InlayHint[]?> GetInlayHintsAsync(RemoteDocumentContext context, InlayHintParams inlayHintParams, bool displayAllOverride, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var span = inlayHintParams.Range.ToLinePositionSpan();
 

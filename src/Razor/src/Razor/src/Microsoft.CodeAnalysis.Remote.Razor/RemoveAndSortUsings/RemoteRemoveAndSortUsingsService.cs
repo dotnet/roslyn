@@ -38,7 +38,7 @@ internal sealed class RemoteRemoveAndSortUsingsService(in ServiceArgs args) : Ra
         RemoteDocumentContext context,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = codeDocument.Source.Text;
         var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
         var allUsingDirectives = syntaxTree.GetUsingDirectives();
@@ -83,7 +83,7 @@ internal sealed class RemoteRemoveAndSortUsingsService(in ServiceArgs args) : Ra
         RemoteDocumentContext context,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var textEdits = UsingDirectiveHelper.GetSortAndConsolidateEdits(codeDocument);
         return textEdits.SelectAsArray(codeDocument.Source.Text.GetTextChange);

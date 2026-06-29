@@ -45,7 +45,7 @@ internal sealed class RenameService(
             return new(Edit: null);
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!TryGetOriginTagHelpers(codeDocument, positionInfo.HostDocumentIndex, out var originTagHelpers))
         {

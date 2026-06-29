@@ -42,7 +42,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var path = FilePathNormalizer.Normalize(documentContext.Snapshot.Uri.GetAbsoluteOrUNCPath());
         var codeBehindPath = FileUtilities.GenerateUniquePath(path, $"{Path.GetExtension(path)}.cs");

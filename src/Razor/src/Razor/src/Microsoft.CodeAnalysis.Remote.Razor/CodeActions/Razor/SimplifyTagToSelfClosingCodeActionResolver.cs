@@ -31,7 +31,7 @@ internal sealed class SimplifyTagToSelfClosingCodeActionResolver : IRazorCodeAct
             return null;
         }
 
-        var componentDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var componentDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var text = componentDocument.Source.Text;
         var removeRange = text.GetRange(actionParams.StartTagCloseAngleIndex, actionParams.EndTagCloseAngleIndex);
