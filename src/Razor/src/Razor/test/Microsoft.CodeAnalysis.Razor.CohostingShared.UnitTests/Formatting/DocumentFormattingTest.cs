@@ -9980,6 +9980,34 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    public async Task Formats_IgnoresHtmlFormatterChangesInSingleLineRazorComment()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @* first        second *@
+
+                @code {
+                private int count;
+                }
+                """,
+            htmlFormatted: """
+                @* first second *@
+
+                @code {
+                private int count;
+                }
+                """,
+            expected: """
+                @* first        second *@
+
+                @code {
+                    private int count;
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6192")]
     public async Task Formats_NoEditsForNoChanges()
     {

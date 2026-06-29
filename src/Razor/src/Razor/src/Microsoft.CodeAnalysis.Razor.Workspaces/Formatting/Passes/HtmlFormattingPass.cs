@@ -294,8 +294,7 @@ internal sealed partial class HtmlFormattingPass(
                     : firstNonWhitespace.GetValueOrDefault() + 1;
                 scriptStyleBuilder.Add(TextSpan.FromBounds(startTag.EndPosition, end));
             }
-            else if (node is RazorCommentBlockSyntax comment &&
-                comment.GetLinePositionSpan(codeDocument.Source).SpansMultipleLines())
+            else if (node is RazorCommentBlockSyntax comment)
             {
                 // Razor comment
                 commentBuilder.Add(comment.Span);
