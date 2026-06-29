@@ -63,43 +63,4 @@ internal sealed class RemoteDocumentContext(RemoteDocumentSnapshot snapshot)
             return InterlockedOperations.Initialize(ref _sourceText, sourceText);
         }
     }
-
-    public ValueTask<RazorSyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
-    {
-        return TryGetCodeDocument(out var codeDocument)
-            ? new(GetSyntaxTreeCore(codeDocument))
-            : GetSyntaxTreeCoreAsync(cancellationToken);
-
-        static RazorSyntaxTree GetSyntaxTreeCore(RazorCodeDocument codeDocument)
-        {
-            return codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
-        }
-
-        async ValueTask<RazorSyntaxTree> GetSyntaxTreeCoreAsync(CancellationToken cancellationToken)
-        {
-            var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            return GetSyntaxTreeCore(codeDocument);
-        }
-    }
-
-#if SONICDEV
-    [System.Obsolete("PROTOTYPE(sonic): Call GetCodeDocument and get the right CSharpDocument from that, to prove that you thought about which document to get")]
-#endif
-    public ValueTask<SourceText> GetCSharpSourceTextAsync(CancellationToken cancellationToken)
-    {
-        return TryGetCodeDocument(out var codeDocument)
-            ? new(GetCSharpSourceTextCore(codeDocument))
-            : GetCSharpSourceTextCoreAsync(cancellationToken);
-
-        static SourceText GetCSharpSourceTextCore(RazorCodeDocument codeDocument)
-        {
-            return codeDocument.GetCSharpSourceText();
-        }
-
-        async ValueTask<SourceText> GetCSharpSourceTextCoreAsync(CancellationToken cancellationToken)
-        {
-            var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            return GetCSharpSourceTextCore(codeDocument);
-        }
-    }
 }

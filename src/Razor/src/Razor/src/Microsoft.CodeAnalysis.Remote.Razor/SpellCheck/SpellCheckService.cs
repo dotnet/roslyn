@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -27,15 +27,14 @@ internal sealed class SpellCheckService(
     {
         using var builder = new PooledArrayBuilder<SpellCheckRange>();
 
-        var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
 
         AddRazorSpellCheckRanges(ref builder.AsRef(), syntaxTree);
 
         var csharpRanges = await _csharpSpellCheckService.GetCSharpSpellCheckRangesAsync(documentContext, cancellationToken).ConfigureAwait(false);
-
         if (csharpRanges.Length > 0)
         {
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             AddCSharpSpellCheckRanges(ref builder.AsRef(), csharpRanges, codeDocument);
         }
 
