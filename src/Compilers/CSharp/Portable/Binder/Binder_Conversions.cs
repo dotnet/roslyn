@@ -113,14 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (conversion.IsUnion && !filterConversion(conversion.BestUnionConversionAnalysis.SourceConversion, result))
+                if (conversion.IsUnion && conversion.IsValid && !filterConversion(conversion.BestUnionConversionAnalysis!.SourceConversion, result))
                 {
                     return false;
                 }
 
                 if ((result as BoundConversion)?.ConversionGroupOpt?.Conversion.IsUnion == true &&
                     !conversion.IsUnion &&
-                    conversion != ((BoundConversion)result).ConversionGroupOpt!.Conversion.BestUnionConversionAnalysis!.SourceConversion)
+                    ((BoundConversion)result).ConversionGroupOpt!.Conversion.BestUnionConversionAnalysis is { } analysis &&
+                    conversion != analysis.SourceConversion)
                 {
                     return false;
                 }
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Union conversions are likely to be represented as multiple
                     // BoundConversion instances so a ConversionGroup is necessary.
-                    return CreateUnionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics);
+                    return CreateUnionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
                 }
 
                 ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
@@ -501,6 +502,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (conversion.IsUnion)
                 {
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUnions, diagnostics);
+
+                    if (conversion.Method is { IsStatic: true } method &&
+                        (method.IsAbstract || method.IsVirtual) &&
+                        (Compilation.SourceModule != method.ContainingModule) &&
+                        !Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
+                    }
                 }
                 else if (conversion.IsInlineArray)
                 {
@@ -517,7 +526,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(elementField is { });
 
                     diagnostics.ReportUseSite(elementField, syntax);
-                    AssertNotUnsafeMemberAccess(elementField); // https://github.com/dotnet/roslyn/issues/82546: Support unsafe fields?
 
                     if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
                     {
@@ -1301,6 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
 
                     // Now perform overload resolution given only those two constructors and no others.
+                    BoundExpression result;
                     if (@this._binder.TryPerformOverloadResolutionWithConstructorSubset(
                             constructedListType,
                             ref candidateConstructors,
@@ -1314,12 +1323,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ref useSiteInfo,
                             isParamsModifierValidation: false))
                     {
-                        return @this._binder.BindClassCreationExpressionContinued(
+                        result = @this._binder.BindClassCreationExpressionContinued(
                             withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, wasTargetTyped: false, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
                     }
+                    else
+                    {
+                        result = @this._binder.CreateBadClassCreationExpression(
+                            withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
+                    }
 
-                    return @this._binder.CreateBadClassCreationExpression(
-                        withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
+                    analyzedArguments.Free();
+                    return result;
                 }
             }
 
@@ -2528,7 +2542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,
                     conversionGroup,
-                    InConversionGroupFlags.UserDefinedOperator | InConversionGroupFlags.UserDefinedErroneous,
+                    InConversionGroupFlags.UserDefinedErroneous,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination,
                     hasErrors: true)
@@ -2697,24 +2711,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isCast,
             ConversionGroup conversionGroup,
             TypeSymbol destination,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool hasErrors)
         {
             Debug.Assert(conversionGroup != null);
             Debug.Assert(conversionGroup.Conversion == conversion);
             Debug.Assert(conversion.IsUnion);
-            Debug.Assert(conversion.IsValid);
+
+            conversion.MarkUnderlyingConversionsChecked();
+
+            if (!conversion.IsValid)
+            {
+                if (!hasErrors)
+                    GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
+
+                return new BoundConversion(
+                    syntax,
+                    BindToNaturalType(source, diagnostics),
+                    conversion,
+                    CheckOverflowAtRuntime,
+                    explicitCastInCode: isCast,
+                    conversionGroup,
+                    InConversionGroupFlags.UnionErroneous,
+                    constantValueOpt: ConstantValue.NotAvailable,
+                    type: destination,
+                    hasErrors: true)
+                { WasCompilerGenerated = source.WasCompilerGenerated };
+            }
+
             Debug.Assert(conversion.BestUnionConversionAnalysis is object); // All valid union conversions have this populated
 
             UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
 
             Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
-            Debug.Assert(analysis.Operator is { MethodKind: MethodKind.Constructor, ParameterCount: 1 });
+            Debug.Assert(analysis.Operator is { ParameterCount: 1 } and ({ MethodKind: MethodKind.Constructor } or { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.IsInterface: true }));
             Debug.Assert(TypeSymbol.Equals(analysis.FromType, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
-            Debug.Assert(TypeSymbol.Equals(destination.StrippedType(), analysis.Operator.ContainingType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(destination.StrippedType(), analysis.Operator.MethodKind == MethodKind.Constructor ? analysis.Operator.ContainingType : analysis.Operator.ReturnType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(TypeSymbol.Equals(destination.StrippedType(), analysis.ToType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(analysis.TargetConversion is { IsIdentity: true } or { IsNullable: true, IsImplicit: true });
-
-            conversion.MarkUnderlyingConversionsChecked();
+            Debug.Assert(source.Type?.IsDynamic() != true);
 
             // Original expression --> conversion's "from" type
             BoundExpression convertedOperand = CreateConversion(
@@ -2728,13 +2763,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination: analysis.FromType,
                 diagnostics: diagnostics);
 
-            if (analysis.Operator.ContainingType.IsAbstract)
+            if (analysis.Operator.MethodKind == MethodKind.Constructor)
             {
-                // Report error for new of abstract type.
-                diagnostics.Add(ErrorCode.ERR_NoNewAbstract, syntax.Location, analysis.Operator.ContainingType);
-            }
+                var analyzedArguments = AnalyzedArguments.GetInstance([convertedOperand], argumentNamesOpt: default, argumentRefKindsOpt: default);
+                var instantiatedType = analysis.Operator.ContainingType;
 
-            // https://github.com/dotnet/roslyn/issues/82636: Any other validations to perform? Perhaps we should simply bind object creation, drop the node, but keep diagnostics.
+                if (instantiatedType.IsAbstract)
+                {
+                    // Report error for new of abstract type.
+                    diagnostics.Add(ErrorCode.ERR_NoNewAbstract, syntax.Location, instantiatedType);
+                }
+
+                var candidateConstructors = ImmutableArray.Create(analysis.Operator);
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
+                if (TryPerformOverloadResolutionWithConstructorSubset(
+                        instantiatedType,
+                        ref candidateConstructors,
+                        candidateConstructors,
+                        analyzedArguments,
+                        instantiatedType.Name,
+                        syntax.GetLocation(),
+                        suppressResultDiagnostics: false,
+                        diagnostics,
+                        out var memberResolutionResult,
+                        ref useSiteInfo,
+                        isParamsModifierValidation: false))
+                {
+                    BindClassCreationExpressionContinued(
+                        syntax, syntax, instantiatedType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, wasTargetTyped: false, memberResolutionResult, candidateConstructors, useSiteInfo, diagnostics);
+                }
+                else
+                {
+                    CreateBadClassCreationExpression(
+                        syntax, syntax, instantiatedType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, diagnostics);
+                }
+
+                analyzedArguments.Free();
+            }
 
             var unionConversion = new BoundConversion(
                     syntax,
@@ -3041,7 +3107,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Under the updated memory safety rules, a stackalloc_expression is unsafe if being converted to Span/ROS,
                     // does not have an initializer, and is used within a member with SkipLocalsInitAttribute.
                     // https://github.com/dotnet/roslyn/issues/82546: Confirm this rule with LDM.
-                    if (boundStackAlloc.InitializerOpt is null &&
+                    if (Compilation.SourceModule.UseUpdatedMemorySafetyRules &&
+                        boundStackAlloc.InitializerOpt is null &&
                         ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false })
                     {
                         ReportUnsafeIfNotAllowed(syntax, diagnostics, disallowedUnder: MemorySafetyRules.Updated, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);

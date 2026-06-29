@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 internal abstract class LanguageServerProjectLoader
 {
+    private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
+
     private readonly AsyncBatchingWorkQueue<ProjectToLoad> _projectsToReload;
 
     protected readonly LanguageServerWorkspaceFactory _workspaceFactory;
@@ -126,10 +128,7 @@ internal abstract class LanguageServerProjectLoader
             return properties;
         }
 
-        if (serverConfiguration.RazorDesignTimePath is { } razorDesignTimePath)
-        {
-            properties = properties.Add("RazorDesignTimeTargets", razorDesignTimePath);
-        }
+        properties = properties.Add("RazorDesignTimeTargets", s_razorDesignTimePath);
 
         if (serverConfiguration.CSharpDesignTimePath is { } csharpDesignTimePath)
         {
@@ -160,29 +159,34 @@ internal abstract class LanguageServerProjectLoader
 
         // TODO: support configuration switching
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(
-            knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
-            globalMSBuildProperties: AdditionalProperties,
-            binaryLogPathProvider: _binLogPathProvider,
-            loggerFactory: LoggerFactory);
-
-        var toastErrorReporter = new ToastErrorReporter();
-
         try
         {
-            var projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
-                source: projectsToLoadOrReload,
-                produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
-                {
-                    var (@this, toastErrorReporter, buildHostProcessManager) = args;
-                    var projectRestorePath = await @this.ReloadProjectAsync(
-                        projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
+            ImmutableArray<string> projectsThatNeedRestore;
 
-                    if (projectRestorePath is not null)
-                        produceItem(projectRestorePath);
-                },
-                args: (@this: this, toastErrorReporter, buildHostProcessManager),
-                cancellationToken).ConfigureAwait(false);
+            // Disposing of this BuildHostProcessManager will shut down any processes; so be explicit about the scope so we don't hold onto it longer than
+            // needed.
+            await using (var buildHostProcessManager = new BuildHostProcessManager(
+                knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
+                globalMSBuildProperties: AdditionalProperties,
+                binaryLogPathProvider: _binLogPathProvider,
+                loggerFactory: LoggerFactory))
+            {
+                var toastErrorReporter = new ToastErrorReporter();
+
+                projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
+                    source: projectsToLoadOrReload,
+                    produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
+                    {
+                        var (@this, toastErrorReporter, buildHostProcessManager) = args;
+                        var projectRestorePath = await @this.ReloadProjectAsync(
+                            projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
+
+                        if (projectRestorePath is not null)
+                            produceItem(projectRestorePath);
+                    },
+                    args: (@this: this, toastErrorReporter, buildHostProcessManager),
+                    cancellationToken).ConfigureAwait(false);
+            }
 
             if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {

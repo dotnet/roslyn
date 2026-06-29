@@ -1955,10 +1955,41 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """, MainDescription("struct System.Int32"));
     }
 
+    #region Char literal
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/83154")]
+    [InlineData(@"string f = 'x'$$", "")]
+    [InlineData(@"char c = $$'\u1234';", "\u1234")] // \u1234 is generic displayable char
+    [InlineData(@"char c = '\u12$$34';", "\u1234")]
+    [InlineData(@"char c = '\u1234'$$;", "\u1234")]
+    [InlineData(@"char c = '\u012$$';", "")] // diagnostics (invalid Unicode escape sequence, too short)
+    [InlineData(@"char c = '\u012345$$';", "")] // diagnostics (invalid char, too long)
+    [InlineData(@"char c = '\u01C5'$$;", "\u01C5")] // TitlecaseLetter
+    [InlineData(@"char c = '\u0300'$$;", "")] // NonSpacingMark
+    [InlineData(@"char c = '\u00A0'$$;", "\u00A0")] // SpaceSeparator
+    [InlineData(@"char c = '\u0001'$$;", "")] // Control
+    [InlineData(@"char c = '\u200B'$$;", "")] // Format
+    [InlineData(@"char c = '\uD800'$$;", "")] // Surrogate
+    [InlineData(@"char c = '\x41'$$;", "")] // \x not supported for this currently
+    public Task TestCharLiteral(string code, string expectedCharacter)
+    {
+        Action<QuickInfoItem>[] sections = [MainDescription("struct System.Char")];
+
+        sections = [.. sections, expectedCharacter.Length == 0
+                // In production, the default documentation comment for a `char` is "Represents a Unicode character as a UTF-16 code unit".
+                // In unit tests, the default documentation comment for a `char` is empty string.
+                ? Documentation(string.Empty)
+                : Documentation(string.Format(
+                    FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit,
+                    expectedCharacter))
+        ];
+
+        return TestInMethodAsync(code, sections);
+    }
+
     [Fact]
-    public Task TestCharLiteral()
-        => TestInMethodAsync(@"string f = 'x'$$",
-            MainDescription("struct System.Char"));
+    // right of semi-colon, there is no quick info
+    public Task TestSemiColonAfterCharLiteral() => TestInMethodAsync(@"char c = '\u1234';$$");
+    #endregion Char literal
 
     [Fact]
     public Task DynamicKeyword()
