@@ -77,6 +77,11 @@
         <target state="translated">필터</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
+      <trans-unit id="Generate_documentation">
+        <source>generate documentation</source>
+        <target state="new">generate documentation</target>
+        <note>Accept action shown on the documentation-comment chip, e.g. "Tab to generate documentation".</note>
+      </trans-unit>
       <trans-unit id="Generate_summary_with_Copilot">
         <source>Generate summary with Copilot (might be inaccurate)</source>
         <target state="translated">Copilot을 사용하여 요약 생성(부정확할 수 있음)</target>

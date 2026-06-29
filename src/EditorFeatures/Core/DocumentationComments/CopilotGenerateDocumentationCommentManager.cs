@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,97 +13,126 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Language.Suggestions;
+using Microsoft.VisualStudio.Language.InlinePrompts;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
 [Export(typeof(CopilotGenerateDocumentationCommentManager))]
 internal sealed class CopilotGenerateDocumentationCommentManager
 {
-    private readonly SuggestionServiceBase? _suggestionServiceBase;
+    private readonly InlinePromptServiceBase? _inlinePromptService;
     private readonly IThreadingContext _threadingContext;
     private readonly IAsynchronousOperationListener _asyncListener;
 
+    // Internal InlinePrompt provider id for the documentation-comment chip.
+    private const string GenerateDocumentationProviderName = "Roslyn.GenerateDocumentation";
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CopilotGenerateDocumentationCommentManager([Import(AllowDefault = true)] SuggestionServiceBase? suggestionServiceBase, IThreadingContext threadingContext,
-        IAsynchronousOperationListenerProvider listenerProvider)
+    public CopilotGenerateDocumentationCommentManager(IThreadingContext threadingContext,
+        IAsynchronousOperationListenerProvider listenerProvider, [Import(AllowDefault = true)] InlinePromptServiceBase? inlinePromptService = null)
     {
-        _suggestionServiceBase = suggestionServiceBase;
+        _inlinePromptService = inlinePromptService;
         _threadingContext = threadingContext;
         _asyncListener = listenerProvider.GetListener(FeatureAttribute.GenerateDocumentation);
-    }
-
-    public void StartSuggestionSession(ITextBuffer subjectBuffer, ITextView textView, CancellationToken cancellationToken)
-    {
-        if (_suggestionServiceBase is null)
-        {
-            return;
-        }
-
-        var token = _asyncListener.BeginAsyncOperation(nameof(StartSuggestionSessionAsync));
-        _ = StartSuggestionSessionAsync(subjectBuffer, textView, cancellationToken).CompletesAsyncOperation(token);
-    }
-
-    private static async Task StartSuggestionSessionAsync(ITextBuffer subjectBuffer, ITextView textView, CancellationToken cancellationToken)
-    {
-        var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-        if (document is null)
-        {
-            return;
-        }
-
-        if (await IsCopilotAvailableAsync(document, cancellationToken).ConfigureAwait(false) is null)
-        {
-            return;
-        }
-
-        if (textView.Properties.TryGetProperty<CopilotGenerateDocumentationCommentProvider>(
-            typeof(CopilotGenerateDocumentationCommentProvider), out var existingProvider))
-        {
-            // Start the suggestion session early to claim exclusive control
-            await existingProvider.StartSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
-        }
     }
 
     public void TriggerDocumentationCommentProposalGeneration(Document document,
         DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
     {
-        if (_suggestionServiceBase is null)
+        // No InlinePrompt service means no chip UX, so the typed '///' just leaves the normal doc-comment skeleton.
+        if (_inlinePromptService is null)
         {
             return;
         }
 
-        var token = _asyncListener.BeginAsyncOperation(nameof(GenerateDocumentationCommentProposalsAsync));
-        _ = GenerateDocumentationCommentProposalsAsync(document, snippet, snapshot, caret, textView, cancellationToken).CompletesAsyncOperation(token);
+        var token = _asyncListener.BeginAsyncOperation(nameof(ShowGenerateDocumentationPromptAsync));
+        _ = ShowGenerateDocumentationPromptAsync(document, snippet, snapshot, caret, textView, cancellationToken).CompletesAsyncOperation(token);
     }
 
-    private async Task GenerateDocumentationCommentProposalsAsync(Document document, DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
+    // Show the chip; on accept, generate the Copilot documentation and apply the edits to the buffer.
+    private async Task ShowGenerateDocumentationPromptAsync(Document document,
+        DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
     {
-        var generateDocumentationCommentProvider = await CreateProviderAsync(document, textView, snippet.MemberNode, cancellationToken).ConfigureAwait(false);
-        if (generateDocumentationCommentProvider is not null)
+        // Only offer the chip when Copilot is available, the option is enabled, and the file isn't excluded.
+        if (await IsGenerateDocumentationAvailableAsync(document, snippet.MemberNode, cancellationToken).ConfigureAwait(false) is null)
         {
-            await generateDocumentationCommentProvider.GenerateDocumentationProposalAsync(snippet, snapshot, caret, cancellationToken).ConfigureAwait(false);
+            return;
         }
+
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        _inlinePromptService!.Show(
+            textView,
+            caret,
+            onAcceptAsync: dismissToken => GenerateAndApplyDocumentationAsync(document, snippet, snapshot, textView, dismissToken),
+            new InlinePromptOptions
+            {
+                ProviderName = GenerateDocumentationProviderName,
+                AcceptDescription = EditorFeaturesResources.Generate_documentation,
+                AutoAccept = false,
+
+                // Opt out: the buffer edit and caret move right after showing would otherwise dismiss the chip.
+                AutoDismiss = false,
+            });
     }
 
-    private async Task<CopilotGenerateDocumentationCommentProvider?> CreateProviderAsync(Document document, ITextView textView, SyntaxNode? memberNode, CancellationToken cancellationToken)
+    private async Task GenerateAndApplyDocumentationAsync(Document document,
+        DocumentationCommentSnippet snippet, ITextSnapshot snapshot, ITextView textView, CancellationToken cancellationToken)
     {
-        var copilotService = await IsGenerateDocumentationAvailableAsync(document, memberNode, cancellationToken).ConfigureAwait(false);
-
+        // Re-check Copilot availability / file-exclusion at accept time; degrade quietly otherwise.
+        var copilotService = await IsGenerateDocumentationAvailableAsync(document, snippet.MemberNode, cancellationToken).ConfigureAwait(false);
         if (copilotService is null)
         {
-            return null;
+            return;
         }
 
-        var provider = textView.Properties.GetOrCreateSingletonProperty(typeof(CopilotGenerateDocumentationCommentProvider),
-            () => new CopilotGenerateDocumentationCommentProvider(_threadingContext, copilotService));
+        // MemberNode is non-null once IsGenerateDocumentationAvailableAsync succeeds.
+        var proposal = CopilotDocumentationCommentGenerator.GetSnippetProposal(snippet.SnippetText, snippet.MemberNode!, snippet.Position, snippet.CaretOffset);
+        if (proposal is null)
+        {
+            return;
+        }
 
-        await provider.InitializeAsync(textView, _suggestionServiceBase!, cancellationToken).ConfigureAwait(false);
+        var edits = await CopilotDocumentationCommentGenerator.GenerateEditsAsync(
+            proposal, copilotService, snippet.IndentText, cancellationToken).ConfigureAwait(false);
+        if (edits.IsEmpty)
+        {
+            return;
+        }
 
-        return provider;
+        // Apply the edit fire-and-forget: returning tears the session down (cancelling the token), so the write
+        // must run afterward and not flow that token.
+        var token = _asyncListener.BeginAsyncOperation(nameof(ApplyDocumentationEditsAsync));
+        _ = ApplyDocumentationEditsAsync(textView.TextBuffer, snapshot, edits).CompletesAsyncOperation(token);
+    }
+
+    private async Task ApplyDocumentationEditsAsync(ITextBuffer buffer, ITextSnapshot snapshot, ImmutableArray<DocumentationCommentEdit> edits)
+    {
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+        ApplyEdits(buffer, snapshot, edits);
+    }
+
+    /// <summary>
+    /// Applies the generated documentation edits to <paramref name="buffer"/> in a single transaction. The edit
+    /// spans are positions in <paramref name="snapshot"/> (captured when the chip was shown), so they are
+    /// translated to the buffer's current snapshot in case it changed before the user accepted.
+    /// </summary>
+    internal static void ApplyEdits(ITextBuffer buffer, ITextSnapshot snapshot, ImmutableArray<DocumentationCommentEdit> edits)
+    {
+        var currentSnapshot = buffer.CurrentSnapshot;
+        using var bufferEdit = buffer.CreateEdit();
+        foreach (var edit in edits)
+        {
+            var span = new SnapshotSpan(snapshot, edit.SpanToReplace.Start, edit.SpanToReplace.Length)
+                .TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive);
+            bufferEdit.Replace(span, edit.ReplacementText);
+        }
+
+        bufferEdit.Apply();
     }
 
     private static async Task<ICopilotCodeAnalysisService?> IsCopilotAvailableAsync(Document document, CancellationToken cancellationToken)

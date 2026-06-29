@@ -945,4 +945,8 @@
     <value>Chat limit reached, [upgrade now] or wait for the limit to reset.</value>
     <comment>The text surrounded by "[" and "]" characters will be hyperlinked. Please ensure the localized text still has "[" and "]" characters.</comment>
   </data>
+  <data name="Generate_documentation" xml:space="preserve">
+    <value>generate documentation</value>
+    <comment>Accept action shown on the documentation-comment chip, e.g. "Tab to generate documentation".</comment>
+  </data>
 </root>

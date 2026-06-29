@@ -17,10 +17,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests;
 
 public static class EditorTestCompositions
 {
+    // Microsoft.VisualStudio.Platform.VSEditor.dll provides the real editor implementation. Since editor
+    // 18.9.x it also exports its own IObscuringTipManager (the internal TipManager); we exclude that part
+    // below and keep the no-op TestObscuringTipManager so tests retain the historical tooltip behavior
+    // (see bug 544569).
+    private static readonly Assembly s_platformVSEditorAssembly = Assembly.LoadFrom("Microsoft.VisualStudio.Platform.VSEditor.dll");
+
     public static readonly TestComposition Editor = TestComposition.Empty
         .AddAssemblies(
             // Microsoft.VisualStudio.Platform.VSEditor.dll:
-            Assembly.LoadFrom("Microsoft.VisualStudio.Platform.VSEditor.dll"),
+            s_platformVSEditorAssembly,
 
             // Microsoft.VisualStudio.Text.Logic.dll:
             //   Must include this because several editor options are actually stored as exported information 
@@ -53,7 +59,11 @@ public static class EditorTestCompositions
             typeof(WpfDispatcherTaskJoiner),
             typeof(StubStreamingFindUsagesPresenter), // actual implementation is in VS layer
             typeof(EditorNotificationServiceFactory), // TODO: use mock INotificationService instead (https://github.com/dotnet/roslyn/issues/46045)
-            typeof(TestObscuringTipManager));         // TODO: https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569
+            typeof(TestObscuringTipManager),          // TODO: https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569
+            typeof(TestToolTipPresenterFactory))
+        // The editor implementation now exports its own IObscuringTipManager (TipManager); exclude it so the
+        // no-op TestObscuringTipManager above remains the single export.
+        .AddExcludedPartTypes(s_platformVSEditorAssembly.GetType("Microsoft.VisualStudio.Text.Editor.Implementation.TipManager", throwOnError: true));
 
     public static readonly TestComposition EditorFeatures = FeaturesTestCompositions.Features
         .Add(Editor)
