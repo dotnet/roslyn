@@ -82,10 +82,9 @@ public class HtmlCodeActionProviderTest
 
         var razorEditServiceMock = new StrictMock<IRazorEditService>();
         razorEditServiceMock
-            .Setup(x => x.MapWorkspaceEditAsync(It.IsAny<RemoteDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
-            .Callback<RemoteDocumentSnapshot, WorkspaceEdit, CancellationToken>((snapshot, edit, _) =>
+            .Setup(x => x.MapWorkspaceEditAsync(It.IsAny<Solution>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
+            .Callback<Solution, WorkspaceEdit, CancellationToken>((_, edit, _) =>
             {
-                Assert.IsType<RemoteDocumentSnapshot>(snapshot);
                 var textDocumentEdit = edit.EnumerateTextDocumentEdits().First();
                 textDocumentEdit.TextDocument.DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
                 textDocumentEdit.Edits = [LspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")];
