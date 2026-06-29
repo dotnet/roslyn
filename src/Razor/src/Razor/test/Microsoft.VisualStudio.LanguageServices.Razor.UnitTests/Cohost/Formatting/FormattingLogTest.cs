@@ -65,6 +65,7 @@ public partial class FormattingLogTest(ITestOutputHelper testOutput) : DocumentF
         => Assert.NotNull(await GetFormattingEditsAsync());
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
     public async Task RanOutOfOriginalLinesFullFormatting()
         => Assert.NotNull(await GetFormattingEditsAsync());
 
