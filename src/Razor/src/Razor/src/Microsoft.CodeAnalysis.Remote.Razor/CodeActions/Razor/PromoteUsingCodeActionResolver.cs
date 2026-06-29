@@ -41,7 +41,7 @@ internal sealed class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : I
 
         var importsFileName = PromoteUsingCodeActionProvider.GetImportsFileName(documentContext.Snapshot.FileKind);
 
-        var file = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
+        var file = FilePathNormalizer.Normalize(documentContext.Snapshot.Uri.GetAbsoluteOrUNCPath());
         var folder = Path.GetDirectoryName(file).AssumeNotNull();
         var importsFile = Path.GetFullPath(Path.Combine(folder, "..", importsFileName));
         var importFileUri = LspFactory.CreateFilePathUri(importsFile);
@@ -78,7 +78,7 @@ internal sealed class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : I
 
         edits.Add(new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Snapshot.Uri },
             Edits = [LspFactory.CreateTextEdit(removeRange, string.Empty)]
         });
 

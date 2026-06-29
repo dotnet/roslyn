@@ -7,19 +7,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 internal sealed class RemoteDocumentSnapshot
 {
-    public TextDocument TextDocument { get; }
-    public RemoteProjectSnapshot ProjectSnapshot { get; }
-
     private RazorCodeDocument? _codeDocument;
     private SourceGeneratedDocument? _generatedDocument;
     private SourceGeneratedDocument? _declGeneratedDocument;
     private bool _declGeneratedDocumentInitialized;
+
+    public TextDocument TextDocument { get; }
+    public RemoteProjectSnapshot ProjectSnapshot { get; }
+
+    public DocumentUri Uri
+    {
+        get
+        {
+            field ??= TextDocument.GetURI();
+            return field;
+        }
+    }
 
     public RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot)
     {

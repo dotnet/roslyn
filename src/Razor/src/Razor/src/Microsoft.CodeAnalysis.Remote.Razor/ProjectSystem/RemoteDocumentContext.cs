@@ -10,12 +10,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal sealed class RemoteDocumentContext(DocumentUri uri, RemoteDocumentSnapshot snapshot)
+internal sealed class RemoteDocumentContext(RemoteDocumentSnapshot snapshot)
 {
     private RazorCodeDocument? _codeDocument;
     private SourceText? _sourceText;
 
-    public DocumentUri Uri { get; } = uri;
     public RemoteDocumentSnapshot Snapshot { get; } = snapshot;
 
     public TextDocument TextDocument => Snapshot.TextDocument;

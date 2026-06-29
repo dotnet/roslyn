@@ -61,7 +61,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
 
         var amount = semanticTokens is null ? "no" : (semanticTokens.Length / TokenSize).ToString(Thread.CurrentThread.CurrentCulture);
 
-        _logger.LogDebug($"Returned {amount} semantic tokens for span {span} in {documentContext.Uri}.");
+        _logger.LogDebug($"Returned {amount} semantic tokens for span {span} in {documentContext.Snapshot.Uri}.");
 
         if (semanticTokens is not null)
         {
@@ -108,7 +108,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
         // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
         if (!successfullyRetrievedCSharpSemanticRanges)
         {
-            _logger.LogDebug($"Couldn't get C# tokens for {documentContext.Uri}. Returning null");
+            _logger.LogDebug($"Couldn't get C# tokens for {documentContext.Snapshot.Uri}. Returning null");
             return null;
         }
 

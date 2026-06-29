@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -76,6 +75,6 @@ internal abstract class RazorDocumentServiceBase(in ServiceArgs args) : RazorBro
 
         var documentSnapshot = SnapshotManager.GetSnapshot(razorDocument);
 
-        return new RemoteDocumentContext(razorDocument.GetURI(), documentSnapshot);
+        return new RemoteDocumentContext(documentSnapshot);
     }
 }

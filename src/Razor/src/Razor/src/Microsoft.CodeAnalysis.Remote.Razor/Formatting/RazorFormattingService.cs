@@ -101,7 +101,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         logger?.LogSourceText("InitialDocument", sourceText);
         LogSyntaxTree(logger, codeDocument);
 
-        var uri = documentContext.Uri;
+        var uri = documentContext.Snapshot.Uri;
         var documentSnapshot = documentContext.Snapshot;
         var context = FormattingContext.Create(
             documentSnapshot,

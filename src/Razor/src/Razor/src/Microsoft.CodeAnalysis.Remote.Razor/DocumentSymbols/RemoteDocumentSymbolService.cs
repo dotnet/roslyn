@@ -62,7 +62,7 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
             csharpSymbols = ConvertDocumentSymbols(roslynDocumentSymbols);
         }
 
-        return _documentSymbolService.GetDocumentSymbols(context.Snapshot.FileKind, context.Uri, csharpDocument, csharpSymbols);
+        return _documentSymbolService.GetDocumentSymbols(context.Snapshot.FileKind, context.Snapshot.Uri, csharpDocument, csharpSymbols);
     }
 
     private static DocumentSymbol[] ConvertDocumentSymbols(DocumentSymbol[] roslynDocumentSymbols)

@@ -47,7 +47,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
         }
 
         var code = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var razorFilePath = documentContext.Uri.GetDocumentFilePathFromUri();
+        var razorFilePath = documentContext.Snapshot.Uri.GetDocumentFilePathFromUri();
         var razorClassName = Path.GetFileNameWithoutExtension(razorFilePath);
         var codeBehindPath = $"{razorFilePath}.cs";
 
@@ -141,7 +141,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             DocumentChanges = new[] {
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Snapshot.Uri },
                     Edits = [code.Source.Text.GetTextEdit(razorChange)],
                 }
             }

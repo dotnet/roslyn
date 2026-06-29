@@ -32,7 +32,7 @@ public class HtmlCodeActionResolverTest
 
         var documentPath = TestProjectData.SomeProjectComponentFile1.FilePath;
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
-        var (context, sourceText, workspace) = CreateDocumentContext(documentUri, documentPath, contents);
+        var (context, sourceText, workspace) = CreateDocumentContext(documentPath, contents);
         using var workspaceLifetime = workspace;
 
         var razorEditServiceMock = new StrictMock<IRazorEditService>();
@@ -82,7 +82,7 @@ public class HtmlCodeActionResolverTest
         Assert.Equal("Goo @(DateTime.Now) Bar", changed.ToString());
     }
 
-    private static (RemoteDocumentContext Context, SourceText SourceText, AdhocWorkspace Workspace) CreateDocumentContext(DocumentUri documentUri, string filePath, string text)
+    private static (RemoteDocumentContext Context, SourceText SourceText, AdhocWorkspace Workspace) CreateDocumentContext(string filePath, string text)
     {
         var sourceText = SourceText.From(text);
 
@@ -100,6 +100,6 @@ public class HtmlCodeActionResolverTest
         var snapshotManager = new RemoteSnapshotManager(new RemoteFilePathService(), NoOpTelemetryReporter.Instance);
         var snapshot = snapshotManager.GetSnapshot(document);
 
-        return (new RemoteDocumentContext(documentUri, snapshot), sourceText, workspace);
+        return (new RemoteDocumentContext(snapshot), sourceText, workspace);
     }
 }

@@ -67,7 +67,7 @@ internal static class CSharpCompletionItemFormatter
                 {
                     args[0] = new TextDocumentIdentifier()
                     {
-                        DocumentUri = documentContext.Uri,
+                        DocumentUri = documentContext.Snapshot.Uri,
                     };
                     args[1] = formattedTextEdit;
                     if (nextCursorPosition >= 0)

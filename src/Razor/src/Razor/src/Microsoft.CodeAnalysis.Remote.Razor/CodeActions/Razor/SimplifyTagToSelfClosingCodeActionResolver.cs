@@ -40,7 +40,7 @@ internal sealed class SimplifyTagToSelfClosingCodeActionResolver : IRazorCodeAct
         {
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri= documentContext.Uri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri= documentContext.Snapshot.Uri },
                 Edits =
                 [
                     new TextEdit
