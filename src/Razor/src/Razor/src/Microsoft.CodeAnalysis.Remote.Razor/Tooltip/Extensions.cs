@@ -5,8 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 internal static class Extensions
 {
@@ -37,7 +38,7 @@ internal static class Extensions
             if (builder.Length == 0)
             {
                 builder.AppendLine();
-                builder.Append($"⚠️ {SR.Not_Available_In}:");
+                builder.Append($"⚠️ {WorkspacesSR.Not_Available_In}:");
             }
 
             builder.AppendLine();

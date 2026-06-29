@@ -2,15 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazorComponentSearchEngine
+[Export(typeof(IRazorComponentSearchEngine)), Shared]
+[method: ImportingConstructor]
+internal sealed class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazorComponentSearchEngine
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorComponentSearchEngine>();
 
@@ -20,14 +23,14 @@ internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazor
     /// <param name="tagHelper">
     ///  A <see cref="TagHelperDescriptor"/> to find the corresponding Razor component for.
     /// </param>
-    /// <param name="solutionQueryOperations">
-    ///  An <see cref="ISolutionQueryOperations"/> to enumerate project snapshots.
+    /// <param name="solutionSnapshot">
+    ///  A <see cref="RemoteSolutionSnapshot"/> to enumerate project snapshots.
     /// </param>
     /// <param name="cancellationToken">
     ///  A token that is checked to cancel work.
     /// </param>
     /// <returns>
-    ///  The corresponding <see cref="IDocumentSnapshot"/> if found, <see langword="null"/> otherwise.
+    ///  The corresponding <see cref="RemoteDocumentSnapshot"/> if found, <see langword="null"/> otherwise.
     /// </returns>
     /// <remarks>
     ///  This method makes several assumptions about the nature of components. First,
@@ -39,9 +42,9 @@ internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazor
     /// <exception cref="ArgumentNullException">
     ///  Thrown if <paramref name="tagHelper"/> is <see langword="null"/>.
     /// </exception>
-    public async Task<IDocumentSnapshot?> TryLocateComponentAsync(
+    public async Task<RemoteDocumentSnapshot?> TryLocateComponentAsync(
         TagHelperDescriptor tagHelper,
-        ISolutionQueryOperations solutionQueryOperations,
+        RemoteSolutionSnapshot solutionSnapshot,
         CancellationToken cancellationToken)
     {
         if (tagHelper.Kind != TagHelperKind.Component)
@@ -59,7 +62,7 @@ internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazor
 
         var lookupSymbolName = RemoveGenericContent(typeName.AsMemory());
 
-        foreach (var project in solutionQueryOperations.GetProjects())
+        foreach (var project in solutionSnapshot.GetProjects())
         {
             foreach (var path in project.DocumentFilePaths)
             {

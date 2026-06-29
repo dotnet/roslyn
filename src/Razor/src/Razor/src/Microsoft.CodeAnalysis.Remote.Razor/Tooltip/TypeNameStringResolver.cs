@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 internal static class TypeNameStringResolver
 {

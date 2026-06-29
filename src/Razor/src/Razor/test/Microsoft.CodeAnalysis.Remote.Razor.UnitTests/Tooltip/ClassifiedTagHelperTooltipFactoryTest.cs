@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,11 +8,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Roslyn.Text.Adornments;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 public class ClassifiedTagHelperTooltipFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
@@ -322,7 +321,7 @@ End summary description.";
         var elementDescription = AggregateBoundAttributeDescription.Empty;
 
         // Act
-        Assert.False(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(elementDescription, out ClassifiedTextElement _));
+        Assert.False(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(elementDescription, out ClassifiedTextElement? _));
     }
 
     [Fact]
@@ -340,9 +339,11 @@ End summary description.";
         var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
         // Act
-        Assert.True(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, out ClassifiedTextElement classifiedTextElement));
+        Assert.True(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, out ClassifiedTextElement? classifiedTextElement));
 
         // Assert
+        Assert.NotNull(classifiedTextElement);
+
         // Expected output:
         //     string Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.SomeProperty
         //     Uses List<List<string>>s
@@ -390,9 +391,10 @@ End summary description.";
         var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
         // Act
-        Assert.True(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, out ClassifiedTextElement classifiedTextElement));
+        Assert.True(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, out ClassifiedTextElement? classifiedTextElement));
 
         // Assert
+        Assert.NotNull(classifiedTextElement);
 
         // Expected output:
         //     string Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.SomeProperty
@@ -549,7 +551,7 @@ End summary description.";
         var elementDescription = AggregateBoundAttributeDescription.Empty;
 
         // Act
-        Assert.False(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(elementDescription, out ContainerElement _));
+        Assert.False(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(elementDescription, out ContainerElement? _));
     }
 
     [Fact]
@@ -572,9 +574,11 @@ End summary description.";
         var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions.ToImmutableArray());
 
         // Act
-        Assert.True(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, out ContainerElement container));
+        Assert.True(ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attributeDescription, out ContainerElement? container));
 
         // Assert
+        Assert.NotNull(container);
+
         var containerElements = container.Elements.ToList();
 
         // Expected output:

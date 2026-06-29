@@ -11,7 +11,7 @@ using Xunit;
 using Xunit.Abstractions;
 using SR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {

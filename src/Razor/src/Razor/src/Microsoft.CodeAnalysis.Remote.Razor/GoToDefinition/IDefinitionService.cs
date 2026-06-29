@@ -4,7 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 
@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 internal interface IDefinitionService
 {
     Task<LspLocation[]?> GetDefinitionAsync(
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         DocumentPositionInfo positionInfo,
-        ISolutionQueryOperations solutionQueryOperations,
+        RemoteSolutionSnapshot solutionSnapshot,
         bool includeMvcTagHelpers,
         CancellationToken cancellationToken);
 
     Task<LspLocation[]?> TryGetDefinitionFromStringLiteralAsync(
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         Position position,
         bool inDeclDocument,
         CancellationToken cancellationToken);

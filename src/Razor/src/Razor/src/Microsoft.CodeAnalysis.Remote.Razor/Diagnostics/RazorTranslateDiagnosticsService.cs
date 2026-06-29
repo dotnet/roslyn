@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Text;
@@ -43,7 +42,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
     ///  An array of <see cref="Diagnostic"/> objects to translate.
     /// </param>
     /// <param name="documentSnapshot">
-    ///  The <see cref="IDocumentSnapshot"/> for the code document associated with the diagnostics.
+    ///  The <see cref="RemoteDocumentSnapshot"/> for the code document associated with the diagnostics.
     /// </param>
     /// <param name="cancellationToken">A token that can be checked to cancel work.</param>
     /// <returns>An array of translated diagnostics</returns>

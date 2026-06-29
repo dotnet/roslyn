@@ -10,14 +10,13 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 internal partial class RazorEditService
 {
-    public async Task MapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
+    public async Task MapWorkspaceEditAsync(RemoteDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
     {
         if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
         {

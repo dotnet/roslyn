@@ -4,9 +4,9 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 internal interface IComponentAvailabilityService
 {
@@ -14,7 +14,7 @@ internal interface IComponentAvailabilityService
     ///  Returns an array of projects that contain the specified document and whether the
     ///  given component or tag helper type name is available within it.
     /// </summary>
-    Task<ImmutableArray<(IProjectSnapshot Project, bool IsAvailable)>> GetComponentAvailabilityAsync(
+    Task<ImmutableArray<(RemoteProjectSnapshot Project, bool IsAvailable)>> GetComponentAvailabilityAsync(
         string documentFilePath,
         string typeName,
         CancellationToken cancellationToken);

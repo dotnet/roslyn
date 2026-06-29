@@ -50,7 +50,7 @@ public class DocumentFormattingBenchmark
         AnalyzerAssemblyLoader.Instance);
 
     private AdhocWorkspace? _workspace;
-    private DocumentContext? _documentContext;
+    private RemoteDocumentContext? _documentContext;
     private SourceText? _sourceText;
     private ImmutableArray<TextChange> _htmlChanges;
     private RazorFormattingService? _formattingService;
@@ -75,7 +75,7 @@ public class DocumentFormattingBenchmark
         var filePathService = new RemoteFilePathService();
         var snapshotManager = new RemoteSnapshotManager(filePathService, NoOpTelemetryReporter.Instance);
         var documentSnapshot = snapshotManager.GetSnapshot(document);
-        _documentContext = new DocumentContext(s_documentUri, documentSnapshot);
+        _documentContext = new RemoteDocumentContext(s_documentUri, documentSnapshot);
 
         var hostServicesProvider = new RemoteHostServicesProvider();
         hostServicesProvider.SetWorkspaceProvider(new WorkspaceProvider(_workspace));

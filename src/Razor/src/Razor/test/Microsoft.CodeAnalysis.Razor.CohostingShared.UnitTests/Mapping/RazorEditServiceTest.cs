@@ -8,11 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -24,13 +23,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Mapping;
 
 public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
-    private IRazorEditService? _razorEditService;
+    private RazorEditService? _razorEditService;
 
     protected override async Task InitializeAsync()
     {
         await base.InitializeAsync();
 
-        _razorEditService = OOPExportProvider.GetExportedValue<IRazorEditService>();
+        _razorEditService = Assert.IsType<RazorEditService>(OOPExportProvider.GetExportedValue<IRazorEditService>());
     }
 
     [Fact]
@@ -2028,11 +2027,12 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
             sourceMappings.OrderByAsArray(s => s.GeneratedSpan.AbsoluteIndex));
 
         codeDocument = codeDocument.WithImplCSharpDocument(csharpDocument);
-        var snapshot = TestDocumentSnapshot.Create(razorPath, codeDocument);
+        var originalCSharpSyntaxTree = CSharpSyntaxTree.ParseText(csharpDocument.Text, cancellationToken: DisposalToken);
 
-        var responseTextChanges = await _razorEditService.AssumeNotNull().MapCSharpEditsAsync(
+        var responseTextChanges = await _razorEditService.AssumeNotNull().GetTestAccessor().MapCSharpEditsAsync(
             changes.SelectAsArray(static c => c.ToRazorTextChange()),
-            snapshot,
+            codeDocument,
+            originalCSharpSyntaxTree,
             declarationDocument: false,
             includeCSharpLanguageFeatureEdits: true,
             directlyMappedEditFilter: null,

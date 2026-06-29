@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
@@ -26,6 +25,7 @@ using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.Completion;
 using Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.Hover;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -501,7 +501,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
             var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
 
-            item = await DelegatedCompletionHelper.FormatCSharpCompletionItemAsync(
+            item = await CSharpCompletionItemFormatter.FormatAsync(
                 item,
                 context,
                 generatedDocument.Project.Solution,

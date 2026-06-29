@@ -108,7 +108,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
         // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
         if (!successfullyRetrievedCSharpSemanticRanges)
         {
-            _logger.LogDebug($"Couldn't get C# tokens for version {documentContext.Snapshot.Version} of {documentContext.Uri}. Returning null");
+            _logger.LogDebug($"Couldn't get C# tokens for {documentContext.Uri}. Returning null");
             return null;
         }
 
@@ -155,7 +155,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
                 return true;
             }
 
-            _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Snapshot.Version}, correlation ID {correlationId}, decl half: {csharpDocument.IsDeclarationDocument}, and the server thinks there are {csharpDocument.Text.Lines.Count} lines of C#");
+            _logger.LogDebug($"Requesting C# semantic tokens for correlation ID {correlationId}, decl half: {csharpDocument.IsDeclarationDocument}, and the server thinks there are {csharpDocument.Text.Lines.Count} lines of C#");
 
             var csharpResponse = await GetCSharpSemanticTokensResponseAsync(documentContext.Snapshot, csharpDocument.IsDeclarationDocument, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
 

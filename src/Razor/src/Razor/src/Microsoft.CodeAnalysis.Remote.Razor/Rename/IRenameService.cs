@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Rename;
@@ -16,7 +15,7 @@ internal interface IRenameService
         RemoteDocumentContext documentContext,
         DocumentPositionInfo positionInfo,
         string newName,
-        ISolutionQueryOperations solutionQueryOperations,
+        RemoteSolutionSnapshot solutionSnapshot,
         CancellationToken cancellationToken);
 
     /// <summary>

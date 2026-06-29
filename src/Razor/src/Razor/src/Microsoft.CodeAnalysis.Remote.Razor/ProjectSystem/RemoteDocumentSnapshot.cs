@@ -7,12 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
+internal sealed class RemoteDocumentSnapshot
 {
     public TextDocument TextDocument { get; }
     public RemoteProjectSnapshot ProjectSnapshot { get; }
@@ -37,9 +36,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
     public string FilePath => TextDocument.FilePath.AssumeNotNull();
     public string TargetPath => TextDocument.FilePath.AssumeNotNull();
 
-    public IProjectSnapshot Project => ProjectSnapshot;
-
-    public int Version => -999; // We don't expect to use this in cohosting, but plenty of existing code logs it's value
+    public RemoteProjectSnapshot Project => ProjectSnapshot;
 
     public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {
@@ -75,7 +72,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         return InterlockedOperations.Initialize(ref _codeDocument, document);
     }
 
-    public IDocumentSnapshot WithText(SourceText text)
+    public RemoteDocumentSnapshot WithText(SourceText text)
     {
         var id = TextDocument.Id;
         var newDocument = TextDocument.Project.Solution

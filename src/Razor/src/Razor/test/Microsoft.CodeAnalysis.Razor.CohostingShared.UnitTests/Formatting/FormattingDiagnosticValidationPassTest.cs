@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -89,7 +88,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
         return context;
     }
 
-    private async Task<(RazorCodeDocument, IDocumentSnapshot)> CreateCodeDocumentAndSnapshotAsync(
+    private async Task<(RazorCodeDocument, RemoteDocumentSnapshot)> CreateCodeDocumentAndSnapshotAsync(
         SourceText text,
         string path,
         RazorFileKind? fileKind = null)

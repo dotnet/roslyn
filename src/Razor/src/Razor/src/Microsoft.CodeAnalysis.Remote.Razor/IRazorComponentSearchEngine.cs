@@ -4,14 +4,14 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal interface IRazorComponentSearchEngine
 {
-    Task<IDocumentSnapshot?> TryLocateComponentAsync(
+    Task<RemoteDocumentSnapshot?> TryLocateComponentAsync(
         TagHelperDescriptor tagHelper,
-        ISolutionQueryOperations solutionQueryOperations,
+        RemoteSolutionSnapshot solutionSnapshot,
         CancellationToken cancellationToken);
 }
