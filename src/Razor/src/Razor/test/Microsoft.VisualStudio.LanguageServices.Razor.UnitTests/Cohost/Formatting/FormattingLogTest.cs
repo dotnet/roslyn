@@ -64,6 +64,10 @@ public partial class FormattingLogTest(ITestOutputHelper testOutput) : DocumentF
     public async Task GameTracAdmin()
         => Assert.NotNull(await GetFormattingEditsAsync());
 
+    [Fact]
+    public async Task RanOutOfOriginalLinesFullFormatting()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
     private async Task<TextEdit[]?> GetFormattingEditsAsync([CallerMemberName] string? testName = null)
     {
         var contents = GetResource(testName.AssumeNotNull(), "InitialDocument.txt").AssumeNotNull();
