@@ -178,6 +178,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         {
             return CompletionResults.CallHtml;
         }
+
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         GetRazorCompletionContextAndLocalHtmlCompletionList(

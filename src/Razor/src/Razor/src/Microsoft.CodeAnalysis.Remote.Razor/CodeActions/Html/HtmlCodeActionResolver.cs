@@ -19,12 +19,6 @@ internal sealed class HtmlCodeActionResolver(IRazorEditService razorEditService)
 
     public string Action => LanguageServerConstants.CodeActions.Default;
 
-    Task<CodeAction> IHtmlCodeActionResolver.ResolveAsync(
-        RemoteDocumentSnapshot documentSnapshot,
-        CodeAction codeAction,
-        CancellationToken cancellationToken)
-        => ResolveAsync(documentSnapshot, codeAction, cancellationToken);
-
     public async Task<CodeAction> ResolveAsync(
         RemoteDocumentSnapshot documentSnapshot,
         CodeAction codeAction,
