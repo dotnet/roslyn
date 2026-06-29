@@ -7,8 +7,8 @@
   -->
   <PropertyGroup>
     <_MicrosoftWebToolsPackageVersion>17.11.11-preview-0001</_MicrosoftWebToolsPackageVersion>
-    <_MicrosoftVisualStudioShellPackagesVersion>18.0.2188-preview.1</_MicrosoftVisualStudioShellPackagesVersion>
-    <_MicrosoftVisualStudioPackagesVersion>18.0.404-preview</_MicrosoftVisualStudioPackagesVersion>
+    <_MicrosoftVisualStudioShellPackagesVersion>18.9.1027</_MicrosoftVisualStudioShellPackagesVersion>
+    <_MicrosoftVisualStudioPackagesVersion>18.9.165</_MicrosoftVisualStudioPackagesVersion>
     <_VisualStudioLanguageServerProtocolVersion>17.12.1-preview</_VisualStudioLanguageServerProtocolVersion>
     <_MicrosoftExtensionsPackageVersion>10.0.1</_MicrosoftExtensionsPackageVersion>
     <_MicrosoftVisualStudioLanguageServicesPackageVersion>$(MicrosoftVisualStudioLanguageServicesPackageVersion)</_MicrosoftVisualStudioLanguageServicesPackageVersion>
@@ -19,9 +19,9 @@
     <PackageVersion Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" Version="10.0.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(_MicrosoftExtensionsPackageVersion)" />
-    <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
+    <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="18.9.1019" />
     <PackageVersion Include="Microsoft.NET.Sdk.Razor" Version="11.0.100-preview.4.26215.114" />
-    <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="0.2.28-beta" />
+    <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="18.9.550" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(_MicrosoftVisualStudioPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
