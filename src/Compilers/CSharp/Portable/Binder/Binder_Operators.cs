@@ -4848,7 +4848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRangeAndFree(isTypeDiagnostics);
 
             if (((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) && // PROTOTYPE: Add test coverage for this case
-                inputType?.IsUnionMatchingInputType(out var unionTypeOverride) == true)
+                inputType?.IsUnionMatchingInputType(unionType: out _) == true)
             {
                 var tryUnionMatchingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                 CompoundUseSiteInfo<AssemblySymbol> tryUnionMatchingUseSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
