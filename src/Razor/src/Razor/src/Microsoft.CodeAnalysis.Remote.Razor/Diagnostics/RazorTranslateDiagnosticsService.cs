@@ -488,20 +488,20 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         }
 
         return false;
-    }
 
-    private static bool CheckIfAttributeContainsNonMarkupNodes(RazorSyntaxNode attributeNode)
-    {
-        return attributeNode.DescendantNodes().Any(IsNotMarkupOrCommentNode);
-    }
+        static bool CheckIfAttributeContainsNonMarkupNodes(RazorSyntaxNode attributeNode)
+        {
+            return attributeNode.DescendantNodes().Any(IsNotMarkupOrCommentNode);
+        }
 
-    private static bool IsNotMarkupOrCommentNode(SyntaxNode node)
-    {
-        return !(node is
-            MarkupBlockSyntax or
-            MarkupSyntaxNode or
-            GenericBlockSyntax or
-            RazorCommentBlockSyntax);
+        static bool IsNotMarkupOrCommentNode(SyntaxNode node)
+        {
+            return !(node is
+                MarkupBlockSyntax or
+                MarkupSyntaxNode or
+                GenericBlockSyntax or
+                RazorCommentBlockSyntax);
+        }
     }
 
     private LspDiagnostic[] FilterCSharpDiagnostics(LspDiagnostic[] diagnostics, RazorCodeDocument codeDocument)
