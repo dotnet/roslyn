@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -15,12 +15,14 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal sealed class ProjectFileExtensionRegistry
 {
     private readonly DiagnosticReporter _diagnosticReporter;
+    private readonly IFileBasedProgramService? _fileBasedProgramService;
     private readonly Dictionary<string, string> _extensionToLanguageMap;
     private readonly NonReentrantLock _dataGuard;
 
-    public ProjectFileExtensionRegistry(DiagnosticReporter diagnosticReporter)
+    public ProjectFileExtensionRegistry(DiagnosticReporter diagnosticReporter, IFileBasedProgramService? fileBasedProgramService)
     {
         _diagnosticReporter = diagnosticReporter;
+        _fileBasedProgramService = fileBasedProgramService;
 
         _extensionToLanguageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -61,6 +63,8 @@ internal sealed class ProjectFileExtensionRegistry
                 return false;
             }
 
+            Debug.Assert(projectFilePath != null);
+
             if (extension is ['.', .. var rest])
                 extension = rest;
 
@@ -70,8 +74,7 @@ internal sealed class ProjectFileExtensionRegistry
                 return true;
             }
 
-            // TODO: support extensionless file-based apps too
-            if ("cs".Equals(extension, StringComparison.OrdinalIgnoreCase))
+            if (_fileBasedProgramService?.IsValidEntryPointPath(projectFilePath) == true)
             {
                 languageName = LanguageNames.CSharp;
                 isFileBasedApp = true;

@@ -665,6 +665,58 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_NoExtension()
+    {
+        var sourceText = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello World!");
+            """;
+
+        CreateFiles(new FileSet(("Program", sourceText)));
+
+        var sourceFilePath = GetSolutionFileName("Program");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        // Assert that there is a single project loaded.
+        Assert.Single(workspace.CurrentSolution.ProjectIds);
+
+        // Assert that the project contains the source file.
+        var document = project.Documents.Single(static d => d.Name == "Program");
+
+        // Assert that the document content matches.
+        var text = await document.GetTextAsync();
+        Assert.Equal(sourceText, text.ToString());
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_NoExtension_NoShebang()
+    {
+        var sourceText = """
+            Console.WriteLine("Hello World!");
+            """;
+
+        CreateFiles(new FileSet(("Program", sourceText)));
+
+        var sourceFilePath = GetSolutionFileName("Program");
+
+        using var workspace = CreateMSBuildWorkspace();
+
+        // System.InvalidOperationException : Cannot open project 'Program' because the file extension '' is not associated with a language.
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await workspace.OpenProjectAsync(sourceFilePath));
+
+        Assert.Empty(workspace.Diagnostics);
+        Assert.Empty(workspace.CurrentSolution.ProjectIds);
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp_Diagnostics()
     {
         var sourceText = """

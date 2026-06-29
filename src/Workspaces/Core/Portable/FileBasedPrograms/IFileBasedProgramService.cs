@@ -13,6 +13,8 @@ internal interface IFileBasedProgramService : IWorkspaceService
 {
     IDictionary<string, string> GetGlobalBuildProperties();
 
+    bool IsValidEntryPointPath(string entryPointFilePath);
+
     IProjectRootElement LoadFileBasedAppProject(
         IBuildService buildService,
         IProjectCollection projectCollection,

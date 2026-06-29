@@ -27,6 +27,9 @@ internal sealed class FileBasedProgramService() : IFileBasedProgramService
         return result;
     }
 
+    public bool IsValidEntryPointPath(string entryPointFilePath)
+        => VirtualProjectBuilder.IsValidEntryPointPath(entryPointFilePath);
+
     public IProjectRootElement LoadFileBasedAppProject(
         IBuildService buildService,
         IProjectCollection projectCollection,
