@@ -256,7 +256,7 @@ sealed class VirtualProjectBuilder
 
                 case CSharpDirective.IncludeOrExclude includeOrExcludeDirective:
                     var expandedPath = project.ExpandString(includeOrExcludeDirective.Name);
-                    var fullPath = Path.Combine(Path.GetDirectoryName(includeOrExcludeDirective.Info.SourceFile.Path)!, expandedPath);
+                    var fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(includeOrExcludeDirective.Info.SourceFile.Path)!, expandedPath));
                     includeOrExcludeDirective = includeOrExcludeDirective.WithName(fullPath);
 
                     if (mapping.IsDefault)
@@ -402,9 +402,9 @@ sealed class VirtualProjectBuilder
             var compileItems = project.GetItems("Compile");
             foreach (var compileItem in compileItems)
             {
-                var compilePath = Path.Combine(
+                var compilePath = Path.GetFullPath(Path.Combine(
                     entryPointDirectory,
-                    compileItem.GetMetadataValue("FullPath"));
+                    compileItem.GetMetadataValue("FullPath")));
                 if (seenFiles.Add(compilePath))
                 {
                     filesToProcess.Enqueue(compilePath);

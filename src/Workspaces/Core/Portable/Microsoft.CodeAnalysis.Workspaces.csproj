@@ -174,7 +174,7 @@
     <None Include="Workspace\ProjectSystem\Readme.md" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Features\CSharp\Portable\SyncedSource\FileBasedPrograms\IBuildService.cs" LinkBase="FileBasedPrograms" />
+    <Compile Include="..\..\CSharp\Portable\SyncedSource\FileBasedPrograms\IBuildService.cs" LinkBase="FileBasedPrograms" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="WorkspacesResources.resx" GenerateSource="true" />

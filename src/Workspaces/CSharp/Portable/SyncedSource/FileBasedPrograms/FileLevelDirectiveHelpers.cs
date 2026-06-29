@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Xml;
 using Microsoft.CodeAnalysis;
@@ -984,7 +983,9 @@ internal sealed class SimpleDiagnostic
     {
         public required string Path { get; init; }
         public required LinePositionSpan Span { get; init; }
-        [JsonIgnore]
+#if FILE_BASED_PROGRAMS_SYSTEM_TEXT_JSON
+        [System.Text.Json.Serialization.JsonIgnore]
+#endif
         public TextSpan TextSpan { get; init; }
     }
 }

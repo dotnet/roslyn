@@ -62,6 +62,13 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpWorkspaceResources.resx" GenerateSource="true" />
+    <EmbeddedResource
+      Update="SyncedSource\FileBasedPrograms\FileBasedProgramsResources.resx"
+      GenerateSource="true"
+      Namespace="Microsoft.DotNet.FileBasedPrograms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="SyncedSource\FileBasedPrograms\IBuildService.cs" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
