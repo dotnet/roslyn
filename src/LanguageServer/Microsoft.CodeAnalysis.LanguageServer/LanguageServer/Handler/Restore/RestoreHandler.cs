@@ -96,7 +96,7 @@ internal sealed class RestoreHandler() : ILspServiceRequestHandler<RestoreParams
             var stageName = string.Format(LanguageServerResources.Restoring_0, Path.GetFileName(path));
             ReportProgress(progress, stageName, string.Format(LanguageServerResources.Running_dotnet_restore_on_0, path));
 
-            var process = dotnetCliHelper.Run(arguments, workingDirectory, shouldLocalizeOutput: true);
+            var process = dotnetCliHelper.Run(arguments, workingDirectory, localizeOutput: true);
 
             cancellationToken.Register(() =>
             {
