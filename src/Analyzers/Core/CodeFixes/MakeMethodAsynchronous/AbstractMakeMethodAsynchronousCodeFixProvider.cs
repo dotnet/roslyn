@@ -105,47 +105,35 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         IMethodSymbol methodSymbol,
         CancellationToken cancellationToken)
     {
-        // 3 == methodSymbol + partial definition + partial implementation
-        // `seenSymbols` will filter out duplicates.
-        var symbolsToSearch = ImmutableArray.CreateBuilder<IMethodSymbol>(3);
-        symbolsToSearch.Add(methodSymbol);
-
-        if (methodSymbol.PartialDefinitionPart is { } partialDefinitionPart)
-            symbolsToSearch.Add(partialDefinitionPart);
-
-        if (methodSymbol.PartialImplementationPart is { } partialImplementationPart)
-            symbolsToSearch.Add(partialImplementationPart);
-
-        var cache = new Dictionary<DocumentId, SemanticDocument>();
-        var seenSymbols = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
         var documentSet = project.Documents.ToImmutableHashSet();
+        var cache = new Dictionary<DocumentId, SemanticDocument>();
 
-        foreach (var symbol in symbolsToSearch)
+        var referencedSymbols = await SymbolFinder.FindReferencesAsync(
+            methodSymbol,
+            project.Solution,
+            documentSet,
+            cancellationToken).ConfigureAwait(false);
+
+        foreach (var referencedSymbol in referencedSymbols)
         {
-            if (!seenSymbols.Add(symbol))
+            // FAR may cascade to other parts of a partial method; use the returned definition
+            // for the equality check in IsDelegateReference so it matches what the semantic
+            // model binds the reference to.
+            if (referencedSymbol.Definition is not IMethodSymbol definition)
                 continue;
 
-            var referencedSymbols = await SymbolFinder.FindReferencesAsync(
-                symbol,
-                project.Solution,
-                documentSet,
-                cancellationToken).ConfigureAwait(false);
-
-            foreach (var referencedSymbol in referencedSymbols)
+            foreach (var location in referencedSymbol.Locations)
             {
-                foreach (var location in referencedSymbol.Locations)
+                var document = location.Document;
+                if (!cache.TryGetValue(document.Id, out var semanticDocument))
                 {
-                    var document = location.Document;
-                    if (!cache.TryGetValue(document.Id, out var semanticDocument))
-                    {
-                        semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                        cache.Add(document.Id, semanticDocument);
-                    }
-
-                    var syntaxNode = semanticDocument.Root.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
-                    if (IsDelegateReference(semanticDocument.SemanticModel, syntaxNode, symbol, cancellationToken))
-                        return true;
+                    semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+                    cache.Add(document.Id, semanticDocument);
                 }
+
+                var syntaxNode = semanticDocument.Root.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
+                if (IsDelegateReference(semanticDocument.SemanticModel, syntaxNode, definition, cancellationToken))
+                    return true;
             }
         }
 

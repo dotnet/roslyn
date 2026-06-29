@@ -2450,7 +2450,10 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
                 // (37,45): error CS1637: Iterators cannot have pointer type parameters
                 //                 IEnumerable<int> Local(int* b) { yield break; }
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45),
+                // (39,17): error CS9363: 'Local(int*)' must be used in an unsafe context because it has pointers in its signature
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "Local(&x)").WithArguments("Local(int*)").WithLocation(39, 17)
             };
 
             CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never")).VerifyDiagnostics(expectedPreviewDiagnostics);
