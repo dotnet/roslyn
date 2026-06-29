@@ -1425,7 +1425,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
         var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
         var movenamespaceService = document.GetRequiredLanguageService<IMoveToNamespaceService>();
         var moveToNamespaceOptions = new MoveToNamespaceOptionsResult("B");
-        ((TestMoveToNamespaceOptionsService)movenamespaceService.OptionsService).SetOptions(moveToNamespaceOptions);
+        ((TestMoveToNamespaceOptionsService)movenamespaceService.OptionsService!).SetOptions(moveToNamespaceOptions);
 
         var (_, action) = await GetCodeActionsAsync(workspace);
         var operations = await VerifyActionAndGetOperationsAsync(workspace, action);

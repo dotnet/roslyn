@@ -26,11 +26,11 @@ internal interface IMoveToNamespaceService : ILanguageService
     Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
     Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CancellationToken cancellationToken);
     MoveToNamespaceOptionsResult GetChangeNamespaceOptions(Document document, string defaultNamespace, ImmutableArray<string> namespaces);
-    IMoveToNamespaceOptionsService OptionsService { get; }
+    IMoveToNamespaceOptionsService? OptionsService { get; }
 }
 
 internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>(
-    IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
+    IMoveToNamespaceOptionsService? moveToNamespaceOptionsService)
     : IMoveToNamespaceService
     where TCompilationUnitSyntax : SyntaxNode
     where TNamespaceDeclarationSyntax : SyntaxNode
@@ -40,7 +40,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
     protected abstract bool IsContainedInNamespaceDeclaration(TNamespaceDeclarationSyntax namespaceSyntax, int position);
     protected abstract TNamedTypeDeclarationSyntax? GetNamedTypeDeclarationSyntax(SyntaxNode node);
 
-    public IMoveToNamespaceOptionsService OptionsService { get; } = moveToNamespaceOptionsService;
+    public IMoveToNamespaceOptionsService? OptionsService { get; } = moveToNamespaceOptionsService;
 
     public async Task<ImmutableArray<MoveToNamespaceCodeAction>> GetCodeActionsAsync(
         Document document,
@@ -318,6 +318,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
     {
         var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
+        Contract.ThrowIfNull(OptionsService);
         return OptionsService.GetChangeNamespaceOptions(
             defaultNamespace,
             namespaces,
