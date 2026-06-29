@@ -13,27 +13,12 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 
 ## Critical Rules
 
-- **Build wrappers**: Be careful passing `-projects` through `build.cmd` or PowerShell wrappers.
-  Do not pass a semicolon-delimited project list through a nested PowerShell command invocation,
-  because PowerShell can treat `;` as a statement separator and open `.csproj` files in
-  Visual Studio. Prefer a single project at a time, or invoke the underlying script in a way
-  that preserves the full `-projects` value as one argument.
 - **Bug fixes**: Look for existing code that already handles the scenario before adding new code.
   The bug is more likely in existing logic than a missing feature.
 - **Helpers**: Review existing helpers (`UsingDirectiveHelper`, `AddUsingsHelper`, etc.)
   before writing new utility methods. Don't duplicate.
-- **Shared projects need `.projitems` entries**: Files under
-  `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.CohostingShared\` and
-  `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\`
-  are compiled through their `.projitems` files. Adding a new `.cs` file in either shared
-  tree is not enough by itself. You must also add a matching `<Compile Include="...">`
-  entry to `Microsoft.CodeAnalysis.Razor.CohostingShared.projitems` or
-  `Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.projitems`, or the file will not
-  be built or tested by the importing projects.
-- **Duplicate global analyzer config keys**: Razor projects receive global configs from both
-  `eng/config/globalconfigs/*.globalconfig` and `src/Razor/*.globalconfig` overlays. The same key
-  in two global configs causes compiler error `MultipleGlobalAnalyzerKeys` (and the key is left
-  unset) — don't redefine a key already present in the base config.
+
+Build/packaging known issues and workarounds live in `.github/memory/known-issues/razor.md`.
 
 ## File Types
 
@@ -59,16 +44,10 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 
 ## Testing
 
-- Use `TestCode` with `[|...|]` span markers for before/after test scenarios. Access
-  `input.Text` (cleaned) and `input.Span` (marked range).
-- Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`).
-- Test end-user scenarios, not implementation details.
-- Verify/helper methods go at the bottom of test files. New test methods go above them.
-- New tooling tests go in
-  `src\Razor\src\Razor\test\Microsoft.VisualStudioCode.RazorExtension.UnitTests`
-  (Cohosting architecture).
-- Integration tests using `AdditionalSyntaxTrees` for tag helper discovery must set
-  `UseTwoPhaseCompilation => true` (see `ComponentDiscoveryIntegrationTest`).
+Razor test conventions (`TestCode` span markers, Cohosting test locations,
+`UseTwoPhaseCompilation`) live in `.github/memory/testing/razor.md` — load it when
+writing or modifying tests. Known issues for this layer:
+`.github/memory/known-issues/razor.md`.
 
 ## Adding OOP Remote Services
 

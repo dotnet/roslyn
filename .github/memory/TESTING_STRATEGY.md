@@ -1,13 +1,14 @@
 ---
-coverage: Repo-wide test layout & how to run tests; per-layer test base classes live in the instruction files
+coverage: Repo-wide test layout & how to run tests; per-layer test base classes live in testing/{compiler,ide,razor}.md
 ---
 
 # Testing Strategy
 
-Repo-wide test layout and run commands. **Per-layer test base classes and conventions** live in the path-scoped instruction files:
-- Compiler (`CSharpTestBase`, `VerifyEmitDiagnostics`) → `.github/instructions/Compiler.instructions.md`
-- IDE (`AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor`, `[UseExportProvider]`, `TestInRegularAndScriptAsync`) → `.github/instructions/IDE.instructions.md`
-- Razor (`TestCode` span markers) → `.github/instructions/Razor.instructions.md`
+Repo-wide test layout and run commands. **Per-layer test base classes and
+conventions** live in dedicated per-layer files (load only the one for your area):
+- Compiler (`CSharpTestBase`, `VerifyEmitDiagnostics`) → `.github/memory/testing/compiler.md`
+- IDE (`AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor`, `[UseExportProvider]`, `TestInRegularAndScriptAsync`) → `.github/memory/testing/ide.md`
+- Razor (`TestCode` span markers) → `.github/memory/testing/razor.md`
 
 ## Test Layout
 

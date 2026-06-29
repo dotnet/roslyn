@@ -1,13 +1,14 @@
 ---
-coverage: Repo-wide / cross-cutting quirks and workarounds; layer-specific issues live in the instruction files
+coverage: Repo-wide / cross-cutting quirks and workarounds; layer-specific issues live in known-issues/{compiler,ide,razor}.md
 ---
 
 # Known Issues
 
-Repo-wide and cross-cutting issues only. Layer-specific gotchas live in the path-scoped instruction files:
-- Compiler → `.github/instructions/Compiler.instructions.md`
-- IDE (ServiceHub OOP, RS0016 contentFiles) → `.github/instructions/IDE.instructions.md`
-- Razor (duplicate globalconfig keys, `.projitems`) → `.github/instructions/Razor.instructions.md`
+Repo-wide and cross-cutting issues only. Layer-specific gotchas live in dedicated
+per-layer files (load only the one for your area):
+- Compiler → `.github/memory/known-issues/compiler.md`
+- IDE (spurious RS0016, MEF composition failures) → `.github/memory/known-issues/ide.md`
+- Razor (duplicate globalconfig keys, `.projitems`, build-wrapper `-projects`) → `.github/memory/known-issues/razor.md`
 
 ## Blank lines with whitespace fail linting
 

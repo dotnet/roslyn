@@ -46,20 +46,6 @@ Several core data structures are generated from XML definitions — **never edit
 
 ## Essential Patterns
 
-### Test Structure Convention
-Inherit from language-specific base classes: `CSharpTestBase` for C#, `VisualBasicTestBase` for VB
-```cs
-public class MyTests : CSharpTestBase
-{
-    [Fact]
-    public void TestMethod()
-    {
-        var comp = CreateCompilation(sourceCode);
-        // Test compilation, symbols, diagnostics
-    }
-}
-```
-
 ### Memory Management
 - **Avoid LINQ in hot paths** - use manual enumeration or `struct` enumerators
 - **Avoid `foreach` over collections without struct enumerators** 
@@ -83,14 +69,11 @@ dotnet run --file eng/generate-compiler-code.cs
 ```
 
 ### Testing Strategy
-- **Unit tests**: Test individual compiler phases (lexing, parsing)
-- **Compilation tests**: Create `Compilation` objects and verify symbols/diagnostics
-- **Cross-language patterns**: Many test patterns work for both C# and VB with minor syntax changes
-- **Verification baselines**: When helpers like `VerifyDiagnostics`, `VerifyEmitDiagnostics`, `VerifyIL`, and similar compiler test APIs fail with an `Actual:` block containing the expected test content, copy that block directly into the verification call.
-- **Keep tests focused**: Avoid unnecessary assertions. Tests should do the minimal work necessary to get to the core assertions that validate the issue being addressed. For example, use `Single()` instead of checking counts and then accessing the first element.
-- **Prefer raw string literals** (`"""..."""`) over verbatim strings (`@"..."`) for test source code.
-- **Use `comp.VerifyEmitDiagnostics()`** (rather than only `VerifyDiagnostics`) so reviewers can see whether the code under test is legal.
-- **Link work items**: For issue-driven changes, add a `WorkItem` alongside the test attribute, e.g. `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`.
+
+Compiler test base classes (`CSharpTestBase`/`VisualBasicTestBase`) and authoring
+conventions (`VerifyEmitDiagnostics`, baselines, `WorkItem`) live in
+`.github/memory/testing/compiler.md` — load it when writing or modifying tests.
+Known issues for this layer: `.github/memory/known-issues/compiler.md`.
 
 ## Debugger Integration
 

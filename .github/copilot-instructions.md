@@ -36,6 +36,7 @@ docs/             # Contributor & design docs
 ```bash
 dotnet build Compilers.slnf      # compilers only
 dotnet build Ide.slnf            # IDE only
+dotnet build Razor.slnf          # Razor compiler & tooling only
 dotnet build <path/to/Project.csproj>
 ```
 
@@ -72,7 +73,7 @@ Full conventions: `.github/memory/CONVENTIONS.md` and `.github/instructions/{Com
 When starting any task or answering any question about this repo:
 1. **Read `.github/memory/INDEX.md` first** — it's the loading map for the knowledge base. Use it to find authoritative answers before searching the file system.
 2. **For any non-trivial task, also read `.github/memory/ARCHITECTURE.md` and `.github/memory/CONVENTIONS.md`** as your baseline.
-3. **Read the path-scoped instruction file for the area you're editing** — `.github/instructions/Compiler.instructions.md`, `IDE.instructions.md`, or `Razor.instructions.md` (these auto-apply to `.cs`/`.vb` under their glob and carry the layer's directory detail, conventions, testing, and gotchas). Load other repo-wide memory files on demand per the INDEX.
+3. **Read the path-scoped instruction file for the area you're editing** — `.github/instructions/Compiler.instructions.md`, `IDE.instructions.md`, or `Razor.instructions.md` (these auto-apply to `.cs`/`.vb` under their glob and carry the layer's directory detail, conventions, and key files/APIs). For that layer's **known issues** and **test conventions**, load `.github/memory/known-issues/<area>.md` and `.github/memory/testing/<area>.md` on demand (see the INDEX loading map).
 4. After completing work, run the `update-docs` skill.
 
 ### Memory
@@ -88,8 +89,9 @@ When starting any task or answering any question about this repo:
 Every task that changes code must end with a doc pass:
 - Added or moved files? → Update `.github/memory/FILE_MAP.md` (top-level) and the matching `.github/instructions/<area>.instructions.md` (directory detail).
 - Changed a public interface, diagnostic ID, or API? → Update the relevant `.github/instructions/<area>.instructions.md` and `PublicAPI.Unshipped.txt`.
-- Hit something surprising or undocumented? → Repo-wide → `.github/memory/KNOWN_ISSUES.md`; layer-specific → the matching `.github/instructions/<area>.instructions.md`.
+- Hit something surprising or undocumented? → Repo-wide → `.github/memory/KNOWN_ISSUES.md`; layer-specific → `.github/memory/known-issues/<area>.md`.
 - Established a new pattern? → Repo-wide → `.github/memory/CONVENTIONS.md`; layer-specific → the matching `.github/instructions/<area>.instructions.md`.
+- Changed test base classes or conventions? → Repo-wide layout → `.github/memory/TESTING_STRATEGY.md`; layer-specific → `.github/memory/testing/<area>.md`.
 - Added/removed/renamed a memory file? → Update `.github/memory/INDEX.md`.
 
 ### Skills
@@ -101,7 +103,7 @@ Skills live in `.github/skills/<skill-name>/SKILL.md` and are auto-discovered by
 When making changes:
 1. **Read `.github/memory/INDEX.md` first.**
 2. For non-trivial tasks, read `ARCHITECTURE.md` and `CONVENTIONS.md`, and the `.github/instructions/<area>.instructions.md` for the area you're editing.
-3. **Build the specific project(s) modified** (`Compilers.slnf` / `Ide.slnf` / the project).
+3. **Build the specific project(s) modified** (`Compilers.slnf` / `Ide.slnf` / `Razor.slnf` / the project).
 4. **Run targeted tests** for affected test project(s).
 5. If you edited a `.resx`, run `/t:UpdateXlf`; if you edited Syntax/BoundNodes XML, regenerate code. Update `PublicAPI.Unshipped.txt` for public API changes.
 6. Follow existing patterns in similar files.

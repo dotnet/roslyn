@@ -51,27 +51,9 @@ public MyService(IDependency dependency) { }
 
 ## Testing Patterns
 
-### Test Workspace (MEF-dependent tests)
-```csharp
-[UseExportProvider]
-public class MyTests
-{
-    [Fact]
-    public async Task TestSomething()
-    {
-        var workspace = EditorTestWorkspace.CreateCSharp("class C { }");
-        var document = workspace.Documents.Single();
-    }
-}
-```
-
-### Test Conventions
-- Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) for test source code
-- Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()` rather than asserting a count then indexing
-- Use `[UseExportProvider]` for any test that depends on MEF services
-- Analyzer tests inherit from `AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor` (and VB equivalents)
-- For analyzer/code-fix tests, use `TestInRegularAndScriptAsync` / `TestMissingInRegularAndScriptAsync`
-- Link work items: for issue-driven changes add a `WorkItem`, e.g. `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`
+IDE test infrastructure (`EditorTestWorkspace`, `[UseExportProvider]`, analyzer
+base classes, `TestInRegularAndScriptAsync`) and authoring conventions live in
+`.github/memory/testing/ide.md` — load it when writing or modifying tests.
 
 ## Analyzers & Code Fixes (IDE0xxx)
 
@@ -125,5 +107,6 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`
 - **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
-- **Test failures often indicate MEF composition issues** — check export attributes
-- **PublicApiAnalyzer false RS0016 with NuGet contentFiles**: the analyzer reads `dotnet_public_api_analyzer.require_api_files` from `compilation.SyntaxTrees.FirstOrDefault()`; if that first tree is a NuGet contentFiles `*.g.cs` outside the repo, the root `.editorconfig` option doesn't apply and `RS0016` fires spuriously
+
+Layer-specific known issues and workarounds (spurious `RS0016`, MEF composition
+failures surfacing as test failures) live in `.github/memory/known-issues/ide.md`.

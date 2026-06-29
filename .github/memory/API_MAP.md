@@ -15,6 +15,7 @@ Repo-wide entry points and the formal public-API tracking rules. Layer-specific 
 | `build.sh` / `Build.cmd` | Full solution build (Arcade). |
 | `dotnet build Compilers.slnf` | Compiler-only build. |
 | `dotnet build Ide.slnf` | IDE-only build. |
+| `dotnet build Razor.slnf` | Razor compiler & tooling-only build. |
 | `test.sh` / `Test.cmd` | Full test run. |
 | `dotnet test <test.csproj>` | Run a specific test project. |
 | `dotnet run --file eng/generate-compiler-code.cs` | Regenerate Syntax/BoundNodes code. |
