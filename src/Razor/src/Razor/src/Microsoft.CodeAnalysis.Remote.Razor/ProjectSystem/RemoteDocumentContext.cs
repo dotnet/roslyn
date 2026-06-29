@@ -6,6 +6,4 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 internal sealed class RemoteDocumentContext(RemoteDocumentSnapshot snapshot)
 {
     public RemoteDocumentSnapshot Snapshot { get; } = snapshot;
-
-    public TextDocument TextDocument => Snapshot.TextDocument;
 }

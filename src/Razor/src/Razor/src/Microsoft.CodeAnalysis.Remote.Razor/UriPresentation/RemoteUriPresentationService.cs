@@ -66,7 +66,7 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
             return Response.CallHtml;
         }
 
-        var solution = context.TextDocument.Project.Solution;
+        var solution = context.Snapshot.TextDocument.Project.Solution;
         if (!solution.TryGetRazorDocument(razorFileUri, out var otherDocument))
         {
             return Response.CallHtml;

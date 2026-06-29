@@ -42,7 +42,7 @@ internal sealed class RemoteFoldingRangeService(in ServiceArgs args) : RazorDocu
         CancellationToken cancellationToken)
     {
         var lineFoldingOnly = _clientCapabilitiesService.ClientCapabilities.TextDocument?.FoldingRange?.LineFoldingOnly ?? false;
-        var globalOptions = context.TextDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+        var globalOptions = context.Snapshot.TextDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
 
         var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var csharpRanges = await FoldingRangesHandler.GetFoldingRangesAsync(globalOptions, generatedDocument, lineFoldingOnly, cancellationToken).ConfigureAwait(false);

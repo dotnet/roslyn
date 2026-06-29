@@ -49,14 +49,14 @@ internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
         else
         {
             // Edit is for inserting into a C# document
-            var solution = documentContext.TextDocument.Project.Solution;
+            var solution = documentContext.Snapshot.TextDocument.Project.Solution;
             var documentIds = solution.GetDocumentIdsWithUri(codeBehindUri);
             if (documentIds.Length == 0)
             {
                 return null;
             }
 
-            document = solution.GetRequiredDocument(documentIds.First(d => d.ProjectId == documentContext.TextDocument.Project.Id));
+            document = solution.GetRequiredDocument(documentIds.First(d => d.ProjectId == documentContext.Snapshot.TextDocument.Project.Id));
         }
 
         return await GetSimplifiedEditsAsync(document, edit, cancellationToken).ConfigureAwait(false);

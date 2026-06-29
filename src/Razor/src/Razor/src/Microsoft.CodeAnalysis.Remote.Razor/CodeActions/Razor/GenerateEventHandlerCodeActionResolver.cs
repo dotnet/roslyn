@@ -175,7 +175,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
 
     private async Task<SyntaxTree?> GetCodeBehindSyntaxTreeAsync(RemoteDocumentContext documentContext, string codeBehindPath, CancellationToken cancellationToken)
     {
-        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(documentContext.TextDocument);
+        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(documentContext.Snapshot.TextDocument);
         var solution = razorDocumentSnapshot.TextDocument.Project.Solution;
         var projectId = razorDocumentSnapshot.TextDocument.Project.Id;
 
