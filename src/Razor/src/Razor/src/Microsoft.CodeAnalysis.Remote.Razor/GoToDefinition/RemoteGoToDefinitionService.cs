@@ -85,7 +85,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         var componentLocations = await _definitionService.GetDefinitionAsync(
             context.Snapshot,
             positionInfo,
-            context.GetSolutionSnapshot(),
+            context.Snapshot.Project.SolutionSnapshot,
             includeMvcTagHelpers: true,
             cancellationToken)
             .ConfigureAwait(false);

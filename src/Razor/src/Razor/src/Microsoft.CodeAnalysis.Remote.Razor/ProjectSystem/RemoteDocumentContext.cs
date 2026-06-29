@@ -17,9 +17,6 @@ internal sealed class RemoteDocumentContext(RemoteDocumentSnapshot snapshot)
 
     public TextDocument TextDocument => Snapshot.TextDocument;
 
-    public RemoteSolutionSnapshot GetSolutionSnapshot()
-        => Snapshot.ProjectSnapshot.SolutionSnapshot;
-
     private bool TryGetCodeDocument([NotNullWhen(true)] out RazorCodeDocument? codeDocument)
     {
         codeDocument = _codeDocument;
