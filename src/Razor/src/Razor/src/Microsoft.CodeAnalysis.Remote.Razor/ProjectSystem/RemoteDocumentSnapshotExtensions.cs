@@ -28,7 +28,7 @@ internal static class RemoteDocumentSnapshotExtensions
             return null;
         }
 
-        var project = documentSnapshot.Project;
+        var project = documentSnapshot.ProjectSnapshot;
 
         // If we got this far, we can check for tag helpers
         var tagHelpers = await project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);

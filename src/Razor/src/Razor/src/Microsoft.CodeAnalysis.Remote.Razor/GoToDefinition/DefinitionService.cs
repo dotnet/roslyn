@@ -157,7 +157,7 @@ internal sealed class DefinitionService(
             return false;
         }
 
-        var project = documentSnapshot.Project;
+        var project = documentSnapshot.ProjectSnapshot;
 
         // Handle tilde paths (~/ or ~\) - these are relative to the project root
         if (filePath is ['~', '/' or '\\', ..])

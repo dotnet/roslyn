@@ -143,7 +143,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
 
         // Format via Roslyn (handles file-scoped namespaces, indentation, etc.)
         content = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(
-            documentSnapshot.Project,
+            documentSnapshot.ProjectSnapshot,
             nestedFileUri.GetRequiredSystemUri(),
             content,
             cancellationToken).ConfigureAwait(false);

@@ -54,7 +54,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
         var codeBlockContent = text.ToString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var codeBehindContent = GenerateCodeBehindClass(className, actionParams.Namespace, codeBlockContent, codeDocument);
 
-        codeBehindContent = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(documentSnapshot.Project, codeBehindUri.GetRequiredSystemUri(), codeBehindContent, cancellationToken).ConfigureAwait(false);
+        codeBehindContent = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(documentSnapshot.ProjectSnapshot, codeBehindUri.GetRequiredSystemUri(), codeBehindContent, cancellationToken).ConfigureAwait(false);
 
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 

@@ -44,8 +44,6 @@ internal sealed class RemoteDocumentSnapshot
     public RazorFileKind FileKind => FileKinds.GetFileKindFromPath(FilePath);
     public string FilePath => TextDocument.FilePath.AssumeNotNull();
 
-    public RemoteProjectSnapshot Project => ProjectSnapshot;
-
     public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {
         return TextDocument.TryGetText(out var result)
