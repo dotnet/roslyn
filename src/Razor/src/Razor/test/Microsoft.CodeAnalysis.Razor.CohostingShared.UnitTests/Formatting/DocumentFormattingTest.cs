@@ -9948,6 +9948,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
     public async Task Formats_IgnoresHtmlFormatterWrappingInMultilineRazorComment()
     {
         await RunFormattingTestAsync(
@@ -9980,6 +9981,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
     public async Task Formats_IgnoresHtmlFormatterChangesInSingleLineRazorComment()
     {
         await RunFormattingTestAsync(
