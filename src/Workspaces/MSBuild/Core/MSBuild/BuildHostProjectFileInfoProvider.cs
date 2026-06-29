@@ -26,7 +26,9 @@ internal sealed class BuildHostProjectFileInfoProvider(
             return []; // Failure should already be reported.
         }
 
-        var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
+        var preferredBuildHostKind = isFileBasedApp
+            ? BuildHostProcessKind.NetCore
+            : BuildHostProcessManager.GetKindForProject(projectPath);
         var (buildHost, _) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken).ConfigureAwait(false);
 
         RemoteProjectFile projectFile;
