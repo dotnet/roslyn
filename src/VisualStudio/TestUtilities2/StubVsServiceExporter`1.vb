@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests
     Friend NotInheritable Class StubVsServiceExporter(Of T As Class)
         Inherits StubVsServiceExporter(Of T, T)
 
-#Disable Warning VSMEF008 ' Import contract type not assignable to member type
+#Disable Warning VSMEF008 ' Import contract type not assignable to member type; TODO: https://github.com/dotnet/roslyn/issues/84327
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(

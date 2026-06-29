@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Razor.LiveShare.Guest;
 
 [ExportCollaborationService(typeof(SessionActiveDetector), Scope = SessionScope.Guest)]
 [method: ImportingConstructor]
-#pragma warning disable VSMEF008 // The imported contract type is the implementation type's interface; the cast is intentional.
+#pragma warning disable VSMEF008 // TODO: https://github.com/dotnet/roslyn/issues/84327
 internal class RazorGuestInitializationService(
 [Import(typeof(ILiveShareSessionAccessor))] LiveShareSessionAccessor sessionAccessor) : ICollaborationServiceFactory
 #pragma warning restore VSMEF008
