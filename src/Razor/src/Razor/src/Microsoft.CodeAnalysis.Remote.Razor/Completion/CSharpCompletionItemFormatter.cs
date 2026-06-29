@@ -22,7 +22,7 @@ internal static class CSharpCompletionItemFormatter
 {
     public static async Task<VSInternalCompletionItem> FormatAsync(
         VSInternalCompletionItem resolvedCompletionItem,
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         Solution solution,
         bool declarationDocument,
         RazorFormattingOptions options,
@@ -32,7 +32,7 @@ internal static class CSharpCompletionItemFormatter
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument);
 
         // In VS Code, Roslyn does resolve via a custom command. Thats fine, but we have to modify the text edit sitting within it,
@@ -58,7 +58,7 @@ internal static class CSharpCompletionItemFormatter
                     return resolvedCompletionItem;
                 }
 
-                var formattedTextEdit = await FormatTextEditsAsync([complexEdit], documentContext, commandCSharpDocument, options, formattingService, cancellationToken).ConfigureAwait(false);
+                var formattedTextEdit = await FormatTextEditsAsync([complexEdit], documentSnapshot, commandCSharpDocument, options, formattingService, cancellationToken).ConfigureAwait(false);
                 if (formattedTextEdit is null)
                 {
                     resolvedCompletionItem.Command = null;
@@ -67,7 +67,7 @@ internal static class CSharpCompletionItemFormatter
                 {
                     args[0] = new TextDocumentIdentifier()
                     {
-                        DocumentUri = documentContext.Snapshot.Uri,
+                        DocumentUri = documentSnapshot.Uri,
                     };
                     args[1] = formattedTextEdit;
                     if (nextCursorPosition >= 0)
@@ -97,7 +97,7 @@ internal static class CSharpCompletionItemFormatter
         {
             if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
             {
-                var formattedTextChange = await FormatTextEditsAsync([textEdit], documentContext, csharpDocument, options, formattingService, cancellationToken).ConfigureAwait(false);
+                var formattedTextChange = await FormatTextEditsAsync([textEdit], documentSnapshot, csharpDocument, options, formattingService, cancellationToken).ConfigureAwait(false);
                 if (formattedTextChange is not null)
                 {
                     resolvedCompletionItem.TextEdit = formattedTextChange;
@@ -113,7 +113,7 @@ internal static class CSharpCompletionItemFormatter
 
         if (resolvedCompletionItem.AdditionalTextEdits is not null)
         {
-            var formattedTextChange = await FormatTextEditsAsync(resolvedCompletionItem.AdditionalTextEdits, documentContext, csharpDocument, options, formattingService, cancellationToken).ConfigureAwait(false);
+            var formattedTextChange = await FormatTextEditsAsync(resolvedCompletionItem.AdditionalTextEdits, documentSnapshot, csharpDocument, options, formattingService, cancellationToken).ConfigureAwait(false);
             resolvedCompletionItem.AdditionalTextEdits = formattedTextChange is { } change ? [change] : null;
         }
 
@@ -130,13 +130,13 @@ internal static class CSharpCompletionItemFormatter
         return "null";
     }
 
-    private static async Task<TextEdit?> FormatTextEditsAsync(TextEdit[] textEdits, RemoteDocumentContext documentContext, RazorCSharpDocument csharpDocument, RazorFormattingOptions options, IRazorFormattingService formattingService, CancellationToken cancellationToken)
+    private static async Task<TextEdit?> FormatTextEditsAsync(TextEdit[] textEdits, RemoteDocumentSnapshot documentSnapshot, RazorCSharpDocument csharpDocument, RazorFormattingOptions options, IRazorFormattingService formattingService, CancellationToken cancellationToken)
     {
-        var sourceText = await documentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         var changes = textEdits.SelectAsArray(csharpDocument.Text.GetTextChange);
         var formattedTextChange = await formattingService.TryGetCSharpSnippetFormattingEditAsync(
-            documentContext,
+            documentSnapshot,
             changes,
             csharpDocument.IsDeclarationDocument,
             options,

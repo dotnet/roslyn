@@ -23,16 +23,16 @@ internal sealed class SpellCheckService(
     private readonly ICSharpSpellCheckRangeProvider _csharpSpellCheckService = csharpSpellCheckService;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
-    public async Task<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    public async Task<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         using var builder = new PooledArrayBuilder<SpellCheckRange>();
 
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
 
         AddRazorSpellCheckRanges(ref builder.AsRef(), syntaxTree);
 
-        var csharpRanges = await _csharpSpellCheckService.GetCSharpSpellCheckRangesAsync(documentContext, cancellationToken).ConfigureAwait(false);
+        var csharpRanges = await _csharpSpellCheckService.GetCSharpSpellCheckRangesAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
         if (csharpRanges.Length > 0)
         {
             AddCSharpSpellCheckRanges(ref builder.AsRef(), csharpRanges, codeDocument);

@@ -19,7 +19,7 @@ internal sealed class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCode
 {
     public string Action => LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<RemoveUnnecessaryDirectivesCodeActionParams>();
         if (actionParams is null)
@@ -27,7 +27,7 @@ internal sealed class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCode
             return null;
         }
 
-        var sourceText = await documentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         using var edits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
         foreach (var directiveSpan in actionParams.UnusedDirectiveSpans)
@@ -41,7 +41,7 @@ internal sealed class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCode
             {
                 new TextDocumentEdit
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Snapshot.Uri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri },
                     Edits = edits.ToArrayAndClear(),
                 }
             }

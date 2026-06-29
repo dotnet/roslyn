@@ -18,7 +18,7 @@ internal sealed class SimplifyTagToSelfClosingCodeActionResolver : IRazorCodeAct
 {
     public string Action => LanguageServerConstants.CodeActions.SimplifyTagToSelfClosing;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         if (data.ValueKind == JsonValueKind.Undefined)
         {
@@ -31,7 +31,7 @@ internal sealed class SimplifyTagToSelfClosingCodeActionResolver : IRazorCodeAct
             return null;
         }
 
-        var componentDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var componentDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var text = componentDocument.Source.Text;
         var removeRange = text.GetRange(actionParams.StartTagCloseAngleIndex, actionParams.EndTagCloseAngleIndex);
@@ -40,7 +40,7 @@ internal sealed class SimplifyTagToSelfClosingCodeActionResolver : IRazorCodeAct
         {
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri= documentContext.Snapshot.Uri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri= documentSnapshot.Uri },
                 Edits =
                 [
                     new TextEdit

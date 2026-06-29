@@ -37,26 +37,26 @@ internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
         return GetFormattedNewFileContentAsync(document, cancellationToken);
     }
 
-    public async Task<TextEdit[]?> GetSimplifiedTextEditsAsync(RemoteDocumentContext documentContext, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)
+    public async Task<TextEdit[]?> GetSimplifiedTextEditsAsync(RemoteDocumentSnapshot documentSnapshot, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)
     {
         Document document;
         if (codeBehindUri is null)
         {
             // Edit is for inserting into the generated document. Since we're just getting the simplification edits, it doesn't matter
             // which C# document we use, so just use the impl document since it always exists.
-            document = await documentContext.Snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+            document = await documentSnapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         }
         else
         {
             // Edit is for inserting into a C# document
-            var solution = documentContext.Snapshot.TextDocument.Project.Solution;
+            var solution = documentSnapshot.TextDocument.Project.Solution;
             var documentIds = solution.GetDocumentIdsWithUri(codeBehindUri);
             if (documentIds.Length == 0)
             {
                 return null;
             }
 
-            document = solution.GetRequiredDocument(documentIds.First(d => d.ProjectId == documentContext.Snapshot.TextDocument.Project.Id));
+            document = solution.GetRequiredDocument(documentIds.First(d => d.ProjectId == documentSnapshot.TextDocument.Project.Id));
         }
 
         return await GetSimplifiedEditsAsync(document, edit, cancellationToken).ConfigureAwait(false);

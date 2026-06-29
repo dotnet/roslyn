@@ -30,15 +30,15 @@ internal sealed class RemoteSelectionRangeService(in ServiceArgs args) : RazorDo
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetSelectionRangesAsync(context, positions, cancellationToken),
+            snapshot => GetSelectionRangesAsync(snapshot, positions, cancellationToken),
             cancellationToken);
 
     private async ValueTask<SelectionRange[]?> GetSelectionRangesAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         Position[] positions,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         // Each position can map to either the implementation or declaration C# document. Keep the
         // position info in request order so we can query each generated document separately and still
@@ -95,7 +95,7 @@ internal sealed class RemoteSelectionRangeService(in ServiceArgs args) : RazorDo
                 return true;
             }
 
-            var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+            var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
 
             var csharpSelectionRanges = await SelectionRangeHandler.GetSelectionRangesAsync(generatedDocument, linePositions.ToImmutable(), cancellationToken).ConfigureAwait(false);
             if (csharpSelectionRanges is null)

@@ -27,9 +27,9 @@ internal sealed class RemoteHtmlDocumentService(in ServiceArgs args) : RazorDocu
             context => GetHtmlDocumentTextAsync(context, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<string?> GetHtmlDocumentTextAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    private async ValueTask<string?> GetHtmlDocumentTextAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         return codeDocument.GetHtmlSourceText(cancellationToken).ToString();
     }

@@ -17,9 +17,9 @@ internal sealed class SortAndConsolidateUsingsCodeActionResolver : IRazorCodeAct
 {
     public string Action => LanguageServerConstants.CodeActions.SortAndConsolidateUsings;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!UsingDirectiveHelper.NeedsSortOrConsolidate(codeDocument))
         {
@@ -32,7 +32,7 @@ internal sealed class SortAndConsolidateUsingsCodeActionResolver : IRazorCodeAct
         {
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentContext.Snapshot.Uri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentSnapshot.Uri },
                 Edits = [.. edits],
             }
         };

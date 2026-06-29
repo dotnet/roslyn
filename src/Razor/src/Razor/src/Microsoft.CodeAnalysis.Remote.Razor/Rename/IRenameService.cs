@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Rename;
 internal interface IRenameService
 {
     Task<RenameResult> TryGetRazorRenameEditsAsync(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         DocumentPositionInfo positionInfo,
         string newName,
         RemoteSolutionSnapshot solutionSnapshot,
@@ -22,7 +22,7 @@ internal interface IRenameService
     /// Returns an edit that should occur after a .razor file has been renamed
     /// </summary>
     bool TryGetRazorFileRenameEdit(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         string newName,
         [NotNullWhen(true)] out WorkspaceEdit? workspaceEdit);
 }

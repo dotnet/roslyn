@@ -20,7 +20,7 @@ internal sealed class SimplifyFullyQualifiedComponentCodeActionResolver : IRazor
 {
     public string Action => LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         if (data.ValueKind == JsonValueKind.Undefined)
         {
@@ -33,10 +33,10 @@ internal sealed class SimplifyFullyQualifiedComponentCodeActionResolver : IRazor
             return null;
         }
 
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var text = codeDocument.Source.Text;
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Snapshot.Uri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri };
 
         // Check if we need to add a using directive.
         // We check the tag helpers available in the document to see if the simple component name

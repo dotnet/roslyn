@@ -36,9 +36,9 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            async context =>
+            async snapshot =>
             {
-                var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+                var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
                 var csharpDocument = codeDocument.GetCSharpDocument(declarationDocument);
 
                 return csharpDocument?.Text.ToString();
@@ -52,9 +52,9 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            async context =>
+            async snapshot =>
             {
-                var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+                var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
                 return codeDocument.GetHtmlSourceText(cancellationToken).ToString();
             },
             cancellationToken);
@@ -66,12 +66,12 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            async context =>
+            async snapshot =>
             {
-                var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-                var csharpSyntaxTree = await context.Snapshot.GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+                var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+                var csharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
                 var declSyntaxTree = codeDocument.GetCSharpDocument(declarationDocument: true) is not null
-                    ? await context.Snapshot.GetCSharpSyntaxTreeAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false)
+                    ? await snapshot.GetCSharpSyntaxTreeAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false)
                     : null;
                 var csharpSyntaxRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 var declSyntaxRoot = declSyntaxTree is not null
@@ -94,9 +94,9 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             context => GetTagHelpersJsonAsync(context, kind, cancellationToken),
             cancellationToken);
 
-    private static async ValueTask<string> GetTagHelpersJsonAsync(RemoteDocumentContext documentContext, TagHelpersKind kind, CancellationToken cancellationToken)
+    private static async ValueTask<string> GetTagHelpersJsonAsync(RemoteDocumentSnapshot documentSnapshot, TagHelpersKind kind, CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var tagHelpers = kind switch
         {
             TagHelpersKind.All => codeDocument.GetTagHelpers(),
@@ -182,9 +182,9 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             context => GetRazorSyntaxTreeAsync(context, cancellationToken),
             cancellationToken);
 
-    private static async ValueTask<SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    private static async ValueTask<SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var razorSyntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree();
 
         if (razorSyntaxTree?.Root == null)

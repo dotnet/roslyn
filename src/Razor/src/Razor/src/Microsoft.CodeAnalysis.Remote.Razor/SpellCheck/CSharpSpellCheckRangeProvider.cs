@@ -17,9 +17,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 [method: ImportingConstructor]
 internal sealed class CSharpSpellCheckRangeProvider() : ICSharpSpellCheckRangeProvider
 {
-    public async Task<ImmutableArray<SpellCheckRange>> GetCSharpSpellCheckRangesAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<SpellCheckRange>> GetCSharpSpellCheckRangesAsync(RemoteDocumentSnapshot snapshot, CancellationToken cancellationToken)
     {
-        var snapshot = documentContext.Snapshot;
         using var ranges = new PooledArrayBuilder<SpellCheckRange>();
 
         // Spell-check spans can come from either generated C# document. Keep track of which document produced each range

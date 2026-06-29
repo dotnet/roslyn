@@ -47,25 +47,25 @@ internal abstract class RazorDocumentServiceBase(in ServiceArgs args) : RazorBro
     protected ValueTask<T> RunServiceAsync<T>(
         RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
-        Func<RemoteDocumentContext, ValueTask<T>> implementation,
+        Func<RemoteDocumentSnapshot, ValueTask<T>> implementation,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(
             solutionInfo,
             solution =>
             {
-                var documentContext = CreateRazorDocumentContext(solution, razorDocumentId);
-                if (documentContext is null)
+                var documentSnapshot = CreateRazorDocumentSnapshot(solution, razorDocumentId);
+                if (documentSnapshot is null)
                 {
                     return default;
                 }
 
-                return implementation(documentContext);
+                return implementation(documentSnapshot);
             },
             cancellationToken);
     }
 
-    protected RemoteDocumentContext? CreateRazorDocumentContext(Solution solution, DocumentId razorDocumentId)
+    protected RemoteDocumentSnapshot? CreateRazorDocumentSnapshot(Solution solution, DocumentId razorDocumentId)
     {
         var razorDocument = solution.GetAdditionalDocument(razorDocumentId);
         if (razorDocument is null)
@@ -75,6 +75,6 @@ internal abstract class RazorDocumentServiceBase(in ServiceArgs args) : RazorBro
 
         var documentSnapshot = SnapshotManager.GetSnapshot(razorDocument);
 
-        return new RemoteDocumentContext(documentSnapshot);
+        return documentSnapshot;
     }
 }

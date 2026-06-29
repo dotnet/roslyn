@@ -70,19 +70,19 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             cancellationToken);
 
     private async ValueTask<Response> TryResolveInsertionAsync(
-        RemoteDocumentContext remoteDocumentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         LinePosition linePosition,
         string character,
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var sourceText = await remoteDocumentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         if (!sourceText.TryGetAbsoluteIndex(linePosition, out var index))
         {
             return Response.NoFurtherHandling;
         }
 
-        var codeDocument = await remoteDocumentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var clientSettings = _clientSettingsManager.GetClientSettings();
 
@@ -114,7 +114,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             case RazorLanguageKind.CSharp:
                 var mappedPosition = positionInfo.Position.ToLinePosition();
                 return await TryResolveInsertionInCSharpAsync(
-                        remoteDocumentContext,
+                        documentSnapshot,
                         mappedPosition,
                         positionInfo.InDeclDocument,
                         character,
@@ -128,7 +128,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
     }
 
     private async ValueTask<Response> TryResolveInsertionInCSharpAsync(
-        RemoteDocumentContext remoteDocumentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         LinePosition mappedPosition,
         bool inDeclDocument,
         string character,
@@ -156,7 +156,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
-        var generatedDocument = await remoteDocumentContext.Snapshot
+        var generatedDocument = await documentSnapshot
             .GetGeneratedDocumentAsync(inDeclDocument, cancellationToken)
             .ConfigureAwait(false);
         var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
@@ -186,14 +186,14 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
         var csharpTextChange = new TextChange(csharpSourceText.GetTextSpan(autoInsertResponseItem.TextEdit.Range), autoInsertResponseItem.TextEdit.NewText);
         var mappedChange = autoInsertResponseItem.TextEditFormat == InsertTextFormat.Snippet
             ? await _razorFormattingService.TryGetCSharpSnippetFormattingEditAsync(
-                remoteDocumentContext,
+                documentSnapshot,
                 [csharpTextChange],
                 inDeclDocument,
                 options,
                 cancellationToken)
             .ConfigureAwait(false)
             : await _razorFormattingService.TryGetSingleCSharpEditAsync(
-                remoteDocumentContext,
+                documentSnapshot,
                 csharpTextChange,
                 inDeclDocument,
                 options,
@@ -205,7 +205,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
-        var sourceText = await remoteDocumentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         return Response.Results(
             new RemoteAutoInsertTextEdit(
                 sourceText.GetLinePositionSpan(change.Span),

@@ -37,15 +37,15 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => PrepareCallHierarchyAsync(context, position, cancellationToken),
+            snapshot => PrepareCallHierarchyAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<CallHierarchyItem[]?>> PrepareCallHierarchyAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
         {
@@ -60,7 +60,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             return RemoteResponse<CallHierarchyItem[]?>.NoFurtherHandling;
         }
 
-        var generatedDocument = await context.Snapshot
+        var generatedDocument = await snapshot
             .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
             .ConfigureAwait(false);
 
@@ -73,7 +73,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             // Razor implementation generated documents can contain call sites for members whose declarations live in the
             // paired declaration generated document. In that case Roslyn's prepare path can't create an item for the
             // implementation document, so retry while explicitly preferring the declaration document.
-            var declarationGeneratedDocument = await context.Snapshot.TryGetGeneratedDocumentAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false);
+            var declarationGeneratedDocument = await snapshot.TryGetGeneratedDocumentAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false);
             if (declarationGeneratedDocument is null)
             {
                 return RemoteResponse<CallHierarchyItem[]?>.NoFurtherHandling;
@@ -87,7 +87,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             return RemoteResponse<CallHierarchyItem[]?>.NoFurtherHandling;
         }
 
-        var mappedItems = await MapItemsAsync(context, items, cancellationToken).ConfigureAwait(false);
+        var mappedItems = await MapItemsAsync(snapshot, items, cancellationToken).ConfigureAwait(false);
         return RemoteResponse<CallHierarchyItem[]?>.Results(mappedItems);
     }
 
@@ -99,15 +99,15 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetIncomingCallsAsync(context, item, cancellationToken),
+            snapshot => GetIncomingCallsAsync(snapshot, item, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<CallHierarchyIncomingCall[]?>> GetIncomingCallsAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         CallHierarchyItem item,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = await TryGetGeneratedDocumentForItemAsync(context, item, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await TryGetGeneratedDocumentForItemAsync(snapshot, item, cancellationToken).ConfigureAwait(false);
         if (generatedDocument is null)
         {
             return RemoteResponse<CallHierarchyIncomingCall[]?>.NoFurtherHandling;
@@ -125,13 +125,13 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         foreach (var incomingCall in incomingCalls)
         {
             var originalFromUri = incomingCall.From.Uri.GetRequiredSystemUri();
-            var mappedFromItem = await MapItemAsync(context, incomingCall.From, cancellationToken).ConfigureAwait(false);
+            var mappedFromItem = await MapItemAsync(snapshot, incomingCall.From, cancellationToken).ConfigureAwait(false);
             if (mappedFromItem is null)
             {
                 continue;
             }
 
-            var mappedRanges = await MapRangesAsync(context, originalFromUri, incomingCall.FromRanges, cancellationToken).ConfigureAwait(false);
+            var mappedRanges = await MapRangesAsync(snapshot, originalFromUri, incomingCall.FromRanges, cancellationToken).ConfigureAwait(false);
             builder.Add(new CallHierarchyIncomingCall
             {
                 From = mappedFromItem,
@@ -150,15 +150,15 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetOutgoingCallsAsync(context, item, cancellationToken),
+            snapshot => GetOutgoingCallsAsync(snapshot, item, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<CallHierarchyOutgoingCall[]?>> GetOutgoingCallsAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         CallHierarchyItem item,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = await TryGetGeneratedDocumentForItemAsync(context, item, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await TryGetGeneratedDocumentForItemAsync(snapshot, item, cancellationToken).ConfigureAwait(false);
         if (generatedDocument is null)
         {
             return RemoteResponse<CallHierarchyOutgoingCall[]?>.NoFurtherHandling;
@@ -176,13 +176,13 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         using var builder = new PooledArrayBuilder<CallHierarchyOutgoingCall>(outgoingCalls.Length);
         foreach (var outgoingCall in outgoingCalls)
         {
-            var mappedToItem = await MapItemAsync(context, outgoingCall.To, cancellationToken).ConfigureAwait(false);
+            var mappedToItem = await MapItemAsync(snapshot, outgoingCall.To, cancellationToken).ConfigureAwait(false);
             if (mappedToItem is null)
             {
                 continue;
             }
 
-            var mappedRanges = await MapRangesAsync(context, callerUri, outgoingCall.FromRanges, cancellationToken).ConfigureAwait(false);
+            var mappedRanges = await MapRangesAsync(snapshot, callerUri, outgoingCall.FromRanges, cancellationToken).ConfigureAwait(false);
             builder.Add(new CallHierarchyOutgoingCall
             {
                 To = mappedToItem,
@@ -194,21 +194,21 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
     }
 
     private static async ValueTask<SourceGeneratedDocument?> TryGetGeneratedDocumentForItemAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         CallHierarchyItem item,
         CancellationToken cancellationToken)
     {
         var resolveData = CallHierarchyHelpers.GetResolveData(item);
         var generatedDocumentUri = resolveData.TextDocument.DocumentUri.GetRequiredSystemUri();
-        return await context.Snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+        return await snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<CallHierarchyItem[]?> MapItemsAsync(RemoteDocumentContext context, CallHierarchyItem[] items, CancellationToken cancellationToken)
+    private async Task<CallHierarchyItem[]?> MapItemsAsync(RemoteDocumentSnapshot snapshot, CallHierarchyItem[] items, CancellationToken cancellationToken)
     {
         using var builder = new PooledArrayBuilder<CallHierarchyItem>(items.Length);
         foreach (var item in items)
         {
-            var mappedItem = await MapItemAsync(context, item, cancellationToken).ConfigureAwait(false);
+            var mappedItem = await MapItemAsync(snapshot, item, cancellationToken).ConfigureAwait(false);
             if (mappedItem is not null)
             {
                 builder.Add(mappedItem);
@@ -218,12 +218,12 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         return builder.ToArray();
     }
 
-    private async Task<CallHierarchyItem?> MapItemAsync(RemoteDocumentContext context, CallHierarchyItem item, CancellationToken cancellationToken)
+    private async Task<CallHierarchyItem?> MapItemAsync(RemoteDocumentSnapshot snapshot, CallHierarchyItem item, CancellationToken cancellationToken)
     {
         var uri = item.Uri.GetRequiredSystemUri();
 
         var (mappedDocumentUri, mappedRange) = await DocumentMappingService
-            .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, item.Range, cancellationToken)
+            .MapToHostDocumentUriAndRangeAsync(snapshot, uri, item.Range, cancellationToken)
             .ConfigureAwait(false);
 
         if (_filePathService.IsVirtualCSharpFile(mappedDocumentUri))
@@ -232,7 +232,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         }
 
         var (mappedSelectionUri, mappedSelectionRange) = await DocumentMappingService
-            .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, item.SelectionRange, cancellationToken)
+            .MapToHostDocumentUriAndRangeAsync(snapshot, uri, item.SelectionRange, cancellationToken)
             .ConfigureAwait(false);
 
         if (_filePathService.IsVirtualCSharpFile(mappedSelectionUri))
@@ -253,13 +253,13 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         };
     }
 
-    private async Task<LspRange[]> MapRangesAsync(RemoteDocumentContext context, Uri documentUri, LspRange[] ranges, CancellationToken cancellationToken)
+    private async Task<LspRange[]> MapRangesAsync(RemoteDocumentSnapshot snapshot, Uri documentUri, LspRange[] ranges, CancellationToken cancellationToken)
     {
         using var builder = new PooledArrayBuilder<LspRange>(ranges.Length);
         foreach (var range in ranges)
         {
             var (mappedDocumentUri, mappedRange) = await DocumentMappingService
-                .MapToHostDocumentUriAndRangeAsync(context.Snapshot, documentUri, range, cancellationToken)
+                .MapToHostDocumentUriAndRangeAsync(snapshot, documentUri, range, cancellationToken)
                 .ConfigureAwait(false);
 
             if (_filePathService.IsVirtualCSharpFile(mappedDocumentUri))
