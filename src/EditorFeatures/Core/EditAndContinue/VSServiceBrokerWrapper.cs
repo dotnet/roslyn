@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.BrokeredServices;
 [Export(typeof(VSServiceBrokerWrapper))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-#pragma warning disable VSMEF008 // Import contract type not assignable to member type; TODO: remove once https://github.com/microsoft/vs-servicehub/pull/531 is available
+#pragma warning disable VSMEF008 // Import contract type not assignable to member type; TODO: https://github.com/dotnet/roslyn/issues/84327
 internal sealed partial class VSServiceBrokerWrapper([Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker)
 #pragma warning restore VSMEF008 // Import contract type not assignable to member type
 {

@@ -144,7 +144,7 @@ internal sealed class RunTestsHandler(TestDiscoverer testDiscoverer, TestRunner 
 
         // TODO - we likely need to pass the no-restore flag once we have automatic restore enabled.
         // https://github.com/dotnet/vscode-csharp/issues/5725
-        using var process = dotnetCliHelper.Run(["build", projectFileName], workingDirectory, localizeOutput: true);
+        using var process = dotnetCliHelper.Run(["build", projectFileName], workingDirectory, shouldLocalizeOutput: true);
 
         process.OutputDataReceived += (sender, args) => ReportProgress(progress, args.Data);
 

@@ -145,19 +145,19 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
         var tempDir = TempRoot.CreateDirectory();
         var appFile = tempDir.CreateFile("app.cs");
         await appFile.WriteAllTextAsync("""
-        #:package Newtonsoft.Json@13.0.3
-        #:BAD
-        Console.WriteLine("Hello, world!");
-        """);
+            #:package Newtonsoft.Json@13.0.3
+            #:BAD
+            Console.WriteLine("Hello, world!");
+            """);
 
         var globalJsonFile = tempDir.CreateFile("global.json");
         await globalJsonFile.WriteAllTextAsync("""
-        {
-            "sdk": {
-            "version": "10.0.301"
+            {
+                "sdk": {
+                "version": "10.0.301"
+                }
             }
-        }
-        """);
+            """);
 
         var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.NotNull(contentNullable);
