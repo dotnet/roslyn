@@ -62,6 +62,7 @@
     -->
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="18.9.1027-preview" />
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="18.0.1211-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.ComponentModelHost" Version="18.9.1027" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.6.3200" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="18.0.52-preview1" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="18.0.52-preview1" />

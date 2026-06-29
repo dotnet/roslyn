@@ -47,9 +47,12 @@ internal sealed class LspEditorFeatureDetector(
     public CapabilityCheckResult IsDotNetCoreProject(string documentFilePath)
         => _projectCapabilityResolver.CheckCapability(WellKnownProjectCapabilities.DotNetCoreCSharp, documentFilePath);
 
+    // https://github.com/dotnet/roslyn/issues/84261: Revisit use of obsolete CloudEnvironmentConnected_guid.
+#pragma warning disable CS0618 // Type or member is obsolete
     public bool IsRemoteClient()
         => _uiContextService.IsActive(Guids.LiveShareGuestUIContextGuid) ||
            _uiContextService.IsActive(VSConstants.UICONTEXT.CloudEnvironmentConnected_guid);
+#pragma warning restore CS0618 // Type or member is obsolete
 
     public bool IsLiveShareHost()
         => _uiContextService.IsActive(Guids.LiveShareHostUIContextGuid);

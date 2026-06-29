@@ -110,6 +110,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" />
     <PackageReference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
+    <!-- Explicitly reference the 18.x ComponentModelHost so IComponentModel resolves to a single
+         definition. In 18.x the type is type-forwarded into Shell.Framework; without this pin the
+         transitive 17.0.0.0 assembly also defines it, causing a CS0433 ambiguity. -->
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
     <PackageReference Include="Microsoft.VisualStudio.Sdk" />
     <PackageReference Include="Microsoft.VisualStudio.Search" />
