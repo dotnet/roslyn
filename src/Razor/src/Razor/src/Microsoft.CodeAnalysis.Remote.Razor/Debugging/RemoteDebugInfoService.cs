@@ -32,12 +32,12 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => ValidateBreakableRangeAsync(context, span, cancellationToken),
+            snapshot => ValidateBreakableRangeAsync(snapshot, span, cancellationToken),
             cancellationToken);
 
-    public async ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(RemoteDocumentContext context, LinePositionSpan span, CancellationToken cancellationToken)
+    public async ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(RemoteDocumentSnapshot snapshot, LinePositionSpan span, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!_documentMappingService.TryMapToCSharpDocumentLinePositionSpan(codeDocument, span, out var mappedSpan, out var inDeclDocument))
         {
@@ -45,7 +45,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         }
 
         var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
 
         var result = await GetBreakableRangeAsync(generatedDocument, mappedSpan, cancellationToken).ConfigureAwait(false);
         if (result is { } csharpSpan &&
@@ -61,19 +61,19 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => ResolveBreakpointRangeAsync(context, position, cancellationToken),
+            snapshot => ResolveBreakpointRangeAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(RemoteDocumentContext context, LinePosition position, CancellationToken cancellationToken)
+    private async ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(RemoteDocumentSnapshot snapshot, LinePosition position, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (!TryGetUsableProjectedIndex(codeDocument, position, out var projectedIndex, out var csharpDocument))
         {
             return null;
         }
 
         // Now ask Roslyn to adjust the breakpoint to a valid location in the code
-        var syntaxTree = await context.Snapshot.GetCSharpSyntaxTreeAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
         if (!BreakpointSpans.TryGetBreakpointSpan(syntaxTree, projectedIndex, cancellationToken, out var csharpBreakpointSpan))
         {
             return null;
@@ -96,19 +96,19 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => ResolveProximityExpressionsAsync(context, position, cancellationToken),
+            snapshot => ResolveProximityExpressionsAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<string[]?> ResolveProximityExpressionsAsync(RemoteDocumentContext context, LinePosition position, CancellationToken cancellationToken)
+    private async ValueTask<string[]?> ResolveProximityExpressionsAsync(RemoteDocumentSnapshot snapshot, LinePosition position, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (!TryGetUsableProjectedIndex(codeDocument, position, out var projectedIndex, out var csharpDocument))
         {
             return null;
         }
 
         // Now ask Roslyn to adjust the breakpoint to a valid location in the code
-        var syntaxTree = await context.Snapshot.GetCSharpSyntaxTreeAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
         var result = CSharpProximityExpressionsService.GetProximityExpressions(syntaxTree, projectedIndex, cancellationToken);
 
         return result?.ToArray();

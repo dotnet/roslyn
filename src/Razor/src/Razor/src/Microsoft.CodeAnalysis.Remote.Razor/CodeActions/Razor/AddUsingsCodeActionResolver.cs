@@ -21,7 +21,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
 {
     public string Action => LanguageServerConstants.CodeActions.AddUsing;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<AddUsingsCodeActionParams>();
         if (actionParams is null)
@@ -29,10 +29,8 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
             return null;
         }
 
-        var documentSnapshot = documentContext.Snapshot;
-
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri };
 
         using var documentChanges = new PooledArrayBuilder<TextDocumentEdit>();
 

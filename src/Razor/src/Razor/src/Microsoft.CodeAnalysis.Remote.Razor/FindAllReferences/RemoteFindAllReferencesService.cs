@@ -46,15 +46,15 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => FindAllReferencesAsync(context, position, cancellationToken),
+            snapshot => FindAllReferencesAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<SumType<VSInternalReferenceItem, LspLocation>[]?>> FindAllReferencesAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
         {
@@ -72,7 +72,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
         }
 
         // Finally, call into C#.
-        var generatedDocument = await context.Snapshot
+        var generatedDocument = await snapshot
             .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
             .ConfigureAwait(false);
         var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
@@ -116,7 +116,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
             var generatedDocumentUri = UriExtensions.GetRequiredSystemUri(location.DocumentUri);
             var (mappedUri, mappedRange) = await DocumentMappingService
                 .MapToHostDocumentUriAndRangeAsync(
-                    context.Snapshot,
+                    snapshot,
                     generatedDocumentUri,
                     location.Range.ToLinePositionSpan(),
                     cancellationToken)
@@ -140,7 +140,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                     referenceItem.DocumentName = mappedUri.AbsolutePath;
 
                     var fixedResultText = await GetResultTextAsync(
-                        context,
+                        snapshot,
                         generatedDocumentUri,
                         mappedRange.Start.Line,
                         mappedUri.GetDocumentFilePathFromUri(),
@@ -160,7 +160,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
     }
 
     private async Task<string?> GetResultTextAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         Uri generatedDocumentUri,
         int lineNumber,
         string filePath,
@@ -186,13 +186,12 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
         // To identify which situation we're in, we try to map the start and the end of the line to C#, as an indicator. If
         // either start or end fail to map, it means the entire line is not C#
 
-        // TODO: Note the call to RemoteSolutionSnapshot.GetProjectsContainingDocument(...) will be removed with the introduction of solution snapshots.
-        if (context.GetSolutionSnapshot().GetProjectsContainingDocument(filePath).FirstOrDefault() is { } project &&
+        if (snapshot.ProjectSnapshot.SolutionSnapshot.GetProjectsContainingDocument(filePath).FirstOrDefault() is { } project &&
             project.TryGetDocument(filePath, out var document))
         {
             var codeDoc = await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
             var line = codeDoc.Source.Text.Lines[lineNumber];
-            if (!context.Snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity))
+            if (!snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity))
             {
                 return null;
             }

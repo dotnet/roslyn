@@ -36,5 +36,5 @@ internal interface IRazorEditService
     /// <summary>
     /// Maps C# changes in a workspace edit, to their equivalent Razor changes, modifying them in place
     /// </summary>
-    Task MapWorkspaceEditAsync(RemoteDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken);
+    Task MapWorkspaceEditAsync(Solution solution, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken);
 }

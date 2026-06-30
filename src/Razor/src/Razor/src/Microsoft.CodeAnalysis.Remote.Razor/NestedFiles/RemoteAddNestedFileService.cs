@@ -40,15 +40,15 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetNewNestedFileWorkspaceEditAsync(context, fileKind, cancellationToken),
+            snapshot => GetNewNestedFileWorkspaceEditAsync(snapshot, fileKind, cancellationToken),
             cancellationToken);
 
     private async ValueTask<WorkspaceEdit?> GetNewNestedFileWorkspaceEditAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         NestedFileKind fileKind,
         CancellationToken cancellationToken)
     {
-        var razorFilePath = context.Snapshot.FilePath;
+        var razorFilePath = snapshot.FilePath;
         if (GetNestedFilePath(razorFilePath, fileKind) is not string nestedFilePath)
         {
             return null;
@@ -57,7 +57,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
         var nestedFileUri = LspFactory.CreateFilePathUri(nestedFilePath, _languageServerFeatureOptions);
 
         var content = await GenerateContentAsync(
-            fileKind, context, razorFilePath, nestedFileUri, cancellationToken).ConfigureAwait(false);
+            fileKind, snapshot, razorFilePath, nestedFileUri, cancellationToken).ConfigureAwait(false);
 
         var nestedFileDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier
         {
@@ -93,7 +93,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
 
     private async Task<string> GenerateContentAsync(
         NestedFileKind fileKind,
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         string razorFilePath,
         DocumentUri nestedFileUri,
         CancellationToken cancellationToken)
@@ -101,7 +101,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
         return fileKind switch
         {
             NestedFileKind.CSharp => await GenerateCSharpContentAsync(
-                documentContext, razorFilePath, nestedFileUri, cancellationToken).ConfigureAwait(false),
+                documentSnapshot, razorFilePath, nestedFileUri, cancellationToken).ConfigureAwait(false),
             NestedFileKind.Css => GenerateCssContent(razorFilePath),
             NestedFileKind.JavaScript => GenerateJavaScriptContent(razorFilePath),
             _ => string.Empty
@@ -123,12 +123,12 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
     }
 
     private async Task<string> GenerateCSharpContentAsync(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         string razorFilePath,
         DocumentUri nestedFileUri,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var className = Path.GetFileNameWithoutExtension(razorFilePath);
 
         // Use the Razor compiler's namespace resolution which handles @namespace directives,
@@ -143,7 +143,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
 
         // Format via Roslyn (handles file-scoped namespaces, indentation, etc.)
         content = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(
-            documentContext.Snapshot.Project,
+            documentSnapshot.ProjectSnapshot,
             nestedFileUri.GetRequiredSystemUri(),
             content,
             cancellationToken).ConfigureAwait(false);

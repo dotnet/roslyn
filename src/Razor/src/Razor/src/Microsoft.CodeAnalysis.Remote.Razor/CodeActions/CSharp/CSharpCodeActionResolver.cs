@@ -36,7 +36,7 @@ internal sealed class CSharpCodeActionResolver(
     public string Action => LanguageServerConstants.CodeActions.Default;
 
     public async Task<CodeAction> ResolveAsync(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot snapshot,
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
@@ -46,7 +46,6 @@ internal sealed class CSharpCodeActionResolver(
             return codeAction;
         }
 
-        var snapshot = documentContext.Snapshot;
         var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
 
         foreach (var textDocumentEdit in codeAction.Edit.EnumerateTextDocumentEdits())

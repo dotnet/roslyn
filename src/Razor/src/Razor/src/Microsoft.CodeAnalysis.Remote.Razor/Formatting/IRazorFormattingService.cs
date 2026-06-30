@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 internal interface IRazorFormattingService
 {
     Task<ImmutableArray<TextChange>> GetDocumentFormattingChangesAsync(
-       RemoteDocumentContext documentContext,
+       RemoteDocumentSnapshot documentSnapshot,
        ImmutableArray<TextChange> htmlEdits,
        LinePositionSpan? span,
        RazorFormattingOptions options,
        CancellationToken cancellationToken);
 
     Task<ImmutableArray<TextChange>> GetHtmlOnTypeFormattingChangesAsync(
-      RemoteDocumentContext documentContext,
+      RemoteDocumentSnapshot documentSnapshot,
       ImmutableArray<TextChange> htmlEdits,
       RazorFormattingOptions options,
       int hostDocumentIndex,
@@ -30,7 +30,7 @@ internal interface IRazorFormattingService
       CancellationToken cancellationToken);
 
     Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(
-      RemoteDocumentContext documentContext,
+      RemoteDocumentSnapshot documentSnapshot,
       RazorFormattingOptions options,
       int hostDocumentIndex,
       char triggerCharacter,
@@ -38,7 +38,7 @@ internal interface IRazorFormattingService
       CancellationToken cancellationToken);
 
     Task<TextChange?> TryGetSingleCSharpEditAsync(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         TextChange csharpEdit,
         bool declarationDocument,
         RazorFormattingOptions options,
@@ -52,7 +52,7 @@ internal interface IRazorFormattingService
        CancellationToken cancellationToken);
 
     Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(
-       RemoteDocumentContext documentContext,
+       RemoteDocumentSnapshot documentSnapshot,
        ImmutableArray<TextChange> csharpEdits,
        bool declarationDocument,
        RazorFormattingOptions options,

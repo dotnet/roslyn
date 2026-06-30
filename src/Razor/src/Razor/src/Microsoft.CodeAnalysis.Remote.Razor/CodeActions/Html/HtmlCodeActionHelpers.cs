@@ -16,7 +16,7 @@ internal static class HtmlCodeActionHelpers
     {
         Assumes.NotNull(codeAction.Edit);
 
-        await razorEditService.MapWorkspaceEditAsync(documentSnapshot, codeAction.Edit, cancellationToken).ConfigureAwait(false);
+        await razorEditService.MapWorkspaceEditAsync(documentSnapshot.TextDocument.Project.Solution, codeAction.Edit, cancellationToken).ConfigureAwait(false);
 
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var htmlSourceText = codeDocument.GetHtmlSourceText(cancellationToken);

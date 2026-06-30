@@ -35,12 +35,12 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetInlayHintsAsync(context, inlayHintParams, displayAllOverride, cancellationToken),
+            snapshot => GetInlayHintsAsync(snapshot, inlayHintParams, displayAllOverride, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<InlayHint[]?> GetInlayHintsAsync(RemoteDocumentContext context, InlayHintParams inlayHintParams, bool displayAllOverride, CancellationToken cancellationToken)
+    private async ValueTask<InlayHint[]?> GetInlayHintsAsync(RemoteDocumentSnapshot snapshot, InlayHintParams inlayHintParams, bool displayAllOverride, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var span = inlayHintParams.Range.ToLinePositionSpan();
 
@@ -74,7 +74,7 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
             sawCSharpSpan = true;
 
             var inDeclDocument = csharpDocument.IsDeclarationDocument;
-            var generatedDocument = await context.Snapshot
+            var generatedDocument = await snapshot
                 .GetGeneratedDocumentAsync(inDeclDocument, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -118,7 +118,7 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
                         if (hint.TextEdits is not null)
                         {
                             var changes = hint.TextEdits.SelectAsArray(csharpSourceText.GetTextChange);
-                            var textChanges = await _razorEditService.MapCSharpEditsAsync(changes, inDeclDocument, context.Snapshot, cancellationToken).ConfigureAwait(false);
+                            var textChanges = await _razorEditService.MapCSharpEditsAsync(changes, inDeclDocument, snapshot, cancellationToken).ConfigureAwait(false);
 
                             var textEdits = textChanges.SelectAsArray(razorSourceText.GetTextEdit);
 
@@ -144,12 +144,12 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
        => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => ResolveInlayHintAsync(context, inlayHint, inDeclDocument, cancellationToken),
+            snapshot => ResolveInlayHintAsync(snapshot, inlayHint, inDeclDocument, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<InlayHint> ResolveInlayHintAsync(RemoteDocumentContext context, InlayHint inlayHint, bool inDeclDocument, CancellationToken cancellationToken)
+    private async ValueTask<InlayHint> ResolveInlayHintAsync(RemoteDocumentSnapshot snapshot, InlayHint inlayHint, bool inDeclDocument, CancellationToken cancellationToken)
     {
-        var generatedDocument = await context.Snapshot
+        var generatedDocument = await snapshot
             .GetGeneratedDocumentAsync(inDeclDocument, cancellationToken)
             .ConfigureAwait(false);
 

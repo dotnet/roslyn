@@ -39,15 +39,15 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetImplementationAsync(context, position, cancellationToken),
+            snapshot => GetImplementationAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<LspLocation[]?>> GetImplementationAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
         {
@@ -67,7 +67,7 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
         }
 
         // Finally, call into C#.
-        var generatedDocument = await context.Snapshot
+        var generatedDocument = await snapshot
             .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
             .ConfigureAwait(false);
 
@@ -96,7 +96,7 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
             var (uri, range) = location;
 
             var (mappedDocumentUri, mappedRange) = await DocumentMappingService
-                .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
+                .MapToHostDocumentUriAndRangeAsync(snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
                 .ConfigureAwait(false);
 
             // Impl and decl generated documents can both contain a generated class declaration that maps to the same Razor location.

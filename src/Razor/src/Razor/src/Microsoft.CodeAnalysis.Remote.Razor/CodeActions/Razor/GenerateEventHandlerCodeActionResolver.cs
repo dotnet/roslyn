@@ -38,7 +38,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<GenerateEventHandlerCodeActionParams>();
         if (actionParams is null)
@@ -46,21 +46,21 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             return null;
         }
 
-        var code = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var razorFilePath = documentContext.Uri.GetDocumentFilePathFromUri();
+        var code = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var razorFilePath = documentSnapshot.Uri.GetDocumentFilePathFromUri();
         var razorClassName = Path.GetFileNameWithoutExtension(razorFilePath);
         var codeBehindPath = $"{razorFilePath}.cs";
 
         // If we can't get the namespace, or the syntax tree (possibly because the file doesn't exist), or if the file does exist
         // but doesn't have the class declaration we'd expect, then we don't risk it and just generate a code block.
         if (!code.TryGetNamespace(fallbackToRootNamespace: true, out var razorNamespace) ||
-            await GetCodeBehindSyntaxTreeAsync(documentContext, codeBehindPath, cancellationToken).ConfigureAwait(false) is not { } syntaxTree ||
+            await GetCodeBehindSyntaxTreeAsync(documentSnapshot, codeBehindPath, cancellationToken).ConfigureAwait(false) is not { } syntaxTree ||
             GetCSharpClassDeclarationSyntax(syntaxTree, razorNamespace, razorClassName) is not { } classDecl)
         {
             return await GenerateEventHandlerInCodeBlockAsync(
                 code,
                 actionParams,
-                documentContext,
+                documentSnapshot,
                 options,
                 cancellationToken).ConfigureAwait(false);
         }
@@ -80,7 +80,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             character: 0,
             eventHandler);
 
-        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri.GetRequiredSystemUri(), edit, cancellationToken).ConfigureAwait(false);
+        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentSnapshot, codeBehindUri.GetRequiredSystemUri(), edit, cancellationToken).ConfigureAwait(false);
 
         var codeBehindTextDocEdit = new TextDocumentEdit()
         {
@@ -94,7 +94,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
     private async Task<WorkspaceEdit?> GenerateEventHandlerInCodeBlockAsync(
         RazorCodeDocument code,
         GenerateEventHandlerCodeActionParams actionParams,
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
@@ -102,7 +102,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
         // action. That's the magic that knows how to create a code block if one doesn't exist, or put the method in an existing one, and it will also ensure
         // the method gets properly formatted. That means it doesn't matter which C# document we use for the edit, so we'll just use the impl document since
         // it always exists.
-        var csharpSyntaxTree = await documentContext.Snapshot.GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var csharpSyntaxRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         if (!csharpSyntaxRoot.TryGetClassDeclaration(out var classDecl))
         {
@@ -119,7 +119,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             eventHandler);
 
         // Call the simplifier to reduce things like `global::System.Threading.Task` down to just `Task`, if possible.
-        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri: null, tempTextEdit, cancellationToken).ConfigureAwait(false);
+        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentSnapshot, codeBehindUri: null, tempTextEdit, cancellationToken).ConfigureAwait(false);
         if (result is not { } edits)
         {
             return null;
@@ -128,7 +128,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
         // Now we run the changes through the formatter, via the TryGetCSharpCodeActionEditAsync. This is the same as what the CSharpCodeActionResolver does.
         var csharpDocument = code.GetRequiredCSharpDocument(declarationDocument: false);
         var csharpTextChanges = edits.SelectAsArray(csharpDocument.Text.GetTextChange);
-        var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(documentContext.Snapshot, csharpTextChanges,
+        var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(documentSnapshot, csharpTextChanges,
             declarationDocument: false,
             options, cancellationToken).ConfigureAwait(false);
         if (formattedChange is not { } razorChange)
@@ -141,7 +141,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             DocumentChanges = new[] {
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri },
                     Edits = [code.Source.Text.GetTextEdit(razorChange)],
                 }
             }
@@ -173,9 +173,9 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             """;
     }
 
-    private async Task<SyntaxTree?> GetCodeBehindSyntaxTreeAsync(RemoteDocumentContext documentContext, string codeBehindPath, CancellationToken cancellationToken)
+    private async Task<SyntaxTree?> GetCodeBehindSyntaxTreeAsync(RemoteDocumentSnapshot documentSnapshot, string codeBehindPath, CancellationToken cancellationToken)
     {
-        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(documentContext.TextDocument);
+        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(documentSnapshot.TextDocument);
         var solution = razorDocumentSnapshot.TextDocument.Project.Solution;
         var projectId = razorDocumentSnapshot.TextDocument.Project.Id;
 

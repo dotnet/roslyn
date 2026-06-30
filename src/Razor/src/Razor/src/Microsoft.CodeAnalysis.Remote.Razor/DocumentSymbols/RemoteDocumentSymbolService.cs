@@ -26,12 +26,12 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetDocumentSymbolsAsync(context, useHierarchicalSymbols, cancellationToken),
+            snapshot => GetDocumentSymbolsAsync(snapshot, useHierarchicalSymbols, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(RemoteDocumentContext context, bool useHierarchicalSymbols, CancellationToken cancellationToken)
+    private async ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(RemoteDocumentSnapshot snapshot, bool useHierarchicalSymbols, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         // We only care about fields, properties, methods etc. in document symbols, and for components those will exist in the declaration document.
         // For legacy documents, there is no declaration document, so we use the implementation document. An edge case is components that have no
@@ -44,7 +44,7 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
             csharpDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
         }
 
-        var generatedDocument = await context.Snapshot
+        var generatedDocument = await snapshot
             .GetGeneratedDocumentAsync(csharpDocument.IsDeclarationDocument, cancellationToken)
             .ConfigureAwait(false);
 
@@ -62,7 +62,7 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
             csharpSymbols = ConvertDocumentSymbols(roslynDocumentSymbols);
         }
 
-        return _documentSymbolService.GetDocumentSymbols(context.Snapshot.FileKind, context.Uri, csharpDocument, csharpSymbols);
+        return _documentSymbolService.GetDocumentSymbols(snapshot.FileKind, snapshot.Uri, csharpDocument, csharpSymbols);
     }
 
     private static DocumentSymbol[] ConvertDocumentSymbols(DocumentSymbol[] roslynDocumentSymbols)

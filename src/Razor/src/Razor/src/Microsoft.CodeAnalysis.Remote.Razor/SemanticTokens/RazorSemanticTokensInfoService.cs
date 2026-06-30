@@ -51,17 +51,17 @@ internal sealed partial class RazorSemanticTokensInfoService(
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorSemanticTokensInfoService>();
 
     public async Task<int[]?> GetSemanticTokensAsync(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         LinePositionSpan span,
         bool colorBackground,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var semanticTokens = await GetSemanticTokensAsync(documentContext, span, correlationId, colorBackground, cancellationToken).ConfigureAwait(false);
+        var semanticTokens = await GetSemanticTokensAsync(documentSnapshot, span, correlationId, colorBackground, cancellationToken).ConfigureAwait(false);
 
         var amount = semanticTokens is null ? "no" : (semanticTokens.Length / TokenSize).ToString(Thread.CurrentThread.CurrentCulture);
 
-        _logger.LogDebug($"Returned {amount} semantic tokens for span {span} in {documentContext.Uri}.");
+        _logger.LogDebug($"Returned {amount} semantic tokens for span {span} in {documentSnapshot.Uri}.");
 
         if (semanticTokens is not null)
         {
@@ -73,13 +73,13 @@ internal sealed partial class RazorSemanticTokensInfoService(
     }
 
     private async Task<int[]?> GetSemanticTokensAsync(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         LinePositionSpan span,
         Guid correlationId,
         bool colorBackground,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -93,7 +93,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
 
         try
         {
-            successfullyRetrievedCSharpSemanticRanges = await AddCSharpSemanticRangesAsync(combinedSemanticRanges, documentContext, codeDocument, span, colorBackground, correlationId, cancellationToken).ConfigureAwait(false);
+            successfullyRetrievedCSharpSemanticRanges = await AddCSharpSemanticRangesAsync(combinedSemanticRanges, documentSnapshot, codeDocument, span, colorBackground, correlationId, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -108,7 +108,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
         // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
         if (!successfullyRetrievedCSharpSemanticRanges)
         {
-            _logger.LogDebug($"Couldn't get C# tokens for {documentContext.Uri}. Returning null");
+            _logger.LogDebug($"Couldn't get C# tokens for {documentSnapshot.Uri}. Returning null");
             return null;
         }
 
@@ -123,7 +123,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
 
     private async Task<bool> AddCSharpSemanticRangesAsync(
         List<SemanticRange> ranges,
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument,
         LinePositionSpan razorSpan,
         bool colorBackground,
@@ -157,7 +157,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
 
             _logger.LogDebug($"Requesting C# semantic tokens for correlation ID {correlationId}, decl half: {csharpDocument.IsDeclarationDocument}, and the server thinks there are {csharpDocument.Text.Lines.Count} lines of C#");
 
-            var csharpResponse = await GetCSharpSemanticTokensResponseAsync(documentContext.Snapshot, csharpDocument.IsDeclarationDocument, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
+            var csharpResponse = await GetCSharpSemanticTokensResponseAsync(documentSnapshot, csharpDocument.IsDeclarationDocument, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
 
             return ProcessCSharpResponse(ranges, codeDocument, csharpDocument, csharpResponse, razorSpan, colorBackground);
         }

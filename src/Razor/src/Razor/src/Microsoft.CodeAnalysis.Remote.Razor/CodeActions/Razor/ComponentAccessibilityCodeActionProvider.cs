@@ -220,7 +220,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider(IFileSystem fileS
         // Find all matching tag helpers
         using var _ = DictionaryPool<string, TagHelperPair>.GetPooledObject(out var matching);
 
-        var tagHelpers = await context.DocumentSnapshot.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+        var tagHelpers = await context.DocumentSnapshot.ProjectSnapshot.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var tagHelper in tagHelpers)
         {

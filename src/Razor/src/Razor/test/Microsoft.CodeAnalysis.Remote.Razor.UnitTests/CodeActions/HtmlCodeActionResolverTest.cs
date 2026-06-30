@@ -32,15 +32,14 @@ public class HtmlCodeActionResolverTest
 
         var documentPath = TestProjectData.SomeProjectComponentFile1.FilePath;
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
-        var (context, sourceText, workspace) = CreateDocumentContext(documentUri, documentPath, contents);
+        var (snapshot, sourceText, workspace) = CreateDocumentSnapshot(documentPath, contents);
         using var workspaceLifetime = workspace;
 
         var razorEditServiceMock = new StrictMock<IRazorEditService>();
         razorEditServiceMock
-            .Setup(x => x.MapWorkspaceEditAsync(It.IsAny<RemoteDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
-            .Callback<RemoteDocumentSnapshot, WorkspaceEdit, CancellationToken>((snapshot, edit, _) =>
+            .Setup(x => x.MapWorkspaceEditAsync(It.IsAny<Solution>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
+            .Callback<Solution, WorkspaceEdit, CancellationToken>((_, edit, _) =>
             {
-                Assert.IsType<RemoteDocumentSnapshot>(snapshot);
                 var textDocumentEdit = edit.EnumerateTextDocumentEdits().First();
                 textDocumentEdit.TextDocument.DocumentUri = new(documentPath);
                 textDocumentEdit.Edits = [LspFactory.CreateTextEdit(sourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")];
@@ -69,7 +68,7 @@ public class HtmlCodeActionResolverTest
         };
 
         // Act
-        var action = await resolver.ResolveAsync(context, codeAction, CancellationToken.None);
+        var action = await resolver.ResolveAsync(snapshot, codeAction, CancellationToken.None);
 
         // Assert
         Assert.NotNull(action.Edit);
@@ -82,7 +81,7 @@ public class HtmlCodeActionResolverTest
         Assert.Equal("Goo @(DateTime.Now) Bar", changed.ToString());
     }
 
-    private static (RemoteDocumentContext Context, SourceText SourceText, AdhocWorkspace Workspace) CreateDocumentContext(DocumentUri documentUri, string filePath, string text)
+    private static (RemoteDocumentSnapshot Snapshot, SourceText SourceText, AdhocWorkspace Workspace) CreateDocumentSnapshot(string filePath, string text)
     {
         var sourceText = SourceText.From(text);
 
@@ -100,6 +99,6 @@ public class HtmlCodeActionResolverTest
         var snapshotManager = new RemoteSnapshotManager(new RemoteFilePathService(), NoOpTelemetryReporter.Instance);
         var snapshot = snapshotManager.GetSnapshot(document);
 
-        return (new RemoteDocumentContext(documentUri, snapshot), sourceText, workspace);
+        return (snapshot, sourceText, workspace);
     }
 }

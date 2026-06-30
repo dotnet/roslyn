@@ -38,15 +38,15 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetHoverAsync(context, position, cancellationToken),
+            snapshot => GetHoverAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<LspHover?>> GetHoverAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var sourceText = codeDocument.Source.Text;
         if (!sourceText.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
@@ -64,7 +64,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
 
         if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
         {
-            var generatedDocument = await context.Snapshot
+            var generatedDocument = await snapshot
                 .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -129,7 +129,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
         // All of this will change when solution snapshots are available in the core Razor project model.
 
         // TODO: Remove this when solution snapshots are available in the core Razor project model.
-        var componentAvailabilityService = new ComponentAvailabilityService(context.Snapshot.ProjectSnapshot.SolutionSnapshot);
+        var componentAvailabilityService = new ComponentAvailabilityService(snapshot.ProjectSnapshot.SolutionSnapshot);
 
         var razorHover = await HoverFactory
             .GetHoverAsync(codeDocument, hostDocumentIndex, options, componentAvailabilityService, cancellationToken)

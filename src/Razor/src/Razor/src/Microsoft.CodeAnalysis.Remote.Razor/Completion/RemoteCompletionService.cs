@@ -61,16 +61,16 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetPositionInfoAsync(context, completionContext, position, cancellationToken),
+            snapshot => GetPositionInfoAsync(snapshot, completionContext, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
-        RemoteDocumentContext remoteDocumentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         VSInternalCompletionContext completionContext,
         Position position,
         CancellationToken cancellationToken)
     {
-        var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         if (!sourceText.TryGetAbsoluteIndex(position, out var index))
         {
             return null;
@@ -81,7 +81,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return null;
         }
 
-        var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var positionInfo = GetPositionInfo(codeDocument, index);
 
@@ -146,8 +146,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetCompletionAsync(
-                context,
+            snapshot => GetCompletionAsync(
+                snapshot,
                 positionInfo,
                 completionContext,
                 razorCompletionOptions,
@@ -156,7 +156,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             cancellationToken);
 
     private async ValueTask<CompletionResponse> GetCompletionAsync(
-        RemoteDocumentContext remoteDocumentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
@@ -179,7 +179,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return CompletionResults.CallHtml;
         }
 
-        var documentSnapshot = remoteDocumentContext.Snapshot;
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         GetRazorCompletionContextAndLocalHtmlCompletionList(
@@ -410,11 +409,11 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => ResolveCompletionItemAsync(context, request, cancellationToken),
+            snapshot => ResolveCompletionItemAsync(snapshot, request, cancellationToken),
             cancellationToken);
 
     private ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         VSInternalCompletionItem request,
         CancellationToken cancellationToken)
     {
@@ -426,8 +425,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         return originalRequestContext switch
         {
-            DelegatedCompletionResolutionContext resolutionContext => ResolveCSharpCompletionItemAsync(context, request, containingCompletionList, resolutionContext, cancellationToken),
-            RazorCompletionResolveContext razorResolutionContext => ResolveRazorCompletionItemAsync(context, request, razorResolutionContext, cancellationToken),
+            DelegatedCompletionResolutionContext resolutionContext => ResolveCSharpCompletionItemAsync(snapshot, request, containingCompletionList, resolutionContext, cancellationToken),
+            RazorCompletionResolveContext razorResolutionContext => ResolveRazorCompletionItemAsync(snapshot, request, razorResolutionContext, cancellationToken),
             LocalHtmlCompletionResolveContext localHtmlResolveContext => new(ResolveLocalHtmlCompletionItem(request, localHtmlResolveContext)),
             _ => LogAndReturnUnresolvedAsync(request),
         };
@@ -439,9 +438,9 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         }
     }
 
-    private async ValueTask<VSInternalCompletionItem> ResolveRazorCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, RazorCompletionResolveContext razorResolutionContext, CancellationToken cancellationToken)
+    private async ValueTask<VSInternalCompletionItem> ResolveRazorCompletionItemAsync(RemoteDocumentSnapshot snapshot, VSInternalCompletionItem request, RazorCompletionResolveContext razorResolutionContext, CancellationToken cancellationToken)
     {
-        var componentAvailabilityService = new ComponentAvailabilityService(context.Snapshot.ProjectSnapshot.SolutionSnapshot);
+        var componentAvailabilityService = new ComponentAvailabilityService(snapshot.ProjectSnapshot.SolutionSnapshot);
 
         var result = await RazorCompletionItemResolver.ResolveAsync(
             request,
@@ -473,7 +472,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return request;
     }
 
-    private async ValueTask<VSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, CancellationToken cancellationToken)
+    private async ValueTask<VSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentSnapshot documentSnapshot, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, CancellationToken cancellationToken)
     {
         var oldData = request.Data;
         try
@@ -487,7 +486,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 request.Data = JsonSerializer.SerializeToElement(request.Data, JsonHelpers.JsonSerializerOptions);
             }
 
-            var documentSnapshot = context.Snapshot;
             var generatedDocument = await GetCSharpGeneratedDocumentAsync(documentSnapshot, resolutionContext.InDeclDocument, resolutionContext.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
 
             var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
@@ -503,7 +501,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
             item = await CSharpCompletionItemFormatter.FormatAsync(
                 item,
-                context,
+                documentSnapshot,
                 generatedDocument.Project.Solution,
                 resolutionContext.InDeclDocument,
                 formattingOptions,

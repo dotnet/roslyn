@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -23,19 +23,18 @@ internal sealed class SpellCheckService(
     private readonly ICSharpSpellCheckRangeProvider _csharpSpellCheckService = csharpSpellCheckService;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
-    public async Task<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    public async Task<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         using var builder = new PooledArrayBuilder<SpellCheckRange>();
 
-        var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
 
         AddRazorSpellCheckRanges(ref builder.AsRef(), syntaxTree);
 
-        var csharpRanges = await _csharpSpellCheckService.GetCSharpSpellCheckRangesAsync(documentContext, cancellationToken).ConfigureAwait(false);
-
+        var csharpRanges = await _csharpSpellCheckService.GetCSharpSpellCheckRangesAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
         if (csharpRanges.Length > 0)
         {
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
             AddCSharpSpellCheckRanges(ref builder.AsRef(), csharpRanges, codeDocument);
         }
 

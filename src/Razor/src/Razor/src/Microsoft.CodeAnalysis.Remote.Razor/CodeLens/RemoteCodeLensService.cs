@@ -32,16 +32,15 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetCodeLensAsync(context, textDocumentIdentifier, cancellationToken),
+            snapshot => GetCodeLensAsync(snapshot, textDocumentIdentifier, cancellationToken),
             cancellationToken);
 
     private async ValueTask<LspCodeLens[]?> GetCodeLensAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         TextDocumentIdentifier textDocumentIdentifier,
         CancellationToken cancellationToken)
     {
-        var snapshot = context.Snapshot;
-        var csharpDocument = await GetCSharpDocumentAsync(context, cancellationToken).ConfigureAwait(false);
+        var csharpDocument = await GetCSharpDocumentAsync(snapshot, cancellationToken).ConfigureAwait(false);
         var generatedDocument = await snapshot.GetGeneratedDocumentAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
         var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
 
@@ -64,9 +63,9 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
 
         return results.ToArrayAndClear();
 
-        static async ValueTask<RazorCSharpDocument> GetCSharpDocumentAsync(RemoteDocumentContext context, CancellationToken cancellationToken)
+        static async ValueTask<RazorCSharpDocument> GetCSharpDocumentAsync(RemoteDocumentSnapshot snapshot, CancellationToken cancellationToken)
         {
-            var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
             // CodeLens items are only produced for the class members in a generated C# file, so they will always be in the
             // decl document if it exists.
             if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declCSharpDocument)
@@ -86,12 +85,11 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => ResolveCodeLensAsync(context, codeLens, cancellationToken),
+            snapshot => ResolveCodeLensAsync(snapshot, codeLens, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<LspCodeLens?> ResolveCodeLensAsync(RemoteDocumentContext context, LspCodeLens codeLens, CancellationToken cancellationToken)
+    private async ValueTask<LspCodeLens?> ResolveCodeLensAsync(RemoteDocumentSnapshot snapshot, LspCodeLens codeLens, CancellationToken cancellationToken)
     {
-        var snapshot = context.Snapshot;
         var razorData = RazorCodeLensResolveData.Unwrap(codeLens);
         if (razorData.OriginalData is { } originalData)
         {
