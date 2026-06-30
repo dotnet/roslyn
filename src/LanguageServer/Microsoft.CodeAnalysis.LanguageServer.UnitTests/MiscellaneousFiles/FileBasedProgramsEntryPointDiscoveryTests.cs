@@ -1025,7 +1025,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var tree = CSharp.CSharpSyntaxTree.ParseText(SourceText.From(source));
         var references = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
+            .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location) && File.Exists(a.Location))
             .Select(a => MetadataReference.CreateFromFile(a.Location))
             .ToArray();
         var compilation = CSharp.CSharpCompilation.Create(
