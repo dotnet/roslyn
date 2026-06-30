@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -20,6 +23,7 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 
@@ -37,13 +41,15 @@ internal sealed class CohostCodeActionsEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
     IHtmlRequestInvoker requestInvoker,
-    ITelemetryReporter telemetryReporter)
+    ITelemetryReporter telemetryReporter,
+    ILoggerFactory loggerFactory)
     : AbstractCohostDocumentEndpoint<VSCodeActionParams, SumType<Command, CodeAction>[]?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostCodeActionsEndpoint>();
 
     protected override bool MutatesSolutionState => false;
 
@@ -72,6 +78,7 @@ internal sealed class CohostCodeActionsEndpoint(
         using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCodeActionName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.CodeActionRazorTelemetryThreshold, correlationId);
 
         AdjustRequestRangeIfNecessary(request);
+        LogCodeActionTrace($"Cohost.Request: RazorDocument='{FormatDocument(razorDocument)}', Range='{FormatRange(request.Range)}', SelectionRange='{FormatRange(request.Context.SelectionRange)}', Diagnostics=[{FormatDiagnostics(request.Context.Diagnostics)}]");
 
         var requestInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, CodeActionRequestInfo>(
             razorDocument.Project.Solution,
@@ -80,8 +87,11 @@ internal sealed class CohostCodeActionsEndpoint(
 
         if (requestInfo is null or { LanguageKind: RazorLanguageKind.CSharp, CSharpRequest: null })
         {
+            LogCodeActionTrace($"Cohost.RequestInfoMissing: RequestInfo='{requestInfo}', RazorDocument='{FormatDocument(razorDocument)}'");
             return null;
         }
+
+        LogCodeActionTrace($"Cohost.RequestInfo: LanguageKind='{requestInfo.LanguageKind}', HasCSharpRequest={requestInfo.CSharpRequest is not null}, CSharpRange='{FormatRange(requestInfo.CSharpRequest?.Range)}', CSharpDiagnostics=[{FormatDiagnostics(requestInfo.CSharpRequest?.Context.Diagnostics)}]");
 
         // This is just to prevent a warning for an unused field in the VS Code extension
         Debug.Assert(_requestInvoker is not null);
@@ -96,10 +106,15 @@ internal sealed class CohostCodeActionsEndpoint(
             _ => []
         };
 
-        return await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, SumType<Command, CodeAction>[]?>(
+        LogCodeActionTrace($"Cohost.DelegatedActions: LanguageKind='{requestInfo.LanguageKind}', Count={delegatedCodeActions.Length}, Actions=[{FormatRazorCodeActions(delegatedCodeActions)}]");
+
+        var result = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, SumType<Command, CodeAction>[]?>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetCodeActionsAsync(solutionInfo, razorDocument.Id, request, delegatedCodeActions, cancellationToken),
             cancellationToken).ConfigureAwait(false);
+
+        LogCodeActionTrace($"Cohost.FinalResult: Count={result?.Length.ToString() ?? "<null>"}, Actions=[{FormatSumTypeCodeActions(result)}]");
+        return result;
     }
 
     private async Task<RazorVSInternalCodeAction[]> GetCSharpCodeActionsAsync(TextDocument razorDocument, VSCodeActionParams request, Guid correlationId, CancellationToken cancellationToken)
@@ -114,9 +129,13 @@ internal sealed class CohostCodeActionsEndpoint(
         var csharpRequest = JsonHelpers.Convert<VSCodeActionParams, CodeActionParams>(request).AssumeNotNull();
 
         using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCodeActionName, "Razor.ExternalAccess", TelemetryThresholds.CodeActionSubLSPTelemetryThreshold, correlationId);
+        LogCodeActionTrace($"Cohost.CSharpRequest: RazorDocument='{FormatDocument(razorDocument)}', GeneratedDocument='{FormatDocument(generatedDocument)}', Range='{FormatRange(request.Range)}', Diagnostics=[{FormatDiagnostics(request.Context.Diagnostics)}]");
         var csharpCodeActions = await GetCodeActionsAsync(generatedDocument, csharpRequest, _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+        LogCodeActionTrace($"Cohost.CSharpRawActions: Count={csharpCodeActions.Length}, Actions=[{FormatCodeActions(csharpCodeActions)}]");
 
-        return JsonHelpers.ConvertAll<CodeAction, RazorVSInternalCodeAction>(csharpCodeActions);
+        var convertedCodeActions = JsonHelpers.ConvertAll<CodeAction, RazorVSInternalCodeAction>(csharpCodeActions);
+        LogCodeActionTrace($"Cohost.CSharpConvertedActions: Count={convertedCodeActions.Length}, Actions=[{FormatRazorCodeActions(convertedCodeActions)}]");
+        return convertedCodeActions;
     }
 
     private static Task<CodeAction[]> GetCodeActionsAsync(
@@ -186,4 +205,116 @@ internal sealed class CohostCodeActionsEndpoint(
         public static Task<CodeAction[]> GetCodeActionsAsync(Document document, CodeActionParams request, bool supportsVSExtensions, CancellationToken cancellationToken)
             => CohostCodeActionsEndpoint.GetCodeActionsAsync(document, request, supportsVSExtensions, cancellationToken);
     }
+
+    private void LogCodeActionTrace(string message)
+    {
+        var fullMessage = $"RazorCodeActionTrace {message}";
+        _logger.LogDebug(fullMessage);
+        Trace.WriteLine(fullMessage);
+    }
+
+    private static string FormatCodeActions(CodeAction[]? codeActions)
+    {
+        if (codeActions is null)
+        {
+            return "<null>";
+        }
+
+        if (codeActions.Length == 0)
+        {
+            return "<empty>";
+        }
+
+        return string.Join("; ", codeActions.Select(static (action, index) =>
+            $"{index}: Title='{action.Title}', Kind='{action.Kind?.ToString() ?? "<null>"}', Data={FormatData(action.Data)}"));
+    }
+
+    private static string FormatRazorCodeActions(RazorVSInternalCodeAction[]? codeActions)
+    {
+        if (codeActions is null)
+        {
+            return "<null>";
+        }
+
+        if (codeActions.Length == 0)
+        {
+            return "<empty>";
+        }
+
+        return string.Join("; ", codeActions.Select(static (action, index) =>
+            $"{index}: Name='{action.Name ?? "<null>"}', Title='{action.Title}', Kind='{action.Kind?.ToString() ?? "<null>"}', Group='{action.Group ?? "<null>"}', Children={action.Children?.Length ?? 0}, Command='{action.Command?.CommandIdentifier ?? "<null>"}', Data={FormatData(action.Data)}"));
+    }
+
+    private static string FormatSumTypeCodeActions(SumType<Command, CodeAction>[]? codeActions)
+    {
+        if (codeActions is null)
+        {
+            return "<null>";
+        }
+
+        if (codeActions.Length == 0)
+        {
+            return "<empty>";
+        }
+
+        return string.Join("; ", codeActions.Select(static (action, index) =>
+            $"{index}: {FormatCodeActionValue(action.Value)}"));
+    }
+
+    private static string FormatCodeActionValue(object? value)
+        => value switch
+        {
+            RazorVSInternalCodeAction razorAction => $"RazorVSInternalCodeAction Name='{razorAction.Name ?? "<null>"}' Title='{razorAction.Title}' Kind='{razorAction.Kind?.ToString() ?? "<null>"}' Data={FormatData(razorAction.Data)}",
+            VSInternalCodeAction vsAction => $"VSInternalCodeAction Title='{vsAction.Title}' Kind='{vsAction.Kind?.ToString() ?? "<null>"}' Data={FormatData(vsAction.Data)}",
+            CodeAction action => $"CodeAction Title='{action.Title}' Kind='{action.Kind?.ToString() ?? "<null>"}' Data={FormatData(action.Data)}",
+            Command command => $"Command Title='{command.Title}' Command='{command.CommandIdentifier}'",
+            null => "<null>",
+            _ => $"{value.GetType().FullName}: {value}"
+        };
+
+    private static string FormatData(object? data)
+    {
+        if (data is null)
+        {
+            return "<null>";
+        }
+
+        if (data is not JsonElement jsonData)
+        {
+            return data.GetType().FullName ?? data.GetType().Name;
+        }
+
+        var customTags = jsonData.TryGetProperty("CustomTags", out var customTagsValue) && customTagsValue.ValueKind == JsonValueKind.Array
+            ? $"CustomTags=[{string.Join(", ", customTagsValue.EnumerateArray().Select(static tag => tag.GetString()))}]"
+            : "CustomTags=<missing>";
+
+        var fixAllFlavors = jsonData.TryGetProperty("FixAllFlavors", out var fixAllFlavorsValue) && fixAllFlavorsValue.ValueKind == JsonValueKind.Array
+            ? $"FixAllFlavors={fixAllFlavorsValue.GetArrayLength()}"
+            : "FixAllFlavors=<missing>";
+
+        var uniqueIdentifier = jsonData.TryGetProperty("UniqueIdentifier", out var uniqueIdentifierValue)
+            ? $"UniqueIdentifier='{uniqueIdentifierValue}'"
+            : "UniqueIdentifier=<missing>";
+
+        return $"JsonElement{{ValueKind={jsonData.ValueKind}, {customTags}, {fixAllFlavors}, {uniqueIdentifier}}}";
+    }
+
+    private static string FormatDiagnostics(IEnumerable<LspDiagnostic>? diagnostics)
+    {
+        if (diagnostics is null)
+        {
+            return "<null>";
+        }
+
+        return string.Join("; ", diagnostics.Select(static (diagnostic, index) =>
+            $"{index}: Code='{diagnostic.Code}', Severity='{diagnostic.Severity}', Range='{FormatRange(diagnostic.Range)}', Message='{diagnostic.Message}'"));
+    }
+
+    private static string FormatRange(LspRange? range)
+        => range is null
+            ? "<null>"
+            : $"{range.Start.Line}:{range.Start.Character}-{range.End.Line}:{range.End.Character}";
+
+    private static string FormatDocument(TextDocument document)
+        => document.FilePath ?? document.Name;
 }

@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +19,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -32,21 +35,28 @@ internal sealed class CodeActionsService(
     [ImportMany] IEnumerable<IRazorCodeActionProvider> razorCodeActionProviders,
     [ImportMany] IEnumerable<ICSharpCodeActionProvider> csharpCodeActionProviders,
     [ImportMany] IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
-    LanguageServerFeatureOptions languageServerFeatureOptions) : ICodeActionsService
+    LanguageServerFeatureOptions languageServerFeatureOptions,
+    ILoggerFactory loggerFactory) : ICodeActionsService
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IEnumerable<IRazorCodeActionProvider> _razorCodeActionProviders = razorCodeActionProviders;
     private readonly IEnumerable<ICSharpCodeActionProvider> _csharpCodeActionProviders = csharpCodeActionProviders;
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders = htmlCodeActionProviders;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CodeActionsService>();
 
     public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, RemoteDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] delegatedCodeActions, Uri? delegatedDocumentUri, bool supportsCodeActionResolve, CancellationToken cancellationToken)
     {
+        LogCodeActionTrace($"RemoteCodeActions.Entry: Document='{documentSnapshot.FilePath}', RequestRange='{FormatRange(request.Range)}', SelectionRange='{FormatRange(request.Context.SelectionRange)}', Diagnostics=[{FormatDiagnostics(request.Context.Diagnostics)}], DelegatedDocumentUri='{delegatedDocumentUri}', SupportsResolve={supportsCodeActionResolve}, DelegatedInputCount={delegatedCodeActions.Length}, DelegatedInput=[{FormatCodeActions(delegatedCodeActions)}]");
+
         var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentSnapshot, delegatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
         if (razorCodeActionContext is null)
         {
+            LogCodeActionTrace($"RemoteCodeActions.NoContext: Document='{documentSnapshot.FilePath}', RequestRange='{FormatRange(request.Range)}'");
             return null;
         }
+
+        LogCodeActionTrace($"RemoteCodeActions.Context: Document='{documentSnapshot.FilePath}', LanguageKind='{razorCodeActionContext.LanguageKind}', StartAbsoluteIndex={razorCodeActionContext.StartAbsoluteIndex}, EndAbsoluteIndex={razorCodeActionContext.EndAbsoluteIndex}, SupportsResolve={razorCodeActionContext.SupportsCodeActionResolve}");
 
         delegatedCodeActions = razorCodeActionContext.LanguageKind switch
         {
@@ -55,11 +65,15 @@ internal sealed class CodeActionsService(
             _ => []
         };
 
+        LogCodeActionTrace($"RemoteCodeActions.DelegatedAfterLanguageProcessing: LanguageKind='{razorCodeActionContext.LanguageKind}', Count={delegatedCodeActions.Length}, Actions=[{FormatCodeActions(delegatedCodeActions)}]");
+
         var razorCodeActions = await GetRazorCodeActionsAsync(razorCodeActionContext, cancellationToken).ConfigureAwait(false);
+        LogCodeActionTrace($"RemoteCodeActions.RazorProviderResults: Count={razorCodeActions.Length}, Actions=[{FormatCodeActions(razorCodeActions)}]");
 
         cancellationToken.ThrowIfCancellationRequested();
 
         var filteredCodeActions = await FilterDelegatedCodeActionsAsync(razorCodeActionContext, [.. delegatedCodeActions], cancellationToken).ConfigureAwait(false);
+        LogCodeActionTrace($"RemoteCodeActions.FilteredDelegatedResults: Count={filteredCodeActions.Length}, Actions=[{FormatCodeActions(filteredCodeActions)}]");
 
         cancellationToken.ThrowIfCancellationRequested();
         using var commandsOrCodeActions = new PooledArrayBuilder<SumType<Command, CodeAction>>();
@@ -70,6 +84,7 @@ internal sealed class CodeActionsService(
         ConvertCodeActionsToSumType(razorCodeActions, "A-Razor");
         ConvertCodeActionsToSumType(filteredCodeActions, "B-Delegated");
 
+        LogCodeActionTrace($"RemoteCodeActions.Final: Count={commandsOrCodeActions.Count}, RazorCount={razorCodeActions.Length}, DelegatedCount={filteredCodeActions.Length}");
         return commandsOrCodeActions.ToArray();
 
         void ConvertCodeActionsToSumType(ImmutableArray<RazorVSInternalCodeAction> codeActions, string groupName)
@@ -211,7 +226,7 @@ internal sealed class CodeActionsService(
         return csharpText.GetRange(TextSpan.FromBounds(classDeclaration.Identifier.SpanStart, baseType.Type.Span.End));
     }
 
-    private static RazorVSInternalCodeAction[] ExtractCSharpCodeActionNamesFromData(RazorVSInternalCodeAction[] codeActions)
+    private RazorVSInternalCodeAction[] ExtractCSharpCodeActionNamesFromData(RazorVSInternalCodeAction[] codeActions)
     {
         using var actions = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
@@ -221,13 +236,16 @@ internal sealed class CodeActionsService(
                 !jsonData.TryGetProperty("CustomTags", out var value) ||
                 value.Deserialize<string[]>() is not [..] tags)
             {
+                LogCodeActionTrace($"RemoteCodeActions.ExtractName.DropNoCustomTags: Action={FormatCodeAction(codeAction)}");
                 continue;
             }
 
             codeAction.Name = GetCodeActionName(tags);
+            LogCodeActionTrace($"RemoteCodeActions.ExtractName.Tags: Title='{codeAction.Title}', Tags=[{string.Join(", ", tags)}], ExtractedName='{codeAction.Name ?? "<null>"}'");
 
             if (string.IsNullOrEmpty(codeAction.Name))
             {
+                LogCodeActionTrace($"RemoteCodeActions.ExtractName.DropNoName: Action={FormatCodeAction(codeAction)}");
                 continue;
             }
 
@@ -237,9 +255,11 @@ internal sealed class CodeActionsService(
             if (jsonData.TryGetProperty("FixAllFlavors", out var fixAllFlavours) &&
                 fixAllFlavours.GetArrayLength() > 0)
             {
+                LogCodeActionTrace($"RemoteCodeActions.ExtractName.DropFixAll: Action={FormatCodeAction(codeAction)}, FixAllFlavors={fixAllFlavours.GetArrayLength()}");
                 continue;
             }
 
+            LogCodeActionTrace($"RemoteCodeActions.ExtractName.Keep: Action={FormatCodeAction(codeAction)}");
             actions.Add(codeAction);
         }
 
@@ -293,12 +313,20 @@ internal sealed class CodeActionsService(
         cancellationToken.ThrowIfCancellationRequested();
 
         using var tasks = new PooledArrayBuilder<Task<ImmutableArray<RazorVSInternalCodeAction>>>();
+        using var providerNames = new PooledArrayBuilder<string>();
         foreach (var provider in providers)
         {
+            providerNames.Add(provider.GetType().FullName ?? provider.GetType().Name);
             tasks.Add(provider.ProvideAsync(context, codeActions, cancellationToken));
         }
 
-        return await ConsolidateCodeActionsFromProvidersAsync(tasks.ToImmutable(), cancellationToken).ConfigureAwait(false);
+        var providerResults = await Task.WhenAll(tasks.ToImmutable()).ConfigureAwait(false);
+        for (var i = 0; i < providerResults.Length; i++)
+        {
+            LogCodeActionTrace($"RemoteCodeActions.Filter.ProviderResult: Provider='{providerNames[i]}', Count={providerResults[i].Length}, Actions=[{FormatCodeActions(providerResults[i])}]");
+        }
+
+        return ConsolidateCodeActionsFromProviderResults(providerResults, cancellationToken);
     }
 
     private async Task<ImmutableArray<RazorVSInternalCodeAction>> GetRazorCodeActionsAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
@@ -320,8 +348,14 @@ internal sealed class CodeActionsService(
         CancellationToken cancellationToken)
     {
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+        return ConsolidateCodeActionsFromProviderResults(results, cancellationToken);
+    }
 
-        using var codeActions = new PooledArrayBuilder<RazorVSInternalCodeAction>(capacity: tasks.Length);
+    private static ImmutableArray<RazorVSInternalCodeAction> ConsolidateCodeActionsFromProviderResults(
+        ImmutableArray<RazorVSInternalCodeAction>[] results,
+        CancellationToken cancellationToken)
+    {
+        using var codeActions = new PooledArrayBuilder<RazorVSInternalCodeAction>(capacity: results.Length);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -332,4 +366,64 @@ internal sealed class CodeActionsService(
 
         return codeActions.ToImmutableOrderedByAndClear(static r => r.Order);
     }
+
+    private void LogCodeActionTrace(string message)
+    {
+        var fullMessage = $"RazorCodeActionTrace {message}";
+        _logger.LogDebug(fullMessage);
+        Trace.WriteLine(fullMessage);
+    }
+
+    private static string FormatCodeActions(ImmutableArray<RazorVSInternalCodeAction> codeActions)
+        => codeActions.IsEmpty
+            ? "<empty>"
+            : string.Join("; ", codeActions.Select(static (action, index) => $"{index}: {FormatCodeAction(action)}"));
+
+    private static string FormatCodeActions(RazorVSInternalCodeAction[]? codeActions)
+    {
+        if (codeActions is null)
+        {
+            return "<null>";
+        }
+
+        return codeActions.Length == 0
+            ? "<empty>"
+            : string.Join("; ", codeActions.Select(static (action, index) => $"{index}: {FormatCodeAction(action)}"));
+    }
+
+    private static string FormatCodeAction(RazorVSInternalCodeAction action)
+        => $"Name='{action.Name ?? "<null>"}', Title='{action.Title}', Kind='{action.Kind?.ToString() ?? "<null>"}', Group='{action.Group ?? "<null>"}', Children={action.Children?.Length ?? 0}, Command='{action.Command?.CommandIdentifier ?? "<null>"}', Data={FormatData(action.Data)}";
+
+    private static string FormatData(object? data)
+    {
+        if (data is null)
+        {
+            return "<null>";
+        }
+
+        if (data is not JsonElement jsonData)
+        {
+            return data.GetType().FullName ?? data.GetType().Name;
+        }
+
+        var customTags = jsonData.TryGetProperty("CustomTags", out var customTagsValue) && customTagsValue.ValueKind == JsonValueKind.Array
+            ? $"CustomTags=[{string.Join(", ", customTagsValue.EnumerateArray().Select(static tag => tag.GetString()))}]"
+            : "CustomTags=<missing>";
+
+        var fixAllFlavors = jsonData.TryGetProperty("FixAllFlavors", out var fixAllFlavorsValue) && fixAllFlavorsValue.ValueKind == JsonValueKind.Array
+            ? $"FixAllFlavors={fixAllFlavorsValue.GetArrayLength()}"
+            : "FixAllFlavors=<missing>";
+
+        return $"JsonElement{{ValueKind={jsonData.ValueKind}, {customTags}, {fixAllFlavors}}}";
+    }
+
+    private static string FormatDiagnostics(IEnumerable<LspDiagnostic>? diagnostics)
+        => diagnostics is null
+            ? "<null>"
+            : string.Join("; ", diagnostics.Select(static (diagnostic, index) => $"{index}: Code='{diagnostic.Code}', Severity='{diagnostic.Severity}', Range='{FormatRange(diagnostic.Range)}', Message='{diagnostic.Message}'"));
+
+    private static string FormatRange(LspRange? range)
+        => range is null
+            ? "<null>"
+            : $"{range.Start.Line}:{range.Start.Character}-{range.End.Line}:{range.End.Character}";
 }

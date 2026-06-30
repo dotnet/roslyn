@@ -1,8 +1,12 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
@@ -67,22 +71,50 @@ internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvid
             ? installerService.TryGetPackageSources()
             : [];
 
+        AddImportTrace.LogMessage($"AddImport ProviderRequest: Document='{document.FilePath ?? document.Name}', Project='{document.Project.Name}', Language='{document.Project.Language}', Span='{span.Start}..{span.End}', Diagnostics=[{FormatDiagnostics(diagnostics)}], InitialSearchOptions=[ReferencedProjects={searchOptions.SearchReferencedProjectSymbols}, UnreferencedProjectSources={searchOptions.SearchUnreferencedProjectSourceSymbols}, UnreferencedMetadata={searchOptions.SearchUnreferencedMetadataSymbols}, ReferenceAssemblies={searchOptions.SearchReferenceAssemblies}, NuGetPackages={searchOptions.SearchNuGetPackages}], InstallerService='{installerService?.GetType().FullName ?? "<null>"}', PackageSources={packageSources.Length}");
+
         if (packageSources.IsEmpty)
         {
             searchOptions = searchOptions with { SearchNuGetPackages = false };
+            AddImportTrace.LogMessage($"AddImport ProviderSearchOptionsAdjusted: Document='{document.FilePath ?? document.Name}', Reason='No package sources', SearchNuGetPackages={searchOptions.SearchNuGetPackages}");
         }
 
         var addImportOptions = await document.GetAddImportOptionsAsync(
             searchOptions, cleanupDocument: true, cancellationToken).ConfigureAwait(false);
 
-        var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
-            document, span, diagnostics, MaxResults, symbolSearchService, addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);
+        AddImportTrace.LogMessage($"AddImport ProviderOptions: Document='{document.FilePath ?? document.Name}', CleanupDocument={addImportOptions.CleanupDocument}, CleanupOptionsType='{addImportOptions.CleanupOptions.GetType().FullName}', SearchOptions=[ReferencedProjects={addImportOptions.SearchOptions.SearchReferencedProjectSymbols}, UnreferencedProjectSources={addImportOptions.SearchOptions.SearchUnreferencedProjectSourceSymbols}, UnreferencedMetadata={addImportOptions.SearchOptions.SearchUnreferencedMetadataSymbols}, ReferenceAssemblies={addImportOptions.SearchOptions.SearchReferenceAssemblies}, NuGetPackages={addImportOptions.SearchOptions.SearchNuGetPackages}]");
+
+        ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)> fixesForDiagnostic;
+        try
+        {
+            fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
+                document, span, diagnostics, MaxResults, symbolSearchService, addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            LogAddImportProviderException(
+                $"ProviderFailure: Document='{document.FilePath ?? document.Name}', Project='{document.Project.Name}', Language='{document.Project.Language}', Span='{span.Start}..{span.End}', Diagnostics=[{FormatDiagnostics(diagnostics)}]",
+                ex);
+            throw;
+        }
+
+        AddImportTrace.LogMessage($"AddImport ProviderFixesForDiagnostics: Document='{document.FilePath ?? document.Name}', DiagnosticCount={fixesForDiagnostic.Length}, Fixes=[{string.Join("; ", fixesForDiagnostic.Select(static (entry, index) => $"{index}: Diagnostic='{entry.Diagnostic.Id}' Span='{entry.Diagnostic.Location.SourceSpan.Start}..{entry.Diagnostic.Location.SourceSpan.End}' FixCount={entry.Fixes.Length} Fixes=[{AddImportTrace.CreateFixSummary(entry.Fixes)}]"))}]");
 
         foreach (var (diagnostic, fixes) in fixesForDiagnostic)
         {
             // Limit the results returned since this will be displayed to the user
             var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, installerService, MaxResults);
+            AddImportTrace.LogMessage($"AddImport ProviderRegisterFixes: Document='{document.FilePath ?? document.Name}', Diagnostic='{diagnostic.Id}', DiagnosticSpan='{diagnostic.Location.SourceSpan.Start}..{diagnostic.Location.SourceSpan.End}', FixCount={fixes.Length}, CodeActionCount={codeActions.Length}, CodeActions=[{string.Join("; ", codeActions.Select(static (action, index) => $"{index}: Title='{action.Title}', EquivalenceKey='{action.EquivalenceKey ?? "<null>"}', Priority='{action.Priority}'"))}]");
             context.RegisterFixes(codeActions, diagnostic);
         }
     }
+
+    private static string FormatDiagnostics(ImmutableArray<Diagnostic> diagnostics)
+        => diagnostics.IsEmpty
+            ? "<empty>"
+            : string.Join("; ", diagnostics.Select(static (diagnostic, index) =>
+                $"{index}: Id='{diagnostic.Id}', Severity='{diagnostic.Severity}', Span='{diagnostic.Location.SourceSpan.Start}..{diagnostic.Location.SourceSpan.End}', Message='{diagnostic.GetMessage()}'"));
+
+    private static void LogAddImportProviderException(string message, Exception exception)
+        => AddImportTrace.LogException(message, exception);
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
@@ -41,7 +42,21 @@ internal sealed class RemoteMissingImportDiscoveryService(
         {
             var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (document is null)
+            {
+                Trace.WriteLine($"AddImport RemoteMissingImportDiscoveryService.GetFixesAsync: Document '{documentId}' was not found.");
                 return [];
+            }
+
+            Trace.WriteLine(AddImportTrace.CreateRemoteCallMessage(
+                phase: "RemoteRequest",
+                documentName: document.FilePath ?? document.Name,
+                projectName: document.Project.Name,
+                language: document.Project.Language,
+                span: span,
+                diagnosticId: diagnosticId,
+                maxResults: maxResults,
+                options: options,
+                packageSourceCount: packageSources.Length));
 
             var service = document.GetRequiredLanguageService<IAddImportFeatureService>();
 
@@ -51,6 +66,18 @@ internal sealed class RemoteMissingImportDiscoveryService(
                 document, span, diagnosticId, maxResults,
                 symbolSearchService, options,
                 packageSources, cancellationToken).ConfigureAwait(false);
+
+            Trace.WriteLine(AddImportTrace.CreateRemoteCallMessage(
+                phase: "RemoteResponse",
+                documentName: document.FilePath ?? document.Name,
+                projectName: document.Project.Name,
+                language: document.Project.Language,
+                span: span,
+                diagnosticId: diagnosticId,
+                maxResults: maxResults,
+                options: options,
+                packageSourceCount: packageSources.Length,
+                resultCount: result.Length));
 
             return result;
         }, cancellationToken);

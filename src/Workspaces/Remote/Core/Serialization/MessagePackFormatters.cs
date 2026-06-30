@@ -214,16 +214,50 @@ internal sealed class MessagePackFormatters
     {
         public void Serialize(ref MessagePackWriter writer, T? value, MessagePackSerializerOptions options)
         {
-            TypelessFormatter.Instance.Serialize(ref writer, (object?)value, options);
+            try
+            {
+                TypelessFormatter.Instance.Serialize(ref writer, (object?)value, options);
+            }
+            catch (Exception e)
+            {
+                var message = CreateFailureMessage("serialize", e);
+                Trace.WriteLine(message);
+                throw new MessagePackSerializationException(message, e);
+            }
         }
 
         public T? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            try
+            {
 #if NET
-            using var _ = System.Runtime.Loader.AssemblyLoadContext.EnterContextualReflection(typeof(AssemblyLoadContextAwareForceTypelessFormatter<>).Assembly);
+                using var _ = System.Runtime.Loader.AssemblyLoadContext.EnterContextualReflection(typeof(AssemblyLoadContextAwareForceTypelessFormatter<>).Assembly);
 #endif
 
-            return (T?)TypelessFormatter.Instance.Deserialize(ref reader, options);
+                return (T?)TypelessFormatter.Instance.Deserialize(ref reader, options);
+            }
+            catch (Exception e)
+            {
+                var message = CreateFailureMessage("deserialize", e);
+                Trace.WriteLine(message);
+                throw new MessagePackSerializationException(message, e);
+            }
+        }
+
+        private static string CreateFailureMessage(string operation, Exception exception)
+        {
+#if NET
+            var formatterAssembly = typeof(AssemblyLoadContextAwareForceTypelessFormatter<>).Assembly;
+            var targetAssembly = typeof(T).Assembly;
+
+            return
+                $"Typeless MessagePack {operation} failed for '{typeof(T).FullName}'. " +
+                $"FormatterAssembly='{formatterAssembly.FullName}', FormatterAssemblyLoadContext='{System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(formatterAssembly)?.Name ?? "<null>"}', " +
+                $"TargetAssembly='{targetAssembly.FullName}', TargetAssemblyLoadContext='{System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(targetAssembly)?.Name ?? "<null>"}'. " +
+                $"{exception.GetType().FullName}: {exception.Message}";
+#else
+            return $"Typeless MessagePack {operation} failed for '{typeof(T).FullName}'. {exception.GetType().FullName}: {exception.Message}";
+#endif
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,8 +29,11 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 [Export(typeof(ICSharpCodeActionProvider)), Shared]
-internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
+[method: ImportingConstructor]
+internal sealed class TypeAccessibilityCodeActionProvider(ILoggerFactory loggerFactory) : ICSharpCodeActionProvider
 {
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<TypeAccessibilityCodeActionProvider>();
+
     private static readonly IEnumerable<string> s_supportedDiagnostics = new[]
     {
         // `The type or namespace name 'type/namespace' could not be found
@@ -49,27 +54,33 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
         ImmutableArray<RazorVSInternalCodeAction> codeActions,
         CancellationToken cancellationToken)
     {
+        LogCodeActionTrace($"TypeAccessibility.Entry: SupportsResolve={context.SupportsCodeActionResolve}, Diagnostics=[{FormatDiagnostics(context.Request?.Context?.Diagnostics)}], InputCount={codeActions.Length}, Input=[{FormatCodeActions(codeActions)}]");
+
         if (context.Request?.Context?.Diagnostics is null)
         {
+            LogCodeActionTrace("TypeAccessibility.ExitNoDiagnostics");
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         if (codeActions.IsEmpty)
         {
+            LogCodeActionTrace("TypeAccessibility.ExitNoCodeActions");
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var results = context.SupportsCodeActionResolve
-            ? ProcessCodeActionsVS(context, codeActions)
-            : ProcessCodeActionsVSCode(context, codeActions);
+            ? ProcessCodeActionsVS(context, codeActions, _logger)
+            : ProcessCodeActionsVSCode(context, codeActions, _logger);
 
         var orderedResults = results.Sort(static (x, y) => StringComparer.CurrentCulture.Compare(x.Title, y.Title));
+        LogCodeActionTrace($"TypeAccessibility.Exit: RawCount={results.Length}, OrderedCount={orderedResults.Length}, Results=[{FormatCodeActions(orderedResults)}]");
         return Task.FromResult(orderedResults);
     }
 
     private static ImmutableArray<RazorVSInternalCodeAction> ProcessCodeActionsVSCode(
         RazorCodeActionContext context,
-        ImmutableArray<RazorVSInternalCodeAction> codeActions)
+        ImmutableArray<RazorVSInternalCodeAction> codeActions,
+        ILogger logger)
     {
         var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
             diagnostic is { Severity: LspDiagnosticSeverity.Error, Code: { } code } &&
@@ -78,6 +89,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
         if (diagnostics is null || !diagnostics.Any())
         {
+            LogCodeActionTrace(logger, "TypeAccessibility.VSCode.NoSupportedDiagnostics");
             return [];
         }
 
@@ -92,6 +104,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             if (end.Line > context.SourceText.Lines.Count ||
                 end.Character > context.SourceText.Lines[end.Line].End)
             {
+                LogCodeActionTrace(logger, $"TypeAccessibility.VSCode.SkipDiagnosticOutOfBounds: Diagnostic={FormatDiagnostic(diagnostic)}");
                 continue;
             }
 
@@ -103,6 +116,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             // document snapshot / source text. In such a case, we skip processing of the diagnostic.
             if (diagnosticSpan.End > context.SourceText.Length)
             {
+                LogCodeActionTrace(logger, $"TypeAccessibility.VSCode.SkipDiagnosticSpanPastEnd: Diagnostic={FormatDiagnostic(diagnostic)}, Span='{diagnosticSpan}'");
                 continue;
             }
 
@@ -111,6 +125,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
                 var name = codeAction.Name;
                 if (name is null || !name.Equals(LanguageServerConstants.CodeActions.CodeActionFromVSCode, StringComparison.Ordinal))
                 {
+                    LogCodeActionTrace(logger, $"TypeAccessibility.VSCode.SkipName: Diagnostic={FormatDiagnostic(diagnostic)}, Action={FormatCodeAction(codeAction)}");
                     continue;
                 }
 
@@ -138,16 +153,23 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
                 if (string.IsNullOrEmpty(fqn))
                 {
+                    LogCodeActionTrace(logger, $"TypeAccessibility.VSCode.SkipNoFqn: AssociatedValue='{associatedValue}', Diagnostic={FormatDiagnostic(diagnostic)}, Action={FormatCodeAction(codeAction)}");
                     continue;
                 }
 
                 var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
                 typeAccessibilityCodeActions.Add(fqnCodeAction);
+                LogCodeActionTrace(logger, $"TypeAccessibility.VSCode.KeepFullyQualify: AssociatedValue='{associatedValue}', Fqn='{fqn}', Action={FormatCodeAction(fqnCodeAction)}");
 
                 if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fqn, context.Request.TextDocument, additionalEdit: null, context.DelegatedDocumentUri, out var @namespace, out var resolutionParams))
                 {
                     var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, newTagName: null, resolutionParams);
                     typeAccessibilityCodeActions.Add(addUsingCodeAction);
+                    LogCodeActionTrace(logger, $"TypeAccessibility.VSCode.KeepAddUsing: Namespace='{@namespace}', Action={FormatCodeAction(addUsingCodeAction)}");
+                }
+                else
+                {
+                    LogCodeActionTrace(logger, $"TypeAccessibility.VSCode.SkipAddUsingResolutionParams: Fqn='{fqn}', Diagnostic={FormatDiagnostic(diagnostic)}, Action={FormatCodeAction(codeAction)}");
                 }
             }
         }
@@ -157,12 +179,15 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
     private static ImmutableArray<RazorVSInternalCodeAction> ProcessCodeActionsVS(
         RazorCodeActionContext context,
-        ImmutableArray<RazorVSInternalCodeAction> codeActions)
+        ImmutableArray<RazorVSInternalCodeAction> codeActions,
+        ILogger logger)
     {
         using var typeAccessibilityCodeActions = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
         foreach (var codeAction in codeActions)
         {
+            LogCodeActionTrace(logger, $"TypeAccessibility.VS.Consider: Action={FormatCodeAction(codeAction)}");
+
             if (codeAction.Name is not null && codeAction.Name.Equals(PredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
             {
                 string action;
@@ -170,16 +195,19 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
                 if (!TryGetOwner(context, out var owner))
                 {
                     // Failed to locate a valid owner for the light bulb
+                    LogCodeActionTrace(logger, $"TypeAccessibility.VS.DropFullyQualifyNoOwner: Action={FormatCodeAction(codeAction)}");
                     continue;
                 }
                 else if (IsSingleLineDirectiveNode(owner))
                 {
                     // Don't support single line directives
+                    LogCodeActionTrace(logger, $"TypeAccessibility.VS.DropFullyQualifySingleLineDirective: Owner='{owner.GetType().Name}', Action={FormatCodeAction(codeAction)}");
                     continue;
                 }
                 else if (IsExplicitExpressionNode(owner))
                 {
                     // Don't support explicit expressions
+                    LogCodeActionTrace(logger, $"TypeAccessibility.VS.DropFullyQualifyExplicitExpression: Owner='{owner.GetType().Name}', Action={FormatCodeAction(codeAction)}");
                     continue;
                 }
                 else if (IsImplicitExpressionNode(owner))
@@ -192,7 +220,9 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
                     action = LanguageServerConstants.CodeActions.Default;
                 }
 
-                typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCodeAction(context, action));
+                var wrappedAction = codeAction.WrapResolvableCodeAction(context, action);
+                LogCodeActionTrace(logger, $"TypeAccessibility.VS.KeepFullyQualify: Owner='{owner.GetType().Name}', RemapAction='{action}', WrappedAction={FormatCodeAction(wrappedAction)}");
+                typeAccessibilityCodeActions.Add(wrappedAction);
             }
             // For add using suggestions, the code action title is of the form:
             // `using System.Net;`
@@ -200,11 +230,18 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
                 UsingDirectiveHelper.TryExtractNamespace(codeAction.Title, out var @namespace, out var prefix))
             {
                 codeAction.Title = $"{prefix}@using {@namespace}";
-                typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCodeAction(context, LanguageServerConstants.CodeActions.Default));
+                var wrappedAction = codeAction.WrapResolvableCodeAction(context, LanguageServerConstants.CodeActions.Default);
+                LogCodeActionTrace(logger, $"TypeAccessibility.VS.KeepAddImport: Namespace='{@namespace}', Prefix='{prefix}', WrappedAction={FormatCodeAction(wrappedAction)}");
+                typeAccessibilityCodeActions.Add(wrappedAction);
+            }
+            else if (codeAction.Name is not null && codeAction.Name.Equals(PredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal))
+            {
+                LogCodeActionTrace(logger, $"TypeAccessibility.VS.DropAddImportNamespaceExtractionFailed: Action={FormatCodeAction(codeAction)}");
             }
             // Not a type accessibility code action
             else
             {
+                LogCodeActionTrace(logger, $"TypeAccessibility.VS.DropUnsupportedName: Action={FormatCodeAction(codeAction)}");
                 continue;
             }
         }
@@ -282,4 +319,53 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
         var codeAction = RazorCodeActionFactory.CreateFullyQualifyComponent(nonFQNCodeAction.Title, fqnWorkspaceEdit);
         return codeAction;
     }
+
+    private void LogCodeActionTrace(string message)
+        => LogCodeActionTrace(_logger, message);
+
+    private static void LogCodeActionTrace(ILogger logger, string message)
+    {
+        var fullMessage = $"RazorCodeActionTrace {message}";
+        logger.LogDebug(fullMessage);
+        Trace.WriteLine(fullMessage);
+    }
+
+    private static string FormatCodeActions(ImmutableArray<RazorVSInternalCodeAction> codeActions)
+        => codeActions.IsEmpty
+            ? "<empty>"
+            : string.Join("; ", codeActions.Select(static (action, index) => $"{index}: {FormatCodeAction(action)}"));
+
+    private static string FormatCodeAction(RazorVSInternalCodeAction action)
+        => $"Name='{action.Name ?? "<null>"}', Title='{action.Title}', Kind='{action.Kind?.ToString() ?? "<null>"}', Group='{action.Group ?? "<null>"}', Children={action.Children?.Length ?? 0}, Command='{action.Command?.CommandIdentifier ?? "<null>"}', Data={FormatData(action.Data)}";
+
+    private static string FormatData(object? data)
+    {
+        if (data is null)
+        {
+            return "<null>";
+        }
+
+        if (data is not JsonElement jsonData)
+        {
+            return data.GetType().FullName ?? data.GetType().Name;
+        }
+
+        var customTags = jsonData.TryGetProperty("CustomTags", out var customTagsValue) && customTagsValue.ValueKind == JsonValueKind.Array
+            ? $"CustomTags=[{string.Join(", ", customTagsValue.EnumerateArray().Select(static tag => tag.GetString()))}]"
+            : "CustomTags=<missing>";
+
+        var fixAllFlavors = jsonData.TryGetProperty("FixAllFlavors", out var fixAllFlavorsValue) && fixAllFlavorsValue.ValueKind == JsonValueKind.Array
+            ? $"FixAllFlavors={fixAllFlavorsValue.GetArrayLength()}"
+            : "FixAllFlavors=<missing>";
+
+        return $"JsonElement{{ValueKind={jsonData.ValueKind}, {customTags}, {fixAllFlavors}}}";
+    }
+
+    private static string FormatDiagnostics(IEnumerable<LspDiagnostic>? diagnostics)
+        => diagnostics is null
+            ? "<null>"
+            : string.Join("; ", diagnostics.Select(static (diagnostic, index) => $"{index}: {FormatDiagnostic(diagnostic)}"));
+
+    private static string FormatDiagnostic(LspDiagnostic diagnostic)
+        => $"Code='{diagnostic.Code}', Severity='{diagnostic.Severity}', Range='{diagnostic.Range.Start.Line}:{diagnostic.Range.Start.Character}-{diagnostic.Range.End.Line}:{diagnostic.Range.End.Character}', Message='{diagnostic.Message}'";
 }

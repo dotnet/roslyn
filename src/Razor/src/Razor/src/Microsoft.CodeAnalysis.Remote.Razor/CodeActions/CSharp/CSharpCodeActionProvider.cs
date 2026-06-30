@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -16,13 +17,14 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 [Export(typeof(ICSharpCodeActionProvider)), Shared]
 [method: ImportingConstructor]
-internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions languageServerFeatureOptions) : ICSharpCodeActionProvider
+internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions languageServerFeatureOptions, ILoggerFactory loggerFactory) : ICSharpCodeActionProvider
 {
     // Internal for testing
     internal static readonly HashSet<string> SupportedDefaultCodeActionNames =
@@ -62,16 +64,20 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
     ];
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpCodeActionProvider>();
 
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(
         RazorCodeActionContext context,
         ImmutableArray<RazorVSInternalCodeAction> codeActions,
         CancellationToken cancellationToken)
     {
+        LogCodeActionTrace($"CSharpProvider.Entry: SupportsResolve={context.SupportsCodeActionResolve}, ShowAllCSharpCodeActions={_languageServerFeatureOptions.ShowAllCSharpCodeActions}, InputCount={codeActions.Length}, Input=[{FormatCodeActions(codeActions)}]");
+
         // Used to identify if this is VSCode which doesn't support
         // code action resolve.
         if (!context.SupportsCodeActionResolve)
         {
+            LogCodeActionTrace("CSharpProvider.ExitNoResolveSupport");
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
@@ -83,11 +89,14 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
             ? SupportedImplicitExpressionCodeActionNames
             : SupportedDefaultCodeActionNames;
 
+        LogCodeActionTrace($"CSharpProvider.Context: Node='{node?.GetType().Name ?? "<null>"}', IsInImplicitExpression={isInImplicitExpression}, AllowList=[{string.Join(", ", allowList)}]");
+
         using var results = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
         foreach (var codeAction in codeActions)
         {
             var isOnAllowList = codeAction.Name is not null && allowList.Contains(codeAction.Name);
+            LogCodeActionTrace($"CSharpProvider.Consider: IsOnAllowList={isOnAllowList}, Action={FormatCodeAction(codeAction)}");
 
             // If this code action isn't on the allow list, it might have been handled by another provider, which means
             // it will already have been wrapped, so we have to check not to double-wrap it.
@@ -96,16 +105,25 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
             {
                 // This code action has already been wrapped by something else, so skip it here, or it could
                 // be marked as experimental when its not, and more importantly would be duplicated in the list.
+                LogCodeActionTrace($"CSharpProvider.SkipAlreadyWrapped: Action={FormatCodeAction(codeAction)}");
                 continue;
             }
 
             if (_languageServerFeatureOptions.ShowAllCSharpCodeActions || isOnAllowList)
             {
-                results.Add(codeAction.WrapResolvableCodeAction(context, isOnAllowList: isOnAllowList));
+                var wrappedAction = codeAction.WrapResolvableCodeAction(context, isOnAllowList: isOnAllowList);
+                LogCodeActionTrace($"CSharpProvider.Keep: WrappedAction={FormatCodeAction(wrappedAction)}");
+                results.Add(wrappedAction);
+            }
+            else
+            {
+                LogCodeActionTrace($"CSharpProvider.DropNotAllowed: Action={FormatCodeAction(codeAction)}");
             }
         }
 
-        return Task.FromResult(results.ToImmutable());
+        var result = results.ToImmutable();
+        LogCodeActionTrace($"CSharpProvider.Exit: Count={result.Length}, Results=[{FormatCodeActions(result)}]");
+        return Task.FromResult(result);
 
         static bool CanDeserializeTo<T>(object? data)
         {
@@ -124,5 +142,43 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
 
             return false;
         }
+    }
+
+    private void LogCodeActionTrace(string message)
+    {
+        var fullMessage = $"RazorCodeActionTrace {message}";
+        _logger.LogDebug(fullMessage);
+        Trace.WriteLine(fullMessage);
+    }
+
+    private static string FormatCodeActions(ImmutableArray<RazorVSInternalCodeAction> codeActions)
+        => codeActions.IsEmpty
+            ? "<empty>"
+            : string.Join("; ", codeActions.Select(static (action, index) => $"{index}: {FormatCodeAction(action)}"));
+
+    private static string FormatCodeAction(RazorVSInternalCodeAction action)
+        => $"Name='{action.Name ?? "<null>"}', Title='{action.Title}', Kind='{action.Kind?.ToString() ?? "<null>"}', Group='{action.Group ?? "<null>"}', Children={action.Children?.Length ?? 0}, Command='{action.Command?.CommandIdentifier ?? "<null>"}', Data={FormatData(action.Data)}";
+
+    private static string FormatData(object? data)
+    {
+        if (data is null)
+        {
+            return "<null>";
+        }
+
+        if (data is not JsonElement jsonData)
+        {
+            return data.GetType().FullName ?? data.GetType().Name;
+        }
+
+        var customTags = jsonData.TryGetProperty("CustomTags", out var customTagsValue) && customTagsValue.ValueKind == JsonValueKind.Array
+            ? $"CustomTags=[{string.Join(", ", customTagsValue.EnumerateArray().Select(static tag => tag.GetString()))}]"
+            : "CustomTags=<missing>";
+
+        var fixAllFlavors = jsonData.TryGetProperty("FixAllFlavors", out var fixAllFlavorsValue) && fixAllFlavorsValue.ValueKind == JsonValueKind.Array
+            ? $"FixAllFlavors={fixAllFlavorsValue.GetArrayLength()}"
+            : "FixAllFlavors=<missing>";
+
+        return $"JsonElement{{ValueKind={jsonData.ValueKind}, {customTags}, {fixAllFlavors}}}";
     }
 }

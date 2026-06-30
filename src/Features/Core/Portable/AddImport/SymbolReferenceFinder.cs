@@ -112,10 +112,13 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
             // Spin off tasks to do all our searching in parallel
             using var _1 = ArrayBuilder<Task<ImmutableArray<SymbolReference>>>.GetInstance(out var tasks);
-            tasks.Add(GetReferencesForMatchingTypesAsync(searchScope, cancellationToken));
-            tasks.Add(GetReferencesForMatchingNamespacesAsync(searchScope, cancellationToken));
-            tasks.Add(GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope, cancellationToken));
-            tasks.Add(GetReferencesForMatchingExtensionMembersAsync(searchScope, cancellationToken));
+            void AddTask(string taskName, Func<Task<ImmutableArray<SymbolReference>>> taskFactory)
+                => tasks.Add(LogReferenceTaskAsync(searchScope, taskName, taskFactory));
+
+            AddTask("MatchingTypes", () => GetReferencesForMatchingTypesAsync(searchScope, cancellationToken));
+            AddTask("MatchingNamespaces", () => GetReferencesForMatchingNamespacesAsync(searchScope, cancellationToken));
+            AddTask("MatchingFieldsAndProperties", () => GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope, cancellationToken));
+            AddTask("MatchingExtensionMembers", () => GetReferencesForMatchingExtensionMembersAsync(searchScope, cancellationToken));
 
             // Searching for things like "Add" (for collection initializers) and "Select"
             // (for extension methods) should only be done when doing an 'exact' search.
@@ -125,15 +128,26 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // query expression valid.
             if (searchScope.Exact)
             {
-                tasks.Add(GetReferencesForCollectionInitializerMethodsAsync(searchScope, cancellationToken));
-                tasks.Add(GetReferencesForQueryPatternsAsync(searchScope, cancellationToken));
-                tasks.Add(GetReferencesForDeconstructAsync(searchScope, cancellationToken));
-                tasks.Add(GetReferencesForGetAwaiterAsync(searchScope, cancellationToken));
-                tasks.Add(GetReferencesForGetEnumeratorAsync(searchScope, cancellationToken));
-                tasks.Add(GetReferencesForGetAsyncEnumeratorAsync(searchScope, cancellationToken));
+                AddTask("CollectionInitializerMethods", () => GetReferencesForCollectionInitializerMethodsAsync(searchScope, cancellationToken));
+                AddTask("QueryPatterns", () => GetReferencesForQueryPatternsAsync(searchScope, cancellationToken));
+                AddTask("Deconstruct", () => GetReferencesForDeconstructAsync(searchScope, cancellationToken));
+                AddTask("GetAwaiter", () => GetReferencesForGetAwaiterAsync(searchScope, cancellationToken));
+                AddTask("GetEnumerator", () => GetReferencesForGetEnumeratorAsync(searchScope, cancellationToken));
+                AddTask("GetAsyncEnumerator", () => GetReferencesForGetAsyncEnumeratorAsync(searchScope, cancellationToken));
             }
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            try
+            {
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                LogAddImportException(
+                    $"SymbolReferenceFinderTaskFailure: Document='{_document.FilePath ?? _document.Name}', Project='{_document.Project.Name}', Language='{_document.Project.Language}', SearchScope='{searchScope.GetType().Name}', Exact={searchScope.Exact}, DiagnosticId='{_diagnosticId}', TaskCount={tasks.Count}, Node={FormatNode(_node)}",
+                    ex);
+                throw;
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
 
             using var _2 = ArrayBuilder<SymbolReference>.GetInstance(out var allReferences);
@@ -144,6 +158,27 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
 
             return DeDupeAndSortReferences(allReferences.ToImmutable());
+        }
+
+        private async Task<ImmutableArray<SymbolReference>> LogReferenceTaskAsync(
+            SearchScope searchScope,
+            string taskName,
+            Func<Task<ImmutableArray<SymbolReference>>> taskFactory)
+        {
+            LogAddImportMessage($"SymbolReferenceFinderTaskStart: Document='{_document.FilePath ?? _document.Name}', Project='{_document.Project.Name}', Language='{_document.Project.Language}', SearchScope='{searchScope.GetType().Name}', Exact={searchScope.Exact}, DiagnosticId='{_diagnosticId}', Task='{taskName}', Node={FormatNode(_node)}");
+            try
+            {
+                var references = await taskFactory().ConfigureAwait(false);
+                LogAddImportMessage($"SymbolReferenceFinderTaskComplete: Document='{_document.FilePath ?? _document.Name}', Project='{_document.Project.Name}', Language='{_document.Project.Language}', SearchScope='{searchScope.GetType().Name}', Exact={searchScope.Exact}, DiagnosticId='{_diagnosticId}', Task='{taskName}', ReferenceCount={references.Length}");
+                return references;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                LogAddImportException(
+                    $"SymbolReferenceFinderTaskFailure: Document='{_document.FilePath ?? _document.Name}', Project='{_document.Project.Name}', Language='{_document.Project.Language}', SearchScope='{searchScope.GetType().Name}', Exact={searchScope.Exact}, DiagnosticId='{_diagnosticId}', Task='{taskName}', Node={FormatNode(_node)}",
+                    ex);
+                throw;
+            }
         }
 
         private ImmutableArray<SymbolReference> DeDupeAndSortReferences(ImmutableArray<SymbolReference> allReferences)

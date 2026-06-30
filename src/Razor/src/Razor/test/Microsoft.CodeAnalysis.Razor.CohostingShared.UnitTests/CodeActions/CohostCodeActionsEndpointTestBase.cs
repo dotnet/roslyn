@@ -3,7 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -83,7 +86,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
 
     private async Task<CodeAction?> VerifyCodeActionRequestAsync(TextDocument document, TestCode input, string codeActionName, int? codeActionIndex, int childActionIndex, bool expectOffer, bool makeDiagnosticsRequest)
     {
-        var result = await GetCodeActionsAsync(document, input, makeDiagnosticsRequest);
+        var (result, traceOutput) = await GetCodeActionsWithTraceAsync(document, input, makeDiagnosticsRequest);
         if (result is null)
         {
             return null;
@@ -113,6 +116,9 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
 
             Available:
                 {string.Join(Environment.NewLine + "    ", result.Select(e => ((RazorVSInternalCodeAction)e.Value!).Name))}
+
+            Code action trace:
+            {Indent(traceOutput)}
             """);
 
         // In VS, child code actions use the children property, and are easy
@@ -133,10 +139,15 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
     }
 
     private protected async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(TextDocument document, TestCode input, bool makeDiagnosticsRequest = false)
+        => (await GetCodeActionsWithTraceAsync(document, input, makeDiagnosticsRequest)).CodeActions;
+
+    private async Task<CodeActionsWithTrace> GetCodeActionsWithTraceAsync(TextDocument document, TestCode input, bool makeDiagnosticsRequest = false)
     {
         var requestInvoker = new TestHtmlRequestInvoker();
-        var endpoint = new CohostCodeActionsEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, requestInvoker, NoOpTelemetryReporter.Instance);
+        var endpoint = new CohostCodeActionsEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, requestInvoker, NoOpTelemetryReporter.Instance, LoggerFactory);
         var inputText = await document.GetTextAsync(DisposalToken);
+        using var traceListener = new RecordingXunitTraceListener(TestOutputHelper);
+        AddImportTraceTestAccessor.ClearBufferedMessages();
 
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
 
@@ -187,7 +198,20 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
             request.Context.SelectionRange = inputText.GetRange(selectionSpans.Single());
         }
 
-        return await endpoint.GetTestAccessor().HandleRequestAsync(document, request, DisposalToken);
+        Trace.Listeners.Add(traceListener);
+        try
+        {
+            Trace.WriteLine($"RazorCodeActionTrace TestRequest: Document='{document.GetURI()}', MakeDiagnosticsRequest={makeDiagnosticsRequest}, Range='{FormatRange(request.Range)}', SelectionRange='{FormatRange(request.Context.SelectionRange)}', Diagnostics=[{FormatDiagnostics(request.Context.Diagnostics)}]");
+
+            var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, request, DisposalToken);
+
+            Trace.WriteLine($"RazorCodeActionTrace TestResponse: Count={result?.Length.ToString() ?? "<null>"}, Actions=[{FormatCodeActions(result)}]");
+            return new(result, AppendAddImportTrace(traceListener.TraceOutput, AddImportTraceTestAccessor.GetAndClearBufferedMessages()));
+        }
+        finally
+        {
+            Trace.Listeners.Remove(traceListener);
+        }
     }
 
     private async Task<WorkspaceEdit> ResolveCodeActionAsync(CodeAnalysis.TextDocument document, CodeAction codeAction)
@@ -199,5 +223,170 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
 
         Assert.NotNull(result?.Edit);
         return result.Edit;
+    }
+
+    private readonly record struct CodeActionsWithTrace(SumType<Command, CodeAction>[]? CodeActions, string TraceOutput);
+
+    private static string FormatCodeActions(SumType<Command, CodeAction>[]? codeActions)
+    {
+        if (codeActions is null)
+        {
+            return "<null>";
+        }
+
+        if (codeActions.Length == 0)
+        {
+            return "<empty>";
+        }
+
+        return string.Join("; ", codeActions.Select(static (codeAction, index) => $"{index}: {FormatCodeActionValue(codeAction.Value)}"));
+    }
+
+    private static string FormatCodeActionValue(object? value)
+        => value switch
+        {
+            RazorVSInternalCodeAction razorAction => FormatRazorCodeAction(razorAction),
+            VSInternalCodeAction vsAction => $"VSInternalCodeAction Title='{vsAction.Title}' Kind='{vsAction.Kind?.ToString() ?? "<null>"}' Data={FormatData(vsAction.Data)}",
+            CodeAction action => $"CodeAction Title='{action.Title}' Kind='{action.Kind?.ToString() ?? "<null>"}' Data={FormatData(action.Data)}",
+            Command command => $"Command Title='{command.Title}' Command='{command.CommandIdentifier}'",
+            null => "<null>",
+            _ => $"{value.GetType().FullName}: {value}"
+        };
+
+    private static string FormatRazorCodeAction(RazorVSInternalCodeAction action)
+        => $"RazorVSInternalCodeAction Name='{action.Name ?? "<null>"}' Title='{action.Title}' Kind='{action.Kind?.ToString() ?? "<null>"}' Group='{action.Group ?? "<null>"}' Children={action.Children?.Length ?? 0} Command='{action.Command?.CommandIdentifier ?? "<null>"}' Data={FormatData(action.Data)}";
+
+    private static string FormatData(object? data)
+    {
+        if (data is null)
+        {
+            return "<null>";
+        }
+
+        if (data is not JsonElement jsonData)
+        {
+            return data.GetType().FullName ?? data.GetType().Name;
+        }
+
+        var builder = new List<string>();
+        builder.Add($"ValueKind={jsonData.ValueKind}");
+
+        if (jsonData.TryGetProperty("CustomTags", out var customTags) &&
+            customTags.ValueKind == JsonValueKind.Array)
+        {
+            builder.Add($"CustomTags=[{string.Join(", ", customTags.EnumerateArray().Select(static tag => tag.GetString()))}]");
+        }
+
+        if (jsonData.TryGetProperty("FixAllFlavors", out var fixAllFlavors) &&
+            fixAllFlavors.ValueKind == JsonValueKind.Array)
+        {
+            builder.Add($"FixAllFlavors={fixAllFlavors.GetArrayLength()}");
+        }
+
+        if (jsonData.TryGetProperty("UniqueIdentifier", out var uniqueIdentifier))
+        {
+            builder.Add($"UniqueIdentifier='{uniqueIdentifier}'");
+        }
+
+        return $"JsonElement{{{string.Join(", ", builder)}}}";
+    }
+
+    private static string FormatDiagnostics(IEnumerable<LspDiagnostic>? diagnostics)
+    {
+        if (diagnostics is null)
+        {
+            return "<null>";
+        }
+
+        return string.Join("; ", diagnostics.Select(static (diagnostic, index) =>
+            $"{index}: Code='{diagnostic.Code}', Severity='{diagnostic.Severity}', Range='{FormatRange(diagnostic.Range)}', Message='{diagnostic.Message}'"));
+    }
+
+    private static string FormatRange(LspRange? range)
+        => range is null
+            ? "<null>"
+            : $"{range.Start.Line}:{range.Start.Character}-{range.End.Line}:{range.End.Character}";
+
+    private static string Indent(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "    <no trace output captured>";
+        }
+
+        return "    " + value.Replace(Environment.NewLine, Environment.NewLine + "    ");
+    }
+
+    private static string AppendAddImportTrace(string traceOutput, string addImportTrace)
+    {
+        if (string.IsNullOrWhiteSpace(addImportTrace))
+        {
+            return traceOutput;
+        }
+
+        var builder = new StringBuilder(traceOutput);
+        if (builder.Length > 0)
+        {
+            builder.AppendLine();
+        }
+
+        builder.AppendLine("Buffered AddImport trace:");
+        builder.Append(addImportTrace);
+        return builder.ToString();
+    }
+
+    private static class AddImportTraceTestAccessor
+    {
+        private const string TypeName = "Microsoft.CodeAnalysis.AddImport.AddImportTrace";
+        private const BindingFlags MethodFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+
+        public static void ClearBufferedMessages()
+            => Invoke(nameof(ClearBufferedMessages));
+
+        public static string GetAndClearBufferedMessages()
+            => Invoke(nameof(GetAndClearBufferedMessages)) as string ?? string.Empty;
+
+        private static object? Invoke(string methodName)
+            => GetAddImportTraceType()?.GetMethod(methodName, MethodFlags)?.Invoke(null, null);
+
+        private static Type? GetAddImportTraceType()
+            => Type.GetType($"{TypeName}, Microsoft.CodeAnalysis.Features", throwOnError: false)
+                ?? AppDomain.CurrentDomain.GetAssemblies()
+                    .Select(static assembly => assembly.GetType(TypeName, throwOnError: false))
+                    .FirstOrDefault(static type => type is not null);
+    }
+
+    private sealed class RecordingXunitTraceListener(ITestOutputHelper logger) : TraceListener
+    {
+        private readonly StringBuilder _traceOutput = new();
+        private readonly StringBuilder _lineInProgress = new();
+        private bool _disposed;
+
+        public string TraceOutput => _traceOutput.ToString();
+
+        public override bool IsThreadSafe
+            => false;
+
+        public override void Write(string? message)
+            => _lineInProgress.Append(message);
+
+        public override void WriteLine(string? message)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            var line = _lineInProgress.ToString() + message;
+            logger.WriteLine(line);
+            _traceOutput.AppendLine(line);
+            _lineInProgress.Clear();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            _disposed = true;
+            base.Dispose(disposing);
+        }
     }
 }
