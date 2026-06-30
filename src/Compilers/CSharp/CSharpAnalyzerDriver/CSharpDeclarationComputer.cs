@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.FieldDeclaration:
                     {
                         var t = (BaseFieldDeclarationSyntax)node;
-                        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var attributes);
+                        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var attributes);
                         AddAttributes(t.AttributeLists, attributes);
                         foreach (var decl in t.Declaration.Variables)
                         {
