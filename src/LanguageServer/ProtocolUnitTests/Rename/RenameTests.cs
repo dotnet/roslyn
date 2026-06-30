@@ -513,6 +513,79 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         Assert.True(service.DidMapEdits);
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestRenameAsync_LabeledBreak(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync("""
+            class C
+            {
+                void M()
+                {
+                    {|caret:|}{|renamed:outer|}: while (true)
+                    {
+                        break {|renamed:outer|};
+                    }
+                }
+            }
+            """, mutatingLspWorkspace);
+        var renameLocation = testLspServer.GetLocations("caret").First();
+        var renameValue = "loop";
+        var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+
+        var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
+        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestRenameAsync_LabeledContinue(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync("""
+            class C
+            {
+                void M()
+                {
+                    {|caret:|}{|renamed:outer|}: for (int i = 0; i < 10; i++)
+                    {
+                        while (true)
+                        {
+                            continue {|renamed:outer|};
+                        }
+                    }
+                }
+            }
+            """, mutatingLspWorkspace);
+        var renameLocation = testLspServer.GetLocations("caret").First();
+        var renameValue = "loop";
+        var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+
+        var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
+        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestRenameAsync_LabeledBreakAndContinue_FromReference(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync("""
+            class C
+            {
+                void M()
+                {
+                    {|renamed:outer|}: while (true)
+                    {
+                        break {|caret:|}{|renamed:outer|};
+                        continue {|renamed:outer|};
+                    }
+                }
+            }
+            """, mutatingLspWorkspace);
+        var renameLocation = testLspServer.GetLocations("caret").First();
+        var renameValue = "loop";
+        var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+
+        var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
+        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+    }
+
     private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)
         => new()
         {

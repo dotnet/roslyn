@@ -82,5 +82,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentMappingServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensLegendServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetResolveProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VoidSessionTracker.cs" />
   </ItemGroup>
 </Project>
