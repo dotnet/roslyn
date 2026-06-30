@@ -780,7 +780,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
-        Assert.Contains(document.Project.Documents, d => d.Name == "SomeFile.AssemblyInfo.cs");
+        Assert.Contains(document.Project.Documents, d => d.Name == "SomeFile.cs.AssemblyInfo.cs");
         Assert.True(document.Project.State.HasAllInformation);
     }
 
