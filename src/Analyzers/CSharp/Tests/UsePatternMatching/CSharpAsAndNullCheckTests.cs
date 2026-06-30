@@ -1983,6 +1983,107 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83882")]
+    public Task TestNullableWhenWrittenToViaOutWithNullableParam()
+        => TestMissingInRegularAndScriptAsync("""
+            #nullable enable
+
+            class Program
+            {
+                static void Goo(object o1)
+                {
+                    [|string?|] s = o1 as string;
+                    if (s == null)
+                    {
+                        Bar(out s);
+                    }
+                }
+
+                static void Bar(out string? value) => value = null;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83882")]
+    public Task TestNullableWhenWrittenToViaOutWithNonNullableParam()
+        => TestInRegularAndScriptAsync("""
+            #nullable enable
+
+            class Program
+            {
+                static void Goo(object o1)
+                {
+                    [|string?|] s = o1 as string;
+                    if (s == null)
+                    {
+                        Bar(out s);
+                    }
+                }
+
+                static void Bar(out string value) => value = "";
+            }
+            """,
+            """
+            #nullable enable
+
+            class Program
+            {
+                static void Goo(object o1)
+                {
+                    if (o1 is not string s)
+                    {
+                        Bar(out s);
+                    }
+                }
+
+                static void Bar(out string value) => value = "";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83882")]
+    public Task TestNullableWhenWrittenToViaRefWithNullableParam()
+        => TestMissingInRegularAndScriptAsync("""
+            #nullable enable
+
+            class Program
+            {
+                static void Goo(object o1)
+                {
+                    [|string?|] s = o1 as string;
+                    if (s == null)
+                    {
+                        Bar(ref s);
+                    }
+                }
+
+                static void Bar(ref string? value) { }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83882")]
+    public Task TestNullableWhenWrittenToViaGenericOutNullableParam()
+        => TestMissingInRegularAndScriptAsync("""
+            #nullable enable
+
+            interface IRepository
+            {
+                void GetAsset<T>(int id, out T? asset) where T : class;
+            }
+
+            class ReferenceLibrary { }
+
+            class Program
+            {
+                static void Goo(IRepository repository, object child, int id)
+                {
+                    [|ReferenceLibrary?|] library = child as ReferenceLibrary;
+                    if (library == null)
+                    {
+                        repository.GetAsset<ReferenceLibrary>(id, out library);
+                    }
+                }
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39600")]
     public Task TestNotWithInterveningMutation()
         => TestMissingInRegularAndScriptAsync("""

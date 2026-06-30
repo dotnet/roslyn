@@ -30,8 +30,10 @@ namespace Microsoft.CodeAnalysis.Text
         private const int CharBufferCount = 5;
         internal const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
-        private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
-        private static readonly ObjectPool<XxHash128> s_contentHashPool = new ObjectPool<XxHash128>(() => new XxHash128());
+        // These pools don't track leaks because they are shared static pools where allocate/free pairs can
+        // span different test tracking contexts (e.g., lazy GetContentHash on a SourceText from a prior test).
+        private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount, trackLeaks: false);
+        private static readonly ObjectPool<XxHash128> s_contentHashPool = new ObjectPool<XxHash128>(() => new XxHash128(), trackLeaks: false);
 
         private readonly SourceHashAlgorithm _checksumAlgorithm;
         private SourceTextContainer? _lazyContainer;
@@ -744,19 +746,13 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             });
 #else
-            var builder = PooledStringBuilder.GetInstance();
-            builder.Builder.EnsureCapacity(length);
+            // The netstandard approach can't utilize string.Create, so instead we copy into a temporary buffer
+            // and then construct the string from that. This uses plain arrays as the temporary storage, which avoids
+            // the overhead of a potentially large PooledStringBuilder, which earlier approaches used.
+            var copyBuffer = length <= tempBuffer.Length ? tempBuffer : new char[length];
 
-            while (position < this.Length && length > 0)
-            {
-                int copyLength = Math.Min(tempBuffer.Length, length);
-                this.CopyTo(position, tempBuffer, 0, copyLength);
-                builder.Builder.Append(tempBuffer, 0, copyLength);
-                length -= copyLength;
-                position += copyLength;
-            }
-
-            result = builder.ToStringAndFree();
+            this.CopyTo(position, copyBuffer, 0, length);
+            result = new string(copyBuffer, 0, length);
 #endif
 
             s_charArrayPool.Free(tempBuffer);

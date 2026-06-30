@@ -674,6 +674,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray14:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray15:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray16:
+                    case WellKnownType.System_Runtime_CompilerServices_ClosedAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -1060,6 +1061,7 @@ namespace System
                     case WellKnownMember.System_Memory_T__Slice_Int_Int:
                     case WellKnownMember.System_ReadOnlyMemory_T__Slice_Int:
                     case WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int:
+                    case WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

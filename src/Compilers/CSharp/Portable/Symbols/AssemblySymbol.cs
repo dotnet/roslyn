@@ -828,33 +828,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int i = nestedTypes.Count - 1;
                 var symbol = (NamedTypeSymbol?)GetTypeByReflectionType(nestedTypes[i].AsType());
-                if (symbol is null)
+                if (symbol is not null)
                 {
-                    return null;
-                }
-
-                while (--i >= 0)
-                {
-                    int forcedArity = nestedTypes[i].GenericTypeParameters.Length - nestedTypes[i + 1].GenericTypeParameters.Length;
-                    MetadataTypeName mdName = MetadataTypeName.FromTypeName(nestedTypes[i].Name, forcedArity: forcedArity);
-
-                    symbol = symbol.LookupMetadataType(ref mdName);
-                    Debug.Assert(symbol?.IsErrorType() != true);
-
-                    if (symbol is null)
+                    while (--i >= 0)
                     {
-                        return null;
-                    }
+                        int forcedArity = nestedTypes[i].GenericTypeParameters.Length - nestedTypes[i + 1].GenericTypeParameters.Length;
+                        MetadataTypeName mdName = MetadataTypeName.FromTypeName(nestedTypes[i].Name, forcedArity: forcedArity);
 
-                    symbol = ApplyGenericArguments(symbol, genericArguments, ref typeArgumentIndex);
-                    if (symbol is null)
-                    {
-                        return null;
+                        symbol = symbol.LookupMetadataType(ref mdName);
+                        Debug.Assert(symbol?.IsErrorType() != true);
+
+                        if (symbol is null)
+                        {
+                            break;
+                        }
+
+                        symbol = ApplyGenericArguments(symbol, genericArguments, ref typeArgumentIndex);
+                        if (symbol is null)
+                        {
+                            break;
+                        }
                     }
                 }
 
                 nestedTypes.Free();
-                Debug.Assert(typeArgumentIndex == genericArguments.Length);
+                Debug.Assert(symbol is null || typeArgumentIndex == genericArguments.Length);
                 return symbol;
             }
             else
@@ -902,6 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++]);
                 if (argSymbol is null)
                 {
+                    typeArgumentSymbols.Free();
                     return null;
                 }
                 typeArgumentSymbols.Add(TypeWithAnnotations.Create(argSymbol));

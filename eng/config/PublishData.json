@@ -58,7 +58,6 @@
     "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore": "vs-impl",
-    "Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.Razor.Features": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics": "vs-impl",
@@ -92,7 +91,23 @@
     "roslyn-language-server.osx-x64": "vs-impl",
     "roslyn-language-server.win-arm64": "vs-impl",
     "roslyn-language-server.win-x64": "vs-impl",
-    "Text.Analyzers": "arcade"
+    "Text.Analyzers": "arcade",
+    "Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal": "arcade",
+    "Microsoft.AspNetCore.Razor.Test.Common": "arcade",
+    "Microsoft.AspNetCore.Razor.Utilities.Shared": "arcade",
+    "Microsoft.AspNetCore.Razor.Utilities.Shared.Test": "arcade",
+    "Microsoft.CodeAnalysis.Razor.Compiler": "arcade",
+    "Microsoft.CodeAnalysis.Razor.Tooling.Internal": "arcade",
+    "Microsoft.CodeAnalysis.Razor.Workspaces": "arcade",
+    "Microsoft.CodeAnalysis.Remote.Razor": "arcade",
+    "Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.arm64": "arcade",
+    "Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.x64": "arcade",
+    "Microsoft.Net.Compilers.Razor.Toolset": "arcade",
+    "Microsoft.NET.Sdk.Razor.SourceGenerators.Transport": "arcade",
+    "Microsoft.VisualStudio.LanguageServer.ContainedLanguage": "arcade",
+    "Microsoft.VisualStudio.LanguageServices.Razor": "arcade",
+    "Microsoft.VisualStudio.RazorExtension": "arcade",
+    "RazorDeployment": "arcade"
   },
   "branchInfo": {
     "nugetKind": [
@@ -101,7 +116,6 @@
     ],
     "vsBranch": "rel/stable",
     "insertionCreateDraftPR": false,
-    "insertionTitlePrefix": "[Stable 18.7]"
+    "insertionTitlePrefix": "[Stable 18.8]"
   }
 }
-

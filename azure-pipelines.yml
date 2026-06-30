@@ -22,7 +22,6 @@ pr:
       - docs/*
       - eng/config/OptProf.json
       - eng/config/PublishData.json
-      - eng/pipelines/insert.yml
       - eng/setup-pr-validation.ps1
       - src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
       - .vscode/*
@@ -422,7 +421,7 @@ stages:
           - src/Dependencies/*
           - src/NuGet/Microsoft.Net.Compilers.Toolset/*
           - eng/*
-          - src/Tools/Source/CompilerGeneratorTools/*
+          - src/Tools/CompilerGeneratorTools/*
           - '*.sln*'
           - '*.yml'
           - '*.props'
