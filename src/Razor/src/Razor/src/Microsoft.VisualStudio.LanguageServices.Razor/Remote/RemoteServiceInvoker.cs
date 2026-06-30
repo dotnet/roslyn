@@ -71,18 +71,19 @@ internal sealed class RemoteServiceInvoker(
         [CallerMemberName] string? callerMemberName = null)
         where TService : class
     {
+        await InitializeAsync().ConfigureAwait(false);
+
+        var client = await GetClientAsync<TService>(cancellationToken).ConfigureAwait(false);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return default;
+        }
+
         try
         {
-            await InitializeAsync().ConfigureAwait(false);
-
-            var client = await GetClientAsync<TService>(cancellationToken).ConfigureAwait(false);
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return default;
-            }
-
             var result = await client.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+
             return result.Value;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
