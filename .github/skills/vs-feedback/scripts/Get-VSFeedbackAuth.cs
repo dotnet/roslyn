@@ -1,7 +1,4 @@
 #!/usr/bin/env dotnet
-#:property ImportDirectoryBuildProps=false
-#:property ImportDirectoryBuildTargets=false
-#:property ManagePackageVersionsCentrally=false
 #:property PublishAot=false
 
 using System.Diagnostics;
