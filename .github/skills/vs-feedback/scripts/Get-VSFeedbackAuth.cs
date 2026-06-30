@@ -180,7 +180,7 @@ Process StartEdge(string url, int port, string profileDirectory)
 
 async Task WaitForDevToolsEndpointAsync(int port, DateTimeOffset deadline)
 {
-    using var httpClient = new HttpClient();
+    using var httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(2) };
     while (DateTimeOffset.UtcNow < deadline)
     {
         try
@@ -192,6 +192,9 @@ async Task WaitForDevToolsEndpointAsync(int port, DateTimeOffset deadline)
             }
         }
         catch (HttpRequestException)
+        {
+        }
+        catch (TaskCanceledException)
         {
         }
 
