@@ -68,13 +68,6 @@ dotnet build src/Compilers/CSharp/csc/AnyCpu/  # C# compiler
 dotnet run --file eng/generate-compiler-code.cs
 ```
 
-### Testing Strategy
-
-Compiler test base classes (`CSharpTestBase`/`VisualBasicTestBase`) and authoring
-conventions (`VerifyEmitDiagnostics`, baselines, `WorkItem`) live in
-`.github/memory/testing/compiler.md` — load it when writing or modifying tests.
-Known issues for this layer: `.github/memory/known-issues/compiler.md`.
-
 ## Debugger Integration
 
 **Expression Evaluator** uses special parsing modes:

@@ -1,11 +1,12 @@
 ---
-coverage: Repo-wide test layout & how to run tests; per-layer test base classes live in testing/{compiler,ide,razor}.md
+coverage: Repo-wide test layout, run commands, and shared authoring conventions; per-layer test base classes live in testing/{compiler,ide,razor}.md
 ---
 
 # Testing Strategy
 
-Repo-wide test layout and run commands. **Per-layer test base classes and
-conventions** live in dedicated per-layer files (load only the one for your area):
+Repo-wide test layout, run commands, and shared authoring conventions. **Per-layer
+test base classes and conventions** live in dedicated per-layer files (load only
+the one for your area):
 - Compiler (`CSharpTestBase`, `VerifyEmitDiagnostics`) → `.github/memory/testing/compiler.md`
 - IDE (`AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor`, `[UseExportProvider]`, `TestInRegularAndScriptAsync`) → `.github/memory/testing/ide.md`
 - Razor (`TestCode` span markers) → `.github/memory/testing/razor.md`
@@ -25,7 +26,10 @@ Frameworks: xUnit with Roslyn test utilities.
 
 - Prefer raw string literals (`"""..."""`) over verbatim strings for test source code.
 - Keep tests focused: use `.Single()` rather than asserting a count then indexing.
-- For issue-linked changes add `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`.
+- For issue-linked changes, add a `WorkItem` attribute next to the test
+  attribute, e.g. `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`
+  or `[Theory, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`.
+  Use the originating GitHub issue/PR or Azure DevOps work item URL.
 
 ## Running Tests
 

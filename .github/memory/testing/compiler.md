@@ -4,9 +4,7 @@ coverage: Compiler-layer (src/{Compilers,Dependencies,ExpressionEvaluator,Tools}
 
 # Compiler — Testing
 
-Layer-specific test guidance for the compiler. Load when writing/modifying tests
-under `src/Compilers/*/Test/`. Repo-wide layout and run commands live in
-`.github/memory/TESTING_STRATEGY.md`.
+Layer-specific test guidance for compiler tests under `src/Compilers/*/Test/`.
 
 ## Test structure
 
@@ -41,5 +39,3 @@ public class MyTests : CSharpTestBase
   `Single()` instead of checking counts then indexing.
 - **Prefer raw string literals** (`"""..."""`) over verbatim strings (`@"..."`)
   for test source code.
-- **Link work items**: for issue-driven changes add a `WorkItem` alongside the
-  test attribute, e.g. `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`.

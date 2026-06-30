@@ -4,9 +4,7 @@ coverage: Razor-layer (src/Razor) test base classes & authoring conventions
 
 # Razor — Testing
 
-Layer-specific test guidance for Razor tooling/compiler. Load when
-writing/modifying tests under `src/Razor`. Repo-wide layout and run commands live
-in `.github/memory/TESTING_STRATEGY.md`.
+Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
 
 ## Conventions
 

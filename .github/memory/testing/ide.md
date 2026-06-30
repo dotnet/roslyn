@@ -4,9 +4,8 @@ coverage: IDE-layer (src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures
 
 # IDE — Testing
 
-Layer-specific test guidance for the IDE/Workspaces stack. Load when
-writing/modifying tests under `src/{Features,Analyzers,EditorFeatures,...}`.
-Repo-wide layout and run commands live in `.github/memory/TESTING_STRATEGY.md`.
+Layer-specific test guidance for the IDE/Workspaces stack under
+`src/{Features,Analyzers,EditorFeatures,...}`.
 
 ## Test workspace (MEF-dependent tests)
 
@@ -36,5 +35,3 @@ public class MyTests
   test source code.
 - Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()`
   rather than asserting a count then indexing.
-- Link work items: for issue-driven changes add a `WorkItem`, e.g.
-  `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`.

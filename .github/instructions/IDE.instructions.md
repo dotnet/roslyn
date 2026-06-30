@@ -49,12 +49,6 @@ public MyService(IDependency dependency) { }
 - For localizable strings: `new LocalizableResourceString(nameof(FeaturesResources.Some_string), FeaturesResources.ResourceManager, typeof(FeaturesResources))`
 - After modifying `.resx` files, run `dotnet msbuild <path to csproj> /t:UpdateXlf` to update `.xlf` localization files
 
-## Testing Patterns
-
-IDE test infrastructure (`EditorTestWorkspace`, `[UseExportProvider]`, analyzer
-base classes, `TestInRegularAndScriptAsync`) and authoring conventions live in
-`.github/memory/testing/ide.md` — load it when writing or modifying tests.
-
 ## Analyzers & Code Fixes (IDE0xxx)
 
 - IDE code-style analyzers inherit from `AbstractBuiltInCodeStyleDiagnosticAnalyzer` — not raw `DiagnosticAnalyzer`
@@ -107,6 +101,3 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`
 - **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
-
-Layer-specific known issues and workarounds (spurious `RS0016`, MEF composition
-failures surfacing as test failures) live in `.github/memory/known-issues/ide.md`.

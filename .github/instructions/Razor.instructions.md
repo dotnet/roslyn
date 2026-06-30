@@ -4,10 +4,8 @@ applyTo: "src/Razor/**/*.{cs,vb}"
 
 # Razor Tooling and Compiler Instructions for AI Coding Agents
 
-These instructions complement the repository-wide guidance in
-`.github/copilot-instructions.md` and apply to
-all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
-`dotnet/razor`, and most files keep their original sub-tree layout
+Razor was merged into the Roslyn repo from `dotnet/razor`, and most files keep
+their original sub-tree layout
 (`src/Razor/src/Razor/...`, `src/Razor/src/Compiler/...`, `src/Razor/src/Shared/...`,
 `src/Razor/src/Analyzers/...`).
 
@@ -17,8 +15,6 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
   The bug is more likely in existing logic than a missing feature.
 - **Helpers**: Review existing helpers (`UsingDirectiveHelper`, `AddUsingsHelper`, etc.)
   before writing new utility methods. Don't duplicate.
-
-Build/packaging known issues and workarounds live in `.github/memory/known-issues/razor.md`.
 
 ## File Types
 
@@ -41,13 +37,6 @@ Build/packaging known issues and workarounds live in `.github/memory/known-issue
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
-
-## Testing
-
-Razor test conventions (`TestCode` span markers, Cohosting test locations,
-`UseTwoPhaseCompilation`) live in `.github/memory/testing/razor.md` — load it when
-writing or modifying tests. Known issues for this layer:
-`.github/memory/known-issues/razor.md`.
 
 ## Adding OOP Remote Services
 
