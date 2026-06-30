@@ -202,13 +202,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var t = (BaseFieldDeclarationSyntax)node;
                         using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var attributes);
                         AddAttributes(t.AttributeLists, attributes);
+                        using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var codeBlocks);
                         foreach (var decl in t.Declaration.Variables)
                         {
-                            using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var codeBlocks);
                             codeBlocks.Add(decl.Initializer);
                             codeBlocks.AddRange(attributes);
 
                             builder.Add(GetDeclarationInfo(model, decl, getSymbol, codeBlocks, cancellationToken));
+                            codeBlocks.Clear();
                         }
 
                         return;
