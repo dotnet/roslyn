@@ -51,4 +51,4 @@ Targeted runs are strongly preferred — the full suite is large and slow. Tests
 
 ## CI
 
-PR validation runs via `azure-pipelines-pr-validation.yml` (Azure DevOps + Helix). For investigating failures, use the `ci-analysis`, `helix-investigation`, and `integration-test-analysis` skills.
+PR validation runs via `azure-pipelines-pr-validation.yml` (Azure DevOps + Helix). For investigating failures, use the `ci-analysis` and `integration-test-analysis` skills.

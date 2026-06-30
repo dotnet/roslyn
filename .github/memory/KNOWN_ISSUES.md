@@ -7,8 +7,8 @@ coverage: Repo-wide / cross-cutting quirks and workarounds; layer-specific issue
 Repo-wide and cross-cutting issues only. Layer-specific gotchas live in dedicated
 per-layer files (load only the one for your area):
 - Compiler → `.github/memory/known-issues/compiler.md`
-- IDE (spurious RS0016, MEF composition failures) → `.github/memory/known-issues/ide.md`
-- Razor (duplicate globalconfig keys, `.projitems`, build-wrapper `-projects`) → `.github/memory/known-issues/razor.md`
+- IDE → `.github/memory/known-issues/ide.md`
+- Razor → `.github/memory/known-issues/razor.md`
 
 ## Blank lines with whitespace fail linting
 
