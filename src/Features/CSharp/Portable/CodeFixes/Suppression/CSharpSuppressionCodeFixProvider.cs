@@ -56,7 +56,7 @@ internal sealed class CSharpSuppressionCodeFixProvider : AbstractSuppressionCode
         var pragmaDirective = PragmaWarningDirectiveTrivia(disableOrRestoreKeyword, ids, true);
         pragmaDirective = (PragmaWarningDirectiveTriviaSyntax)formatNode(pragmaDirective, cancellationToken);
         var pragmaDirectiveTrivia = Trivia(pragmaDirective);
-        var endOfLineTrivia = CarriageReturnLineFeed;
+        var endOfLineTrivia = ElasticEndOfLine(Environment.NewLine);
         var triviaList = TriviaList(pragmaDirectiveTrivia);
 
         var title = includeTitle ? diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture) : null;
@@ -123,7 +123,7 @@ internal sealed class CSharpSuppressionCodeFixProvider : AbstractSuppressionCode
         if (isFirst && !newRoot.HasLeadingTrivia)
             compilationRoot = compilationRoot.WithLeadingTrivia(Comment(GlobalSuppressionsFileHeaderComment));
 
-        return compilationRoot;
+        return (CompilationUnitSyntax)Formatter.Format(compilationRoot, services, options, cancellationToken);
     }
 
     protected override SyntaxNode AddLocalSuppressMessageAttribute(

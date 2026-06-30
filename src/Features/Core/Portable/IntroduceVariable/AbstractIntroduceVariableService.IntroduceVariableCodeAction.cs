@@ -100,7 +100,9 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
                     ? FeaturesResources.Introduce_query_variable_for_all_occurrences_of_0
                     : FeaturesResources.Introduce_query_variable_for_0
                 : formatStrings[_allOccurrences ? 1 : 0, _isConstant ? 1 : 0, _isLocal ? 1 : 0];
+
             return string.Format(formatString, nodeString);
         }
+
     }
 }

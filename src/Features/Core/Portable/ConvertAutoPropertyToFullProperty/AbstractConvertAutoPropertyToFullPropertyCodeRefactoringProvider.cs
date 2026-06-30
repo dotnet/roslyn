@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty;
@@ -122,7 +123,8 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
             }
         }
 
-        var newRoot = editor.GetChangedRoot();
+        var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var newRoot = NormalizeLineEndings(editor.GetChangedRoot(), GetLineEnding(oldText));
         return document.WithSyntaxRoot(newRoot);
     }
 
@@ -145,4 +147,19 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         fullProperty = ConvertPropertyToExpressionBodyIfDesired(info, fullProperty);
         return fullProperty.WithAdditionalAnnotations(Formatter.Annotation);
     }
+
+    protected virtual SyntaxNode NormalizeLineEndings(SyntaxNode root, string lineEnding)
+        => root;
+
+    private static string GetLineEnding(SourceText text)
+    {
+        foreach (var line in text.Lines)
+        {
+            if (line.EndIncludingLineBreak > line.End)
+                return text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak));
+        }
+
+        return Environment.NewLine;
+    }
+
 }

@@ -175,4 +175,13 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
 
         return document.WithSyntaxRoot(finalRoot);
     }
+
+    protected override SyntaxNode NormalizeLineEndings(SyntaxNode root, string lineEnding)
+    {
+        return root.ReplaceTrivia(
+            root.DescendantTrivia(descendIntoTrivia: true),
+            (trivia, _) => trivia.IsKind(SyntaxKind.EndOfLineTrivia) && trivia.ToFullString() != lineEnding
+                ? EndOfLine(lineEnding)
+                : trivia);
+    }
 }

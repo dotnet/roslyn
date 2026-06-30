@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 
@@ -22,7 +23,7 @@ using static SyntaxFactory;
 
 internal sealed partial class CSharpIntroduceVariableService
 {
-    protected override Task<Document> IntroduceFieldAsync(
+    protected override async Task<Document> IntroduceFieldAsync(
         SemanticDocument document,
         ExpressionSyntax expression,
         bool allOccurrences,
@@ -68,7 +69,7 @@ internal sealed partial class CSharpIntroduceVariableService
             var finalTypeDeclaration = InsertMember(newTypeDeclaration, newFieldDeclaration, insertionIndex);
 
             var newRoot = document.Root.ReplaceNode(oldTypeDeclaration, finalTypeDeclaration);
-            return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
+            return document.Document.WithSyntaxRoot(await NormalizeLineEndingsAsync(document.Document, newRoot, cancellationToken).ConfigureAwait(false));
         }
         else
         {
@@ -81,8 +82,30 @@ internal sealed partial class CSharpIntroduceVariableService
                 : DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members);
 
             var newRoot = newCompilationUnit.WithMembers(newCompilationUnit.Members.Insert(insertionIndex, newFieldDeclaration));
-            return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
+            return document.Document.WithSyntaxRoot(await NormalizeLineEndingsAsync(document.Document, newRoot, cancellationToken).ConfigureAwait(false));
         }
+    }
+
+    private static async Task<SyntaxNode> NormalizeLineEndingsAsync(Document document, SyntaxNode newRoot, CancellationToken cancellationToken)
+    {
+        var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var lineEnding = GetLineEnding(oldText);
+        return newRoot.ReplaceTrivia(
+            newRoot.DescendantTrivia(descendIntoTrivia: true),
+            (trivia, _) => trivia.IsKind(SyntaxKind.EndOfLineTrivia) && trivia.ToFullString() != lineEnding
+                ? EndOfLine(lineEnding)
+                : trivia);
+    }
+
+    private static string GetLineEnding(SourceText text)
+    {
+        foreach (var line in text.Lines)
+        {
+            if (line.EndIncludingLineBreak > line.End)
+                return text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak));
+        }
+
+        return Environment.NewLine;
     }
 
     protected override int DetermineConstantInsertPosition(TypeDeclarationSyntax oldType, TypeDeclarationSyntax newType)
