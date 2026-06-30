@@ -91,7 +91,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return NoFurtherHandling;
         }
 
-        await _razorEditService.MapWorkspaceEditAsync(snapshot, csharpEdit, cancellationToken).ConfigureAwait(false);
+        await _razorEditService.MapWorkspaceEditAsync(snapshot.TextDocument.Project.Solution, csharpEdit, cancellationToken).ConfigureAwait(false);
 
         return Results(csharpEdit.Concat(razorEdit.Edit));
     }
@@ -256,7 +256,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return null;
         }
 
-        await _razorEditService.MapWorkspaceEditAsync(snapshot, csharpEdit, cancellationToken).ConfigureAwait(false);
+        await _razorEditService.MapWorkspaceEditAsync(snapshot.TextDocument.Project.Solution, csharpEdit, cancellationToken).ConfigureAwait(false);
 
         _renameService.TryGetRazorFileRenameEdit(snapshot, newFileName, out var razorEdit);
 

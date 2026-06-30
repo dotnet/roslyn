@@ -97,7 +97,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         if (positionInfo.LanguageKind == RazorLanguageKind.Html
             && DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, index, out isStartTagContext))
         {
-            // In start-tag snapshot, snippets are always available (triggered by typing '<').
+            // In start-tag context, snippets are always available (triggered by typing '<').
             // In text content, snippets are only available on explicit invocation (Ctrl+Space).
             shouldIncludeSnippets = isStartTagContext
                 || completionContext.InvokeKind == VSInternalCompletionInvokeKind.Explicit;
@@ -110,7 +110,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     }
 
     /// <summary>
-    /// Determines whether completion should be suppressed for the current trigger snapshot.
+    /// Determines whether completion should be suppressed for the current trigger context.
     /// For example, '@' typed after '$' in Emmet numbering modifiers (e.g., ul>li.item$@-*5)
     /// should not trigger Razor completion.
     /// </summary>
