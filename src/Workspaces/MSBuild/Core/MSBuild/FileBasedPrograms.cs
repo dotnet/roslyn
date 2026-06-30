@@ -26,7 +26,7 @@ internal static class FileBasedProgramsProjectLoader
         Action<string> reportError,
         CancellationToken cancellationToken)
     {
-        var buildService = new FileBasedProgramsBuildService(buildHost);
+        var buildService = new FileBasedProgramsBuildService(buildHost, cancellationToken);
         var projectRootElement = fileBasedProgramService.LoadFileBasedAppProject(
             buildService,
             FileBasedProgramsBuildService.ProjectCollection,
@@ -41,7 +41,7 @@ internal static class FileBasedProgramsProjectLoader
     }
 }
 
-file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost) : Microsoft.DotNet.FileBasedPrograms.IBuildService
+file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost, CancellationToken cancellationToken) : Microsoft.DotNet.FileBasedPrograms.IBuildService
 {
     public static IProjectCollection ProjectCollection => Microsoft.CodeAnalysis.MSBuild.ProjectCollection.Instance;
 
@@ -50,7 +50,7 @@ file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost) : Mic
         IProjectCollection projectCollection,
         IDictionary<string, string> globalProperties)
     {
-        return ProjectInstance.FromProjectRootElement(buildHost, (ProjectRootElement)projectRoot, (ProjectCollection)projectCollection, globalProperties);
+        return ProjectInstance.FromProjectRootElement(buildHost, (ProjectRootElement)projectRoot, (ProjectCollection)projectCollection, globalProperties, cancellationToken);
     }
 
     public IProjectRootElement CreateProjectRootElement(XmlReader xmlReader, IProjectCollection projectCollection)
@@ -69,28 +69,29 @@ file sealed class ProjectCollection : IProjectCollection
     public IDictionary<string, string> GlobalProperties => ImmutableDictionary<string, string>.Empty;
 }
 
-file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance) : IProjectInstance
+file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, CancellationToken cancellationToken) : IProjectInstance
 {
     public static ProjectInstance FromProjectRootElement(
         RemoteBuildHost buildHost,
         ProjectRootElement projectRoot,
         ProjectCollection projectCollection,
-        IDictionary<string, string> globalProperties)
+        IDictionary<string, string> globalProperties,
+        CancellationToken cancellationToken)
     {
         Debug.Assert(projectCollection == ProjectCollection.Instance);
-        var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), globalProperties, CancellationToken.None).Result;
-        return new ProjectInstance(remoteProjectInstance);
+        var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), globalProperties, cancellationToken).Result;
+        return new ProjectInstance(remoteProjectInstance, cancellationToken);
     }
 
-    public IEnumerable<IProjectItemInstance> GetItems(string itemType) => remoteProjectInstance.GetItemsAsync(itemType, CancellationToken.None).Result.Select(i => new ProjectItemInstance(itemType, i));
-    public string GetPropertyValue(string propertyName) => remoteProjectInstance.GetPropertyValueAsync(propertyName, CancellationToken.None).Result;
-    public string ExpandString(string value) => remoteProjectInstance.ExpandStringAsync(value, CancellationToken.None).Result;
+    public IEnumerable<IProjectItemInstance> GetItems(string itemType) => remoteProjectInstance.GetItemsAsync(itemType, cancellationToken).Result.Select(i => new ProjectItemInstance(itemType, i, cancellationToken));
+    public string GetPropertyValue(string propertyName) => remoteProjectInstance.GetPropertyValueAsync(propertyName, cancellationToken).Result;
+    public string ExpandString(string value) => remoteProjectInstance.ExpandStringAsync(value, cancellationToken).Result;
 }
 
-file sealed class ProjectItemInstance(string itemType, RemoteProjectItemInstance remoteProjectItemInstance) : IProjectItemInstance
+file sealed class ProjectItemInstance(string itemType, RemoteProjectItemInstance remoteProjectItemInstance, CancellationToken cancellationToken) : IProjectItemInstance
 {
     public string ItemType => itemType;
-    public string GetMetadataValue(string name) => remoteProjectItemInstance.GetMetadataValueAsync(name, CancellationToken.None).Result;
+    public string GetMetadataValue(string name) => remoteProjectItemInstance.GetMetadataValueAsync(name, cancellationToken).Result;
 }
 
 file sealed class ProjectRootElement(string content) : IProjectRootElement
