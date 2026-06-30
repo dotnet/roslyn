@@ -236,32 +236,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 #endif
         }
 
-        // This task is an MSBuild ToolTask that shells out to the sibling compiler in the 'bincore'
-        // folder, so when it is deployed as loose files (the normal MSBuild scenario) it must discover
-        // the on-disk directory of this assembly. That is inherently a single-file-incompatible operation.
-        //
-        // The single-file / native AOT case is handled at run time: Assembly.Location returns an empty
-        // string and we fall back to AppContext.BaseDirectory below. In those hosts the real compiler
-        // location is supplied out-of-band anyway (e.g. via the CscToolPath/VbcToolPath MSBuild property),
-        // so the value computed here is not used to launch the compiler. The IL3000 warning is suppressed.
+        // Locating the sibling compiler under 'bincore' needs this assembly's on-disk directory via
+        // Assembly.Location, which is a loose-file-only operation - it returns an empty string in a
+        // single-file or native AOT host. This cannot be resolved with [RequiresAssemblyFiles] because the
+        // attribute would have to flow onto the sealed ToolTask overrides (GenerateFullPathToTool,
+        // GenerateCommandLineCommands, ToolName, ExecuteTool) whose base declarations are unannotated,
+        // which is itself an error (IL3003). The IL3000 is therefore suppressed.
 #if NET
-        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("SingleFile", "IL3000:Avoid accessing Assembly file path when publishing as a single file", Justification = "Assembly.Location is required to locate the sibling compiler when deployed as loose files; single-file hosts fall back to AppContext.BaseDirectory and supply the compiler path out-of-band. [RequiresAssemblyFiles] cannot be used because it would conflict with the non-annotated ToolTask override it flows into (IL3003).")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("SingleFile", "IL3000:Avoid accessing Assembly file path when publishing as a single file", Justification = "Assembly.Location is required to locate the sibling compiler when this task is deployed as loose files under MSBuild. [RequiresAssemblyFiles] cannot be used because it would flow onto the unannotated ToolTask overrides (IL3003).")]
 #endif
         internal static string GetBuildTaskDirectory()
         {
-            var buildTaskDirectory = Path.GetDirectoryName(typeof(ManagedToolTask).Assembly.Location);
-            if (string.IsNullOrEmpty(buildTaskDirectory))
-            {
-                // Native AOT / single-file hosts report no on-disk assembly location. Fall back to the
-                // application base directory; the actual compiler location is supplied out-of-band in these
-                // scenarios (e.g. via the CscToolPath/VbcToolPath MSBuild property).
-                buildTaskDirectory = AppContext.BaseDirectory;
-            }
-
-            if (string.IsNullOrEmpty(buildTaskDirectory))
+            var buildTask = typeof(ManagedToolTask).Assembly;
+            var buildTaskDirectory = Path.GetDirectoryName(buildTask.Location);
+            if (buildTaskDirectory is null)
             {
                 // This should not happen in supported product scenarios but could happen if a non-supported
-                // scenario tried to load our task and call through these members.
+                // scenario tried to load our task (like AOT) and call through these members.
                 throw new InvalidOperationException("Unable to determine the location of the build task assembly.");
             }
 
