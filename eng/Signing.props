@@ -37,13 +37,10 @@
 
     <!-- Sign 3rd party dlls with 3rd party cert -->
     <FileSignInfo Include="ICSharpCode.Decompiler.dll" CertificateName="3PartySHA2" />
-    <FileSignInfo Include="e_sqlite3.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="sqlite3mc.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="SQLitePCLRaw.core.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="SQLitePCLRaw.batteries_v2.dll" CertificateName="3PartySHA2" />
-    <FileSignInfo Include="SQLitePCLRaw.batteries_green.dll" CertificateName="3PartySHA2" />
-    <FileSignInfo Include="SQLitePCLRaw.nativelibrary.dll" CertificateName="3PartySHA2" />
-    <FileSignInfo Include="SQLitePCLRaw.provider.e_sqlite3.dll" CertificateName="3PartySHA2" />
-    <FileSignInfo Include="SQLitePCLRaw.provider.dynamic_cdecl.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="SQLite3MC.PCLRaw.provider.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="StructuredLogger.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="MessagePack.Annotations.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="MessagePack.dll" CertificateName="3PartySHA2" />

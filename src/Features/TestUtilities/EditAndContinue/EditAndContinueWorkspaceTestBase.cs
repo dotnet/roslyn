@@ -163,7 +163,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
 
     internal EditAndContinueService GetEditAndContinueService(TestWorkspace workspace)
     {
-        var service = (EditAndContinueService)workspace.GetService<IEditAndContinueService>();
+        var service = (EditAndContinueService)workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
         var accessor = service.GetTestAccessor();
 
         // Empty guid means project is not built.

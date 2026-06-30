@@ -249,8 +249,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
-            Return Me.UnderlyingMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges)
+        Friend Overrides Function IsMetadataNewSlot() As Boolean
+            Return Me.UnderlyingMethod.IsMetadataNewSlot()
         End Function
 
         Public Overrides Function GetDllImportData() As DllImportData

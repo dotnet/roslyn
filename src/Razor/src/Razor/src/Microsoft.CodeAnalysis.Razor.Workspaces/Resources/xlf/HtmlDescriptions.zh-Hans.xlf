@@ -2,39 +2,1846 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../HtmlDescriptions.resx">
     <body>
+      <trans-unit id="HtmlAttribute_abbr">
+        <source>This attribute contains a short abbreviated description of the cell's content. Some user-agents, such as speech readers, may present this description before the content itself.</source>
+        <target state="translated">此特性包含单元格内容的简短缩写描述。某些用户代理(如语音阅读器)可能会在内容本身之前显示此描述。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_accept-charset">
+        <source>A space- or comma-delimited list of character encodings that the server accepts. The browser uses them in the order in which they are listed. The default value, the reserved string `"UNKNOWN"`, indicates the same encoding as that of the document containing the form element. 
+In previous versions of HTML, the different character encodings could be delimited by spaces or commas. In HTML5, only spaces are allowed as delimiters.</source>
+        <target state="translated">服务器接受的字符编码列表(以空格或逗号分隔)。浏览器会按列出的顺序使用这些编码。默认值是保留字符串 `"UNKNOWN"`，表示与包含表单元素的文档使用相同的编码。
+在早期版本的 HTML 中，不同的字符编码可以用空格或逗号分隔。在 HTML5 中，只允许使用空格作为分隔符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_accesskey">
+        <source>Provides a hint for generating a keyboard shortcut for the current element. This attribute consists of a space-separated list of characters. The browser should use the first one that exists on the computer keyboard layout.</source>
+        <target state="translated">提供为当前元素生成键盘快捷方式的提示。此特性由以空格分隔的字符列表组成。浏览器应使用计算机键盘布局上存在的第一个字符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_action">
+        <source>The URI of a program that processes the form information. This value can be overridden by a [`formaction`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formaction) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
+        <target state="translated">处理窗体信息的程序的 URI。此值可由 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 元素表示一个可点击的按钮，可以在窗体或文档中任何需要简单、标准按钮功能的地方使用。")或 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用于为基于 Web 的窗体创建交互式控件，以便接受来自用户的数据；可使用各种类型的输入数据和控件小组件，具体取决于设备和用户代理。")元素上的 [`formaction`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formaction)特性替代。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_align">
+        <source>This enumerated attribute indicates how the table must be aligned inside the containing document. It may have the following values:
+
+* left: the table is displayed on the left side of the document;
+* center: the table is displayed in the center of the document;
+* right: the table is displayed on the right side of the document.
+
+**Usage Note**
+
+* **Do not use this attribute**, as it has been deprecated. The [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "The HTML &lt;table&gt; element represents tabular data — that is, information presented in a two-dimensional table comprised of rows and columns of cells containing data.") element should be styled using [CSS](https://developer.mozilla.org/en-US/docs/CSS). Set [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "The margin-left CSS property sets the margin area on the left side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.") and [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "The margin-right CSS property sets the margin area on the right side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.") to `auto` or [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "The margin CSS property sets the margin area on all four sides of an element. It is a shorthand for margin-top, margin-right, margin-bottom, and margin-left.") to `0 auto` to achieve an effect that is similar to the align attribute.
+* Prior to Firefox 4, Firefox also supported the `middle`, `absmiddle`, and `abscenter` values as synonyms of `center`, in quirks mode only.</source>
+        <target state="translated">此枚举属性指示表格在包含文档中必须如何对齐。它可能具有以下值:
+
+* left: 表格显示在文档左侧；
+* center: 表格显示在文档中间；
+* right: 表格显示在文档右侧。
+
+**使用说明**
+
+* 不要使用此属性，因为它已被弃用。应使用 [CSS](https://developer.mozilla.org/en-US/docs/CSS)为 [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "HTML &lt;table&gt; 元素表示表格数据，也就是以行和列组成的二维表格形式呈现、由单元格中的数据构成的信息。")元素设置样式。将 [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "margin-left CSS 属性设置元素左侧的外边距区域。正值会使它离相邻元素更远，负值会使它更近。")和 [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "margin-right CSS 属性设置元素右侧的外边距区域。正值会使它离相邻元素更远，负值会使它更近。")设置为 `auto`，或将 [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "margin CSS 属性设置元素四个方向的外边距区域。它是 margin-top、margin-right、margin-bottom 和 margin-left 的简写。")设置为 `0 auto`，即可实现与 align 属性类似的效果。
+* 在 Firefox 4 之前，Firefox 还在 quirks 模式下支持将 `middle`、`absmiddle` 和 `abscenter` 作为 `center` 的同义词。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_allow">
+        <source>Specifies a [feature policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Feature_Policy) for the `&lt;iframe&gt;`.</source>
+        <target state="translated">为 `&lt;iframe&gt;` 指定 [功能策略](https://developer.mozilla.org/en-US/docs/Web/HTTP/Feature_Policy)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_allowfullscreen">
+        <source>Set to `true` if the `&lt;iframe&gt;` can activate fullscreen mode by calling the [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "The Element.requestFullscreen() method issues an asynchronous request to make the element be displayed in full-screen mode.") method.
+This attribute is considered a legacy attribute and redefined as `allow="fullscreen"`.</source>
+        <target state="translated">如果 `&lt;iframe&gt;` 可以通过调用 [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "Element.requestFullscreen()方法会发出异步请求，使元素以全屏模式显示。")方法来激活全屏模式，则将此值设为 `true`。
+此属性被视为旧属性，已重新定义为 `allow="fullscreen"`。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_alt">
+        <source>This attribute defines an alternative text description of the image.
+
+**Note:** Browsers do not always display the image referenced by the element. This is the case for non-graphical browsers (including those used by people with visual impairments), if the user chooses not to display images, or if the browser cannot display the image because it is invalid or an [unsupported type](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats). In these cases, the browser may replace the image with the text defined in this element's `alt` attribute. You should, for these reasons and others, provide a useful value for `alt` whenever possible.
+
+**Note:** Omitting this attribute altogether indicates that the image is a key part of the content, and no textual equivalent is available. Setting this attribute to an empty string (`alt=""`) indicates that this image is _not_ a key part of the content (decorative), and that non-visual browsers may omit it from rendering.</source>
+        <target state="translated">此属性定义图像的替换文字说明。
+
+**注意:** 浏览器并不总会显示元素引用的图像。在非图形浏览器中(包括视障人士使用的浏览器)，如果用户选择不显示图像，或者如果浏览器因为图像无效或属于[不受支持的类型](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats)而无法显示图像，则会出现这种情况。在这些情况下，浏览器可能会用此元素的 `alt` 属性中定义的文本替换图像。基于这些原因以及其他原因，只要可能，你都应为 `alt` 提供有用的值。
+
+**注意:** 完全省略此属性表示图像是内容的关键部分，并且没有可用的文本等效内容。将此属性设置为空字符串(`alt=""`) 表示该图像不是内容的关键部分(属于装饰性内容)，非可视化浏览器可以在呈现时将其省略。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_as">
+        <source>This attribute is only used when `rel="preload"` or `rel="prefetch"` has been set on the `&lt;link&gt;` element. It specifies the type of content being loaded by the `&lt;link&gt;`, which is necessary for content prioritization, request matching, application of correct [content security policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), and setting of correct [`Accept`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept "The Accept request HTTP header advertises which content types, expressed as MIME types, the client is able to understand. Using content negotiation, the server then selects one of the proposals, uses it and informs the client of its choice with the Content-Type response header. Browsers set adequate values for this header depending on the context where the request is done: when fetching a CSS stylesheet a different value is set for the request than when fetching an image, video or a script.") request header.</source>
+        <target state="translated">仅当在 `&lt;link&gt;` 元素上设置了 `rel="preload"` 或 `rel="prefetch"` 时，才使用此特性。它指定 `&lt;link&gt;` 加载的内容类型，这对于内容优先级划分、请求匹配、应用正确的 [内容安全策略](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)以及设置正确的 [`Accept`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept "Accept 请求 HTTP 标头会通告客户端能够理解哪些内容类型(以 MIME 类型表示)。然后，服务器使用内容协商选择其中一个建议，使用它，并使用 Content-Type 响应标头通知客户端其选择。浏览器根据请求的上下文为此标头设置适当的值: 获取 CSS 样式表时，为请求设置的值与提取图像、视频或脚本时的值不同。")请求头是必要的。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HtmlAttribute_async">
-        <source>The script will be executed asynchronously, as soon as it is available.</source>
-        <target state="new">The script will be executed asynchronously, as soon as it is available.</target>
+        <source>This is a Boolean attribute indicating that the browser should, if possible, load the script asynchronously.
+
+This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts). If it is included in this case it will have no effect.
+
+Browsers usually assume the worst case scenario and load scripts synchronously, (i.e. `async="false"`) during HTML parsing.
+
+Dynamically inserted scripts (using [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn't recognized.")) load asynchronously by default, so to turn on synchronous loading (i.e. scripts load in the order they were inserted) set `async="false"`.
+
+See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) for notes on browser support. See also [Async scripts for asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts).</source>
+        <target state="translated">这是一个布尔属性，表示浏览器应在可能的情况下异步加载脚本。
+
+如果缺少 `src` 属性(即，对于内联脚本)，不得使用此属性。如果在这种情况下包含它，它将不起任何作用。
+
+浏览器通常会假定最坏情况，并在 HTML 解析期间同步加载脚本(即 `async="false"`)。
+
+动态插入的脚本(使用 [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "在 HTML 文档中，document.createElement()方法会创建 tagName 指定的 HTML 元素；如果 tagName 无法识别，则创建 HTMLUnknownElement。"))默认异步加载，因此要启用同步加载(即，脚本按插入顺序加载)，请设置 `async="false"`。
+
+有关浏览器支持的说明，请参阅[浏览器兼容性](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility)。另请参阅 [asm.js 的异步脚本](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_autocapitalize">
+        <source>Controls whether and how text input is automatically capitalized as it is entered/edited by the user. It can have the following values:
+
+* `off` or `none`, no autocapitalization is applied (all letters default to lowercase)
+* `on` or `sentences`, the first letter of each sentence defaults to a capital letter; all other letters default to lowercase
+* `words`, the first letter of each word defaults to a capital letter; all other letters default to lowercase
+* `characters`, all letters should default to uppercase</source>
+        <target state="translated">控制文本输入在用户输入或编辑时是否以及如何自动大写。它可以具有以下值:
+
+* `off` 或 `none`，不应用自动大写(所有字母默认小写)
+* `on` 或 `sentences`，每个句子的首字母默认大写；所有其他字母默认小写
+* `words`，每个单词的首字母默认大写；所有其他字母默认小写
+* `characters`，所有字母均应默认大写</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_autocomplete">
+        <source>Indicates whether input elements can by default have their values automatically completed by the browser. This setting can be overridden by an `autocomplete` attribute on an element belonging to the form. Possible values are:
+
+* `off`: The user must explicitly enter a value into each field for every use, or the document provides its own auto-completion method; the browser does not automatically complete entries.
+* `on`: The browser can automatically complete values based on values that the user has previously entered in the form.
+
+For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) setting the autocomplete attribute will not prevent a browser's password manager from asking the user if they want to store login fields (username and password), if the user permits the storage the browser will autofill the login the next time the user visits the page. See [The autocomplete attribute and login fields](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
+**Note:** If you set `autocomplete` to `off` in a form because the document provides its own auto-completion, then you should also set `autocomplete` to `off` for each of the form's `input` elements that the document can auto-complete. For details, see the note regarding Google Chrome in the [Browser Compatibility chart](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</source>
+        <target state="translated">指示输入元素的值是否可由浏览器默认自动完成。此设置可由属于该表单的元素上的 `autocomplete` 属性覆盖。可能的值包含:
+
+* `off`: 用户每次使用时都必须在每个字段中显式输入值，或者文档提供自己的自动完成方法；浏览器不会自动完成输入。
+* `on`: 浏览器可以根据用户之前在表单中输入的值自动完成值。
+
+对于大多数现代浏览器(包括 Firefox 38+、Google Chrome 34+、IE 11+)，设置 autocomplete 属性不会阻止浏览器的密码管理器询问用户是否要保存登录字段(用户名和密码)。如果用户允许保存，浏览器会在用户下次访问页面时自动填充登录信息。请参阅 [autocomplete 属性和登录字段](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields)。
+**注意:** 如果由于文档提供了自己的自动完成功能而在表单中将 `autocomplete` 设置为 `off`，则还应为文档可自动完成的表单中的每个 `input` 元素将 `autocomplete` 设置为 `off`。有关详细信息，请参阅[浏览兼容性图表](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart)中关于 Google Chrome 的说明。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_autocorrect">
+        <source>Controls whether autocorrection of editable text is enabled for spelling and/or punctuation errors.</source>
+        <target state="translated">控制是否为拼写和/或标点错误启用了可编辑文本自动更正。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_autofocus">
+        <source>Indicates that an element should be focused on page load, or when the [`&lt;dialog&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/dialog) that it is part of is displayed.</source>
+        <target state="translated">指示在页面加载时或显示其所属的 [`&lt;dialog&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/dialog)时应聚焦的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_axis">
+        <source>This attribute contains a list of space-separated strings. Each string is the `id` of a group of cells that this header applies to.
+
+**Note:** Do not use this attribute as it is obsolete in the latest standard: use the [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope) attribute instead.</source>
+        <target state="translated">此属性包含一个以空格分隔的字符串列表。每个字符串都是此标头所应用的一组单元格的 `id`。
+
+**注意:** 请勿使用此属性，因为它在最新标准中已过时: 请改用 [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope)属性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_charset">
+        <source>This attribute declares the page's character encoding. It must contain a [standard IANA MIME name for character encodings](https://www.iana.org/assignments/character-sets). Although the standard doesn't request a specific encoding, it suggests:
+
+* Authors are encouraged to use [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8).
+* Authors should not use ASCII-incompatible encodings to avoid security risk: browsers not supporting them may interpret harmful content as HTML. This happens with the `JIS_C6226-1983`, `JIS_X0212-1990`, `HZ-GB-2312`, `JOHAB`, the ISO-2022 family and the EBCDIC family.
+
+**Note:** ASCII-incompatible encodings are those that don't map the 8-bit code points `0x20` to `0x7E` to the `0x0020` to `0x007E` Unicode code points)
+
+* Authors **must not** use `CESU-8`, `UTF-7`, `BOCU-1` and/or `SCSU` as [cross-site scripting](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) attacks with these encodings have been demonstrated.
+* Authors should not use `UTF-32` because not all HTML5 encoding algorithms can distinguish it from `UTF-16`.
+
+**Notes:**
+
+* The declared character encoding must match the one the page was saved with to avoid garbled characters and security holes.
+* The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element declaring the encoding must be inside the [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "The HTML &lt;head&gt; element provides general information (metadata) about the document, including its title and links to its scripts and style sheets.") element and **within the first 1024 bytes** of the HTML as some browsers only look at those bytes before choosing an encoding.
+* This [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element is only one part of the [algorithm to determine a page's character set](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page"). The [`Content-Type` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) and any [Byte-Order Marks](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "The definition of that term (Byte-Order Marks) has not been written yet; please consider contributing it!") override this element.
+* It is strongly recommended to define the character encoding. If a page's encoding is undefined, cross-scripting techniques are possible, such as the [`UTF-7` fallback cross-scripting technique](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
+* The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element with a `charset` attribute is a synonym for the pre-HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, where _`IANAcharset`_ contains the value of the equivalent [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute. This syntax is still allowed, although no longer recommended.</source>
+        <target state="translated">此属性声明页面的字符编码。它必须包含[字符编码的标准 IANA MIME 名称](https://www.iana.org/assignments/character-sets)。虽然标准没有要求使用特定编码，但建议:
+
+* 建议作者使用 [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8)。
+* 作者不应使用与 ASCII 不兼容的编码，以避免安全风险: 不支持这些编码的浏览器可能会将有害内容解释为 HTML。这种情况会出现在 `JIS_C6226-1983`、`JIS_X0212-1990`、`HZ-GB-2312`、`JOHAB`、ISO-2022 系列和 EBCDIC 系列中。
+
+**注意:** 与 ASCII 不兼容的编码，是指没有将 8 位码位 `0x20` 到 `0x7E` 映射到 Unicode 码位 `0x0020` 到 `0x007E` 的编码
+
+* 作者不得使用 `CESU-8`、`UTF-7`、`BOCU-1` 和/或 `SCSU`，因为已经证明可以利用这些编码发起[跨站脚本](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting)攻击。
+* 作者不应使用 `UTF-32`，因为并非所有 HTML5 编码算法都能将它与 `UTF-16` 区分开来。
+
+**注意:**
+
+* 声明的字符编码必须与页面保存时使用的编码一致，以避免乱码和安全漏洞。
+* 声明编码的 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素表示不能由其他 HTML 元相关元素(如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;)表示的元素。")元素必须包含在 [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "HTML &lt;head&gt; 元素提供文档的一般信息(元数据)，包括其标题以及其脚本和样式表的链接。")元素以及 HTML 的前 1024 字节内，因为一些浏览器在选择编码之前只查看这些字节。
+* 此 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素表示不能由其他 HTML 元相关元素(如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;)表示的元数据。")元素只是[用于确定页面字符集的算法](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page")的一部分。[`Content-Type` 标头](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type)和任何[字节顺序标记](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "(字节顺序标记)的定义尚未编写；请考虑贡献该术语!")会替代此元素。
+* 强烈建议定义字符编码。如果页面编码未定义，可以使用跨脚本技术，例如 [`UTF-7` 回退跨脚本技术](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7)。
+* 具有 `charset` 属性的 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素表示不能由其他 HTML 元相关元素(如 &lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;)表示的元数据。")元素是预 HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;` 的同义词，其中 `IANAcharset` 包含等效 [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset)属性的值。仍允许使用此语法，但不再是推荐做法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_cite">
+        <source>A URL that designates a source document or message for the information quoted. This attribute is intended to point to information explaining the context or the reference for the quote.</source>
+        <target state="translated">一个 URL，指定所引用信息的源文档或消息。此特性旨在指向解释引文上下文或参考资料的信息。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_class">
+        <source>A space-separated list of the classes of the element. Classes allows CSS and JavaScript to select and access specific elements via the [class selectors](https://developer.mozilla.org/docs/Web/CSS/Class_selectors) or functions like the method [`Document.getElementsByClassName()`](https://developer.mozilla.org/docs/Web/API/Document/getElementsByClassName "returns an array-like object of all child elements which have all of the given class names.").</source>
+        <target state="translated">元素类的空格分隔列表。类允许 CSS 和 JavaScript 通过 [类选择器](https://developer.mozilla.org/docs/Web/CSS/Class_selectors)或 [`Document.getElementsByClassName()`](https://developer.mozilla.org/docs/Web/API/Document/getElementsByClassName "返回一个类似数组的对象，其中包含所有具有给定类名的子元素。")方法等函数来选择和访问特定元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_classid">
+        <source>The URI of the object's implementation. It can be used together with, or in place of, the **data** attribute.</source>
+        <target state="translated">对象实现的 URI。它可以与 **data** 特性一起使用，也可以代替 **data** 特性使用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_cols">
+        <source>The visible width of the text control, in average character widths. If it is specified, it must be a positive integer. If it is not specified, the default value is `20`.</source>
+        <target state="translated">文本控件的可见宽度(以平均字符宽度为单位)。如果指定，则它必须是正整数。如果未指定，则默认值为 `20`。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_content">
+        <source>This attribute contains the value for the [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`name`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-name) attribute, depending on which is used.</source>
+        <target state="translated">此特性包含 [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv)或 [`name`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-name)特性的值，具体取决于使用的特性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_contenteditable">
+        <source>An enumerated attribute indicating if the element should be editable by the user. If so, the browser modifies its widget to allow editing. The attribute must take one of the following values:
+
+* `true` or the _empty string_, which indicates that the element must be editable;
+* `false`, which indicates that the element must not be editable.</source>
+        <target state="translated">一个枚举属性，指示用户是否可以编辑该元素。如果可以，浏览器会修改其控件以允许编辑。该属性必须采用以下值之一:
+
+* `true` 或空字符串，表示元素必须可编辑；
+* `false`，表示元素不可编辑。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_contextmenu">
+        <source>The `[**id**](#attr-id)` of a [`&lt;menu&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/menu "The HTML &lt;menu&gt; element represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked.") to use as the contextual menu for this element.</source>
+        <target state="translated">要用作此元素的上下文菜单的 [`&lt;menu&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/menu "HTML 的 &lt;menu&gt; 元素代表用户可以执行或激活的一组命令。这包括列表菜单(可能出现在屏幕顶部)和上下文菜单(例如单击按钮后出现在按钮下方的菜单)。")的 `[**id**](#attr-id)`。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_crossorigin">
+        <source>This enumerated attribute indicates whether [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.") must be used when fetching the resource. [CORS-enabled images](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_Enabled_Image) can be reused in the [`&lt;canvas&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas "Use the HTML &lt;canvas&gt; element with either the canvas scripting API or the WebGL API to draw graphics and animations.") element without being _tainted_. The allowed values are:
+
+`anonymous`
+
+A cross-origin request (i.e. with an [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "The Origin request header indicates where a fetch originates from. It doesn't include any path information, but only the server name. It is sent with CORS requests, as well as with POST requests. It is similar to the Referer header, but, unlike this header, it doesn't disclose the whole path.") HTTP header) is performed, but no credential is sent (i.e. no cookie, X.509 certificate, or HTTP Basic authentication). If the server does not give credentials to the origin site (by not setting the [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given origin.") HTTP header) the image will be tainted and its usage restricted.
+
+`use-credentials`
+
+A cross-origin request (i.e. with an `Origin` HTTP header) is performed along with a credential sent (i.e. a cookie, certificate, and/or HTTP Basic authentication is performed). If the server does not give credentials to the origin site (through [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to frontend JavaScript code when the request's credentials mode (Request.credentials) is "include".") HTTP header), the resource will be _tainted_ and its usage restricted.
+
+If the attribute is not present, the resource is fetched without a [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.") request (i.e. without sending the `Origin` HTTP header), preventing its non-tainted usage. If invalid, it is handled as if the enumerated keyword **anonymous** was used. See [CORS settings attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for additional information.</source>
+        <target state="translated">此枚举属性指示在提取资源时，是否必须使用 [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (跨域资源共享)是一个系统，由传输 HTTP 标头构成，确定浏览器是否阻止前端 JavaScript 代码访问跨域请求的响应。")。[支持 CORS 的图像](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_Enabled_Image)可以在 [`&lt;canvas&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas "将 HTML &lt;canvas&gt; 元素与画布脚本 API 或 WebGL API 配合使用以绘制图形和动画。")元素中重复使用，而不会被“污染”。允许的值包括:
+
+`anonymous`
+
+会执行跨域请求(即，使用 [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "源请求标头指示提取源自何处。它不包含任何路径信息，只包含服务器名称。它与 CORS 请求和 POST 请求一同发送。它与 Referer 标头类似，但与此标头不同的是，它不会披露完整路径。") HTTP 标头)，但不会发送凭据(即，不发送 Cookie、X.509 证书或 HTTP 基本身份验证)。如果服务器没有通过设置 [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "Access-Control-Allow-Origin 响应标头指示响应是否可与来自给定源的请求代码一起共享。") HTTP 标头向源站点提供凭据，则图像将被污染，其使用会受到限制。
+
+`use-credentials`
+
+会执行跨域请求(即，带有 `Origin` HTTP 标头)，同时发送凭据(即，会发送 Cookie、证书和/或 HTTP 基本身份验证)。如果服务器没有通过 [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "Access-Control-Allow-Credentials 响应标头指示当请求的证书模式(Request.credentials)为 "include" 时，浏览器是否将响应公开给前端 JavaScript 代码。") HTTP 标头向源站点提供凭据，则资源将被污染，其使用会受到限制。
+
+如果未提供此属性，则提取资源时不使用 [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing)是一个系统，由传输 HTTP 标头构成，确定浏览器是否阻止前端 JavaScript 代码访问跨域请求的响应。")请求(即，不发送 `Origin` HTTP 标头)，从而防止将其用于未污染的场景。如果值无效，则按使用了枚举关键字 anonymous 的情况处理。有关详细信息，请参阅 [CORS 设置属性](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_csp">
+        <source>A [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) enforced for the embedded resource. See [`HTMLIFrameElement.csp`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/csp "The csp property of the HTMLIFrameElement interface specifies the Content Security Policy that an embedded document must agree to enforce upon itself.") for details.</source>
+        <target state="translated">为嵌入式资源强制实施的 [内容安全策略](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)。有关详细信息，请参阅 [`HTMLIFrameElement.csp`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/csp "HTMLIFrameElement 接口的 csp 属性指定嵌入文档必须同意对其自身强制实施的内容安全策略。")。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_data">
+        <source>The address of the resource as a valid URL. At least one of **data** and **type** must be defined.</source>
+        <target state="translated">作为有效 URL 的资源地址。必须至少定义 **data** 和 **type** 中的一个。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_datetime">
+        <source>This attribute indicates the time and/or date of the element and must be in one of the formats described below.</source>
+        <target state="translated">此特性指示元素的时间和/或日期，并且必须采用下面所述的格式之一。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_decoding">
+        <source>Provides an image decoding hint to the browser. The allowed values are:
+`sync`
+
+Decode the image synchronously for atomic presentation with other content.
+
+`async`
+
+Decode the image asynchronously to reduce delay in presenting other content.
+
+`auto`
+
+Default mode, which indicates no preference for the decoding mode. The browser decides what is best for the user.</source>
+        <target state="translated">向浏览器提供图像解码提示。允许的值包括:
+`sync`
+
+同步解码图像，以便与其他内容一起原子性呈现。
+
+`async`
+
+异步解码图像，以减少呈现其他内容时的延迟。
+
+`auto`
+
+默认模式，表示不偏好特定的解码模式。浏览器会自行决定最适合用户的方式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_default">
+        <source>This attribute indicates that the track should be enabled unless the user's preferences indicate that another track is more appropriate. This may only be used on one `track` element per media element.</source>
+        <target state="translated">此特性指示应启用该轨道，除非用户的首选项指示另一个轨道更合适。这只能用于每个媒体元素的一个 `track` 元素。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_defer">
-        <source>The script is executed when the page has finished parsing.</source>
-        <target state="new">The script is executed when the page has finished parsing.</target>
+        <source>This Boolean attribute is set to indicate to a browser that the script is meant to be executed after the document has been parsed, but before firing [`DOMContentLoaded`](https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded "/en-US/docs/Web/Events/DOMContentLoaded").
+
+Scripts with the `defer` attribute will prevent the `DOMContentLoaded` event from firing until the script has loaded and finished evaluating.
+
+This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts), in this case it would have no effect.
+
+To achieve a similar effect for dynamically inserted scripts use `async="false"` instead. Scripts with the `defer` attribute will execute in the order in which they appear in the document.</source>
+        <target state="translated">设置此布尔属性是为了向浏览器指示，脚本应在文档解析完成后、但在触发 [`DOMContentLoaded`](https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded "/en-US/docs/Web/Events/DOMContentLoaded")之前执行。
+
+带有 `defer` 属性的脚本会阻止 `DOMContentLoaded` 事件触发，直到该脚本加载并求值完毕。
+
+如果缺少 `src` 属性(即，对于内联脚本)，不得使用此属性，因为在这种情况下它不会起作用。
+
+若要让动态插入的脚本实现类似效果，请改用 `async="false"`。带有 `defer` 属性的脚本会按它们在文档中出现的顺序执行。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_dir">
+        <source>An enumerated attribute indicating the directionality of the element's text. It can have the following values:
+
+* `ltr`, which means _left to right_ and is to be used for languages that are written from the left to the right (like English);
+* `rtl`, which means _right to left_ and is to be used for languages that are written from the right to the left (like Arabic);
+* `auto`, which lets the user agent decide. It uses a basic algorithm as it parses the characters inside the element until it finds a character with a strong directionality, then it applies that directionality to the whole element.</source>
+        <target state="translated">一个枚举属性，指示元素文本的方向。它可以具有以下值:
+
+* `ltr`，表示从左到右，用于从左到右书写的语言(如英语)；
+* `rtl`，表示从右到左，用于从右到左书写的语言(如阿拉伯语)；
+* `auto`，由用户代理决定。它会在解析元素内的字符时使用基本算法，直到找到具有强方向性的字符，然后将该方向性应用到整个元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_disabled">
+        <source>If this Boolean attribute is set, all form controls that are descendants of the `&lt;fieldset&gt;`, are disabled, meaning they are not editable and won't be submitted along with the `&lt;form&gt;`. They won't receive any browsing events, like mouse clicks or focus-related events. By default browsers display such controls grayed out. Note that form elements inside the [`&lt;legend&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend "The HTML &lt;legend&gt; element represents a caption for the content of its parent &lt;fieldset&gt;.") element won't be disabled.</source>
+        <target state="translated">如果设置了此布尔特性，则将禁用属于 `&lt;fieldset&gt;` 后代的所有窗体控件，这意味着它们不可编辑，并且不会与 `&lt;form&gt;` 一起提交。它们不会收到任何浏览事件，如鼠标点击或焦点相关事件。默认情况下，浏览器会显示灰显的此类控件。请注意，[`&lt;legend&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend "HTML &lt;legend&gt; 元素表示其父 &lt;fieldset&gt; 内容的描述文字。")元素内的窗体元素不会被禁用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_download">
+        <source>This attribute instructs browsers to download a URL instead of navigating to it, so the user will be prompted to save it as a local file. If the attribute has a value, it is used as the pre-filled file name in the Save prompt (the user can still change the file name if they want). There are no restrictions on allowed values, though `/` and `\` are converted to underscores. Most file systems limit some punctuation in file names, and browsers will adjust the suggested name accordingly.
+
+**Notes:**
+
+* This attribute only works for [same-origin URLs](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy).
+* Although HTTP(s) URLs need to be in the same-origin, [`blob:` URLs](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) and [`data:` URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs) are allowed so that content generated by JavaScript, such as pictures created in an image-editor Web app, can be downloaded.
+* If the HTTP header [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) gives a different filename than this attribute, the HTTP header takes priority over this attribute.
+* If `Content-Disposition:` is set to `inline`, Firefox prioritizes `Content-Disposition`, like the filename case, while Chrome prioritizes the `download` attribute.</source>
+        <target state="translated">此属性会指示浏览器下载 URL，而不是直接导航到该 URL，因此会提示用户将其保存为本地文件。如果该属性具有值，则该值会用作“保存”提示中的预填充文件名(用户仍可根据需要更改文件名)。允许的值没有限制，但 `/` 和 `\` 会转换为下划线。大多数文件系统会限制文件名中的某些标点符号，浏览器会相应调整建议的名称。
+
+**注意:**
+
+* 此属性仅适用于[同源 URL](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy)。
+* 虽然 HTTP(s) URL 必须是同源，但允许使用 [`blob:` URL](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL)和 [`data:` URL](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs)，这样 JavaScript 生成的内容，例如图像编辑器 Web 应用中创建的图片，也可以下载。
+* 如果 HTTP 标头 [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition)提供的文件名与此属性不同，则 HTTP 标头优先于此属性。
+* 如果 `Content-Disposition:` 设置为 `inline`，Firefox 会像处理文件名那样优先使用 `Content-Disposition`，而 Chrome 会优先使用 `download` 属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_draggable">
-        <source>An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</source>
-        <target state="new">An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</target>
+        <source>An enumerated attribute indicating whether the element can be dragged, using the [Drag and Drop API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). It can have the following values:
+
+* `true`, which indicates that the element may be dragged
+* `false`, which indicates that the element may not be dragged.</source>
+        <target state="translated">一个枚举属性，指示是否可使用[拖放 API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop)拖动元素。它可以具有以下值:
+
+* `true`，表示可拖动该元素
+* `false`，表示不能拖动该元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_dropzone">
+        <source>An enumerated attribute indicating what types of content can be dropped on an element, using the [Drag and Drop API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). It can have the following values:
+
+* `copy`, which indicates that dropping will create a copy of the element that was dragged
+* `move`, which indicates that the element that was dragged will be moved to this new location.
+* `link`, will create a link to the dragged data.</source>
+        <target state="translated">一个枚举属性，指示可使用[拖放 API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop)将哪些类型的内容放在元素上。它可以具有以下值:
+
+* `copy`，表示放下时会创建所拖动元素的副本
+* `move`，表示所拖动的元素会移动到该新位置
+* `link`，将为拖动的数据创建链接。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_enctype">
+        <source>When the value of the `method` attribute is `post`, enctype is the [MIME type](https://en.wikipedia.org/wiki/Mime_type) of content that is used to submit the form to the server. Possible values are:
+
+* `application/x-www-form-urlencoded`: The default value if the attribute is not specified.
+* `multipart/form-data`: The value used for an [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element with the `type` attribute set to "file".
+* `text/plain`: (HTML5)
+
+This value can be overridden by a [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
+        <target state="translated">当 `method` 属性的值为 `post` 时，enctype 是用于将表单提交到服务器的内容 [MIME 类型](https://en.wikipedia.org/wiki/Mime_type)。可能的值包括:
+
+* `application/x-www-form-urlencoded`: 如果未指定该属性，则为默认值。
+* `multipart/form-data`: 该值用于 `type` 属性设置为 "file" 的 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用于为基于 Web 的表单创建交互式控件，，以便接受来自用户的数据；可使用各种类型的输入数据和控件小组件，具体取决于设备和用户代理。")元素。
+* `text/plain`: (HTML5)
+
+此值可被 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 元素表示一个可点击的按钮，可以在窗体或文档中任何需要简单、标准按钮功能的地方使用。")或 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用于为基于 Web 的窗体创建交互式控件，以便接受来自用户的数据；可使用各种类型的输入数据和控件小组件，具体取决于设备和用户代理。")元素上的 [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype)属性覆盖。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_enterkeyhint">
+        <source>An enumerated attribute defining what action label (or icon) to present for the enter key on virtual keyboards.</source>
+        <target state="translated">一个枚举特性，定义要为虚拟键盘上的 Enter 键显示的操作标签(或图标)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_exportparts">
+        <source>Used to transitively export shadow parts from a nested shadow tree into a containing light tree.</source>
+        <target state="translated">用于以可传递方式将影子部分从嵌套的影子树导出到包含的常规树中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_fetchpriority">
+        <source>Provides a hint of the relative priority to use when fetching the image.</source>
+        <target state="translated">提供提取图像时要使用的相对优先级的提示。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_for">
+        <source>The [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) of a [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) form-related element in the same document as the `&lt;label&gt;` element. The first element in the document with an `id` matching the value of the `for` attribute is the _labeled control_ for this label element, if it is a labelable element. If it is not labelable then the `for` attribute has no effect. If there are other elements which also match the `id` value, later in the document, they are not considered.
+
+**Note**: A `&lt;label&gt;` element can have both a `for` attribute and a contained control element, as long as the `for` attribute points to the contained control element.</source>
+        <target state="translated">`&lt;label&gt;` 元素所在文档中[可标记](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable)表单相关元素的 [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id)。如果文档中 `id` 与 `for` 属性的值匹配的第一个元素是可标记元素，则该元素是该 label 元素的已标记控件。如果它不是可标记元素，则 `for` 属性不起作用。如果还有其他元素也与 `id` 值匹配，则在文档的后面部分，不会考虑这些元素。
+
+**注意**: 只要 `for` 属性指向所包含的控件元素。，`&lt;label&gt;` 元素就可同时具有 `for` 元素和所包含的控件元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_form">
+        <source>The form element, if any, that the object element is associated with (its _form owner_). The value of the attribute must be an ID of a [`&lt;form&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form "The HTML &lt;form&gt; element represents a document section that contains interactive controls for submitting information to a web server.") element in the same document.</source>
+        <target state="translated">对象元素关联的窗体元素(如果有)(其窗体所有者)。特性的值必须是同一文档中 [`&lt;form&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form "HTML &lt;form&gt; 元素表示文档节，其中包含用于将信息提交到 Web 服务器的交互式控件。")元素的 ID。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_formaction">
+        <source>The URI of a program that processes the information submitted by the button. If specified, it overrides the [`action`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-action) attribute of the button's form owner.</source>
+        <target state="translated">处理按钮提交的信息的程序的 URI。如果指定，它将替代按钮的窗体所有者的 [`action`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-action)特性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_formenctype">
+        <source>If the button is a submit button, this attribute specifies the type of content that is used to submit the form to the server. Possible values are:
+
+* `application/x-www-form-urlencoded`: The default value if the attribute is not specified.
+* `multipart/form-data`: Use this value if you are using an [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element with the [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) attribute set to `file`.
+* `text/plain`
+
+If this attribute is specified, it overrides the [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) attribute of the button's form owner.</source>
+        <target state="translated">如果按钮是提交按钮，则此属性指定用于将表单提交到服务器的内容类型。可能的值包括:
+
+* `application/x-www-form-urlencoded`: 未指定该属性时的默认值。
+* `multipart/form-data`: 如果使用的是 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用于为基于 Web 的表单创建交互式控件，以便接收来自用户的数据；可用的输入数据和控件小组件类型很多，具体取决于设备和用户代理。")元素，并将 [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type)属性设置为 `file` 时，请使用此值。
+* `text/plain`
+
+如果指定此属性，它会覆盖按钮所属表单的 [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype)属性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_formmethod">
+        <source>If the button is a submit button, this attribute specifies the HTTP method that the browser uses to submit the form. Possible values are:
+
+* `post`: The data from the form are included in the body of the form and sent to the server.
+* `get`: The data from the form are appended to the **form** attribute URI, with a '?' as a separator, and the resulting URI is sent to the server. Use this method when the form has no side-effects and contains only ASCII characters.
+
+If specified, this attribute overrides the [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) attribute of the button's form owner.</source>
+        <target state="translated">如果按钮是提交按钮，则此属性指定浏览器用于提交表单的 HTTP 方法。可能的值包含:
+
+* `post`: 表单中的数据会包含在表单正文中并发送到服务器。
+* `get`: 表单中的数据会追加到 form 属性 URI 中，并以 '?' 作为分隔符，然后将生成的 URI 发送到服务器。当表单没有副作用且仅包含 ASCII 字符时，请使用此方法。
+
+如果指定此属性，它会覆盖按钮所属表单的 [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method)属性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_formnovalidate">
+        <source>If the button is a submit button, this Boolean attribute specifies that the form is not to be validated when it is submitted. If this attribute is specified, it overrides the [`novalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-novalidate) attribute of the button's form owner.</source>
+        <target state="translated">如果按钮是提交按钮，则此布尔特性指定在提交窗体时不对其进行验证。如果指定了此特性，它将替代按钮的窗体所有者的 [`novalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-novalidate)特性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_formtarget">
+        <source>If the button is a submit button, this attribute is a name or keyword indicating where to display the response that is received after submitting the form. This is a name of, or keyword for, a _browsing context_ (for example, tab, window, or inline frame). If this attribute is specified, it overrides the [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target) attribute of the button's form owner. The following keywords have special meanings:
+
+* `_self`: Load the response into the same browsing context as the current one. This value is the default if the attribute is not specified.
+* `_blank`: Load the response into a new unnamed browsing context.
+* `_parent`: Load the response into the parent browsing context of the current one. If there is no parent, this option behaves the same way as `_self`.
+* `_top`: Load the response into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.</source>
+        <target state="translated">如果按钮是提交按钮，则此属性是一个名称或关键字，用于指示提交表单后接收到的响应显示在何处。这是一个浏览上下文(例如，选项卡、窗口或内联框架)的名称或关键字。如果指定此属性，它会覆盖按钮所属表单的 [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target)属性。以下关键字具有特殊含义:
+
+* `_self`: 将响应加载到与当前相同的浏览上下文中。如果未指定该属性，这是默认值。
+* `_blank`: 将响应加载到新的未命名浏览上下文中。
+* `_parent`: 将响应加载到当前浏览上下文的父浏览上下文中。如果没有父上下文，此选项的行为与 `_self` 相同。
+* `_top`: 将响应加载到顶级浏览上下文中(即,作为当前浏览上下文祖先且没有父级的浏览上下文)。如果没有父上下文，此选项的行为与 `_self` 相同。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_height">
+        <source>The intrinsic height of the image in pixels.</source>
+        <target state="translated">图像的固有高度(以像素为单位)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_hidden">
+        <source>A Boolean attribute indicates that the element is not yet, or is no longer, _relevant_. For example, it can be used to hide elements of the page that can't be used until the login process has been completed. The browser won't render such elements. This attribute must not be used to hide content that could legitimately be shown.</source>
+        <target state="translated">布尔特性指示元素尚未或不再相关。例如，它可用于隐藏在登录过程完成之前无法使用的页面元素。浏览器不会呈现此类元素。此特性不得用于隐藏可以合法显示的内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_high">
+        <source>The lower numeric bound of the high end of the measured range. This must be less than the maximum value (`max` attribute), and it also must be greater than the low value and minimum value (`low` attribute and **min** attribute, respectively), if any are specified. If unspecified, or if greater than the maximum value, the `high` value is equal to the maximum value.</source>
+        <target state="translated">测量范围上限的数值下限。这必须小于最大值(`max` 特性)，并且还必须大于低值和最小值(`low` 特性和 **min** 特性)(如果指定了任何特性)。如果未指定或大于最大值，`high` 值等于最大值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_href">
+        <source>The base URL to be used throughout the document for relative URL addresses. If this attribute is specified, this element must come before any other elements with attributes whose values are URLs. Absolute and relative URLs are allowed.</source>
+        <target state="translated">要在整个文档中用于相对 URL 地址的基本 URL。如果指定了此特性，则此元素必须位于具有其值为 URL 的特性的任何其他元素之前。允许使用绝对 URL 和相对 URL。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_hreflang">
+        <source>This attribute indicates the language of the linked resource. It is purely advisory. Allowed values are determined by [BCP47](https://www.ietf.org/rfc/bcp/bcp47.txt). Use this attribute only if the [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute is present.</source>
+        <target state="translated">此特性指示链接资源的语言。仅供参考。允许的值由 [BCP47](https://www.ietf.org/rfc/bcp/bcp47.txt)确定。仅当 [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href)特性存在时才使用此特性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_http-equiv">
+        <source>Defines a pragma directive. The attribute is named `**http-equiv**(alent)` because all the allowed values are names of particular HTTP headers:
+
+* `"content-language"` 
+Defines the default language of the page. It can be overridden by the [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) attribute on any element.
+
+**Warning:** Do not use this value, as it is obsolete. Prefer the `lang` attribute on the [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html "The HTML &lt;html&gt; element represents the root (top-level element) of an HTML document, so it is also referred to as the root element. All other elements must be descendants of this element.") element.
+
+* `"content-security-policy"` 
+Allows page authors to define a [content policy](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives) for the current page. Content policies mostly specify allowed server origins and script endpoints which help guard against cross-site scripting attacks.
+* `"content-type"` 
+Defines the [MIME type](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type) of the document, followed by its character encoding. It follows the same syntax as the HTTP `content-type` entity-header field, but as it is inside a HTML page, most values other than `text/html` are impossible. Therefore the valid syntax for its `content` is the string '`text/html`' followed by a character set with the following syntax: '`; charset=_IANAcharset_`', where `IANAcharset` is the _preferred MIME name_ for a character set as [defined by the IANA.](https://www.iana.org/assignments/character-sets)
+
+**Warning:** Do not use this value, as it is obsolete. Use the [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute on the [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element.
+
+**Note:** As [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") can't change documents' types in XHTML or HTML5's XHTML serialization, never set the MIME type to an XHTML MIME type with `&lt;meta&gt;`.
+
+* `"refresh"` 
+This instruction specifies:
+* The number of seconds until the page should be reloaded - only if the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) attribute contains a positive integer.
+* The number of seconds until the page should redirect to another - only if the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) attribute contains a positive integer followed by the string '`;url=`', and a valid URL.
+* `"set-cookie"` 
+Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page. Its content must follow the syntax defined in the [IETF HTTP Cookie Specification](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14).
+
+**Warning:** Do not use this instruction, as it is obsolete. Use the HTTP header [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie) instead.</source>
+        <target state="translated">定义 pragma 指令。该属性之所以命名为 `**http-equiv**(alent)`，是因为所有允许的值都是特定 HTTP 标头的名称:
+
+* `"content-language"` 
+定义页面的默认语言。它可以被任何元素上的 [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang)属性覆盖。
+
+**警告:** 请勿使用此值，因为它已过时。请改用 [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html "HTML &lt;html&gt; 元素表示 HTML 文档的根(顶级元素)，因为它也作为根元素引用。所有其他元素必须是该元素的后代。")元素上的 `lang` 属性。
+
+* `"content-security-policy"` 
+允许页面作者为当前页面定义[内容策略](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives)。内容策略主要指定允许的服务器源和脚本终结点，以帮助防范跨站点脚本攻击。
+* `"content-type"` 
+定义文档的 [MIME 类型](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type)，并附带其字符编码。它遵循与 HTTP `content-type` 实体标头字段相同的语法，但由于它位于 HTML 页面内，因此除 `text/html` 之外的大多数值都不可能有效。因此，其 `content` 的有效语法是字符串 `text/html`，后跟字符集，语法为 `; charset=_IANAcharset_`，其中 `IANAcharset` 是 [IANA 定义的](https://www.iana.org/assignments/character-sets)字符集的首选 MIME 名称。
+
+**警告:** 请勿使用此值，因为它已过时。请改用 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素表示不能由其他 HTML 元相关元素(如 &lt;base&gt;、&lt;link&gt;&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;)表示的元数据。")元素上的 [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset)属性。
+
+**注意:** 由于 [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; 元素表示不能由其他 HTML 元相关元素(如 &lt;base&gt;, &lt;link&gt;&lt;script&gt;、&lt;style&gt; 或 &lt;title&gt;)表示的元数据。")无法在 XHTML 或 HTML5 的 XHTML 序列化中更改文档类型，因此切勿通过 `&lt;meta&gt;` 将 MIME 类型设置为 XHTML MIME 类型。
+
+* `"refresh"` 
+此指令指定:
+* 页面应重新加载之前等待的秒数 - 仅当 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content)属性包含正整数时。
+* 页面应重定向到其他页面之前等待的秒数 - 仅当 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content)属性包含一个正整数，后跟字符串 `;url=` 和有效 URL 时。
+* `"set-cookie"` 
+为页面定义一个 [Cookie](https://developer.mozilla.org/en-US/docs/cookie)。其内容必须遵循 [IETF HTTP Cookie 规范](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14)中定义的语法。
+
+**警告:** 请勿使用此指令，因为它已过时。请改用 HTTP 标头 [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_id">
+        <source>Defines a unique identifier (ID) which must be unique in the whole document. Its purpose is to identify the element when linking (using a fragment identifier), scripting, or styling (with CSS).</source>
+        <target state="translated">定义在整个文档中必须唯一的唯一标识符(ID)。其目的是在链接(使用片段标识符)、执行脚本或设置样式(使用 CSS)时标识元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_inert">
+        <source>Indicates that the element and all of its flat tree descendants become _inert_. Modal `&lt;dialog&gt;`s generated with [`showModal()`](https://developer.mozilla.org/docs/Web/API/HTMLDialogElement/showModal) escape inertness, meaning that they don't inherit inertness from their ancestors, but can only be made inert by having the `inert` attribute explicitly set on themselves.</source>
+        <target state="translated">指示元素及其所有扁平树后代都变为 inert。使用 [`showModal()`](https://developer.mozilla.org/docs/Web/API/HTMLDialogElement/showModal)生成的模式 `&lt;dialog&gt;` 会脱离 inert 状态，这意味着它们不会从其上级继承惰性，但只能通过在自身上显式设置 `inert` 特性将其设为 inert。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_inputmode">
+        <source>Provides a hint to browsers as to the type of virtual keyboard configuration to use when editing this element or its contents. Used primarily on [`&lt;input&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") elements, but is usable on any element while in `[contenteditable](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-contenteditable)` mode.</source>
+        <target state="translated">向浏览器提供有关编辑此元素或其内容时要使用的虚拟键盘配置类型的提示。主要用于 [`&lt;input&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用于为基于 Web 的窗体创建交互式控件，以便接受来自用户的数据；可使用各种类型的输入数据和控件小组件，具体取决于设备和用户代理。")元素，但在 `[contenteditable](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-contenteditable)` 模式下可用于任何元素。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_integrity">
-        <source>The integrity attribute represents integrity metadata for an element.</source>
-        <target state="new">The integrity attribute represents integrity metadata for an element.</target>
+        <source>Contains inline metadata — a base64-encoded cryptographic hash of the resource (file) you’re telling the browser to fetch. The browser can use this to verify that the fetched resource has been delivered free of unexpected manipulation. See [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).</source>
+        <target state="translated">包含内联元数据 – 告知浏览器提取的资源(文件)的 base64 编码加密哈希值。浏览器可以使用它来验证提取的资源是否已在未进行意外操作时传递。请参阅 [子资源完整性](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_is">
+        <source>Allows you to specify that a standard HTML element should behave like a registered custom built-in element (see [Using custom elements](https://developer.mozilla.org/docs/Web/Web_Components/Using_custom_elements) for more details).</source>
+        <target state="translated">允许指定标准 HTML 元素的行为应类似于已注册的自定义内置元素(有关更多详细信息，请参阅 [使用自定义元素](https://developer.mozilla.org/docs/Web/Web_Components/Using_custom_elements))。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ismap">
+        <source>This Boolean attribute indicates that the image is part of a server-side map. If so, the precise coordinates of a click are sent to the server.
+
+**Note:** This attribute is allowed only if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") element with a valid [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute.</source>
+        <target state="translated">此布尔属性指示图像是服务器端映射的一部分。如果是，点击的精确坐标会发送到服务器。
+
+**注意:** 只有当 `&lt;img&gt;` 元素是带有有效 [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href)属性的 [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "HTML &lt;a&gt; 元素(或 anchor 元素)会创建指向其他网页、文件、同一页面内的位置、电子邮件地址或任何其他 URL 的超链接")元素的后代时，才允许使用此属性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_itemid">
+        <source>The unique, global identifier of an item.</source>
+        <target state="translated">项的唯一全局标识符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_itemprop">
+        <source>Used to add properties to an item. Every HTML element may have an `itemprop` attribute specified, where an `itemprop` consists of a name and value pair.</source>
+        <target state="translated">用于向项添加属性。每个 HTML 元素可能都指定了 `itemprop` 特性，其中 `itemprop` 由名称和值对组成。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_itemref">
+        <source>Properties that are not descendants of an element with the `itemscope` attribute can be associated with the item using an `itemref`. It provides a list of element ids (not `itemid`s) with additional properties elsewhere in the document.</source>
+        <target state="translated">不属于具有 `itemscope` 特性的元素的后代的属性可以使用 `itemref` 与该项相关联。它提供包含文档中其他位置的其他属性的元素 ID (而不是 `itemid`)的列表。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_itemscope">
+        <source>`itemscope` (usually) works along with `[itemtype](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemtype)` to specify that the HTML contained in a block is about a particular item. `itemscope` creates the Item and defines the scope of the `itemtype` associated with it. `itemtype` is a valid URL of a vocabulary (such as [schema.org](https://schema.org/)) that describes the item and its properties context.</source>
+        <target state="translated">`itemscope` (通常)与 `[itemtype](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemtype)` 一起使用，以指定块中包含的 HTML 与特定项有关。`itemscope` 创建项并定义与其关联的 `itemtype` 的范围。`itemtype` 是描述项及其属性上下文的词汇(如 [schema.org](https://schema.org/))的有效 URL。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_itemtype">
+        <source>Specifies the URL of the vocabulary that will be used to define `itemprop`s (item properties) in the data structure. `[itemscope](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemscope)` is used to set the scope of where in the data structure the vocabulary set by `itemtype` will be active.</source>
+        <target state="translated">指定将用于在数据结构中定义 `itemprop`s (项属性)的词汇的 URL。`[itemscope](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemscope)` 用于设置数据结构中 `itemtype` 设置的词汇处于活动状态的范围。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_kind">
+        <source>How the text track is meant to be used. If omitted the default kind is `subtitles`. If the attribute is not present, it will use the `subtitles`. If the attribute contains an invalid value, it will use `metadata`. (Versions of Chrome earlier than 52 treated an invalid value as `subtitles`.) The following keywords are allowed:
+
+* `subtitles`
+* Subtitles provide translation of content that cannot be understood by the viewer. For example dialogue or text that is not English in an English language film.
+* Subtitles may contain additional content, usually extra background information. For example the text at the beginning of the Star Wars films, or the date, time, and location of a scene.
+* `captions`
+* Closed captions provide a transcription and possibly a translation of audio.
+* It may include important non-verbal information such as music cues or sound effects. It may indicate the cue's source (e.g. music, text, character).
+* Suitable for users who are deaf or when the sound is muted.
+* `descriptions`
+* Textual description of the video content.
+* Suitable for users who are blind or where the video cannot be seen.
+* `chapters`
+* Chapter titles are intended to be used when the user is navigating the media resource.
+* `metadata`
+* Tracks used by scripts. Not visible to the user.</source>
+        <target state="translated">文本轨道的用途。如果省略，默认类型为 `subtitles`。如果属性不存在，将使用 `subtitles`。如果属性包含无效值，将使用 `metadata`。(Chrome 52 之前的版本会将无效值视为 `subtitles`。)允许使用以下关键字:
+
+* `subtitles`
+* 字幕提供观看者无法理解的内容的翻译。例如，英语电影中不是英语的对白或文本。
+* 字幕可能包含其他内容，通常是额外的背景信息。例如《星球大战》电影开头的文字，或某个场景的日期、时间和地点。
+* `captions`
+* 隐藏式字幕提供音频的听录内容，并且可能包含翻译。
+* 它可能包括重要的非语言信息，例如音乐提示或音效。它还可能标明提示的来源(例如音乐、文本、角色)。
+* 适用于视障用户或无法看到视频的情况。
+* `descriptions`
+* 视频内容的文字说明。
+* 适用于视障用户或无法看到视频的情况。
+* `chapters`
+* 章节标题旨在用户浏览媒体资源时使用。
+* `metadata`
+* 供脚本使用的轨道。用户不可见。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_label">
+        <source>A user-readable title of the text track which is used by the browser when listing available text tracks.</source>
+        <target state="translated">列出可用文本轨道时浏览器使用的文本轨道的用户可读标题。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_lang">
+        <source>Helps define the language of an element: the language that non-editable elements are in, or the language that editable elements should be written in by the user. The attribute contains one “language tag” (made of hyphen-separated “language subtags”) in the format defined in [_Tags for Identifying Languages (BCP47)_](https://www.ietf.org/rfc/bcp/bcp47.txt). [**xml:lang**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/lang#attr-xml:lang) has priority over it.</source>
+        <target state="translated">帮助定义元素的语言：不可编辑元素所使用的语言，或者用户应用于编写可编辑元素的语言。该特性包含一个“语言标签”(由连字符分隔的“语言子标签”组成)，其格式在 [用于识别语言的标签(BCP47)](https://www.ietf.org/rfc/bcp/bcp47.txt)中定义。[**xml:lang**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/lang#attr-xml:lang)优先于它。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_loading">
+        <source>Indicates how the browser should load the image.</source>
+        <target state="translated">指示浏览器应如何加载图像。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_low">
+        <source>The upper numeric bound of the low end of the measured range. This must be greater than the minimum value (`min` attribute), and it also must be less than the high value and maximum value (`high` attribute and `max` attribute, respectively), if any are specified. If unspecified, or if less than the minimum value, the `low` value is equal to the minimum value.</source>
+        <target state="translated">测量范围下限的数值上限。这必须大于最小值(`min` 特性)，并且还必须小于高值和最大值(`high` 特性和 `max` 特性)(如果指定了任何特性)。如果未指定或小于最小值，`low` 值等于最小值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_manifest">
+        <source>Specifies the URI of a resource manifest indicating resources that should be cached locally. See [Using the application cache](https://developer.mozilla.org/en-US/docs/Web/HTML/Using_the_application_cache) for details.</source>
+        <target state="translated">指定资源清单的 URI，指示应在本地缓存的资源。有关详细信息，请参阅 [使用应用程序高速缓存](https://developer.mozilla.org/en-US/docs/Web/HTML/Using_the_application_cache)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_max">
+        <source>This attribute describes how much work the task indicated by the `progress` element requires. The `max` attribute, if present, must have a value greater than zero and be a valid floating point number. The default value is 1.</source>
+        <target state="translated">此特性描述 `progress` 元素指示的任务所需的工作量。如果存在，`max` 特性必须具有大于零的值，并且必须是有效的浮点数。默认值为 1。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_maxlength">
+        <source>The maximum number of characters (unicode code points) that the user can enter. If this value isn't specified, the user can enter an unlimited number of characters.</source>
+        <target state="translated">用户可输入的最大字符数(unicode 码位)。如果未指定此值，则用户可以输入无限数量的字符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_media">
+        <source>This attribute specifies the media that the linked resource applies to. Its value must be a media type / [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries). This attribute is mainly useful when linking to external stylesheets — it allows the user agent to pick the best adapted one for the device it runs on.
+
+**Notes:**
+
+* In HTML 4, this can only be a simple white-space-separated list of media description literals, i.e., [media types and groups](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), where defined and allowed as values for this attribute, such as `print`, `screen`, `aural`, `braille`. HTML5 extended this to any kind of [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), which are a superset of the allowed values of HTML 4.
+* Browsers not supporting [CSS3 Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) won't necessarily recognize the adequate link; do not forget to set fallback links, the restricted set of media queries defined in HTML 4.</source>
+        <target state="translated">此属性指定链接资源适用的媒体。其值必须是媒体类型/[媒体查询](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries)。此属性在链接到外部样式表时尤其有用 - 它允许用户代理为其运行的设备选择最合适的样式表。
+
+**注意:**
+
+* 在 HTML 4 中，这只能是以空白分隔的简单媒体描述字面量列表，即此属性定义并允许作为值的[媒体类型和组](https://developer.mozilla.org/en-US/docs/Web/CSS/@media)，例如 `print`、`screen`、`aural`、`braille`。HTML5 将其扩展为任何类型的[媒体查询](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries)，后者是 HTML 4 允许值的超集。
+* 不支持 [CSS3 媒体查询](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries)的浏览器不一定能识别合适的链接 - 不要忘记设置回退链接，也就是 HTML 4 中定义的受限媒体查询集。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_method">
+        <source>The [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) method that the browser uses to submit the form. Possible values are:
+
+* `post`: Corresponds to the HTTP [POST method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5) ; form data are included in the body of the form and sent to the server.
+* `get`: Corresponds to the HTTP [GET method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3); form data are appended to the `action` attribute URI with a '?' as separator, and the resulting URI is sent to the server. Use this method when the form has no side-effects and contains only ASCII characters.
+* `dialog`: Use when the form is inside a [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "The HTML &lt;dialog&gt; element represents a dialog box or other interactive component, such as an inspector or window.") element to close the dialog when submitted.
+
+This value can be overridden by a [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
+        <target state="translated">浏览器用于提交表单的 [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP)方法。可选值包括:
+
+* `post`: 对应 HTTP [POST 方法](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5)；表单数据包含在表单正文中并发送到服务器。
+* `get`: 对应 HTTP [GET 方法](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3)；表单数据会追加到 `action` 属性 URI 后面，以 '?' 作为分隔符，然后将生成的 URI 发送到服务器。当表单没有副作用且仅包含 ASCII 字符时，请使用此方法。
+* `dialog`: 当表单位于 [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "HTML &lt;dialog&gt; 元素表示对话框或其他交互式组件，例如检查器或窗口。")元素中时使用，以便在提交时关闭对话框。
+
+此值可被 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 元素表示一个可点击的按钮，可以在窗体或文档中任何需要简单、标准按钮功能的地方使用。")或 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用于为基于 Web 的表单创建交互式控件，以便接受来自用户的数据；可用的输入数据和控件小组件类型很多，具体取决于设备和用户代理。")元素上的 [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod)属性覆盖。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_min">
+        <source>The lower numeric bound of the measured range. This must be less than the maximum value (`max` attribute), if specified. If unspecified, the minimum value is 0.</source>
+        <target state="translated">测量范围的下限数值。如果指定，则此值必须小于最大值(`max` 特性)。如果未指定，则最小值为 0。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_minlength">
+        <source>The minimum number of characters (unicode code points) required that the user should enter.</source>
+        <target state="translated">用户应输入的最小字符数(unicode 码位)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_multiple">
+        <source>This Boolean attribute indicates that multiple options can be selected in the list. If it is not specified, then only one option can be selected at a time. When `multiple` is specified, most browsers will show a scrolling list box instead of a single line dropdown.</source>
+        <target state="translated">此布尔特性指示可以在列表中选择多个选项。如果未指定，则一次只能选择一个选项。指定 `multiple` 后，大多数浏览器将显示滚动列表框，而不是单行下拉列表。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_name">
+        <source>This attribute defines the name of a piece of document-level metadata. It should not be set if one of the attributes [`itemprop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-itemprop), [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) is also set.
+
+This metadata name is associated with the value contained by the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) attribute. The possible values for the name attribute are:
+
+* `application-name` which defines the name of the application running in the web page.
+
+**Note:**
+
+* Browsers may use this to identify the application. It is different from the [`&lt;title&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title "The HTML Title element (&lt;title&gt;) defines the document's title that is shown in a browser's title bar or a page's tab.") element, which usually contain the application name, but may also contain information like the document name or a status.
+* Simple web pages shouldn't define an application-name.
+
+* `author` which defines the name of the document's author.
+* `description` which contains a short and accurate summary of the content of the page. Several browsers, like Firefox and Opera, use this as the default description of bookmarked pages.
+* `generator` which contains the identifier of the software that generated the page.
+* `keywords` which contains words relevant to the page's content separated by commas.
+* `referrer` which controls the [`Referer` HTTP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer) attached to requests sent from the document:
+
+Values for the `content` attribute of `&lt;meta name="referrer"&gt;`
+
+`no-referrer`
+
+Do not send a HTTP `Referrer` header.
+
+`origin`
+
+Send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) of the document.
+
+`no-referrer-when-downgrade`
+
+Send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) as a referrer to URLs as secure as the current page, (https→https), but does not send a referrer to less secure URLs (https→http). This is the default behaviour.
+
+`origin-when-cross-origin`
+
+Send the full URL (stripped of parameters) for same-origin requests, but only send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) for other cases.
+
+`same-origin`
+
+A referrer will be sent for [same-site origins](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy), but cross-origin requests will contain no referrer information.
+
+`strict-origin`
+
+Only send the origin of the document as the referrer to a-priori as-much-secure destination (HTTPS-&gt;HTTPS), but don't send it to a less secure destination (HTTPS-&gt;HTTP).
+
+`strict-origin-when-cross-origin`
+
+Send a full URL when performing a same-origin request, only send the origin of the document to a-priori as-much-secure destination (HTTPS-&gt;HTTPS), and send no header to a less secure destination (HTTPS-&gt;HTTP).
+
+`unsafe-URL`
+
+Send the full URL (stripped of parameters) for same-origin or cross-origin requests.
+
+**Notes:**
+
+* Some browsers support the deprecated values of `always`, `default`, and `never` for referrer.
+* Dynamically inserting `&lt;meta name="referrer"&gt;` (with [`document.write`](https://developer.mozilla.org/en-US/docs/Web/API/Document/write) or [`appendChild`](https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild)) makes the referrer behaviour unpredictable.
+* When several conflicting policies are defined, the no-referrer policy is applied.
+
+
+This attribute may also have a value taken from the extended list defined on [WHATWG Wiki MetaExtensions page](https://wiki.whatwg.org/wiki/MetaExtensions). Although none have been formally accepted yet, a few commonly used names are:
+
+* `creator` which defines the name of the creator of the document, such as an organization or institution. If there are more than one, several [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") elements should be used.
+* `googlebot`, a synonym of `robots`, is only followed by Googlebot (the indexing crawler for Google).
+* `publisher` which defines the name of the document's publisher.
+* `robots` which defines the behaviour that cooperative crawlers, or "robots", should use with the page. It is a comma-separated list of the values below:
+
+Values for the content of `&lt;meta name="robots"&gt;`
+
+Value
+
+Description
+
+Used by
+
+`index`
+
+Allows the robot to index the page (default).
+
+All
+
+`noindex`
+
+Requests the robot to not index the page.
+
+All
+
+`follow`
+
+Allows the robot to follow the links on the page (default).
+
+All
+
+`nofollow`
+
+Requests the robot to not follow the links on the page.
+
+All
+
+`none`
+
+Equivalent to `noindex, nofollow`
+
+[Google](https://support.google.com/webmasters/answer/79812)
+
+`noodp`
+
+Prevents using the [Open Directory Project](https://www.dmoz.org/) description, if any, as the page description in search engine results.
+
+[Google](https://support.google.com/webmasters/answer/35624#nodmoz), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/meta-tags-robotstxt-yahoo-search-sln2213.html#cont5), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+`noarchive`
+
+Requests the search engine not to cache the page content.
+
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/SLN2213.html), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+`nosnippet`
+
+Prevents displaying any description of the page in search engine results.
+
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+`noimageindex`
+
+Requests this page not to appear as the referring page of an indexed image.
+
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives)
+
+`nocache`
+
+Synonym of `noarchive`.
+
+[Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+**Notes:**
+
+* Only cooperative robots follow these rules. Do not expect to prevent e-mail harvesters with them.
+* The robot still needs to access the page in order to read these rules. To prevent bandwidth consumption, use a _[robots.txt](https://developer.mozilla.org/en-US/docs/Glossary/robots.txt "robots.txt: Robots.txt is a file which is usually placed in the root of any website. It decides whether crawlers are permitted or forbidden access to the web site.")_ file.
+* If you want to remove a page, `noindex` will work, but only after the robot visits the page again. Ensure that the `robots.txt` file is not preventing revisits.
+* Some values are mutually exclusive, like `index` and `noindex`, or `follow` and `nofollow`. In these cases the robot's behaviour is undefined and may vary between them.
+* Some crawler robots, like Google, Yahoo and Bing, support the same values for the HTTP header `X-Robots-Tag`; this allows non-HTML documents like images to use these rules.
+
+* `slurp`, is a synonym of `robots`, but only for Slurp - the crawler for Yahoo Search.
+* `viewport`, which gives hints about the size of the initial size of the [viewport](https://developer.mozilla.org/en-US/docs/Glossary/viewport "viewport: A viewport represents a polygonal (normally rectangular) area in computer graphics that is currently being viewed. In web browser terms, it refers to the part of the document you're viewing which is currently visible in its window (or the screen, if the document is being viewed in full screen mode). Content outside the viewport is not visible onscreen until scrolled into view."). Used by mobile devices only.
+
+Values for the content of `&lt;meta name="viewport"&gt;`
+
+Value
+
+Possible subvalues
+
+Description
+
+`width`
+
+A positive integer number, or the text `device-width`
+
+Defines the pixel width of the viewport that you want the web site to be rendered at.
+
+`height`
+
+A positive integer, or the text `device-height`
+
+Defines the height of the viewport. Not used by any browser.
+
+`initial-scale`
+
+A positive number between `0.0` and `10.0`
+
+Defines the ratio between the device width (`device-width` in portrait mode or `device-height` in landscape mode) and the viewport size.
+
+`maximum-scale`
+
+A positive number between `0.0` and `10.0`
+
+Defines the maximum amount to zoom in. It must be greater or equal to the `minimum-scale` or the behaviour is undefined. Browser settings can ignore this rule and iOS10+ ignores it by default.
+
+`minimum-scale`
+
+A positive number between `0.0` and `10.0`
+
+Defines the minimum zoom level. It must be smaller or equal to the `maximum-scale` or the behaviour is undefined. Browser settings can ignore this rule and iOS10+ ignores it by default.
+
+`user-scalable`
+
+`yes` or `no`
+
+If set to `no`, the user is not able to zoom in the webpage. The default is `yes`. Browser settings can ignore this rule, and iOS10+ ignores it by default.
+
+Specification
+
+Status
+
+Comment
+
+[CSS Device Adaptation 
+The definition of '&lt;meta name="viewport"&gt;' in that specification.](https://drafts.csswg.org/css-device-adapt/#viewport-meta)
+
+Working Draft
+
+Non-normatively describes the Viewport META element
+
+See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "The @viewport CSS at-rule lets you configure the viewport through which the document is viewed. It's primarily used for mobile devices, but is also used by desktop browsers that support features like "snap to edge" (such as Microsoft Edge).")
+
+**Notes:**
+
+* Though unstandardized, this declaration is respected by most mobile browsers due to de-facto dominance.
+* The default values may vary between devices and browsers.
+* To learn about this declaration in Firefox for Mobile, see [this article](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag "Mobile/Viewport meta tag").</source>
+        <target state="translated">This attribute defines the name of a piece of document-level metadata. It should not be set if one of the attributes [`itemprop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-itemprop), [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) is also set.
+
+This metadata name is associated with the value contained by the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) attribute. The possible values for the name attribute are:
+
+* `application-name` which defines the name of the application running in the web page.
+
+**Note:**
+
+* Browsers may use this to identify the application. It is different from the [`&lt;title&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title "The HTML Title element (&lt;title&gt;) defines the document's title that is shown in a browser's title bar or a page's tab.") element, which usually contain the application name, but may also contain information like the document name or a status.
+* Simple web pages shouldn't define an application-name.
+
+* `author` which defines the name of the document's author.
+* `description` which contains a short and accurate summary of the content of the page. Several browsers, like Firefox and Opera, use this as the default description of bookmarked pages.
+* `generator` which contains the identifier of the software that generated the page.
+* `keywords` which contains words relevant to the page's content separated by commas.
+* `referrer` which controls the [`Referer` HTTP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer) attached to requests sent from the document:
+
+Values for the `content` attribute of `&lt;meta name="referrer"&gt;`
+
+`no-referrer`
+
+Do not send a HTTP `Referrer` header.
+
+`origin`
+
+Send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) of the document.
+
+`no-referrer-when-downgrade`
+
+Send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) as a referrer to URLs as secure as the current page, (https→https), but does not send a referrer to less secure URLs (https→http). This is the default behaviour.
+
+`origin-when-cross-origin`
+
+Send the full URL (stripped of parameters) for same-origin requests, but only send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) for other cases.
+
+`same-origin`
+
+A referrer will be sent for [same-site origins](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy), but cross-origin requests will contain no referrer information.
+
+`strict-origin`
+
+Only send the origin of the document as the referrer to a-priori as-much-secure destination (HTTPS-&gt;HTTPS), but don't send it to a less secure destination (HTTPS-&gt;HTTP).
+
+`strict-origin-when-cross-origin`
+
+Send a full URL when performing a same-origin request, only send the origin of the document to a-priori as-much-secure destination (HTTPS-&gt;HTTPS), and send no header to a less secure destination (HTTPS-&gt;HTTP).
+
+`unsafe-URL`
+
+Send the full URL (stripped of parameters) for same-origin or cross-origin requests.
+
+**Notes:**
+
+* Some browsers support the deprecated values of `always`, `default`, and `never` for referrer.
+* Dynamically inserting `&lt;meta name="referrer"&gt;` (with [`document.write`](https://developer.mozilla.org/en-US/docs/Web/API/Document/write) or [`appendChild`](https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild)) makes the referrer behaviour unpredictable.
+* When several conflicting policies are defined, the no-referrer policy is applied.
+
+
+This attribute may also have a value taken from the extended list defined on [WHATWG Wiki MetaExtensions page](https://wiki.whatwg.org/wiki/MetaExtensions). Although none have been formally accepted yet, a few commonly used names are:
+
+* `creator` which defines the name of the creator of the document, such as an organization or institution. If there are more than one, several [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") elements should be used.
+* `googlebot`, a synonym of `robots`, is only followed by Googlebot (the indexing crawler for Google).
+* `publisher` which defines the name of the document's publisher.
+* `robots` which defines the behaviour that cooperative crawlers, or "robots", should use with the page. It is a comma-separated list of the values below:
+
+Values for the content of `&lt;meta name="robots"&gt;`
+
+Value
+
+Description
+
+Used by
+
+`index`
+
+Allows the robot to index the page (default).
+
+All
+
+`noindex`
+
+Requests the robot to not index the page.
+
+All
+
+`follow`
+
+Allows the robot to follow the links on the page (default).
+
+All
+
+`nofollow`
+
+Requests the robot to not follow the links on the page.
+
+All
+
+`none`
+
+Equivalent to `noindex, nofollow`
+
+[Google](https://support.google.com/webmasters/answer/79812)
+
+`noodp`
+
+Prevents using the [Open Directory Project](https://www.dmoz.org/) description, if any, as the page description in search engine results.
+
+[Google](https://support.google.com/webmasters/answer/35624#nodmoz), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/meta-tags-robotstxt-yahoo-search-sln2213.html#cont5), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+`noarchive`
+
+Requests the search engine not to cache the page content.
+
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/SLN2213.html), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+`nosnippet`
+
+Prevents displaying any description of the page in search engine results.
+
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+`noimageindex`
+
+Requests this page not to appear as the referring page of an indexed image.
+
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives)
+
+`nocache`
+
+Synonym of `noarchive`.
+
+[Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+**Notes:**
+
+* Only cooperative robots follow these rules. Do not expect to prevent e-mail harvesters with them.
+* The robot still needs to access the page in order to read these rules. To prevent bandwidth consumption, use a _[robots.txt](https://developer.mozilla.org/en-US/docs/Glossary/robots.txt "robots.txt: Robots.txt is a file which is usually placed in the root of any website. It decides whether crawlers are permitted or forbidden access to the web site.")_ file.
+* If you want to remove a page, `noindex` will work, but only after the robot visits the page again. Ensure that the `robots.txt` file is not preventing revisits.
+* Some values are mutually exclusive, like `index` and `noindex`, or `follow` and `nofollow`. In these cases the robot's behaviour is undefined and may vary between them.
+* Some crawler robots, like Google, Yahoo and Bing, support the same values for the HTTP header `X-Robots-Tag`; this allows non-HTML documents like images to use these rules.
+
+* `slurp`, is a synonym of `robots`, but only for Slurp - the crawler for Yahoo Search.
+* `viewport`, which gives hints about the size of the initial size of the [viewport](https://developer.mozilla.org/en-US/docs/Glossary/viewport "viewport: A viewport represents a polygonal (normally rectangular) area in computer graphics that is currently being viewed. In web browser terms, it refers to the part of the document you're viewing which is currently visible in its window (or the screen, if the document is being viewed in full screen mode). Content outside the viewport is not visible onscreen until scrolled into view."). Used by mobile devices only.
+
+Values for the content of `&lt;meta name="viewport"&gt;`
+
+Value
+
+Possible subvalues
+
+Description
+
+`width`
+
+A positive integer number, or the text `device-width`
+
+Defines the pixel width of the viewport that you want the web site to be rendered at.
+
+`height`
+
+A positive integer, or the text `device-height`
+
+Defines the height of the viewport. Not used by any browser.
+
+`initial-scale`
+
+A positive number between `0.0` and `10.0`
+
+Defines the ratio between the device width (`device-width` in portrait mode or `device-height` in landscape mode) and the viewport size.
+
+`maximum-scale`
+
+A positive number between `0.0` and `10.0`
+
+Defines the maximum amount to zoom in. It must be greater or equal to the `minimum-scale` or the behaviour is undefined. Browser settings can ignore this rule and iOS10+ ignores it by default.
+
+`minimum-scale`
+
+A positive number between `0.0` and `10.0`
+
+Defines the minimum zoom level. It must be smaller or equal to the `maximum-scale` or the behaviour is undefined. Browser settings can ignore this rule and iOS10+ ignores it by default.
+
+`user-scalable`
+
+`yes` or `no`
+
+If set to `no`, the user is not able to zoom in the webpage. The default is `yes`. Browser settings can ignore this rule, and iOS10+ ignores it by default.
+
+Specification
+
+Status
+
+Comment
+
+[CSS Device Adaptation 
+The definition of '&lt;meta name="viewport"&gt;' in that specification.](https://drafts.csswg.org/css-device-adapt/#viewport-meta)
+
+Working Draft
+
+Non-normatively describes the Viewport META element
+
+See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "The @viewport CSS at-rule lets you configure the viewport through which the document is viewed. It's primarily used for mobile devices, but is also used by desktop browsers that support features like "snap to edge" (such as Microsoft Edge).")
+
+**Notes:**
+
+* Though unstandardized, this declaration is respected by most mobile browsers due to de-facto dominance.
+* The default values may vary between devices and browsers.
+* To learn about this declaration in Firefox for Mobile, see [this article](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag "Mobile/Viewport meta tag").</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_nomodule">
+        <source>This Boolean attribute is set to indicate that the script should not be executed in browsers that support [ES2015 modules](https://hacks.mozilla.org/2015/08/es6-in-depth-modules/) — in effect, this can be used to serve fallback scripts to older browsers that do not support modular JavaScript code.</source>
+        <target state="translated">此布尔特性设置为指示不应在支持 [ES2015 模块](https://hacks.mozilla.org/2015/08/es6-in-depth-modules/)的浏览器中执行脚本，实际上，这可用于向不支持模块化 JavaScript 代码的旧版浏览器提供回退脚本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_nonce">
+        <source>A cryptographic nonce (number used once) used to allow inline styles in a [style-src Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src). The server must generate a unique nonce value each time it transmits a policy. It is critical to provide a nonce that cannot be guessed as bypassing a resource’s policy is otherwise trivial.</source>
+        <target state="translated">用于在 [style-src Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src)中允许内联样式的加密 nonce (使用一次的数字)。服务器每次传输策略时都必须生成唯一的 nonce 值。提供无法被猜到的 nonce 至关重要，因为绕过资源的策略在其他方面不太重要。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_novalidate">
+        <source>This Boolean attribute indicates that the form is not to be validated when submitted. If this attribute is not specified (and therefore the form is validated), this default setting can be overridden by a [`formnovalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formnovalidate) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element belonging to the form.</source>
+        <target state="translated">此布尔特性指示提交时不会验证窗体。如果未指定此特性(因此窗体已验证)，则此默认设置可能会被属于窗体的 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 元素表示一个可点击的按钮，可以在窗体或文档中任何需要简单、标准按钮功能的地方使用。")或 [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用于为基于 Web 的窗体创建交互式控件，以便接受来自用户的数据；可使用各种类型的输入数据和控件小组件，具体取决于设备和用户代理。")元素上的 [`formnovalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formnovalidate)特性替代。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onabort">
+        <source>The loading of a resource has been aborted.</source>
+        <target state="translated">资源加载已中止。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onafterprint">
+        <source>Function to call after the user has printed the document.</source>
+        <target state="translated">在用户打印文档后调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onbeforeprint">
+        <source>Function to call when the user requests printing of the document.</source>
+        <target state="translated">当用户请求打印文档时调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onbeforeunload">
+        <source>Function to call when the document is about to be unloaded.</source>
+        <target state="translated">文档即将卸载时要调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onblur">
+        <source>An element has lost focus (does not bubble).</source>
+        <target state="translated">元素失去焦点(不显示气泡)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_oncanplay">
+        <source>The user agent can play the media, but estimates that not enough data has been loaded to play the media up to its end without having to stop for further buffering of content.</source>
+        <target state="translated">用户代理可以播放媒体，但估计尚未加载足够的数据，无法在不进一步缓冲内容的情况下完整播放媒体。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_oncanplaythrough">
+        <source>The user agent can play the media up to its end without having to stop for further buffering of content.</source>
+        <target state="translated">用户代理可以完整播放媒体，而无需停下来进一步缓冲内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onchange">
+        <source>The change event is fired for &lt;input&gt;, &lt;select&gt;, and &lt;textarea&gt; elements when a change to the element's value is committed by the user.</source>
+        <target state="translated">当用户提交对元素值的更改时，将为 &lt;input&gt;、&lt;select&gt; 和 &lt;textarea&gt; 元素触发更改事件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onclick">
+        <source>A pointing device button has been pressed and released on an element.</source>
+        <target state="translated">已在元素上按下并释放指针设备按钮。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_oncontextmenu">
+        <source>The right button of the mouse is clicked (before the context menu is displayed).</source>
+        <target state="translated">单击鼠标的右键(在显示上下文菜单之前)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ondblclick">
+        <source>A pointing device button is clicked twice on an element.</source>
+        <target state="translated">在元素上单击一个指针设备按钮两次。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ondrag">
+        <source>An element or text selection is being dragged (every 350ms).</source>
+        <target state="translated">正在拖动元素或文本选择(每 350 秒)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ondragend">
+        <source>A drag operation is being ended (by releasing a mouse button or hitting the escape key).</source>
+        <target state="translated">拖动操作即将结束(通过释放鼠标按钮或按下 Esc 键)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ondragenter">
+        <source>A dragged element or text selection enters a valid drop target.</source>
+        <target state="translated">拖动元素或文本选择会进入有效的拖放目标。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ondragleave">
+        <source>A dragged element or text selection leaves a valid drop target.</source>
+        <target state="translated">拖动的元素或文本选择会离开有效的拖放目标。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ondragover">
+        <source>An element or text selection is being dragged over a valid drop target (every 350ms).</source>
+        <target state="translated">正在将元素或文本选择拖动到有效的拖放目标(每 350 秒)上。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ondragstart">
+        <source>The user starts dragging an element or text selection.</source>
+        <target state="translated">用户开始拖动元素或文本选择。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ondrop">
+        <source>An element is dropped on a valid drop target.</source>
+        <target state="translated">在有效的拖放目标上放置元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ondurationchange">
+        <source>The duration attribute has been updated.</source>
+        <target state="translated">duration 特性已更新。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onemptied">
+        <source>The media has become empty; for example, this event is sent if the media has already been loaded (or partially loaded), and the load() method is called to reload it.</source>
+        <target state="translated">媒体变为空；例如，如果媒体已加载(或部分加载)，并且调用 load() 方法来重新加载媒体，则发送此事件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onended">
+        <source>Playback has stopped because the end of the media was reached.</source>
+        <target state="translated">由于已到达媒体末尾，播放已停止。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onerror">
+        <source>A resource failed to load.</source>
+        <target state="translated">无法加载资源。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onfocus">
+        <source>An element has received focus (does not bubble).</source>
+        <target state="translated">元素获得焦点(不显示气泡)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onhashchange">
+        <source>Function to call when the fragment identifier part (starting with the hash (`'#'`) character) of the document's current address has changed.</source>
+        <target state="translated">文档当前地址的片段标识符部分(以哈希(`'#'`)字符开头)发生更改时要调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_oninput">
+        <source>The value of an element changes or the content of an element with the attribute contenteditable is modified.</source>
+        <target state="translated">元素的值发生变化，或者具有 contenteditable 特性的元素的内容被修改。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_oninvalid">
+        <source>A submittable element has been checked and doesn't satisfy its constraints.</source>
+        <target state="translated">已检查可提交元素，但不满足其约束。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onkeydown">
+        <source>A key is pressed down.</source>
+        <target state="translated">按下一个键。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onkeypress">
+        <source>A key is pressed down and that key normally produces a character value (use input instead).</source>
+        <target state="translated">按下某个键，该键通常会产生一个字符值(改为使用输入)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onkeyup">
+        <source>A key is released.</source>
+        <target state="translated">将释放键。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onload">
+        <source>A resource and its dependent resources have finished loading.</source>
+        <target state="translated">资源及其依赖资源已完成加载。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onloadeddata">
+        <source>The first frame of the media has finished loading.</source>
+        <target state="translated">媒体的第一帧已完成加载。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onloadedmetadata">
+        <source>The metadata has been loaded.</source>
+        <target state="translated">已加载元数据。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onloadstart">
+        <source>Progress has begun.</source>
+        <target state="translated">进度已开始。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onmessage">
+        <source>Function to call when the document has received a message.</source>
+        <target state="translated">当文档收到消息时要调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onmousedown">
+        <source>A pointing device button (usually a mouse) is pressed on an element.</source>
+        <target state="translated">在元素上按下指针设备按钮(通常是鼠标)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onmousemove">
+        <source>A pointing device is moved over an element.</source>
+        <target state="translated">指针设备将移到元素上方。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onmouseout">
+        <source>A pointing device is moved off the element that has the listener attached or off one of its children.</source>
+        <target state="translated">指针设备从附加了侦听器的元素或其子级之一移出。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onmouseover">
+        <source>A pointing device is moved onto the element that has the listener attached or onto one of its children.</source>
+        <target state="translated">将指针设备移到附加了侦听器的元素上或移动到其子级之一上。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onmouseup">
+        <source>A pointing device button is released over an element.</source>
+        <target state="translated">指针设备按钮在元素上释放。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onoffline">
+        <source>Function to call when network communication has failed.</source>
+        <target state="translated">网络通信失败时要调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ononline">
+        <source>Function to call when network communication has been restored.</source>
+        <target state="translated">还原网络通信时要调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onpause">
+        <source>Playback has been paused.</source>
+        <target state="translated">播放已暂停。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onplay">
+        <source>Playback has begun.</source>
+        <target state="translated">播放已开始。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onplaying">
+        <source>Playback is ready to start after having been paused or delayed due to lack of data.</source>
+        <target state="translated">由于缺少数据而暂停或延迟播放后，已准备好开始播放。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onpopstate">
+        <source>Function to call when the user has navigated session history.</source>
+        <target state="translated">在用户导航会话历史记录时要调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onprogress">
+        <source>In progress.</source>
+        <target state="translated">正在进行。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onratechange">
+        <source>The playback rate has changed.</source>
+        <target state="translated">播放速率已更改。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onreadystatechange">
+        <source>The readyState attribute of a document has changed.</source>
+        <target state="translated">文档的 readyState 特性已更改。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onredo">
+        <source>Function to call when the user has moved forward in undo transaction history.</source>
+        <target state="translated">当用户在撤消事务历史记录中向前移动时要调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onreset">
+        <source>A form is reset.</source>
+        <target state="translated">将重置窗体。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onresize">
+        <source>Function to call when the document has been resized.</source>
+        <target state="translated">文档大小调整后要调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onscroll">
+        <source>The document view or an element has been scrolled.</source>
+        <target state="translated">文档视图或元素已滚动。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onseeked">
+        <source>A seek operation completed.</source>
+        <target state="translated">已完成搜寻操作。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onseeking">
+        <source>A seek operation began.</source>
+        <target state="translated">已开始搜寻操作。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onselect">
+        <source>Some text is being selected.</source>
+        <target state="translated">正在选择某些文本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onshow">
+        <source>A contextmenu event was fired on/bubbled to an element that has a contextmenu attribute</source>
+        <target state="translated">上下文菜单事件在具有 contextmenu 特性的元素上触发/显示气泡</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onstalled">
+        <source>The user agent is trying to fetch media data, but data is unexpectedly not forthcoming.</source>
+        <target state="translated">用户代理正在尝试提取媒体数据，但数据意外地未提供。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onstorage">
+        <source>Function to call when the storage area has changed.</source>
+        <target state="translated">在存储区域更改时要调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onsubmit">
+        <source>A form is submitted.</source>
+        <target state="translated">将提交窗体。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onsuspend">
+        <source>Media data loading has been suspended.</source>
+        <target state="translated">媒体数据加载已暂停。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ontimeupdate">
+        <source>The time indicated by the currentTime attribute has been updated.</source>
+        <target state="translated">currentTime 特性指示的时间已更新。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onundo">
+        <source>Function to call when the user has moved backward in undo transaction history.</source>
+        <target state="translated">当用户在撤消事务历史记录中向后移动时要调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onunload">
+        <source>Function to call when the document is going away.</source>
+        <target state="translated">文档离开时要调用的函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onvolumechange">
+        <source>The volume has changed.</source>
+        <target state="translated">卷已更改。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_onwaiting">
+        <source>Playback has stopped because of a temporary lack of data.</source>
+        <target state="translated">由于暂时缺少数据，播放已停止。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_open">
-        <source>When specified, it indicates that the dialog element is active and that the user can interact with it.</source>
-        <target state="new">When specified, it indicates that the dialog element is active and that the user can interact with it.</target>
+        <source>Indicates that the dialog is active and available for interaction. When the `open` attribute is not set, the dialog shouldn't be shown to the user.</source>
+        <target state="translated">指示对话处于活动状态并可用于交互。如果未设置 `open` 特性，则不应向用户显示对话。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_optimum">
+        <source>This attribute indicates the optimal numeric value. It must be within the range (as defined by the `min` attribute and `max` attribute). When used with the `low` attribute and `high` attribute, it gives an indication where along the range is considered preferable. For example, if it is between the `min` attribute and the `low` attribute, then the lower range is considered preferred.</source>
+        <target state="translated">此特性指示最佳数值。它必须在范围内(由 `min` 特性和 `max` 特性定义)。与 `low` 特性和 `high` 特性一起使用时，它会指示优先考虑范围内的哪个位置。例如，如果介于 `min` 特性和 `low` 特性之间，则优先考虑较低的范围。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_part">
+        <source>A space-separated list of the part names of the element. Part names allows CSS to select and style specific elements in a shadow tree via the [`::part`](https://developer.mozilla.org/docs/Web/CSS/::part "The ::part CSS pseudo-element represents any element within a shadow tree that has a matching part attribute.") pseudo-element.</source>
+        <target state="translated">元素各部分名称的空格分隔列表。部件名称允许 CSS 通过 [`::part`](https://developer.mozilla.org/docs/Web/CSS/::part "::part CSS 伪元素表示影子树中具有匹配 part 特性的任何元素。")伪元素选择影子树中的特定元素和设置其样式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_ping">
+        <source>Contains a space-separated list of URLs to which, when the hyperlink is followed, [`POST`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST "The HTTP POST method sends data to the server. The type of the body of the request is indicated by the Content-Type header.") requests with the body `PING` will be sent by the browser (in the background). Typically used for tracking.</source>
+        <target state="translated">包含一个以空格分隔的 URL 列表，当点击超链接时，浏览器(在后台)将发送正文为 `PING` 的 [`POST`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST "HTTP POST 方法将数据发送到服务器。请求正文的类型由 Content-Type 标头指示。")请求。通常用于跟踪。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_placeholder">
+        <source>A hint to the user of what can be entered in the control. Carriage returns or line-feeds within the placeholder text must be treated as line breaks when rendering the hint.
+
+**Note:** Placeholders should only be used to show an example of the type of data that should be entered into a form; they are _not_ a substitute for a proper [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "The HTML &lt;label&gt; element represents a caption for an item in a user interface.") element tied to the input. See [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") in [&lt;input&gt;: The Input (Form Input) element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") for a full explanation.</source>
+        <target state="translated">向用户提示可在控件中输入的内容。在呈现此提示时，占位符文本中的回车符或换行符必须被视为换行符。
+
+**注意:** 占位符只能用于显示应输入到表单中的数据类型示例；它们不能替代与输入关联的正确 [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "HTML &lt;label&gt; 元素表示用户界面中某个项目的标题。")元素。请参阅 [&lt;input&gt;: Input (表单输入)元素](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML &lt;input&gt; 元素用于为基于 Web 的表单创建交互式控件；以便接收来自用户的数据；可用的输入数据和控件小组件类型很多，具体取决于设备和用户代理。")中的[标签和占位符](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "HTML &lt;input&gt; 元素用于为基于 Web 的表单创建交互式控件；以便接收来自用户的数据；可用的输入数据和控件小组件类型很多，具体取决于设备和用户代理。")，获取完整说明。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_popover">
+        <source>Designates an element as a popover element.</source>
+        <target state="translated">将元素指定为弹出框元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_profile">
+        <source>The URIs of one or more metadata profiles, separated by white space.</source>
+        <target state="translated">一个或多个元数据配置文件的 URI，用空格分隔。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_readonly">
+        <source>This Boolean attribute indicates that the user cannot modify the value of the control. Unlike the `disabled` attribute, the `readonly` attribute does not prevent the user from clicking or selecting in the control. The value of a read-only control is still submitted with the form.</source>
+        <target state="translated">此布尔特性指示用户无法修改控件的值。与 `disabled` 特性不同，`readonly` 特性不会阻止用户点击或选择控件。只读控件的值仍随窗体一起提交。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_referrerpolicy">
+        <source>A string indicating which referrer to use when fetching the resource:
+
+* `no-referrer` means that the [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "The Referer request header contains the address of the previous web page from which a link to the currently requested page was followed. The Referer header allows servers to identify where people are visiting them from and may use that data for analytics, logging, or optimized caching, for example.") header will not be sent.
+* `no-referrer-when-downgrade` means that no [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "The Referer request header contains the address of the previous web page from which a link to the currently requested page was followed. The Referer header allows servers to identify where people are visiting them from and may use that data for analytics, logging, or optimized caching, for example.") header will be sent when navigating to an origin without TLS (HTTPS). This is a user agent’s default behavior, if no policy is otherwise specified.
+* `origin` means that the referrer will be the origin of the page, which is roughly the scheme, the host, and the port.
+* `origin-when-cross-origin` means that navigating to other origins will be limited to the scheme, the host, and the port, while navigating on the same origin will include the referrer's path.
+* `unsafe-url` means that the referrer will include the origin and the path (but not the fragment, password, or username). This case is unsafe because it can leak origins and paths from TLS-protected resources to insecure origins.</source>
+        <target state="translated">指示在提取资源时要使用哪个引用来源的字符串:
+
+* `no-referrer` 表示不会发送 [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "Referer 请求标头包含上一个网页的地址，用户通过该网页上的链接访问到当前请求的页面。Referer 标头允许服务器用户正在从哪里访问它们，并可将该数据用于分析、日志记录或优化缓存等用途。")标头。
+* `no-referrer-when-downgrade` 表示在导航到不使用 TLS (HTTPS)的源时，不会发送 [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "Referer 请求标头包含上一个网页的地址，用户通过该网页上的链接访问到当前请求的页面。Referer 标头允许服务器用户正在从哪里访问它们，并可将该数据用于分析、日志记录或优化缓存等用途。")标头。如果未指定其他策略，这是用户代理的默认行为。
+* `origin` 表示引用来源将是页面的源，大致包括方案、主机和端口。
+* `origin-when-cross-origin` 表示在导航到其他源时，仅使用方案、主机和端口；而在同一源内导航时，则会包含引用来源的路径。
+* `unsafe-url` 表示引用来源将包含源和路径，但不包括片段、密码或用户名。此情况不安全，因为它可能会将受 TLS 保护的资源的源和路径泄露到不安全的源。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_rel">
+        <source>This attribute names a relationship of the linked document to the current document. The attribute must be a space-separated list of the [link types values](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types).</source>
+        <target state="translated">此特性指定链接的文档与当前文档的关系。该特性必须是 [链接类型值](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types)的空格分隔列表。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_required">
+        <source>A Boolean attribute indicating that an option with a non-empty string value must be selected.</source>
+        <target state="translated">一个布尔特性，指示必须选择具有非空字符串值的选项。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_reversed">
+        <source>This Boolean attribute specifies that the items of the list are specified in reversed order.</source>
+        <target state="translated">此布尔特性指定按反向顺序指定列表的项。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_rows">
+        <source>The number of visible text lines for the control.</source>
+        <target state="translated">控件的可见文本行数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_sandbox">
+        <source>Applies extra restrictions to the content in the frame. The value of the attribute can either be empty to apply all restrictions, or space-separated tokens to lift particular restrictions:
+
+* `allow-forms`: Allows the resource to submit forms. If this keyword is not used, form submission is blocked.
+* `allow-modals`: Lets the resource [open modal windows](https://html.spec.whatwg.org/multipage/origin.html#sandboxed-modals-flag).
+* `allow-orientation-lock`: Lets the resource [lock the screen orientation](https://developer.mozilla.org/en-US/docs/Web/API/Screen/lockOrientation).
+* `allow-pointer-lock`: Lets the resource use the [Pointer Lock API](https://developer.mozilla.org/en-US/docs/WebAPI/Pointer_Lock).
+* `allow-popups`: Allows popups (such as `window.open()`, `target="_blank"`, or `showModalDialog()`). If this keyword is not used, the popup will silently fail to open.
+* `allow-popups-to-escape-sandbox`: Lets the sandboxed document open new windows without those windows inheriting the sandboxing. For example, this can safely sandbox an advertisement without forcing the same restrictions upon the page the ad links to.
+* `allow-presentation`: Lets the resource start a [presentation session](https://developer.mozilla.org/en-US/docs/Web/API/PresentationRequest).
+* `allow-same-origin`: If this token is not used, the resource is treated as being from a special origin that always fails the [same-origin policy](https://developer.mozilla.org/en-US/docs/Glossary/same-origin_policy "same-origin policy: The same-origin policy is a critical security mechanism that restricts how a document or script loaded from one origin can interact with a resource from another origin.").
+* `allow-scripts`: Lets the resource run scripts (but not create popup windows).
+* `allow-storage-access-by-user-activation` : Lets the resource request access to the parent's storage capabilities with the [Storage Access API](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API).
+* `allow-top-navigation`: Lets the resource navigate the top-level browsing context (the one named `_top`).
+* `allow-top-navigation-by-user-activation`: Lets the resource navigate the top-level browsing context, but only if initiated by a user gesture.
+
+**Notes about sandboxing:**
+
+* When the embedded document has the same origin as the embedding page, it is **strongly discouraged** to use both `allow-scripts` and `allow-same-origin`, as that lets the embedded document remove the `sandbox` attribute — making it no more secure than not using the `sandbox` attribute at all.
+* Sandboxing is useless if the attacker can display content outside a sandboxed `iframe` — such as if the viewer opens the frame in a new tab. Such content should be also served from a _separate origin_ to limit potential damage.
+* The `sandbox` attribute is unsupported in Internet Explorer 9 and earlier.</source>
+        <target state="translated">对框架中的内容应用额外限制。该属性的值可以为空，以应用所有限制；也可使用以空格分隔的标记来取消特定限制:
+
+* `allow-forms`: 允许资源提交表单。如果不使用此关键字，则会阻止表单提交。
+* `allow-modals`: 允许资源[打开模态窗口](https://html.spec.whatwg.org/multipage/origin.html#sandboxed-modals-flag)。
+* `allow-orientation-lock`: 允许资源[锁定屏幕方向](https://developer.mozilla.org/en-US/docs/Web/API/Screen/lockOrientation)。
+* `allow-pointer-lock`: 允许资源使用[指针锁 API](https://developer.mozilla.org/en-US/docs/WebAPI/Pointer_Lock)。
+* `allow-popups`: 允许弹出窗口，例如 `window.open()`、`target="_blank"` 或 `showModalDialog()`。如果不使用此关键字，弹出窗口会打开失败且不显示任何提示。
+* `allow-popups-to-escape-sandbox`: 允许沙盒文档打开新窗口，而这些窗口不会继承沙盒限制。例如，可以安全地对广告进行沙盒处理，而不必对广告链接到的页面施加相同限制。
+* `allow-presentation`: 允许资源启动[演示会话](https://developer.mozilla.org/en-US/docs/Web/API/PresentationRequest)。
+* `allow-same-origin`: 如果不使用此标记，资源会被视为来自特殊源，并且始终无法通过[同源策略](https://developer.mozilla.org/en-US/docs/Glossary/same-origin_policy "同源策略: 同源策略是一项关键的安全机制，用于限制从一个源加载的文档或脚本与来自另一个源的资源进行交互的方式。")。
+* `allow-scripts`: 允许资源运行脚本，但不能创建弹出窗口。
+* `allow-storage-access-by-user-activation`: 允许资源通过[存储访问 API](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API)请求访问父级的存储功能。
+* `allow-top-navigation`: 允许资源导航顶级浏览上下文(即，名为 `_top` 的上下文)。
+* `allow-top-navigation-by-user-activation`: 允许资源导航顶级浏览上下文，但前提是由用户手势触发。
+
+**关于沙盒的注意事项:**
+
+* 当嵌入文档与嵌入页面具有相同源时，强烈建议不要同时使用 `allow-scripts` 和 `allow-same-origin`，因为这会让嵌入文档移除 `sandbox` 属性，这样就不会比完全不使用 `sandbox` 属性更安全。
+* 如果攻击者可以在沙盒化的 `iframe` 外部显示内容，例如查看器在新选项卡中打开框架，则沙盒就没有意义。此类内容也应从独立源提供，以限制潜在损害。
+* Internet Explorer 9 及耕地版本不支持 `sandbox` 属性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_scheme">
+        <source>This attribute defines the scheme in which metadata is described. A scheme is a context leading to the correct interpretations of the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) value, like a format.
+
+**Warning:** Do not use this value, as it is obsolete. There is no replacement as there was no real usage for it.</source>
+        <target state="translated">此属性定义元数据的描述方案。方案是一种上下文，用于正确解释 [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content)值，例如某种格式。
+
+**警告:** 请勿使用此值，因为它已经过时。由于它实际上从未被使用，因此没有替代方案。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_selected">
+        <source>If present, this Boolean attribute indicates that the option is initially selected. If the `&lt;option&gt;` element is the descendant of a [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "The HTML &lt;select&gt; element represents a control that provides a menu of options") element whose [`multiple`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select#attr-multiple) attribute is not set, only one single `&lt;option&gt;` of this [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "The HTML &lt;select&gt; element represents a control that provides a menu of options") element may have the `selected` attribute.</source>
+        <target state="translated">如果存在，此布尔特性会指示最初选择了该选项。如果 `&lt;option&gt;` 元素是未设置 [`multiple`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select#attr-multiple)特性的 [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "HTML &lt;select&gt; 元素表示一个提供选项菜单的控件")元素的后代，则此 [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "HTML &lt;select&gt; 元素表示一个提供选项菜单的控件")元素中只能有一个 `&lt;option&gt;` 具有 `selected` 特性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_size">
+        <source>If the control is presented as a scrolling list box (e.g. when `multiple` is specified), this attribute represents the number of rows in the list that should be visible at one time. Browsers are not required to present a select element as a scrolled list box. The default value is 0.
+
+**Note:** According to the HTML5 specification, the default value for size should be 1; however, in practice, this has been found to break some web sites, and no other browser currently does that, so Mozilla has opted to continue to return 0 for the time being with Firefox.</source>
+        <target state="translated">如果控件显示为可滚动列表框(例如，指定了 `multiple` 时)，则此属性表示列表中一次应显示的行数。不要求浏览器将 select 元素呈现为可滚动列表框。默认值是 0。
+
+**注意:** 根据 HTML5 规范，size 的默认值应为 1；但在实践中，发现这会破坏一些网站，而且目前没有其他浏览器这样做，因此 Mozilla 选择在 Firefox 中暂时继续返回 0。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sizes">
-        <source>Image sizes between breakpoints.</source>
-        <target state="new">Image sizes between breakpoints.</target>
+        <source>This attribute defines the sizes of the icons for visual media contained in the resource. It must be present only if the [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel) contains a value of `icon` or a non-standard type such as Apple's `apple-touch-icon`. It may have the following values:
+
+* `any`, meaning that the icon can be scaled to any size as it is in a vector format, like `image/svg+xml`.
+* a white-space separated list of sizes, each in the format `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` or `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Each of these sizes must be contained in the resource.
+
+**Note:** Most icon formats are only able to store one single icon; therefore most of the time the [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) contains only one entry. MS's ICO format does, as well as Apple's ICNS. ICO is more ubiquitous; you should definitely use it.</source>
+        <target state="translated">此属性定义资源中包含的视觉媒体图标的大小。只有当 [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel)包含 `icon` 或非标准类型(例如 Apple 的 `apple-touch-icon`)的值时，才应包含此属性。它可以具有以下值:
+
+* `any`，表示图标采用矢量格式时可缩放到任意大小，例如 `image/svg+xml`。
+* 以空格分隔的大小列表，每个大小的格式为 `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` 或 `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`。这些大小都必须在资源中存在。
+
+**注意:** 大多数图标格式只能存储一个图标，因此在大多数情况下，[`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes)只包含一个条目。MS 的 ICO 格式和 Apple 的 ICNS 都支持这一点。ICO 更常见，建议优先使用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_slot">
+        <source>Assigns a slot in a [shadow DOM](https://developer.mozilla.org/docs/Web/Web_Components/Shadow_DOM) shadow tree to an element: An element with a `slot` attribute is assigned to the slot created by the [`&lt;slot&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/slot "The HTML &lt;slot&gt; element—part of the Web Components technology suite—is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.") element whose `[name](https://developer.mozilla.org/docs/Web/HTML/Element/slot#attr-name)` attribute's value matches that `slot` attribute's value.</source>
+        <target state="translated">将 [影子 DOM](https://developer.mozilla.org/docs/Web/Web_Components/Shadow_DOM)影子树中的槽分配给元素: 具有 `slot` 特性的元素被分配给由 [`&lt;slot&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/slot "HTML &lt;slot&gt; 元素是 Web Components 技术套件的一部分，它是 Web 组件内的一个占位符，可以在其中填充自己的标记，从而创建单独的 DOM 树并将它们一起呈现。")元素创建的槽，其 `[name](https://developer.mozilla.org/docs/Web/HTML/Element/slot#attr-name)` 特性的值与该 `slot` 特性的值匹配。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_spellcheck">
+        <source>An enumerated attribute defines whether the element may be checked for spelling errors. It may have the following values:
+
+* `true`, which indicates that the element should be, if possible, checked for spelling errors;
+* `false`, which indicates that the element should not be checked for spelling errors.</source>
+        <target state="translated">一个枚举属性，用于定义是否可检查元素的拼写错误。它可以具有以下值:
+
+* `true`，表示如果可能，应检查元素是否有拼写错误；
+* `false`，表示不应检查元素是否有拼写错误。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_src">
+        <source>This attribute specifies the URI of an external script; this can be used as an alternative to embedding a script directly within a document.
+
+If a `script` element has a `src` attribute specified, it should not have a script embedded inside its tags.</source>
+        <target state="translated">此属性指定外部脚本的 URI；这可以作为直接在文档中嵌入脚本的替代方式。
+
+如果 `script` 元素指定了 `src` 属性，则不应在其标记内嵌入脚本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_srcdoc">
+        <source>Inline HTML to embed, overriding the `src` attribute. If a browser does not support the `srcdoc` attribute, it will fall back to the URL in the `src` attribute.</source>
+        <target state="translated">要嵌入的内联 HTML，替代 `src` 特性。如果浏览器不支持 `srcdoc` 特性，它将回退到 `src` 特性中的 URL。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_srclang">
+        <source>Language of the track text data. It must be a valid [BCP 47](https://r12a.github.io/app-subtags/) language tag. If the `kind` attribute is set to `subtitles,` then `srclang` must be defined.</source>
+        <target state="translated">轨道文本数据的语言。它必须是有效的 [BCP 47](https://r12a.github.io/app-subtags/)语言标记。如果将 `kind` 特性设置为 `subtitles,` 则必须定义 `srclang`。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_srcset">
-        <source>Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</source>
-        <target state="new">Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</target>
+        <source>A list of one or more strings separated by commas indicating a set of possible image sources for the user agent to use. Each string is composed of:
+
+1. a URL to an image,
+2. optionally, whitespace followed by one of:
+* A width descriptor, or a positive integer directly followed by '`w`'. The width descriptor is divided by the source size given in the `sizes` attribute to calculate the effective pixel density.
+* A pixel density descriptor, which is a positive floating point number directly followed by '`x`'.
+
+If no descriptor is specified, the source is assigned the default descriptor: `1x`.
+
+It is incorrect to mix width descriptors and pixel density descriptors in the same `srcset` attribute. Duplicate descriptors (for instance, two sources in the same `srcset` which are both described with '`2x`') are also invalid.
+
+The user agent selects any one of the available sources at its discretion. This provides them with significant leeway to tailor their selection based on things like user preferences or bandwidth conditions. See our [Responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) tutorial for an example.</source>
+        <target state="translated">一个由一个或多个字符串组成的逗号分隔列表，用于指示用户代理可使用的一组可能的图像源。每个字符串由以下内容组成:
+
+1. 图像的 URL，
+2. (可选)空白，后跟以下内容之一:
+* 宽度描述符，或后面直接跟 `w` 的正整数。宽度描述符会除以 `sizes` 属性中给定的源大小，以计算有效像素密度。
+* 像素密度描述符，这是后面直接跟 `x` 的正浮点数。
+
+如果未指定描述符，则为源分配默认描述符: `1x`。
+
+在同一个 `srcset` 属性中混用宽度描述符和像素密度描述符属于错误行为。重复的描述符(例如，同一个 `srcset` 中两个都标有 `2x` 的源)也无效。
+
+用户代理可自行选择任意一个可用源。这让它们在很大程度上可根据用户偏好或带宽状况等因素灵活调整选择。有关示例，请参阅我们的[响应式图片](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images)教程。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_start">
+        <source>This integer attribute specifies the start value for numbering the individual list items. Although the ordering type of list elements might be Roman numerals, such as XXXI, or letters, the value of start is always represented as a number. To start numbering elements from the letter "C", use `&lt;ol start="3"&gt;`.
+
+**Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.</source>
+        <target state="translated">此整数属性指定单个列表项编号的起始值。尽管列表元素的排序类型可能是罗马数字(如 XXXI)或字母，但 start 的值始终以数字表示。若要从字母 "C" 开始编号元素，请使用 `&lt;ol start="3"&gt;`。
+
+**注意**: 此属性在 HTML4 中已废弃，但在 HTML5 中重新引入。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_style">
+        <source>Contains [CSS](https://developer.mozilla.org/docs/Web/CSS) styling declarations to be applied to the element. Note that it is recommended for styles to be defined in a separate file or files. This attribute and the [`&lt;style&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/style "The HTML &lt;style&gt; element contains style information for a document, or part of a document.") element have mainly the purpose of allowing for quick styling, for example for testing purposes.</source>
+        <target state="translated">包含要应用于元素的 [CSS](https://developer.mozilla.org/docs/Web/CSS)样式声明。请注意，建议在单独的文件或多个文件中定义样式。此特性和 [`&lt;style&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/style "HTML &lt;style&gt; 元素包含文档或文档某一部分的样式信息。")元素主要用于允许快速样式设置，例如用于测试目的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_tabindex">
+        <source>An integer attribute indicating if the element can take input focus (is _focusable_), if it should participate to sequential keyboard navigation, and if so, at what position. It can take several values:
+
+* a _negative value_ means that the element should be focusable, but should not be reachable via sequential keyboard navigation;
+* `0` means that the element should be focusable and reachable via sequential keyboard navigation, but its relative order is defined by the platform convention;
+* a _positive value_ means that the element should be focusable and reachable via sequential keyboard navigation; the order in which the elements are focused is the increasing value of the [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex). If several elements share the same tabindex, their relative order follows their relative positions in the document.</source>
+        <target state="translated">一个整数属性，指示元素是否可以获得输入焦点(即，是否不可聚焦)，是否应参与顺序键盘导航，以及如果参与，应处于什么位置。它可以采取以下几个值:
+
+* 负值表示元素应可聚焦，但不应通过顺序键盘导航访问；
+* `0` 表示元素应可聚焦并可通过顺序键盘导航访问，但其相对顺序由平台约定定义；
+* 正值表示元素应可聚焦并可通过顺序键盘导航访问；元素获得焦点的顺序按 [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex)的递增值确定。如果多个元素具有相同的 tabindex，则它们的相对顺序按文档中的相对位置决定。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_target">
+        <source>A name or keyword indicating the default location to display the result when hyperlinks or forms cause navigation, for elements that do not have an explicit target reference. It is a name of, or keyword for, a _browsing context_ (for example: tab, window, or inline frame). The following keywords have special meanings:
+
+* `_self`: Load the result into the same browsing context as the current one. This value is the default if the attribute is not specified.
+* `_blank`: Load the result into a new unnamed browsing context.
+* `_parent`: Load the result into the parent browsing context of the current one. If there is no parent, this option behaves the same way as `_self`.
+* `_top`: Load the result into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.
+
+If this attribute is specified, this element must come before any other elements with attributes whose values are URLs.</source>
+        <target state="translated">一个名称或关键字，指示超链接或表单导致导航时显示结果的默认位置，适用于没有显式目标引用的元素。它是浏览上下文(例如选项卡、窗口或内联框架)的名称或关键字。以下关键字具有特殊含义:
+
+* `_self`: 将结果加载到与当前相同的浏览上下文中。如果未指定此属性，则这是默认值。
+* `_blank`: 将结果加载到新的未命名浏览上下文中。
+* `_parent`: 将结果加载到当前浏览上下文的父浏览上下文中。如果没有父级，则此选项的行为与 `_self` 相同。
+* `_top`: 将结果加载到顶级浏览上下文中(即，当前浏览上下文的祖先，且没有父浏览上下文)。如果没有父级，则此选项的行为与 `_self` 相同。
+
+如果指定了此属性，则此元素必须位于任何其他带有 URL 值的属性的元素之前。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_title">
+        <source>Contains a text representing advisory information related to the element it belongs to. Such information can typically, but not necessarily, be presented to the user as a tooltip.</source>
+        <target state="translated">包含一个文本，表示与它所属的元素相关的咨询信息。此类信息通常可以(但不一定)作为工具提示呈现给用户。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_translate">
+        <source>An enumerated attribute that is used to specify whether an element's attribute values and the values of its [`Text`](https://developer.mozilla.org/docs/Web/API/Text "The Text interface represents the textual content of Element or Attr. If an element has no markup within its content, it has a single child implementing Text that contains the element's text. However, if the element contains markup, it is parsed into information items and Text nodes that form its children.") node children are to be translated when the page is localized, or whether to leave them unchanged. It can have the following values:
+
+* empty string and `yes`, which indicates that the element will be translated.
+* `no`, which indicates that the element will not be translated.</source>
+        <target state="translated">一个枚举属性，用于指定在页面本地化时，元素的属性值及其 [`Text`](https://developer.mozilla.org/docs/Web/API/Text "Text 接口表示 Element 或 Attr 的文本内容。如果元素的内容中没有标记，则它有一个实现 Text 的子节点，其中包含该元素的文本。但是，如果元素包含标记，则会将其解析为构成其子节点的信息项和 Text 节点。")节点子级的值是否应被翻译，或者是否保持不变。它可以具有以下值:
+
+* 空字符串和 `yes`，表示会翻译该元素。
+* `no`，表示不会翻译该元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_type">
+        <source>This attribute is used to define the type of the content linked to. The value of the attribute should be a MIME type such as **text/html**, **text/css**, and so on. The common use of this attribute is to define the type of stylesheet being referenced (such as **text/css**), but given that CSS is the only stylesheet language used on the web, not only is it possible to omit the `type` attribute, but is actually now recommended practice. It is also used on `rel="preload"` link types, to make sure the browser only downloads file types that it supports.</source>
+        <target state="translated">此特性用于定义链接到的内容的类型。特性的值应为 MIME 类型，如 **text/html**、**text/css** 等。此特性的常见用途是定义要引用的样式表的类型(如 **text/css**)，但鉴于 CSS 是 Web 上使用的唯一样式表语言，不仅可以省略 `type` 特性，而且现在实际上推荐这样做。它还用于 `rel="preload"` 链接类型，以确保浏览器仅下载它支持的文件类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_usemap">
+        <source>The partial URL (starting with '#') of an [image map](https://developer.mozilla.org/en-US/docs/HTML/Element/map) associated with the element.
+
+**Note:** You cannot use this attribute if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") or [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") element.</source>
+        <target state="translated">与元素关联的[图像映射](https://developer.mozilla.org/en-US/docs/HTML/Element/map)的部分URL (以 "#" 开头)。
+
+**注意:** 如果 `&lt;img&gt;` 元素是 [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "HTML &lt;a&gt; 元素(或 anchor 元素)创建指向其他网页、文件、同一页面内的位置、电子邮件地址或任何其他 URL 的超链接")或 [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML &lt;button&gt; 元素表示一个可点击的按钮，可以在窗体或文档中任何需要简单、标准按钮功能的地方使用。")元素的后代，则不能使用此属性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_value">
+        <source>This integer attribute indicates the current ordinal value of the list item as defined by the [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "The HTML &lt;ol&gt; element represents an ordered list of items, typically rendered as a numbered list.") element. The only allowed value for this attribute is a number, even if the list is displayed with Roman numerals or letters. List items that follow this one continue numbering from the value set. The **value** attribute has no meaning for unordered lists ([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "The HTML &lt;ul&gt; element represents an unordered list of items, typically rendered as a bulleted list.")) or for menus ([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "The HTML &lt;menu&gt; element represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked.")).
+
+**Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.
+
+**Note:** Prior to Gecko 9.0, negative values were incorrectly converted to 0. Starting in Gecko 9.0 all integer values are correctly parsed.</source>
+        <target state="translated">此整数属性表示由 [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "HTML &lt;ol&gt; 元素表示一个有序的项目列表，通常以项目符号列表形式呈现。")元素定义的列表项当前序号。此属性唯一允许的值是数字，即使列表显示为罗马数字或字母也是如此。其后的列表项会从此值集继续编号。value 属性对无序列表([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "HTML &lt;ul&gt; 元素表示一个无序的项目列表，通常以项目符号列表形式呈现。"))或菜单([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "HTML &lt;menu&gt; 元素表示一组用户可执行或激活的命令。其中包含列表菜单(可能跨屏幕顶部显示)和上下文菜单(例如单击后可能显示在按钮下方的上下文菜单)。"))来说没有意义。
+
+**注意**: 此属性在 HTML4 中已弃用，但在 HTML5 中重新引入。
+
+**注意:** 在 Gecko 9.0 之前，负值会被错误地转换为 0。从 Gecko 9.0 开始，所有整数值都能被正确解析。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_valuetype">
+        <source>Specifies the type of the `value` attribute. Possible values are:
+
+* data: Default value. The value is passed to the object's implementation as a string.
+* ref: The value is a URI to a resource where run-time values are stored.
+* object: An ID of another [`&lt;object&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object "The HTML &lt;object&gt; element represents an external resource, which can be treated as an image, a nested browsing context, or a resource to be handled by a plugin.") in the same document.</source>
+        <target state="translated">指定 `value` 属性的类型。可能的值包括:
+
+* data: 默认值。该值作为字符串传递给对象的实现。
+* ref: 该值是指向存储运行时值的资源的 URI。
+* object: 同一文档中另一个 [`&lt;object&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object "HTML &lt;object&gt; 元素表示外部资源，可将其视为图像、嵌套浏览上下文或由插件处理的资源。")的 ID。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_virtualkeyboardpolicy">
+        <source>When specified on an element that the element's content is editable (for example, it is an `&lt;input&gt;` or `&lt;textarea&gt;` element, or an element with the `contenteditable` attribute set), it controls the on-screen virtual keyboard behavior on devices such as tablets, mobile phones, or other devices where a hardware keyboard may not be available.</source>
+        <target state="translated">当在某个元素上指定元素的内容可编辑时(例如，它是 `&lt;input&gt;` 或 `&lt;textarea&gt;` 元素，或者是设置了 `contenteditable` 特性的元素)，它控制平板电脑、移动电话或其他可能无法使用硬件键盘的设备上的屏幕虚拟键盘行为。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_width">
+        <source>The intrinsic width of the image in pixels.</source>
+        <target state="translated">图像的固有宽度(以像素为单位)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_wrap">
+        <source>Indicates how the control wraps text. Possible values are:
+
+* `hard`: The browser automatically inserts line breaks (CR+LF) so that each line has no more than the width of the control; the `cols` attribute must also be specified for this to take effect.
+* `soft`: The browser ensures that all line breaks in the value consist of a CR+LF pair, but does not insert any additional line breaks.
+* `off` : Like `soft` but changes appearance to `white-space: pre` so line segments exceeding `cols` are not wrapped and the `&lt;textarea&gt;` becomes horizontally scrollable.
+
+If this attribute is not specified, `soft` is its default value.</source>
+        <target state="translated">指示控件如何换行文本。可能的值包含:
+
+* `hard`: 浏览器会自动插入换行符(CR+LF)，使每一行不超过控件宽度；要使此项生效，还必须指定 `cols` 属性。
+* `soft`: 浏览器确保值中的所有换行符都由 CR+LF 对组成，但不会插入其他换行符。
+* `off`: 与 `soft` 类似，但会将外观改为 `white-space: pre`，因此超出 `cols` 的文本不会换行，而 `&lt;textarea&gt;` 会变为可水平滚动。
+
+如果未指定此属性，默认值为 `soft`。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_a">
@@ -58,8 +1865,8 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_article">
-        <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</source>
-        <target state="new">The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</target>
+        <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content. Each article should be identified, typically by including a heading (h1–h6 element) as a child of the article element.</source>
+        <target state="translated">article 元素表示文档、页面、应用程序或站点中的完整或自包含组合，从原则上讲，该元素可独立分发或重使用，例如以联合形式。此元素可能是论坛帖子、杂志或报纸文章、博客条目、用户提交的评论、交互式小工具，或其他任何无关的内容项。应标识每篇文章，通常通过将标题(h1–h6 元素)作为项目元素的子元素进行标识。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_aside">
@@ -83,13 +1890,13 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_bdi">
-        <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</source>
-        <target state="new">The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</target>
+        <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting. [BIDI]</source>
+        <target state="translated">bdi 元素表示一段文本，该文本要与其周围内容隔离，以用于双向文本格式化。[BIDI]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_bdo">
-        <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</source>
-        <target state="new">The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</target>
+        <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override. [BIDI]</source>
+        <target state="translated">bdo 元素表示其子级的显式文本方向性格式化控件。该元素允许作者通过明确指定方向替代来替代 Unicode 双向算法。[BIDI]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_blockquote">
@@ -123,8 +1930,8 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_cite">
-        <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</source>
-        <target state="new">The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</target>
+        <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, or a reference in abbreviated form as per the conventions used for the addition of citation metadata.</source>
+        <target state="translated">cite 元素表示对创意作品的引用。该元素必须包含作品的标题或作者(个人、团体或组织)的名称或 URL 引用，或者按照添加引文元数据的约定以缩写形式提供的引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_code">
@@ -150,6 +1957,11 @@
       <trans-unit id="HtmlElement_content">
         <source>The content element represents an insertion point in the shadow tree.</source>
         <target state="translated">content 元素表示阴影树中的插入点。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_data">
+        <source>The data element links a given piece of content with a machine-readable translation.</source>
+        <target state="translated">数据元素将给定的内容与机器可读的翻译关联起来。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_datalist">
@@ -228,43 +2040,43 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h1">
-        <source>These elements represent headings for their sections.</source>
-        <target state="new">These elements represent headings for their sections.</target>
+        <source>The h1 element represents a section heading.</source>
+        <target state="translated">h1 元素表示节标题。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h2">
-        <source>These elements represent headings for their sections.</source>
-        <target state="new">These elements represent headings for their sections.</target>
+        <source>The h2 element represents a section heading.</source>
+        <target state="translated">h2 元素表示节标题。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h3">
-        <source>These elements represent headings for their sections.</source>
-        <target state="new">These elements represent headings for their sections.</target>
+        <source>The h3 element represents a section heading.</source>
+        <target state="translated">h3 元素表示节标题。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h4">
-        <source>These elements represent headings for their sections.</source>
-        <target state="new">These elements represent headings for their sections.</target>
+        <source>The h4 element represents a section heading.</source>
+        <target state="translated">h4 元素表示节标题。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h5">
-        <source>These elements represent headings for their sections.</source>
-        <target state="new">These elements represent headings for their sections.</target>
+        <source>The h5 element represents a section heading.</source>
+        <target state="translated">h5 元素表示节标题。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h6">
-        <source>These elements represent headings for their sections.</source>
-        <target state="new">These elements represent headings for their sections.</target>
+        <source>The h6 element represents a section heading.</source>
+        <target state="translated">h6 元素表示节标题。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_head">
-        <source>The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</source>
-        <target state="new">The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</target>
+        <source>The head element represents a collection of metadata for the Document.</source>
+        <target state="translated">head 元素表示文档的元数据集合。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_header">
-        <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</source>
-        <target state="new">The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</target>
+        <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids. When the nearest ancestor sectioning content or sectioning root element is the body element, then it applies to the whole page.</source>
+        <target state="translated">header 元素表示最近的上级分区内容或分区根元素的介绍性内容。标题通常包含一组介绍性或导航帮助。当最近的上级分区内容或分区根元素是正文元素时，它将应用于整个页面。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_hr">
@@ -318,8 +2130,8 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_li">
-        <source>The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
-        <target state="new">The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</target>
+        <source>The li element represents a list item. If its parent element is an ol, ul, or menu element, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
+        <target state="translated">li 元素表示列表项。如果其父元素是 ol、ul 或 menu 元素，则该元素是父元素列表的项，如这些元素所定义。否则，该列表项与其他任何 li 元素没有已定义的列表相关关系。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_link">
@@ -348,8 +2160,8 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_menu">
-        <source>The menu element represents a list of commands.</source>
-        <target state="new">The menu element represents a list of commands.</target>
+        <source>The menu element represents an unordered list of interactive items.</source>
+        <target state="translated">menu 元素表示交互式项的无序列表。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_menuitem">
@@ -423,8 +2235,8 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_output">
-        <source>The output element represents the result of a calculation or user action.</source>
-        <target state="new">The output element represents the result of a calculation or user action.</target>
+        <source>The output element represents the result of a calculation performed by the application, or the result of a user action.</source>
+        <target state="translated">output 元素表示应用程序执行的计算结果或用户操作的结果。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_p">
@@ -438,8 +2250,8 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_picture">
-        <source>The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
-        <target state="new">The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</target>
+        <source>The picture element is a container which provides multiple sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
+        <target state="translated">picture 元素是一个容器，它为其包含的 img 元素提供多个源，从而允许作者以声明方式，基于屏幕像素密度、视区大小、图像格式和其他因素控制要使用的图像资源或为用户代理提供其相关提示。该元素表示其子级。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_polymer-element">
@@ -478,8 +2290,8 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_ruby">
-        <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</source>
-        <target state="new">The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</target>
+        <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations. In Japanese, this form of typography is also known as furigana. Ruby text can appear on either side, and sometimes both sides, of the base text, and it is possible to control its position using CSS. A more complete introduction to ruby can be found in the Use Cases &amp; Exploratory Approaches for Ruby Markup document as well as in CSS Ruby Module Level 1. [RUBY-UC] [CSSRUBY]</source>
+        <target state="translated">ruby 元素允许一个或多个跨度的短语内容使用 Ruby 注音批注进行标记。Ruby 注音批注是在基本文本旁边呈现的简短文本，主要在东亚版式中用作发音指南，或者用于包括其他批注。在日语中，这种形式的版式也称为汉字注音。Ruby 注音文本可以出现在基本文本的任一侧(有时是两侧)，并且可以使用 CSS 控制其位置。可在《Ruby 标记的用例和探索方法》文档以及“CSS Ruby 模块级别 1”中找到更完整的 ruby 简介。[RUBY-UC] [CSSRUBY]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_s">
@@ -488,8 +2300,8 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_samp">
-        <source>The samp element represents (sample) output from a program or computing system.</source>
-        <target state="new">The samp element represents (sample) output from a program or computing system.</target>
+        <source>The samp element represents sample or quoted output from another program or computing system.</source>
+        <target state="translated">samp 元素表示来自另一个程序或计算系统的示例或引用的输出。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_script">
@@ -497,9 +2309,14 @@
         <target state="translated">script 元素允许作者在其文档中包括动态脚本和数据块。该元素不表示用户的内容。</target>
         <note />
       </trans-unit>
+      <trans-unit id="HtmlElement_search">
+        <source>The search element represents the parts of the document or application with form controls or other content related to performing a search or filtering operation.</source>
+        <target state="translated">搜索元素表示文档或应用程序中包含与执行搜索或筛选操作相关的窗体控件或其他内容的部分。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HtmlElement_section">
-        <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</source>
-        <target state="new">The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</target>
+        <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. Each section should be identified, typically by including a heading ( h1- h6 element) as a child of the section element.</source>
+        <target state="translated">section 元素表示文档或应用程序的通用节。在此上下文中，节是内容的主题分组。应标识每节，方法通常是将标题(h1-h6 元素)作为 section 元素的子级包括在内。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_select">
@@ -510,6 +2327,11 @@
       <trans-unit id="HtmlElement_shadow">
         <source>The shadow element represents an shadow insertion point in a shadow tree.</source>
         <target state="translated">shadow 元素表示阴影树中的阴影插入点。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_slot">
+        <source>The slot element is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.</source>
+        <target state="translated">槽元素是 Web 组件中的一个占位符，可以使用自己的标记进行填充，从而创建单独的 DOM 树并将其一起呈现。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_small">
@@ -538,8 +2360,8 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_sub">
-        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
-        <target state="new">The sup element represents a superscript and the sub element represents a subscript.</target>
+        <source>The sub element represents a subscript.</source>
+        <target state="translated">sub 元素表示下标。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_summary">
@@ -548,8 +2370,8 @@
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_sup">
-        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
-        <target state="new">The sup element represents a superscript and the sub element represents a subscript.</target>
+        <source>The sup element represents a superscript.</source>
+        <target state="translated">sup 元素表示上标。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_svg">

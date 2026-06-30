@@ -42,19 +42,23 @@ internal sealed class Descriptors
         { RemoteModelService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { RemoteProjectInitializationStatusService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.SolutionSnapshotProvider.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.DebuggerManagedHotReloadService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.HotReloadSessionNotificationService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.ManagedHotReloadAgentManagerService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.GenericHotReloadAgentManagerService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.HotReloadOptionService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.HotReloadLoggerService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+
+        // TODO: https://github.com/dotnet/roslyn/issues/84158
+        // Registered so the XAML diagnostics component in the C# extension for VS Code can call them.
+        { new("Microsoft.VisualStudio.Debugger.HotReloadSessionNotificationService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { new("Microsoft.VisualStudio.Debugger.ManagedHotReloadAgentManagerService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { new("Microsoft.VisualStudio.Debugger.GenericHotReloadAgentManagerService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { new("Microsoft.VisualStudio.Debugger.HotReloadOptionService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { new("Microsoft.VisualStudio.Maui.MauiLaunchCustomizerService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { new("Microsoft.VisualStudio.WebTools.CssVisualDiagnosticsService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { new("Microsoft.VisualStudio.HotReload.ProjectHotReloadSession", new(2, 0)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { new("Microsoft.VisualStudio.HotReload.ProcessTrackingService", new(2, 0)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+
         { BrokeredServiceDescriptors.HotReloadLoggerServiceLegacy.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.MauiLaunchCustomizerService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.DebuggerSymbolLocatorService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.DebuggerSourceLinkService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.ProjectSystemQueryExecutionService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.CssVisualDiagnosticsService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
     }.ToImmutableDictionary();
 
     public static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker serviceMoniker) => new(

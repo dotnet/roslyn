@@ -63,7 +63,9 @@ internal interface IWorkspaceProjectContext : IDisposable, IAsyncDisposable
     void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
     void AddAdditionalFile(string filePath, IEnumerable<string> folderNames, bool isInCurrentContext = true);
     void RemoveAdditionalFile(string filePath);
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null);
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     void RemoveDynamicFile(string filePath);
 
     /// <summary>

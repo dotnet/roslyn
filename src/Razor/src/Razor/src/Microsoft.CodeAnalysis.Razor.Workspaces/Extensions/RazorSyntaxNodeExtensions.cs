@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
@@ -308,40 +307,6 @@ internal static class RazorSyntaxNodeExtensions
         return node;
     }
 
-    public static bool ExistsOnTarget(this SyntaxNode node, SyntaxNode target)
-    {
-        // TODO: This looks like a potential allocation hotspot and performance bottleneck.
-
-        var nodeString = node.RemoveEmptyNewLines().ToString();
-        var matchingNode = target.DescendantNodesAndSelf()
-            // Empty new lines can affect our comparison so we remove them since they're insignificant.
-            .Where(n => n.RemoveEmptyNewLines().ToString() == nodeString)
-            .FirstOrDefault();
-
-        return matchingNode is not null;
-    }
-
-    public static SyntaxNode RemoveEmptyNewLines(this SyntaxNode node)
-    {
-        if (node is MarkupTextLiteralSyntax markupTextLiteral)
-        {
-            var literalTokens = markupTextLiteral.LiteralTokens;
-            using var literalTokensWithoutLines = new PooledArrayBuilder<SyntaxToken>(literalTokens.Count);
-
-            foreach (var token in literalTokens)
-            {
-                if (token.Kind != SyntaxKind.NewLine)
-                {
-                    literalTokensWithoutLines.Add(token);
-                }
-            }
-
-            return markupTextLiteral.WithLiteralTokens(literalTokensWithoutLines.ToList());
-        }
-
-        return node;
-    }
-
     public static bool IsCSharpNode(this SyntaxNode node, [NotNullWhen(true)] out CSharpCodeBlockSyntax? csharpCodeBlock)
     {
         csharpCodeBlock = null;
@@ -434,25 +399,15 @@ internal static class RazorSyntaxNodeExtensions
 
     public static bool TryGetLinePositionSpanWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source, out LinePositionSpan linePositionSpan)
     {
-        var tokens = node.DescendantTokens();
-
         SyntaxToken? firstToken = null;
-        foreach (var token in tokens)
-        {
-            if (!token.IsWhitespace())
-            {
-                firstToken = token;
-                break;
-            }
-        }
-
         SyntaxToken? lastToken = null;
-        foreach (var token in tokens.Reverse())
+
+        foreach (var token in node.DescendantTokens())
         {
             if (!token.IsWhitespace())
             {
+                firstToken ??= token;
                 lastToken = token;
-                break;
             }
         }
 
