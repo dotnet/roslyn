@@ -43,7 +43,7 @@ This repo predates this knowledge base and has authoritative docs the memory fil
 
 - `AGENTS.md` — thin root pointer to `.github/copilot-instructions.md` (the canonical repo-wide guidance).
 - `.github/instructions/{Compiler,IDE,Razor}.instructions.md` — path-scoped layer rules **and** knowledge, applied automatically by area.
-- `.github/skills/*/SKILL.md` — task-specific skills (code-review, ci-analysis, snap, merge-into-branch, update-docs, etc.).
+- `.github/skills/*/SKILL.md` — task-specific skills (code-review, ci-analysis, snap, merge-into-branch, update-agent-docs, etc.).
 - `docs/` — deep-dive docs (`docs/wiki/Roslyn-Overview.md`, `docs/Layering.md`, `docs/area-owners.md`).
 
 ## Conventions

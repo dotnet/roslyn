@@ -83,7 +83,7 @@ Launch a sub-agent (e.g., the `explore` or `task` agent) with the PR diff and li
 - **Path-scoped instruction files** (`.github/instructions/{Compiler,IDE,Razor}.instructions.md`): layer-specific directory detail, key files/APIs, diagnostic IDs, and coding conventions for the area the change touches.
 - **Entry points**: `.github/copilot-instructions.md` and `AGENTS.md` when build/test/orientation guidance changes.
 
-The sub-agent should cross-check the diff against the `update-docs` skill checklist (`.github/skills/update-docs/SKILL.md`) and report, for each gap, **which doc file** is now stale or incomplete and **what specific update** is needed. Only flag genuine omissions — do not invent busywork. If the PR already updated the relevant docs, confirm that and move on.
+The sub-agent should cross-check the diff against the `update-agent-docs` skill checklist (`.github/skills/update-agent-docs/SKILL.md`) and report, for each gap, **which doc file** is now stale or incomplete and **what specific update** is needed. Only flag genuine omissions — do not invent busywork. If the PR already updated the relevant docs, confirm that and move on.
 
 Fold the sub-agent's findings into the review output as ⚠️ (or 💡 for minor) **Documentation** findings, and ask the author to make the updates. If a required doc update is missing for a behavior/API change, treat it as merge-blocking per the verdict rules.
 

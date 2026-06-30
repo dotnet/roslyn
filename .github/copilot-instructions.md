@@ -74,7 +74,7 @@ When starting any task or answering any question about this repo:
 1. **Read `.github/memory/INDEX.md` first** — it's the loading map for the knowledge base. Use it to find authoritative answers before searching the file system.
 2. **For any non-trivial task, also read `.github/memory/ARCHITECTURE.md` and `.github/memory/CONVENTIONS.md`** as your baseline.
 3. **Read the path-scoped instruction file for the area you're editing** — `.github/instructions/Compiler.instructions.md`, `IDE.instructions.md`, or `Razor.instructions.md` (these auto-apply to `.cs`/`.vb` under their glob and carry the layer's directory detail, conventions, and key files/APIs). For that layer's **known issues** and **test conventions**, load `.github/memory/known-issues/<area>.md` and `.github/memory/testing/<area>.md` on demand (see the INDEX loading map).
-4. After completing work, run the `update-docs` skill.
+4. After completing work, run the `update-agent-docs` skill.
 
 ### Memory
 
@@ -96,7 +96,7 @@ Every task that changes code must end with a doc pass:
 
 ### Skills
 
-Skills live in `.github/skills/<skill-name>/SKILL.md` and are auto-discovered by their YAML `description`. Useful ones here include `code-review`, `ci-analysis`, `analyzer-codefix`, `merge-into-branch`, `snap`, and `update-docs`.
+Skills live in `.github/skills/<skill-name>/SKILL.md` and are auto-discovered by their YAML `description`. Useful ones here include `code-review`, `ci-analysis`, `analyzer-codefix`, `merge-into-branch`, `snap`, and `update-agent-docs`.
 
 ## Validation Checklist
 
@@ -107,4 +107,4 @@ When making changes:
 4. **Run targeted tests** for affected test project(s).
 5. If you edited a `.resx`, run `/t:UpdateXlf`; if you edited Syntax/BoundNodes XML, regenerate code. Update `PublicAPI.Unshipped.txt` for public API changes.
 6. Follow existing patterns in similar files.
-7. **Doc pass** (mandatory) — run the `update-docs` skill and apply the Doc Update Obligation above.
+7. **Doc pass** (mandatory) — run the `update-agent-docs` skill and apply the Doc Update Obligation above.

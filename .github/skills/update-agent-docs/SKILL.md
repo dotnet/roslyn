@@ -1,12 +1,12 @@
 ---
-name: update-docs
+name: update-agent-docs
 description: >
   Update the agent knowledge base after making code changes in the Roslyn repo. Run at the end of
   every task that modifies code, adds files, changes public APIs or diagnostics, or establishes new
   patterns. Keeps .github/memory/ fresh and reliable.
 ---
 
-# Update Docs
+# Update Agent Docs
 
 Run at the end of every task that changes code. This is not optional.
 
