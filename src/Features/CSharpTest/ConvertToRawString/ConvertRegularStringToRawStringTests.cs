@@ -336,7 +336,7 @@ public sealed class ConvertRegularStringToRawStringTests
             }
             """");
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestStringWithNewLine()
         => VerifyRefactoringAsync("""
             public class C
@@ -383,7 +383,7 @@ public sealed class ConvertRegularStringToRawStringTests
             }
             """");
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestStringWithNewLineAtStartAndEnd()
         => VerifyRefactoringAsync("""
             public class C
@@ -457,7 +457,7 @@ public sealed class ConvertRegularStringToRawStringTests
             }
             """", index: 1);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIndentedString()
         => VerifyRefactoringAsync("""
             public class C
@@ -507,7 +507,7 @@ public sealed class ConvertRegularStringToRawStringTests
             }
             """", index: 1);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIndentedStringTopLevel()
         => VerifyRefactoringAsync("""
             var v = [||]"goo\r\nbar";
@@ -557,7 +557,7 @@ public sealed class ConvertRegularStringToRawStringTests
             }
             """");
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIndentedStringOnOwnLine()
         => VerifyRefactoringAsync("""
             public class C

@@ -1991,7 +1991,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
         """);
             }
 
-            [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+            [Fact]
             public Task TestSuppressionWithExistingGlobalSuppressionsDocument()
                 => TestAsync("""
                     <Workspace>
@@ -2062,7 +2062,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
 
                     """);
 
-            [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+            [Fact]
             public Task TestSuppressionWithExistingGlobalSuppressionsDocument3()
                 => TestAsync("""
                     <Workspace>
@@ -2106,7 +2106,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
 
                     """);
 
-            [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+            [Fact]
             public Task TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument()
                 => TestAsync("""
                     <Workspace>
@@ -2136,7 +2136,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
 
                     """);
 
-            [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+            [Fact]
             public Task TestSuppressionWithoutUsingDirectiveInExistingGlobalSuppressionsDocument()
                 => TestAsync("""
                     <Workspace>

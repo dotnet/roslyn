@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -87,7 +88,7 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
                 return ReplaceFieldExpression(accessor);
 
             var accessorDeclarationSyntax = accessor.WithBody(Block(
-                OpenBraceToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed),
+                OpenBraceToken.WithLeadingTrivia(ElasticEndOfLine(Environment.NewLine)),
                 [statement],
                 CloseBraceToken.WithTrailingTrivia(accessor.SemicolonToken.TrailingTrivia)));
 
