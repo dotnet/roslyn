@@ -855,7 +855,8 @@ foreach ($attachment in $allAttachments)
 
         if ($ExtractArchives -and $isZipArchive)
         {
-            $extractTarget = Join-Path $extractedDirectory ([System.IO.Path]::GetFileNameWithoutExtension($safeFileName))
+            $extractGroupDirectory = Join-Path $extractedDirectory $safeGroup
+            $extractTarget = Join-Path $extractGroupDirectory ([System.IO.Path]::GetFileNameWithoutExtension($destinationPath))
             [System.IO.Directory]::CreateDirectory($extractTarget) | Out-Null
             Expand-Archive -LiteralPath $destinationPath -DestinationPath $extractTarget -Force | Out-Null
         }
