@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node is BoundSequence
                 {
-                    Locals: [{ SynthesizedKind: SynthesizedLocalKind.ConditionalBranchDiscriminator, Type.SpecialType: SpecialType.System_Boolean } local],
+                    Locals: [{ SynthesizedKind: SynthesizedLocalKind.ConditionalBranchDiscriminator } local],
                     SideEffects: [BoundAssignmentOperator { IsRef: false, Left: BoundLocal { LocalSymbol: var assignedLocal } left, Right: var conditionValue }],
                     Value: BoundSequencePointExpression { Expression: BoundLocal { LocalSymbol: var valueLocal } },
                 } &&
