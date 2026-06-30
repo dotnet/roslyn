@@ -79,19 +79,19 @@ file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, C
         CancellationToken cancellationToken)
     {
         Debug.Assert(projectCollection == ProjectCollection.Instance);
-        var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), globalProperties, cancellationToken).Result;
+        var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), globalProperties, cancellationToken).GetAwaiter().GetResult();
         return new ProjectInstance(remoteProjectInstance, cancellationToken);
     }
 
-    public IEnumerable<IProjectItemInstance> GetItems(string itemType) => remoteProjectInstance.GetItemsAsync(itemType, cancellationToken).Result.Select(i => new ProjectItemInstance(itemType, i, cancellationToken));
-    public string GetPropertyValue(string propertyName) => remoteProjectInstance.GetPropertyValueAsync(propertyName, cancellationToken).Result;
-    public string ExpandString(string value) => remoteProjectInstance.ExpandStringAsync(value, cancellationToken).Result;
+    public IEnumerable<IProjectItemInstance> GetItems(string itemType) => remoteProjectInstance.GetItemsAsync(itemType, cancellationToken).GetAwaiter().GetResult().Select(i => new ProjectItemInstance(itemType, i, cancellationToken));
+    public string GetPropertyValue(string propertyName) => remoteProjectInstance.GetPropertyValueAsync(propertyName, cancellationToken).GetAwaiter().GetResult();
+    public string ExpandString(string value) => remoteProjectInstance.ExpandStringAsync(value, cancellationToken).GetAwaiter().GetResult();
 }
 
 file sealed class ProjectItemInstance(string itemType, RemoteProjectItemInstance remoteProjectItemInstance, CancellationToken cancellationToken) : IProjectItemInstance
 {
     public string ItemType => itemType;
-    public string GetMetadataValue(string name) => remoteProjectItemInstance.GetMetadataValueAsync(name, cancellationToken).Result;
+    public string GetMetadataValue(string name) => remoteProjectItemInstance.GetMetadataValueAsync(name, cancellationToken).GetAwaiter().GetResult();
 }
 
 file sealed class ProjectRootElement(string content) : IProjectRootElement
