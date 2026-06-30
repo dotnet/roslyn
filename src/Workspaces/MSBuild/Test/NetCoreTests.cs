@@ -766,9 +766,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         Assert.Empty(workspace.Diagnostics);
 
-        Assert.Collection(workspace.CurrentSolution.Projects,
-            p => { Assert.Equal("Program.cs", p.Name); },
-            p => { Assert.Equal("Util.cs", p.Name); });
+        Assert.Equal(["Program.cs", "Util.cs"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
