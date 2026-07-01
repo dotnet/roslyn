@@ -234,7 +234,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Console.Write(" ");
                 foreach (var derivedType in attr.DerivedTypes)
                 {
-                    Console.Write(derivedType.FullName);                    
+                    Console.Write(derivedType.FullName);
                     if (derivedType.IsConstructedGenericType)
                         throw new Exception(); // unexpected
 
