@@ -141,7 +141,7 @@ public class ProjectMap
 
     internal ProjectId GetOrCreateProjectId(ProjectFileInfo projectFileInfo)
     {
-        var projectPath = projectFileInfo.FilePath;
+        var projectPath = projectFileInfo.PhysicalFilePath ?? projectFileInfo.FilePath;
         var outputFilePath = projectFileInfo.OutputFilePath;
         var outputRefFilePath = projectFileInfo.OutputRefFilePath;
 

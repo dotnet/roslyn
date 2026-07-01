@@ -43,8 +43,9 @@ internal interface IBuildHost
     /// Permits loading a project file which only exists in-memory, for example, for file-based program scenarios.
     /// </summary>
     /// <param name="projectFilePath">A path to a project file which may or may not exist on disk. Note that an extension that is known by MSBuild, such as .csproj or .vbproj, should be used here.</param>
+    /// <param name="physicalFilePath">The original C# file path.</param>
     /// <param name="projectContent">The project file XML content.</param>
-    int LoadProject(string projectFilePath, string projectContent, string languageName, IDictionary<string, string>? globalProperties);
+    int LoadProject(string projectFilePath, string? physicalFilePath, string projectContent, string languageName, IDictionary<string, string>? globalProperties);
 
     int LoadProjectInstance(string projectFilePath, string projectContent, IDictionary<string, string> globalProperties);
 

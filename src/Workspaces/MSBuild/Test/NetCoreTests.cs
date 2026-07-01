@@ -137,7 +137,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         await using var buildHostProcessManager = new BuildHostProcessManager([LanguageNames.CSharp], ImmutableDictionary<string, string>.Empty);
 
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
-        var projectFile = await buildHost.LoadProjectAsync(projectFilePath, content, LanguageNames.CSharp, globalProperties: null, CancellationToken.None);
+        var projectFile = await buildHost.LoadProjectAsync(projectFilePath, physicalFilePath: null, content, LanguageNames.CSharp, globalProperties: null, CancellationToken.None);
         var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
         Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), projectFileInfo.OutputFilePath);
@@ -767,6 +767,58 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Empty(workspace.Diagnostics);
 
         Assert.Equal(["Program.cs", "Util.cs"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_RefDirective_Duplicate()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref Util.cs
+                #:ref Util.cs
+                Console.WriteLine($"Hello {Util.M()}!");
+                """),
+            ("Util.cs", """
+                #:property OutputType=Library
+                public static class Util
+                {
+                    public static string M() => "Util";
+                }
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        Assert.Equal(["Program.cs", "Util.cs"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_RefDirective_Self()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref Program.cs
+                Console.WriteLine("Hello");
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        Assert.Equal(["Program.cs"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

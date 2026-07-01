@@ -144,10 +144,10 @@ internal abstract class AbstractBuildHost :
     /// <summary>
     /// Returns the target ID of the <see cref="ProjectFile"/> object created for this.
     /// </summary>
-    public int LoadProject(string projectFilePath, string projectContent, string languageName, IDictionary<string, string>? globalProperties)
+    public int LoadProject(string projectFilePath, string? physicalFilePath, string projectContent, string languageName, IDictionary<string, string>? globalProperties)
     {
         EnsureMSBuildLoaded(projectFilePath);
-        return LoadProjectCore(projectFilePath, projectContent, languageName, globalProperties);
+        return LoadProjectCore(projectFilePath, physicalFilePath, projectContent, languageName, globalProperties);
     }
 
     public int LoadProjectInstance(string projectFilePath, string projectContent, IDictionary<string, string> globalProperties)
@@ -167,14 +167,14 @@ internal abstract class AbstractBuildHost :
         Logger.LogInformation($"Loading {projectFilePath}");
 
         var (project, log) = await _buildManager.LoadProjectAsync(projectFilePath, cancellationToken).ConfigureAwait(false);
-        return AddProjectFileTarget(project, languageName, log);
+        return AddProjectFileTarget(project, physicalFilePath: null, languageName, log);
     }
 
     // When using the Mono runtime, the MSBuild types used in this method must be available
     // to the JIT during compilation of the method, so they have to be loaded by the caller;
     // therefore this method must not be inlined.
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private int LoadProjectCore(string projectFilePath, string projectContent, string languageName, IDictionary<string, string>? globalProperties)
+    private int LoadProjectCore(string projectFilePath, string? physicalFilePath, string projectContent, string languageName, IDictionary<string, string>? globalProperties)
     {
         CreateBuildManager();
 
@@ -189,7 +189,7 @@ internal abstract class AbstractBuildHost :
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(projectContent));
 
         var (project, log) = _buildManager.LoadProject(projectFilePath, stream, globalProperties);
-        return AddProjectFileTarget(project, languageName, log);
+        return AddProjectFileTarget(project, physicalFilePath, languageName, log);
     }
 
     // When using the Mono runtime, the MSBuild types used in this method must be available
@@ -208,10 +208,10 @@ internal abstract class AbstractBuildHost :
         return _server.AddTarget(new ProjectInstance(_server, projectInstance, log));
     }
 
-    private int AddProjectFileTarget(Build.Evaluation.Project? project, string languageName, DiagnosticLog log)
+    private int AddProjectFileTarget(Build.Evaluation.Project? project, string? physicalFilePath, string languageName, DiagnosticLog log)
     {
         Contract.ThrowIfNull(_buildManager);
-        return _server.AddTarget(new ProjectFile(languageName, project, _buildManager, log));
+        return _server.AddTarget(new ProjectFile(languageName, project, _buildManager, log) { PhysicalFilePath = physicalFilePath });
     }
 
     public Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken)

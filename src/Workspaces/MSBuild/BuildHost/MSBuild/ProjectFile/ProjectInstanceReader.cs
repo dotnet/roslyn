@@ -41,7 +41,10 @@ internal readonly struct ProjectInstanceReader
         _projectDirectory = PathUtilities.EnsureTrailingSeparator(PathUtilities.GetDirectoryName(_projectFullPath));
     }
 
-    public ProjectFileInfo CreateProjectFileInfo()
+    /// <param name="physicalFilePath">
+    /// The original C# file path if this corresponds to a virtual project.
+    /// </param>
+    public ProjectFileInfo CreateProjectFileInfo(string? physicalFilePath)
     {
         var commandLineArgs = TryGetCommandLineArgs(_projectInstance);
 
@@ -122,6 +125,7 @@ internal readonly struct ProjectInstanceReader
         {
             Language = Language,
             FilePath = _projectFullPath,
+            PhysicalFilePath = physicalFilePath,
             OutputFilePath = outputFilePath,
             OutputRefFilePath = outputRefFilePath,
             GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,

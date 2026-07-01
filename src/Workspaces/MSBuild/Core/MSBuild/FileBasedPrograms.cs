@@ -34,6 +34,7 @@ internal static class FileBasedProgramsProjectLoader
             reportError);
         return await buildHost.LoadProjectAsync(
             projectRootElement.FullPath!,
+            physicalFilePath: entryPointFilePath,
             projectRootElement.GetRawXml(),
             LanguageNames.CSharp,
             globalProperties: fileBasedProgramService.GetGlobalBuildProperties(),

@@ -33,6 +33,12 @@ internal sealed record ProjectFileInfo
     public string? FilePath { get; init; }
 
     /// <summary>
+    /// The original C# file path if this corresponds to a virtual project.
+    /// </summary>
+    [DataMember]
+    public string? PhysicalFilePath { get; init; }
+
+    /// <summary>
     /// The path to the output file this project generates.
     /// </summary>
     [DataMember]

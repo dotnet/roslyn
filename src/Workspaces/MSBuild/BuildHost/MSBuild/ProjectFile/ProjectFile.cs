@@ -28,6 +28,11 @@ internal sealed class ProjectFile(
     public string FilePath
         => project?.FullPath ?? string.Empty;
 
+    /// <summary>
+    /// The original C# file path if this corresponds to a virtual project.
+    /// </summary>
+    public string? PhysicalFilePath { get; init; }
+
     public DiagnosticLogItem[] GetDiagnosticLogItems()
         => [.. log];
 
@@ -46,7 +51,7 @@ internal sealed class ProjectFile(
         var projectInstances = await buildManager.BuildProjectInstancesAsync(project, log, cancellationToken).ConfigureAwait(false);
 
         return projectInstances.Select(
-            instance => new ProjectInstanceReader(language, _commandLineProvider, instance, project).CreateProjectFileInfo()).ToArray();
+            instance => new ProjectInstanceReader(language, _commandLineProvider, instance, project).CreateProjectFileInfo(PhysicalFilePath)).ToArray();
     }
 
     public void AddDocument(string filePath, string? logicalPath = null)
