@@ -1809,7 +1809,7 @@ next:;
 
                 ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments;
                 // Note: some definitions of IsClosedTypeAttribute may be missing DerivedTypes property.
-                if (systemType is not null and not ErrorTypeSymbol && derivedTypesProperty != null)
+                if (systemType is not null and not ErrorTypeSymbol && derivedTypesProperty != null && !derivedTypesProperty.HasUseSiteError)
                 {
                     var arrayOfSystemType = ArrayTypeSymbol.CreateSZArray(systemType.ContainingAssembly, TypeWithAnnotations.Create(systemType, NullableAnnotation.NotAnnotated));
                     var derivedTypesConstant = new TypedConstant(
@@ -1826,11 +1826,12 @@ next:;
                     namedArguments = [];
                 }
 
-                AddSynthesizedAttribute(
-                    ref attributes,
-                    compilation.TrySynthesizeAttribute(
-                        WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor,
-                        namedArguments: namedArguments));
+                var closedAttribute = compilation.TrySynthesizeAttribute(
+                    WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor,
+                    namedArguments: namedArguments);
+                Debug.Assert(closedAttribute is not null);
+
+                AddSynthesizedAttribute(ref attributes, closedAttribute);
             }
 
             // Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta
