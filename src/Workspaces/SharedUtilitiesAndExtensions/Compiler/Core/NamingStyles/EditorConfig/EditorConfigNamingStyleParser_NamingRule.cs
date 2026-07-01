@@ -4,10 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.EditorConfig.Parsing;
-using Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
@@ -34,42 +31,6 @@ internal static partial class EditorConfigNamingStyleParser
         }
 
         namingRule = null;
-        priority = 0;
-        return false;
-    }
-
-    internal static bool TryGetRule(
-        Section section,
-        string namingRuleTitle,
-        ApplicableSymbolInfo applicableSymbolInfo,
-        NamingScheme namingScheme,
-        IReadOnlyDictionary<string, string> entries,
-        IReadOnlyDictionary<string, TextLine> lines,
-        [NotNullWhen(true)] out NamingStyleOption? rule,
-        out int priority)
-    {
-        if (TryGetRuleProperties(
-            namingRuleTitle,
-            entries,
-            out var severity,
-            out var priorityComponent) &&
-            severity.Value.HasValue)
-        {
-            // all rules must have a severity so we consider this its location
-            var location = severity.GetSpan(lines);
-
-            priority = priorityComponent.Value;
-            rule = new NamingStyleOption(
-                Section: section,
-                RuleName: new(section, location, namingRuleTitle),
-                ApplicableSymbolInfo: applicableSymbolInfo,
-                NamingScheme: namingScheme,
-                Severity: new(section, location, severity.Value.Value));
-
-            return true;
-        }
-
-        rule = null;
         priority = 0;
         return false;
     }

@@ -266,27 +266,45 @@ class D
             var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
 
             comp.VerifyDiagnostics(
+                // (6,26): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         ref int i1 = ref c.Field1();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(6, 26),
                 // (6,26): error CS0570: 'delegate*<ref int>' is not supported by the language
                 //         ref int i1 = ref c.Field1();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1()").WithArguments("delegate*<ref int>").WithLocation(6, 26),
                 // (6,28): error CS0570: 'C.Field1' is not supported by the language
                 //         ref int i1 = ref c.Field1();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(6, 28),
+                // (7,26): error CS9363: 'C.Field2' must be used in an unsafe context because it has pointers in its signature
+                //         ref int i2 = ref c.Field2();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field2").WithArguments("C.Field2").WithLocation(7, 26),
                 // (7,26): error CS0570: 'delegate*<ref int>' is not supported by the language
                 //         ref int i2 = ref c.Field2();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field2()").WithArguments("delegate*<ref int>").WithLocation(7, 26),
                 // (7,28): error CS0570: 'C.Field2' is not supported by the language
                 //         ref int i2 = ref c.Field2();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(7, 28),
+                // (8,9): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1 = c.Field1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(8, 9),
                 // (8,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(8, 11),
+                // (8,20): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1 = c.Field1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(8, 20),
                 // (8,22): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(8, 22),
+                // (9,9): error CS9363: 'C.Field2' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field2 = c.Field2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field2").WithArguments("C.Field2").WithLocation(9, 9),
                 // (9,11): error CS0570: 'C.Field2' is not supported by the language
                 //         c.Field2 = c.Field2;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(9, 11),
+                // (9,20): error CS9363: 'C.Field2' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field2 = c.Field2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field2").WithArguments("C.Field2").WithLocation(9, 20),
                 // (9,22): error CS0570: 'C.Field2' is not supported by the language
                 //         c.Field2 = c.Field2;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(9, 22)
@@ -342,27 +360,42 @@ class D
 
             var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
             comp.VerifyDiagnostics(
+                // (7,9): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1(ref i);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(7, 9),
                 // (7,9): error CS0570: 'delegate*<in int, void>' is not supported by the language
                 //         c.Field1(ref i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(ref i)").WithArguments("delegate*<in int, void>").WithLocation(7, 9),
                 // (7,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1(ref i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(7, 11),
+                // (8,9): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1(in i);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(8, 9),
                 // (8,9): error CS0570: 'delegate*<in int, void>' is not supported by the language
                 //         c.Field1(in i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(in i)").WithArguments("delegate*<in int, void>").WithLocation(8, 9),
                 // (8,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1(in i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(8, 11),
+                // (9,9): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1(out i);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(9, 9),
                 // (9,9): error CS0570: 'delegate*<in int, void>' is not supported by the language
                 //         c.Field1(out i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(out i)").WithArguments("delegate*<in int, void>").WithLocation(9, 9),
                 // (9,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1(out i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(9, 11),
+                // (10,9): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1 = c.Field1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(10, 9),
                 // (10,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(10, 11),
+                // (10,20): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1 = c.Field1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(10, 20),
                 // (10,22): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(10, 22)
@@ -11725,8 +11758,15 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default").WithLocation(11, 4)
                 );
 
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // (11,2): error CS9363: 'A.A(B<delegate*<void>[]>.E)' must be used in an unsafe context because it has pointers in its signature
+                // [A(default)]
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "A(default)").WithArguments("A.A(B<delegate*<void>[]>.E)").WithLocation(11, 2),
+            };
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -11786,10 +11826,20 @@ class C<T> {}
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(P = default)]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default)").WithLocation(11, 2));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,4): error CS9363: 'A.P.set' must be used in an unsafe context because it has pointers in its signature
+                // [A(P = default)]
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "P = default").WithArguments("A.P.set").WithLocation(11, 4),
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]

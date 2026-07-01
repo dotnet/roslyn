@@ -42,11 +42,6 @@
         <target state="translated">“Describe”不可用，因为你的组织已排除引用的文档。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_prefer_this_or_Me">
-        <source>Do not prefer 'this.' or 'Me.'</source>
-        <target state="translated">不首选 "this." 或 "Me."</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
         <source>Do you still want to proceed? This may produce broken code.</source>
         <target state="translated">是否仍要继续? 这可能会导致代码损坏。</target>
@@ -78,8 +73,8 @@
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="Generate_documentation">
-        <source>generate documentation</source>
-        <target state="new">generate documentation</target>
+        <source>Generate documentation</source>
+        <target state="new">Generate documentation</target>
         <note>Accept action shown on the documentation-comment chip, e.g. "Tab to generate documentation".</note>
       </trans-unit>
       <trans-unit id="Generate_summary_with_Copilot">
@@ -110,11 +105,6 @@
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators</source>
         <target state="translated">在关系运算符中</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indentation_Size">
-        <source>Indentation Size</source>
-        <target state="translated">缩进大小</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_Error">
@@ -257,11 +247,6 @@
         <target state="translated">引用相等检查偏好 “is null”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_this_or_Me">
-        <source>Prefer 'this.' or 'Me.'</source>
-        <target state="translated">首选 "this." 或 "Me."</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">预处理器文本</target>
@@ -270,26 +255,6 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">标点</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_event_access_with_this_or_Me">
-        <source>Qualify event access with 'this' or 'Me'</source>
-        <target state="translated">使用 "this" 限定事件访问</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_field_access_with_this_or_Me">
-        <source>Qualify field access with 'this' or 'Me'</source>
-        <target state="translated">使用 "this" 或 "Me" 限定字段访问</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_method_access_with_this_or_Me">
-        <source>Qualify method access with 'this' or 'Me'</source>
-        <target state="translated">使用 "this" 或 "Me" 限定方法访问</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_property_access_with_this_or_Me">
-        <source>Qualify property access with 'this' or 'Me'</source>
-        <target state="translated">使用 "this" 或 "Me" 限定属性访问</target>
         <note />
       </trans-unit>
       <trans-unit id="Reassigned_variable">
@@ -352,11 +317,6 @@
         <target state="translated">符号-静态</target>
         <note />
       </trans-unit>
-      <trans-unit id="Tab_Size">
-        <source>Tab Size</source>
-        <target state="translated">制表符大小</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
         <source>The results may be incomplete due to the solution still loading projects.</source>
         <target state="translated">由于解决方案仍在加载项目，结果可能不完整。</target>
@@ -380,11 +340,6 @@
       <trans-unit id="Toggling_line_comment">
         <source>Toggling line comment...</source>
         <target state="translated">正在切换为行注释...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Tabs">
-        <source>Use Tabs</source>
-        <target state="translated">使用制表符</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">

@@ -777,9 +777,6 @@
   <data name="Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
-  <data name="Do_not_prefer_this_or_Me" xml:space="preserve">
-    <value>Do not prefer 'this.' or 'Me.'</value>
-  </data>
   <data name="In_arithmetic_binary_operators" xml:space="preserve">
     <value>In arithmetic operators</value>
   </data>
@@ -792,35 +789,11 @@
   <data name="Prefer_is_null_for_reference_equality_checks" xml:space="preserve">
     <value>Prefer 'is null' for reference equality checks</value>
   </data>
-  <data name="Prefer_this_or_Me" xml:space="preserve">
-    <value>Prefer 'this.' or 'Me.'</value>
-  </data>
-  <data name="Qualify_event_access_with_this_or_Me" xml:space="preserve">
-    <value>Qualify event access with 'this' or 'Me'</value>
-  </data>
-  <data name="Qualify_field_access_with_this_or_Me" xml:space="preserve">
-    <value>Qualify field access with 'this' or 'Me'</value>
-  </data>
-  <data name="Qualify_method_access_with_this_or_Me" xml:space="preserve">
-    <value>Qualify method access with 'this' or 'Me'</value>
-  </data>
-  <data name="Qualify_property_access_with_this_or_Me" xml:space="preserve">
-    <value>Qualify property access with 'this' or 'Me'</value>
-  </data>
-  <data name="Indentation_Size" xml:space="preserve">
-    <value>Indentation Size</value>
-  </data>
   <data name="Insert_Final_Newline" xml:space="preserve">
     <value>Insert Final Newline</value>
   </data>
   <data name="New_Line" xml:space="preserve">
     <value>New Line</value>
-  </data>
-  <data name="Tab_Size" xml:space="preserve">
-    <value>Tab Size</value>
-  </data>
-  <data name="Use_Tabs" xml:space="preserve">
-    <value>Use Tabs</value>
   </data>
   <data name="Regex_Comment" xml:space="preserve">
     <value>Regex - Comment</value>
@@ -946,7 +919,7 @@
     <comment>The text surrounded by "[" and "]" characters will be hyperlinked. Please ensure the localized text still has "[" and "]" characters.</comment>
   </data>
   <data name="Generate_documentation" xml:space="preserve">
-    <value>generate documentation</value>
+    <value>Generate documentation</value>
     <comment>Accept action shown on the documentation-comment chip, e.g. "Tab to generate documentation".</comment>
   </data>
 </root>

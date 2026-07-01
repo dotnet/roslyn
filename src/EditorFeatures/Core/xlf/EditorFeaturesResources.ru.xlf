@@ -42,11 +42,6 @@
         <target state="translated">Функция "Описать" недоступна, так как документ, на который указывает ссылка, исключен вашей организацией.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_prefer_this_or_Me">
-        <source>Do not prefer 'this.' or 'Me.'</source>
-        <target state="translated">Не предпочитать "this." или "Me".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
         <source>Do you still want to proceed? This may produce broken code.</source>
         <target state="translated">Вы действительно хотите продолжить? Это может привести к появлению нерабочего кода.</target>
@@ -78,8 +73,8 @@
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="Generate_documentation">
-        <source>generate documentation</source>
-        <target state="new">generate documentation</target>
+        <source>Generate documentation</source>
+        <target state="new">Generate documentation</target>
         <note>Accept action shown on the documentation-comment chip, e.g. "Tab to generate documentation".</note>
       </trans-unit>
       <trans-unit id="Generate_summary_with_Copilot">
@@ -110,11 +105,6 @@
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators</source>
         <target state="translated">В реляционных операторах</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indentation_Size">
-        <source>Indentation Size</source>
-        <target state="translated">Размер отступа</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_Error">
@@ -257,11 +247,6 @@
         <target state="translated">Использовать "is null" вместо проверки ссылок на равенство.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_this_or_Me">
-        <source>Prefer 'this.' or 'Me.'</source>
-        <target state="translated">Предпочитать "this." или "Me".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">Текст препроцессора</target>
@@ -270,26 +255,6 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">Пунктуация</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_event_access_with_this_or_Me">
-        <source>Qualify event access with 'this' or 'Me'</source>
-        <target state="translated">Квалифицировать доступ к событию с помощью "this" или "Me"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_field_access_with_this_or_Me">
-        <source>Qualify field access with 'this' or 'Me'</source>
-        <target state="translated">Квалифицировать доступ к полю с помощью "this" или "Me"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_method_access_with_this_or_Me">
-        <source>Qualify method access with 'this' or 'Me'</source>
-        <target state="translated">Квалифицировать доступ к методу с помощью "this" или "Me"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_property_access_with_this_or_Me">
-        <source>Qualify property access with 'this' or 'Me'</source>
-        <target state="translated">Квалифицировать доступ к свойству с помощью "this" или "Me"</target>
         <note />
       </trans-unit>
       <trans-unit id="Reassigned_variable">
@@ -352,11 +317,6 @@
         <target state="translated">Символ — статический</target>
         <note />
       </trans-unit>
-      <trans-unit id="Tab_Size">
-        <source>Tab Size</source>
-        <target state="translated">Размер интервала табуляции</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
         <source>The results may be incomplete due to the solution still loading projects.</source>
         <target state="translated">Результаты могут быть неполными, поскольку решение еще загружает проекты.</target>
@@ -380,11 +340,6 @@
       <trans-unit id="Toggling_line_comment">
         <source>Toggling line comment...</source>
         <target state="translated">Переключение комментария строки...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Tabs">
-        <source>Use Tabs</source>
-        <target state="translated">Использовать вкладки</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
