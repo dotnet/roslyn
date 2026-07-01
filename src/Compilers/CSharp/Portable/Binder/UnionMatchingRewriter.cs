@@ -135,14 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? inputType = node.InputType;
             TypeSymbol? narrowedType = node.NarrowedType;
 
-            if (node.IsUnionMatching)
-            {
-                return CreatePatternWithUnionMatching(
-                    (NamedTypeSymbol)node.InputType,
-                    node.Update(subpatterns, node.HasSlice, lengthAccess, indexerAccess, receiverPlaceholder, argumentPlaceholder, variable, variableAccess,
-                        inputType: ObjectType, narrowedType));
-            }
-
+            Debug.Assert(!node.IsUnionMatching);
             return node.Update(subpatterns, node.HasSlice, lengthAccess, indexerAccess, receiverPlaceholder, argumentPlaceholder, variable, variableAccess, inputType, narrowedType);
         }
 
