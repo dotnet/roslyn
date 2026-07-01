@@ -120,17 +120,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim attributes As ArrayBuilder(Of SyntaxNode) = Nothing
                     Using ArrayBuilder(Of SyntaxNode).GetInstance(attributes)
                         AddAttributes(t.AttributeLists, attributes)
-                        For Each decl In t.Declarators
-                            Dim initializer = GetInitializerNode(decl)
-                            Dim codeBlocks As ArrayBuilder(Of SyntaxNode) = Nothing
-                            Using ArrayBuilder(Of SyntaxNode).GetInstance(codeBlocks)
+                        Dim codeBlocks As ArrayBuilder(Of SyntaxNode) = Nothing
+                        Using ArrayBuilder(Of SyntaxNode).GetInstance(codeBlocks)
+                            For Each decl In t.Declarators
+                                Dim initializer = GetInitializerNode(decl)
                                 codeBlocks.Add(initializer)
                                 codeBlocks.AddRange(attributes)
                                 For Each identifier In decl.Names
                                     builder.Add(GetDeclarationInfo(model, identifier, getSymbol, codeBlocks, cancellationToken))
                                 Next
-                            End Using
-                        Next
+                                codeBlocks.Clear()
+                            Next
+                        End Using
                     End Using
 
                     Return
