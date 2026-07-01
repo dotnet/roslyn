@@ -1804,12 +1804,10 @@ next:;
 
             if (IsClosed)
             {
-                var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
-                var derivedTypesProperty = compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes);
-
                 ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments;
-                if (derivedTypesProperty != null)
+                if (compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes) is { } derivedTypesProperty)
                 {
+                    var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
                     var arrayOfSystemType = ArrayTypeSymbol.CreateSZArray(systemType.ContainingAssembly, TypeWithAnnotations.Create(systemType, NullableAnnotation.NotAnnotated));
                     var derivedTypesConstant = new TypedConstant(
                         arrayOfSystemType,
