@@ -2447,6 +2447,154 @@ static class E
     }
 
     [Fact]
+    public void Nullability_PropertyAccess_29()
+    {
+        // generic extension parameter with nested nullability, property read access
+        var source = """
+#nullable enable
+using System.Collections.Generic;
+
+class Program
+{
+    void M1(bool b)
+    {
+        var item = "a";
+        if (b)
+        {
+            item = null;
+        }
+
+        var list = M2(item)/*T:System.Collections.Generic.List<string?>!*/;
+        list.First.ToString(); // 1
+    }
+
+    List<T> M2<T>(T item) => [item];
+}
+
+static class ListExtensions
+{
+    extension<T>(List<T> list)
+    {
+        public T First => list[0];
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyTypes();
+        comp.VerifyEmitDiagnostics(
+            // (15,9): warning CS8602: Dereference of a possibly null reference.
+            //         list.First.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "list.First").WithLocation(15, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var propertyAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "list.First");
+        AssertEx.Equal("System.String? ListExtensions.extension<System.String?>(System.Collections.Generic.List<System.String?>!).First { get; }",
+            model.GetSymbolInfo(propertyAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81913")]
+    public void Nullability_PropertyAccess_30()
+    {
+        // Reassigning the receiver resets the tracked null-state of a generic extension property member
+        var src = """
+#nullable enable
+using System.Collections.Generic;
+
+class Program
+{
+    void M(bool b)
+    {
+        var item = "a";
+        if (b) { item = null; }
+
+        var list = M2(item); // List<string?>
+        list.First = "x";
+        list.First.ToString();
+
+        list = M2(item);
+        list.First.ToString(); // 1
+    }
+
+    List<T> M2<T>(T item) => [item];
+}
+
+static class ListExtensions
+{
+    extension<T>(List<T> list)
+    {
+        public T First { get => list[0]; set { } }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (16,9): warning CS8602: Dereference of a possibly null reference.
+            //         list.First.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "list.First").WithLocation(16, 9));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81913")]
+    public void Nullability_PropertyAccess_31()
+    {
+        var src = """
+#nullable enable
+using System.Collections.Generic;
+
+class Program
+{
+    void M(string? item)
+    {
+        var list = new List<string>() { "a" }; // List<string>
+        _ = list.First.ToString();
+
+        list = M2(item); // 1
+        list.First.ToString();
+    }
+    List<T> M2<T>(T item) => [item];
+}
+
+static class ListExtensions
+{
+    extension<T>(List<T> list)
+    {
+        public T First { get => list[0]; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (11,16): warning CS8619: Nullability of reference types in value of type 'List<string?>' doesn't match target type 'List<string>'.
+            //         list = M2(item); // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "M2(item)").WithArguments("System.Collections.Generic.List<string?>", "System.Collections.Generic.List<string>").WithLocation(11, 16));
+
+        src = """
+#nullable enable
+
+class Program
+{
+    void M(string? item)
+    {
+        var box = new Box<string>(); // Box<string>
+        _ = box.First.ToString();
+
+        box = M2(item); // 1
+        box.First.ToString();
+    }
+    Box<T> M2<T>(T item) => new Box<T>();
+}
+
+class Box<T>
+{
+    public T First { get => throw null!; }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (10,15): warning CS8619: Nullability of reference types in value of type 'Box<string?>' doesn't match target type 'Box<string>'.
+            //         box = M2(item); // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "M2(item)").WithArguments("Box<string?>", "Box<string>").WithLocation(10, 15));
+    }
+
+    [Fact]
     public void Nullability_Setter_01()
     {
         // generic extension parameter, instance member, property write access, notnull constraint
@@ -4100,7 +4248,10 @@ class C
 
         var comp = CreateCompilation(source);
         comp.VerifyTypes();
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (17,13): warning CS8602: Dereference of a possibly null reference.
+            //             first.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "first").WithLocation(17, 13));
     }
 
     [Fact]
@@ -4188,7 +4339,10 @@ class C
         comp.VerifyEmitDiagnostics(
             // (15,23): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'ListExtensions.extension<T>(List<T>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
             //         if (list is { First: var first }) // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "First").WithArguments("ListExtensions.extension<T>(System.Collections.Generic.List<T>)", "T", "string?").WithLocation(15, 23));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "First").WithArguments("ListExtensions.extension<T>(System.Collections.Generic.List<T>)", "T", "string?").WithLocation(15, 23),
+            // (17,13): warning CS8602: Dereference of a possibly null reference.
+            //             first.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "first").WithLocation(17, 13));
     }
 
     [Fact]
