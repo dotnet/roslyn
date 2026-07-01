@@ -238,7 +238,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                     if (derivedType.IsConstructedGenericType)
                         throw new Exception(); // unexpected
 
-                    if (derivedType.GetGenericArguments() is [_, ..] args)
+                    if (derivedType.GetGenericArguments() is { Length: > 0 } args)
                     {
                         if (!derivedType.IsGenericTypeDefinition)
                             throw new Exception(); // unexpected
@@ -279,10 +279,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var verifier = CompileAndVerify(
-            [source, IsClosedTypeAttributeDefinition, s_reportHelper],
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper, CompilerFeatureRequiredAttribute],
             symbolValidator: verifyMetadata,
-            targetFramework: TargetFramework.Net100,
-            verify: Verification.Skipped,
             expectedOutput: "2 D1 D2 <null>");
         verifier.VerifyDiagnostics();
 
@@ -327,10 +325,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var verifier = CompileAndVerify(
-            [source, IsClosedTypeAttributeDefinition, s_reportHelper],
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper, CompilerFeatureRequiredAttribute],
             symbolValidator: verifyMetadata,
-            targetFramework: TargetFramework.Net100,
-            verify: Verification.Skipped,
             expectedOutput: "2 D1 D2 2 D3 D4 <null>");
         verifier.VerifyDiagnostics();
 
@@ -368,10 +364,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var verifier = CompileAndVerify(
-            [source, IsClosedTypeAttributeDefinition, s_reportHelper],
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper, CompilerFeatureRequiredAttribute],
             symbolValidator: verifyMetadata,
-            targetFramework: TargetFramework.Net100,
-            verify: Verification.Skipped,
             expectedOutput: "5 D1 D2 D3`1[T] D4`1[T] D5`2[T,U]");
         verifier.VerifyDiagnostics();
 
@@ -404,10 +398,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var verifier = CompileAndVerify(
-            [source, IsClosedTypeAttributeDefinition, s_reportHelper],
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper, CompilerFeatureRequiredAttribute],
             symbolValidator: verifyMetadata,
-            targetFramework: TargetFramework.Net100,
-            verify: Verification.Skipped,
             expectedOutput: "2 Container`1+D1`1[T,U] Container`1+D2[T] 2 Container`1+D1`1[T,U] Container`1+D2[T]");
         verifier.VerifyDiagnostics();
 
@@ -460,9 +452,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, isClosedTypeAttribute, CompilerFeatureRequiredAttribute]);
 
-        var verifier = CompileAndVerify(comp, symbolValidator: verifyMetadata, verify: Verification.Skipped);
+        var verifier = CompileAndVerify(comp, symbolValidator: verifyMetadata);
         verifier.VerifyDiagnostics();
 
         void verifyMetadata(ModuleSymbol module)
