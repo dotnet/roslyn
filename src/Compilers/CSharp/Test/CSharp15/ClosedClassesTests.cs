@@ -909,6 +909,75 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void DerivedTypesMetadata_18()
+    {
+        // DerivedTypes has a 'CompilerFeatureRequiredAttribute' for an unsupported feature, resulting in a use-site error.
+        var il = """
+            .assembly extern System.Runtime { .ver 10:0:0:0 .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A) }
+
+            .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsClosedTypeAttribute
+                extends [System.Runtime]System.Attribute
+            {
+                .custom instance void [System.Runtime]System.AttributeUsageAttribute::.ctor(valuetype [System.Runtime]System.AttributeTargets) = (
+                    01 00 04 00 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+                    4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+                    72 69 74 65 64 00
+                )
+                // Fields
+                .field private class [System.Runtime]System.Type[] '<DerivedTypes>k__BackingField'
+                // Methods
+                .method public hidebysig specialname 
+                    instance class [System.Runtime]System.Type[] get_DerivedTypes () cil managed 
+                {
+                    IL_0000: ldarg.0
+                    IL_0001: ldfld class [System.Runtime]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::'<DerivedTypes>k__BackingField'
+                    IL_0006: ret
+                } // end of method IsClosedTypeAttribute::get_DerivedTypes
+                .method public hidebysig specialname 
+                    instance void set_DerivedTypes (
+                        class [System.Runtime]System.Type[] 'value'
+                    ) cil managed 
+                {
+                    IL_0000: ldarg.0
+                    IL_0001: ldarg.1
+                    IL_0002: stfld class [System.Runtime]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::'<DerivedTypes>k__BackingField'
+                    IL_0007: ret
+                } // end of method IsClosedTypeAttribute::set_DerivedTypes
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    IL_0000: ldarg.0
+                    IL_0001: call instance void [System.Runtime]System.Attribute::.ctor()
+                    IL_0006: ret
+                } // end of method IsClosedTypeAttribute::.ctor
+                // Properties
+                .property instance class [System.Runtime]System.Type[] DerivedTypes()
+                {
+                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+                        01 00 0b 4e 6f 6e 65 78 69 73 74 65 6e 74 00 00 // ...Nonexistent
+                    )
+                    .get instance class [System.Runtime]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::get_DerivedTypes()
+                    .set instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::set_DerivedTypes(class [System.Runtime]System.Type[])
+                }
+            } // end of class System.Runtime.CompilerServices.IsClosedTypeAttribute
+            """;
+
+        var ilComp = CompileIL(il);
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var comp = CreateCompilation(source, references: [ilComp], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS9041: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' requires compiler feature 'Nonexistent', which is not supported by this version of the C# compiler.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "C").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes", "Nonexistent").WithLocation(1, 14));
+    }
+
+    [Fact]
     public void PublicAPI_01()
     {
         var source = """
