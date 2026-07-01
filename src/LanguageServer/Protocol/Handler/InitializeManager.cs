@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.LanguageServer.Protocol;
 
@@ -80,7 +81,7 @@ internal sealed class InitializeManager : IInitializeManager
         foreach (var addedWorkspaceFolder in workspaceFoldersChangeEvent.Added)
         {
             if (TryGetFolderPath(addedWorkspaceFolder) is { } addedWorkspaceFolderPath &&
-                !workspaceFolderPathsBuilder.Contains(addedWorkspaceFolderPath, StringComparer.OrdinalIgnoreCase))
+                !workspaceFolderPathsBuilder.Any(path => string.Equals(path, addedWorkspaceFolderPath, StringComparison.OrdinalIgnoreCase)))
             {
                 workspaceFolderPathsBuilder.Add(addedWorkspaceFolderPath);
             }

@@ -185,7 +185,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return false;
         }
 
-        var sourceText = await TryGetSourceTextAsync(filePath, cancellationToken).ConfigureAwait(false);
+        var sourceText = await TryGetSourceTextAsync(filePath).ConfigureAwait(false);
         if (sourceText is null)
         {
             return false;
@@ -230,7 +230,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         if (!PathUtilities.IsAbsolute(filePath))
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
 
-        var sourceText = await TryGetSourceTextAsync(filePath, cancellationToken).ConfigureAwait(false);
+        var sourceText = await TryGetSourceTextAsync(filePath).ConfigureAwait(false);
 
         // File had an absolute path but we were unable to read it, due to it not existing or to some other I/O issue.
         if (sourceText is null)
@@ -276,12 +276,12 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors;
     }
 
-    private static ValueTask<SourceText?> TryGetSourceTextAsync(string filePath, CancellationToken cancellationToken)
+    private static ValueTask<SourceText?> TryGetSourceTextAsync(string filePath)
         => new(IOUtilities.PerformIO(() =>
         {
             // Note: SourceText.From eagerly reads the entire file
             using var fileStream = File.OpenRead(filePath);
-            return SourceText.From(fileStream, cancellationToken: cancellationToken);
+            return SourceText.From(fileStream);
         }));
 
     public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)

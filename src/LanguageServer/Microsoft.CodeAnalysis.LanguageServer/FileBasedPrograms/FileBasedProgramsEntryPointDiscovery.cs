@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -264,7 +265,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
         var newFileBasedAppsBuilder = ArrayBuilder<string>.GetInstance(cache.FileBasedAppFullPaths.Length);
         var directoriesContainingCsprojBuilder = ArrayBuilder<string>.GetInstance(cache.DirectoriesContainingCsproj.Length);
-        var visitor = new WorkspaceFolderVisitor(cache, newFileBasedAppsBuilder, directoriesContainingCsprojBuilder, _logger);
+        var visitor = new WorkspaceFolderVisitor(cache, newFileBasedAppsBuilder, directoriesContainingCsprojBuilder, _logger, IsFileBasedApp);
         visitor.Visit();
         var elapsedMilliseconds = Math.Round(stopwatch.Elapsed.TotalMilliseconds);
         _logger.LogInformation("Finished discovery in '{workspaceFolder}' in {elapsedMilliseconds} milliseconds", workspaceFolder, elapsedMilliseconds);
@@ -352,7 +353,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         }
     }
 
-    private class WorkspaceFolderVisitor(Cache cache, ArrayBuilder<string> entryPointsBuilder, ArrayBuilder<string> directoriesContainingCsprojBuilder, ILogger logger)
+    private class WorkspaceFolderVisitor(Cache cache, ArrayBuilder<string> entryPointsBuilder, ArrayBuilder<string> directoriesContainingCsprojBuilder, ILogger logger, Func<string, bool> isFileBasedApp)
     {
         internal void Visit()
             // Note: passing `DateTimeOffset.MinValue` here will force `VisitDirectory` to stat the directory again to get its created/modified times out.
@@ -436,7 +437,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 return;
             }
 
-            if (IOUtilities.PerformIO(() => IsFileBasedApp(file)))
+            if (IOUtilities.PerformIO(() => isFileBasedApp(file)))
             {
                 logger.LogInformation("Discovered file-based app (cache miss): {csFilePath}", file);
                 entryPointsBuilder.Add(file);
@@ -475,7 +476,7 @@ internal sealed class FileBasedProgramsWorkspaceFoldersHandler() : ILspServiceNo
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class FileBasedProgramsEntryPointHandler() : ILspServiceRequestHandler<FileBasedProgramsEntryPointParams, bool>
+internal sealed class FileBasedProgramsEntryPointHandler() : ILspServiceDocumentRequestHandler<FileBasedProgramsEntryPointParams, bool>
 {
     internal const string MethodName = "workspace/_roslyn_isFileBasedProgramEntryPoint";
 
@@ -483,10 +484,13 @@ internal sealed class FileBasedProgramsEntryPointHandler() : ILspServiceRequestH
 
     public bool RequiresLSPSolution => false;
 
+    public TextDocumentIdentifier GetTextDocumentIdentifier(FileBasedProgramsEntryPointParams request)
+        => request.TextDocument;
+
     public async Task<bool> HandleRequestAsync(FileBasedProgramsEntryPointParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var documentUri = request.TextDocument.DocumentUri;
-        if (documentUri.ParsedUri is not { Scheme: Uri.UriSchemeFile })
+        if (documentUri.ParsedUri?.Scheme != Uri.UriSchemeFile)
         {
             return false;
         }

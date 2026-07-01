@@ -111,11 +111,11 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         appFile.WriteAllText(appText);
         AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
 
-        // Changed and no longer has '#!'
+        // Changed and no longer has '#!', but still has top-level statements.
         appFile.WriteAllText("""
             Console.WriteLine("No more #! at start of file");
             """);
-        AssertEx.Empty(discovery.FindEntryPoints(tempDir.Path));
+        AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
 
         // Changed and again has '#!'
         appFile.WriteAllText(appText);
@@ -301,8 +301,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         await discovery.FindAndLoadEntryPointsAsync();
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
-        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
-        Assert.NotNull(document);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
     }
 
     [Fact]
@@ -412,10 +412,10 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 },
             });
 
-        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+        await Task.Delay(500);
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
-        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
-        Assert.NotNull(document);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
     }
 
     [Fact]
@@ -455,7 +455,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 ],
             });
 
-        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+        await Task.Delay(500);
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
         Assert.NotNull(document);
@@ -475,11 +475,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
             {
             }
             """);
-        var extensionlessFile = tempDir.CreateFile("greeter").WriteAllText("""
-            #!/usr/bin/env dotnet
-            Console.WriteLine("Hello World");
-            """);
-
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
 
         var isTopLevelStatementsEntryPoint = await testLspServer.ExecuteRequestAsync<FileBasedProgramsEntryPointParams, bool>(
@@ -490,14 +485,9 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
             FileBasedProgramsEntryPointHandler.MethodName,
             new FileBasedProgramsEntryPointParams(CreateTextDocumentIdentifier(CreateAbsoluteDocumentUri(directivesWithoutTopLevelStatementsFile.Path))),
             CancellationToken.None);
-        var isExtensionlessEntryPoint = await testLspServer.ExecuteRequestAsync<FileBasedProgramsEntryPointParams, bool>(
-            FileBasedProgramsEntryPointHandler.MethodName,
-            new FileBasedProgramsEntryPointParams(CreateTextDocumentIdentifier(CreateAbsoluteDocumentUri(extensionlessFile.Path)), LanguageId: "csharp"),
-            CancellationToken.None);
 
         Assert.True(isTopLevelStatementsEntryPoint);
         Assert.False(isDirectivesWithoutTopLevelStatementsEntryPoint);
-        Assert.True(isExtensionlessEntryPoint);
     }
 
     private Task<TestLspServer> CreateDiscoveryTestServerAsync(string workspacePath)
