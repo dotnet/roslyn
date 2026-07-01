@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -29,7 +29,7 @@ public class DocumentUriExtensionsTest
         else
         {
             Assert.NotNull(razorDocumentUri);
-            Assert.Equal(Uri.UriSchemeFile, razorDocumentUri.Scheme);
+            Assert.Equal(Uri.UriSchemeFile, razorDocumentUri.GetRequiredSystemUri().Scheme);
             Assert.Equal(expectedFilePath, razorDocumentUri.GetAbsoluteOrUNCPath());
         }
     }
@@ -46,7 +46,7 @@ public class DocumentUriExtensionsTest
         // Assert
         Assert.True(result);
         Assert.NotNull(razorDocumentUri);
-        Assert.Equal(Uri.UriSchemeFile, razorDocumentUri.Scheme);
+        Assert.Equal(Uri.UriSchemeFile, razorDocumentUri.GetRequiredSystemUri().Scheme);
         Assert.Equal(@"C:/path/to/file.razor", razorDocumentUri.GetAbsoluteOrUNCPath());
     }
 
@@ -78,7 +78,7 @@ public class DocumentUriExtensionsTest
         // Assert
         Assert.True(result);
         Assert.NotNull(razorDocumentUri);
-        Assert.Equal(Uri.UriSchemeFile, razorDocumentUri.Scheme);
+        Assert.Equal(Uri.UriSchemeFile, razorDocumentUri.GetRequiredSystemUri().Scheme);
         Assert.Equal(expectedFilePath, razorDocumentUri.GetAbsoluteOrUNCPath());
     }
 

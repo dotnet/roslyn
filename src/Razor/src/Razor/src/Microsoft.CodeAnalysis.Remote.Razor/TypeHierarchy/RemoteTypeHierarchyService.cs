@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.TypeHierarchy;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -146,8 +145,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
         CancellationToken cancellationToken)
     {
         var resolveData = TypeHierarchyHelpers.GetResolveData(item);
-        var generatedDocumentUri = resolveData.TextDocument.DocumentUri.GetRequiredSystemUri();
-        if (!snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity))
+        if (!snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentIdentity(resolveData.TextDocument.DocumentUri, out var identity))
         {
             return null;
         }

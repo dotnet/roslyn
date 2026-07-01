@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -418,7 +417,7 @@ internal sealed class DocumentMappingService(
         // For Html we just map the Uri, the range will be the same
         if (generatedDocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
         {
-            return (razorDocumentUri.CreateDocumentUriFromSystemUri(), generatedDocumentRange);
+            return (razorDocumentUri, generatedDocumentRange);
         }
 
         // We only map from C# files
@@ -429,7 +428,7 @@ internal sealed class DocumentMappingService(
 
         var solution = originSnapshot.TextDocument.Project.Solution;
         // Generated documents can only be real parsed Uris so we know it is safe to call GetRequiredSystemUri
-        if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri.GetRequiredSystemUri(), out var identity) ||
+        if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
             !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))
         {
             return (generatedDocumentUri, generatedDocumentRange);

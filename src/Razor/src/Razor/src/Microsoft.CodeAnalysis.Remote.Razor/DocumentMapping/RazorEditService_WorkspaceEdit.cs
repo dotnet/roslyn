@@ -106,7 +106,7 @@ internal partial class RazorEditService
         {
             entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
             {
-                DocumentUri = razorDocumentUri.CreateDocumentUriFromSystemUri(),
+                DocumentUri = razorDocumentUri,
             };
             return;
         }
@@ -118,7 +118,7 @@ internal partial class RazorEditService
             return;
         }
 
-        var generatedDocumentUri = entry.TextDocument.DocumentUri.GetRequiredSystemUri();
+        var generatedDocumentUri = entry.TextDocument.DocumentUri;
         var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
         if (razorDocument is null)
         {
@@ -156,20 +156,19 @@ internal partial class RazorEditService
 
         foreach (var (uriString, edits) in changes)
         {
-            var generatedDocumentUri = new Uri(uriString);
-            var documentUri = generatedDocumentUri.CreateDocumentUriFromSystemUri();
+            var generatedDocumentUri = new DocumentUri(uriString);
 
             // For Html we just map the Uri, the range will be the same
-            if (documentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
+            if (generatedDocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
             {
-                builder.Add(CreateTextDocumentEdit(razorDocumentUri.CreateDocumentUriFromSystemUri(), edits.AsSpan()));
+                builder.Add(CreateTextDocumentEdit(razorDocumentUri, edits.AsSpan()));
                 continue;
             }
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
-            if (!documentUri.IsRazorCSharpDocumentUri(solution))
+            if (!generatedDocumentUri.IsRazorCSharpDocumentUri(solution))
             {
-                builder.Add(CreateTextDocumentEdit(documentUri, edits.AsSpan()));
+                builder.Add(CreateTextDocumentEdit(generatedDocumentUri, edits.AsSpan()));
                 continue;
             }
 

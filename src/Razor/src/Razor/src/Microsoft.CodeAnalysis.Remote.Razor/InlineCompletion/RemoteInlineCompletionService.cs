@@ -3,10 +3,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -48,7 +48,7 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
 
         var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
         return new InlineCompletionRequestInfo(
-            GeneratedDocumentUri: generatedDocument.CreateSystemUri(),
+            GeneratedDocumentUri: generatedDocument.GetURI(),
             Position: mappedPosition,
             InDeclDocument: inDeclDocument);
     }

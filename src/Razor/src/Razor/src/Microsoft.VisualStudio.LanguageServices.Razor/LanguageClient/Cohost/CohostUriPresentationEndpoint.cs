@@ -6,14 +6,13 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -111,7 +110,7 @@ internal sealed class CohostUriPresentationEndpoint(
         {
             if (edit.TextDocument.DocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = razorDocumentUri.CreateDocumentUriFromSystemUri() };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = razorDocumentUri };
             }
         }
 

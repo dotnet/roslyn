@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -128,11 +127,11 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         return results;
     }
 
-    protected override VSInternalDocumentDiagnosticsParams CreateHtmlParams(Uri uri)
+    protected override VSInternalDocumentDiagnosticsParams CreateHtmlParams(DocumentUri uri)
     {
         return new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri.CreateDocumentUriFromSystemUri() }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri }
         };
     }
 

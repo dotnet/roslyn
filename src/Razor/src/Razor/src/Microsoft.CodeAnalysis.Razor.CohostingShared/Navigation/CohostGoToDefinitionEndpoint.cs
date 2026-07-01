@@ -8,10 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -97,11 +96,11 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
         if (result.TryGetFirst(out var singleLocation))
         {
-            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.DocumentUri.GetRequiredSystemUri()).CreateDocumentUriFromSystemUri(), singleLocation.Range.ToLinePositionSpan());
+            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.DocumentUri), singleLocation.Range.ToLinePositionSpan());
         }
         else if (result.TryGetSecond(out var multipleLocations))
         {
-            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.DocumentUri.GetRequiredSystemUri()).CreateDocumentUriFromSystemUri(), l.Range.ToLinePositionSpan()));
+            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.DocumentUri), l.Range.ToLinePositionSpan()));
         }
         else if (result.TryGetThird(out var documentLinks))
         {
@@ -111,7 +110,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
             {
                 if (documentLink.DocumentTarget is DocumentUri target)
                 {
-                    builder.Add(LspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target.GetRequiredSystemUri()).CreateDocumentUriFromSystemUri(), documentLink.Range.ToLinePositionSpan()));
+                    builder.Add(LspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target), documentLink.Range.ToLinePositionSpan()));
                 }
             }
 
@@ -121,9 +120,9 @@ internal sealed class CohostGoToDefinitionEndpoint(
         return null;
     }
 
-    private Uri RemapVirtualHtmlUri(Uri uri)
+    private DocumentUri RemapVirtualHtmlUri(DocumentUri uri)
     {
-        if (uri.CreateDocumentUriFromSystemUri().IsRazorHtmlDocumentUri(out var razorUri))
+        if (uri.IsRazorHtmlDocumentUri(out var razorUri))
         {
             return razorUri;
         }

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Composition;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -36,7 +35,7 @@ internal sealed class RemoteSnapshotManager(ITelemetryReporter telemetryReporter
         return GetSnapshot(document.Project).GetDocument(document);
     }
 
-    public Task<RazorCodeDocument?> TryGetRazorCodeDocumentAsync(Solution solution, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    public Task<RazorCodeDocument?> TryGetRazorCodeDocumentAsync(Solution solution, DocumentUri generatedDocumentUri, CancellationToken cancellationToken)
     {
         if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
             !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))
@@ -48,7 +47,7 @@ internal sealed class RemoteSnapshotManager(ITelemetryReporter telemetryReporter
         return snapshot.TryGetCodeDocumentForGeneratedDocumentAsync(identity, cancellationToken);
     }
 
-    public Task<TextDocument?> TryGetRazorDocumentAsync(Solution solution, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    public Task<TextDocument?> TryGetRazorDocumentAsync(Solution solution, DocumentUri generatedDocumentUri, CancellationToken cancellationToken)
     {
         if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
             !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))

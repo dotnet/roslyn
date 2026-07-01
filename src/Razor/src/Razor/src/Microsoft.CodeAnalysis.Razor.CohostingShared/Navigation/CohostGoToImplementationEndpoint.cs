@@ -119,7 +119,7 @@ internal sealed class CohostGoToImplementationEndpoint(
         if (location is not null &&
             location.DocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
         {
-            location.DocumentUri = new(razorDocumentUri);
+            location.DocumentUri = razorDocumentUri;
         }
     }
 

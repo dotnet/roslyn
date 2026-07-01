@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -136,15 +135,15 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 // If we're going to change the Uri, then also override the file paths
                 if (mappedUri != location.DocumentUri)
                 {
-                    var path = mappedUri.GetRequiredSystemUri().AbsolutePath;
+                    var path = mappedUri.GetDocumentFilePathFromUri();
                     referenceItem.DisplayPath = path;
                     referenceItem.DocumentName = path;
 
                     var fixedResultText = await GetResultTextAsync(
                         snapshot,
-                        generatedDocumentUri.GetRequiredSystemUri(),
+                        generatedDocumentUri,
                         mappedRange.Start.Line,
-                        mappedUri.GetDocumentFilePathFromUri(),
+                        path,
                         cancellationToken)
                         .ConfigureAwait(false);
                     referenceItem.Text = fixedResultText ?? referenceItem.Text;
@@ -162,7 +161,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
 
     private async Task<string?> GetResultTextAsync(
         RemoteDocumentSnapshot snapshot,
-        Uri generatedDocumentUri,
+        DocumentUri generatedDocumentUri,
         int lineNumber,
         string filePath,
         CancellationToken cancellationToken)

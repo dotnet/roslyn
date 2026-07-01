@@ -30,7 +30,7 @@ internal interface IRemoteInlineCompletionService
 
 [DataContract]
 internal record struct InlineCompletionRequestInfo(
-    [property: DataMember(Order = 0)] Uri GeneratedDocumentUri,
+    [property: DataMember(Order = 0)] DocumentUri GeneratedDocumentUri,
     [property: DataMember(Order = 1)] LinePosition Position,
     [property: DataMember(Order = 2)] bool InDeclDocument);
 

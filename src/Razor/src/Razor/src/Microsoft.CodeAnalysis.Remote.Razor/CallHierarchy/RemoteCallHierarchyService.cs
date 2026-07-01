@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CallHierarchy;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -196,8 +195,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         CancellationToken cancellationToken)
     {
         var resolveData = CallHierarchyHelpers.GetResolveData(item);
-        var generatedDocumentUri = resolveData.TextDocument.DocumentUri.GetRequiredSystemUri();
-        return await snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+        return await snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(resolveData.TextDocument.DocumentUri, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<CallHierarchyItem[]?> MapItemsAsync(RemoteDocumentSnapshot snapshot, CallHierarchyItem[] items, CancellationToken cancellationToken)

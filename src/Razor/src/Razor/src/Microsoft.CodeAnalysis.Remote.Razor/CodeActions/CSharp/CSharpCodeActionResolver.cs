@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -57,7 +56,7 @@ internal sealed class CSharpCodeActionResolver(
             }
 
             // We know this is a virtual C# file, but we have to jump through a couple of hoops to make sure we get the right info
-            var generatedDocumentUri = textDocumentEdit.TextDocument.DocumentUri.GetRequiredSystemUri();
+            var generatedDocumentUri = textDocumentEdit.TextDocument.DocumentUri;
             var solution = snapshot.TextDocument.Project.Solution;
 
             var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
