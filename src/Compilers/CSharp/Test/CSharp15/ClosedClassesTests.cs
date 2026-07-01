@@ -542,7 +542,6 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
-        comp.MakeTypeMissing(WellKnownType.System_Type);
 
         var verifier = CompileAndVerify(comp, symbolValidator: verifyMetadata, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
@@ -556,6 +555,143 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 ],
                 GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
         }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_11()
+    {
+        // DerivedTypes from IL is missing a type
+        var ilSource = """
+      .class private auto ansi abstract beforefieldinit C
+          extends [mscorlib]System.Object
+      {
+          .custom instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::.ctor() = (
+              01 00 01 00 54 1d 50 0c 44 65 72 69 76 65 64 54 // ...DerivedT
+              79 70 65 73 01 00 00 00 02 44 31                // ypes...D1
+          )
+          // Methods
+          .method family hidebysig specialname rtspecialname 
+              instance void .ctor () cil managed 
+          {
+              .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+                  01 00 0d 43 6c 6f 73 65 64 43 6c 61 73 73 65 73
+                  00 00
+              )
+              // Method begins at RVA 0x2050
+              // Code size 7 (0x7)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: call instance void [mscorlib]System.Object::.ctor()
+              IL_0006: ret
+          } // end of method C::.ctor
+      } // end of class C
+
+      .class private auto ansi beforefieldinit D1
+          extends C
+      {
+          // Methods
+          .method public hidebysig specialname rtspecialname 
+              instance void .ctor () cil managed 
+          {
+              // Method begins at RVA 0x2058
+              // Code size 7 (0x7)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: call instance void C::.ctor()
+              IL_0006: ret
+          } // end of method D1::.ctor
+      } // end of class D1
+
+      .class private auto ansi beforefieldinit D2
+          extends C
+      {
+          // Methods
+          .method public hidebysig specialname rtspecialname 
+              instance void .ctor () cil managed 
+          {
+              // Method begins at RVA 0x2058
+              // Code size 7 (0x7)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: call instance void C::.ctor()
+              IL_0006: ret
+          } // end of method D2::.ctor
+      } // end of class D2
+
+      .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsClosedTypeAttribute
+          extends [mscorlib]System.Attribute
+      {
+          .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+              01 00 04 00 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+              4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+              72 69 74 65 64 00
+          )
+          // Fields
+          .field private class [mscorlib]System.Type[] '<DerivedTypes>k__BackingField'
+          .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+              01 00 00 00
+          )
+          // Methods
+          .method public hidebysig specialname 
+              instance class [mscorlib]System.Type[] get_DerivedTypes () cil managed 
+          {
+              .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                  01 00 00 00
+              )
+              // Method begins at RVA 0x2060
+              // Code size 7 (0x7)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: ldfld class [mscorlib]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::'<DerivedTypes>k__BackingField'
+              IL_0006: ret
+          } // end of method IsClosedTypeAttribute::get_DerivedTypes
+          .method public hidebysig specialname 
+              instance void set_DerivedTypes (
+                  class [mscorlib]System.Type[] 'value'
+              ) cil managed 
+          {
+              .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                  01 00 00 00
+              )
+              // Method begins at RVA 0x2068
+              // Code size 8 (0x8)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: ldarg.1
+              IL_0002: stfld class [mscorlib]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::'<DerivedTypes>k__BackingField'
+              IL_0007: ret
+          } // end of method IsClosedTypeAttribute::set_DerivedTypes
+          .method public hidebysig specialname rtspecialname 
+              instance void .ctor () cil managed 
+          {
+              // Method begins at RVA 0x2071
+              // Code size 7 (0x7)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+              IL_0006: ret
+          } // end of method IsClosedTypeAttribute::.ctor
+          // Properties
+          .property instance class [mscorlib]System.Type[] DerivedTypes()
+          {
+              .get instance class [mscorlib]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::get_DerivedTypes()
+              .set instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::set_DerivedTypes(class [mscorlib]System.Type[])
+          }
+      } // end of class System.Runtime.CompilerServices.IsClosedTypeAttribute
+      """;
+
+        var comp = CreateCompilationWithIL("", ilSource, TargetFramework.Net100);
+
+        var peType = (PENamedTypeSymbol)comp.GetMember("C");
+        var peModule = peType.ContainingPEModule;
+        AssertEx.SetEqual([
+                "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1)})"
+            ],
+            GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+
+        AssertEx.SetEqual(["D1", "D2"], peType.CandidateClosedSubtypeDefinitions.ToTestDisplayStrings());
+        Assert.True(peType.TryGetClosedSubtypes(out var subtypes));
+        AssertEx.SetEqual(["D1", "D2"], subtypes.ToTestDisplayStrings());
     }
 
     [Fact]
