@@ -2769,23 +2769,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsSlotMember(int slot, Symbol possibleMember)
         {
-            TypeSymbol? possibleBase;
-            if (possibleMember.TryGetInstanceExtensionParameter(out ParameterSymbol? extensionParameter))
+            TypeSymbol? possibleBase = possibleMember.TryGetInstanceExtensionParameter(out ParameterSymbol? extensionParameter)
+                ? extensionParameter.Type
+                : possibleMember.ContainingType;
+
+            if (possibleBase is null)
             {
-                possibleBase = extensionParameter.Type;
-                if (possibleBase is null || possibleBase.IsErrorType())
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                possibleBase = possibleMember.ContainingType;
-                if (possibleBase is null)
-                {
-                    Debug.Assert(false, "If this assert fires, please add a unit test for the scenario.");
-                    return false;
-                }
+                Debug.Assert(false, "If this assert fires, please add a unit test for the scenario.");
+                return false;
             }
 
             TypeSymbol possibleDerived = NominalSlotType(slot);

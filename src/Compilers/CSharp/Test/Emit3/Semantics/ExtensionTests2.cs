@@ -2266,7 +2266,7 @@ public static class E
             Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(8, 42));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81913")]
     public void Nullability_PropertyAccess_25()
     {
         var src = """
