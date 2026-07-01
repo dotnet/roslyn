@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,9 +18,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 internal class RazorBreakpointResolver(
     IRemoteServiceInvoker remoteServiceInvoker) : IRazorBreakpointResolver
 {
-    private record CohostCacheKey(DocumentId DocumentId, VersionStamp Version, int Line, int Character) : CacheKey;
-    private record LspCacheKey(Uri DocumentUri, long? HostDocumentSyncVersion, int Line, int Character) : CacheKey;
-    private record CacheKey;
+    private record CacheKey(DocumentId DocumentId, VersionStamp Version, int Line, int Character);
 
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
 
@@ -43,7 +40,7 @@ internal class RazorBreakpointResolver(
             version = await razorDocument.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        var cacheKey = new CohostCacheKey(razorDocument.Id, version, lineIndex, characterIndex);
+        var cacheKey = new CacheKey(razorDocument.Id, version, lineIndex, characterIndex);
         if (_cache.TryGetValue(cacheKey, out var cachedRange))
         {
             // We've seen this request before. Hopefully the TryGetTextVersion call above was successful so this whole path
