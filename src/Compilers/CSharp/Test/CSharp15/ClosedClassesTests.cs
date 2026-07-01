@@ -135,6 +135,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
             var ctor = classC.Constructors.Single();
             // CompilerFeatureRequiredAttribute is filtered out
             Assert.Empty(ctor.GetAttributes());
+
+            if (module is PEModuleSymbol peModule)
+            {
+                var peType = (PENamedTypeSymbol)classC;
+                // Get attributes from metadata without doing any filtering
+                AssertEx.SetEqual([
+                        "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {})"
+                    ],
+                    GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+            }
         }
     }
 
@@ -201,6 +211,350 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Assert.True(classC.IsClosed);
             // attribute is filtered out of source and metadata symbols.
             Assert.Empty(classC.GetAttributes());
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_01()
+    {
+        // simple case
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+
+            class D3 : D1;
+            """;
+
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifyMetadata, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.True(classC.IsClosed);
+            // attribute is filtered out of source and metadata symbols.
+            Assert.Empty(classC.GetAttributes());
+
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)classC;
+            // Get attributes from metadata without doing any filtering
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1), typeof(D2)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+
+            peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("D1");
+            AssertEx.Empty(GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_02()
+    {
+        // nested hierarchy
+        var source = """
+            closed class C;
+
+            closed class D1 : C;
+            class D2 : C;
+
+            class D3 : D1;
+            class D4 : D1;
+
+            class D5 : D4;
+            """;
+
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifyMetadata, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1), typeof(D2)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+
+            peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("D1");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D3), typeof(D4)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_03()
+    {
+        // various generic subtypes
+        var source = """
+            closed class C<T>;
+
+            class D1 : C<string>;
+            class D2 : C<int>;
+            class D3<T> : C<T>;
+            class D4<T> : C<T*[]> where T : unmanaged;
+            class D5<T, U> : C<(T, U)>;
+            """;
+
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifyMetadata, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1), typeof(D2), typeof(D3<>), typeof(D4<>), typeof(D5<,>)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_04()
+    {
+        // nested generic subtype
+        var source = """
+            closed class C<T, U>;
+
+            class Container<T>
+            {
+                internal class D1<U> : C<T, U>;
+                internal class D2 : C<T, string>;
+            }
+            """;
+
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifyMetadata, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(Container<>.D1<>), typeof(Container<>.D2)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_05()
+    {
+        // System.Type is missing
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.MakeTypeMissing(WellKnownType.System_Type);
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifyMetadata, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_06()
+    {
+        // DerivedTypes property is missing
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute;
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifyMetadata, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_07()
+    {
+        // DerivedTypes only has getter
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes { get; }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifyMetadata, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1), typeof(D2)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_08()
+    {
+        // DerivedTypes only has setter
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes { set { } }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifyMetadata, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1), typeof(D2)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_09()
+    {
+        // DerivedTypes inaccessible setter
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes { get; private set; }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifyMetadata, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1), typeof(D2)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_10()
+    {
+        // DerivedTypes wrong type
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public int[] DerivedTypes { get; set; }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+        comp.MakeTypeMissing(WellKnownType.System_Type);
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifyMetadata, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
         }
     }
 
@@ -683,6 +1037,20 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
         Assert.False(classC.TryGetClosedSubtypes(out _));
+
+        CompileAndVerify(comp1, symbolValidator: verifyMetadata);
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            {
+                var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                // Get attributes from metadata without doing any filtering
+                AssertEx.SetEqual([
+                        "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1<>), typeof(D2<>), typeof(D3<>)})"
+                    ],
+                    GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+            }
+        }
     }
 
     [Fact]
@@ -721,6 +1089,20 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["Outer<T>.D"], subtypes.ToTestDisplayStrings());
+
+        CompileAndVerify(comp1, symbolValidator: verifyMetadata);
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            {
+                var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                // Get attributes from metadata without doing any filtering
+                AssertEx.SetEqual([
+                        "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(Outer<>.D)})"
+                    ],
+                    GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+            }
+        }
     }
 
     [Fact]
@@ -760,6 +1142,20 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["D"], subtypes.ToTestDisplayStrings());
+
+        CompileAndVerify(comp1, symbolValidator: verifyMetadata);
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            {
+                var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                // Get attributes from metadata without doing any filtering
+                AssertEx.SetEqual([
+                        "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D)})"
+                    ],
+                    GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+            }
+        }
     }
 
     [Fact]
@@ -1155,6 +1551,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Assert.Equal("C", classC.ToTestDisplayString());
             Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
             Assert.Equal(["D1", "D2"], subtypes.ToTestDisplayStrings());
+
+            if (module is PEModuleSymbol peModule)
+            {
+                var peType = (PENamedTypeSymbol)classC;
+                // Get attributes from metadata without doing any filtering
+                AssertEx.SetEqual([
+                        "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1), typeof(D2)})"
+                    ],
+                    GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+            }
         }
     }
 
