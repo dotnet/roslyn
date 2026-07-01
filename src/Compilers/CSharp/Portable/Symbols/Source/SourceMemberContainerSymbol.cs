@@ -1987,7 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (wellKnownDerivedTypesProperty is not null)
                 {
                     Binder.ReportUseSite(wellKnownDerivedTypesProperty, diagnostics, location);
-                    _ = Binder.GetWellKnownType(compilation, WellKnownType.System_Type, diagnostics, location);
+                    var systemType = Binder.GetWellKnownType(compilation, WellKnownType.System_Type, diagnostics, location);
 
                     var isValid = wellKnownDerivedTypesProperty is
                     {
@@ -1997,19 +1997,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         RefKind: RefKind.None,
                         ParameterCount: 0,
                         Type: ArrayTypeSymbol { ElementType: var elementType }
-                    } && elementType.Equals(compilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptions);
+                    } && elementType.Equals(systemType, TypeCompareKind.AllIgnoreOptions);
+
                     if (!isValid)
                     {
                         diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
                     }
                 }
 
-                var allDerivedTypesSymbols = isClosedTypeAttributeCtor.ContainingType.GetMembers("DerivedTypes");
-                foreach (var derivedTypesSymbol in allDerivedTypesSymbols)
+                if (isClosedTypeAttributeCtor is not null)
                 {
-                    if (!derivedTypesSymbol.Equals(wellKnownDerivedTypesProperty, TypeCompareKind.AllIgnoreOptions))
+                    var allDerivedTypesSymbols = isClosedTypeAttributeCtor.ContainingType.GetMembers("DerivedTypes");
+                    foreach (var derivedTypesSymbol in allDerivedTypesSymbols)
                     {
-                        diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
+                        if (!derivedTypesSymbol.Equals(wellKnownDerivedTypesProperty, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
+                        }
                     }
                 }
             }
