@@ -41,10 +41,17 @@ internal static class FindAllReferencesHelper
             var codeDoc = await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
             var line = codeDoc.Source.Text.Lines[lineNumber];
             var csharpDocument = codeDoc.GetRequiredCSharpDocument();
-            if (!documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, line.Start, out _, out _) ||
+            var start = line.GetFirstNonWhitespacePosition() ?? line.Start;
+
+            // If the first non-whitespace character is '@', the line starts with a Razor transition
+            // character (e.g., @if, @foreach, @while). In this case, we always return the Razor
+            // source text so the '@' is included in the result. We can't rely solely on the mapping
+            // check because '@' itself may map to a C# position, causing the code to incorrectly
+            // treat the line as pure C# and strip the leading '@'.
+            if ((start < codeDoc.Source.Text.Length && codeDoc.Source.Text[start] == '@') ||
+                !documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, line.Start, out _, out _) ||
                 !documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, line.End, out _, out _))
             {
-                var start = line.GetFirstNonWhitespacePosition() ?? line.Start;
                 return codeDoc.Source.Text.ToString(TextSpan.FromBounds(start, line.End));
             }
         }
