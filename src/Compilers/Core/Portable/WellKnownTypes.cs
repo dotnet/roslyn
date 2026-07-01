@@ -236,6 +236,8 @@ namespace Microsoft.CodeAnalysis
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_NullReferenceException,
+
         System_Runtime_CompilerServices_AsyncStateMachineAttribute,
         System_Runtime_CompilerServices_IteratorStateMachineAttribute,
 
@@ -613,6 +615,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1",
 
             "", // WellKnownType.ExtSentinel extension marker
+
+            "System.NullReferenceException",
 
             "System.Runtime.CompilerServices.AsyncStateMachineAttribute",
             "System.Runtime.CompilerServices.IteratorStateMachineAttribute",

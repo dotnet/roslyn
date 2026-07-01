@@ -4058,7 +4058,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_NullReferenceException__ctor
                 (byte)MemberFlags.Constructor,                                                                                               // Flags
-                (byte)SpecialType.System_NullReferenceException,                                                                             // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_NullReferenceException - WellKnownType.ExtSentinel),            // DeclaringTypeId
                 0,                                                                                                                           // Arity
                     0,                                                                                                                       // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
