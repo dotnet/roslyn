@@ -3983,7 +3983,7 @@ __builder.AddContent(1, """"""
             Assert.Equal("RZ1044", diagnostic.Id);
             Assert.NotEqual(Location.None, diagnostic.Location);
             Assert.Equal("Pages/Index.razor", diagnostic.Location.GetLineSpan().Path);
-            Assert.Equal(2, mainRun.GeneratedSources.Length);
+            Assert.Equal(2, result.GeneratedSources.Length);
         }
     }
 }
