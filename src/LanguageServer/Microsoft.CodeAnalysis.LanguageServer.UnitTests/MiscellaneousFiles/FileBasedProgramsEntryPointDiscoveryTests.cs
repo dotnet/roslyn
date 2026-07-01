@@ -301,7 +301,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         await discovery.FindAndLoadEntryPointsAsync();
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
-        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
         Assert.True(document.Project.State.HasAllInformation);
     }
 
@@ -399,6 +399,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, true),
         });
 
         await testLspServer.ExecuteNotificationAsync(
@@ -412,7 +413,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 },
             });
 
-        await Task.Delay(500);
+        await WaitForProjectLoadAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer, static document => document.Project.State.HasAllInformation);
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.True(document.Project.State.HasAllInformation);
@@ -427,6 +428,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, true),
             WorkspaceFolders = [new WorkspaceFolder { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }],
             ClientCapabilities = new ClientCapabilities
             {
@@ -455,10 +457,10 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 ],
             });
 
-        await Task.Delay(500);
+        await WaitForProjectLoadAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer, static document => document.Project.State.HasAllInformation);
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
-        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
-        Assert.NotNull(document);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
     }
 
     [Fact]
@@ -514,6 +516,25 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         Assert.NotNull(workspace);
         Assert.NotNull(document);
         return (workspace, document);
+    }
+
+    private static async ValueTask WaitForProjectLoadAsync(DocumentUri looseFileUri, TestLspServer testLspServer, Func<Document, bool>? isLoaded = null)
+    {
+        for (var i = 0; i < 50; i++)
+        {
+            await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+            var (workspace, loadedDocument) = await GetLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+            if (workspace is not null && loadedDocument is not null && (isLoaded is null || isLoaded(loadedDocument)))
+            {
+                return;
+            }
+
+            await Task.Delay(100).ConfigureAwait(false);
+        }
+
+        var (_, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.True(isLoaded is null || isLoaded(document));
     }
 
     [Fact]
