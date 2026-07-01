@@ -51,6 +51,15 @@ Now read the PR description, labels, linked issues (in full), author information
 4. **Reconcile your assessment with the author's claims.** Where your independent reading of the code disagrees with the PR description or issue, investigate further — but do not simply defer to the author's framing. If the PR claims a bug fix, a performance improvement, or a behavioral correction, verify those claims against the code and any provided evidence. If your independent assessment found problems the PR narrative doesn't acknowledge, those problems are more likely to be real, not less.
 5. **Update your holistic assessment** if the additional context reveals information that genuinely changes your evaluation (e.g., a linked issue proves the bug is real, or an existing review comment already identified the same concern). But do not soften findings just because the PR description sounds reasonable.
 
+### Special Case: Revert PRs
+
+If the PR is a pure or targeted revert of an earlier commit, adjust the review scope before leaving feedback:
+
+1. **Confirm the revert shape.** Verify which commit(s) are being reverted and whether the diff is a faithful revert or includes additional changes.
+2. **Prioritize the revert rationale.** Reverts are often urgent mitigations for a specific pipeline, insertion, or customer-blocking failure. Read the linked failure context and evaluate whether reverting is a reasonable short-term mitigation.
+3. **Avoid reviewing the restored/original code shape.** Do not leave comments asking the author to improve code that merely returns to the previous state. That feedback was either in scope for the original PR or belongs in a follow-up. For a pure revert, comments about style, structure, tests, or design of the restored code are usually noise.
+4. **Focus only on revert-specific risks.** Review whether the revert is complete, whether it accidentally reverts unrelated work, whether follow-up tracking is needed to re-land safely, and whether any non-revert edits introduce new issues.
+
 ### Step 3: Detailed Analysis
 
 1. **Focus on what matters.** Prioritize bugs, performance regressions, safety issues, race conditions, resource management problems, incorrect assumptions about data or state, and API design problems. Do not comment on trivial style issues unless they violate an explicit rule below.
