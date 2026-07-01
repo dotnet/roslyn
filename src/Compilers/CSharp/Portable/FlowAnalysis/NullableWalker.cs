@@ -2918,9 +2918,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variables.GetMembers(members, targetSlot);
             foreach (var (variable, slot) in members)
             {
-                var symbol = variable.Symbol.IsExtensionBlockMember()
-                    ? variable.Symbol
-                    : AsMemberOfType(targetType, variable.Symbol);
+                Symbol symbol = variable.Symbol;
+                symbol = symbol.IsExtensionBlockMember()
+                    ? symbol
+                    : AsMemberOfType(targetType, symbol);
+
                 SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(symbol));
                 InheritDefaultState(GetTypeOrReturnType(symbol), slot);
             }
