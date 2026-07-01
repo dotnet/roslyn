@@ -31,24 +31,24 @@
   -->
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
-    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build" Version="18.6.3" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="18.6.3" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.6.3" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.6.3" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build" Version="18.6.3" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="18.6.3" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.6.3" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.6.3" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="18.4.0" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="18.4.0" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.4.0" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.4.0" />
+    <PackageVersion Include="Microsoft.Build" Version="18.6.3" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="18.6.3" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.6.3" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.6.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -268,7 +268,7 @@
     <PackageVersion Include="System.Drawing.Common" Version="10.0.3" />
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
     <PackageVersion Include="Moq" Version="4.10.1" />
-    <PackageVersion Include="System.CodeDom" Version="8.0.0" />
+    <PackageVersion Include="System.CodeDom" Version="10.0.8" />
     <PackageVersion Include="InputSimulatorPlus" Version="1.0.7" />
     <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
