@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces.CodeLens;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;

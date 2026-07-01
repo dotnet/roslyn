@@ -8,9 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
@@ -135,66 +133,6 @@ internal static class DelegatedCompletionHelper
             completionOptions);
 
         return rewrittenResponse;
-    }
-
-    /// <summary>
-    /// Returns possibly update document position info and provisional edit (if any)
-    /// </summary>
-    /// <remarks>
-    /// Provisional completion happens when typing something like @DateTime. in a document.
-    /// In this case the '.' initially is parsed as belonging to HTML. However, we want to
-    /// show C# member completion in this case, so we want to make a temporary change to the
-    /// generated C# code so that '.' ends up in C#. This method will check for such case,
-    /// and provisional completion case is detected, will update position language from HTML
-    /// to C# and will return a temporary edit that should be made to the generated document
-    /// in order to add the '.' to the generated C# contents.
-    /// </remarks>
-    public static bool TryGetProvisionalCompletionInfo(
-        RazorCodeDocument codeDocument,
-        VSInternalCompletionContext completionContext,
-        DocumentPositionInfo originalPositionInfo,
-        IDocumentMappingService documentMappingService,
-        out CompletionPositionInfo result)
-    {
-        result = default;
-
-        if (originalPositionInfo.LanguageKind != RazorLanguageKind.Html ||
-            completionContext.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
-            completionContext.TriggerCharacter != ".")
-        {
-            // Invalid provisional completion context
-            return false;
-        }
-
-        if (originalPositionInfo.Position.Character == 0)
-        {
-            // We're at the start of line. Can't have provisional completions here.
-            return false;
-        }
-
-        var previousCharacterPositionInfo = documentMappingService.GetPositionInfo(codeDocument, originalPositionInfo.HostDocumentIndex - 1);
-
-        if (previousCharacterPositionInfo.LanguageKind != RazorLanguageKind.CSharp)
-        {
-            return false;
-        }
-
-        var previousPosition = previousCharacterPositionInfo.Position;
-
-        // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
-        // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
-        var addProvisionalDot = LspFactory.CreateTextEdit(previousPosition, ".");
-
-        var provisionalPositionInfo = new DocumentPositionInfo(
-            RazorLanguageKind.CSharp,
-            LspFactory.CreatePosition(
-                previousPosition.Line,
-                previousPosition.Character + 1),
-            previousCharacterPositionInfo.HostDocumentIndex + 1,
-            previousCharacterPositionInfo.InDeclDocument);
-
-        result = new CompletionPositionInfo(addProvisionalDot, provisionalPositionInfo, ShouldIncludeDelegationSnippets: false);
-        return true;
     }
 
     public static bool ShouldIncludeSnippets(RazorCodeDocument razorCodeDocument, int absoluteIndex, out bool isStartTagContext)

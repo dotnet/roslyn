@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
@@ -86,7 +87,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         var positionInfo = GetPositionInfo(codeDocument, index);
 
         if (positionInfo.LanguageKind != RazorLanguageKind.Razor
-            && DelegatedCompletionHelper.TryGetProvisionalCompletionInfo(
+            && TryGetProvisionalCompletionInfo(
                 codeDocument, completionContext, positionInfo, DocumentMappingService, out var provisionalCompletionInfo))
         {
             return provisionalCompletionInfo with { ShouldIncludeDelegationSnippets = false };
@@ -107,6 +108,66 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             && !DelegatedCompletionHelper.IsInDirectiveAttributeParameterContext(codeDocument, index);
 
         return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets, shouldIncludeHtmlCompletions, isStartTagContext);
+    }
+
+    /// <summary>
+    /// Returns possibly update document position info and provisional edit (if any)
+    /// </summary>
+    /// <remarks>
+    /// Provisional completion happens when typing something like @DateTime. in a document.
+    /// In this case the '.' initially is parsed as belonging to HTML. However, we want to
+    /// show C# member completion in this case, so we want to make a temporary change to the
+    /// generated C# code so that '.' ends up in C#. This method will check for such case,
+    /// and provisional completion case is detected, will update position language from HTML
+    /// to C# and will return a temporary edit that should be made to the generated document
+    /// in order to add the '.' to the generated C# contents.
+    /// </remarks>
+    private static bool TryGetProvisionalCompletionInfo(
+        RazorCodeDocument codeDocument,
+        VSInternalCompletionContext completionContext,
+        DocumentPositionInfo originalPositionInfo,
+        IDocumentMappingService documentMappingService,
+        out CompletionPositionInfo result)
+    {
+        result = default;
+
+        if (originalPositionInfo.LanguageKind != RazorLanguageKind.Html ||
+            completionContext.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
+            completionContext.TriggerCharacter != ".")
+        {
+            // Invalid provisional completion context
+            return false;
+        }
+
+        if (originalPositionInfo.Position.Character == 0)
+        {
+            // We're at the start of line. Can't have provisional completions here.
+            return false;
+        }
+
+        var previousCharacterPositionInfo = documentMappingService.GetPositionInfo(codeDocument, originalPositionInfo.HostDocumentIndex - 1);
+
+        if (previousCharacterPositionInfo.LanguageKind != RazorLanguageKind.CSharp)
+        {
+            return false;
+        }
+
+        var previousPosition = previousCharacterPositionInfo.Position;
+
+        // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
+        // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
+        var addProvisionalDot = LspFactory.CreateTextEdit(previousPosition, ".");
+
+        var provisionalPositionInfo = new DocumentPositionInfo(
+            RazorLanguageKind.CSharp,
+            LspFactory.CreatePosition(
+                previousPosition.Line,
+                previousPosition.Character + 1),
+            previousCharacterPositionInfo.HostDocumentIndex + 1,
+            previousCharacterPositionInfo.InDeclDocument);
+
+        result = new CompletionPositionInfo(addProvisionalDot, provisionalPositionInfo, ShouldIncludeDelegationSnippets: false);
+        return true;
     }
 
     /// <summary>
