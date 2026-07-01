@@ -1808,14 +1808,13 @@ next:;
                 var derivedTypesProperty = compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes);
 
                 ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments;
-                // Note: some definitions of IsClosedTypeAttribute may be missing DerivedTypes property.
-                if (systemType is not null and not ErrorTypeSymbol && derivedTypesProperty != null && !derivedTypesProperty.HasUseSiteError)
+                if (systemType is not null && derivedTypesProperty != null)
                 {
                     var arrayOfSystemType = ArrayTypeSymbol.CreateSZArray(systemType.ContainingAssembly, TypeWithAnnotations.Create(systemType, NullableAnnotation.NotAnnotated));
                     var derivedTypesConstant = new TypedConstant(
                         arrayOfSystemType,
                         CandidateClosedSubtypeDefinitions.SelectAsArray(
-                            subtype => new TypedConstant(systemType, TypedConstantKind.Type, subtype.GetUnboundGenericTypeOrSelf())));
+                            static (subtype, systemType) => new TypedConstant(systemType, TypedConstantKind.Type, subtype.GetUnboundGenericTypeOrSelf()), systemType));
 
                     namedArguments = [new KeyValuePair<WellKnownMember, TypedConstant>(
                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes,
@@ -1823,7 +1822,7 @@ next:;
                 }
                 else
                 {
-                    namedArguments = [];
+                    namedArguments = default;
                 }
 
                 var closedAttribute = compilation.TrySynthesizeAttribute(

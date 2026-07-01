@@ -1979,8 +1979,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsClosed)
             {
                 // Ensure necessary attributes are present
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, GetFirstLocation());
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
+                var isClosedTypeAttributeCtor = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, location);
+                _ = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, location);
+
+                // DerivedTypes property is optional but must have expected shape if present
+                var wellKnownDerivedTypesProperty = (PropertySymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes);
+                if (wellKnownDerivedTypesProperty is not null)
+                {
+                    Binder.ReportUseSite(wellKnownDerivedTypesProperty, diagnostics, location);
+                    _ = Binder.GetWellKnownType(compilation, WellKnownType.System_Type, diagnostics, location);
+
+                    var isValid = wellKnownDerivedTypesProperty is
+                    {
+                        IsStatic: false,
+                        GetMethod.DeclaredAccessibility: Accessibility.Public,
+                        SetMethod.DeclaredAccessibility: Accessibility.Public,
+                        RefKind: RefKind.None,
+                        ParameterCount: 0,
+                        Type: ArrayTypeSymbol { ElementType: var elementType }
+                    } && elementType.Equals(compilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptions);
+                    if (!isValid)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
+                    }
+                }
+
+                var allDerivedTypesSymbols = isClosedTypeAttributeCtor.ContainingType.GetMembers("DerivedTypes");
+                foreach (var derivedTypesSymbol in allDerivedTypesSymbols)
+                {
+                    if (!derivedTypesSymbol.Equals(wellKnownDerivedTypesProperty, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
+                    }
+                }
             }
 
             var baseType = BaseTypeNoUseSiteDiagnostics;
