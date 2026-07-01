@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal BoundListPattern WithSubpatterns(ImmutableArray<BoundPattern> subpatterns)
         {
-            return Update(subpatterns, this.HasSlice, this.LengthAccess, this.IndexerAccess, this.ReceiverPlaceholder, this.ArgumentPlaceholder, this.Variable, this.VariableAccess, this.IsUnionMatching, this.InputType, this.NarrowedType);
+            return Update(subpatterns, this.HasSlice, this.LengthAccess, this.IndexerAccess, this.ReceiverPlaceholder, this.ArgumentPlaceholder, this.Variable, this.VariableAccess, this.InputType, this.NarrowedType);
         }
 
         private partial void Validate()

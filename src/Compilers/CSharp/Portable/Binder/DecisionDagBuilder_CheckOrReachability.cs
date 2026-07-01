@@ -995,8 +995,8 @@ start:
                             new BoundTypeExpression(recursivePattern.Syntax, aliasOpt: null, recursivePattern.InputType.StrippedType()),
                         recursivePattern.DeconstructMethod, recursivePattern.Deconstruction,
                         recursivePattern.Properties, recursivePattern.IsExplicitNotNullTest,
-                        recursivePattern.Variable, recursivePattern.VariableAccess,
-                        isUnionMatching: false, inputType, recursivePattern.NarrowedType);
+                        isUnionMatching: false, recursivePattern.Variable, recursivePattern.VariableAccess,
+                        inputType, recursivePattern.NarrowedType);
                 }
 
                 if (pattern is BoundDiscardPattern discardPattern)
@@ -1025,8 +1025,8 @@ start:
                 if (pattern is BoundDeclarationPattern declarationPattern)
                 {
                     // We drop the variable symbol and access to avoid input type mismtaches, resulting in a designation discard
-                    return declarationPattern.Update(declarationPattern.DeclaredType, declarationPattern.IsVar,
-                        variable: null, variableAccess: null, isUnionMatching: false, inputType, declarationPattern.NarrowedType);
+                    return declarationPattern.Update(declarationPattern.DeclaredType, declarationPattern.IsVar, unionMatchingMode: UnionMatchingMode.None,
+                        variable: null, variableAccess: null, inputType, declarationPattern.NarrowedType);
                 }
 
                 Debug.Assert(pattern is BoundITuplePattern or BoundListPattern);
@@ -1049,7 +1049,7 @@ start:
 
             public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
             {
-                var result = new BoundDeclarationPattern(node.Syntax, node.DeclaredType, node.IsVar, node.Variable, node.VariableAccess, isUnionMatching: false, node.InputType, node.NarrowedType)
+                var result = new BoundDeclarationPattern(node.Syntax, node.DeclaredType, node.IsVar, unionMatchingMode: UnionMatchingMode.None, node.Variable, node.VariableAccess, node.InputType, node.NarrowedType)
                     .MakeCompilerGenerated();
                 TryPushOperand(NegateIfNeeded(result));
                 return null;
@@ -1103,7 +1103,7 @@ start:
                 {
                     // `{ }`
                     initialCheck = new BoundRecursivePattern(node.Syntax, declaredType: null, deconstructMethod: null, deconstruction: default,
-                        ImmutableArray<BoundPropertySubpattern>.Empty, isExplicitNotNullTest: false, variable: null, variableAccess: null, isUnionMatching: false, node.InputType, node.InputType);
+                        ImmutableArray<BoundPropertySubpattern>.Empty, isExplicitNotNullTest: false, isUnionMatching: false, variable: null, variableAccess: null, node.InputType, node.InputType);
                 }
                 TryPushOperand(NegateIfNeeded(initialCheck));
                 Debug.Assert(_evalSequence.Count == startOfLeft + 1);
@@ -1128,8 +1128,8 @@ start:
                         BoundPattern newRecursive = new BoundRecursivePattern(
                             newPattern.Syntax, declaredType: node.DeclaredType, deconstructMethod: node.DeconstructMethod,
                             deconstruction: newSubPatterns,
-                            properties: default, isExplicitNotNullTest: false, variable: null, variableAccess: null,
-                            isUnionMatching: false, node.InputType, node.NarrowedType, node.HasErrors);
+                            properties: default, isExplicitNotNullTest: false, isUnionMatching: false, variable: null, variableAccess: null,
+                            node.InputType, node.NarrowedType, node.HasErrors);
 
                         if (wasCompilerGenerated)
                         {
@@ -1163,8 +1163,8 @@ start:
                         BoundPattern newRecursive = new BoundRecursivePattern(
                             newPattern.Syntax, declaredType: node.DeclaredType, deconstructMethod: null, deconstruction: default,
                             properties: newSubPatterns,
-                            isExplicitNotNullTest: false, variable: null, variableAccess: null,
-                            isUnionMatching: false, node.InputType, node.NarrowedType, node.HasErrors);
+                            isExplicitNotNullTest: false, isUnionMatching: false, variable: null, variableAccess: null,
+                            node.InputType, node.NarrowedType, node.HasErrors);
 
                         if (wasCompilerGenerated)
                         {
@@ -1314,7 +1314,7 @@ start:
                     BoundPattern newList = new BoundListPattern(
                         newPattern.Syntax, newSubpatterns, hasSlice, listPattern.LengthAccess, listPattern.IndexerAccess,
                         listPattern.ReceiverPlaceholder, listPattern.ArgumentPlaceholder, listPattern.Variable, listPattern.VariableAccess,
-                        isUnionMatching: false, listPattern.InputType, listPattern.NarrowedType);
+                        listPattern.InputType, listPattern.NarrowedType);
 
                     if (wasCompilerGenerated)
                     {
@@ -1345,7 +1345,7 @@ start:
                         BoundPattern newList = new BoundListPattern(
                             newPattern.Syntax, newSubpatterns, hasSlice: true, listPattern.LengthAccess, listPattern.IndexerAccess,
                             listPattern.ReceiverPlaceholder, listPattern.ArgumentPlaceholder, listPattern.Variable, listPattern.VariableAccess,
-                            isUnionMatching: false, listPattern.InputType, listPattern.NarrowedType);
+                            listPattern.InputType, listPattern.NarrowedType);
 
                         if (wasCompilerGenerated)
                         {

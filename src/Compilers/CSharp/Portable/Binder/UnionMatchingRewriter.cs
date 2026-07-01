@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreatePatternWithUnionMatching(unionMatchingInputType, exclusiveInstancePattern: null, exclusiveValuePattern: exclusiveValuePattern);
         }
 
-        private static BoundPatternWithUnionMatching CreatePatternWithUnionMatching(NamedTypeSymbol unionMatchingInputType, BoundTypePattern? exclusiveInstancePattern, BoundPattern exclusiveValuePattern)
+        private static BoundPatternWithUnionMatching CreatePatternWithUnionMatching(NamedTypeSymbol unionMatchingInputType, BoundPattern? exclusiveInstancePattern, BoundPattern exclusiveValuePattern)
         {
             Debug.Assert(unionMatchingInputType.IsSubjectForUnionMatching);
             Debug.Assert(exclusiveValuePattern.InputType.IsObjectType());
@@ -116,8 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreatePatternWithUnionMatching(
                     (NamedTypeSymbol)node.InputType,
                     node.Update(
-                        node.DeclaredType, node.DeconstructMethod, node.Deconstruction, node.Properties, node.IsExplicitNotNullTest, node.Variable, node.VariableAccess,
-                        isUnionMatching: false, inputType: ObjectType, narrowedType: node.NarrowedType));
+                        node.DeclaredType, node.DeconstructMethod, node.Deconstruction, node.Properties, node.IsExplicitNotNullTest, isUnionMatching: false, node.Variable, node.VariableAccess,
+                        inputType: ObjectType, narrowedType: node.NarrowedType));
             }
 
             return node;
@@ -140,10 +140,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreatePatternWithUnionMatching(
                     (NamedTypeSymbol)node.InputType,
                     node.Update(subpatterns, node.HasSlice, lengthAccess, indexerAccess, receiverPlaceholder, argumentPlaceholder, variable, variableAccess,
-                        isUnionMatching: false, inputType: ObjectType, narrowedType));
+                        inputType: ObjectType, narrowedType));
             }
 
-            return node.Update(subpatterns, node.HasSlice, lengthAccess, indexerAccess, receiverPlaceholder, argumentPlaceholder, variable, variableAccess, isUnionMatching: false, inputType, narrowedType);
+            return node.Update(subpatterns, node.HasSlice, lengthAccess, indexerAccess, receiverPlaceholder, argumentPlaceholder, variable, variableAccess, inputType, narrowedType);
         }
 
         public override BoundNode? VisitITuplePattern(BoundITuplePattern node)
@@ -167,8 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CreatePatternWithUnionMatching(
                     (NamedTypeSymbol)node.InputType,
-                    node.Update(node.DeclaredType, node.IsVar, node.Variable, node.VariableAccess,
-                        isUnionMatching: false, inputType: ObjectType, narrowedType: node.NarrowedType));
+                    exclusiveInstancePattern: (node.UnionMatchingMode & UnionMatchingMode.UnionInstance) == 0 ? null :
+                                  node.Update(node.DeclaredType, node.IsVar, unionMatchingMode: UnionMatchingMode.None, node.Variable, node.VariableAccess,
+                                              inputType: node.InputType, narrowedType: node.NarrowedType),
+                    exclusiveValuePattern: node.Update(node.DeclaredType, node.IsVar, unionMatchingMode: UnionMatchingMode.None, node.Variable, node.VariableAccess,
+                        inputType: ObjectType, narrowedType: node.NarrowedType));
             }
 
             return node;
@@ -490,9 +493,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         BoundPattern? instancePattern = MakeBinaryAnd(syntax, exclusiveInstancePattern, sharedRightOfPendingConjunction, makeCompilerGenerated: true);
 
+                        BoundTypePattern toNegate;
+
+                        switch (exclusiveInstancePattern)
+                        {
+                            case BoundTypePattern typePattern:
+                                toNegate = makeTypePattern(typePattern.DeclaredType, typePattern.InputType);
+                                break;
+                            case BoundDeclarationPattern declarationPattern:
+                                toNegate = makeTypePattern(declarationPattern.DeclaredType, declarationPattern.InputType);
+                                break;
+                            default:
+                                throw ExceptionUtilities.Unreachable();
+                        }
+
                         unionValueMatching = MakeBinaryAnd(
                             syntax,
-                            new BoundNegatedPattern(exclusiveInstancePattern.Syntax, exclusiveInstancePattern.MakeCompilerGenerated(), exclusiveInstancePattern.InputType, exclusiveInstancePattern.InputType).MakeCompilerGenerated(),
+                            new BoundNegatedPattern(toNegate.Syntax, toNegate, toNegate.InputType, toNegate.InputType).MakeCompilerGenerated(),
                             unionValueMatching,
                             makeCompilerGenerated: true);
 
@@ -526,6 +543,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return pattern;
+
+            static BoundTypePattern makeTypePattern(BoundTypeExpression declaredType, TypeSymbol inputType)
+            {
+                return new BoundTypePattern(
+                    declaredType.Syntax,
+                    declaredType,
+                    isExplicitNotNullTest: false,
+                    unionMatchingMode: UnionMatchingMode.None,
+                    inputType,
+                    declaredType.Type).MakeCompilerGenerated();
+            }
         }
     }
 }

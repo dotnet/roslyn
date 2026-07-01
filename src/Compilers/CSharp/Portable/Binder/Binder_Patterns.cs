@@ -713,16 +713,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node switch
             {
                 DiscardPatternSyntax p => BindDiscardPattern(p, inputType, diagnostics),
-                DeclarationPatternSyntax p => BindDeclarationPattern(p, ref unionType, inputType, permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
+                DeclarationPatternSyntax p => BindDeclarationPattern(p, ref unionType, inputType, ref permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
                 ConstantPatternSyntax p => BindConstantPatternWithFallbackToTypePattern(p, ref unionType, inputType, ref permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
                 RecursivePatternSyntax p => BindRecursivePattern(p, ref unionType, inputType, permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
-                VarPatternSyntax p => BindVarPattern(p, ref unionType, inputType, permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
+                VarPatternSyntax p => BindVarPattern(p, ref unionType, inputType, permitDesignations, hasErrors, diagnostics),
                 ParenthesizedPatternSyntax p => BindParenthesizedPattern(p, ref unionType, inputType, ref permitDesignations, hasErrors, diagnostics, underIsPattern, hasUnionMatching: out hasUnionMatching),
                 BinaryPatternSyntax p => BindBinaryPattern(p, ref unionType, inputType, ref permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
                 UnaryPatternSyntax p => BindUnaryPattern(p, ref unionType, inputType, hasErrors, diagnostics, underIsPattern, hasUnionMatching: out hasUnionMatching),
                 RelationalPatternSyntax p => BindRelationalPattern(p, ref unionType, inputType, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
                 TypePatternSyntax p => BindTypePattern(p, ref unionType, inputType, ref permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
-                ListPatternSyntax p => BindListPattern(p, ref unionType, inputType, permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
+                ListPatternSyntax p => BindListPattern(p, inputType, permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
                 SlicePatternSyntax p => BindSlicePattern(p, inputType, permitDesignations, ref hasErrors, misplaced: true, diagnostics, hasUnionMatching: out hasUnionMatching),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
@@ -844,16 +844,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundListPattern BindListPattern(
             ListPatternSyntax node,
-            ref NamedTypeSymbol? unionType,
             TypeSymbol inputType,
             bool permitDesignations,
             bool hasErrors,
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
-            bool isUnionMatching = unionMatchingInputType is not null;
-
             CheckFeatureAvailability(node, MessageID.IDS_FeatureListPattern, diagnostics);
 
             TypeSymbol elementType;
@@ -889,8 +885,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Patterns, inputType: narrowedType, elementType: elementType,
                 permitDesignations, ref hasErrors, out bool sawSlice, diagnostics, out hasUnionMatching);
 
-            hasUnionMatching |= isUnionMatching;
-
             BindPatternDesignation(
                 node.Designation,
                 declType: TypeWithAnnotations.Create(narrowedType, NullableAnnotation.NotAnnotated),
@@ -900,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundListPattern(
                 syntax: node, subpatterns: subpatterns, hasSlice: sawSlice, lengthAccess: lengthAccess,
                 indexerAccess: indexerAccess, receiverPlaceholder, argumentPlaceholder, variable: variableSymbol,
-                variableAccess: variableAccess, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: narrowedType, hasErrors);
+                variableAccess: variableAccess, inputType: inputType, narrowedType: narrowedType, hasErrors);
         }
 
         /// <summary>
@@ -1438,6 +1432,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        /// <summary>
+        /// Check that the pattern type is valid for operand, which is union's Value. Return true if an error was reported.
+        /// </summary>
         private bool CheckValidPatternTypeForUnionCases(SyntaxNode typeSyntax, NamedTypeSymbol unionType, TypeSymbol patternType, BindingDiagnosticBag diagnostics, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(unionType.IsUnionType);
@@ -1509,22 +1506,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeclarationPatternSyntax node,
             ref NamedTypeSymbol? unionType,
             TypeSymbol inputType,
-            bool permitDesignations,
+            ref bool permitDesignations,
             bool hasErrors,
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
-            hasUnionMatching = unionMatchingInputType is not null;
-
             TypeSyntax typeSyntax = node.Type;
-            BoundTypeExpression boundDeclType = BindTypeForPattern(typeSyntax, unionType, inputType, diagnostics, ref hasErrors);
+
+            (BoundTypeExpression boundDeclType, UnionMatchingMode unionMatchingMode) = BindTypeForPattern(node, typeSyntax, unionType, inputType, ref permitDesignations, ref hasErrors, diagnostics);
+            hasUnionMatching = unionMatchingMode != UnionMatchingMode.None;
+
             BindPatternDesignation(
                 designation: node.Designation, declType: boundDeclType.TypeWithAnnotations, permitDesignations, typeSyntax, diagnostics,
                 hasErrors: ref hasErrors, variableSymbol: out Symbol? variableSymbol, variableAccess: out BoundExpression? variableAccess);
 
             unionType = null;
-            return new BoundDeclarationPattern(node, boundDeclType, isVar: false, variableSymbol, variableAccess, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: boundDeclType.Type, hasErrors);
+            return new BoundDeclarationPattern(node, boundDeclType, isVar: false, unionMatchingMode: unionMatchingMode, variableSymbol, variableAccess, inputType: inputType, narrowedType: boundDeclType.Type, hasErrors);
+        }
+
+        private (BoundTypeExpression, UnionMatchingMode) BindTypeForPattern(
+            SyntaxNode node,
+            TypeSyntax typeSyntax,
+            NamedTypeSymbol? unionType,
+            TypeSymbol inputType,
+            ref bool permitDesignations,
+            ref bool hasErrors,
+            BindingDiagnosticBag diagnostics)
+        {
+            TypeWithAnnotations declType = BindType(typeSyntax, diagnostics, out AliasSymbol aliasOpt);
+            Debug.Assert(declType.HasType);
+            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, typeWithAnnotations: declType);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
+            UnionMatchingMode unionMatchingMode = DetermineUnionMatchingMode(
+                node,
+                typeSyntax,
+                unionType,
+                inputType,
+                ref permitDesignations,
+                boundDeclType,
+                ref hasErrors,
+                diagnostics,
+                ref useSiteInfo);
+
+            diagnostics.Add(typeSyntax, useSiteInfo);
+
+            return (boundDeclType, unionMatchingMode);
         }
 
         private BoundTypeExpression BindTypeForPattern(
@@ -1748,7 +1775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, isExplicitNotNullTest: isExplicitNotNullTest,
-                variable: variableSymbol, variableAccess: variableAccess, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType,
+                isUnionMatching: isUnionMatching, variable: variableSymbol, variableAccess: variableAccess, inputType: unionMatchingInputType ?? inputType,
                 narrowedType: boundDeclType?.Type ?? inputType.StrippedType(), hasErrors);
         }
 
@@ -2027,8 +2054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol inputType,
             bool permitDesignations,
             bool hasErrors,
-            BindingDiagnosticBag diagnostics,
-            out bool hasUnionMatching)
+            BindingDiagnosticBag diagnostics)
         {
             if ((inputType.IsPointerOrFunctionPointer() && node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
                 || (inputType.IsPointerType() && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
@@ -2046,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return BindVarDesignation(node.Designation, ref unionType, inputType, permitDesignations, hasErrors, diagnostics, out hasUnionMatching);
+            return BindVarDesignation(node.Designation, ref unionType, inputType, permitDesignations, hasErrors, diagnostics);
         }
 
         private BoundPattern BindVarDesignation(
@@ -2055,14 +2081,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol inputType,
             bool permitDesignations,
             bool hasErrors,
-            BindingDiagnosticBag diagnostics,
-            out bool hasUnionMatching)
+            BindingDiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.DiscardDesignation:
                     {
-                        hasUnionMatching = false;
                         return new BoundDiscardPattern(node, inputType: inputType, narrowedType: inputType);
                     }
                 case SyntaxKind.SingleVariableDesignation:
@@ -2076,15 +2100,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We continue to use a BoundDeclarationPattern for the var pattern, as they have more in common.
                         Debug.Assert(node.Parent is { });
 
-                        hasUnionMatching = false;
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax
-                            boundOperandType, isVar: true, variableSymbol, variableAccess,
-                            isUnionMatching: false, inputType: inputType, narrowedType: inputType, hasErrors);
+                            boundOperandType, isVar: true, unionMatchingMode: UnionMatchingMode.None, variableSymbol, variableAccess,
+                            inputType: inputType, narrowedType: inputType, hasErrors);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
-                        return bindParenthesizedVariableDesignation(node, ref unionType, inputType, permitDesignations, hasErrors, diagnostics, out hasUnionMatching);
+                        return bindParenthesizedVariableDesignation(node, ref unionType, inputType, permitDesignations, hasErrors, diagnostics);
                     }
                 default:
                     {
@@ -2092,12 +2115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            BoundPattern bindParenthesizedVariableDesignation(VariableDesignationSyntax node, ref NamedTypeSymbol? unionType, TypeSymbol inputType, bool permitDesignations, bool hasErrors, BindingDiagnosticBag diagnostics, out bool hasUnionMatching)
+            BoundPattern bindParenthesizedVariableDesignation(VariableDesignationSyntax node, ref NamedTypeSymbol? unionType, TypeSymbol inputType, bool permitDesignations, bool hasErrors, BindingDiagnosticBag diagnostics)
             {
-                NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
-                bool isUnionMatching = unionMatchingInputType is not null;
-                hasUnionMatching = isUnionMatching;
-
                 MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
 
                 var tupleDesignation = (ParenthesizedVariableDesignationSyntax)node;
@@ -2110,12 +2129,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Work around https://github.com/dotnet/roslyn/issues/20648: The compiler's internal APIs such as `declType.IsTupleType`
                     // do not correctly treat the non-generic struct `System.ValueTuple` as a tuple type.  We explicitly perform the tests
                     // required to identify it.  When that bug is fixed we should be able to remove this if statement.
-                    addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations>.Empty, ref hasUnionMatching);
+                    addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations>.Empty);
                 }
                 else if (strippedInputType.IsTupleType)
                 {
                     // It is a tuple type. Work according to its elements
-                    addSubpatternsForTuple(strippedInputType.TupleElementTypesWithAnnotations, ref hasUnionMatching);
+                    addSubpatternsForTuple(strippedInputType.TupleElementTypesWithAnnotations);
                 }
                 else
                 {
@@ -2132,11 +2151,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // There was no applicable candidate Deconstruct, and the constraints for the use of ITuple are satisfied.
                         // Use that and forget any errors from trying to bind Deconstruct.
                         deconstructDiagnostics.Free();
-                        bindITupleSubpatterns(tupleDesignation, subPatterns, permitDesignations, diagnostics, out bool iTupleHasUnionMatching);
-                        hasUnionMatching |= iTupleHasUnionMatching;
+                        bindITupleSubpatterns(tupleDesignation, subPatterns, permitDesignations, diagnostics);
 
                         unionType = null;
-                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, subPatterns.ToImmutableAndFree(), isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? strippedInputType, iTupleType, hasErrors);
+                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, subPatterns.ToImmutableAndFree(), isUnionMatching: false, inputType: strippedInputType, iTupleType, hasErrors);
                     }
                     else
                     {
@@ -2153,8 +2171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                         TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
                         NamedTypeSymbol? varUnionType = null;
-                        BoundPattern pattern = BindVarDesignation(variable, ref varUnionType, elementType, permitDesignations, isError, diagnostics, out bool varHasUnionMatching);
-                        hasUnionMatching |= varHasUnionMatching;
+                        BoundPattern pattern = BindVarDesignation(variable, ref varUnionType, elementType, permitDesignations, isError, diagnostics);
                         subPatterns.Add(new BoundPositionalSubpattern(variable, symbol: null, pattern));
                     }
                 }
@@ -2163,9 +2180,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundRecursivePattern(
                     syntax: node, declaredType: null, deconstructMethod: deconstructMethod,
                     deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null,
-                    isExplicitNotNullTest: false, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: strippedInputType, hasErrors: hasErrors);
+                    isExplicitNotNullTest: false, isUnionMatching: false, inputType: inputType, narrowedType: strippedInputType, hasErrors: hasErrors);
 
-                void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes, ref bool hasUnionMatching)
+                void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes)
                 {
                     if (elementTypes.Length != tupleDesignation.Variables.Count && !hasErrors)
                     {
@@ -2179,8 +2196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isError = i >= elementTypes.Length;
                         TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i].Type;
                         NamedTypeSymbol? unionType = null;
-                        BoundPattern pattern = BindVarDesignation(variable, ref unionType, elementType, permitDesignations, isError, diagnostics, out bool varHasUnionMatching);
-                        hasUnionMatching |= varHasUnionMatching;
+                        BoundPattern pattern = BindVarDesignation(variable, ref unionType, elementType, permitDesignations, isError, diagnostics);
                         subPatterns.Add(new BoundPositionalSubpattern(variable, symbol: null, pattern));
                     }
                 }
@@ -2189,16 +2205,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ParenthesizedVariableDesignationSyntax node,
                     ArrayBuilder<BoundPositionalSubpattern> patterns,
                     bool permitDesignations,
-                    BindingDiagnosticBag diagnostics,
-                    out bool hasUnionMatching)
+                    BindingDiagnosticBag diagnostics)
                 {
                     var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
-                    hasUnionMatching = false;
                     foreach (var variable in node.Variables)
                     {
                         NamedTypeSymbol? unionType = null;
-                        BoundPattern pattern = BindVarDesignation(variable, ref unionType, objectType, permitDesignations, hasErrors: false, diagnostics, out bool varHasUnionMatching);
-                        hasUnionMatching |= varHasUnionMatching;
+                        BoundPattern pattern = BindVarDesignation(variable, ref unionType, objectType, permitDesignations, hasErrors: false, diagnostics);
                         var boundSubpattern = new BoundPositionalSubpattern(
                             variable,
                             null,
@@ -2413,21 +2426,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundTypePattern BindTypePattern(
+        private UnionMatchingMode DetermineUnionMatchingMode(
             SyntaxNode node,
             ExpressionSyntax typeSyntax,
-            ref NamedTypeSymbol? unionType,
+            NamedTypeSymbol? unionType,
             TypeSymbol inputType,
             ref bool permitDesignations,
             BoundTypeExpression patternType,
-            bool hasErrors,
+            ref bool hasErrors,
             BindingDiagnosticBag diagnostics,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            out bool hasUnionMatching)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(unionType is null || inputType.IsObjectType());
-
-            MessageID.IDS_FeatureTypePattern.CheckFeatureAvailability(diagnostics, node);
 
             var instanceTypeMatchDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
             bool instanceTypeMatchHasErrors = CheckValidPatternType(typeSyntax, inputType, patternType.Type, diagnostics: instanceTypeMatchDiagnostics, ref useSiteInfo, out Conversion conversion) ||
@@ -2493,6 +2503,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             instanceTypeMatchDiagnostics.Free();
             unionValueTypeMatchDiagnostics.Free();
+
+            return unionMatchingMode;
+        }
+
+        private BoundTypePattern BindTypePattern(
+            SyntaxNode node,
+            ExpressionSyntax typeSyntax,
+            ref NamedTypeSymbol? unionType,
+            TypeSymbol inputType,
+            ref bool permitDesignations,
+            BoundTypeExpression patternType,
+            bool hasErrors,
+            BindingDiagnosticBag diagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            out bool hasUnionMatching)
+        {
+            MessageID.IDS_FeatureTypePattern.CheckFeatureAvailability(diagnostics, node);
+
+            UnionMatchingMode unionMatchingMode = DetermineUnionMatchingMode(
+                node,
+                typeSyntax,
+                unionType,
+                inputType,
+                ref permitDesignations,
+                patternType,
+                ref hasErrors,
+                diagnostics,
+                ref useSiteInfo);
 
             hasUnionMatching = unionMatchingMode != UnionMatchingMode.None;
 
