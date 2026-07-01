@@ -18,5 +18,7 @@ internal interface IInitializeManager : ILspService
     /// <summary>Expected to be non-default after the Initialize event.</summary>
     ImmutableArray<string> GetRequiredWorkspaceFolderPaths();
 
+    void UpdateWorkspaceFolders(WorkspaceFoldersChangeEvent workspaceFoldersChangeEvent);
+
     void SetInitializeParams(InitializeParams initializeParams);
 }

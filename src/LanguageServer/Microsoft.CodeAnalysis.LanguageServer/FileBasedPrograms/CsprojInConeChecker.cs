@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -20,35 +19,26 @@ internal sealed class CsprojInConeCheckerFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new CsprojInConeChecker();
+        return new CsprojInConeChecker(lspServices.GetRequiredService<IInitializeManager>());
     }
 }
 
-internal sealed class CsprojInConeChecker : ILspService, IOnInitialized
+internal sealed class CsprojInConeChecker(IInitializeManager initializeManager) : ILspService
 {
-    private ImmutableArray<string> _workspaceFolders;
-
-    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
-    {
-        var initializeManager = context.GetRequiredService<IInitializeManager>();
-        _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
-        return Task.CompletedTask;
-    }
-
     public bool IsContainedInCsprojCone(string csFilePath)
     {
         // Note: manual perf testing of this check on Windows, in a reasonably complex case,
         // showed an overhead on the order of 100s of microseconds for this check.
         // If this overhead becomes problematic, we may want to put a cache in front of it.
 
-        Contract.ThrowIfTrue(_workspaceFolders.IsDefault, $"{nameof(OnInitializedAsync)} must be called before {nameof(IsContainedInCsprojCone)}.");
-        if (_workspaceFolders.IsEmpty)
+        var workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
+        if (workspaceFolders.IsEmpty)
             return false;
 
         if (!PathUtilities.IsAbsolute(csFilePath))
             return false;
 
-        foreach (var workspaceFolder in _workspaceFolders)
+        foreach (var workspaceFolder in workspaceFolders)
         {
             var directoryName = PathUtilities.GetDirectoryName(csFilePath);
             while (PathUtilities.IsSameDirectoryOrChildOf(child: directoryName, parent: workspaceFolder))

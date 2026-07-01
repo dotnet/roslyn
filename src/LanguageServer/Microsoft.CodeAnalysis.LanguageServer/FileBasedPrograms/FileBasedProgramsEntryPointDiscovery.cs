@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Buffers;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.IO.Enumeration;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Collections;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -35,12 +35,23 @@ internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionS
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new FileBasedProgramsEntryPointDiscovery(globalOptionService, listenerProvider.GetListener(FeatureAttribute.Workspace), lspServices.GetRequiredService<ILoggerFactory>(), lspServices);
+        return new FileBasedProgramsEntryPointDiscovery(
+            globalOptionService,
+            listenerProvider.GetListener(FeatureAttribute.Workspace),
+            lspServices.GetRequiredService<ILoggerFactory>(),
+            lspServices,
+            lspServices.GetRequiredService<IInitializeManager>(),
+            lspServices.GetRequiredService<IFileChangeWatcher>());
     }
 }
 
 internal sealed partial class FileBasedProgramsEntryPointDiscovery(
-    IGlobalOptionService globalOptionService, IAsynchronousOperationListener listener, ILoggerFactory loggerFactory, LspServices lspServices) : ILspService, IOnInitialized
+    IGlobalOptionService globalOptionService,
+    IAsynchronousOperationListener listener,
+    ILoggerFactory loggerFactory,
+    LspServices lspServices,
+    IInitializeManager initializeManager,
+    IFileChangeWatcher fileChangeWatcher) : ILspService, IOnInitialized, IDisposable
 {
     private static readonly StringComparer s_pathComparer = StringComparer.OrdinalIgnoreCase;
 
@@ -54,12 +65,12 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     ], StringComparison.OrdinalIgnoreCase);
 
     private readonly ILogger _logger = loggerFactory.CreateLogger<FileBasedProgramsEntryPointDiscovery>();
-    private ImmutableArray<string> _workspaceFolders;
+    private readonly object _gate = new();
+    private IFileChangeContext? _workspaceFileChangeContext;
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        var initializeManager = context.GetRequiredService<IInitializeManager>();
-        _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
+        RefreshWorkspaceFileWatch();
         Task.Run(async () =>
         {
             try
@@ -76,11 +87,31 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         return Task.CompletedTask;
     }
 
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            if (_workspaceFileChangeContext is not null)
+            {
+                _workspaceFileChangeContext.FileChanged -= OnWorkspaceFileChanged;
+            }
+
+            _workspaceFileChangeContext?.Dispose();
+            _workspaceFileChangeContext = null;
+        }
+    }
+
+    internal Task WorkspaceFoldersChangedAsync()
+    {
+        RefreshWorkspaceFileWatch();
+        return FindAndLoadEntryPointsAsync();
+    }
+
     internal async Task FindAndLoadEntryPointsAsync()
     {
-        Contract.ThrowIfTrue(_workspaceFolders.IsDefault, $"{nameof(OnInitializedAsync)} must be called before {nameof(FindAndLoadEntryPointsAsync)}.");
+        var workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
 
-        if (_workspaceFolders.IsEmpty)
+        if (workspaceFolders.IsEmpty)
         {
             _logger.LogTrace("No workspace folders to search for file-based apps.");
             return;
@@ -103,7 +134,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
         // Note: the overwhelmingly common case is when there is just one workspace folder.
         // For simplicity we orient our search around one workspace folder at a time.
-        foreach (var workspaceFolder in _workspaceFolders)
+        foreach (var workspaceFolder in workspaceFolders)
         {
             foreach (var fileBasedAppPath in FindEntryPoints(workspaceFolder))
             {
@@ -120,6 +151,54 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 IOUtilities.PerformIO(() => Directory.Delete(enumerator.Current, recursive: true));
             }
         });
+    }
+
+    private void RefreshWorkspaceFileWatch()
+    {
+        var workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
+        var watchedDirectories = workspaceFolders.Select(static workspaceFolder => new WatchedDirectory(workspaceFolder, [".cs", ".csproj"])).ToImmutableArray();
+
+        lock (_gate)
+        {
+            if (_workspaceFileChangeContext is not null)
+            {
+                _workspaceFileChangeContext.FileChanged -= OnWorkspaceFileChanged;
+            }
+
+            _workspaceFileChangeContext?.Dispose();
+            _workspaceFileChangeContext = watchedDirectories.IsEmpty ? null : fileChangeWatcher.CreateContext(watchedDirectories);
+            if (_workspaceFileChangeContext is not null)
+            {
+                _workspaceFileChangeContext.FileChanged += OnWorkspaceFileChanged;
+            }
+        }
+    }
+
+    private void OnWorkspaceFileChanged(object? sender, string filePath)
+    {
+        if (!PathUtilities.IsAbsolute(filePath))
+        {
+            return;
+        }
+
+        var workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
+        if (!workspaceFolders.Any(workspaceFolder => PathUtilities.IsSameDirectoryOrChildOf(filePath, workspaceFolder)))
+        {
+            return;
+        }
+
+        Task.Run(async () =>
+        {
+            try
+            {
+                using var token = listener.BeginAsyncOperation(nameof(OnWorkspaceFileChanged));
+                await FindAndLoadEntryPointsAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+        }, CancellationToken.None);
     }
 
     private sealed class OldCacheEnumerator() : FileSystemEnumerator<string>(
@@ -213,16 +292,14 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     }
 
     /// <summary>Check if discovery should consider this a file-based app.</summary>
-    private static bool IsFileBasedApp(string fullPath)
+    private bool IsFileBasedApp(string fullPath)
     {
         using var fileStream = File.OpenRead(fullPath);
-        var toRead = (int)Math.Min(5, fileStream.Length);
-        InlineArray5<byte> bytes = default;
-        Span<byte> bytesSpan = bytes;
-        fileStream.ReadExactly(bytesSpan[..toRead]);
-
-        // Discovery only considers a file to be file-based app, if it starts with either "#!", or UTF-8 BOM followed by "#!".
-        return bytesSpan is [(byte)'#', (byte)'!', ..] or [0xEF, 0xBB, 0xBF, (byte)'#', (byte)'!'];
+        var sourceText = SourceText.From(fileStream);
+        var entryPointKind = FileBasedProgramEntryPointHeuristic.GetEntryPointKind(sourceText, CancellationToken.None);
+        return entryPointKind == FileBasedProgramEntryPointKind.Explicit ||
+            (entryPointKind == FileBasedProgramEntryPointKind.Ambiguous &&
+             globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableSemanticErrorsInMiscellaneousFiles));
     }
 
     private enum CsFileKind
@@ -376,3 +453,56 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     [JsonSerializable(typeof(Cache))]
     internal sealed partial class CacheSerializerContext : JsonSerializerContext;
 }
+
+[ExportCSharpVisualBasicStatelessLspService(typeof(FileBasedProgramsWorkspaceFoldersHandler)), Shared]
+[Method(Methods.WorkspaceDidChangeWorkspaceFoldersName)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class FileBasedProgramsWorkspaceFoldersHandler() : ILspServiceNotificationHandler<DidChangeWorkspaceFoldersParams>
+{
+    public bool MutatesSolutionState => false;
+
+    public bool RequiresLSPSolution => false;
+
+    public async Task HandleNotificationAsync(DidChangeWorkspaceFoldersParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    {
+        requestContext.GetRequiredLspService<IInitializeManager>().UpdateWorkspaceFolders(request.Event);
+        await requestContext.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>().WorkspaceFoldersChangedAsync().ConfigureAwait(false);
+    }
+}
+
+[ExportCSharpVisualBasicStatelessLspService(typeof(FileBasedProgramsEntryPointHandler)), Shared]
+[Method(MethodName)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class FileBasedProgramsEntryPointHandler() : ILspServiceRequestHandler<FileBasedProgramsEntryPointParams, bool>
+{
+    internal const string MethodName = "workspace/_roslyn_isFileBasedProgramEntryPoint";
+
+    public bool MutatesSolutionState => false;
+
+    public bool RequiresLSPSolution => false;
+
+    public async Task<bool> HandleRequestAsync(FileBasedProgramsEntryPointParams request, RequestContext context, CancellationToken cancellationToken)
+    {
+        var documentUri = request.TextDocument.DocumentUri;
+        if (documentUri.ParsedUri is not { Scheme: Uri.UriSchemeFile })
+        {
+            return false;
+        }
+
+        var filePath = documentUri.GetDocumentFilePathFromUri();
+        var languageId = request.LanguageId ?? (Path.GetExtension(filePath).Equals(".cs", StringComparison.OrdinalIgnoreCase) ? "csharp" : string.Empty);
+        if (languageId.Length == 0)
+        {
+            return false;
+        }
+
+        var projectSystem = (FileBasedProgramsProjectSystem)context.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        return await projectSystem.IsFileBasedProgramEntryPointAsync(filePath, languageId, cancellationToken).ConfigureAwait(false);
+    }
+}
+
+internal sealed record class FileBasedProgramsEntryPointParams(
+    [property: JsonPropertyName("textDocument")] TextDocumentIdentifier TextDocument,
+    [property: JsonPropertyName("languageId")] string? LanguageId = null);

@@ -123,6 +123,28 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
+    public async Task TestDiscovery_TopLevelStatementsWithoutDirectives()
+    {
+        var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
+
+        var appFile = tempDir.CreateFile("App.cs").WriteAllText("""
+            Console.WriteLine("Hello World");
+            """);
+
+        tempDir.CreateFile("Ordinary.cs").WriteAllText("""
+            class C
+            {
+            }
+            """);
+
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertSequenceEqualAndStable([appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
+    }
+
+    [Fact]
     public async Task TestDiscovery_IgnoredFolders()
     {
         // Demonstrate ignored folders behavior
@@ -362,6 +384,120 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
         AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
+    }
+
+    [Fact]
+    public async Task TestDiscovery_RescansWhenWorkspaceFolderAdded()
+    {
+        var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
+
+        var appFile = tempDir.CreateFile("App.cs").WriteAllText("""
+            Console.WriteLine("Hello World");
+            """);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+        });
+
+        await testLspServer.ExecuteNotificationAsync(
+            Methods.WorkspaceDidChangeWorkspaceFoldersName,
+            new DidChangeWorkspaceFoldersParams
+            {
+                Event = new WorkspaceFoldersChangeEvent
+                {
+                    Added = [new WorkspaceFolder { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }],
+                    Removed = [],
+                },
+            });
+
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.NotNull(document);
+    }
+
+    [Fact]
+    public async Task TestDiscovery_LoadsNewFileWhenWatchedFileNotificationArrives()
+    {
+        var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders = [new WorkspaceFolder { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }],
+            ClientCapabilities = new ClientCapabilities
+            {
+                Workspace = new WorkspaceClientCapabilities
+                {
+                    DidChangeWatchedFiles = new DidChangeWatchedFilesClientCapabilities { DynamicRegistration = true }
+                }
+            }
+        });
+
+        var appFile = tempDir.CreateFile("App.cs").WriteAllText("""
+            Console.WriteLine("Hello World");
+            """);
+
+        await testLspServer.ExecuteNotificationAsync(
+            Methods.WorkspaceDidChangeWatchedFilesName,
+            new DidChangeWatchedFilesParams
+            {
+                Changes =
+                [
+                    new FileEvent
+                    {
+                        Uri = CreateAbsoluteDocumentUri(appFile.Path),
+                        FileChangeType = FileChangeType.Created,
+                    }
+                ],
+            });
+
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.NotNull(document);
+    }
+
+    [Fact]
+    public async Task TestIsFileBasedProgramEntryPointRequest()
+    {
+        var tempDir = _tempRoot.CreateDirectory();
+
+        var topLevelStatementsFile = tempDir.CreateFile("App.cs").WriteAllText("""
+            Console.WriteLine("Hello World");
+            """);
+        var directivesWithoutTopLevelStatementsFile = tempDir.CreateFile("Ordinary.cs").WriteAllText("""
+            #:sdk Microsoft.NET.Sdk
+            class C
+            {
+            }
+            """);
+        var extensionlessFile = tempDir.CreateFile("greeter").WriteAllText("""
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello World");
+            """);
+
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var isTopLevelStatementsEntryPoint = await testLspServer.ExecuteRequestAsync<FileBasedProgramsEntryPointParams, bool>(
+            FileBasedProgramsEntryPointHandler.MethodName,
+            new FileBasedProgramsEntryPointParams(CreateTextDocumentIdentifier(CreateAbsoluteDocumentUri(topLevelStatementsFile.Path))),
+            CancellationToken.None);
+        var isDirectivesWithoutTopLevelStatementsEntryPoint = await testLspServer.ExecuteRequestAsync<FileBasedProgramsEntryPointParams, bool>(
+            FileBasedProgramsEntryPointHandler.MethodName,
+            new FileBasedProgramsEntryPointParams(CreateTextDocumentIdentifier(CreateAbsoluteDocumentUri(directivesWithoutTopLevelStatementsFile.Path))),
+            CancellationToken.None);
+        var isExtensionlessEntryPoint = await testLspServer.ExecuteRequestAsync<FileBasedProgramsEntryPointParams, bool>(
+            FileBasedProgramsEntryPointHandler.MethodName,
+            new FileBasedProgramsEntryPointParams(CreateTextDocumentIdentifier(CreateAbsoluteDocumentUri(extensionlessFile.Path)), LanguageId: "csharp"),
+            CancellationToken.None);
+
+        Assert.True(isTopLevelStatementsEntryPoint);
+        Assert.False(isDirectivesWithoutTopLevelStatementsEntryPoint);
+        Assert.True(isExtensionlessEntryPoint);
     }
 
     private Task<TestLspServer> CreateDiscoveryTestServerAsync(string workspacePath)

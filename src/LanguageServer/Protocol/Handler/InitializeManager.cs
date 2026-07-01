@@ -61,6 +61,41 @@ internal sealed class InitializeManager : IInitializeManager
         return _workspaceFolderPathsOpt;
     }
 
+    public void UpdateWorkspaceFolders(WorkspaceFoldersChangeEvent workspaceFoldersChangeEvent)
+    {
+        Contract.ThrowIfNull(_initializeParams, $"Tried to update {nameof(WorkspaceFolder)}s before initialize completed.");
+        Contract.ThrowIfTrue(_workspaceFolderPathsOpt.IsDefault, $"{nameof(_workspaceFolderPathsOpt)} was not initialized.");
+
+        using var _ = ArrayBuilder<string>.GetInstance(out var workspaceFolderPathsBuilder);
+        workspaceFolderPathsBuilder.AddRange(_workspaceFolderPathsOpt);
+
+        foreach (var removedWorkspaceFolder in workspaceFoldersChangeEvent.Removed)
+        {
+            if (TryGetFolderPath(removedWorkspaceFolder) is { } removedWorkspaceFolderPath)
+            {
+                workspaceFolderPathsBuilder.RemoveAll(path => string.Equals(path, removedWorkspaceFolderPath, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        foreach (var addedWorkspaceFolder in workspaceFoldersChangeEvent.Added)
+        {
+            if (TryGetFolderPath(addedWorkspaceFolder) is { } addedWorkspaceFolderPath &&
+                !workspaceFolderPathsBuilder.Contains(addedWorkspaceFolderPath, StringComparer.OrdinalIgnoreCase))
+            {
+                workspaceFolderPathsBuilder.Add(addedWorkspaceFolderPath);
+            }
+        }
+
+        _workspaceFolderPathsOpt = workspaceFolderPathsBuilder.ToImmutable();
+
+        static string? TryGetFolderPath(WorkspaceFolder workspaceFolder)
+        {
+            return workspaceFolder.DocumentUri.ParsedUri is null
+                ? null
+                : workspaceFolder.DocumentUri.GetDocumentFilePathFromUri();
+        }
+    }
+
     public ClientCapabilities? TryGetClientCapabilities()
     {
         return _initializeParams?.Capabilities;

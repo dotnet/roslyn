@@ -23,6 +23,49 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
+internal enum FileBasedProgramEntryPointKind
+{
+    None,
+    Ambiguous,
+    Explicit,
+}
+
+internal static class FileBasedProgramEntryPointHeuristic
+{
+    private static readonly CSharpParseOptions s_fileBasedProgramParseOptions = CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]);
+
+    public static FileBasedProgramEntryPointKind GetEntryPointKind(SourceText sourceText, CancellationToken cancellationToken)
+    {
+        var tokenizer = SyntaxFactory.CreateTokenParser(sourceText, s_fileBasedProgramParseOptions);
+        var result = tokenizer.ParseLeadingTrivia();
+        var leadingTrivia = result.Token.LeadingTrivia;
+
+        if (leadingTrivia.Any(SyntaxKind.ShebangDirectiveTrivia))
+        {
+            return FileBasedProgramEntryPointKind.Explicit;
+        }
+
+        var hasFileBasedDirectives = leadingTrivia.Any(SyntaxKind.IgnoredDirectiveTrivia);
+        if (!ContainsTopLevelStatements(sourceText, cancellationToken))
+        {
+            return FileBasedProgramEntryPointKind.None;
+        }
+
+        return hasFileBasedDirectives
+            ? FileBasedProgramEntryPointKind.Explicit
+            : FileBasedProgramEntryPointKind.Ambiguous;
+    }
+
+    public static CSharpParseOptions FileBasedProgramParseOptions => s_fileBasedProgramParseOptions;
+
+    private static bool ContainsTopLevelStatements(SourceText sourceText, CancellationToken cancellationToken)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, options: s_fileBasedProgramParseOptions, cancellationToken: cancellationToken);
+        return syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit &&
+            compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
+    }
+}
+
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
 internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider
 {
@@ -124,6 +167,46 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return false;
     }
 
+    internal async ValueTask<bool> IsFileBasedProgramEntryPointAsync(string filePath, string languageId, CancellationToken cancellationToken)
+    {
+        var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
+        if (!languageInfoProvider.TryGetLanguageInformation(ProtocolConversions.CreateAbsoluteDocumentUri(filePath), languageId, out var languageInformation))
+        {
+            return false;
+        }
+
+        if (ClassifyAsMiscellaneousFileWithNoReferences(filePath, languageInformation))
+        {
+            return false;
+        }
+
+        if (!PathUtilities.IsAbsolute(filePath))
+        {
+            return false;
+        }
+
+        var sourceText = await TryGetSourceTextAsync(filePath, cancellationToken).ConfigureAwait(false);
+        if (sourceText is null)
+        {
+            return false;
+        }
+
+        var entryPointKind = FileBasedProgramEntryPointHeuristic.GetEntryPointKind(sourceText, cancellationToken);
+        if (entryPointKind == FileBasedProgramEntryPointKind.Explicit)
+        {
+            return true;
+        }
+
+        if (entryPointKind == FileBasedProgramEntryPointKind.None ||
+            !GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableSemanticErrorsInMiscellaneousFiles))
+        {
+            return false;
+        }
+
+        var csprojInConeChecker = _lspServices.GetRequiredService<CsprojInConeChecker>();
+        return !csprojInConeChecker.IsContainedInCsprojCone(filePath);
+    }
+
     private async ValueTask<LooseDocumentKind> ClassifyDocumentAsync(string filePath, string languageId, CancellationToken cancellationToken)
     {
         var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
@@ -147,12 +230,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         if (!PathUtilities.IsAbsolute(filePath))
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
 
-        SourceText? sourceText = IOUtilities.PerformIO(() =>
-        {
-            // Note: SourceText.From eagerly reads the entire file
-            using var fileStream = File.OpenRead(filePath);
-            return SourceText.From(fileStream);
-        });
+        var sourceText = await TryGetSourceTextAsync(filePath, cancellationToken).ConfigureAwait(false);
 
         // File had an absolute path but we were unable to read it, due to it not existing or to some other I/O issue.
         if (sourceText is null)
@@ -160,33 +238,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
 
-        var parseOptions = CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]);
-        var tokenizer = SyntaxFactory.CreateTokenParser(sourceText, parseOptions);
-        var result = tokenizer.ParseLeadingTrivia();
-        var leadingTrivia = result.Token.LeadingTrivia;
-
-        // 5. Does the file have '#!' directives?
-        // - Yes → Classify as File-Based App. Restore if needed and show semantic errors.
-        // - No → Continue to next check
-        if (leadingTrivia.Any(SyntaxKind.ShebangDirectiveTrivia))
+        var entryPointKind = FileBasedProgramEntryPointHeuristic.GetEntryPointKind(sourceText, cancellationToken);
+        if (entryPointKind == FileBasedProgramEntryPointKind.Explicit)
         {
             return LooseDocumentKind.FileBasedApp;
-        }
-
-        // 6. Does the file have `#:` directives?
-        // - No → Go to (8)
-        // - Yes → Continue to next check
-        if (leadingTrivia.Any(SyntaxKind.IgnoredDirectiveTrivia))
-        {
-            // 7. Does the file have top-level statements?
-            // - Yes → Classify as File-Based App. Restore if needed and show semantic errors.
-            // - No → Classify as Miscellaneous File With Standard References
-            if (ContainsTopLevelStatements())
-            {
-                return LooseDocumentKind.FileBasedApp;
-            }
-
-            return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
 
         // 8. Is `enableFileBasedProgramsWhenAmbiguous` enabled? (default: `false` in release, `true` in prerelease)
@@ -204,7 +259,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // - No → Classify as Miscellaneous File With Standard References
         // - Yes → Continue to next check
 
-        if (!ContainsTopLevelStatements())
+        if (entryPointKind == FileBasedProgramEntryPointKind.None)
         {
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
@@ -219,13 +274,15 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
 
         return LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors;
-
-        bool ContainsTopLevelStatements()
-        {
-            var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, options: parseOptions, cancellationToken: cancellationToken);
-            return syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
-        }
     }
+
+    private static ValueTask<SourceText?> TryGetSourceTextAsync(string filePath, CancellationToken cancellationToken)
+        => new(IOUtilities.PerformIO(() =>
+        {
+            // Note: SourceText.From eagerly reads the entire file
+            using var fileStream = File.OpenRead(filePath);
+            return SourceText.From(fileStream, cancellationToken: cancellationToken);
+        }));
 
     public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
     {
