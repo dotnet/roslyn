@@ -1058,6 +1058,14 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,                 // Return type
                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,
 
+                // System_Runtime_CompilerServices_Unsafe__IsNullRef_T
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_Unsafe - WellKnownType.ExtSentinel), // DeclaringTypeId
+                1,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,                                   // Return type
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,
+
                 // System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Runtime_ExceptionServices_ExceptionDispatchInfo,                                 // DeclaringTypeId
@@ -4048,6 +4056,13 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                                       // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
+                // System_NullReferenceException__ctor
+                (byte)MemberFlags.Constructor,                                                                                               // Flags
+                (byte)SpecialType.System_NullReferenceException,                                                                             // DeclaringTypeId
+                0,                                                                                                                           // Arity
+                    0,                                                                                                                       // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+
                 // System_IndexOutOfRangeException__ctor
                 (byte)MemberFlags.Constructor,                                                                                               // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_IndexOutOfRangeException - WellKnownType.ExtSentinel),                                                                         // DeclaringTypeId
@@ -5440,6 +5455,7 @@ namespace Microsoft.CodeAnalysis
                 "Add",                                      // System_Runtime_CompilerServices_Unsafe__Add_T
                 "As",                                       // System_Runtime_CompilerServices_Unsafe__As_T,
                 "AsRef",                                    // System_Runtime_CompilerServices_Unsafe__AsRef_T,
+                "IsNullRef",                                // System_Runtime_CompilerServices_Unsafe__IsNullRef_T
                 "Capture",                                  // System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture
                 "Throw",                                    // System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw
                 ".ctor",                                    // System_Security_UnverifiableCodeAttribute__ctor
@@ -5810,6 +5826,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute_ctor
                 ".ctor",                                    // System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor
                 ".ctor",                                    // System_NotSupportedException__ctor
+                ".ctor",                                    // System_NullReferenceException__ctor
                 ".ctor",                                    // System_IndexOutOfRangeException__ctor
                 ".ctor",                                    // System_MissingMethodException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute

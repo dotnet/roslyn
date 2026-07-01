@@ -25,14 +25,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             try
             {
+                // if (Unsafe.IsNullRef(ref buffer))
+                //     throw new NullReferenceException();
+                var nullCheck = f.If(
+                    f.Call(null,
+                           f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__IsNullRef_T).Construct(TypeParameters[0]),
+                           f.Parameter(Parameters[0])),
+                    f.Throw(f.New(f.WellKnownType(WellKnownType.System_NullReferenceException), f.WellKnownMethod(WellKnownMember.System_NullReferenceException__ctor))));
+
                 // return MemoryMarshal.CreateSpan<TElement>(ref Unsafe.As<TBuffer, TElement>(ref buffer), length)
 
-                var body = f.Return(f.Call(null,
-                                           f.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan).Construct(TypeParameters[1]),
-                                           f.Call(null,
-                                                  f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T).Construct(ImmutableArray<TypeSymbol>.CastUp(TypeParameters)),
-                                                  f.Parameter(Parameters[0])),
-                                           f.Parameter(Parameters[1])));
+                var body = f.Block(
+                    nullCheck,
+                    f.Return(f.Call(null,
+                                    f.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan).Construct(TypeParameters[1]),
+                                    f.Call(null,
+                                           f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T).Construct(ImmutableArray<TypeSymbol>.CastUp(TypeParameters)),
+                                           f.Parameter(Parameters[0])),
+                                    f.Parameter(Parameters[1]))));
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
                 f.CloseMethod(body);

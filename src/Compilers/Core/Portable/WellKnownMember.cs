@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_Unsafe__Add_T,
         System_Runtime_CompilerServices_Unsafe__As_T,
         System_Runtime_CompilerServices_Unsafe__AsRef_T,
+        System_Runtime_CompilerServices_Unsafe__IsNullRef_T,
 
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw,
@@ -584,6 +585,7 @@ namespace Microsoft.CodeAnalysis
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
         System_NotSupportedException__ctor,
+        System_NullReferenceException__ctor,
         System_IndexOutOfRangeException__ctor,
 
         System_Runtime_CompilerServices_HotReloadException__ctorStringInt32,
