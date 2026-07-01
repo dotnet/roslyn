@@ -25,12 +25,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]
-internal sealed class ExtractToCodeBehindCodeActionResolver(
-    LanguageServerFeatureOptions languageServerFeatureOptions,
-    IRoslynCodeActionHelpers roslynCodeActionHelpers) : IRazorCodeActionResolver
+internal sealed class ExtractToCodeBehindCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-    private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehind;
 
@@ -54,7 +51,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
         var codeBlockContent = text.ToString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var codeBehindContent = GenerateCodeBehindClass(className, actionParams.Namespace, codeBlockContent, codeDocument);
 
-        codeBehindContent = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(documentSnapshot.ProjectSnapshot, codeBehindUri.GetRequiredSystemUri(), codeBehindContent, cancellationToken).ConfigureAwait(false);
+        codeBehindContent = await RoslynCodeActionHelpers.GetFormattedNewFileContentsAsync(documentSnapshot.ProjectSnapshot.Project, codeBehindPath, codeBehindContent, cancellationToken).ConfigureAwait(false);
 
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
