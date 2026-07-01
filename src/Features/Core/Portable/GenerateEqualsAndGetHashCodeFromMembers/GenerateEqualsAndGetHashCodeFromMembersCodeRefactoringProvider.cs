@@ -296,7 +296,7 @@ internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefacto
 
         return new PickAllMembersCodeAction(
             dialogAction, GenerateEqualsAndGetHashCodeAction.GetAllMembersTitle(generateEquals, generateGetHashCode),
-            document.Project.Solution, new PickMembersResult(members, options, selectedAll: true));
+            document.Project.Solution, members, options);
     }
 
     private static async Task<CodeAction> CreateCodeActionWithoutDialogAsync(

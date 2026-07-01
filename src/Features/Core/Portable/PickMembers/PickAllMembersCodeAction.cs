@@ -19,7 +19,8 @@ internal sealed class PickAllMembersCodeAction(
     CodeActionWithOptions pickMembersAction,
     string title,
     Solution solution,
-    PickMembersResult allMembers) : CodeAction
+    ImmutableArray<ISymbol> members,
+    ImmutableArray<PickMembersOption> options) : CodeAction
 {
     public override string Title { get; } = title;
 
@@ -28,6 +29,7 @@ internal sealed class PickAllMembersCodeAction(
     protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
         IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
+        var allMembers = new PickMembersResult(members, options, selectedAll: true);
         var operations = await pickMembersAction.GetOperationsAsync(solution, allMembers, progress, cancellationToken).ConfigureAwait(false);
         return operations.ToImmutableArrayOrEmpty();
     }

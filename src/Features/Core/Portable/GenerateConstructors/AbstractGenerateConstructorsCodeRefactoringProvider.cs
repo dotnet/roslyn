@@ -266,7 +266,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
             ? (CodeAction)dialogAction
             : new PickAllMembersCodeAction(
                 dialogAction, FeaturesResources.Generate_constructor_from_all_members,
-                document.Project.Solution, new PickMembersResult(viableMembers, options, selectedAll: true));
+                document.Project.Solution, viableMembers, options);
 
         return (codeAction, typeDeclaration.Span);
     }

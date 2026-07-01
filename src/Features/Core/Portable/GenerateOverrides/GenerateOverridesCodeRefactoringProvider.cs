@@ -61,7 +61,7 @@ internal sealed partial class GenerateOverridesCodeRefactoringProvider(IPickMemb
             ? dialogAction
             : new PickAllMembersCodeAction(
                 dialogAction, FeaturesResources.Generate_overrides_for_all_members,
-                document.Project.Solution, new PickMembersResult(overridableMembers, options: [], selectedAll: true));
+                document.Project.Solution, overridableMembers, options: []);
 
         context.RegisterRefactoring(codeAction, typeDeclaration.Span);
     }
