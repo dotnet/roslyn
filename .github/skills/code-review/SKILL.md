@@ -72,6 +72,21 @@ Now read the PR description, labels, linked issues (in full), author information
 9. **Ensure code suggestions are valid.** Any code you suggest must be syntactically correct and complete. Ensure any suggestion would result in working code.
 10. **Label in-scope vs. follow-up.** Distinguish between issues the PR should fix and out-of-scope improvements. Be explicit when a suggestion is a follow-up rather than a blocker.
 
+### Step 4: Documentation Freshness Check (sub-agent)
+
+Code changes frequently outdate the agent knowledge base, but it's easy to miss during a code-focused review. Delegate this to a dedicated sub-agent so it doesn't dilute the primary review's focus. If the environment cannot launch sub-agents, perform this check inline instead.
+
+Launch a sub-agent (e.g., the `explore` or `task` agent) with the PR diff and list of changed files, and instruct it to verify whether the change should have updated — but didn't — any of the repo's living documentation:
+
+- **Knowledge base** (`.github/memory/`): `FILE_MAP.md` (files added/moved/renamed), `API_MAP.md`, `ARCHITECTURE.md`, `CONVENTIONS.md` (new patterns), `KNOWN_ISSUES.md` (repo-wide surprising behavior/workarounds), `TESTING_STRATEGY.md` (repo-wide test layout), and `INDEX.md` (if memory files were added/removed/renamed).
+- **Per-layer memory files**: `.github/memory/known-issues/{compiler,ide,razor}.md` (layer-specific quirks/workarounds) and `.github/memory/testing/{compiler,ide,razor}.md` (layer-specific test base classes/conventions) for the area the change touches.
+- **Path-scoped instruction files** (`.github/instructions/{Compiler,IDE,Razor}.instructions.md`): layer-specific directory detail, key files/APIs, diagnostic IDs, and coding conventions for the area the change touches.
+- **Entry points**: `.github/copilot-instructions.md` and `AGENTS.md` when build/test/orientation guidance changes.
+
+The sub-agent should cross-check the diff against the `update-agent-docs` skill checklist (`.github/skills/update-agent-docs/SKILL.md`) and report, for each gap, **which doc file** is now stale or incomplete and **what specific update** is needed. Only flag genuine omissions — do not invent busywork. If the PR already updated the relevant docs, confirm that and move on.
+
+Fold the sub-agent's findings into the review output as ⚠️ (or 💡 for minor) **Documentation** findings, and ask the author to make the updates. If a required doc update is missing for a behavior/API change, treat it as merge-blocking per the verdict rules.
+
 ## Multi-Model Review
 
 When the environment supports launching sub-agents with different models (e.g., the `task` tool with a `model` parameter), run the review in parallel across multiple model families to get diverse perspectives. Different models catch different classes of issues. If the environment does not support this, proceed with a single-model review.
@@ -125,6 +140,7 @@ When presenting the final review (whether as a PR comment or as output to the us
   - 💡 for minor suggestions or observations (nice-to-have)
 - **Cross-cutting analysis** should be included when relevant: check whether related code (sibling types, callers, VB compiler) is affected by the same issue or needs a similar fix.
 - **Test quality** should be assessed as its own finding when tests are part of the PR.
+- **Documentation freshness** (from Step 4) should be surfaced as its own finding when the change leaves any knowledge-base or instruction file stale.
 - Keep the review concise but thorough. Every claim should be backed by evidence from the code.
 
 ### Verdict Consistency Rules
@@ -257,7 +273,6 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 
 - **Always add regression tests for bug fixes and behavior changes.** Prefer adding test cases to existing test files rather than creating new files.
 
-- **Add `[WorkItem("https://github.com/dotnet/roslyn/issues/####")]` to regression tests.** This links the test to the original issue for traceability.
 
 - **Test all relevant `LangVersion` boundaries.** When testing language-version-specific behavior, include: the version *before* the feature (a specific version string that disallows it), the version *after* (using `TestOptions.RegularNext` or a specific version that allows it), and the *preview* version (which always rolls forward with nightly builds). Similarily for IDE features, completions and refactorings may be gated on language version, so test the same boundaries.
 

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -122,27 +123,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool CanBeCallerUnsafe { get; }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
+            if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                if (ContainingModule.UseUpdatedMemorySafetyRules)
+                Debug.Assert(AssociatedSymbol?.GetCallerUnsafeMode(fieldsBeingBound) != CallerUnsafeMode.Implicit);
+
+                if (!CanBeCallerUnsafe)
                 {
-                    Debug.Assert(AssociatedSymbol?.CallerUnsafeMode != CallerUnsafeMode.Implicit);
-
-                    if (!CanBeCallerUnsafe)
-                    {
-                        return CallerUnsafeMode.None;
-                    }
-
-                    return HasUnsafeModifier || (!HasSafeModifier && AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit)
-                        ? CallerUnsafeMode.Explicit
-                        : CallerUnsafeMode.None;
+                    return CallerUnsafeMode.None;
                 }
 
-                return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
-                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+                return HasUnsafeModifier || (!HasSafeModifier && AssociatedSymbol?.GetCallerUnsafeMode(fieldsBeingBound) == CallerUnsafeMode.Explicit)
+                    ? CallerUnsafeMode.Explicit
+                    : CallerUnsafeMode.None;
             }
+
+            return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
+                ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
         }
 
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
@@ -167,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = target.DeclaringCompilation;
 
-            if (target.CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (target.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }

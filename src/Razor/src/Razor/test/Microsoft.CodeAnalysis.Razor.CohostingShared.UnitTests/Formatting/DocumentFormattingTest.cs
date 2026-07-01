@@ -10018,6 +10018,68 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
+    public async Task Formats_IgnoresHtmlFormatterWrappingInMultilineRazorComment()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @* first
+                asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf *@
+
+                @code {
+                private int count;
+                }
+                """,
+            htmlFormatted: """
+                @* first
+                asdf asdf asdf asdf asdf asdf
+                asdf asdf asdf asdf asdf asdf *@
+
+                @code {
+                private int count;
+                }
+                """,
+            expected: """
+                @* first
+                asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf *@
+
+                @code {
+                    private int count;
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
+    public async Task Formats_IgnoresHtmlFormatterChangesInSingleLineRazorComment()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @* first        second *@
+
+                @code {
+                private int count;
+                }
+                """,
+            htmlFormatted: """
+                @* first second *@
+
+                @code {
+                private int count;
+                }
+                """,
+            expected: """
+                @* first        second *@
+
+                @code {
+                    private int count;
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6192")]
     public async Task Formats_NoEditsForNoChanges()
     {

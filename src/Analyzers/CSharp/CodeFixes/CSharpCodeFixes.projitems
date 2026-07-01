@@ -163,6 +163,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\CSharpUsePrimaryConstructorCodeFixProvider_DocComments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\CSharpUsePrimaryConstructorCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\CSharpUsePrimaryConstructorFixAllProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseLabeledJumpStatements\CSharpUseLabeledJumpStatementsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemThreadingLock\CSharpUseSystemThreadingLockCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemThreadingLock\CSharpUseSystemThreadingLockFixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />

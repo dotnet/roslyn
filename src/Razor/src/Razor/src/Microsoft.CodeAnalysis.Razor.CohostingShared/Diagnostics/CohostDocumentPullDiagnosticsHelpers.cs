@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 internal static class CohostDocumentPullDiagnosticsHelpers
 {
-    public static async Task<LspDiagnostic[]> GetDocumentDiagnosticsAsync(Document document, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
+    public static async Task<LspDiagnostic[]> GetDocumentDiagnosticsAsync(Document document, IEditAndContinueSessionTracker encSessionTracker, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
     {
         var solutionServices = document.Project.Solution.Services;
         var globalOptionsService = solutionServices.ExportProvider.GetService<IGlobalOptionService>();
@@ -24,8 +24,7 @@ internal static class CohostDocumentPullDiagnosticsHelpers
         var diagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
             document, range: null, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
 
-        var encDiagnostics = await EditAndContinueDiagnosticSource.GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
-
+        var encDiagnostics = await EditAndContinueDiagnosticSource.GetDocumentDiagnosticsAsync(document, encSessionTracker, cancellationToken).ConfigureAwait(false);
         return ConvertDiagnostics(document, supportsVisualStudioExtensions, globalOptionsService, [.. diagnostics, .. encDiagnostics]);
     }
 

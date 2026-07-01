@@ -65,6 +65,37 @@ internal sealed class RemoteServiceInvoker(
     }
 
     public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
+        Func<TService, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerMemberName] string? callerMemberName = null)
+        where TService : class
+    {
+        await InitializeAsync().ConfigureAwait(false);
+
+        var client = await GetClientAsync<TService>(cancellationToken).ConfigureAwait(false);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return default;
+        }
+
+        try
+        {
+            var result = await client.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+
+            return result.Value;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            var approximateCallingClassName = Path.GetFileNameWithoutExtension(callerFilePath);
+            _logger.LogError(ex, $"Error calling remote method for {typeof(TService).Name} service, invocation: {approximateCallingClassName}.{callerMemberName}");
+            _telemetryReporter.ReportFault(ex, "Exception calling remote method for {service}, invocation: {class}.{method}", typeof(TService).FullName, approximateCallingClassName, callerMemberName);
+            return default;
+        }
+    }
+
+    public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
         Solution solution,
         Func<TService, RazorSolutionWrapper, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken,

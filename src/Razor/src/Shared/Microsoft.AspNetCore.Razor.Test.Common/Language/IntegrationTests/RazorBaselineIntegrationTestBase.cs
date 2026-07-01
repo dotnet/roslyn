@@ -114,7 +114,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
             WriteBaseline(actualCode, baselineFullPath);
 
             var baselineDiagnosticsFullPath = Path.Combine(TestProjectRoot, baselineDiagnosticsFilePath);
-            var lines = document.Diagnostics.Select(RazorDiagnosticSerializer.Serialize).ToArray();
+            var lines = document.Diagnostics.Select(RazorDiagnosticSerializer.SerializeAssertingFilePath).ToArray();
             if (lines.Any())
             {
                 WriteBaseline(lines, baselineDiagnosticsFullPath);
@@ -154,7 +154,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
             baselineDiagnostics = diagnosticsFile.ReadAllText();
         }
 
-        var actualDiagnostics = string.Concat(document.Diagnostics.Select(d => RazorDiagnosticSerializer.Serialize(d) + "\r\n"));
+        var actualDiagnostics = string.Concat(document.Diagnostics.Select(d => RazorDiagnosticSerializer.SerializeAssertingFilePath(d) + "\r\n"));
         Assert.Equal(baselineDiagnostics, actualDiagnostics);
 
         var baselineMappings = string.Empty;
