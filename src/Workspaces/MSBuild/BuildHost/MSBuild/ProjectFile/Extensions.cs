@@ -68,12 +68,10 @@ internal static class Extensions
     /// </summary>
     private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
     {
-        return new(reference.EvaluatedInclude, reference.GetAliases(), reference.ReferenceOutputAssemblyIsTrue())
-        {
-            PhysicalPath = reference.HasMetadata(MetadataNames.FileBasedProgramsFromRefDirective)
-                ? reference.GetMetadataValue(MetadataNames.FileBasedProgramsFromRefDirective)
-                : null,
-        };
+        var path = reference.HasMetadata(MetadataNames.FileBasedProgramsFromRefDirective)
+            ? reference.GetMetadataValue(MetadataNames.FileBasedProgramsFromRefDirective)
+            : reference.EvaluatedInclude;
+        return new(path, reference.GetAliases(), reference.ReferenceOutputAssemblyIsTrue());
     }
 
     public static string[] GetAliases(this MSB.Framework.ITaskItem item)

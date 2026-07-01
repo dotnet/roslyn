@@ -196,10 +196,7 @@ public partial class MSBuildProjectLoader
             {
                 var aliases = projectFileReference.Aliases;
 
-                // In case of file-based apps, PhysicalPath is the .cs file, whereas project path is the virtual .csproj file.
-                var physicalPath = projectFileReference.PhysicalPath ?? projectFileReference.Path;
-
-                if (_pathResolver.TryGetAbsoluteProjectPath(physicalPath, baseDirectory: projectDirectory, _discoveredProjectOptions.OnPathFailure, out var projectReferencePath))
+                if (_pathResolver.TryGetAbsoluteProjectPath(projectFileReference.Path, baseDirectory: projectDirectory, _discoveredProjectOptions.OnPathFailure, out var projectReferencePath))
                 {
                     // The easiest case is to add a reference to a project we already know about.
                     if (TryAddReferenceToKnownProject(id, projectReferencePath, aliases.ToImmutableArray(), builder))
@@ -246,7 +243,7 @@ public partial class MSBuildProjectLoader
                 }
 
                 // We weren't able to handle this project reference, so add it without further processing.
-                var unknownProjectId = _projectMap.GetOrCreateProjectId(physicalPath);
+                var unknownProjectId = _projectMap.GetOrCreateProjectId(projectFileReference.Path);
                 var newProjectReference = CreateProjectReference(from: id, to: unknownProjectId, [.. aliases]);
                 builder.AddProjectReference(newProjectReference);
             }

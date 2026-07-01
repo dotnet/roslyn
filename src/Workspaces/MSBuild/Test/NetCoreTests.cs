@@ -766,7 +766,10 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         Assert.Empty(workspace.Diagnostics);
 
-        Assert.Equal(["Program.cs", "Util.cs"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        var projRef = Assert.Single(project.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
@@ -796,7 +799,10 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         Assert.Empty(workspace.Diagnostics);
 
-        Assert.Equal(["Program.cs", "Util.cs"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        var projRef = Assert.Single(project.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
@@ -818,7 +824,58 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         Assert.Empty(workspace.Diagnostics);
 
-        Assert.Equal(["Program.cs"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+        Assert.Equal(["Program"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        var projRef = Assert.Single(project.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single().Id);
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_AddProjectReference()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                Util.M();
+                """),
+            ("Util.cs", """
+                #:property OutputType=Library
+                public static class Util
+                {
+                    public static string M() => "Util";
+                }
+                """)));
+
+        using var workspace = CreateMSBuildWorkspace();
+        var programProject = await workspace.OpenProjectAsync(GetSolutionFileName("Program.cs"));
+
+        Assert.Empty(workspace.Diagnostics);
+        Assert.Equal(["Program"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+        Assert.Empty(programProject.ProjectReferences);
+
+        var diag = Assert.Single((await programProject.GetCompilationAsync()).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error && d.GetMessage().Contains("Util")));
+        Assert.Equal("CS0103", diag.Id); // The name 'Util' does not exist in the current context
+
+        var utilProject = await workspace.OpenProjectAsync(GetSolutionFileName("Util.cs"));
+
+        Assert.Empty(workspace.Diagnostics);
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        programProject = workspace.CurrentSolution.Projects.Single(p => p.Name == "Program");
+        Assert.Empty(programProject.ProjectReferences);
+
+        var solution = programProject.AddProjectReference(new ProjectReference(utilProject.Id)).Solution;
+        Assert.True(workspace.TryApplyChanges(solution));
+
+        Assert.Empty(workspace.Diagnostics);
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        programProject = workspace.CurrentSolution.Projects.Single(p => p.Name == "Program");
+        var projRef = Assert.Single(programProject.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
+
+        Assert.Empty((await programProject.GetCompilationAsync()).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error && d.GetMessage().Contains("Util")));
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

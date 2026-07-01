@@ -51,7 +51,7 @@ internal sealed class ProjectFile(
         var projectInstances = await buildManager.BuildProjectInstancesAsync(project, log, cancellationToken).ConfigureAwait(false);
 
         return projectInstances.Select(
-            instance => new ProjectInstanceReader(language, _commandLineProvider, instance, project).CreateProjectFileInfo(PhysicalFilePath)).ToArray();
+            instance => new ProjectInstanceReader(language, _commandLineProvider, instance, project, PhysicalFilePath).CreateProjectFileInfo()).ToArray();
     }
 
     public void AddDocument(string filePath, string? logicalPath = null)

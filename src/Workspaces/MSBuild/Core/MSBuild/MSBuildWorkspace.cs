@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -355,12 +356,29 @@ public sealed class MSBuildWorkspace : Workspace
                     return;
                 }
 
-                if (_loader.ProjectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Log, out var languageName))
+                if (_loader.ProjectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Log, out var languageName, out var isFileBasedApp))
                 {
                     try
                     {
-                        var buildHost = _applyChangesBuildHostProcessManager.GetBuildHostWithFallbackAsync(projectPath, CancellationToken.None).Result;
-                        _applyChangesProjectFile = buildHost.LoadProjectFileAsync(projectPath, languageName, CancellationToken.None).Result;
+                        var preferredBuildHostKind = isFileBasedApp
+                            ? BuildHostProcessKind.NetCore
+                            : BuildHostProcessManager.GetKindForProject(projectPath);
+                        var (buildHost, _) = _applyChangesBuildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, CancellationToken.None).Result;
+
+                        if (isFileBasedApp)
+                        {
+                            var fileBasedProgramService = this.Services.GetRequiredService<IFileBasedProgramService>();
+                            _applyChangesProjectFile = FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
+                                buildHost,
+                                fileBasedProgramService,
+                                projectPath,
+                                (error) => Reporter.Report(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, error)),
+                                CancellationToken.None).Result;
+                        }
+                        else
+                        {
+                            _applyChangesProjectFile = buildHost.LoadProjectFileAsync(projectPath, languageName, CancellationToken.None).Result;
+                        }
                     }
                     catch (IOException exception)
                     {
