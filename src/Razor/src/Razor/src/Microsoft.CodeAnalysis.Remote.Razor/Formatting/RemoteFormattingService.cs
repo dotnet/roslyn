@@ -24,6 +24,20 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
     }
 
     private readonly IRazorFormattingService _formattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
+    private readonly IFormattingLoggerFactory _formattingLoggerFactory = args.ExportProvider.GetExportedValue<IFormattingLoggerFactory>();
+
+    public async ValueTask<bool> SetFormattingLogDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
+    {
+        await RunServiceAsync(
+            cancellationToken =>
+            {
+                _formattingLoggerFactory.SetLogDirectory(logDirectory);
+                return default;
+            },
+            cancellationToken).ConfigureAwait(false);
+
+        return true;
+    }
 
     public ValueTask<ImmutableArray<TextChange>> GetDocumentFormattingEditsAsync(
         RazorSolutionWrapper solutionInfo,
