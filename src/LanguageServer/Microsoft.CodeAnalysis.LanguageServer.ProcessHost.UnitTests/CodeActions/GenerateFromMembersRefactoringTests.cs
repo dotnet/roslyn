@@ -13,12 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.CodeAction
 
 public sealed class GenerateFromMembersRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
-    // Generate-constructor and generate-overrides only appear once the project's framework references finish loading,
-    // but the out-of-process test server fires "project initialized" before that happens and offers no event to wait on.
-    // These tests are correct and pass once references are present; skipped here pending a test-infra fix.
-    private const string MetadataLoadRaceSkip = "Flaky: depends on metadata references that load asynchronously after project initialization completes; needs a test-infra wait hook.";
-
-    [Theory(Skip = MetadataLoadRaceSkip), CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestGenerateConstructorFromMembersIsSurfaced(bool includeDevKitComponents)
     {
         var markup =
@@ -38,7 +33,7 @@ public sealed class GenerateFromMembersRefactoringTests(ITestOutputHelper testOu
         Assert.Contains(codeActionResults, action => action.Title == FeaturesResources.Generate_constructor_from_all_members);
     }
 
-    [Theory(Skip = MetadataLoadRaceSkip), CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestGenerateConstructorFromMembersGeneratesConstructor(bool includeDevKitComponents)
     {
         var markup =
@@ -89,7 +84,7 @@ public sealed class GenerateFromMembersRefactoringTests(ITestOutputHelper testOu
         Assert.Contains(codeActionResults, action => action.Title == FeaturesResources.Generate_Equals_and_GetHashCode_from_all_members);
     }
 
-    [Theory(Skip = MetadataLoadRaceSkip), CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestGenerateOverridesIsSurfaced(bool includeDevKitComponents)
     {
         var markup =
