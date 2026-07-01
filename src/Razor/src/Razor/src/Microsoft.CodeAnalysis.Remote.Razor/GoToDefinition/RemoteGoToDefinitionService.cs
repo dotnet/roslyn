@@ -137,7 +137,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
 
         // Map the C# locations back to the Razor file.
         using var mappedLocations = new PooledArrayBuilder<LspLocation>(locations.Length);
-        using var _ = HashSetPool<(Uri DocumentUri, LinePositionSpan Range)>.GetPooledObject(out var seenLocations);
+        using var _ = HashSetPool<(DocumentUri DocumentUri, LinePositionSpan Range)>.GetPooledObject(out var seenLocations);
 
         foreach (var location in locations)
         {
@@ -153,7 +153,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
                 continue;
             }
 
-            var mappedLocation = LspFactory.CreateLocation(mappedDocumentUri.CreateDocumentUriFromSystemUri(), mappedRange);
+            var mappedLocation = LspFactory.CreateLocation(mappedDocumentUri, mappedRange);
 
             mappedLocations.Add(mappedLocation);
         }

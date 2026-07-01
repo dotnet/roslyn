@@ -1,11 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CallHierarchy;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -123,14 +123,13 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         using var builder = new PooledArrayBuilder<CallHierarchyIncomingCall>(incomingCalls.Length);
         foreach (var incomingCall in incomingCalls)
         {
-            var originalFromUri = incomingCall.From.Uri.GetRequiredSystemUri();
             var mappedFromItem = await MapItemAsync(snapshot, incomingCall.From, cancellationToken).ConfigureAwait(false);
             if (mappedFromItem is null)
             {
                 continue;
             }
 
-            var mappedRanges = await MapRangesAsync(snapshot, originalFromUri, incomingCall.FromRanges, cancellationToken).ConfigureAwait(false);
+            var mappedRanges = await MapRangesAsync(snapshot, incomingCall.From.Uri, incomingCall.FromRanges, cancellationToken).ConfigureAwait(false);
             builder.Add(new CallHierarchyIncomingCall
             {
                 From = mappedFromItem,
@@ -171,7 +170,6 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             return RemoteResponse<CallHierarchyOutgoingCall[]?>.NoFurtherHandling;
         }
 
-        var callerUri = generatedDocument.CreateSystemUri();
         using var builder = new PooledArrayBuilder<CallHierarchyOutgoingCall>(outgoingCalls.Length);
         foreach (var outgoingCall in outgoingCalls)
         {
@@ -181,7 +179,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
                 continue;
             }
 
-            var mappedRanges = await MapRangesAsync(snapshot, callerUri, outgoingCall.FromRanges, cancellationToken).ConfigureAwait(false);
+            var mappedRanges = await MapRangesAsync(snapshot, generatedDocument.GetURI(), outgoingCall.FromRanges, cancellationToken).ConfigureAwait(false);
             builder.Add(new CallHierarchyOutgoingCall
             {
                 To = mappedToItem,
@@ -219,14 +217,13 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
 
     private async Task<CallHierarchyItem?> MapItemAsync(RemoteDocumentSnapshot snapshot, CallHierarchyItem item, CancellationToken cancellationToken)
     {
-        var uri = item.Uri.GetRequiredSystemUri();
+        var uri = item.Uri;
 
         var (mappedDocumentUri, mappedRange) = await DocumentMappingService
             .MapToHostDocumentUriAndRangeAsync(snapshot, uri, item.Range, cancellationToken)
             .ConfigureAwait(false);
 
-        var documentUri = mappedDocumentUri.CreateDocumentUriFromSystemUri();
-        if (documentUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
+        if (mappedDocumentUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
         {
             return null;
         }
@@ -235,7 +232,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             .MapToHostDocumentUriAndRangeAsync(snapshot, uri, item.SelectionRange, cancellationToken)
             .ConfigureAwait(false);
 
-        if (mappedSelectionUri.CreateDocumentUriFromSystemUri().IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
+        if (mappedSelectionUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
         {
             return null;
         }
@@ -246,14 +243,14 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             Kind = item.Kind,
             Tags = item.Tags,
             Detail = item.Detail,
-            Uri = documentUri,
+            Uri = mappedDocumentUri,
             Range = mappedRange,
             SelectionRange = mappedSelectionRange,
             Data = item.Data,
         };
     }
 
-    private async Task<LspRange[]> MapRangesAsync(RemoteDocumentSnapshot snapshot, Uri documentUri, LspRange[] ranges, CancellationToken cancellationToken)
+    private async Task<LspRange[]> MapRangesAsync(RemoteDocumentSnapshot snapshot, DocumentUri documentUri, LspRange[] ranges, CancellationToken cancellationToken)
     {
         using var builder = new PooledArrayBuilder<LspRange>(ranges.Length);
         foreach (var range in ranges)
@@ -262,7 +259,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
                 .MapToHostDocumentUriAndRangeAsync(snapshot, documentUri, range, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (mappedDocumentUri.CreateDocumentUriFromSystemUri().IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
+            if (mappedDocumentUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
             {
                 continue;
             }

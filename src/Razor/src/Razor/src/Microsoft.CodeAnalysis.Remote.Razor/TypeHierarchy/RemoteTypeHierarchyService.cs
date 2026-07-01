@@ -181,21 +181,18 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
         TypeHierarchyItem item,
         CancellationToken cancellationToken)
     {
-        var uri = item.Uri.GetRequiredSystemUri();
-
         var (mappedDocumentUri, mappedRange) = await DocumentMappingService
-            .MapToHostDocumentUriAndRangeAsync(snapshot, uri, item.Range, cancellationToken)
+            .MapToHostDocumentUriAndRangeAsync(snapshot, item.Uri, item.Range, cancellationToken)
             .ConfigureAwait(false);
-        var documentUri = mappedDocumentUri.CreateDocumentUriFromSystemUri();
-        if (documentUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
+        if (mappedDocumentUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
         {
             return null;
         }
 
         var (mappedSelectionUri, mappedSelectionRange) = await DocumentMappingService
-            .MapToHostDocumentUriAndRangeAsync(snapshot, uri, item.SelectionRange, cancellationToken)
+            .MapToHostDocumentUriAndRangeAsync(snapshot, item.Uri, item.SelectionRange, cancellationToken)
             .ConfigureAwait(false);
-        if (mappedSelectionUri.CreateDocumentUriFromSystemUri().IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
+        if (mappedSelectionUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
         {
             return null;
         }
@@ -206,7 +203,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
             Kind = item.Kind,
             Tags = item.Tags,
             Detail = item.Detail,
-            Uri = documentUri,
+            Uri = mappedDocumentUri,
             Range = mappedRange,
             SelectionRange = mappedSelectionRange,
             Data = item.Data,

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -153,10 +152,10 @@ internal static class IDocumentMappingServiceExtensions
     /// generated document. If the uri passed in is not for a generated document, or the range cannot be mapped
     /// for some other reason, the original passed in range is returned unchanged.
     /// </summary>
-    public static async Task<(Uri MappedDocumentUri, LspRange MappedRange)> MapToHostDocumentUriAndRangeAsync(
+    public static async Task<(DocumentUri MappedDocumentUri, LspRange MappedRange)> MapToHostDocumentUriAndRangeAsync(
         this IDocumentMappingService service,
         RemoteDocumentSnapshot originSnapshot,
-        Uri generatedDocumentUri,
+        DocumentUri generatedDocumentUri,
         LspRange generatedDocumentRange,
         CancellationToken cancellationToken)
     {

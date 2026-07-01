@@ -409,27 +409,27 @@ internal sealed class DocumentMappingService(
         }
     }
 
-    public async Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
+    public async Task<(DocumentUri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
         RemoteDocumentSnapshot originSnapshot,
-        Uri generatedDocumentUri,
+        DocumentUri generatedDocumentUri,
         LinePositionSpan generatedDocumentRange,
         CancellationToken cancellationToken)
     {
         // For Html we just map the Uri, the range will be the same
-        var documentUri = generatedDocumentUri.CreateDocumentUriFromSystemUri();
-        if (documentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
+        if (generatedDocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
         {
-            return (razorDocumentUri, generatedDocumentRange);
+            return (razorDocumentUri.CreateDocumentUriFromSystemUri(), generatedDocumentRange);
         }
 
         // We only map from C# files
-        if (!documentUri.IsRazorCSharpDocumentUri(originSnapshot.TextDocument.Project.Solution))
+        if (!generatedDocumentUri.IsRazorCSharpDocumentUri(originSnapshot.TextDocument.Project.Solution))
         {
             return (generatedDocumentUri, generatedDocumentRange);
         }
 
         var solution = originSnapshot.TextDocument.Project.Solution;
-        if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
+        // Generated documents can only be real parsed Uris so we know it is safe to call GetRequiredSystemUri
+        if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri.GetRequiredSystemUri(), out var identity) ||
             !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))
         {
             return (generatedDocumentUri, generatedDocumentRange);
@@ -441,10 +441,10 @@ internal sealed class DocumentMappingService(
             return (generatedDocumentUri, generatedDocumentRange);
         }
 
-        razorDocumentUri = project.Solution.GetRazorDocumentUri(razorCodeDocument);
+        var razorUri = project.Solution.GetRazorDocumentUri(razorCodeDocument);
         if (TryMapToRazorDocumentRange(razorCodeDocument.GetCSharpDocumentForHintName(identity.HintName), generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
         {
-            return (razorDocumentUri, mappedRange);
+            return (razorUri, mappedRange);
         }
 
         // If the position is unmappable, but was in a generated Razor, we have one last check to see if Roslyn wants to navigate
@@ -454,7 +454,7 @@ internal sealed class DocumentMappingService(
                 (generatedDocumentRange.End == generatedDocumentRange.Start ||
                 generatedDocumentRange.End == classDeclSpan.End))
         {
-            return (razorDocumentUri, new(LinePosition.Zero, LinePosition.Zero));
+            return (razorUri, new(LinePosition.Zero, LinePosition.Zero));
         }
 
         return (generatedDocumentUri, generatedDocumentRange);

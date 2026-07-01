@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
@@ -89,7 +88,7 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
 
         // Map the C# locations back to the Razor file.
         using var mappedLocations = new PooledArrayBuilder<LspLocation>(locations.Length);
-        var seenLocations = new HashSet<(Uri DocumentUri, LinePositionSpan Range)>();
+        var seenLocations = new HashSet<(DocumentUri DocumentUri, LinePositionSpan Range)>();
 
         foreach (var location in locations)
         {
@@ -105,7 +104,7 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
                 continue;
             }
 
-            var mappedLocation = LspFactory.CreateLocation(mappedDocumentUri.CreateDocumentUriFromSystemUri(), mappedRange);
+            var mappedLocation = LspFactory.CreateLocation(mappedDocumentUri, mappedRange);
 
             mappedLocations.Add(mappedLocation);
         }
