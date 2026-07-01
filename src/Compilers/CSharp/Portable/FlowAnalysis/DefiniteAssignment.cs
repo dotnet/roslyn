@@ -2360,24 +2360,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Debug instrumentation wraps conditions in a sequence that stores the result in a branch discriminator
             // (see DebugInfoInjector.AddConditionSequencePoint). Preserve the original condition's true/false
             // assignment states through that wrapper.
-            if (DebugInfoInjector.TryGetConditionalBranchDiscriminatorCondition(node, out BoundExpression condition, out BoundLocal target) &&
-                target.LocalSymbol.Type?.SpecialType == SpecialType.System_Boolean)
+            if (DebugInfoInjector.TryGetConditionalBranchDiscriminatorCondition(node, out BoundExpression condition, out BoundLocal target))
             {
-                VisitLvalue(target);
-                base.VisitCondition(condition);
+                Debug.Assert(target.LocalSymbol.Type is not null);
 
-                Debug.Assert(IsConditionalState);
-                var whenTrue = StateWhenTrue.Clone();
-                var whenFalse = StateWhenFalse.Clone();
+                if (target.LocalSymbol.Type.SpecialType == SpecialType.System_Boolean)
+                {
+                    VisitLvalue(target);
+                    base.VisitCondition(condition);
 
-                Unsplit();
-                Assign(target, condition);
+                    Debug.Assert(IsConditionalState);
+                    var whenTrue = StateWhenTrue.Clone();
+                    var whenFalse = StateWhenFalse.Clone();
 
-                Meet(ref whenTrue, ref State);
-                Meet(ref whenFalse, ref State);
+                    Unsplit();
+                    Assign(target, condition);
 
-                SetConditionalState(whenTrue, whenFalse);
-                return;
+                    Meet(ref whenTrue, ref State);
+                    Meet(ref whenFalse, ref State);
+
+                    SetConditionalState(whenTrue, whenFalse);
+                    return;
+                }
             }
 
             base.VisitCondition(node);
