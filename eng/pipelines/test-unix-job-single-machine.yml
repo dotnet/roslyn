@@ -43,15 +43,20 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
 
+    - task: UseDotNet@2
+      displayName: Install .NET (from global.json)
+      inputs:
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
+
     - task: ShellScript@2
       displayName: Rehydrate Unit Tests Environment
       inputs:
         scriptPath: ./rehydrate-all.sh
 
-    - task: ShellScript@2
+    - task: CmdLine@2
       inputs:
-        scriptPath: ./eng/build.sh
-        args: --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+        script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" ${{ parameters.testArguments }}
       displayName: Test
 
     - template: publish-logs.yml

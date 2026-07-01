@@ -344,7 +344,6 @@ extends:
                        -binaryLog
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
-                       -officialSkipTests ${{ parameters.SkipTests }}
                        -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop ${{ parameters.IbcDrop }}
@@ -356,7 +355,24 @@ extends:
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
+                       /p:DotNetBuildTests=${{ not(parameters.SkipTests) }}
           condition: succeeded()
+
+        - task: PowerShell@2
+          displayName: Run Tests
+          inputs:
+            targetType: inline
+            script: |
+              & "$(Build.SourcesDirectory)\.dotnet\dotnet.exe" exec `
+                "$(Build.SourcesDirectory)\artifacts\bin\RunTests\$(BuildConfiguration)\net10.0\RunTests.dll" `
+                --dotnet "$(Build.SourcesDirectory)\.dotnet\dotnet.exe" `
+                --logs "$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)" `
+                --testConfiguration $(BuildConfiguration) `
+                --testFramework:desktop `
+                --collectdumps `
+                --ci `
+                --timeout 90
+          condition: and(succeeded(), ${{ not(parameters.SkipTests) }})
 
         - template: /eng/common/templates-official/steps/generate-sbom.yml@self
 

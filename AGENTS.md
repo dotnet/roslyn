@@ -21,12 +21,9 @@
 - Solution filters: `Roslyn.slnx` (full), `Compilers.slnf` (compilers), `Ide.slnf` (IDE)
 
 **Testing**:
-- Windows: `test.cmd` / Unix: `test.sh` — Run all tests
-- `dotnet test <path to test .csproj>` — Run specific test project
-- Tests inherit from base classes: `CSharpTestBase`, `VisualBasicTestBase` (compiler), `AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor` (IDE analyzers)
-- Use `[UseExportProvider]` for MEF-dependent tests
-- Copilot coding agent setup preinstalls `roslyn-language-server` as a global tool and syncs the `dotnet/skills` catalog into `~/.copilot/skills`
-- Tests may take a while to build and run. Monitor output and wait until tests complete unless you're confident tests are hanging.
+- Use `dotnet test` to run tests for a specific project or test suite within a project.
+- Use `src/Tools/RunTests` to run all tests in the solution efficiently. Read the `README.md` with the tool for more information.
+- Tests can take a while to build and run. Use options like `--blame-hang-timeout` to help differentiate hanging tests vs. slow ones.
 
 **Formatting**:
 - Whitespace formatting preferences are stored in the `.editorconfig` file
@@ -64,6 +61,9 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
   - Use `.Single()` instead of asserting count and extracting elements
   - For compiler tests, use `comp.VerifyEmitDiagnostics()` so reviewers can see if code is legal
   - For IDE tests, use `TestInRegularAndScriptAsync` / `TestMissingInRegularAndScriptAsync`
+- Tests inherit from base classes: `CSharpTestBase`, `VisualBasicTestBase` (compiler), `AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor` (IDE analyzers)
+- Use `[UseExportProvider]` for MEF-dependent tests
+- Copilot coding agent setup preinstalls `roslyn-language-server` as a global tool and syncs the `dotnet/skills` catalog into `~/.copilot/skills`
 
 ## Key Conventions
 

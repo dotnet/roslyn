@@ -47,12 +47,12 @@ steps:
                -build
                -configuration $(BuildConfiguration)
                -officialBuildId $(Build.BuildNumber)
-               -officialSkipTests true
                -officialSkipApplyOptimizationData true
                -officialSourceBranchName $(SourceBranchName)
                -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                /p:RepositoryName=$(Build.Repository.Name)
                /p:VisualStudioDropName=$(VisualStudio.DropName)
+               /p:DotNetBuildTests=false
 
 - task: CopyFiles@2
   # APIScan can take a long time, so here we copy (mostly) just the product binaries and related .pdbs

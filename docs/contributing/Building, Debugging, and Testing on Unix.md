@@ -18,7 +18,7 @@ Particularly for developers who aren't experienced with .NET Core development on
 5. You can launch a new VS Code instance with the language server from your current code by running the "launch vscode with language server" task.
 
 ## Running Tests
-The unit tests can be executed by running `./build.sh --test`.
+After building, the unit tests can be executed by running `./test.sh`, which runs the already-built test assemblies via `src/Tools/RunTests`.
 
 To run all tests in a single project, it's recommended to use the `dotnet test path/to/project` command.
 

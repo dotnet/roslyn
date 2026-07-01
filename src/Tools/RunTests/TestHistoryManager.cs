@@ -29,28 +29,23 @@ internal class TestHistoryManager
     /// In xUnit v2, DurationInMs does NOT include IAsyncLifetime.InitializeAsync or DisposeAsync time.
     /// The caller is responsible for adjusting the duration based on the HasAsyncLifetime flag from test discovery.
     /// </summary>
-    public static async Task<Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>?> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
+    public static async Task<Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>?> GetTestHistoryAsync(CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
-        var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
+        var accessToken = GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
 
-        // ADO project that the build pipeline is located in.
-        var projectUri = options.ProjectUri ?? GetEnvironmentVariable("SYSTEM_COLLECTIONURI");
+        var projectUri = GetEnvironmentVariable("SYSTEM_COLLECTIONURI");
 
-        // Id of the pipeline to get test history from.
-        var pipelineDefinitionIdStr = options.PipelineDefinitionId ?? GetEnvironmentVariable("SYSTEM_DEFINITIONID");
+        var pipelineDefinitionIdStr = GetEnvironmentVariable("SYSTEM_DEFINITIONID");
 
-        // The phase name is used to filter the tests on the last passing build to only those that apply to the currently running phase.
-        //   Note here that 'phaseName' corresponds to the 'jobName' defined in our pipeline yaml file and the job name env var is not correct.
-        //   See https://developercommunity.visualstudio.com/t/systemjobname-seems-to-be-incorrectly-assigned-and/1209736
-        var phaseName = options.PhaseName ?? GetEnvironmentVariable("SYSTEM_PHASENAME");
+        var phaseName = GetEnvironmentVariable("SYSTEM_PHASENAME");
 
         // We use the target branch of the current build to lookup the last successful build for the same branch.
         // For PR builds, SYSTEM_PULLREQUEST_TARGETBRANCH gives us the target (e.g. "main").
         // For CI builds, we need the full branch ref. BUILD_SOURCEBRANCH gives us the full ref
         // (e.g. "refs/heads/features/unions") while BUILD_SOURCEBRANCHNAME only gives the last
         // segment (e.g. "unions"), which breaks history lookup for nested branch names.
-        var targetBranch = options.TargetBranchName ?? GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? GetEnvironmentVariable("BUILD_SOURCEBRANCH");
+        var targetBranch = GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? GetEnvironmentVariable("BUILD_SOURCEBRANCH");
         if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
             ConsoleUtil.Warning($"Missing required options to lookup test history, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");

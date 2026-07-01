@@ -36,6 +36,12 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
 
+    - task: UseDotNet@2
+      displayName: Install .NET (from global.json)
+      inputs:
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
+
     - task: BatchScript@1
       displayName: Rehydrate RunTests
       inputs:
@@ -43,14 +49,13 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
-    - task: PowerShell@2
+    - task: CmdLine@2
       displayName: Run Unit Tests
       inputs:
-        filePath: eng/build.ps1
         ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }} -collectDumps        
+          script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}
         ${{ else }}:
-          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }} -collectDumps
+          script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
