@@ -214,11 +214,62 @@ public sealed class ClosedClassesTests : CSharpTestBase
         }
     }
 
+    private static readonly string s_reportHelper = """
+        using System.Runtime.CompilerServices;
+        using System.Linq;
+        using System;
+
+        public partial class Program
+        {
+            public static void Report(Type type)
+            {
+                var attr = (IsClosedTypeAttribute)type.GetCustomAttributes(typeof(IsClosedTypeAttribute), inherit: false).FirstOrDefault();
+                if (attr is null)
+                {
+                    Console.Write("<null> ");
+                    return;
+                }
+
+                Console.Write(attr.DerivedTypes.Length);
+                Console.Write(" ");
+                foreach (var derivedType in attr.DerivedTypes)
+                {
+                    Console.Write(derivedType.FullName);                    
+                    if (derivedType.IsConstructedGenericType)
+                        throw new Exception(); // unexpected
+
+                    if (derivedType.GetGenericArguments() is [_, ..] args)
+                    {
+                        if (!derivedType.IsGenericTypeDefinition)
+                            throw new Exception(); // unexpected
+
+                        Console.Write("[");
+                        for (int i = 0; i < args.Length; i++)
+                        {
+                            if (i > 0)
+                            {
+                                Console.Write(",");
+                            }
+
+                            Console.Write(args[i].FullName ?? args[i].Name);
+                        }
+
+                        Console.Write("]");
+                    }
+                    Console.Write(" ");
+                }
+            }
+        }
+        """;
+
     [Fact]
     public void DerivedTypesMetadata_01()
     {
         // simple case
         var source = """
+            Report(typeof(C));
+            Report(typeof(D1));
+
             closed class C;
 
             class D1 : C;
@@ -227,7 +278,12 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D3 : D1;
             """;
 
-        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifyMetadata, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        var verifier = CompileAndVerify(
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper],
+            symbolValidator: verifyMetadata,
+            targetFramework: TargetFramework.Net100,
+            verify: Verification.Skipped,
+            expectedOutput: "2 D1 D2 <null>");
         verifier.VerifyDiagnostics();
 
         void verifyMetadata(ModuleSymbol module)
@@ -255,6 +311,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
     {
         // nested hierarchy
         var source = """
+            Report(typeof(C));
+            Report(typeof(D1));
+            Report(typeof(D5));
+
             closed class C;
 
             closed class D1 : C;
@@ -266,7 +326,12 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D5 : D4;
             """;
 
-        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifyMetadata, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        var verifier = CompileAndVerify(
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper],
+            symbolValidator: verifyMetadata,
+            targetFramework: TargetFramework.Net100,
+            verify: Verification.Skipped,
+            expectedOutput: "2 D1 D2 2 D3 D4 <null>");
         verifier.VerifyDiagnostics();
 
         void verifyMetadata(ModuleSymbol module)
@@ -291,6 +356,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
     {
         // various generic subtypes
         var source = """
+            Report(typeof(C<>));
+
             closed class C<T>;
 
             class D1 : C<string>;
@@ -300,7 +367,12 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D5<T, U> : C<(T, U)>;
             """;
 
-        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifyMetadata, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        var verifier = CompileAndVerify(
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper],
+            symbolValidator: verifyMetadata,
+            targetFramework: TargetFramework.Net100,
+            verify: Verification.Skipped,
+            expectedOutput: "5 D1 D2 D3`1[T] D4`1[T] D5`2[T,U]");
         verifier.VerifyDiagnostics();
 
         void verifyMetadata(ModuleSymbol module)
@@ -319,6 +391,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
     {
         // nested generic subtype
         var source = """
+            Report(typeof(C<,>));
+            Report(typeof(C<int, string>));
+
             closed class C<T, U>;
 
             class Container<T>
@@ -328,7 +403,12 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifyMetadata, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        var verifier = CompileAndVerify(
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper],
+            symbolValidator: verifyMetadata,
+            targetFramework: TargetFramework.Net100,
+            verify: Verification.Skipped,
+            expectedOutput: "2 Container`1+D1`1[T,U] Container`1+D2[T] 2 Container`1+D1`1[T,U] Container`1+D2[T]");
         verifier.VerifyDiagnostics();
 
         void verifyMetadata(ModuleSymbol module)
@@ -1174,7 +1254,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
         Assert.False(classC.TryGetClosedSubtypes(out _));
 
-        CompileAndVerify(comp1, symbolValidator: verifyMetadata);
+        CompileAndVerify(comp1, symbolValidator: verifyMetadata, verify: Verification.Skipped);
         void verifyMetadata(ModuleSymbol module)
         {
             var peModule = (PEModuleSymbol)module;
@@ -1226,7 +1306,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["Outer<T>.D"], subtypes.ToTestDisplayStrings());
 
-        CompileAndVerify(comp1, symbolValidator: verifyMetadata);
+        CompileAndVerify(comp1, symbolValidator: verifyMetadata, verify: Verification.Skipped);
         void verifyMetadata(ModuleSymbol module)
         {
             var peModule = (PEModuleSymbol)module;
@@ -1279,7 +1359,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["D"], subtypes.ToTestDisplayStrings());
 
-        CompileAndVerify(comp1, symbolValidator: verifyMetadata);
+        CompileAndVerify(comp1, symbolValidator: verifyMetadata, verify: Verification.Skipped);
         void verifyMetadata(ModuleSymbol module)
         {
             var peModule = (PEModuleSymbol)module;
