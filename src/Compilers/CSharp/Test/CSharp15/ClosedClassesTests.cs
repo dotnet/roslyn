@@ -104,7 +104,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 extends [System.Runtime]System.Object
             {
                 .custom instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::.ctor() = (
-                    01 00 00 00
+                    01 00 01 00 54 1d 50 0c 44 65 72 69 76 65 64 54
+                    79 70 65 73 00 00 00 00
                 )
                 // Methods
                 .method family hidebysig specialname rtspecialname 
@@ -157,7 +158,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 extends [System.Runtime]System.Object
             {
                 .custom instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::.ctor() = (
-                    01 00 00 00
+                    01 00 01 00 54 1d 50 0c 44 65 72 69 76 65 64 54
+                    79 70 65 73 00 00 00 00
                 )
                 // Methods
                 .method public hidebysig specialname rtspecialname 
@@ -1042,7 +1044,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // Get attributes from metadata without doing any filtering
             AssertEx.SetEqual([
                     "System.Runtime.CompilerServices.RequiredMemberAttribute",
-                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {})"
                 ],
                 GetAttributeStrings(peModule.GetCustomAttributesForToken(classC.Handle)));
             AssertEx.SetEqual([
@@ -1116,7 +1118,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // Get attributes from metadata without doing any filtering
             AssertEx.SetEqual([
                     "System.Runtime.CompilerServices.RequiredMemberAttribute",
-                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {})"
                 ],
                 GetAttributeStrings(peModule.GetCustomAttributesForToken(classC.Handle)));
 

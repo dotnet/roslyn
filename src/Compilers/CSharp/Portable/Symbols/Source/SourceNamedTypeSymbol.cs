@@ -1804,9 +1804,33 @@ next:;
 
             if (IsClosed)
             {
+                var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
+                var derivedTypesProperty = compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes);
+
+                ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments;
+                // Note: some definitions of IsClosedTypeAttribute may be missing DerivedTypes property.
+                if (systemType is not null and not ErrorTypeSymbol && derivedTypesProperty != null)
+                {
+                    var arrayOfSystemType = ArrayTypeSymbol.CreateSZArray(systemType.ContainingAssembly, TypeWithAnnotations.Create(systemType, NullableAnnotation.NotAnnotated));
+                    var derivedTypesConstant = new TypedConstant(
+                        arrayOfSystemType,
+                        CandidateClosedSubtypeDefinitions.SelectAsArray(
+                            subtype => new TypedConstant(systemType, TypedConstantKind.Type, subtype.GetUnboundGenericTypeOrSelf())));
+
+                    namedArguments = [new KeyValuePair<WellKnownMember, TypedConstant>(
+                        WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes,
+                        derivedTypesConstant)];
+                }
+                else
+                {
+                    namedArguments = [];
+                }
+
                 AddSynthesizedAttribute(
                     ref attributes,
-                    compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor));
+                    compilation.TrySynthesizeAttribute(
+                        WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor,
+                        namedArguments: namedArguments));
             }
 
             // Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta
