@@ -15,7 +15,7 @@ internal interface IRoslynCodeActionHelpers
     /// <summary>
     /// Apply the edit to the specified document, get Roslyn to simplify it, and return the simplified edit
     /// </summary>
-    /// <param name="documentSnapshot">The Razor document context for the edit</param>
+    /// <param name="documentSnapshot">The Razor document snapshot for the edit</param>
     /// <param name="codeBehindUri">If present, the Roslyn document to apply the edit to. Otherwise the generated C# document will be used</param>
     /// <param name="edit">The edit to apply</param>
     /// <param name="cancellationToken">Cancellation token</param>

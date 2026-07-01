@@ -147,7 +147,7 @@ public class HtmlCodeActionProviderTest
 
         workspace.TryApplyChanges(solution);
         var document = workspace.CurrentSolution.GetAdditionalDocument(documentId)!;
-        var snapshotManager = new RemoteSnapshotManager(new RemoteFilePathService(), NoOpTelemetryReporter.Instance);
+        var snapshotManager = new RemoteSnapshotManager(NoOpTelemetryReporter.Instance);
         var snapshot = snapshotManager.GetSnapshot(document);
         var codeDocument = await snapshot.GetGeneratedOutputAsync(CancellationToken.None).ConfigureAwait(false);
 
