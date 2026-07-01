@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -147,26 +146,6 @@ internal static class IDocumentMappingServiceExtensions
 
         csharpRange = default;
         return false;
-    }
-
-    /// <summary>
-    /// Maps a range in the specified generated document uri to a range in the Razor document that owns the
-    /// generated document. If the uri passed in is not for a generated document, or the range cannot be mapped
-    /// for some other reason, the original passed in range is returned unchanged.
-    /// </summary>
-    public static Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
-        this IDocumentMappingService service,
-        RemoteDocumentSnapshot originSnapshot,
-        Uri generatedDocumentUri,
-        LinePositionSpan generatedDocumentRange,
-        CancellationToken cancellationToken)
-    {
-        if (service is DocumentMappingService remoteService)
-        {
-            return remoteService.MapToHostDocumentUriAndRangeAsync(originSnapshot, generatedDocumentUri, generatedDocumentRange, cancellationToken);
-        }
-
-        return Assumed.Unreachable<Task<(Uri, LinePositionSpan)>>();
     }
 
     /// <summary>
