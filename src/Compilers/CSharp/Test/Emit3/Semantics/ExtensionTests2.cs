@@ -4213,7 +4213,11 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81913")]
     public void Nullability_PropertyPattern_Reinference_01()
     {
-        // TODO2 missing diagnostic, both for extension and regular property
+        // Limitation (tracked by the TODO2 markers below): when the receiver's nested nullability is known only
+        // via flow analysis (here 'list' is flow-inferred as List<string?>, but its declared/nominal type is
+        // oblivious), the pattern variable does NOT reflect it, so no deref warning is produced. This lesser
+        // behavior is symmetric between extension and regular properties. Contrast with the declared-nullability
+        // cases (_03.._06), which do warn.
         var source = """
             #nullable enable
             using System.Collections.Generic;
@@ -4249,7 +4253,11 @@ class C
 
         var comp = CreateCompilation(source);
         comp.VerifyTypes();
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (17,13): warning CS8602: Dereference of a possibly null reference.
+            //             first.ToString(); // 1
+            //Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "first").WithLocation(17, 13) // TODO2
+            );
 
         var regularSource = """
             #nullable enable
@@ -4282,7 +4290,11 @@ class C
 
         var regularComp = CreateCompilation(regularSource);
         regularComp.VerifyTypes();
-        regularComp.VerifyEmitDiagnostics();
+        regularComp.VerifyEmitDiagnostics(
+            // (16,13): warning CS8602: Dereference of a possibly null reference.
+            //             first.ToString(); // 1
+            //Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "first").WithLocation(16, 13) // TODO2
+            );
     }
 
     [Fact]
@@ -4349,7 +4361,7 @@ class C
                     var list = M2(item)/*T:System.Collections.Generic.List<string?>!*/;
                     if (list is { First: var first }) // 1
                     {
-                        first.ToString();
+                        first.ToString(); // no deref warning: 'class' constraint means T is not null
                     }
                 }
 
@@ -4365,13 +4377,15 @@ class C
             }
             """;
 
-        var comp = CreateCompilation(source);
-        comp.VerifyTypes();
-        comp.VerifyEmitDiagnostics(
-            // (15,23): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'ListExtensions.extension<T>(List<T>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
-            //         if (list is { First: var first }) // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "First").WithArguments("ListExtensions.extension<T>(System.Collections.Generic.List<T>)", "T", "string?").WithLocation(15, 23));
-    }
+                var comp = CreateCompilation(source);
+                comp.VerifyTypes();
+                // The receiver's nested nullability ('string?') is reflected in the re-inferred extension, producing the
+                // constraint mismatch (CS8634). No deref warning is expected because the 'class' constraint makes 'T' not null.
+                comp.VerifyEmitDiagnostics(
+                    // (15,23): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'ListExtensions.extension<T>(List<T>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                    //         if (list is { First: var first }) // 1
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "First").WithArguments("ListExtensions.extension<T>(System.Collections.Generic.List<T>)", "T", "string?").WithLocation(15, 23));
+            }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81913")]
     public void Nullability_PropertyPattern_Reinference_04()

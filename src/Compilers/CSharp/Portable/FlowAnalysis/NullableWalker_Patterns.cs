@@ -269,7 +269,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return -1;
                 }
 
-                return GetOrCreateSlot(member.Symbol, inputSlot);
+                Symbol memberSymbol = member.Symbol;
+                if (memberSymbol.IsExtensionBlockMember())
+                {
+                    memberSymbol = AsExtensionMemberOfReceiverType(memberSymbol, NominalSlotType(inputSlot), member.Syntax);
+                }
+
+                return GetOrCreateSlot(memberSymbol, inputSlot);
             }
         }
 
@@ -482,7 +488,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var output = e.MakeResultTemp();
                                         int outputSlot = getOrMakeAndRegisterDagTempSlot(output);
                                         Debug.Assert(outputSlot > 0);
-                                        TrackNullableStateForAssignment(valueOpt: null, type, outputSlot, type.ToTypeWithState());
 
                                         if (property.GetMethod is not null)
                                         {
