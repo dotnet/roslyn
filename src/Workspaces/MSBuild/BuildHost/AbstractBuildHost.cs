@@ -10,7 +10,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
 
@@ -203,8 +202,7 @@ internal abstract class AbstractBuildHost :
         Logger.LogInformation($"Loading an in-memory project instance with the path {projectFilePath}");
 
         using var reader = new StringReader(projectContent);
-        using var xmlReader = XmlReader.Create(reader);
-        var (projectInstance, log) = _buildManager.LoadProjectInstance(projectFilePath, xmlReader, globalProperties);
+        var (projectInstance, log) = _buildManager.LoadProjectInstance(projectFilePath, reader, globalProperties);
         return _server.AddTarget(new ProjectInstance(_server, projectInstance, log));
     }
 
