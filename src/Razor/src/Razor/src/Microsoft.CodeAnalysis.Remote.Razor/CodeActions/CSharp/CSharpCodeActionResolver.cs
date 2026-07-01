@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -23,13 +23,11 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 internal sealed class CSharpCodeActionResolver(
     IRazorFormattingService razorFormattingService,
     IClientSettingsManager clientSettingsManager,
-    IFilePathService filePathService,
     RemoteSnapshotManager snapshotManager,
     ILoggerFactory loggerFactory) : ICSharpCodeActionResolver
 {
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
-    private readonly IFilePathService _filePathService = filePathService;
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpCodeActionResolver>();
 
@@ -52,15 +50,14 @@ internal sealed class CSharpCodeActionResolver(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var generatedDocumentUri = textDocumentEdit.TextDocument.DocumentUri.GetRequiredSystemUri();
-
             // If Roslyn wants to edit a random .cs file, then who are we to interfere
-            if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
+            if (!textDocumentEdit.TextDocument.DocumentUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
             {
                 continue;
             }
 
             // We know this is a virtual C# file, but we have to jump through a couple of hoops to make sure we get the right info
+            var generatedDocumentUri = textDocumentEdit.TextDocument.DocumentUri.GetRequiredSystemUri();
             var solution = snapshot.TextDocument.Project.Solution;
 
             var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);

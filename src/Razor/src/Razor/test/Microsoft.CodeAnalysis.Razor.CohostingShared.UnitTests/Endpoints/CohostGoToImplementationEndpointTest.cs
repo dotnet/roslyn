@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -290,8 +289,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
 
         var inputText = await document.GetTextAsync(DisposalToken);
 
-        var filePathService = new RemoteFilePathService();
-        var endpoint = new CohostGoToImplementationEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, filePathService);
+        var endpoint = new CohostGoToImplementationEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker);
 
         var position = inputText.GetPosition(input.Position);
         var textDocumentPositionParams = new TextDocumentPositionParams

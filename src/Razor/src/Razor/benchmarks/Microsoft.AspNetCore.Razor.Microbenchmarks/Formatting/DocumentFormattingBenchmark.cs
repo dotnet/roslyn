@@ -69,8 +69,7 @@ public class DocumentFormattingBenchmark
         }
 
         var document = _workspace.CurrentSolution.GetAdditionalDocument(documentId).AssumeNotNull();
-        var filePathService = new RemoteFilePathService();
-        var snapshotManager = new RemoteSnapshotManager(filePathService, NoOpTelemetryReporter.Instance);
+        var snapshotManager = new RemoteSnapshotManager(NoOpTelemetryReporter.Instance);
         var documentSnapshot = snapshotManager.GetSnapshot(document);
         _documentSnapshot = documentSnapshot;
 
@@ -78,8 +77,8 @@ public class DocumentFormattingBenchmark
         hostServicesProvider.SetWorkspaceProvider(new WorkspaceProvider(_workspace));
 
         var clientSettingsManager = new RemoteClientSettingsManager();
-        var documentMappingService = new DocumentMappingService(filePathService, snapshotManager, EmptyLoggerFactory.Instance);
-        var razorEditService = new RazorEditService(documentMappingService, clientSettingsManager, filePathService, snapshotManager, NoOpTelemetryReporter.Instance);
+        var documentMappingService = new DocumentMappingService(snapshotManager, EmptyLoggerFactory.Instance);
+        var razorEditService = new RazorEditService(documentMappingService, clientSettingsManager, snapshotManager, NoOpTelemetryReporter.Instance);
 
         _formattingService = new RazorFormattingService(
             documentMappingService,

@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.Logging;
@@ -41,7 +40,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
     private IClientSettingsManager? _clientSettingsManager;
 
     private protected abstract IRemoteServiceInvoker RemoteServiceInvoker { get; }
-    private protected abstract IFilePathService FilePathService { get; }
     private protected abstract TestComposition LocalComposition { get; }
 
     private protected TestIncompatibleProjectService IncompatibleProjectService => _incompatibleProjectService.AssumeNotNull();

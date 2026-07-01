@@ -9,18 +9,16 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 [Shared]
 [Export(typeof(RemoteSnapshotManager))]
 [method: ImportingConstructor]
-internal sealed class RemoteSnapshotManager(IFilePathService filePathService, ITelemetryReporter telemetryReporter)
+internal sealed class RemoteSnapshotManager(ITelemetryReporter telemetryReporter)
 {
     private static readonly ConditionalWeakTable<Solution, RemoteSolutionSnapshot> s_solutionToSnapshotMap = new();
 
-    public IFilePathService FilePathService { get; } = filePathService;
     public ITelemetryReporter TelemetryReporter { get; } = telemetryReporter;
 
     public RemoteSolutionSnapshot GetSnapshot(Solution solution)

@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -22,9 +21,8 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 {
     private IDocumentMappingService CreateMappingService()
     {
-        var filePathService = new RemoteFilePathService();
-        var snapshotManager = new RemoteSnapshotManager(filePathService, NoOpTelemetryReporter.Instance);
-        return new DocumentMappingService(filePathService, snapshotManager, LoggerFactory);
+        var snapshotManager = new RemoteSnapshotManager(NoOpTelemetryReporter.Instance);
+        return new DocumentMappingService(snapshotManager, LoggerFactory);
     }
 
     [Fact]

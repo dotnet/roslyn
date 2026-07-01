@@ -11,9 +11,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,11 +24,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 [Export(typeof(IDocumentMappingService)), Shared]
 [method: ImportingConstructor]
 internal sealed class DocumentMappingService(
-    IFilePathService filePathService,
     RemoteSnapshotManager snapshotManager,
     ILoggerFactory loggerFactory) : IDocumentMappingService
 {
-    private readonly IFilePathService _filePathService = filePathService;
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
     private readonly ILogger Logger = loggerFactory.GetOrCreateLogger<DocumentMappingService>();
 
@@ -417,13 +417,14 @@ internal sealed class DocumentMappingService(
         CancellationToken cancellationToken)
     {
         // For Html we just map the Uri, the range will be the same
-        if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
+        var documentUri = generatedDocumentUri.CreateDocumentUriFromSystemUri();
+        if (documentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
         {
-            return (_filePathService.GetRazorDocumentUri(generatedDocumentUri), generatedDocumentRange);
+            return (razorDocumentUri, generatedDocumentRange);
         }
 
         // We only map from C# files
-        if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
+        if (!documentUri.IsRazorCSharpDocumentUri(originSnapshot.TextDocument.Project.Solution))
         {
             return (generatedDocumentUri, generatedDocumentRange);
         }
@@ -441,7 +442,7 @@ internal sealed class DocumentMappingService(
             return (generatedDocumentUri, generatedDocumentRange);
         }
 
-        var razorDocumentUri = project.Solution.GetRazorDocumentUri(razorCodeDocument);
+        razorDocumentUri = project.Solution.GetRazorDocumentUri(razorCodeDocument);
         if (TryMapToRazorDocumentRange(razorCodeDocument.GetCSharpDocumentForHintName(identity.HintName), generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
         {
             return (razorDocumentUri, mappedRange);

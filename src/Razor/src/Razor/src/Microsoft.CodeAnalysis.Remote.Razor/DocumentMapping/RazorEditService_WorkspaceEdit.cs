@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
@@ -99,26 +100,25 @@ internal partial class RazorEditService
 
     private async Task MapTextDocumentEditAsync(Solution solution, TextDocumentEdit entry, CancellationToken cancellationToken)
     {
-        var generatedDocumentUri = entry.TextDocument.DocumentUri.GetRequiredSystemUri();
 
         // For Html we just map the Uri, the range will be the same
-        if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
+        if (entry.TextDocument.DocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
         {
-            var razorUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
             entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
             {
-                DocumentUri = razorUri.CreateDocumentUriFromSystemUri(),
+                DocumentUri = razorDocumentUri.CreateDocumentUriFromSystemUri(),
             };
             return;
         }
 
         // Check if the edit is actually for a generated document, because if not we don't need to do anything
-        if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
+        if (!entry.TextDocument.DocumentUri.IsRazorCSharpDocumentUri(solution))
         {
             // This location doesn't point to a background razor file. No need to map.
             return;
         }
 
+        var generatedDocumentUri = entry.TextDocument.DocumentUri.GetRequiredSystemUri();
         var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
         if (razorDocument is null)
         {
@@ -157,19 +157,19 @@ internal partial class RazorEditService
         foreach (var (uriString, edits) in changes)
         {
             var generatedDocumentUri = new Uri(uriString);
+            var documentUri = generatedDocumentUri.CreateDocumentUriFromSystemUri();
 
             // For Html we just map the Uri, the range will be the same
-            if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
+            if (documentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
             {
-                var razorUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
-                builder.Add(CreateTextDocumentEdit(razorUri.CreateDocumentUriFromSystemUri(), edits.AsSpan()));
+                builder.Add(CreateTextDocumentEdit(razorDocumentUri.CreateDocumentUriFromSystemUri(), edits.AsSpan()));
                 continue;
             }
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
-            if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
+            if (!documentUri.IsRazorCSharpDocumentUri(solution))
             {
-                builder.Add(CreateTextDocumentEdit(new(uriString), edits.AsSpan()));
+                builder.Add(CreateTextDocumentEdit(documentUri, edits.AsSpan()));
                 continue;
             }
 

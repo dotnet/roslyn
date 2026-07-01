@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -34,7 +35,6 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
 
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
     private readonly IWorkspaceProvider _workspaceProvider = args.WorkspaceProvider;
-    private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
@@ -122,7 +122,8 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                     cancellationToken)
                 .ConfigureAwait(false);
 
-            if (_filePathService.IsVirtualCSharpFile(mappedUri))
+            var documentUri = mappedUri.CreateDocumentUriFromSystemUri();
+            if (documentUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
             {
                 // Couldn't map, so probably a hidden part of the code-gen, let's skip it.
                 continue;
@@ -150,7 +151,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 }
             }
 
-            location.DocumentUri = mappedUri.CreateDocumentUriFromSystemUri();
+            location.DocumentUri = documentUri;
             location.Range = mappedRange.ToRange();
 
             mappedResults.Add(result);
