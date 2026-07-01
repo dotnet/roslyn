@@ -2594,6 +2594,121 @@ class Box<T>
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "M2(item)").WithArguments("Box<string?>", "Box<string>").WithLocation(10, 15));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81913")]
+    public void Nullability_PropertyAccess_32()
+    {
+        // Null-conditional access tracks the null-state of an extension-property member
+        var src = """
+#nullable enable
+
+class Program
+{
+    void M(object? o)
+    {
+        o?.P.ToString(); // 1
+
+        if (o?.P != null)
+        {
+            o.P.ToString();
+        }
+    }
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public object? P { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (7,11): warning CS8602: Dereference of a possibly null reference.
+            //         o?.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".P").WithLocation(7, 11));
+
+        var srcBaseline = """
+#nullable enable
+
+class Program
+{
+    void M(C? o)
+    {
+        o?.P.ToString(); // 1
+
+        if (o?.P != null)
+        {
+            o.P.ToString();
+        }
+    }
+}
+
+class C
+{
+    public object? P { get => throw null!; set => throw null!; }
+}
+""";
+        CreateCompilation(srcBaseline).VerifyEmitDiagnostics(
+            // (7,11): warning CS8602: Dereference of a possibly null reference.
+            //         o?.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".P").WithLocation(7, 11));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81913")]
+    public void Nullability_PropertyAccess_33()
+    {
+        // A struct extension receiver does not currently track the null-state set through the property setter,
+        // so the access at line 5 warns even though the setter assigned a non-null value. Compare with 'srcBaseline'
+        // below, where the equivalent real struct member does track that state (only the post-reassignment access warns).
+        var src = """
+#nullable enable
+
+S s = new S();
+s.P = new object();
+s.P.ToString(); // 1 (limitation: state from setter is not tracked for a struct extension receiver)
+
+s = new S();
+s.P.ToString(); // 2
+
+struct S { }
+
+static class E
+{
+    extension(S s)
+    {
+        public object? P { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // s.P.ToString(); // 1 (limitation: state from setter is not tracked for a struct extension receiver)
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.P").WithLocation(5, 1),
+            // (8,1): warning CS8602: Dereference of a possibly null reference.
+            // s.P.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.P").WithLocation(8, 1));
+
+        var srcBaseline = """
+#nullable enable
+
+S s = new S();
+s.P = new object();
+s.P.ToString();
+
+s = new S();
+s.P.ToString(); // 1
+
+struct S
+{
+    public object? P { get => throw null!; set => throw null!; }
+}
+""";
+        CreateCompilation(srcBaseline).VerifyEmitDiagnostics(
+            // (8,1): warning CS8602: Dereference of a possibly null reference.
+            // s.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.P").WithLocation(8, 1));
+    }
+
     [Fact]
     public void Nullability_Setter_01()
     {
