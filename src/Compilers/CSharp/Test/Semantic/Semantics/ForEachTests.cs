@@ -3869,7 +3869,10 @@ public static class Extensions
                         }
                     }
                 }
-                """, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+                """, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (17,9): error CS9363: 'Enumerator.Current.get' must be used in an unsafe context because it has pointers in its signature
+                //         foreach (var x in new MyEnumerable())
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "foreach").WithArguments("Enumerator.Current.get").WithLocation(17, 9));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
