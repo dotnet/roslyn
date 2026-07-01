@@ -236,8 +236,6 @@ namespace Microsoft.CodeAnalysis
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
-        System_NullReferenceException,
-
         System_Runtime_CompilerServices_AsyncStateMachineAttribute,
         System_Runtime_CompilerServices_IteratorStateMachineAttribute,
 
@@ -249,6 +247,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_GCLatencyMode,
 
         CSharp7Sentinel = System_Runtime_GCLatencyMode, // all types that were known before CSharp7 should remain above this sentinel
+
+        System_NullReferenceException,
 
         System_ValueTuple,
 
@@ -616,8 +616,6 @@ namespace Microsoft.CodeAnalysis
 
             "", // WellKnownType.ExtSentinel extension marker
 
-            "System.NullReferenceException",
-
             "System.Runtime.CompilerServices.AsyncStateMachineAttribute",
             "System.Runtime.CompilerServices.IteratorStateMachineAttribute",
 
@@ -627,6 +625,8 @@ namespace Microsoft.CodeAnalysis
             "System.Environment",
 
             "System.Runtime.GCLatencyMode",
+
+            "System.NullReferenceException",
 
             "System.ValueTuple",
 

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     f.Call(null,
                            f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__IsNullRef_T).Construct(TypeParameters[0]),
                            f.Parameter(Parameters[0])),
-                    f.Throw(f.New(f.WellKnownType(WellKnownType.System_NullReferenceException), f.WellKnownMethod(WellKnownMember.System_NullReferenceException__ctor))));
+                    f.Throw(f.New(f.WellKnownType(WellKnownType.System_NullReferenceException))));
 
                 // return ref Unsafe.Add<TElement>(ref Unsafe.As<TBuffer, TElement>(ref Unsafe.AsRef<TBuffer>(in buffer)), index)
 
