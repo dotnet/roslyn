@@ -81,4 +81,22 @@ public class DocumentUriExtensionsTest
         Assert.Equal(Uri.UriSchemeFile, razorDocumentUri.Scheme);
         Assert.Equal(expectedFilePath, razorDocumentUri.GetAbsoluteOrUNCPath());
     }
+
+    [Theory]
+    [InlineData(@"C:\path\to\folder__virtual.html\file.razor")]
+    [InlineData(@"C:\path\to\file.razor__virtual.html.backup")]
+    [InlineData("razor-html:/C:/path/to/folder__virtual.html/file.razor")]
+    [InlineData("razor-html:/C:/path/to/file.razor__virtual.html/child")]
+    public void IsRazorHtmlDocumentUri_HtmlVirtualSuffixNotAtEnd_ReturnsFalse(string inputUri)
+    {
+        // Arrange
+        var documentUri = new DocumentUri(new Uri(inputUri));
+
+        // Act
+        var result = documentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri);
+
+        // Assert
+        Assert.False(result);
+        Assert.Null(razorDocumentUri);
+    }
 }

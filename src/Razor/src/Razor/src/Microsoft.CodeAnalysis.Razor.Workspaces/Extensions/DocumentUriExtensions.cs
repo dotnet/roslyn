@@ -46,10 +46,9 @@ internal static class DocumentUriExtensions
                 return false;
             }
 
-            var trimIndex = filePath.LastIndexOf(LanguageServerConstants.HtmlVirtualDocumentSuffix);
-            if (trimIndex != -1)
+            if (filePath.EndsWith(LanguageServerConstants.HtmlVirtualDocumentSuffix, StringComparison.Ordinal))
             {
-                var razorFilePath = filePath[..trimIndex];
+                var razorFilePath = filePath[..^LanguageServerConstants.HtmlVirtualDocumentSuffix.Length];
                 razorDocumentUri = new Uri(razorFilePath, UriKind.Absolute);
                 return true;
             }
