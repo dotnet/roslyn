@@ -30,13 +30,11 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 internal sealed partial class RazorEditService(
     IDocumentMappingService documentMappingService,
     IClientSettingsManager clientSettingsManager,
-    IFilePathService filePathService,
     RemoteSnapshotManager snapshotManager,
     ITelemetryReporter telemetryReporter) : IRazorEditService
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
-    private readonly IFilePathService _filePathService = filePathService;
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 

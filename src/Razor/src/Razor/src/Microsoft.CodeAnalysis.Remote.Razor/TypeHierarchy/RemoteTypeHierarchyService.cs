@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -24,8 +25,6 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
         protected override IRemoteTypeHierarchyService CreateService(in ServiceArgs args)
             => new RemoteTypeHierarchyService(in args);
     }
-
-    private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
@@ -187,7 +186,8 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
         var (mappedDocumentUri, mappedRange) = await DocumentMappingService
             .MapToHostDocumentUriAndRangeAsync(snapshot, uri, item.Range, cancellationToken)
             .ConfigureAwait(false);
-        if (_filePathService.IsVirtualCSharpFile(mappedDocumentUri))
+        var documentUri = mappedDocumentUri.CreateDocumentUriFromSystemUri();
+        if (documentUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
         {
             return null;
         }
@@ -195,7 +195,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
         var (mappedSelectionUri, mappedSelectionRange) = await DocumentMappingService
             .MapToHostDocumentUriAndRangeAsync(snapshot, uri, item.SelectionRange, cancellationToken)
             .ConfigureAwait(false);
-        if (_filePathService.IsVirtualCSharpFile(mappedSelectionUri))
+        if (mappedSelectionUri.CreateDocumentUriFromSystemUri().IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
         {
             return null;
         }
@@ -206,7 +206,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
             Kind = item.Kind,
             Tags = item.Tags,
             Detail = item.Detail,
-            Uri = mappedDocumentUri.CreateDocumentUriFromSystemUri(),
+            Uri = documentUri,
             Range = mappedRange,
             SelectionRange = mappedSelectionRange,
             Data = item.Data,

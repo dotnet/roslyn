@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -23,11 +23,9 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostTextPresentationEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
-    IFilePathService filePathService,
     IHtmlRequestInvoker requestInvoker)
     : AbstractCohostDocumentEndpoint<VSInternalTextPresentationParams, WorkspaceEdit?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
-    private readonly IFilePathService _filePathService = filePathService;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
 
     protected override bool MutatesSolutionState => false;
@@ -69,10 +67,9 @@ internal sealed class CohostTextPresentationEndpoint(
         // CreateFile, RenameFile, or DeleteFile operations that may be in DocumentChanges.
         foreach (var edit in workspaceEdit.EnumerateTextDocumentEdits())
         {
-            if (edit.TextDocument.DocumentUri.GetSystemUri() is { } uri &&
-                _filePathService.IsVirtualHtmlFile(uri))
+            if (edit.TextDocument.DocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = _filePathService.GetRazorDocumentUri(uri).CreateDocumentUriFromSystemUri() };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = razorDocumentUri.CreateDocumentUriFromSystemUri() };
             }
         }
 

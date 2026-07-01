@@ -96,7 +96,7 @@ public class HtmlCodeActionResolverTest
 
         workspace.TryApplyChanges(solution);
         var document = workspace.CurrentSolution.GetAdditionalDocument(documentId)!;
-        var snapshotManager = new RemoteSnapshotManager(new RemoteFilePathService(), NoOpTelemetryReporter.Instance);
+        var snapshotManager = new RemoteSnapshotManager(NoOpTelemetryReporter.Instance);
         var snapshot = snapshotManager.GetSnapshot(document);
 
         return (snapshot, sourceText, workspace);
