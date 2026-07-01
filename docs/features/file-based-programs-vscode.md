@@ -113,7 +113,7 @@ This is the decision tree for determining how to classify a C# file:
 
 10. **Is the file included in a `.csproj` cone?**
    - "Cone" means that a containing directory, at some level of nesting, has a `.csproj` file in it.
-   - Note that this specific check is only performed at the time the file is opened. We think that the typical case is that the user will load a new project they are creating. Loading the project will cause the file to start being treated as project-based app per (1). If the user does not load the new project, then stale diagnostics may remain present until the file is closed and re-opened.
+   - This check is used by the editor-side classification heuristics and by automatic discovery. Workspace-folder changes and relevant file-system updates can cause the result to be recomputed.
    - **Yes** → Classify as **Miscellaneous File With Standard References** (wait for project to load)
    - **No** → Classify as **Miscellaneous File With Standard References and Semantic Errors**
 
@@ -174,7 +174,14 @@ Certain subfolders in a workspace are excluded from this discovery process:
 - Any folders with names conventionally reserved for build artifacts, such as `artifacts`, `bin`, and `obj`.
 - Any folders marked "hidden" in the file system. `.git` and `.vs` typically fall into this.
 
-The first time discovery is performed in a workspace, the LSP will read all `.cs` files in the opened workspace folders which are not excluded by the above conditions. If the file content starts with `#!`, it is marked as a file-based app and loaded.
+The first time discovery is performed in a workspace, the LSP will read all `.cs` files in the opened workspace folders which are not excluded by the above conditions. Discovery uses the same entry-point heuristic as open-file classification:
+- Files with `#!` are treated as explicit entry points.
+- Files with `#:` directives and top-level statements are treated as explicit entry points.
+- Files with top-level statements but no directives are treated as ambiguous entry points, and are loaded only when the ambiguous-file experience is enabled.
+
+After initialization, discovery also responds to:
+- `workspace/didChangeWorkspaceFolders`, so newly added workspace folders are scanned.
+- Watched `.cs` and `.csproj` file changes within workspace folders, so newly created candidate entry points can be discovered without restarting the server.
 
 A cache file is created after each discovery pass and stored in the user temp directory. This file holds:
 - The time that the previous discovery pass started.
@@ -185,16 +192,9 @@ The cache data allows the following optimizations in subsequent discovery passes
 - Allows not reading any C# files whose last write time is older than the cached time.
 - Allows reducing the number of times we list files in directories whose last write time is older than the cached time.
 
-### `#!` requirement
+### Entry-point LSP query
 
-This design requires files to start with `#!` in order to participate in discovery.
-Specifically, a discoverable file must start with either the byte sequence `0x23, 0x21` (ASCII/UTF-8 `#!`), or the byte sequence `0xEF, 0xBB, 0xBF, 0x23, 0x21` (UTF-8 BOM followed by `#!`).
-
-The reason for this is: we anticipate adding support for `#:` to non-entry-point files. This means that having `#:` is not going to be enough to identify a file as definitely the entry point.
-
-Instead, it will be necessary to search for both `#:` and top-level statements at a minimum. This cost is acceptable for files that were explicitly opened in the editor, but is a bit steep for a broad discovery pass.
-
-For this reason, we intend to put `#!`-at-start as a standard for entry points of file-based apps. We plan on shipping an analyzer which reports a warning in files which contain both `#:include` and top-level statements, but do not have `#!` at the top.
+Roslyn exposes an internal LSP request, `workspace/_roslyn_isFileBasedProgramEntryPoint`, which answers whether a given document should be treated as a file-based-program entry point under the current workspace state. This allows clients to reuse Roslyn's heuristic instead of reimplementing their own copy.
 
 ## Future considerations
 
