@@ -893,8 +893,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">Un árbol de expresión no puede contener un acceso a una propiedad de extensión</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="new">An expression tree may not contain an extension property or indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1536,6 +1536,16 @@
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">'{0}' no contiene una definición para '{1}' y no se encontró ningún método de extensión accesible '{1}' aceptando un primer argumento de tipo '{0}' (¿pretendía iterar por la colección asincrónica con 'await foreach' en su lugar?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="new">No enclosing loop with the label '{0}' out of which to continue</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
@@ -2848,8 +2858,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="translated">El método “{0}” usa una característica que actualmente no es compatible con la ejecución asincrónica en tiempo de ejecución. Excluya el método de la ejecución asincrónica en tiempo de ejecución atribuyéndolo con “System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)”.</target>
+        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="new">Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -3012,6 +3022,11 @@
         <target state="translated">patrones de propiedad extendidos</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="new">extension indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
         <target state="translated">extensiones</target>
@@ -3075,6 +3090,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">miembro de instancia en 'nameof'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="new">labeled break and continue</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">

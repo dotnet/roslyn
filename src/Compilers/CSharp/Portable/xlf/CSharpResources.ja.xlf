@@ -893,8 +893,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">式ツリーに拡張プロパティ アクセスを含めないでください</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="new">An expression tree may not contain an extension property or indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1536,6 +1536,16 @@
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">'{0}' に '{1}' の定義が含まれていません。また、型 '{0}' の最初の引数を受け入れるアクセス可能な拡張メソッド '{1}' が見つかりませんでした (代わりに 'await foreach' を使用して非同期コレクションを反復処理するつもりでしたか?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="new">No enclosing loop with the label '{0}' out of which to continue</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
@@ -2848,8 +2858,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="translated">メソッド '{0}' は、現在ランタイム非同期でサポートされていない機能を使用しています。メソッドを 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)' と関連付けて、ランタイム非同期から除外します。</target>
+        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="new">Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -3012,6 +3022,11 @@
         <target state="translated">拡張プロパティ パターン</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="new">extension indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
         <target state="translated">拡張</target>
@@ -3075,6 +3090,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">'nameof' のインスタンス メンバー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="new">labeled break and continue</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">

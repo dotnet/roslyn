@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -258,6 +259,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitBreakStatement(BoundBreakStatement node)
+            {
+                // There's no need to verify the label children. They do not have types or nullabilities
+                return null;
+            }
+
+            public override BoundNode? VisitContinueStatement(BoundContinueStatement node)
+            {
+                // There's no need to verify the label children. They do not have types or nullabilities
+                return null;
+            }
+
             public override BoundNode? VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
             {
                 Debug.Assert(node is not BoundTypeOrValueExpression, "The Binder is expected to resolve the member access in the most appropriate way, even in an error scenario.");
@@ -365,15 +378,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitList(node.Subpatterns);
                 Visit(node.VariableAccess);
-                // Ignore indexer access (just a node to hold onto some symbols)
+                if (!node.HasErrors &&
+                    node.Subpatterns.Any(static (BoundPattern p) => p.Kind != BoundKind.SlicePattern))
+                {
+                    VisitExtensionIndexerArguments(node.IndexerAccess);
+                }
                 return null;
             }
 
             public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
             {
                 this.Visit(node.Pattern);
-                // Ignore indexer access (just a node to hold onto some symbols)
+                VisitExtensionIndexerArguments(node.IndexerAccess);
                 return null;
+            }
+
+            private void VisitExtensionIndexerArguments(BoundExpression? indexerAccess)
+            {
+                if (indexerAccess is BoundImplicitIndexerAccess implicitAccess)
+                {
+                    indexerAccess = implicitAccess.IndexerOrSliceAccess;
+                }
+
+                // We only need to visit arguments for extension block members because
+                // the nullability analysis for list and slice patterns only visits arguments
+                // for extension indexers.
+                switch (indexerAccess)
+                {
+                    case BoundIndexerAccess { Indexer: { } indexer } ia when indexer.IsExtensionBlockMember():
+                        VisitList(ia.Arguments);
+                        break;
+                    case BoundCall { Method: { } method } call when method.IsExtensionBlockMember():
+                        VisitList(call.Arguments);
+                        break;
+                }
             }
 
             public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)

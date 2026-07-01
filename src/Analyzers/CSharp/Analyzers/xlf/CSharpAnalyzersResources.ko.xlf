@@ -397,6 +397,11 @@
         <target state="translated">'is object' 검사 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_labeled_jump_statement">
+        <source>Use labeled jump statement</source>
+        <target state="new">Use labeled jump statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">로컬 함수 사용</target>

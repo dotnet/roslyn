@@ -103,7 +103,7 @@
   that will be replaced with a copy captured in a temp during IL gen. 
   -->
   <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
-    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="Receiver" Type="BoundExpression" SkipInVisit="true"/>
   </Node>
 
   <!--
@@ -153,6 +153,8 @@
   <Node Name="BoundImplicitIndexerReceiverPlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="LocalRewriting">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="IsEquivalentToThisReference" Type="bool" PropertyOverrides="true"/>
+    <!-- The original receiver expression this placeholder stands in for. Used to delegate value checks. -->
+    <Field Name="Receiver" Type="BoundExpression" SkipInVisit="true"/>
   </Node>
 
   <!-- This node represents the receiver for a list pattern. -->
@@ -1175,11 +1177,35 @@
   </Node>
 
   <Node Name="BoundBreakStatement" Base="BoundStatement">
+    <!-- The compiler-generated label that the break jumps to (e.g. the loop's "break" label). -->
     <Field Name="Label" Type="LabelSymbol" />
+    <!--
+    For a labeled break (e.g. "break outer;" targeting "outer: while (true) { ... }"), holds the
+    bound node for the "outer" identifier; null for an ordinary unlabeled "break;".  Stored so
+    that:
+      * the bound tree contains a BoundLabel whose Syntax is the "outer" IdentifierNameSyntax,
+        which is what SemanticModel.GetSymbolInfo walks to find the LabelSymbol referenced by
+        that identifier; and
+      * ControlFlowPass can mark the LabelSymbol as referenced (otherwise the "outer:"
+        declaration would be reported as WRN_UnreferencedLabel).
+    -->
+    <Field Name="LabelExpressionOpt" Type="BoundLabel?" />
   </Node>
 
   <Node Name="BoundContinueStatement" Base="BoundStatement">
+    <!-- The compiler-generated label that the continue jumps to (e.g. the loop's "continue" label). -->
     <Field Name="Label" Type="LabelSymbol" />
+    <!--
+    For a labeled continue (e.g. "continue outer;" targeting "outer: for (...) { ... }"), holds
+    the bound node for the "outer" identifier; null for an ordinary unlabeled "continue;".
+    Stored so that:
+      * the bound tree contains a BoundLabel whose Syntax is the "outer" IdentifierNameSyntax,
+        which is what SemanticModel.GetSymbolInfo walks to find the LabelSymbol referenced by
+        that identifier; and
+      * ControlFlowPass can mark the LabelSymbol as referenced (otherwise the "outer:"
+        declaration would be reported as WRN_UnreferencedLabel).
+    -->
+    <Field Name="LabelExpressionOpt" Type="BoundLabel?" />
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
