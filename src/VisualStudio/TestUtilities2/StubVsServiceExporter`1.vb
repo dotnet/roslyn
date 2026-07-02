@@ -16,10 +16,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests
     Friend NotInheritable Class StubVsServiceExporter(Of T As Class)
         Inherits StubVsServiceExporter(Of T, T)
 
+#Disable Warning VSMEF008 ' Import contract type not assignable to member type; TODO: https://github.com/dotnet/roslyn/issues/84327
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
             <Import(GetType(SAsyncServiceProvider))> asyncServiceProvider As IAsyncServiceProvider2, joinableTaskContext As JoinableTaskContext)
+#Enable Warning VSMEF008 ' Import contract type not assignable to member type
             MyBase.New(asyncServiceProvider, joinableTaskContext)
         End Sub
     End Class
