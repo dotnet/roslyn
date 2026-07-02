@@ -1805,7 +1805,7 @@ next:;
             if (IsClosed)
             {
                 ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments;
-                if (compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes) is { })
+                if (compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes) is not null)
                 {
                     var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
                     var arrayOfSystemType = ArrayTypeSymbol.CreateSZArray(systemType.ContainingAssembly, TypeWithAnnotations.Create(systemType, NullableAnnotation.NotAnnotated));
