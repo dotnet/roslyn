@@ -837,12 +837,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 public sealed class IsClosedTypeAttribute : Attribute
                 {
                     public Type[] DerivedTypes() => throw null;
+                    public Type[] DerivedTypes(bool ignored) => throw null;
                 }
             }
             """;
 
         var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
+            // (1,14): error CS9395: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14),
             // (1,14): error CS9395: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
             // closed class C;
             Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14));
@@ -975,6 +979,35 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (1,14): error CS9041: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' requires compiler feature 'Nonexistent', which is not supported by this version of the C# compiler.
             // closed class C;
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "C").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes", "Nonexistent").WithLocation(1, 14));
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_19()
+    {
+        // DerivedTypes property is internal.
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    internal Type[] DerivedTypes { get; set; }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS9395: The property 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14));
     }
 
     [Fact]
