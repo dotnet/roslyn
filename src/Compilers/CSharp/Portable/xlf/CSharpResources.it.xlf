@@ -769,7 +769,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">Un albero delle espressioni non può contenere l'accesso alla proprietà di un'estensione</target>
+        <target state="new">An expression tree may not contain an extension property access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -2584,7 +2584,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
         <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="translated">Il metodo '{0}' usa una funzionalità attualmente non supportata dal runtime asincrono. Escludere il metodo dal runtime asincrono assegnando al metodo l'attributo 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
+        <target state="new">Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
