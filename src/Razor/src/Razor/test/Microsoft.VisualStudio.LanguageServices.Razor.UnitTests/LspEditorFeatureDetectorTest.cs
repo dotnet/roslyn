@@ -128,11 +128,8 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         mock.Setup(x => x.IsActive(Guids.LiveShareGuestUIContextGuid))
             .Returns(liveShareGuestActive);
 
-        // https://github.com/dotnet/roslyn/issues/84261: Revisit use of obsolete CloudEnvironmentConnected_guid.
-#pragma warning disable CS0618 // Type or member is obsolete
         mock.Setup(x => x.IsActive(VSConstants.UICONTEXT.CloudEnvironmentConnected_guid))
             .Returns(cloudEnvironmentConnectedActive);
-#pragma warning restore CS0618 // Type or member is obsolete
 
         return mock.Object;
     }

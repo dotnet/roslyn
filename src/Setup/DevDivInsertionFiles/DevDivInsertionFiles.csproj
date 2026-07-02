@@ -111,7 +111,6 @@
       <_Dependency Remove="EnvDTE90"/>
       <_Dependency Remove="EnvDTE90A"/>
       <_Dependency Remove="EnvDTE100"/>
-      <_Dependency Remove="Google.Protobuf"/>
       <_Dependency Remove="MessagePack"/>
       <_Dependency Remove="MessagePack.Annotations"/>
       <_Dependency Remove="Microsoft.Bcl.AsyncInterfaces"/>
@@ -124,7 +123,6 @@
       <_Dependency Remove="Microsoft.Extensions.DependencyInjection"/>
       <_Dependency Remove="Microsoft.Extensions.DependencyInjection.Abstractions"/>
       <_Dependency Remove="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
-      <_Dependency Remove="Microsoft.ML.Tokenizers"/>
       <_Dependency Remove="Microsoft.MSXML"/>
       <_Dependency Remove="Microsoft.NET.StringTools"/>
       <_Dependency Remove="Microsoft.Win32.Registry"/>
