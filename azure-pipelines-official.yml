@@ -81,7 +81,6 @@ variables:
   # DevDiv drop access token is acquired via WIF service connection (dnceng-devdiv-drop-rw-code-rw-wif)
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
   - group: DotNet-Versions-Publish
-  - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
   - name: _DevDivDropAccessToken
