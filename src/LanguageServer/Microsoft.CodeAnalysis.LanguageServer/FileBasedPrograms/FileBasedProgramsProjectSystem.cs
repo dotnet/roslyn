@@ -23,6 +23,52 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
+internal enum FileBasedProgramEntryPointKind
+{
+    None,
+    Ambiguous,
+    Explicit,
+}
+
+internal static class FileBasedProgramEntryPointHeuristic
+{
+    private static readonly CSharpParseOptions s_fileBasedProgramParseOptions = CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]);
+
+    public static FileBasedProgramEntryPointKind GetEntryPointKind(SourceText sourceText, bool includeAmbiguousEntryPoints, CancellationToken cancellationToken)
+    {
+        var tokenizer = SyntaxFactory.CreateTokenParser(sourceText, s_fileBasedProgramParseOptions);
+        var result = tokenizer.ParseLeadingTrivia();
+        var leadingTrivia = result.Token.LeadingTrivia;
+
+        if (leadingTrivia.Any(SyntaxKind.ShebangDirectiveTrivia))
+        {
+            return FileBasedProgramEntryPointKind.Explicit;
+        }
+
+        var hasFileBasedDirectives = leadingTrivia.Any(SyntaxKind.IgnoredDirectiveTrivia);
+        if (!hasFileBasedDirectives && !includeAmbiguousEntryPoints)
+        {
+            return FileBasedProgramEntryPointKind.None;
+        }
+
+        if (!ContainsTopLevelStatements(sourceText, cancellationToken))
+        {
+            return FileBasedProgramEntryPointKind.None;
+        }
+
+        return hasFileBasedDirectives
+            ? FileBasedProgramEntryPointKind.Explicit
+            : FileBasedProgramEntryPointKind.Ambiguous;
+    }
+
+    private static bool ContainsTopLevelStatements(SourceText sourceText, CancellationToken cancellationToken)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, options: s_fileBasedProgramParseOptions, cancellationToken: cancellationToken);
+        return syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit &&
+            compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
+    }
+}
+
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
 internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider
 {
@@ -160,54 +206,23 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
 
-        var parseOptions = CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]);
-        var tokenizer = SyntaxFactory.CreateTokenParser(sourceText, parseOptions);
-        var result = tokenizer.ParseLeadingTrivia();
-        var leadingTrivia = result.Token.LeadingTrivia;
+        var includeAmbiguousEntryPoints = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableSemanticErrorsInMiscellaneousFiles);
+        var entryPointKind = FileBasedProgramEntryPointHeuristic.GetEntryPointKind(sourceText, includeAmbiguousEntryPoints, cancellationToken);
 
-        // 5. Does the file have '#!' directives?
-        // - Yes → Classify as File-Based App. Restore if needed and show semantic errors.
-        // - No → Continue to next check
-        if (leadingTrivia.Any(SyntaxKind.ShebangDirectiveTrivia))
+        // Steps (5) through (7): explicit entry points use '#!' or combine '#:' directives with top-level statements.
+        if (entryPointKind == FileBasedProgramEntryPointKind.Explicit)
         {
             return LooseDocumentKind.FileBasedApp;
         }
 
-        // 6. Does the file have `#:` directives?
-        // - No → Go to (8)
-        // - Yes → Continue to next check
-        if (leadingTrivia.Any(SyntaxKind.IgnoredDirectiveTrivia))
-        {
-            // 7. Does the file have top-level statements?
-            // - Yes → Classify as File-Based App. Restore if needed and show semantic errors.
-            // - No → Classify as Miscellaneous File With Standard References
-            if (ContainsTopLevelStatements())
-            {
-                return LooseDocumentKind.FileBasedApp;
-            }
-
-            return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
-        }
-
-        // 8. Is `enableFileBasedProgramsWhenAmbiguous` enabled? (default: `false` in release, `true` in prerelease)
-        // - No → Classify as Miscellaneous File With Standard References
-        // - Yes → Continue to heuristic detection
-
-        if (!GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableSemanticErrorsInMiscellaneousFiles))
+        // Files with no top-level statements are not entry points. If ambiguous entry points are disabled,
+        // files without explicit directives are also treated as non-entry points here.
+        if (entryPointKind == FileBasedProgramEntryPointKind.None)
         {
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
 
-        // Heuristic Detection:
-
-        // 9. Are top-level statements present?
-        // - No → Classify as Miscellaneous File With Standard References
-        // - Yes → Continue to next check
-
-        if (!ContainsTopLevelStatements())
-        {
-            return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
-        }
+        Contract.ThrowIfFalse(entryPointKind == FileBasedProgramEntryPointKind.Ambiguous);
 
         // 10. Is the file included in a `.csproj` cone?
         // - Yes → Classify as Miscellaneous File With Standard References (wait for project to load)
@@ -219,12 +234,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
 
         return LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors;
-
-        bool ContainsTopLevelStatements()
-        {
-            var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, options: parseOptions, cancellationToken: cancellationToken);
-            return syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
-        }
     }
 
     public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
