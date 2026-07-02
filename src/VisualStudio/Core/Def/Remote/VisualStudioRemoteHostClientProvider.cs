@@ -68,7 +68,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
         {
             Debug.Assert(workspaceServices.Workspace is VisualStudioWorkspace or PreviewWorkspace);
 
-            // If the host services are different, then we can't use the cached VS instance, fall back to in-proc.
+            // If OOP is disabled, or the host services are different, then we can't use the cached VS instance; fall back to in-proc.
             // This can happen for preview workspace in Tools|Options.
             if (!_globalOptions.GetOption(RemoteHostOptionsStorage.OOP64Bit) ||
                 workspaceServices.SolutionServices.WorkspaceServices.HostServices != _vsWorkspace.Services.HostServices)
