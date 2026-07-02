@@ -34,7 +34,7 @@ internal class RazorProximityExpressionResolver(
             return null;
         }
 
-        if (razorDocument.TryGetTextVersion(out var version))
+        if (!razorDocument.TryGetTextVersion(out var version))
         {
             version = await razorDocument.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
         }
