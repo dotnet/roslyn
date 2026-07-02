@@ -44,7 +44,7 @@ internal static class DocumentUriExtensions
             if (filePath.EndsWith(LanguageServerConstants.HtmlVirtualDocumentSuffix, StringComparison.Ordinal))
             {
                 var razorFilePath = filePath[..^LanguageServerConstants.HtmlVirtualDocumentSuffix.Length];
-                razorDocumentUri = new DocumentUri(new Uri(razorFilePath, UriKind.Absolute));
+                razorDocumentUri = LspFactory.CreateFilePathUri(razorFilePath);
                 return true;
             }
 
