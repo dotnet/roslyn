@@ -46,11 +46,15 @@ internal static class FindAllReferencesHelper
             var csharpDocument = codeDoc.GetRequiredCSharpDocument();
 
             var startMapping = FindContainingSourceMapping(csharpDocument, line.Start);
-            var endMapping = FindContainingSourceMapping(csharpDocument, line.End);
+            // Use line.End - 1 (last content character) rather than the exclusive line.End boundary
+            // to avoid false positives when line.End lands exactly on a mapping edge.
+            var endMapping = line.End > line.Start
+                ? FindContainingSourceMapping(csharpDocument, line.End - 1)
+                : startMapping;
 
             // Only skip overriding the text (i.e. only use C# text) if both ends of the line are
             // within the same source mapping, meaning the entire line is pure C# code.
-            if (startMapping is not null && endMapping is not null && startMapping.Equals(endMapping))
+            if (startMapping is not null && endMapping is not null && ReferenceEquals(startMapping, endMapping))
             {
                 return null;
             }
