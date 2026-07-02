@@ -427,7 +427,6 @@ internal sealed class DocumentMappingService(
         }
 
         var solution = originSnapshot.TextDocument.Project.Solution;
-        // Generated documents can only be real parsed Uris so we know it is safe to call GetRequiredSystemUri
         if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
             !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))
         {
