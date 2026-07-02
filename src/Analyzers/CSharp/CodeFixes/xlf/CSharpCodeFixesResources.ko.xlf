@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="This_method_is_used_as_a_delegate_changing_the_return_type_may_result_in_build_errors">
         <source>This method is used as a delegate; changing the return type may result in build errors</source>
-        <target state="new">This method is used as a delegate; changing the return type may result in build errors</target>
+        <target state="translated">이 메서드는 대리자로 사용되므로 반환 형식을 변경하면 빌드 오류가 발생할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">
