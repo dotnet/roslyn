@@ -148,8 +148,7 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         return fullProperty.WithAdditionalAnnotations(Formatter.Annotation);
     }
 
-    protected virtual SyntaxNode NormalizeLineEndings(SyntaxNode root, string lineEnding)
-        => root;
+    protected abstract SyntaxNode NormalizeLineEndings(SyntaxNode root, string lineEnding);
 
     private static string GetLineEnding(SourceText text)
     {
@@ -161,5 +160,4 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
 
         return Environment.NewLine;
     }
-
 }
