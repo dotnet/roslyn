@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
                 this.ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                diagnostics.Add(ErrorCode.WRN_UnsafeMeaningless, GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_UnsafeMeaningless, GetFirstLocation());
             }
 
             switch (typeKind)

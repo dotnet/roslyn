@@ -141,6 +141,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Protected; // we mark destructors protected in the symbol table
 
+            if (!modifierErrors &&
+                (mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+                containingType.ContainingModule.UseUpdatedMemorySafetyRules)
+            {
+                diagnostics.Add(ErrorCode.ERR_UnsafeMeaningless,
+                    modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, location));
+            }
+
             return mods;
         }
 

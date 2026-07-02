@@ -2812,6 +2812,11 @@
         <target state="translated">Um contexto não seguro é necessário para o construtor ''{0}'' marcado como ''unsafe'' para satisfazer a restrição ''new()'' do parâmetro de tipo ''{1}'' em ''{2}''</target>
         <note>'unsafe' and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsafeMeaningless">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</source>
         <target state="translated">"{0}" deve ser usado em um contexto não seguro porque está marcado como "unsafe"</target>
@@ -6024,16 +6029,6 @@
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">O parâmetro não foi lido. Você esqueceu de usá-lo para inicializar a propriedade com esse nome?</target>
         <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">O modificador 'unsafe' não tem efeito aqui, segundo as regras de segurança de memória atuais.</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">O modificador 'unsafe' não tem efeito aqui, segundo as regras de segurança de memória atuais.</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>

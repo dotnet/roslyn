@@ -2812,6 +2812,11 @@
         <target state="translated">標示為 'unsafe' 的建構函式 '{0}' 需要不安全的內容，才能符合 '{2}' 中類型參數 '{1}' 的 'new()' 限制</target>
         <note>'unsafe' and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsafeMeaningless">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</source>
         <target state="translated">'{0}' 必須在不安全的內容中使用，因為它被標示為 'unsafe'</target>
@@ -6024,16 +6029,6 @@ strument:TestCoverage      產生檢測要收集
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">參數未讀取。是否忘記使用該參數來初始化該名稱的屬性?</target>
         <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">根據目前的記憶體安全規則，'unsafe' 修飾元在此不會產生任何效果。</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">根據目前的記憶體安全規則，'unsafe' 修飾元在此不會產生任何效果。</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>

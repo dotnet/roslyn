@@ -2480,7 +2480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnionConstructorCallsDefaultConstructor = 9375,
 
         ERR_UnsafeConstructorConstraint = 9376,
-        WRN_UnsafeMeaningless = 9377,
+        ERR_UnsafeMeaningless = 9377,
 
         ERR_PPShebangNotOnFirstLine = 9378,
 

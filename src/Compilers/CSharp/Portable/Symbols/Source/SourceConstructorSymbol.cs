@@ -182,6 +182,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                 DeclarationModifiers.Extern,
                                                                                 location, diagnostics);
                 }
+
+                if (!modifierErrors &&
+                    (mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+                    containingType.ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnsafeMeaningless,
+                        syntax.Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, location));
+                }
             }
 
             return mods;
