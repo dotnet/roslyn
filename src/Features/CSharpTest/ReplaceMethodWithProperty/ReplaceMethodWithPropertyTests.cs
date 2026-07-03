@@ -2790,13 +2790,13 @@ index: 1);
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                    <Document>partial class C
+                    <Document Normalize="false">partial class C
             {
                 int [||]GetGoo()
                 {
                 }
             }</Document>
-                    <DocumentFromSourceGenerator>
+                    <DocumentFromSourceGenerator Normalize="false">
             partial class C
             {
                 void Bar()
@@ -2818,7 +2818,7 @@ index: 1);
                     }
                 }
             }
-            """);
+            """.ReplaceLineEndings("\n"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61161")]
     public Task TestEndOfLineTrivia1()

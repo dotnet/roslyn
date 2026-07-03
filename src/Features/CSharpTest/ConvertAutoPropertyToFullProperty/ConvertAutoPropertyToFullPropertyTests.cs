@@ -1055,8 +1055,8 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
         var xmlString = string.Format("""
             <Workspace>
                 <Project Language="{0}" CommonReferences="true">
-                    <Document FilePath="file1">{1}</Document>
-                    <Document FilePath="file2">{2}</Document>
+                    <Document FilePath="file1" Normalize="false">{1}</Document>
+                    <Document FilePath="file2" Normalize="false">{2}</Document>
                 </Project>
             </Workspace>
             """, LanguageNames.CSharp, file1, file2);
@@ -1073,7 +1073,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 int P { get => p; set => p = value; }
             }
-            """,
+            """.ReplaceLineEndings("\n"),
             action,
             conflictSpans: [],
             renameSpans: [],
@@ -1100,8 +1100,8 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
         var xmlString = string.Format("""
             <Workspace>
                 <Project Language="{0}" CommonReferences="true">
-                    <Document FilePath="file1">{1}</Document>
-                    <Document FilePath="file2">{2}</Document>
+                    <Document FilePath="file1" Normalize="false">{1}</Document>
+                    <Document FilePath="file2" Normalize="false">{2}</Document>
                 </Project>
             </Workspace>
             """, LanguageNames.CSharp, file1, file2);
@@ -1118,7 +1118,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 int Q { get => q; set => q = value; }
             }
-            """,
+            """.ReplaceLineEndings("\n"),
             action,
             conflictSpans: [],
             renameSpans: [],

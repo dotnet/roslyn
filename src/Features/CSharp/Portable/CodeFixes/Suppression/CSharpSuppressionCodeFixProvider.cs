@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -121,7 +122,8 @@ internal sealed class CSharpSuppressionCodeFixProvider : AbstractSuppressionCode
                 leadingTrivia: default));
 
         if (isFirst && !newRoot.HasLeadingTrivia)
-            compilationRoot = compilationRoot.WithLeadingTrivia(Comment(GlobalSuppressionsFileHeaderComment));
+            compilationRoot = compilationRoot.WithLeadingTrivia(
+                Comment(LineEndingUtilities.NormalizeLineEndings(GlobalSuppressionsFileHeaderComment, options.NewLine)));
 
         return (CompilationUnitSyntax)Formatter.Format(compilationRoot, services, options, cancellationToken);
     }
