@@ -28,9 +28,10 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             var suppressionsRoot = await suppressionsDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
             var options = await suppressionsDoc.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var lineEnding = await GetLineEndingAsync(suppressionsDoc, options.NewLine, cancellationToken).ConfigureAwait(false);
 
             suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(
-                suppressionsRoot, TargetSymbol_TestOnly, _suppressMessageAttribute, _diagnostic, services, options, addImportsService, cancellationToken);
+                suppressionsRoot, TargetSymbol_TestOnly, _suppressMessageAttribute, _diagnostic, services, WithLineEnding(options, lineEnding), addImportsService, cancellationToken);
             return suppressionsDoc.WithSyntaxRoot(suppressionsRoot);
         }
 

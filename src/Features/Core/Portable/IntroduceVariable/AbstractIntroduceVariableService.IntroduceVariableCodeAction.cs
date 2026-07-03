@@ -49,11 +49,16 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
         public override string Title { get; }
 
+        internal override CodeActionCleanup Cleanup => CodeActionCleanup.None;
+
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
             var changedDocument = await GetChangedDocumentCoreAsync(cancellationToken).ConfigureAwait(false);
             var simplifierOptions = await changedDocument.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return await Simplifier.ReduceAsync(changedDocument, simplifierOptions, cancellationToken).ConfigureAwait(false);
+            var simplifiedDocument = await Simplifier.ReduceAsync(changedDocument, simplifierOptions, cancellationToken).ConfigureAwait(false);
+            var cleanedDocument = await PostProcessChangesAsync(simplifiedDocument, cancellationToken).ConfigureAwait(false);
+            return await LineEndingUtilities.NormalizeLineEndingsAsync(
+                cleanedDocument, _semanticDocument.Document, fallbackLineEnding: null, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Document> GetChangedDocumentCoreAsync(CancellationToken cancellationToken)

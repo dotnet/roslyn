@@ -2027,7 +2027,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """.ReplaceLineEndings());
+                    """);
 
             [Fact]
             public Task TestSuppressionWithExistingGlobalSuppressionsDocument2()
@@ -2104,7 +2104,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """.ReplaceLineEndings());
+                    """);
 
             [Fact]
             public Task TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument()
@@ -2134,7 +2134,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """.ReplaceLineEndings());
+                    """);
 
             [Fact]
             public Task TestSuppressionWithoutUsingDirectiveInExistingGlobalSuppressionsDocument()
@@ -2162,7 +2162,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """.ReplaceLineEndings());
+                    """);
         }
     }
 

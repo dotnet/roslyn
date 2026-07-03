@@ -2818,7 +2818,7 @@ index: 1);
                     }
                 }
             }
-            """.ReplaceLineEndings());
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61161")]
     public Task TestEndOfLineTrivia1()

@@ -48,9 +48,11 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         if (!IsValidAutoProperty(propertySymbol))
             return;
 
-        context.RegisterRefactoring(CodeAction.Create(
+        context.RegisterRefactoring(
+            new LineEndingDocumentChangeAction(
                 FeaturesResources.Convert_to_full_property,
-                cancellationToken => ExpandToFullPropertyAsync(document, property, propertySymbol, cancellationToken),
+                (_, cancellationToken) => ExpandToFullPropertyAsync(document, property, propertySymbol, cancellationToken),
+                document,
                 nameof(FeaturesResources.Convert_to_full_property)),
             property.Span);
 

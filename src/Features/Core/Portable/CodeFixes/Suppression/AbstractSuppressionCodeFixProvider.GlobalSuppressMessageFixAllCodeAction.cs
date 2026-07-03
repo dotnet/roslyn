@@ -132,6 +132,8 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
             var cleanupOptions = await suppressionsDoc.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var lineEnding = await GetLineEndingAsync(suppressionsDoc, cleanupOptions.FormattingOptions.NewLine, cancellationToken).ConfigureAwait(false);
+            cleanupOptions = cleanupOptions with { FormattingOptions = WithLineEnding(cleanupOptions.FormattingOptions, lineEnding) };
 
             foreach (var (targetSymbol, diagnostics) in _diagnosticsBySymbol)
             {
