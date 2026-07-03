@@ -122,8 +122,10 @@ internal sealed class CSharpSuppressionCodeFixProvider : AbstractSuppressionCode
                 leadingTrivia: default));
 
         if (isFirst && !newRoot.HasLeadingTrivia)
+        {
             compilationRoot = compilationRoot.WithLeadingTrivia(
                 Comment(LineEndingUtilities.NormalizeLineEndings(GlobalSuppressionsFileHeaderComment, options.NewLine)));
+        }
 
         return (CompilationUnitSyntax)Formatter.Format(compilationRoot, services, options, cancellationToken);
     }
