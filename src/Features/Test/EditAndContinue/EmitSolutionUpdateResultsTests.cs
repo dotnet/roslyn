@@ -172,7 +172,7 @@ public sealed class EmitSolutionUpdateResultsTests
         var diagnostics = data.GetAllDiagnostics();
         var diagnostic = Assert.Single(diagnostics);
 
-        Assert.Equal("Cannot apply changes -- unexpected error: 'Unexpected RPC failure'", diagnostic.Message);
+        Assert.Equal(string.Format(FeaturesResources.CannotApplyChangesUnexpectedError, errorMessage), diagnostic.Message);
         Assert.Equal(ManagedHotReloadDiagnosticSeverity.RestartRequired, diagnostic.Severity);
         Assert.Equal(a.DebugName, Assert.Single(data.ProjectsToRestart.Keys).DebugName);
         Assert.Equal(a.DebugName, Assert.Single(data.ProjectsToRebuild).DebugName);
