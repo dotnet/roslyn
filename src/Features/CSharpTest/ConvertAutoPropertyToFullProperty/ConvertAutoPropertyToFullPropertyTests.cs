@@ -1073,7 +1073,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 int P { get => p; set => p = value; }
             }
-            """,
+            """.ReplaceLineEndings(),
             action,
             conflictSpans: [],
             renameSpans: [],
@@ -1118,7 +1118,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 int Q { get => q; set => q = value; }
             }
-            """,
+            """.ReplaceLineEndings(),
             action,
             conflictSpans: [],
             renameSpans: [],

@@ -7793,7 +7793,7 @@ class C
                     s.Bar(V);
                 }
             }
-            """);
+            """.ReplaceLineEndings());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44656")]
     public Task ImplicitObjectCreation()
