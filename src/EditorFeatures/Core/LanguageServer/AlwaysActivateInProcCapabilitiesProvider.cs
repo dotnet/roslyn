@@ -22,9 +22,7 @@ internal sealed class AlwaysActivateInProcCapabilitiesProvider(
     DefaultCapabilitiesProvider defaultCapabilitiesProvider,
     IGlobalOptionService globalOptions,
     IDiagnosticSourceManager diagnosticSourceManager,
-#pragma warning disable VSMEF016 // Referenced metadata view interface should be source-generated; TODO: https://github.com/dotnet/roslyn/issues/84292
     [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : ICapabilitiesProvider
-#pragma warning restore VSMEF016 // Referenced metadata view interface should be source-generated
 {
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities, ILspServices lspServices)
     {

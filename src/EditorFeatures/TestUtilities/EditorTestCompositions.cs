@@ -52,7 +52,8 @@ public static class EditorTestCompositions
             typeof(TestExportJoinableTaskContext),
             typeof(WpfDispatcherTaskJoiner),
             typeof(StubStreamingFindUsagesPresenter), // actual implementation is in VS layer
-            typeof(EditorNotificationServiceFactory)); // TODO: use mock INotificationService instead (https://github.com/dotnet/roslyn/issues/46045)
+            typeof(EditorNotificationServiceFactory), // TODO: use mock INotificationService instead (https://github.com/dotnet/roslyn/issues/46045)
+            typeof(TestObscuringTipManager));         // TODO: https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569
 
     public static readonly TestComposition EditorFeatures = FeaturesTestCompositions.Features
         .Add(Editor)
