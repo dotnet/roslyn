@@ -15,3 +15,12 @@ steps:
         "roslyn" | "$(Agent.OS)"
         "roslyn"
       path: $(ROSLYN_CACHE_PATH)
+
+  - task: PowerShell@2
+    displayName: Record Roslyn Cache Build Start Time
+    inputs:
+      targetType: 'inline'
+      script: |
+        $buildStart = [System.DateTimeOffset]::UtcNow.ToString("O", [System.Globalization.CultureInfo]::InvariantCulture)
+        Write-Host "Roslyn compiler cache build start time: $buildStart"
+        Write-Host "##vso[task.setvariable variable=RoslynCompilerCacheBuildStartTime]$buildStart"

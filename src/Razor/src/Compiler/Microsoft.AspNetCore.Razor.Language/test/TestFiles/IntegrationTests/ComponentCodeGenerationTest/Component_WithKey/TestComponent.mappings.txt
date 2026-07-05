@@ -1,0 +1,19 @@
+﻿Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (703:19,49 [11] )
+|MyComponent|
+
+Source Location: (40:0,40 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|someDate.Day|
+Generated Location: (980:25,0 [12] )
+|someDate.Day|
+
+Source Location: (86:2,7 [49] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private DateTime someDate = DateTime.Now;
+|
+Generated Location: (1232:37,0 [49] )
+|
+    private DateTime someDate = DateTime.Now;
+|
+

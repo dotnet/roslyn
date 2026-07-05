@@ -1,0 +1,21 @@
+﻿RazorDocument - [0..37)::37 - [@{LF#region MyRegion }LF#endregionLF}]
+    MarkupBlock - [0..37)::37
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..37)::37
+            CSharpStatement - [0..37)::37
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..37)::36
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..36)::34
+                        CSharpStatementLiteral - [2..36)::34 - [LF#region MyRegion }LF#endregionLF] - Gen<Stmt>
+                            NewLine;[LF];
+                            CSharpDirective;[#region MyRegion }LF];
+                            CSharpDirective;[#endregionLF];
+                    RazorMetaCode - [36..37)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [37..37)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

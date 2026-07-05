@@ -1,0 +1,78 @@
+﻿RazorDocument - [0..120)::120 - [<span>@(value switch{LF    10 => <span>ten</span>,LF    _ => "other"LF})</span>LFLF@code{LF    public int value = 10;LF}]
+    MarkupBlock - [0..120)::120
+        MarkupElement - [0..79)::79
+            MarkupStartTag - [0..6)::6 - [<span>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[span];
+                CloseAngle;[>];
+            CSharpCodeBlock - [6..72)::66
+                CSharpExplicitExpression - [6..72)::66
+                    CSharpTransition - [6..7)::1 - Gen<None>
+                        Transition;[@];
+                    CSharpExplicitExpressionBody - [7..72)::65
+                        RazorMetaCode - [7..8)::1 - Gen<None>
+                            LeftParenthesis;[(];
+                        CSharpCodeBlock - [8..71)::63
+                            CSharpExpressionLiteral - [8..71)::63 - [value switch{LF    10 => <span>ten</span>,LF    _ => "other"LF}] - Gen<Expr>
+                                Identifier;[value];
+                                Whitespace;[ ];
+                                Keyword;[switch];
+                                LeftBrace;[{];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                NumericLiteral;[10];
+                                Whitespace;[ ];
+                                CSharpOperator;[=>];
+                                Whitespace;[ ];
+                                LessThan;[<];
+                                Identifier;[span];
+                                GreaterThan;[>];
+                                Identifier;[ten];
+                                LessThan;[<];
+                                CSharpOperator;[/];
+                                Identifier;[span];
+                                GreaterThan;[>];
+                                Comma;[,];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[_];
+                                Whitespace;[ ];
+                                CSharpOperator;[=>];
+                                Whitespace;[ ];
+                                StringLiteral;["other"];
+                                NewLine;[LF];
+                                RightBrace;[}];
+                        RazorMetaCode - [71..72)::1 - Gen<None>
+                            RightParenthesis;[)];
+            MarkupEndTag - [72..79)::7 - [</span>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[span];
+                CloseAngle;[>];
+        MarkupTextLiteral - [79..83)::4 - [LFLF] - Gen<Markup>
+            NewLine;[LF];
+            NewLine;[LF];
+        CSharpCodeBlock - [83..88)::5
+            CSharpImplicitExpression - [83..88)::5
+                CSharpTransition - [83..84)::1 - Gen<None>
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [84..88)::4
+                    CSharpCodeBlock - [84..88)::4
+                        CSharpExpressionLiteral - [84..88)::4 - [code] - Gen<Expr>
+                            Identifier;[code];
+        MarkupTextLiteral - [88..120)::32 - [{LF    public int value = 10;LF}] - Gen<Markup>
+            Text;[{];
+            NewLine;[LF];
+            Whitespace;[    ];
+            Text;[public];
+            Whitespace;[ ];
+            Text;[int];
+            Whitespace;[ ];
+            Text;[value];
+            Whitespace;[ ];
+            Equals;[=];
+            Whitespace;[ ];
+            Text;[10;];
+            NewLine;[LF];
+            Text;[}];
+    EndOfFile;[];

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
     <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.26059.1</MicrosoftCodeAnalysisTestingVersion>
-    <_BasicReferenceAssembliesVersion>1.8.3</_BasicReferenceAssembliesVersion>
+    <_BasicReferenceAssembliesVersion>1.8.8</_BasicReferenceAssembliesVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>18.0.404-preview</VisualStudioEditorPackagesVersion>
@@ -17,13 +17,15 @@
     <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.1</MicrosoftNetCoreAppRuntimePackagesVersion>
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.1</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
-    <SqliteVersion>2.1.6</SqliteVersion>
+    <SQLitePCLRawCoreVersion>3.0.2</SQLitePCLRawCoreVersion>
+    <SQLite3MCPCLRawVersion>2.3.5</SQLite3MCPCLRawVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
     <HumanizerVersion>2.14.1</HumanizerVersion>
   </PropertyGroup>
 
   <!--
-    MSBuild - need to use older packages when targeting net8.0 since the newer versions only support net472 and net9.0.
+    MSBuild - the BuildHost still targets net8.0 (via NetRoslynBuildHostNetCoreVersion) and needs older packages
+    since the newer versions only support net472 and net9.0+.
     When targeting the latest .NET the version must also be lower or equal to one specified in
     https://github.com/dotnet/sdk/blob/main/src/Layout/redist/minimumMSBuildVersion#L1
   -->
@@ -93,8 +95,8 @@
       See https://github.com/dotnet/arcade/blob/main/Documentation/MirroringPackages.md if any of these packages fail to restore.
     -->
     <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.9.14-beta" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.13.50" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.13.50" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="18.3.36" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.3.36" />
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.0.2188-preview.1" />
@@ -124,7 +126,7 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="18.0.0-beta.25379.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="18.3.0-beta.26277.4" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="18.0.1082202-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="18.0.1082202-preview" />
 
@@ -226,14 +228,10 @@
 
     <PackageVersion Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
 
-    <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.linux" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.osx" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3.net45" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.core" Version="$(SQLitePCLRawCoreVersion)" />
+    <PackageVersion Include="SQLite3MC.PCLRaw.bundle" Version="$(SQLite3MCPCLRawVersion)" />
+    <PackageVersion Include="SQLite3MC.PCLRaw.lib" Version="$(SQLite3MCPCLRawVersion)" />
+    <PackageVersion Include="SQLite3MC.PCLRaw.provider" Version="$(SQLite3MCPCLRawVersion)" />
 
     <PackageVersion Include="Humanizer.Core" Version="$(HumanizerVersion)" />
     <PackageVersion Include="ICSharpCode.Decompiler" Version="9.1.0.7988" />
@@ -242,8 +240,9 @@
     <!--
       Testing.
     -->
-    <PackageVersion Include="BenchmarkDotNet" Version="0.13.0" />
-    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.0" />
+    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.7.37220.1" />
     <PackageVersion Include="BasicUndo" Version="0.9.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
@@ -301,11 +300,9 @@
     <PackageVersion Include="Basic.Reference.Assemblies.NetStandard13" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="$(_BasicReferenceAssembliesVersion)" />
-    <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="19.232.0-preview" />
-    <PackageVersion Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
-    <!-- fix of vulnerability in 6.0.0 coming via Microsoft.TeamFoundationServer.Client -->
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.3" />
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net110" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="$(SystemSecurityCryptographyXmlVersion)" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="$(SystemSecurityCryptographyPkcsVersion)" />
     <!--
       vs-extension-testing
     -->
@@ -316,6 +313,7 @@
       Infra
     -->
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.Diagnostics.NETCore.Client" Version="0.2.661903" />
     <PackageVersion Include="MSBuild.StructuredLogger" Version="2.3.113" />
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersPackageVersion)" />

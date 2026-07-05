@@ -1199,7 +1199,7 @@ namespace Microsoft.Cci
             var signatureEncoder = new BlobEncoder(builder).MethodSignature(convention: signature.CallingConvention.ToSignatureConvention(), genericParameterCount: 0, isInstanceMethod: false);
             SerializeReturnValueAndParameters(signatureEncoder, signature, varargParameters: ImmutableArray<IParameterTypeInformation>.Empty);
 
-            BlobHandle blobIndex = metadata.GetOrAddBlob(builder);
+            BlobHandle blobIndex = metadata.GetOrAddBlobAndFree(builder);
             StandaloneSignatureHandle handle = GetOrAddStandaloneSignatureHandle(blobIndex);
             return handle;
         }

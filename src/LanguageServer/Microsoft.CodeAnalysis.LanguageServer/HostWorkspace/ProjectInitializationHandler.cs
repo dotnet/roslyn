@@ -20,27 +20,24 @@ internal sealed class ProjectInitializationHandler : IDisposable
     private readonly IServiceBroker _serviceBroker;
     private readonly ServiceBrokerClient _serviceBrokerClient;
     private readonly ILogger _logger;
-
     private readonly TaskCompletionSource _serviceAvailable = new();
     private readonly ProjectInitializationCompleteObserver _projectInitializationCompleteObserver;
 
     private IDisposable? _subscription;
 
-    public ProjectInitializationHandler(IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
+    public ProjectInitializationHandler(IClientLanguageServerManager clientLanguageServerManager, IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
     {
         _serviceBroker = serviceBroker;
         _serviceBroker.AvailabilityChanged += AvailabilityChanged;
         _serviceBrokerClient = new ServiceBrokerClient(_serviceBroker, joinableTaskFactory: null);
 
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
-        _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(_logger);
+        _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(clientLanguageServerManager, _logger);
     }
 
-    public static async ValueTask SendProjectInitializationCompleteNotificationAsync()
+    public static async ValueTask SendProjectInitializationCompleteNotificationAsync(IClientLanguageServerManager clientLanguageServerManager)
     {
-        Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
-        var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
-        await languageServerManager.SendNotificationAsync(ProjectInitializationCompleteName, CancellationToken.None);
+        await clientLanguageServerManager.SendNotificationAsync(ProjectInitializationCompleteName, CancellationToken.None);
     }
 
     public async Task SubscribeToInitializationCompleteAsync(CancellationToken cancellationToken)
@@ -81,15 +78,8 @@ internal sealed class ProjectInitializationHandler : IDisposable
         _serviceBrokerClient.Dispose();
     }
 
-    internal sealed class ProjectInitializationCompleteObserver : IObserver<ProjectInitializationCompletionState>
+    internal sealed class ProjectInitializationCompleteObserver(IClientLanguageServerManager clientLanguageServerManager, ILogger logger) : IObserver<ProjectInitializationCompletionState>
     {
-        private readonly ILogger _logger;
-
-        public ProjectInitializationCompleteObserver(ILogger logger)
-        {
-            _logger = logger;
-        }
-
         [JsonRpcMethod("onCompleted")]
         public void OnCompleted()
         {
@@ -99,15 +89,15 @@ internal sealed class ProjectInitializationHandler : IDisposable
         [JsonRpcMethod("onError", UseSingleObjectParameterDeserialization = true)]
         public void OnError(Exception error)
         {
-            _logger.LogError(error, "Devkit project initialization observer failed");
+            logger.LogError(error, "Devkit project initialization observer failed");
         }
 
         [JsonRpcMethod("onNext", UseSingleObjectParameterDeserialization = true)]
         public void OnNext(ProjectInitializationCompletionState value)
         {
-            _logger.LogDebug("Devkit project initialization completed");
+            logger.LogDebug("Devkit project initialization completed");
             VSCodeRequestTelemetryLogger.ReportProjectInitializationComplete();
-            _ = SendProjectInitializationCompleteNotificationAsync().AsTask().ReportNonFatalErrorAsync();
+            _ = SendProjectInitializationCompleteNotificationAsync(clientLanguageServerManager).AsTask().ReportNonFatalErrorAsync();
         }
     }
 }

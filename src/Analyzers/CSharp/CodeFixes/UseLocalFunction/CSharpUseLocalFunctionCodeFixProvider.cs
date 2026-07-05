@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
@@ -99,7 +100,8 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
         foreach (var (localDeclaration, anonymousFunction, references) in nodesFromDiagnostics.OrderByDescending(nodes => nodes.function.SpanStart))
         {
             var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType;
-            var parameterList = GenerateParameterList(anonymousFunction, delegateType.DelegateInvokeMethod);
+            var parameterList = EnsureUniqueParameterNames(
+                GenerateParameterList(anonymousFunction, delegateType.DelegateInvokeMethod));
             var makeStatic = MakeStatic(semanticModel, makeStaticIfPossible, localDeclaration, cancellationToken);
 
             var currentLocalDeclaration = currentRoot.GetCurrentNode(localDeclaration);
@@ -236,6 +238,32 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
         return LocalFunctionStatement(
             modifiers, returnType, identifier, typeParameterList, parameterList,
             constraintClauses, body, expressionBody, semicolonToken);
+    }
+
+    private static ParameterListSyntax EnsureUniqueParameterNames(ParameterListSyntax parameterList)
+    {
+        // Lambdas can contain multiple discard parameters, e.g.:
+        // Action<int, int> f = (_, _) => {};
+        // Ensure these parameters get unique names after conversion:
+        // void f(int _1, int _2) {}
+
+        var parameterNames = parameterList.Parameters.Select(p => p.Identifier.Text);
+        var isFixed = parameterNames.Select(name => name != "_");
+        var uniqueNames = NameGenerator.EnsureUniqueness([.. parameterNames], [.. isFixed]);
+
+        if (parameterNames.SequenceEqual(uniqueNames))
+            return parameterList;
+
+        var renameMap = parameterList.Parameters
+            .Zip(uniqueNames, (parameter, name) => (parameter, renamed: RenameParameter(parameter, name)))
+            .ToDictionary(p => p.parameter, p => p.renamed);
+
+        return parameterList.ReplaceNodes(parameterList.Parameters, (parameter, _) => renameMap[parameter]);
+
+        static ParameterSyntax RenameParameter(ParameterSyntax parameter, string newName)
+            => parameter.Identifier.Text == newName
+                ? parameter
+                : parameter.WithIdentifier(newName.ToIdentifierToken());
     }
 
     private static ParameterListSyntax GenerateParameterList(

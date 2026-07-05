@@ -37,17 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             Return Await MyBase.BuildQuickInfoAsync(context, token).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Async Function BuildQuickInfoAsync(
-                context As CommonQuickInfoContext,
-                token As SyntaxToken) As Task(Of QuickInfoItem)
-            Dim info = Await BuildQuickInfoAsync(context.Services, context.SemanticModel, token, context.Options, context.CancellationToken).ConfigureAwait(False)
-            If info IsNot Nothing Then
-                Return info
-            End If
-
-            Return Await MyBase.BuildQuickInfoAsync(context, token).ConfigureAwait(False)
-        End Function
-
         Private Overloads Shared Async Function BuildQuickInfoAsync(
                 services As SolutionServices,
                 semanticModel As SemanticModel,

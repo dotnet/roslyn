@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit :
                                                     AllowedRequiredModifierType.None) ||
                 DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
-                DeriveUseSiteInfoFromParameters(ref result, this.Parameters))
+                DeriveUseSiteInfoFromParameters(ref result, this.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false)))
             {
                 return true;
             }
@@ -1226,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         bool IMethodSymbolInternal.IsAccessCheckedOnOverride => IsAccessCheckedOnOverride;
         bool IMethodSymbolInternal.IsExternal => IsExternal;
         bool IMethodSymbolInternal.IsHiddenBySignature => !HidesBaseMethodsByName;
-        bool IMethodSymbolInternal.IsMetadataNewSlot => IsMetadataNewSlot();
+        bool IMethodSymbolInternal.IsMetadataNewSlotIgnoringInterfaceImplementationChanges => IsMetadataNewSlot(context: null, ignoreInterfaceImplementationChanges: true);
         bool IMethodSymbolInternal.IsPlatformInvoke => GetDllImportData() != null;
         bool IMethodSymbolInternal.HasRuntimeSpecialName => HasRuntimeSpecialName;
         bool IMethodSymbolInternal.IsMetadataFinal => IsSealed;
@@ -1303,6 +1303,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, declaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
                     ImmutableArray.Create(new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.RequiredMembers)))
                     ));
+            }
+        }
+
+        protected static void AddClosedClassesFeatureRequiredAttribute(ref ArrayBuilder<CSharpAttributeData> attributes, MethodSymbol methodToAttribute)
+        {
+            if (methodToAttribute.ContainingType.IsClosed)
+            {
+                CSharpCompilation declaringCompilation = methodToAttribute.DeclaringCompilation;
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    declaringCompilation.TrySynthesizeAttribute(
+                        WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                        [new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.ClosedClasses))]));
             }
         }
 

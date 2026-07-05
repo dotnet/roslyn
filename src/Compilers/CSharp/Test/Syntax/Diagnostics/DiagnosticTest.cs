@@ -481,7 +481,6 @@ class X
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 10 and C# 14.
                             Assert.Equal(10, ErrorFacts.GetWarningLevel(errorCode));
                             break;
-                        case ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules:
                         case ErrorCode.WRN_UnsafeMeaningless:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 11 and C# 15.
                             Assert.Equal(11, ErrorFacts.GetWarningLevel(errorCode));
@@ -3015,13 +3014,13 @@ class Program
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                     case ErrorCode.ERR_RefLocalAcrossAwait:
                     case ErrorCode.ERR_DataSectionStringLiteralHashCollision:
-                    case ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync:
                     case ErrorCode.ERR_NonTaskMainCantBeAsync:
                     case ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported:
                     case ErrorCode.ERR_EncUpdateFailedMissingSymbol:
                     case ErrorCode.ERR_EncNoPIAReference:
                     case ErrorCode.ERR_EncReferenceToAddedMember:
                     case ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime:
+                    case ErrorCode.ERR_AbstractBaseRecordImplementation:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

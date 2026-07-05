@@ -764,6 +764,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Synthesized methods have no ordinal stored in custom debug information (only user-defined methods have ordinals).
                     // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named,
                     // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
+                    // For runtime async, the rewriter still receives methodOrdinal = -1 and instead uses the current function name as a suffix on any synthesized
+                    // dynamic call-site container. That way different synthesized methods (which all share methodOrdinal = -1) still get distinct container type names.
+                    // This relies on the fact that, per containing type, the names of methods passed to CompileSynthesizedMethods are unique; for local functions
+                    // that holds because local functions cannot be overloaded.
                     const int methodOrdinal = -1;
                     MethodBody emittedBody = null;
 
@@ -779,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             AsyncStateMachine asyncStateMachine = null;
                             if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
                             {
-                                loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                                loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, methodOrdinal, diagnosticsThisMethod);
                             }
                             else
                             {
@@ -1435,6 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             builder.EmitThrow(isRethrow: false);
             builder.Realize();
+            builder.FreeBasicBlocks();
 
             _moduleBeingBuiltOpt.TestData?.SetMethodILBuilder(methodSymbol, builder);
 
@@ -1602,7 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AsyncStateMachine asyncStateMachine = null;
                 if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
                 {
-                    bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics);
+                    bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, methodOrdinal, diagnostics);
                 }
                 else
                 {
@@ -2177,7 +2182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Logic in this lambda is based on Binder.IdentifierUsedAsValueFinder.CheckIdentifiersInNode.childrenNeedChecking.
+            // Logic in this local function is based on Binder.IdentifierUsedAsValueFinder.CheckIdentifiersInNode.childrenNeedChecking.
             // It can be more permissive (i.e. allow us to dive into more nodes), but should not be more restrictive
             static void addIdentifiers(CSharpSyntaxNode? node, ConcurrentDictionary<IdentifierNameSyntax, int> identifierMap)
             {
@@ -2194,10 +2199,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case MemberBindingExpressionSyntax:
                             case BaseExpressionColonSyntax:
                             case NameEqualsSyntax:
-                            case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
                             case TypeParameterConstraintClauseSyntax:
                             case AliasQualifiedNameSyntax:
                                 // These nodes do not have anything interesting for us
+                                return false;
+
+                            case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
+                            case BreakStatementSyntax:
+                            case ContinueStatementSyntax:
+                                // Any identifier children of these statements refer to a label, not a
+                                // value, so they aren't candidates for being a value reference to a
+                                // primary-constructor parameter.
                                 return false;
 
                             case ExpressionSyntax expression:

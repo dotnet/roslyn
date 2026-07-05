@@ -610,26 +610,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public async Task TestDocumentDiagnosticsFromRazorServer(bool useVSDiagnostics, bool mutatingLspWorkspace)
-    {
-        var markup = @"class A {";
-
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-            GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, WellKnownLspServerKinds.RazorLspServer));
-
-        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
-
-        await OpenDocumentAsync(testLspServer, document);
-
-        var results = await RunGetDocumentPullDiagnosticsAsync(
-            testLspServer, document.GetURI(), useVSDiagnostics);
-
-        // Assert that we have diagnostics even though the option is set to push.
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
-        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedUri);
-    }
-
-    [Theory, CombinatorialData]
     public async Task TestDocumentDiagnosticsFromLiveShareServer(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var markup = @"class A {";
@@ -1359,13 +1339,13 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     {
         var options = GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, compilerDiagnosticsScope: null, useVSDiagnostics);
         var composition = Composition
-            .AddExcludedPartTypes(typeof(EditAndContinueService))
-            .AddParts(typeof(MockEditAndContinueService));
+            .AddExcludedPartTypes(typeof(EditAndContinueService.WorkspaceServiceFactory))
+            .AddParts(typeof(MockEditAndContinueServiceFactory));
 
         await using var testLspServer = await CreateTestLspServerAsync(["class C;", "class D;"], LanguageNames.CSharp, mutatingLspWorkspace, options, composition);
 
         var encSessionState = testLspServer.TestWorkspace.GetService<EditAndContinueSessionState>();
-        var encService = (MockEditAndContinueService)testLspServer.TestWorkspace.GetService<IEditAndContinueService>();
+        var encService = (MockEditAndContinueService)testLspServer.TestWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
         var diagnosticsRefresher = testLspServer.TestWorkspace.GetService<IDiagnosticsRefresher>();
 
         var project = testLspServer.TestWorkspace.CurrentSolution.Projects.Single();
@@ -1598,7 +1578,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.False(results.Any(r => r.TextDocument!.DocumentUri.GetRequiredParsedUri().LocalPath.Contains(".ts")));
+        Assert.False(results.Any(r => r.TextDocument!.DocumentUri.UriString.Contains(".ts")));
     }
 
     [Theory, CombinatorialData]
@@ -2178,14 +2158,12 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        var dir = TestWorkspace.RootDirectory.Replace("\\", "/");
-
         AssertEx.SequenceEqual(
         [
-            $"{dir}/C.cs",
-            $"{dir}/CSProj1.csproj",
-            $"{dir}/C2.cs"
-        ], results.Select(r => r.TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath));
+            ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "C.cs")),
+            ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "CSProj1.csproj")),
+            ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "C2.cs"))
+        ], results.Select(r => r.TextDocument.DocumentUri));
     }
 
     [Theory, CombinatorialData]

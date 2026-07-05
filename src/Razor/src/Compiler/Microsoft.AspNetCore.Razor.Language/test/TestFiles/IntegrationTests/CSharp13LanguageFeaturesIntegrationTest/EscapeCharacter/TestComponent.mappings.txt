@@ -1,0 +1,16 @@
+﻿Source Location: (2:0,2 [52] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var value = "\e[31m";
+    _ = value.Length;
+|
+Generated Location: (733:21,0 [52] )
+|
+    var value = "\e[31m";
+    _ = value.Length;
+|
+
+Source Location: (61:5,2 [8] x:\dir\subdir\Test\TestComponent.razor)
+|"\e[31m"|
+Generated Location: (944:31,24 [8] )
+|"\e[31m"|
+

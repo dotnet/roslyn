@@ -615,9 +615,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsStatic => HasFlag(MethodAttributes.Static);
 
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => HasFlag(MethodAttributes.Virtual);
+        internal override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false) => IsMetadataVirtual();
+        internal bool IsMetadataVirtual() => HasFlag(MethodAttributes.Virtual);
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.NewSlot);
+        internal override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false) => IsMetadataNewSlot();
+        internal bool IsMetadataNewSlot() => HasFlag(MethodAttributes.NewSlot);
 
         internal override bool IsMetadataFinal => HasFlag(MethodAttributes.Final);
 
@@ -1065,7 +1067,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
                 bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
-                bool filterCompilerFeatureRequiredAttribute = (checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null;
+                bool isClosedConstructor = MethodKind == MethodKind.Constructor && ContainingType.IsClosed;
+                bool filterCompilerFeatureRequiredAttribute = (checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isClosedConstructor) && DeriveCompilerFeatureRequiredDiagnostic() is null;
                 bool filterObsoleteAttribute = checkForRequiredMembers && ObsoleteAttributeData is null;
 
                 using var builder = TemporaryArray<CSharpAttributeData>.Empty;
@@ -1095,6 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiresUnsafeAttribute))
                     {
                         hasRequiresUnsafeAttribute = true;
+                        continue;
                     }
 
                     builder.Add(new PEAttributeData(containingModule, handle));
@@ -1574,15 +1578,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var containingModule = _containingType.ContainingPEModule;
             var decoder = new MetadataDecoder(containingModule, this);
-            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(
-                this, containingModule, Handle,
-                allowedFeatures: MethodKind == MethodKind.Constructor ?
-                    CompilerFeatureRequiredFeatures.RequiredMembers :
-                    (SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this) ?
-                        CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators :
-                        CompilerFeatureRequiredFeatures.None),
-                decoder);
 
+            var allowedFeatures = CompilerFeatureRequiredFeatures.None;
+            if (MethodKind == MethodKind.Constructor)
+            {
+                allowedFeatures |= CompilerFeatureRequiredFeatures.RequiredMembers;
+                if (ContainingType.IsClosed)
+                    allowedFeatures |= CompilerFeatureRequiredFeatures.ClosedClasses;
+            }
+            else if (SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this))
+            {
+                allowedFeatures |= CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators;
+            }
+
+            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, containingModule, Handle, allowedFeatures, decoder);
             if (diag != null)
             {
                 return diag;
@@ -1818,28 +1827,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                Debug.Assert(AssociatedSymbol?.CallerUnsafeMode != CallerUnsafeMode.Implicit);
+                Debug.Assert(AssociatedSymbol?.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) != CallerUnsafeMode.Implicit);
 
-                return hasRequiresUnsafeAttribute || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit;
+                return hasRequiresUnsafeAttribute || AssociatedSymbol?.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit;
             }
 
             // This might be expensive, so we cache it in _packedFlags.
             return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer();
         }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
+            if (!RequiresUnsafe)
             {
-                if (!RequiresUnsafe)
-                {
-                    return CallerUnsafeMode.None;
-                }
-
-                return ContainingModule.UseUpdatedMemorySafetyRules
-                    ? CallerUnsafeMode.Explicit
-                    : CallerUnsafeMode.Implicit;
+                return CallerUnsafeMode.None;
             }
+
+            return ContainingModule.UseUpdatedMemorySafetyRules
+                ? CallerUnsafeMode.Explicit
+                : CallerUnsafeMode.Implicit;
         }
 
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)

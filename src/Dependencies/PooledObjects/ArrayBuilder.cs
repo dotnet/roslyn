@@ -9,6 +9,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+
+#if DEBUG
+using System.Runtime.CompilerServices;
+#endif
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
@@ -406,13 +411,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 return ImmutableArray<U>.Empty;
             }
 
-            var tmp = ArrayBuilder<U>.GetInstance(Count);
-            foreach (var i in this)
+            var result = new U[Count];
+            for (int i = 0; i < result.Length; i++)
             {
-                tmp.Add((U)i!);
+                result[i] = (U)this[i]!;
             }
 
-            return tmp.ToImmutableAndFree();
+            return ImmutableCollectionsMarshal.AsImmutableArray(result);
         }
 
         public ImmutableArray<U> ToDowncastedImmutableAndFree<U>() where U : T
@@ -501,23 +506,53 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         // 2) Expose the pool or the way to create a pool or the way to get an instance.
         //    for now we will expose both and figure which way works better
         private static readonly ObjectPool<ArrayBuilder<T>> s_poolInstance = CreatePool();
-        public static ArrayBuilder<T> GetInstance()
+        public static ArrayBuilder<T> GetInstance(
+#if DEBUG
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            var builder = s_poolInstance.Allocate();
+            var builder = s_poolInstance.Allocate(
+#if DEBUG
+                filePath, lineNumber
+#endif
+                );
             Debug.Assert(builder.Count == 0);
             return builder;
         }
 
-        public static ArrayBuilder<T> GetInstance(int capacity)
+        public static ArrayBuilder<T> GetInstance(
+            int capacity
+#if DEBUG
+            , [CallerFilePath] string filePath = ""
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            var builder = GetInstance();
+            var builder = GetInstance(
+#if DEBUG
+                filePath, lineNumber
+#endif
+                );
             builder.EnsureCapacity(capacity);
             return builder;
         }
 
-        public static ArrayBuilder<T> GetInstance(int capacity, T fillWithValue)
+        public static ArrayBuilder<T> GetInstance(
+            int capacity,
+            T fillWithValue
+#if DEBUG
+            , [CallerFilePath] string filePath = ""
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            var builder = GetInstance();
+            var builder = GetInstance(
+#if DEBUG
+                filePath, lineNumber
+#endif
+                );
             builder.EnsureCapacity(capacity);
 
             for (var i = 0; i < capacity; i++)
@@ -528,15 +563,33 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return builder;
         }
 
-        public static ObjectPool<ArrayBuilder<T>> CreatePool()
+        public static ObjectPool<ArrayBuilder<T>> CreatePool(
+#if DEBUG
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            return CreatePool(128); // we rarely need more than 10
+            return CreatePool(128
+#if DEBUG
+                , filePath, lineNumber
+#endif
+                ); // we rarely need more than 10
         }
 
-        public static ObjectPool<ArrayBuilder<T>> CreatePool(int size)
+        public static ObjectPool<ArrayBuilder<T>> CreatePool(int size
+#if DEBUG
+            , [CallerFilePath] string filePath = ""
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
             ObjectPool<ArrayBuilder<T>>? pool = null;
-            pool = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(pool!), size);
+            pool = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(pool!), size
+#if DEBUG
+                , filePath: filePath, lineNumber: lineNumber
+#endif
+                );
             return pool;
         }
 
@@ -842,13 +895,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                     return [map(this[0]), map(this[1]), map(this[2]), map(this[3])];
 
                 default:
-                    var builder = ArrayBuilder<TResult>.GetInstance(Count);
-                    foreach (var item in this)
-                    {
-                        builder.Add(map(item));
-                    }
+                    var result = new TResult[Count];
+                    for (int i = 0; i < result.Length; i++)
+                        result[i] = map(this[i]);
 
-                    return builder.ToImmutableAndFree();
+                    return ImmutableCollectionsMarshal.AsImmutableArray(result);
             }
         }
 
@@ -880,13 +931,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                     return [map(this[0], arg), map(this[1], arg), map(this[2], arg), map(this[3], arg)];
 
                 default:
-                    var builder = ArrayBuilder<TResult>.GetInstance(Count);
-                    foreach (var item in this)
-                    {
-                        builder.Add(map(item, arg));
-                    }
+                    var result = new TResult[Count];
+                    for (int i = 0; i < result.Length; i++)
+                        result[i] = map(this[i], arg);
 
-                    return builder.ToImmutableAndFree();
+                    return ImmutableCollectionsMarshal.AsImmutableArray(result);
             }
         }
 
@@ -918,13 +967,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                     return [map(this[0], 0, arg), map(this[1], 1, arg), map(this[2], 2, arg), map(this[3], 3, arg)];
 
                 default:
-                    var builder = ArrayBuilder<TResult>.GetInstance(Count);
-                    foreach (var item in this)
-                    {
-                        builder.Add(map(item, builder.Count, arg));
-                    }
+                    var result = new TResult[Count];
+                    for (int i = 0; i < result.Length; i++)
+                        result[i] = map(this[i], i, arg);
 
-                    return builder.ToImmutableAndFree();
+                    return ImmutableCollectionsMarshal.AsImmutableArray(result);
             }
         }
 
@@ -960,26 +1007,76 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         private static readonly ObjectPool<ArrayBuilder<T>> s_keepLargeInstancesPool = CreatePool();
 
-        public static PooledDisposer<ArrayBuilder<T>> GetInstance(out ArrayBuilder<T> instance)
-            => GetInstance(discardLargeInstances: true, out instance);
+        public static PooledDisposer<ArrayBuilder<T>> GetInstance(
+            out ArrayBuilder<T> instance
+#if DEBUG
+            , [CallerFilePath] string filePath = ""
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
+            => GetInstance(discardLargeInstances: true, out instance
+#if DEBUG
+                , filePath, lineNumber
+#endif
+                );
 
-        public static PooledDisposer<ArrayBuilder<T>> GetInstance(int capacity, out ArrayBuilder<T> instance)
+        public static PooledDisposer<ArrayBuilder<T>> GetInstance(
+            int capacity,
+            out ArrayBuilder<T> instance
+#if DEBUG
+            , [CallerFilePath] string filePath = ""
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            instance = GetInstance(capacity);
+            instance = GetInstance(capacity
+#if DEBUG
+                , filePath, lineNumber
+#endif
+                );
             return new PooledDisposer<ArrayBuilder<T>>(instance);
         }
 
-        public static PooledDisposer<ArrayBuilder<T>> GetInstance(int capacity, T fillWithValue, out ArrayBuilder<T> instance)
+        public static PooledDisposer<ArrayBuilder<T>> GetInstance(
+            int capacity,
+            T fillWithValue,
+            out ArrayBuilder<T> instance
+#if DEBUG
+            , [CallerFilePath] string filePath = ""
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            instance = GetInstance(capacity, fillWithValue);
+            instance = GetInstance(capacity, fillWithValue
+#if DEBUG
+                , filePath, lineNumber
+#endif
+                );
             return new PooledDisposer<ArrayBuilder<T>>(instance);
         }
 
-        public static PooledDisposer<ArrayBuilder<T>> GetInstance(bool discardLargeInstances, out ArrayBuilder<T> instance)
+        public static PooledDisposer<ArrayBuilder<T>> GetInstance(
+            bool discardLargeInstances,
+            out ArrayBuilder<T> instance
+#if DEBUG
+            , [CallerFilePath] string filePath = ""
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
             // If we're discarding large instances (the default behavior), then just use the normal pool.  If we're not, use
             // a specific pool so that *other* normal callers don't accidentally get it and discard it.
-            instance = discardLargeInstances ? GetInstance() : s_keepLargeInstancesPool.Allocate();
+            instance = discardLargeInstances
+                ? GetInstance(
+#if DEBUG
+                    filePath, lineNumber
+#endif
+                    )
+                : s_keepLargeInstancesPool.Allocate(
+#if DEBUG
+                    filePath, lineNumber
+#endif
+                    );
             return new PooledDisposer<ArrayBuilder<T>>(instance, discardLargeInstances);
         }
 

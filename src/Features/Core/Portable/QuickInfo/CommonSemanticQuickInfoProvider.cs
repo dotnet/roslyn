@@ -38,19 +38,6 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
             services, semanticModel, token, tokenInformation, supportedPlatforms, interceptorDisplayParts, context.Options, onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
     }
 
-    protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
-        CommonQuickInfoContext context, SyntaxToken token)
-    {
-        var tokenInformation = BindToken(context.Services, context.SemanticModel, token, context.CancellationToken);
-        if (tokenInformation.Symbols.IsDefaultOrEmpty)
-            return null;
-
-        var interceptorDisplayParts = GetInterceptorDisplayParts(context.SemanticModel, token, context.CancellationToken);
-        // onTheFlyDocInfo is null here since On-The-Fly Docs are being computed at the document level.
-        return await CreateContentAsync(
-            context.Services, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, interceptorDisplayParts, context.Options, onTheFlyDocsInfo: null, context.CancellationToken).ConfigureAwait(false);
-    }
-
     private async Task<(TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
         QuickInfoContext context,
         SyntaxToken token)

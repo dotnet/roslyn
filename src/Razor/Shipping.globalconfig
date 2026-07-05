@@ -1,0 +1,4 @@
+﻿is_global = true
+
+# CA2213: 'type' contains field 'field' that is of IDisposable type 'type', but it is never disposed
+dotnet_diagnostic.CA2213.severity = suggestion

@@ -1,0 +1,61 @@
+﻿RazorDocument - [0..20)::20 - [<p>@<<<<<<< HEAD</p>]
+    MarkupBlock - [0..20)::20
+        MarkupElement - [0..20)::20
+            MarkupStartTag - [0..3)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            CSharpCodeBlock - [3..4)::1
+                CSharpImplicitExpression - [3..4)::1
+                    CSharpTransition - [3..4)::1 - Gen<None>
+                        Transition;[@];
+                    CSharpImplicitExpressionBody - [4..4)::0
+                        CSharpCodeBlock - [4..4)::0
+                            CSharpExpressionLiteral - [4..4)::0 - [] - Gen<Expr>
+                                Marker;[];
+            MarkupElement - [4..5)::1
+                MarkupStartTag - [4..5)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [5..6)::1
+                MarkupStartTag - [5..6)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [6..7)::1
+                MarkupStartTag - [6..7)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [7..8)::1
+                MarkupStartTag - [7..8)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [8..9)::1
+                MarkupStartTag - [8..9)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [9..10)::1
+                MarkupStartTag - [9..10)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [10..16)::6
+                MarkupStartTag - [10..16)::6 - [< HEAD] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    MarkupMinimizedAttributeBlock - [11..16)::5 - [ HEAD]
+                        MarkupTextLiteral - [11..12)::1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [12..16)::4 - [HEAD] - Gen<Markup>
+                            Text;[HEAD];
+                    CloseAngle;[<Missing>];
+            MarkupEndTag - [16..20)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+    EndOfFile;[];

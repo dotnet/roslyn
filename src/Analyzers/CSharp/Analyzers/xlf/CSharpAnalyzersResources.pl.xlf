@@ -397,6 +397,11 @@
         <target state="translated">Użyj sprawdzania „jest obiektem”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_labeled_jump_statement">
+        <source>Use labeled jump statement</source>
+        <target state="translated">Użyj instrukcji szybkiego przechodzenia oznaczonej etykietą</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">Użyj funkcji lokalnej</target>

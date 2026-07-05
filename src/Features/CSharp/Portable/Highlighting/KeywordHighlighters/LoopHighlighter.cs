@@ -38,6 +38,8 @@ internal sealed class LoopHighlighter() : AbstractKeywordHighlighter(findInsideT
     protected override void AddHighlightsForNode(
         SyntaxNode node, List<TextSpan> spans, CancellationToken cancellationToken)
     {
+        var labelName = (node.Parent as LabeledStatementSyntax)?.Identifier.ValueText;
+
         switch (node)
         {
             case DoStatementSyntax doStatement:
@@ -54,7 +56,7 @@ internal sealed class LoopHighlighter() : AbstractKeywordHighlighter(findInsideT
                 break;
         }
 
-        HighlightRelatedKeywords(node, spans, highlightBreaks: true, highlightContinues: true);
+        HighlightRelatedKeywords(node, spans, highlightBreaks: true, highlightContinues: true, labelName);
     }
 
     private static void HighlightDoStatement(DoStatementSyntax statement, List<TextSpan> spans)
@@ -77,19 +79,25 @@ internal sealed class LoopHighlighter() : AbstractKeywordHighlighter(findInsideT
     /// Finds all breaks and continues that are a child of this node, and adds the appropriate spans to the spans list.
     /// </summary>
     private static void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans,
-        bool highlightBreaks, bool highlightContinues)
+        bool highlightBreaks, bool highlightContinues, string? labelName)
     {
-        Debug.Assert(highlightBreaks || highlightContinues);
+        Debug.Assert(highlightBreaks || highlightContinues || labelName != null);
 
-        if (highlightBreaks && node is BreakStatementSyntax breakStatement)
+        if (node is BreakStatementSyntax breakStatement)
         {
-            spans.Add(breakStatement.BreakKeyword.Span);
-            spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
+            if (breakStatement.Name is { Identifier.ValueText: var breakName } ? breakName == labelName : highlightBreaks)
+            {
+                spans.Add(breakStatement.BreakKeyword.Span);
+                spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
+            }
         }
-        else if (highlightContinues && node is ContinueStatementSyntax continueStatement)
+        else if (node is ContinueStatementSyntax continueStatement)
         {
-            spans.Add(continueStatement.ContinueKeyword.Span);
-            spans.Add(EmptySpan(continueStatement.SemicolonToken.Span.End));
+            if (continueStatement.Name is { Identifier.ValueText: var continueName } ? continueName == labelName : highlightContinues)
+            {
+                spans.Add(continueStatement.ContinueKeyword.Span);
+                spans.Add(EmptySpan(continueStatement.SemicolonToken.Span.End));
+            }
         }
         else
         {
@@ -98,10 +106,9 @@ internal sealed class LoopHighlighter() : AbstractKeywordHighlighter(findInsideT
                 var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
                 var highlightContinuesForChild = highlightContinues && !child.IsContinuableConstruct();
 
-                // Only recurse if we have anything to do
-                if (highlightBreaksForChild || highlightContinuesForChild)
+                if (highlightBreaksForChild || highlightContinuesForChild || labelName != null)
                 {
-                    HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightContinuesForChild);
+                    HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightContinuesForChild, labelName);
                 }
             }
         }

@@ -214,7 +214,7 @@ object with(object a, object b) { ... }
 
 ***Introduced in Visual Studio 2026 version 18.7***
 
-In a future C# version (currently in `langversion:preview`), pointer types (e.g., `int*`, `delegate*<void>`) no longer require an unsafe context.
+In C# 16, pointer types (e.g., `int*`, `delegate*<void>`) no longer require an unsafe context.
 Only pointer indirection operations (dereference, member access via `->`, element access, etc.) require unsafe.
 This is part of the [unsafe evolution](https://github.com/dotnet/csharplang/issues/9704) feature.
 
@@ -227,7 +227,7 @@ class Program
 {
     static void Main()
     {
-        M(x => { }); // C# 14: prints "2"; C# preview: error CS0121 (ambiguous)
+        M(x => { }); // C# 15: prints "2"; C# 16: error CS0121 (ambiguous)
     }
 
     static void M(F1 f) { Console.WriteLine(1); }
@@ -247,39 +247,46 @@ If your code is impacted by the ambiguity change, add explicit parameter types t
 M((int x) => { }); // Resolves to M(F2)
 ```
 
-## Uninitialized `stackalloc` inside `SkipLocalsInit` requires an unsafe context
+## `safe` is a contextual keyword
 
-***Introduced in Visual Studio 2026 version 18.7***
+***Introduced in Visual Studio 2026 version 18.9***
 
-In a future C# version (currently in `langversion:preview`), a `stackalloc` expression without an initializer inside a method marked with `[SkipLocalsInit]` now requires an unsafe context, even when the target type is `Span<T>`.
-This is because `SkipLocalsInit` prevents zero-initialization of the allocated memory, making it possible to read uninitialized data - a memory safety concern.
-This is part of the [unsafe evolution](https://github.com/dotnet/csharplang/issues/9704) feature.
+In C# 16, `safe` is a keyword when placed as a modifier on member declarations.
+That can break cases where it was previously referring to a type.
+To mitigate the break, it is possible to use `@`.
 
 ```cs
-[System.Runtime.CompilerServices.SkipLocalsInit]
-void M()
+class safe { }
+
+class C
 {
-    Span<int> a = stackalloc int[5];           // previously ok, now error CS9361
-    Span<int> b = stackalloc int[] { 1, 2 };   // ok (has initializer)
-    Span<int> c = stackalloc int[2] { 1, 2 };  // ok (has initializer)
+    safe M1() => new safe(); // previously `safe` refers to a type, now it is a keyword
+    @safe M2() => new safe(); // workaround
 }
 ```
 
-If your code is impacted, you can either:
-- Add an `unsafe` block around the `stackalloc`:
-  ```cs
-  [SkipLocalsInit]
-  void M()
-  {
-      Span<int> a;
-      unsafe { a = stackalloc int[5]; }
-  }
-  ```
-- Or provide an initializer so the memory is fully initialized:
-  ```cs
-  [SkipLocalsInit]
-  void M()
-  {
-      Span<int> a = stackalloc int[5] { 0, 0, 0, 0, 0 };
-  }
-  ```
+## `unsafe` required for more members
+
+***Introduced in Visual Studio 2026 version 18.9***
+
+Previously, C# compiler did not report errors for calling some members with pointers even outside the `unsafe` context.
+This has been fixed under `langversion:16`.
+For example:
+
+```cs
+var c = new C();
+int a = c.M(null); // error always
+int b = c[null]; // no error in C# 15, reports CS9363 in C# 16
+
+class C
+{
+    public unsafe int M(int* x) => 0;
+    public unsafe int this[int* x] => 0;
+}
+```
+
+To fix the violations, use the `unsafe` block or expression, for example:
+
+```cs
+int b = unsafe(c[null]);
+```
