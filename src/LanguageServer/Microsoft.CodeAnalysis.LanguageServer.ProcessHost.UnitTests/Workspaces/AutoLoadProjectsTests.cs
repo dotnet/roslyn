@@ -100,17 +100,53 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
         await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingFileMessage(testLspServer, "Solutions/App.slnx"), GetLoadedFileMessage(testLspServer, "Solutions/App.slnx"));
     }
 
+    [Fact]
+    public async Task ReportsProgressForExplicitSolutionOpen()
+    {
+        var workspaceContent = LspWorkspaceContent.Empty
+            .WithFile("App.csproj", ProjectContent)
+            .WithFile("App.sln", CreateSolutionFile("App.csproj"))
+            .WithLoadPath("App.sln")
+            .WithRestore();
+
+        await using var testLspServer = await CreateLanguageServerAsync(
+            workspaceContent,
+            new LspServerLaunchOptions(),
+            CreateWorkDoneProgressClientCapabilities());
+
+        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingFileMessage(testLspServer, "App.sln"), GetLoadedFileMessage(testLspServer, "App.sln"));
+    }
+
+    [Fact]
+    public async Task ReportsProgressForExplicitProjectOpen()
+    {
+        var workspaceContent = LspWorkspaceContent.Empty
+            .WithFile("Project.csproj", ProjectContent)
+            .WithLoadPath("Project.csproj")
+            .WithRestore();
+
+        await using var testLspServer = await CreateLanguageServerAsync(
+            workspaceContent,
+            new LspServerLaunchOptions(),
+            CreateWorkDoneProgressClientCapabilities());
+
+        await AssertAutoLoadCompletedAsync(testLspServer, GetLoadingProjectsMessage(projectCount: 1), GetLoadedProjectsMessage(projectCount: 1));
+    }
+
     private Task<TestLspClient> CreateAutoLoadLanguageServerAsync(LspWorkspaceContent workspaceContent)
         => CreateLanguageServerAsync(
             workspaceContent,
             new LspServerLaunchOptions { AutoLoadProjects = true },
-            new VSInternalClientCapabilities
+            CreateWorkDoneProgressClientCapabilities());
+
+    private static VSInternalClientCapabilities CreateWorkDoneProgressClientCapabilities()
+        => new()
+        {
+            Window = new WindowClientCapabilities
             {
-                Window = new WindowClientCapabilities
-                {
-                    WorkDoneProgress = true,
-                }
-            });
+                WorkDoneProgress = true,
+            }
+        };
 
     private static LspWorkspaceContent CreateAutoLoadWorkspace()
         => LspWorkspaceContent.Empty.WithRestore();
