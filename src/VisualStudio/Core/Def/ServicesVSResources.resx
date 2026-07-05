@@ -1432,12 +1432,6 @@ Additional information: {1}</value>
   <data name="Analyzers" xml:space="preserve">
     <value>Analyzers</value>
   </data>
-  <data name="Carriage_Return_Newline_rn" xml:space="preserve">
-    <value>Carriage Return + Newline (\r\n)</value>
-  </data>
-  <data name="Carriage_Return_r" xml:space="preserve">
-    <value>Carriage Return (\r)</value>
-  </data>
   <data name="Category" xml:space="preserve">
     <value>Category</value>
   </data>
@@ -1456,17 +1450,8 @@ Additional information: {1}</value>
   <data name="Id" xml:space="preserve">
     <value>Id</value>
   </data>
-  <data name="Newline_n" xml:space="preserve">
-    <value>Newline (\\n)</value>
-  </data>
   <data name="Value" xml:space="preserve">
     <value>Value</value>
-  </data>
-  <data name="Search_Settings" xml:space="preserve">
-    <value>Search Settings</value>
-  </data>
-  <data name="This_rule_is_not_configurable" xml:space="preserve">
-    <value>This rule is not configurable</value>
   </data>
   <data name="Display_diagnostics_inline" xml:space="preserve">
     <value>Display diagnostics inline</value>
@@ -1540,14 +1525,8 @@ Additional information: {1}</value>
   <data name="Underline_reassigned_variables" xml:space="preserve">
     <value>Underline reassigned variables</value>
   </data>
-  <data name="Analyzer_Defaults" xml:space="preserve">
-    <value>Analyzer Defaults</value>
-  </data>
   <data name="Location" xml:space="preserve">
     <value>Location</value>
-  </data>
-  <data name="Visual_Studio_Settings" xml:space="preserve">
-    <value>Visual Studio Settings</value>
   </data>
   <data name="Show_hints_for_indexers" xml:space="preserve">
     <value>Show hints for indexers</value>
@@ -1584,27 +1563,6 @@ Additional information: {1}</value>
   </data>
   <data name="Always" xml:space="preserve">
     <value>Always</value>
-  </data>
-  <data name="For_non_interface_members" xml:space="preserve">
-    <value>For non interface members</value>
-  </data>
-  <data name="Omit_if_default" xml:space="preserve">
-    <value>Omit if default</value>
-  </data>
-  <data name="Operator_placement_when_wrapping" xml:space="preserve">
-    <value>Operator placement when wrapping</value>
-  </data>
-  <data name="Prefer_namespace_and_folder_match_structure" xml:space="preserve">
-    <value>Prefer namespace and folder match structure</value>
-  </data>
-  <data name="Prefer_simplified_interpolation" xml:space="preserve">
-    <value>Prefer simplified interpolation</value>
-  </data>
-  <data name="Require_accessibility_modifiers" xml:space="preserve">
-    <value>Require accessibility modifiers</value>
-  </data>
-  <data name="Beginning_of_line" xml:space="preserve">
-    <value>Beginning of line</value>
   </data>
   <data name="End_of_line" xml:space="preserve">
     <value>End of line</value>
@@ -1666,9 +1624,6 @@ Additional information: {1}</value>
     <value>{0} ({1})</value>
     <comment>Used to show a symbol name, followed by the project name it came from</comment>
   </data>
-  <data name="Prefer_Utf8_string_literals" xml:space="preserve">
-    <value>Prefer UTF-8 string literals</value>
-  </data>
   <data name="Collapse_regions_on_file_open" xml:space="preserve">
     <value>Collapse #regions on file open</value>
   </data>
@@ -1706,21 +1661,8 @@ Additional information: {1}</value>
   <data name="Prefer_read_only_struct" xml:space="preserve">
     <value>Prefer read-only struct</value>
   </data>
-  <data name="Prefer_read_only_struct_member" xml:space="preserve">
-    <value>Prefer read-only struct member</value>
-  </data>
   <data name="Sync_namespaces_changes" xml:space="preserve">
     <value>Sync namespaces changes</value>
-  </data>
-  <data name="Prefer_primary_constructors" xml:space="preserve">
-    <value>Prefer primary constructors</value>
-  </data>
-  <data name="Prefer_System_Threading_Lock" xml:space="preserve">
-    <value>Prefer 'System.Threading.Lock'</value>
-    <comment>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</comment>
-  </data>
-  <data name="Prefer_collection_expression" xml:space="preserve">
-    <value>Prefer collection expression</value>
   </data>
   <data name="SystemVoid_is_not_a_valid_type_for_a_parameter" xml:space="preserve">
     <value>'System.Void' is not a valid type for a parameter</value>
@@ -1728,12 +1670,6 @@ Additional information: {1}</value>
   </data>
   <data name="Not_applicable" xml:space="preserve">
     <value>Not applicable</value>
-  </data>
-  <data name="When_types_exactly_match" xml:space="preserve">
-    <value>When types exactly match</value>
-  </data>
-  <data name="When_types_loosely_match" xml:space="preserve">
-    <value>When types loosely match</value>
   </data>
   <data name="Strike_out_obsolete_symbols" xml:space="preserve">
     <value>Strike out obsolete symbols</value>
@@ -1773,9 +1709,6 @@ Additional information: {1}</value>
   </data>
   <data name="Prefer_static_anonymous_functions" xml:space="preserve">
     <value>Prefer static anonymous functions</value>
-  </data>
-  <data name="Prefer_unbound_generic_type_in_nameof" xml:space="preserve">
-    <value>Prefer unbound generic type in 'nameof'</value>
   </data>
   <data name="Show_hints_for_collection_expressions" xml:space="preserve">
     <value>Show hints for collection expressions</value>
@@ -1898,9 +1831,6 @@ Additional information: {1}</value>
   <data name="Visual_Studio" xml:space="preserve">
     <value>Visual Studio</value>
   </data>
-  <data name="Prefer_simple_property_accessors" xml:space="preserve">
-    <value>Prefer simple property accessors</value>
-  </data>
   <data name="Search_members" xml:space="preserve">
     <value>Search members</value>
   </data>
@@ -1921,5 +1851,8 @@ Additional information: {1}</value>
   </data>
   <data name="Show_Inheritance" xml:space="preserve">
     <value>Show Inheritance</value>
+  </data>
+  <data name="Formatting_new_document" xml:space="preserve">
+    <value>Formatting new document...</value>
   </data>
 </root>

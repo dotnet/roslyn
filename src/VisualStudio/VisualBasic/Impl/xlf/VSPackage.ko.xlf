@@ -215,7 +215,7 @@ JSON 문자열용 편집기 기능 탐지 및 제안;
       </trans-unit>
       <trans-unit id="Always_add_import">
         <source>Always add import</source>
-        <target state="new">Always add import</target>
+        <target state="translated">항상 가져오기 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
@@ -235,7 +235,7 @@ JSON 문자열용 편집기 기능 탐지 및 제안;
       </trans-unit>
       <trans-unit id="Never_add_import">
         <source>Never add import</source>
-        <target state="new">Never add import</target>
+        <target state="translated">가져오기 추가 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
@@ -250,7 +250,7 @@ JSON 문자열용 편집기 기능 탐지 및 제안;
       </trans-unit>
       <trans-unit id="Only_add_import_if_explicitly_completed">
         <source>Only add import if explicitly completed (via TAB or double-click)</source>
-        <target state="new">Only add import if explicitly completed (via TAB or double-click)</target>
+        <target state="translated">명시적으로 완료(탭 키 또는 두 번 클릭)한 경우에만 가져오기 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">

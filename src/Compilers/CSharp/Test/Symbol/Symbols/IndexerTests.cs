@@ -2653,7 +2653,7 @@ public class Wrapper
                 }
                 else
                 {
-                    Assert.True(false, "Unexpected type " + type.ToTestDisplayString());
+                    Assert.Fail("Unexpected type " + type.ToTestDisplayString());
                 }
             }
         }

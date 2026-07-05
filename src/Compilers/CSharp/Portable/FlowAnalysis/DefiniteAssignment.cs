@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// that the variable in VariableIdentifier.Symbol is a root, i.e. not nested within another
         /// tracked variable. Slots less than 0 are illegal.
         /// </summary>
-        protected readonly ArrayBuilder<VariableIdentifier> variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, default);
+        protected readonly ArrayBuilder<VariableIdentifier> variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, fillWithValue: default);
 
         /// <summary>
         /// Some variables that should be considered initially assigned.  Used for region analysis.
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // user-defined conversion. Therefore the IntPtr ConversionKind is included
                         // here.
                         if (boundConversion.ConversionKind.IsUserDefinedConversion() ||
-                            boundConversion.ConversionKind.IsUnionConversion() || // https://github.com/dotnet/roslyn/issues/82636: Add coverage
+                            boundConversion.ConversionKind.IsUnionConversion() ||
                             boundConversion.ConversionKind == ConversionKind.IntPtr)
                         {
                             return true;
@@ -2353,6 +2353,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Assign(node, node.InitializerOpt);
             }
             return result;
+        }
+
+        protected sealed override void VisitCondition(BoundExpression node)
+        {
+            // Debug instrumentation wraps conditions in a sequence that stores the result in a branch discriminator
+            // (see DebugInfoInjector.AddConditionSequencePoint). Preserve the original condition's true/false
+            // assignment states through that wrapper.
+            if (DebugInfoInjector.TryGetConditionalBranchDiscriminatorCondition(node, out BoundExpression condition, out BoundLocal target))
+            {
+                Debug.Assert(target.LocalSymbol.Type is not null);
+
+                if (target.LocalSymbol.Type.SpecialType == SpecialType.System_Boolean)
+                {
+                    VisitLvalue(target);
+                    base.VisitCondition(condition);
+
+                    Debug.Assert(IsConditionalState);
+                    var whenTrue = StateWhenTrue.Clone();
+                    var whenFalse = StateWhenFalse.Clone();
+
+                    Unsplit();
+                    Assign(target, condition);
+
+                    Meet(ref whenTrue, ref State);
+                    Meet(ref whenFalse, ref State);
+
+                    SetConditionalState(whenTrue, whenFalse);
+                    return;
+                }
+            }
+
+            base.VisitCondition(node);
         }
 
         public override BoundNode VisitLocalId(BoundLocalId node)

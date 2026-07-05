@@ -149,6 +149,12 @@ internal abstract partial class AbstractSymbolDisplayService
         protected Compilation Compilation
             => _semanticModel.Compilation;
 
+        protected SemanticModel SemanticModel
+            => _semanticModel;
+
+        protected int Position
+            => _position;
+
         protected virtual ImmutableArray<SymbolDisplayPart> WrapConstraints(ISymbol symbol, ImmutableArray<SymbolDisplayPart> displayParts)
             => displayParts;
 
@@ -247,7 +253,7 @@ internal abstract partial class AbstractSymbolDisplayService
                 => index < 0 || index >= leadingTrivia.Count ? default : leadingTrivia[index];
         }
 
-        private void AddDocumentationContent(
+        protected virtual void AddDocumentationContent(
             ISymbol symbol,
             DocumentationComment documentationComment,
             StructuralTypeDisplayInfo typeDisplayInfo)
@@ -549,24 +555,30 @@ internal abstract partial class AbstractSymbolDisplayService
 
             if (symbol.TypeKind == TypeKind.Delegate)
             {
-                var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+                var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-                // Under the covers anonymous delegates are represented with generic types.  However, we don't want
-                // to see the unbound form of that generic.  We want to see the fully instantiated signature.
-                var displayParts = symbol.IsAnonymousDelegateType()
+                // Under the covers anonymous delegates are represented with generic types. However, we don't want
+                // to see the unbound form of that generic. We want to see the fully instantiated signature.
+                var isAnonymousDelegate = symbol.IsAnonymousDelegateType();
+                var displayParts = isAnonymousDelegate
                     ? symbol.ToDisplayParts(style)
                     : symbol.OriginalDefinition.ToDisplayParts(style);
 
                 AddToGroup(SymbolDescriptionGroups.MainDescription, WrapConstraints(symbol, displayParts));
+
+                // For non-anonymous delegates, we display OriginalDefinition which won't carry nullable
+                // annotation, so we need to add '?' separately.
+                if (!isAnonymousDelegate && symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                    AddToGroup(SymbolDescriptionGroups.MainDescription, new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "?"));
             }
             else
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     WrapConstraints(symbol.OriginalDefinition, symbol.OriginalDefinition.ToDisplayParts(s_descriptionStyle)));
-            }
 
-            if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
-                AddToGroup(SymbolDescriptionGroups.MainDescription, new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "?"));
+                if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                    AddToGroup(SymbolDescriptionGroups.MainDescription, new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "?"));
+            }
 
             if (!symbol.IsUnboundGenericType &&
                 !TypeArgumentsAndParametersAreSame(symbol) &&

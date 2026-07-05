@@ -107,5 +107,134 @@ End Module
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestLabeledBreak_FromDeclaration(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            void M()
+            {
+            $${|Definition:outer|}:
+                while (true)
+                {
+                    while (true)
+                    {
+                        break [|outer|];
+                    }
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestLabeledBreak_FromReference(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            void M()
+            {
+            {|Definition:outer|}:
+                while (true)
+                {
+                    while (true)
+                    {
+                        break [|$$outer|];
+                    }
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestLabeledContinue_FromDeclaration(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            void M()
+            {
+            $${|Definition:outer|}:
+                for (int i = 0; i &lt; 10; i++)
+                {
+                    while (true)
+                    {
+                        continue [|outer|];
+                    }
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestLabeledBreakAndContinue_MultipleReferences(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            void M()
+            {
+            $${|Definition:outer|}:
+                while (true)
+                {
+                    while (true)
+                    {
+                        break [|outer|];
+                        continue [|outer|];
+                    }
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestLabeledBreakAndGoto_MixedReferences(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            void M()
+            {
+            $${|Definition:outer|}:
+                while (true)
+                {
+                    goto [|outer|];
+                    break [|outer|];
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

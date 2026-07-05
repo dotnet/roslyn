@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeLens;
 
 public sealed class CSharpCodeLensTests : AbstractCodeLensTests
 {
-    public CSharpCodeLensTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    public CSharpCodeLensTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 
@@ -436,7 +436,7 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTests
         var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParamsDoc1, CancellationToken.None);
         var firstCodeLens = actualCodeLenses!.First();
         var data = JsonSerializer.Deserialize<CodeLensResolveData>(firstCodeLens.Data!.ToString()!, ProtocolConversions.LspJsonSerializerOptions);
-        AssertEx.NotNull(data);
+        Assert.NotNull(data);
 
         // Update the document so the syntax version changes
         await testLspServer.OpenDocumentAsync(documentUri);

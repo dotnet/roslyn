@@ -684,19 +684,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 : this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer();
         }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
+            if (!RequiresUnsafe)
             {
-                if (!RequiresUnsafe)
-                {
-                    return CallerUnsafeMode.None;
-                }
-
-                return ContainingModule.UseUpdatedMemorySafetyRules
-                    ? CallerUnsafeMode.Explicit
-                    : CallerUnsafeMode.Implicit;
+                return CallerUnsafeMode.None;
             }
+
+            return ContainingModule.UseUpdatedMemorySafetyRules
+                ? CallerUnsafeMode.Explicit
+                : CallerUnsafeMode.Implicit;
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters
@@ -719,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // them indexers.
                 if (this.ParameterCount > 0)
                 {
-                    string defaultMemberName = _containingType.DefaultMemberName;
+                    string defaultMemberName = _containingType.IsExtension ? _containingType.ExtensionGroupingType.DefaultMemberName : _containingType.DefaultMemberName;
                     return _name == defaultMemberName || //NB: not Name property (break mutual recursion)
                         ((object)this.GetMethod != null && this.GetMethod.Name == defaultMemberName) ||
                         ((object)this.SetMethod != null && this.SetMethod.Name == defaultMemberName);
@@ -853,6 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiresUnsafeAttribute))
                     {
                         hasRequiresUnsafeAttribute = true;
+                        continue;
                     }
 
                     builder.Add(new PEAttributeData(containingModule, handle));

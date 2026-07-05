@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -85,7 +86,12 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
 
         if (items != null)
         {
-            context.AddItems(items);
+            // Store the identifier length at trigger time so GetChangeAsync can distinguish
+            // pre-existing text from characters the user typed after the trigger.
+            var text = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+            var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            context.AddItems(items.Select(item => CompletionUtilities.SetOriginalIdentifierEnd(item, context.Position, text, syntaxFacts)));
         }
     }
 
@@ -283,8 +289,20 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
         var afterCaretText = XmlDocCommentCompletionItem.GetAfterCaretText(item);
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
+        // item.Span was captured when the completion session started and does not advance as the
+        // user types. Use the original identifier length (stored at trigger time) to detect how
+        // many characters the user has typed since, so the replacement span covers them all.
+        // We cannot use the syntax tree here because doc comments are trivia in the C# tree,
+        // and FindToken would return the next code token instead. We also cannot use
+        // CompletionService.GetDefaultCompletionListSpan because its underlying GetWordSpan only
+        // extends forward when the position is in the *middle* of a word (i.e. there are word
+        // characters before it). Since item.Span.Start is at the beginning of any typed text,
+        // GetWordSpan returns a zero-length span and misses the typed characters.
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var spanEnd = CompletionUtilities.GetCurrentSpanEnd(item, text, syntaxFacts);
+
         var itemSpan = item.Span;
-        var replacementSpan = TextSpan.FromBounds(text[itemSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? itemSpan.Start - 1 : itemSpan.Start, itemSpan.End);
+        var replacementSpan = TextSpan.FromBounds(text[itemSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? itemSpan.Start - 1 : itemSpan.Start, spanEnd);
 
         var replacementText = beforeCaretText;
         var newPosition = replacementSpan.Start + beforeCaretText.Length;

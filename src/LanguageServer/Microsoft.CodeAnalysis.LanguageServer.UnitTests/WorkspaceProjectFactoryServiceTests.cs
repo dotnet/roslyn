@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -18,21 +17,22 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
     public async Task CreateProjectAndBatch()
     {
         var loggerFactory = new LoggerFactory();
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
-        using var _ = exportProvider;
+        await using var testLspServer = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
 
-        await exportProvider.GetExportedValue<ServiceBrokerFactory>().CreateAsync();
+        var workspaceFactory = testLspServer.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var serviceBrokerFactory = testLspServer.GetRequiredLspService<ServiceBrokerFactory>();
+        var projectTargetFrameworkManager = testLspServer.GetRequiredLspService<ProjectTargetFrameworkManager>();
+        var clientLanguageServerManager = testLspServer.GetRequiredLspService<IClientLanguageServerManager>();
+        var container = await serviceBrokerFactory.CreateAsync(workspaceFactory.HostWorkspace);
 
-        var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-        var workspaceProjectFactoryServiceInstance = (WorkspaceProjectFactoryService)exportProvider
-            .GetExportedValues<IExportedBrokeredService>()
-            .Single(service => service.Descriptor == WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor);
-
-        await using var brokeredServiceFactory = new BrokeredServiceProxy<IWorkspaceProjectFactoryService>(
-            workspaceProjectFactoryServiceInstance);
-
-        var workspaceProjectFactoryService = await brokeredServiceFactory.GetServiceAsync();
+        var workspaceProjectFactoryService = new WorkspaceProjectFactoryService(
+            workspaceFactory,
+            projectTargetFrameworkManager,
+            new ProjectInitializationHandler(
+                clientLanguageServerManager,
+                container.GetFullAccessServiceBroker(),
+                loggerFactory),
+            loggerFactory);
         using var workspaceProject = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
             new WorkspaceProjectCreationInfo(LanguageNames.CSharp, "DisplayName", FilePath: null, new Dictionary<string, string>()),
             CancellationToken.None);

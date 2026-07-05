@@ -215,7 +215,7 @@ JSON 文字列のエディター機能の検出と提供;
       </trans-unit>
       <trans-unit id="Always_add_import">
         <source>Always add import</source>
-        <target state="new">Always add import</target>
+        <target state="translated">常にインポートを追加する</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
@@ -235,7 +235,7 @@ JSON 文字列のエディター機能の検出と提供;
       </trans-unit>
       <trans-unit id="Never_add_import">
         <source>Never add import</source>
-        <target state="new">Never add import</target>
+        <target state="translated">インポートを追加しない</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
@@ -250,7 +250,7 @@ JSON 文字列のエディター機能の検出と提供;
       </trans-unit>
       <trans-unit id="Only_add_import_if_explicitly_completed">
         <source>Only add import if explicitly completed (via TAB or double-click)</source>
-        <target state="new">Only add import if explicitly completed (via TAB or double-click)</target>
+        <target state="translated">明示的に完了した場合 (TAB キーまたはダブルクリックによる) のみインポートを追加する</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">

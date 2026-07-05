@@ -1535,7 +1535,8 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
 
-    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [CompilerTrait(CompilerFeature.Tuples)]
     public Task TestDeconstruction2()
         => TestInRegularAndScriptAsync(
             """
@@ -5789,7 +5790,8 @@ class Program
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
     public async Task TestPrimaryConstructorBaseList(bool withBody)
     {
         var source = $$"""
@@ -8780,6 +8782,61 @@ class Program
                 {
                     void Goo<T>(T bar) => Console.WriteLine(bar);
                     Goo(3);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowControl_LabeledBreakAndContinue()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    outer: foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break outer;
+                        }
+                        
+                        continue outer;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    outer: foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
                 }
             }
             """);

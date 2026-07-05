@@ -6,28 +6,39 @@ using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.BrokeredServices;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-[Shared]
-[Export(typeof(IEditAndContinueLogReporter))]
 internal sealed class EditAndContinueLogReporter : IEditAndContinueLogReporter
 {
-    private const string CategoryName = "Roslyn";
+    [ExportWorkspaceServiceFactory(typeof(IEditAndContinueLogReporter), ServiceLayer.Host), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class Factory(
+        IAsynchronousOperationListenerProvider listenerProvider) : IWorkspaceServiceFactory
+    {
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        {
+            var serviceBrokerProvider = workspaceServices.GetRequiredService<IServiceBrokerProvider>();
+            return new EditAndContinueLogReporter(serviceBrokerProvider.ServiceBroker, listenerProvider);
+        }
+    }
+
+    private const string ComponentSymbol = "🔣";
 
     private readonly AsyncBatchingWorkQueue<HotReloadLogMessage> _queue;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public EditAndContinueLogReporter(
-        IServiceBrokerProvider serviceBrokerProvider,
+        IServiceBroker serviceBroker,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
-        var logger = new HotReloadLoggerProxy(serviceBrokerProvider.ServiceBroker);
+        var logger = new HotReloadLoggerProxy(serviceBroker);
 
         _queue = new AsyncBatchingWorkQueue<HotReloadLogMessage>(
             delay: TimeSpan.Zero,
@@ -59,6 +70,6 @@ internal sealed class EditAndContinueLogReporter : IEditAndContinueLogReporter
             _ => throw ExceptionUtilities.UnexpectedValue(severity),
         };
 
-        _queue.AddWork(new HotReloadLogMessage(verbosity, message, errorLevel: errorLevel, category: CategoryName));
+        _queue.AddWork(new HotReloadLogMessage(verbosity, message, errorLevel: errorLevel, category: ComponentSymbol));
     }
 }

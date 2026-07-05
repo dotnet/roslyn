@@ -576,6 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.CheckedExpression;
                 case SyntaxKind.UncheckedKeyword:
                     return SyntaxKind.UncheckedExpression;
+                case SyntaxKind.UnsafeKeyword:
+                    return SyntaxKind.UnsafeExpression;
                 case SyntaxKind.DefaultKeyword:
                     return SyntaxKind.DefaultExpression;
                 case SyntaxKind.TypeOfKeyword:
@@ -1237,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.UnionKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.SafeKeyword; i++)
             {
                 // 8441 corresponds to a deleted kind (DataKeyword) that was previously shipped.
                 if (i != 8441)
@@ -1301,6 +1303,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AllowsKeyword:
                 case SyntaxKind.ExtensionKeyword:
                 case SyntaxKind.UnionKeyword:
+                case SyntaxKind.ClosedKeyword:
+                case SyntaxKind.SafeKeyword:
                     return true;
                 default:
                     return false;
@@ -1432,6 +1436,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ExtensionKeyword;
                 case "union":
                     return SyntaxKind.UnionKeyword;
+                case "closed":
+                    return SyntaxKind.ClosedKeyword;
+                case "safe":
+                    return SyntaxKind.SafeKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1883,6 +1891,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "extension";
                 case SyntaxKind.UnionKeyword:
                     return "union";
+                case SyntaxKind.ClosedKeyword:
+                    return "closed";
+                case SyntaxKind.SafeKeyword:
+                    return "safe";
                 default:
                     return string.Empty;
             }

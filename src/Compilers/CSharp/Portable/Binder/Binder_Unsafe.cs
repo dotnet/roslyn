@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -31,11 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node)
-        {
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node, static node => node.GetLocation());
-        }
-
         internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, Location? location)
         {
             ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, location, static l => l);
@@ -43,9 +39,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location)
         {
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, arg, location, forConstructorConstraint: false);
+            if (IsInsideNameof)
+            {
+                return;
+            }
 
-            if (ShouldCheckConstraints)
+            var useUpdatedMemorySafetyRules = this.Compilation.SourceModule.UseUpdatedMemorySafetyRules;
+            var callerUnsafeMode = symbol.GetCallerUnsafeMode(this.FieldsBeingBound);
+            if (!useUpdatedMemorySafetyRules && callerUnsafeMode != CallerUnsafeMode.Implicit)
+            {
+                return;
+            }
+
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, callerUnsafeMode, arg, location, forConstructorConstraint: false);
+
+            if (useUpdatedMemorySafetyRules && ShouldCheckConstraints)
             {
                 switch (symbol)
                 {
@@ -92,17 +100,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ctor.ParameterCount == 0)
                     {
-                        // An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
-                        @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, ctor, arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
+                        // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
+                        @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, ctor, ctor.GetCallerUnsafeMode(@this.FieldsBeingBound), arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
                         break;
                     }
                 }
             }
         }
 
-        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location, bool forConstructorConstraint, ReadOnlySpan<object> additionalArgs = default)
+        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, CallerUnsafeMode callerUnsafeMode, T arg, Func<T, Location?> location, bool forConstructorConstraint, ReadOnlySpan<object> additionalArgs = default)
         {
-            var callerUnsafeMode = symbol.CallerUnsafeMode;
+            Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules || callerUnsafeMode == CallerUnsafeMode.Implicit);
+
             if (callerUnsafeMode != CallerUnsafeMode.None)
             {
                 Debug.Assert(callerUnsafeMode == CallerUnsafeMode.Explicit || !forConstructorConstraint);
@@ -134,9 +143,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and `Debug.Assert` on .NET Framework evaluates all interpolated values eagerly,
             // so avoid evaluating that unless we are going to fail anyway.
 
-            if (symbol.CallerUnsafeMode is not CallerUnsafeMode.None)
+            var callerUnsafeMode = symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty);
+            if (callerUnsafeMode is not CallerUnsafeMode.None)
             {
-                Debug.Fail($"Symbol {symbol} has {nameof(symbol.CallerUnsafeMode)}={symbol.CallerUnsafeMode}.");
+                Debug.Fail($"Symbol {symbol} has {nameof(CallerUnsafeMode)}={callerUnsafeMode}.");
             }
 
             if (symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
@@ -147,6 +157,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (shouldCheckConstraints && symbol is NamedTypeSymbol { TypeParameters.Length: > 0 })
             {
                 Debug.Fail($"Symbol {symbol} is a generic type.");
+            }
+        }
+
+        /// <summary>
+        /// Reports CS9361 if an uninitialized span stackalloc requires an unsafe context under updated memory safety rules.
+        /// </summary>
+        internal void ReportUnsafeForUninitializedSpanStackAllocIfRequired(SyntaxNodeOrToken node, BindingDiagnosticBag diagnostics, bool hasInitializer)
+        {
+            // Under the updated memory safety rules, a stackalloc_expression is unsafe if being converted to Span/ROS,
+            // does not have an initializer, and is used within a member with SkipLocalsInitAttribute.
+            // https://github.com/dotnet/roslyn/issues/82546: Confirm this rule with LDM.
+            if (!hasInitializer &&
+                Compilation.SourceModule.UseUpdatedMemorySafetyRules &&
+                ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false })
+            {
+                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
             }
         }
 
@@ -246,15 +272,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (!this.InUnsafeRegion)
             {
+                var featureDiag = MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
+
                 if (disallowedUnder is MemorySafetyRules.Legacy)
                 {
                     Debug.Assert(customErrorCode is null && customArgs is null);
 
-                    if (this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
+                    // Feature available: pointer types are safe.
+                    if (featureDiag is null)
                     {
-                        return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
+                        return null;
                     }
 
+                    // Feature not available but opted in: report feature availability error.
+                    if (this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
+                    {
+                        return featureDiag;
+                    }
+
+                    // Legacy rules.
                     return ((object?)sizeOfTypeOpt == null)
                         ? new CSDiagnosticInfo(ErrorCode.ERR_UnsafeNeeded)
                         : new CSDiagnosticInfo(ErrorCode.ERR_SizeofUnsafe, sizeOfTypeOpt);
@@ -262,10 +298,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(disallowedUnder is MemorySafetyRules.Updated);
 
+                // Feature available: pointer operations are unsafe.
+                if (featureDiag is null)
+                {
+                    return new CSDiagnosticInfo(customErrorCode ?? ErrorCode.ERR_UnsafeOperation, customArgs ?? []);
+                }
+
+                // Feature not available but opted in: report feature availability error.
                 if (this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
                 {
-                    return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation)
-                        ?? new CSDiagnosticInfo(customErrorCode ?? ErrorCode.ERR_UnsafeOperation, customArgs ?? []);
+                    return featureDiag;
                 }
 
                 // This location is disallowed only under updated memory safety rules which are not enabled.

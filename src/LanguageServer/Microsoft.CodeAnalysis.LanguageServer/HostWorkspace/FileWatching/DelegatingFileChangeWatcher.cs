@@ -1,13 +1,12 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
@@ -21,26 +20,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 /// LSP clients don't always support file watching; this allows us to be flexible and use it when we can, but fall back
 /// to something else if we can't.
 /// </remarks>
-[Export(typeof(IFileChangeWatcher)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DelegatingFileChangeWatcher(
+    ILspServices lspServices,
     ILoggerFactory loggerFactory,
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
-    : IFileChangeWatcher
+    : IFileChangeWatcher, ILspService
 {
+    /// <summary>
+    /// Share a single default file change watcher across all server instances to ensure they respect the platform limits and consolidate.
+    /// As servers are created and disposed, they will add / remove files/directories from this shared watcher.
+    /// 
+    /// On non-Windows platforms, the number of inotify handles is limited, so we'll want to be more aggressive with reducing it.
+    /// TODO: we could read the inotify limit and set this dynamically, since some newer kernels have a higher default.
+    /// </summary>
+    private static readonly Lazy<DefaultFileChangeWatcher> _defaultFileChangeWatcher = new(() => new DefaultFileChangeWatcher(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 10_000 : 50));
+
     private readonly Lazy<IFileChangeWatcher> _underlyingFileWatcher = new(() =>
         {
-            // Do we already have an LSP client that we can confirm works for us?
-            var instance = LanguageServerHost.Instance;
-
-            if (instance != null && LspFileChangeWatcher.SupportsLanguageServerHost(instance))
-                return new LspFileChangeWatcher(instance, asynchronousOperationListenerProvider);
+            if (LspFileChangeWatcher.TryCreate(lspServices, asynchronousOperationListenerProvider, out var lspFileChangeWatcher))
+                return lspFileChangeWatcher;
 
             loggerFactory.CreateLogger<DelegatingFileChangeWatcher>().LogWarning("We are unable to use LSP file watching; falling back to our in-process watcher.");
-            return new DefaultFileChangeWatcher();
+
+            return _defaultFileChangeWatcher.Value;
         });
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         => _underlyingFileWatcher.Value.CreateContext(watchedDirectories);
+
+    internal TestAccessor GetTestAccessor()
+    {
+        return new TestAccessor(this);
+    }
+
+    internal readonly struct TestAccessor(DelegatingFileChangeWatcher instance)
+    {
+        internal IFileChangeWatcher UnderlyingFileWatcher => instance._underlyingFileWatcher.Value;
+
+        /// <summary>
+        /// The single <see cref="DefaultFileChangeWatcher"/> shared by every <see cref="DelegatingFileChangeWatcher"/>
+        /// instance. Tests can inspect this to verify that servers release their file watches when they shut down.
+        /// </summary>
+        internal static DefaultFileChangeWatcher SharedDefaultFileChangeWatcher => _defaultFileChangeWatcher.Value;
+    }
 }

@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             // Pre-parse arguments to extract the log file path and other values so the logger can be
             // initialized with the correct path before the controller is created.
-            if (!BuildServerController.ParseCommandLine(args, out var pipeName, out var shutdown, out var keepAlive, out var logFilePath))
+            if (!BuildServerController.ParseCommandLine(args, out var options))
             {
                 return CommonCompiler.Failed;
             }
 
-            using var logger = new CompilerServerLogger($"VBCSCompiler {Process.GetCurrentProcess().Id}", logFilePath);
+            using var logger = new CompilerServerLogger($"VBCSCompiler {Process.GetCurrentProcess().Id}", options.LogFilePath);
 
 #if BOOTSTRAP
             ExitingTraceListener.Install(logger);
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             try
             {
                 var controller = new BuildServerController(logger);
-                return controller.Run(pipeName, shutdown, keepAlive);
+                return controller.Run(options);
             }
             catch (Exception e)
             {

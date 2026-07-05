@@ -517,7 +517,9 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // issue diagnostics for any duplicate keys
-                foreach ((var section, var keys) in _duplicates)
+                var duplicates = _duplicates;
+                _duplicates = null;
+                foreach ((var section, var keys) in duplicates)
                 {
                     bool isGlobalSection = string.IsNullOrWhiteSpace(section);
                     string sectionName = isGlobalSection ? GlobalSectionName : section;
@@ -529,9 +531,9 @@ namespace Microsoft.CodeAnalysis
                              keyName,
                              sectionName,
                              string.Join(", ", configPaths)));
+                        configPaths.Free();
                     }
                 }
-                _duplicates = null;
 
                 // gather the global and named sections
                 Section globalSection = GetSection(string.Empty);

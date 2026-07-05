@@ -21,6 +21,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="$(PkgSQLite3MC_PCLRaw_lib)\runtimes\win-x64\native\sqlite3mc.dll">
+      <Link>sqlite3mc.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>

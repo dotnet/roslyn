@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [ExportLspServiceFactory(typeof(FileBasedProgramsEntryPointDiscovery), ProtocolConstants.RoslynLspLanguagesContract)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionService globalOptionService, IAsynchronousOperationListenerProvider listenerProvider, ILoggerFactory loggerFactory) : ILspServiceFactory
+internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionService globalOptionService, IAsynchronousOperationListenerProvider listenerProvider) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new FileBasedProgramsEntryPointDiscovery(globalOptionService, listenerProvider.GetListener(FeatureAttribute.Workspace), loggerFactory, lspServices);
+        return new FileBasedProgramsEntryPointDiscovery(globalOptionService, listenerProvider.GetListener(FeatureAttribute.Workspace), lspServices.GetRequiredService<ILoggerFactory>(), lspServices);
     }
 }
 
@@ -45,7 +45,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     private static readonly StringComparer s_pathComparer = StringComparer.OrdinalIgnoreCase;
 
     /// <summary>Directories which are ignored per convention.</summary>
-    /// <remarks>Some conventional directories like '.git' and '.vs' are expected to be marked hidden and will be automatically ignored by discovery.</remarks>
+    /// <remarks>Directories whose name starts with '.' (e.g. '.git', '.vs') are also ignored.</remarks>
     private static readonly SearchValues<string> s_ignoredDirectories = SearchValues.Create([
         "artifacts",
         "bin",
@@ -240,7 +240,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         public DateTimeOffset CreatedOrModifiedTimeUtc { get; } = createdOrModifiedTimeUtc;
     }
 
-    private class DirectoryEnumerator(string directory) : FileSystemEnumerator<CsFileInfo>(directory)
+    private class DirectoryEnumerator(string directory) : FileSystemEnumerator<CsFileInfo>(directory, new EnumerationOptions { RecurseSubdirectories = false, IgnoreInaccessible = true })
     {
         private CsFileKind GetKind(ref FileSystemEntry entry)
         {
@@ -283,7 +283,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
         private void VisitDirectory(string directory, DateTimeOffset createdOrModifiedTimeUtc)
         {
-            if (Path.GetFileName(directory.AsSpan()).ContainsAny(s_ignoredDirectories))
+            var directoryName = Path.GetFileName(directory.AsSpan());
+            if (directoryName.StartsWith('.') || directoryName.ContainsAny(s_ignoredDirectories))
                 return;
 
             if (createdOrModifiedTimeUtc < cache.LastWalkTimeUtc)
@@ -291,8 +292,18 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 // On NTFS, the directory timestamps we observe when enumerating can be stale when files are added/deleted from a directory.
                 // If we find the timestamps were old enough (i.e. we entered this block),
                 // we still need to `new DirectoryInfo()` again and force the timestamps to update if needed.
-                var directoryInfo = new DirectoryInfo(directory);
-                var newCreatedOrModifiedTimeUtc = Max(directoryInfo.CreationTimeUtc, directoryInfo.LastWriteTimeUtc);
+                DateTimeOffset newCreatedOrModifiedTimeUtc;
+                try
+                {
+                    var directoryInfo = new DirectoryInfo(directory);
+                    newCreatedOrModifiedTimeUtc = Max(directoryInfo.CreationTimeUtc, directoryInfo.LastWriteTimeUtc);
+                }
+                catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
+                {
+                    logger.LogWarning("Skipping directory '{Directory}' during file-based app discovery due to I/O exception: {ExceptionMessage}", directory, ex.Message);
+                    return;
+                }
+
                 if (newCreatedOrModifiedTimeUtc < cache.LastWalkTimeUtc && cache.DirectoriesContainingCsproj.BinarySearch(directory, s_pathComparer) >= 0)
                 {
                     // Our info about this directory is up to date, and we know it contains a csproj, so bail out before enumerating its files.
@@ -303,6 +314,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 createdOrModifiedTimeUtc = Max(createdOrModifiedTimeUtc, newCreatedOrModifiedTimeUtc);
             }
 
+            // The DirectoryEnumerator uses IgnoreInaccessible = true, so it will silently skip
+            // directories/files which we don't have permission to access during enumeration.
             using var currentDirectoryItems = TemporaryArray<CsFileInfo>.Empty;
             using var enumerator = new DirectoryEnumerator(directory);
             while (enumerator.MoveNext())

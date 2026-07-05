@@ -40,18 +40,14 @@ public sealed class RemoteEditAndContinueServiceTests
     [Theory, CombinatorialData]
     public async Task Proxy(TestHost testHost)
     {
-        // https://github.com/dotnet/roslyn/issues/83054
-        if (!ExecutionConditionUtil.IsWindows && testHost == TestHost.OutOfProcess)
-            testHost = TestHost.InProcess;
-
         var localComposition = FeaturesTestCompositions.Features.WithTestHostParts(testHost)
             .AddParts(typeof(NoCompilationLanguageService));
 
         if (testHost == TestHost.InProcess)
         {
             localComposition = localComposition
-                .AddExcludedPartTypes(typeof(EditAndContinueService))
-                .AddParts(typeof(MockEditAndContinueService));
+                .AddExcludedPartTypes(typeof(EditAndContinueService.WorkspaceServiceFactory))
+                .AddParts(typeof(MockEditAndContinueServiceFactory));
         }
 
         using var localWorkspace = new TestWorkspace(composition: localComposition);
@@ -64,13 +60,13 @@ public sealed class RemoteEditAndContinueServiceTests
         {
             Assert.Null(clientProvider);
 
-            mockEncService = (MockEditAndContinueService)localWorkspace.GetService<IEditAndContinueService>();
+            mockEncService = (MockEditAndContinueService)localWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
         }
         else
         {
             Assert.NotNull(clientProvider);
-            clientProvider!.AdditionalRemoteParts = [typeof(MockEditAndContinueService)];
-            clientProvider!.ExcludedRemoteParts = [typeof(EditAndContinueService)];
+            clientProvider!.AdditionalRemoteParts = [typeof(MockEditAndContinueServiceFactory)];
+            clientProvider!.ExcludedRemoteParts = [typeof(EditAndContinueService.WorkspaceServiceFactory)];
 
             var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
             var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();

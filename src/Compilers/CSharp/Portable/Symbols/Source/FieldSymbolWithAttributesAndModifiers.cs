@@ -61,6 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsFixedSizeBuffer
             => (Modifiers & DeclarationModifiers.Fixed) != 0;
 
+        internal bool HasSafeModifier
+            => (Modifiers & DeclarationModifiers.Safe) != 0;
+
+        internal bool HasUnsafeModifier
+            => (Modifiers & DeclarationModifiers.Unsafe) != 0;
+
         /// <summary>
         /// Gets the attributes applied on this symbol.
         /// Returns an empty array if there are no attributes.
@@ -203,17 +209,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MarshalAsAttributeDecoder<FieldWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.Field, MessageProvider.Instance);
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
+            }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute
-                | ReservedAttributes.IsReadOnlyAttribute
-                | ReservedAttributes.RequiresLocationAttribute
-                | ReservedAttributes.IsUnmanagedAttribute
-                | ReservedAttributes.IsByRefLikeAttribute
-                | ReservedAttributes.TupleElementNamesAttribute
-                | ReservedAttributes.NullableAttribute
-                | ReservedAttributes.NativeIntegerAttribute
-                | ReservedAttributes.RequiredMemberAttribute
-                | ReservedAttributes.ExtensionMarkerAttribute))
+                permitted: ReservedAttributes.NullableContextAttribute
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.CaseSensitiveExtensionAttribute
+                    | ReservedAttributes.ScopedRefAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.DateTimeConstantAttribute))

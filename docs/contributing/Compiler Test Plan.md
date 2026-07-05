@@ -63,6 +63,7 @@ See also [types](#types) and [members](#members) lists below.
   - class with or without primary constructor
   - record class/struct with or without positional members
   - struct with or without primary constructor
+  - union
   - interface
   - type parameter
 - file-local types
@@ -103,7 +104,10 @@ See also [types](#types) and [members](#members) lists below.
 - Readonly members on structs (methods, property/indexer accessors, custom event accessors)
 - SkipLocalsInit
 - Method override or explicit implementation with `where T : { class, struct, default }`
-- `extension` blocks (emitted with content-based names)
+- `extension` blocks (emitted with content-based names): 
+    - methods
+    - operators (except conversion operators)
+    - properties and indexers (including get/set/init accessors)
 
 ## Code
 - Operators (see Eric's list below)
@@ -223,6 +227,8 @@ yield return …;
 yield break;
 break;
 continue;
+break label;
+continue label;
 ```
 
 ## Expression classifications
@@ -366,6 +372,7 @@ __makeref( x )
 - Constant
 - Type parameter
 - User defined
+- Union
 - Anonymous function
 - Method group
 - Pointer to void pointer
@@ -387,6 +394,7 @@ __makeref( x )
 - Interface
 - Delegate
 - Struct
+- Union
 - Enum
 - Nullable
 - Pointer
@@ -396,6 +404,7 @@ __makeref( x )
 
 - Class
 - Struct
+- Union
 - Interface
 - Enum
 - Delegate
@@ -424,6 +433,7 @@ __makeref( x )
 - `not` Pattern
 - Relational Pattern
 - Type Pattern
+- Union matching rules
 
 ## Metadata table numbers / token prefixes
 

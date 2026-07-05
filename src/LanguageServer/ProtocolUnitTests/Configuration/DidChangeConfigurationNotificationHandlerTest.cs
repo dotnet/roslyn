@@ -26,7 +26,7 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
     // It should look like "feature_group.feature_name"
     private static readonly string s_clientSideSectionPattern = @"^((csharp|visual_basic)\|)?([\w_|\.]+)([\w_]+)$";
 
-    public DidChangeConfigurationNotificationHandlerTest(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    public DidChangeConfigurationNotificationHandlerTest(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 
@@ -199,7 +199,7 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
         {
             if (WorkspaceDidChangeConfigurationRegistered)
             {
-                AssertEx.Fail($"{Methods.WorkspaceDidChangeConfigurationName} is registered twice.");
+                Assert.Fail($"{Methods.WorkspaceDidChangeConfigurationName} is registered twice.");
                 return;
             }
 
