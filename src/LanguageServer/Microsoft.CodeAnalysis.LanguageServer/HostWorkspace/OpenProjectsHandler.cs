@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class OpenProjectHandlerFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new OpenProjectHandler(lspServices.GetRequiredService<LanguageServerProjectSystem>());
+        => new OpenProjectHandler(
+            lspServices.GetRequiredService<LanguageServerProjectSystem>(),
+            lspServices.GetRequiredService<WorkDoneProgressManager>());
 }
 
 [Method(OpenProjectName)]
@@ -27,18 +29,29 @@ internal sealed class OpenProjectHandler : ILspService, ILspServiceNotificationH
     internal const string OpenProjectName = "project/open";
 
     private readonly LanguageServerProjectSystem _projectSystem;
+    private readonly WorkDoneProgressManager _workDoneProgressManager;
 
-    public OpenProjectHandler(LanguageServerProjectSystem projectSystem)
+    public OpenProjectHandler(LanguageServerProjectSystem projectSystem, WorkDoneProgressManager workDoneProgressManager)
     {
         _projectSystem = projectSystem;
+        _workDoneProgressManager = workDoneProgressManager;
     }
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => false;
 
-    Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    async Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        return _projectSystem.OpenProjectsAsync(request.Projects.SelectAsArray(p => p.GetDocumentFilePathFromUri()));
+        var projectPaths = request.Projects.SelectAsArray(p => p.GetDocumentFilePathFromUri());
+        await using var progressReporter = await _workDoneProgressManager.CreateWorkDoneProgressAsync(
+            reportProgressToClient: true,
+            title: string.Format(LanguageServerResources.Loading_0_projects, projectPaths.Length),
+            startMessage: string.Format(LanguageServerResources.Loading_0_projects, projectPaths.Length),
+            endMessage: string.Format(LanguageServerResources.Loaded_0_projects, projectPaths.Length),
+            clientCanCancel: false,
+            serverCancellationToken: cancellationToken);
+
+        await _projectSystem.OpenProjectsAsync(projectPaths, progressReporter);
     }
 
     internal sealed class NotificationParams
