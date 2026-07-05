@@ -2547,7 +2547,7 @@ namespace Microsoft.Cci
             }
 
             // the stream should be aligned:
-            Debug.Assert(resourceDataWriter == null || (resourceDataWriter.Count % ManagedPEBuilder.ManagedResourcesDataAlignment) == 0);
+            Debug.Assert(resourceDataWriter.Count % ManagedPEBuilder.ManagedResourcesDataAlignment == 0);
 
             static uint writeManagedResourceAndGetOffset(ManagedResource resource, BlobBuilder resourceWriter)
             {
