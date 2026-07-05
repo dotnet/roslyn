@@ -42,15 +42,17 @@ internal sealed class OpenProjectHandler : ILspService, ILspServiceNotificationH
 
     async Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        var projectPaths = request.Projects.SelectAsArray(p => p.GetDocumentFilePathFromUri());
+        var projectsLength = request.Projects.Length;
+        var loadingMessage = string.Format(LanguageServerResources.Loading_0_projects, projectsLength);
         await using var progressReporter = await _workDoneProgressManager.CreateWorkDoneProgressAsync(
             reportProgressToClient: true,
-            title: string.Format(LanguageServerResources.Loading_0_projects, projectPaths.Length),
-            startMessage: string.Format(LanguageServerResources.Loading_0_projects, projectPaths.Length),
-            endMessage: string.Format(LanguageServerResources.Loaded_0_projects, projectPaths.Length),
+            title: loadingMessage,
+            startMessage: loadingMessage,
+            endMessage: string.Format(LanguageServerResources.Loaded_0_projects, projectsLength),
             clientCanCancel: false,
             serverCancellationToken: cancellationToken);
 
+        var projectPaths = request.Projects.SelectAsArray(p => p.GetDocumentFilePathFromUri());
         await _projectSystem.OpenProjectsAsync(projectPaths, progressReporter);
     }
 
