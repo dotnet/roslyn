@@ -68,16 +68,15 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Theory]
-    [InlineData("#!/usr/bin/env dotnet\nclass C { }", false, nameof(FileBasedProgramEntryPointKind.Explicit))]
-    [InlineData("\uFEFF#!/usr/bin/env dotnet\nclass C { }", false, nameof(FileBasedProgramEntryPointKind.Explicit))]
-    [InlineData("#:sdk Microsoft.NET.Sdk\nConsole.WriteLine(\"Hello World\");", false, nameof(FileBasedProgramEntryPointKind.Explicit))]
-    [InlineData("#:sdk Microsoft.NET.Sdk\nclass C { }", false, nameof(FileBasedProgramEntryPointKind.None))]
-    [InlineData("Console.WriteLine(\"Hello World\");", false, nameof(FileBasedProgramEntryPointKind.None))]
-    [InlineData("Console.WriteLine(\"Hello World\");", true, nameof(FileBasedProgramEntryPointKind.Ambiguous))]
-    [InlineData("class C { }", true, nameof(FileBasedProgramEntryPointKind.None))]
-    public void TestEntryPointHeuristic(string source, bool includeAmbiguousEntryPoints, string expectedName)
+    [InlineData("#!/usr/bin/env dotnet\nclass C { }", false, FileBasedProgramEntryPointKind.Explicit)]
+    [InlineData("\uFEFF#!/usr/bin/env dotnet\nclass C { }", false, FileBasedProgramEntryPointKind.Explicit)]
+    [InlineData("#:sdk Microsoft.NET.Sdk\nConsole.WriteLine(\"Hello World\");", false, FileBasedProgramEntryPointKind.Explicit)]
+    [InlineData("#:sdk Microsoft.NET.Sdk\nclass C { }", false, FileBasedProgramEntryPointKind.None)]
+    [InlineData("Console.WriteLine(\"Hello World\");", false, FileBasedProgramEntryPointKind.None)]
+    [InlineData("Console.WriteLine(\"Hello World\");", true, FileBasedProgramEntryPointKind.Ambiguous)]
+    [InlineData("class C { }", true, FileBasedProgramEntryPointKind.None)]
+    public void TestEntryPointHeuristic(string source, bool includeAmbiguousEntryPoints, FileBasedProgramEntryPointKind expected)
     {
-        var expected = Enum.Parse<FileBasedProgramEntryPointKind>(expectedName);
         var sourceText = SourceText.From(source);
         Assert.Equal(expected, FileBasedProgramEntryPointHeuristic.GetEntryPointKind(sourceText, includeAmbiguousEntryPoints, CancellationToken.None));
     }
