@@ -214,6 +214,9 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
             }
             """);
 
+    // WindowsOnly: InlineData values include literal \r\n strings which are tested against
+    // raw string literals. On Linux the raw strings use \n but the InlineData values are always
+    // \r\n C# escape sequences, creating a platform-specific mismatch in the parameterized cases.
     [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [InlineData("")]
     [InlineData("\r\n")]
