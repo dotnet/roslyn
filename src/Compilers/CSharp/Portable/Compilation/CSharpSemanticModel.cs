@@ -3296,9 +3296,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given a foreach statement, get the symbol for the iteration variable
+        /// Given a foreach variable statement, get the symbol for the (first) iteration variable.
         /// </summary>
-        /// <param name="forEachVariableStatement"></param>
+        /// <param name="forEachVariableStatement">The foreach variable statement.</param>
         public ILocalSymbol GetDeclaredSymbol(ForEachVariableStatementSyntax forEachVariableStatement)
         {
             Binder enclosingBinder = this.GetEnclosingBinder(GetAdjustedNodePosition(forEachVariableStatement));
@@ -3310,7 +3310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder foreachBinder = enclosingBinder.GetBinder(forEachVariableStatement);
 
-            // Binder.GetBinder can fail in presence of syntax errors. 
+            // Binder.GetBinder can fail in the presence of syntax errors.
             if (foreachBinder == null)
             {
                 return null;
