@@ -6,12 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using PolyType;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote.ProjectSystem;
 
 [RpcMarshalable]
-internal interface IWorkspaceProject : IDisposable
+[TypeShape(IncludeMethods = MethodShapeFlags.PublicInstance)]
+internal partial interface IWorkspaceProject : IDisposable
 {
     Task SetDisplayNameAsync(string displayName, CancellationToken cancellationToken);
 
