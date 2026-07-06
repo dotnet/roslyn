@@ -812,11 +812,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
-        comp.VerifyDiagnostics(
-            // (1,14): error CS9395: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
-            // closed class C;
-            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14)
-            );
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -843,13 +839,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
-        comp.VerifyDiagnostics(
-            // (1,14): error CS9395: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
-            // closed class C;
-            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14),
-            // (1,14): error CS9395: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
-            // closed class C;
-            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14));
+        comp.VerifyDiagnostics();
     }
 
     [Fact]

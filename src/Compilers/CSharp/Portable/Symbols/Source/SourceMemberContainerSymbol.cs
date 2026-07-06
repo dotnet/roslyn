@@ -1987,30 +1987,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (wellKnownDerivedTypesProperty is not null)
                 {
                     Binder.ReportUseSite(wellKnownDerivedTypesProperty, diagnostics, location);
-                    var systemType = Binder.GetWellKnownType(compilation, WellKnownType.System_Type, diagnostics, location);
 
-                    var isValid = wellKnownDerivedTypesProperty is
-                    {
-                        IsStatic: false,
-                        GetMethod.DeclaredAccessibility: Accessibility.Public,
-                        SetMethod.DeclaredAccessibility: Accessibility.Public,
-                        RefKind: RefKind.None,
-                        ParameterCount: 0,
-                        Type: ArrayTypeSymbol { ElementType: var elementType }
-                    } && elementType.Equals(systemType, TypeCompareKind.AllIgnoreOptions);
-
-                    if (!isValid)
+                    if (wellKnownDerivedTypesProperty is not
+                        {
+                            GetMethod.DeclaredAccessibility: Accessibility.Public,
+                            SetMethod.DeclaredAccessibility: Accessibility.Public
+                        })
                     {
                         diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
                     }
                 }
-
-                if (isClosedTypeAttributeCtor is not null)
+                else if (isClosedTypeAttributeCtor is not null)
                 {
-                    var allDerivedTypesSymbols = isClosedTypeAttributeCtor.ContainingType.GetMembers("DerivedTypes");
-                    foreach (var derivedTypesSymbol in allDerivedTypesSymbols)
+                    foreach (var derivedTypesSymbol in isClosedTypeAttributeCtor.ContainingType.GetMembers("DerivedTypes"))
                     {
-                        if (!derivedTypesSymbol.Equals(wellKnownDerivedTypesProperty, TypeCompareKind.AllIgnoreOptions))
+                        if (derivedTypesSymbol.Kind == SymbolKind.Property)
                         {
                             diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
                         }

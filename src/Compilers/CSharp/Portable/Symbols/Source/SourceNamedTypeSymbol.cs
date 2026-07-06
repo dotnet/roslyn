@@ -1805,14 +1805,14 @@ next:;
             if (IsClosed)
             {
                 ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments;
-                if (compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes) is not null)
+                var derivedTypesProperty = (PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes);
+                if (derivedTypesProperty is not null)
                 {
-                    var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
-                    var arrayOfSystemType = ArrayTypeSymbol.CreateSZArray(systemType.ContainingAssembly, TypeWithAnnotations.Create(systemType, NullableAnnotation.NotAnnotated));
+                    var propertyType = (ArrayTypeSymbol)derivedTypesProperty.Type;
                     var derivedTypesConstant = new TypedConstant(
-                        arrayOfSystemType,
+                        propertyType,
                         CandidateClosedSubtypeDefinitions.SelectAsArray(
-                            static (subtype, systemType) => new TypedConstant(systemType, TypedConstantKind.Type, subtype.GetUnboundGenericTypeOrSelf()), systemType));
+                            static (subtype, elementType) => new TypedConstant(elementType, TypedConstantKind.Type, subtype.GetUnboundGenericTypeOrSelf()), propertyType.ElementType));
 
                     namedArguments = [new KeyValuePair<WellKnownMember, TypedConstant>(
                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes,
