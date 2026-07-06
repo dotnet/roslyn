@@ -96,7 +96,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             closed class C { }
             """;
 
-        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         verifier.VerifyTypeIL("C", """
@@ -160,7 +160,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         verifier.VerifyTypeIL("C", """
@@ -1030,7 +1030,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C;
             """;
 
-        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols);
         verifier.VerifyDiagnostics();
 
         void verifySymbols(ModuleSymbol module)
@@ -1878,7 +1878,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 public required string P { get; set; }
             }
             """;
-        var verifier = CompileAndVerify([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         verifyUse(verifier.Compilation.ToMetadataReference());
@@ -1956,7 +1956,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         void verifyMetadataSymbols(ModuleSymbol module)
@@ -1995,7 +1995,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute], sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol module)
@@ -3502,7 +3502,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute]);
         comp.VerifyDiagnostics();
 
         VerifyDecisionDagDump<SwitchExpressionSyntax>(comp, """
@@ -3515,7 +3515,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """,
             forLowering: true);
 
-        var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+        var verifier = CompileAndVerify(comp);
         verifier.VerifyIL("Program.M", """
             {
               // Code size       30 (0x1e)
@@ -3565,9 +3565,19 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
             class D1 : C { }
             class D2 : C { }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class SwitchExpressionException : InvalidOperationException
+                {
+                    public SwitchExpressionException() {}
+                    public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+                    public object UnmatchedValue { get; }
+                }
+            }
             """;
 
-        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute]);
         comp.VerifyDiagnostics();
 
         VerifyDecisionDagDump<SwitchExpressionSyntax>(comp, """
@@ -3587,7 +3597,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """,
             forLowering: true);
 
-        var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+        var verifier = CompileAndVerify(comp);
         verifier.VerifyIL("Program.M", """
             {
               // Code size       41 (0x29)
