@@ -399,7 +399,7 @@
       </trans-unit>
       <trans-unit id="Use_labeled_jump_statement">
         <source>Use labeled jump statement</source>
-        <target state="new">Use labeled jump statement</target>
+        <target state="translated">Użyj instrukcji szybkiego przechodzenia oznaczonej etykietą</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_local_function">
