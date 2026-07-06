@@ -18,6 +18,8 @@ internal sealed class InitializeManager : IInitializeManager
     private InitializeParams? _initializeParams;
     private ImmutableArray<string> _workspaceFolderPathsOpt;
 
+    public event EventHandler<WorkspaceFoldersChangedEventArgs>? WorkspaceFoldersChanged;
+
     public ClientCapabilities GetClientCapabilities()
     {
         if (_initializeParams?.Capabilities is null)
@@ -64,5 +66,32 @@ internal sealed class InitializeManager : IInitializeManager
     public ClientCapabilities? TryGetClientCapabilities()
     {
         return _initializeParams?.Capabilities;
+    }
+
+    public void UpdateWorkspaceFolders(ImmutableArray<string> addedFolders, ImmutableArray<string> removedFolders)
+    {
+        Contract.ThrowIfTrue(_workspaceFolderPathsOpt.IsDefault, $"{nameof(_workspaceFolderPathsOpt)} was not initialized. Was this called before OnInitialized?");
+
+        var builder = _workspaceFolderPathsOpt.ToBuilder();
+
+        // Remove old folders
+        foreach (var removedFolder in removedFolders)
+        {
+            builder.Remove(removedFolder);
+        }
+
+        // Add new folders
+        foreach (var addedFolder in addedFolders)
+        {
+            if (!builder.Contains(addedFolder))
+            {
+                builder.Add(addedFolder);
+            }
+        }
+
+        _workspaceFolderPathsOpt = builder.ToImmutable();
+
+        // Notify subscribers of the workspace folder changes
+        WorkspaceFoldersChanged?.Invoke(this, new WorkspaceFoldersChangedEventArgs(addedFolders, removedFolders));
     }
 }
