@@ -141,11 +141,6 @@ internal sealed class HotReloadService
         _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
     }
 
-    public HotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
-        : this(services.SolutionServices, () => ValueTask.FromResult(capabilities))
-    {
-    }
-
     private DebuggingSessionId GetDebuggingSession()
     {
         var sessionId = _sessionId;
