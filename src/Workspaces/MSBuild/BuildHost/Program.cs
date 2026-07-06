@@ -55,7 +55,7 @@ internal static class Program
             (buildHost, server) = NetFrameworkBuildHost.Create(logger, pipeServer);
         }
 #else
-        server = new RpcServer(pipeServer);
+        server = new RpcServer(pipeServer, logger);
         buildHost = new NetCoreBuildHost(logger, server);
 #endif
 

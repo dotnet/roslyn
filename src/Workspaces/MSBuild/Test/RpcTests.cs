@@ -267,6 +267,7 @@ public sealed class RpcTests
         }
         finally
         {
+            pipeClient.Dispose();
             pipeServer.Dispose();
         }
     }
