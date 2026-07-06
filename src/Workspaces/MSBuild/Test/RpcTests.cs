@@ -231,7 +231,7 @@ public sealed class RpcTests
         await rpcPair.Client.InvokeAsync(targetObject: 0, nameof(ObjectWithMethodThatShutsDownServer.Shutdown), [], CancellationToken.None);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84411")]
     public async Task ResponseWriteAfterClientDisconnectDoesNotCrashServer()
     {
         // Unlike RequestThatClosesServerDoesNotThrow, this forces the client-already-disconnected ordering
