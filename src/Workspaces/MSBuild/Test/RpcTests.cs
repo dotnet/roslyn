@@ -254,13 +254,15 @@ public sealed class RpcTests
 
         try
         {
-            // Don't call client.Start(): we're simulating the client having already given up and disconnected
-            // before the server gets a chance to respond.
-            _ = client.InvokeAsync(targetObject: 0, nameof(ObjectWithRealAsyncMethod.WaitAsync), [], CancellationToken.None);
+            client.Start();
+            var invokeTask = client.InvokeAsync(targetObject: 0, nameof(ObjectWithRealAsyncMethod.WaitAsync), [], CancellationToken.None);
 
             rpcTarget.WaitUntilRequest(index: 0);
             pipeClient.Dispose();
             rpcTarget.Complete(index: 0);
+
+            // The client's read loop notices the disconnect and faults the outstanding request.
+            await Assert.ThrowsAnyAsync<Exception>(() => invokeTask);
 
             // Before the fix, the write failure here would crash RunAsync via Task.WhenAll.
             await serverRunTask;
