@@ -41,6 +41,27 @@ var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
 var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 ```
 
+### Elastic end-of-line trivia (IDE code fixes and refactorings)
+
+When inserting elastic newline trivia in **IDE code fixes/refactorings**, use `Environment.NewLine` to produce platform-appropriate line endings. Never use the hardcoded `SyntaxFactory.ElasticCarriageReturnLineFeed` (which is always `\r\n` CRLF) in IDE code:
+
+```csharp
+// ✅ Correct — respects platform line endings (LF on Linux, CRLF on Windows)
+using System;
+SyntaxFactory.ElasticEndOfLine(Environment.NewLine)
+
+// Via ISyntaxFacts (CSharpSyntaxFacts already fixed):
+syntaxFacts.ElasticCarriageReturnLineFeed  // OK — implementation uses Environment.NewLine
+
+// Via SyntaxGeneratorInternal (CSharpSyntaxGeneratorInternal already fixed):
+generator.ElasticCarriageReturnLineFeed    // OK — implementation uses Environment.NewLine
+
+// ❌ Avoid in IDE code — hardcoded CRLF breaks Linux tests
+SyntaxFactory.ElasticCarriageReturnLineFeed
+```
+
+Note: `SyntaxFactory.ElasticCarriageReturnLineFeed` is a valid compiler public API and must remain hardcoded CRLF — do NOT change it. The fix applies only to IDE/workspace layers that call it directly.
+
 ## Patterns Explicitly Avoided
 
 - **No `TODO` or `TODO2` comments** — CI correctness leg flags `TODO`. Track follow-up work as a GitHub issue and link it in code (e.g. `// https://github.com/dotnet/roslyn/issues/NNNN`). Existing `TODO2` markers are a frozen baseline from when enforcement started, not a pattern to follow.
