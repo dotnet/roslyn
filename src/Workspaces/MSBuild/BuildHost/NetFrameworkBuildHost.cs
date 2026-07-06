@@ -27,7 +27,7 @@ internal sealed class NetFrameworkBuildHost : AbstractBuildHost
         if (instance is null)
         {
             logger.LogCritical("No compatible MSBuild instance could be found.");
-            var server = new RpcServer(pipeStream);
+            var server = new RpcServer(pipeStream, logger);
             return (new NoNetFrameworkFoundBuildHost(logger, server), server);
         }
 
@@ -58,7 +58,7 @@ internal sealed class NetFrameworkBuildHost : AbstractBuildHost
             culture: null,
             activationAttributes: null);
 
-        var rpcServer = new RpcServer(pipeStream, factory.CreateMethodInvoker());
+        var rpcServer = new RpcServer(pipeStream, factory.CreateMethodInvoker(), logger);
         return (factory.CreateBuildHost(logger, rpcServer), rpcServer);
     }
 

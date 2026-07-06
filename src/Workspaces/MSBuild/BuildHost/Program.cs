@@ -47,7 +47,7 @@ internal static class Program
 
         if (PlatformInformation.IsRunningOnMono)
         {
-            server = new RpcServer(pipeServer);
+            server = new RpcServer(pipeServer, logger);
             buildHost = new MonoBuildHost(logger, server);
         }
         else

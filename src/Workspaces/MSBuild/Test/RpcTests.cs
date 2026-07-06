@@ -231,6 +231,46 @@ public sealed class RpcTests
         await rpcPair.Client.InvokeAsync(targetObject: 0, nameof(ObjectWithMethodThatShutsDownServer.Shutdown), [], CancellationToken.None);
     }
 
+    [Fact]
+    public async Task ResponseWriteAfterClientDisconnectDoesNotCrashServer()
+    {
+        // Unlike RequestThatClosesServerDoesNotThrow, this forces the client-already-disconnected ordering
+        // deterministically instead of relying on a race.
+        var pipeName = Guid.NewGuid().ToString();
+        var pipeServer = NamedPipeUtil.CreateServer(pipeName, PipeDirection.InOut);
+        var pipeServerConnectionTask = pipeServer.WaitForConnectionAsync();
+        var pipeClient = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+
+        pipeClient.Connect();
+        await pipeServerConnectionTask;
+
+        var server = new RpcServer(pipeServer);
+        var serverRunTask = server.RunAsync();
+
+        var rpcTarget = new ObjectWithRealAsyncMethod();
+        server.AddTarget(rpcTarget);
+
+        var client = new RpcClient(pipeClient);
+
+        try
+        {
+            // Don't call client.Start(): we're simulating the client having already given up and disconnected
+            // before the server gets a chance to respond.
+            _ = client.InvokeAsync(targetObject: 0, nameof(ObjectWithRealAsyncMethod.WaitAsync), [], CancellationToken.None);
+
+            rpcTarget.WaitUntilRequest(index: 0);
+            pipeClient.Dispose();
+            rpcTarget.Complete(index: 0);
+
+            // Before the fix, the write failure here would crash RunAsync via Task.WhenAll.
+            await serverRunTask;
+        }
+        finally
+        {
+            pipeServer.Dispose();
+        }
+    }
+
 #pragma warning disable CA1822 // Mark members as static
 
     private sealed class ObjectWithHelloMethod { public string Hello(string name) { return "Hello " + name; } }

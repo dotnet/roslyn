@@ -32,21 +32,23 @@ internal sealed class RpcServer
     private readonly SemaphoreSlim _sendingStreamSemaphore = new(initialCount: 1);
     private readonly TextReader _streamReader;
     private readonly RpcMethodInvoker _rpcMethodInvoker;
+    private readonly BuildHostLogger? _logger;
 
     private readonly ConcurrentDictionary<int, object> _rpcTargets = [];
     private volatile int _nextRpcTargetIndex = -1; // We'll start at -1 so the first value becomes zero
 
     private readonly CancellationTokenSource _shutdownTokenSource = new();
 
-    public RpcServer(PipeStream stream) : this(stream, new RpcMethodInvoker())
+    public RpcServer(PipeStream stream, BuildHostLogger? logger = null) : this(stream, new RpcMethodInvoker(), logger)
     {
     }
 
-    public RpcServer(PipeStream stream, RpcMethodInvoker methodInvoker)
+    public RpcServer(PipeStream stream, RpcMethodInvoker methodInvoker, BuildHostLogger? logger = null)
     {
         _streamWriter = new StreamWriter(stream, JsonSettings.StreamEncoding);
         _streamReader = new StreamReader(stream, JsonSettings.StreamEncoding);
         _rpcMethodInvoker = methodInvoker;
+        _logger = logger;
     }
 
     public int AddTarget(object rpcTarget)
@@ -167,8 +169,16 @@ internal sealed class RpcServer
 #endif
         using (await _sendingStreamSemaphore.DisposableWaitAsync().ConfigureAwait(false))
         {
-            await _streamWriter.WriteLineAsync(responseJson).ConfigureAwait(false);
-            await _streamWriter.FlushAsync().ConfigureAwait(false);
+            try
+            {
+                await _streamWriter.WriteLineAsync(responseJson).ConfigureAwait(false);
+                await _streamWriter.FlushAsync().ConfigureAwait(false);
+            }
+            catch (IOException e)
+            {
+                // The client may have already disconnected (e.g. gave up waiting for this response); don't let that crash the host.
+                _logger?.LogWarning($"Failed to write RPC response: {e}");
+            }
         }
     }
 
