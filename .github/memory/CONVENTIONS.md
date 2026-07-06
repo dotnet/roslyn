@@ -43,12 +43,13 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 
 ### Elastic end-of-line trivia (IDE code fixes and refactorings)
 
-When inserting elastic newline trivia in **IDE code fixes/refactorings**, use `Environment.NewLine` to produce platform-appropriate line endings. Never use the hardcoded `SyntaxFactory.ElasticCarriageReturnLineFeed` (which is always `\r\n` CRLF) in IDE code:
+When inserting newline trivia in **IDE code fixes/refactorings**, use `Environment.NewLine` to produce platform-appropriate line endings. Never use hardcoded `CarriageReturnLineFeed`/`ElasticCarriageReturnLineFeed` trivia (always `\r\n` CRLF) in IDE code:
 
 ```csharp
 // ✅ Correct — respects platform line endings (LF on Linux, CRLF on Windows)
 using System;
 SyntaxFactory.ElasticEndOfLine(Environment.NewLine)
+SyntaxFactory.EndOfLine(Environment.NewLine)
 
 // Via ISyntaxFacts (CSharpSyntaxFacts already fixed):
 syntaxFacts.ElasticCarriageReturnLineFeed  // OK — implementation uses Environment.NewLine
@@ -58,9 +59,10 @@ generator.ElasticCarriageReturnLineFeed    // OK — implementation uses Environ
 
 // ❌ Avoid in IDE code — hardcoded CRLF breaks Linux tests
 SyntaxFactory.ElasticCarriageReturnLineFeed
+SyntaxFactory.CarriageReturnLineFeed
 ```
 
-Note: `SyntaxFactory.ElasticCarriageReturnLineFeed` is a valid compiler public API and must remain hardcoded CRLF — do NOT change it. The fix applies only to IDE/workspace layers that call it directly.
+Note: `SyntaxFactory.ElasticCarriageReturnLineFeed` and `SyntaxFactory.CarriageReturnLineFeed` are valid compiler APIs and remain hardcoded CRLF. IDE/workspace code should call `EndOfLine(Environment.NewLine)` / `ElasticEndOfLine(Environment.NewLine)` instead, and compiler fallback logic used by IDE features (for example `SyntaxNodeRemover`) should preserve discovered newline trivia or fall back to `Environment.NewLine`.
 
 ## Patterns Explicitly Avoided
 
