@@ -177,8 +177,7 @@ internal sealed class RpcServer
             catch (IOException e)
             {
                 // The client may have already disconnected (e.g. gave up waiting for this response); don't let that crash the host.
-                _logger?.LogWarning($"Failed to write RPC response: {e}");
-            }
+                _logger?.LogWarning($"Failed to write RPC response: {e.GetType().Name} (0x{e.HResult:x8}): {e.Message}");
         }
     }
 
