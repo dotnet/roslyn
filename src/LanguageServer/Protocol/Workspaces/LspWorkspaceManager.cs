@@ -66,6 +66,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     private readonly ILspLogger _logger;
     private readonly ILspMiscellaneousFilesWorkspaceProvider? _lspMiscellaneousFilesWorkspaceProvider;
+    private readonly IOnDemandProjectLoader? _onDemandProjectLoader;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
     private readonly ILanguageInfoProvider _languageInfoProvider;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
@@ -73,11 +74,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     public LspWorkspaceManager(
         ILspLogger logger,
         ILspMiscellaneousFilesWorkspaceProvider? lspMiscellaneousFilesWorkspace,
+        IOnDemandProjectLoader? onDemandProjectLoader,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         ILanguageInfoProvider languageInfoProvider,
         RequestTelemetryLogger requestTelemetryLogger)
     {
         _lspMiscellaneousFilesWorkspaceProvider = lspMiscellaneousFilesWorkspace;
+        _onDemandProjectLoader = onDemandProjectLoader;
         _logger = logger;
         _requestTelemetryLogger = requestTelemetryLogger;
 
@@ -243,35 +246,23 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// </summary>
     public async Task<(Workspace?, Solution?, TextDocument?)> GetLspDocumentInfoAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
-        // Get the LSP view of all the workspace solutions.
         var uri = textDocumentIdentifier.DocumentUri;
+
+        // Get the LSP view of all the workspace solutions.
         var lspSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
-        // Find the matching document from the LSP solutions.
-        foreach (var (workspace, lspSolution, isForked) in lspSolutions)
+        var lspDocumentInfo = await TryGetDocumentInfoFromSolutionsAsync(uri, textDocumentIdentifier, lspSolutions).ConfigureAwait(false);
+        if (lspDocumentInfo.document is not null)
+            return lspDocumentInfo;
+
+        // If we didn't find a document in loaded workspaces, try loading candidate projects on demand and retry once.
+        if (_onDemandProjectLoader is not null
+            && await _onDemandProjectLoader.TryLoadProjectsForDocumentAsync(uri, cancellationToken).ConfigureAwait(false))
         {
-            var documents = await lspSolution.GetTextDocumentsAsync(textDocumentIdentifier.DocumentUri, cancellationToken).ConfigureAwait(false);
-
-            if (documents.Length > 0)
-            {
-                // We have at least one document, so find the one in the right project context.
-                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
-
-                if (workspace.Kind != WorkspaceKind.MiscellaneousFiles && _lspMiscellaneousFilesWorkspaceProvider is not null)
-                {
-                    // Found the document in a non-miscellaneous files workspace.
-                    // Unload it from the miscellaneous files workspace.
-                    await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
-                }
-
-                // Record metadata on how we got this document.
-                var workspaceKind = document.Project.Solution.WorkspaceKind;
-                _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
-                _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
-                _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}; project {document.Project.Name}");
-
-                return (workspace, document.Project.Solution, document);
-            }
+            lspSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
+            lspDocumentInfo = await TryGetDocumentInfoFromSolutionsAsync(uri, textDocumentIdentifier, lspSolutions).ConfigureAwait(false);
+            if (lspDocumentInfo.document is not null)
+                return lspDocumentInfo;
         }
 
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
@@ -296,6 +287,41 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         }
 
         return default;
+
+        async Task<(Workspace?, Solution?, TextDocument? document)> TryGetDocumentInfoFromSolutionsAsync(
+            DocumentUri documentUri,
+            TextDocumentIdentifier textDocument,
+            ImmutableArray<(Workspace workspace, Solution Solution, bool IsForked)> solutions)
+        {
+            // Find the matching document from the LSP solutions.
+            foreach (var (workspace, lspSolution, isForked) in solutions)
+            {
+                var documents = await lspSolution.GetTextDocumentsAsync(textDocument.DocumentUri, cancellationToken).ConfigureAwait(false);
+
+                if (documents.Length > 0)
+                {
+                    // We have at least one document, so find the one in the right project context.
+                    var document = documents.FindDocumentInProjectContext(textDocument, (sln, id) => sln.GetRequiredTextDocument(id));
+
+                    if (workspace.Kind != WorkspaceKind.MiscellaneousFiles && _lspMiscellaneousFilesWorkspaceProvider is not null)
+                    {
+                        // Found the document in a non-miscellaneous files workspace.
+                        // Unload it from the miscellaneous files workspace.
+                        await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(documentUri).ConfigureAwait(false);
+                    }
+
+                    // Record metadata on how we got this document.
+                    var workspaceKind = document.Project.Solution.WorkspaceKind;
+                    _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
+                    _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
+                    _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}; project {document.Project.Name}");
+
+                    return (workspace, document.Project.Solution, document);
+                }
+            }
+
+            return default;
+        }
     }
 
     /// <summary>

@@ -101,3 +101,4 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`
 - **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
+- **LanguageServer file watching should use `IFileChangeWatcher`** (which delegates to `LspFileChangeWatcher` when supported) instead of directly creating `System.IO.FileSystemWatcher` in host services.
