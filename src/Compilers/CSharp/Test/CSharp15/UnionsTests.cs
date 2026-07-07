@@ -3593,19 +3593,19 @@ public class C : System.Runtime.CompilerServices.ITuple
 
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseFalseTrue FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseFalseTrue FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (27,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (27,21): error CS1061: 'S1' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'S1' could be found (are you missing a using directive or an assembly reference?)
                 //         return u is (_, 10);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(_, 10)").WithArguments("unions").WithLocation(27, 21),
-                // (32,21): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(_, 10)").WithArguments("S1", "Deconstruct").WithLocation(27, 21),
+                // (27,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
                 //         return u is (_, 10);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(_, 10)").WithArguments("unions").WithLocation(32, 21)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, 10)").WithArguments("S1", "2").WithLocation(27, 21),
+                // (32,21): error CS1061: 'S1' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'S1' could be found (are you missing a using directive or an assembly reference?)
+                //         return u is (_, 10);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(_, 10)").WithArguments("S1", "Deconstruct").WithLocation(32, 21),
+                // (32,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is (_, 10);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, 10)").WithArguments("S1", "2").WithLocation(32, 21)
                 );
         }
 
@@ -4179,15 +4179,24 @@ class Program
  
     static bool Test5(S1 u)
     {
+#line 66
         return u is not ({ } and int);
     }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+                // (66,26): hidden CS9335: The pattern is redundant.
+                //         return u is not ({ } and int);
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(66, 26)
+                );
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+                // (66,26): hidden CS9335: The pattern is redundant.
+                //         return u is not ({ } and int);
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(66, 26)
+                );
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
@@ -4206,9 +4215,12 @@ class Program
                 // (61,25): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u is not null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "null").WithArguments("unions").WithLocation(61, 25),
-                // (66,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (66,34): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u is not ({ } and int);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "{ }").WithArguments("unions").WithLocation(66, 26)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("unions").WithLocation(66, 34),
+                // (66,26): hidden CS9335: The pattern is redundant.
+                //         return u is not ({ } and int);
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(66, 26)
                 );
         }
 
@@ -4312,9 +4324,9 @@ class Program
                 // (66,25): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u is not null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "null").WithArguments("unions").WithLocation(66, 25),
-                // (71,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (71,34): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u is not ({ } and int);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "{ }").WithArguments("unions").WithLocation(71, 26)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("unions").WithLocation(71, 34)
                 );
         }
 
@@ -7915,6 +7927,13 @@ class Program
         System.Console.Write(Test4(new S2(default(S1))));
         System.Console.Write(Test4(new S2(new S1(""11""))));
         System.Console.Write(Test4(new S2(null)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test5(new S2(new S1(10))));
+        System.Console.Write(Test5(new S2(default(S1))));
+        System.Console.Write(Test5(new S2(new S1(""11""))));
+        System.Console.Write(Test5(new S2(new S1(0))));
+        System.Console.Write(Test5(new S2(null)));
     }
 
     static bool Test1(S2 u)
@@ -7940,13 +7959,19 @@ class Program
 #line 56
         return u is { S1.Value: null };
     }   
+
+    static bool Test5(S2 u)
+    {
+#line 500
+        return u is { S1: { Value: 10 } };
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
@@ -7961,54 +7986,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(51, 26),
                 // (56,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u is { S1.Value: null };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(56, 26)
-                );
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void UnionMatching_53_Direct_Value_Matching(bool field)
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-struct S1
-{
-    private readonly object _value;
-    public S1(int x) { _value = x; }
-    public S1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-struct S2
-{
-    public S2(S1 s1)
-    {
-        S1 = s1;
-    }
-
-    public S1 S1" + (field ? ";" : " { get; }") + @"
-}
-
-class Program
-{
-    static bool Test1(S2 u)
-    {
-#line 100
-        return u is { S1.Value: 10 };
-    }   
-
-    static bool Test2(S2 u)
-    {
-#line 200 // No longer equivalent to code in Test1.
-        return u is { S1: { Value: 10 } };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
-            comp.VerifyDiagnostics(
-                // (200,29): error CS0117: 'object' does not contain a definition for 'Value'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(56, 26),
+                // (500,29): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u is { S1: { Value: 10 } };
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "Value").WithArguments("object", "Value").WithLocation(200, 29)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 29)
                 );
         }
 
@@ -8390,6 +8371,12 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (200,18): hidden CS9335: The pattern is redundant.
+                //         _ = u is {} and C2 {};
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(200, 18),
+                // (201,18): hidden CS9335: The pattern is redundant.
+                //         _ = u is {} and C3 {};
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(201, 18),
                 // (202,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is {} and C4 {};
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(202, 25),
@@ -8509,7 +8496,17 @@ public class C : System.Runtime.CompilerServices.ITuple
 class D;
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (15,18): error CS1061: 'S1' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'S1' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = u is (_, 10) and D;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(_, 10)").WithArguments("S1", "Deconstruct").WithLocation(15, 18),
+                // (15,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         _ = u is (_, 10) and D;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, 10)").WithArguments("S1", "2").WithLocation(15, 18),
+                // (15,30): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'D'.
+                //         _ = u is (_, 10) and D;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "D").WithArguments("S1", "D").WithLocation(15, 30)
+                );
         }
 
         [Fact]
@@ -8557,6 +8554,12 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (300,18): hidden CS9335: The pattern is redundant.
+                //         _ = u is {} and C2 a;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(300, 18),
+                // (301,18): hidden CS9335: The pattern is redundant.
+                //         _ = u is {} and C3 b;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(301, 18),
                 // (302,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is {} and C4 c;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(302, 25),
@@ -8728,6 +8731,12 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (700,18): hidden CS9335: The pattern is redundant.
+                //         _ = u is {} and not C5;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(700, 18),
+                // (701,18): hidden CS9335: The pattern is redundant.
+                //         _ = u is {} and not C3;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(701, 18),
                 // (702,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is {} and not C4;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(702, 29),
@@ -9071,6 +9080,9 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (100,18): hidden CS9335: The pattern is redundant.
+                //         _ = u is {} and "1";
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(100, 18),
                 // (100,25): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and "1";
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(100, 25),
@@ -9080,6 +9092,9 @@ class Program
                 // (100,25): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         _ = u is {} and "1";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(100, 25),
+                // (101,18): hidden CS9335: The pattern is redundant.
+                //         _ = u is {} and (C2)null;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(101, 18),
                 // (101,25): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and (C2)null;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(C2)null").WithArguments("S1").WithLocation(101, 25),
@@ -9376,6 +9391,9 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (100,18): hidden CS9335: The pattern is redundant.
+                //         _ = u is {} and > 1;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(100, 18),
                 // (100,27): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and > 1;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(100, 27),
@@ -10605,12 +10623,6 @@ class Program
         return u switch { not null => 3, null => 1 };
     } 
 
-    static int Test14(S1 u)
-    {
-#line 1400
-        return u switch { { } => 1, null => 3 };
-    } 
-
     static int Test15(S1 u)
     {
 #line 1500
@@ -10652,10 +10664,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1150, 18),
                 // (1300,42): hidden CS9335: The pattern is redundant.
                 //         return u switch { not null => 3, null => 1 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1300, 42),
-                // (1400,37): hidden CS9335: The pattern is redundant.
-                //         return u switch { { } => 1, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1400, 37)
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1300, 42)
                 );
 
             verifier.VerifyIL("Program.Test1", @"
@@ -12519,9 +12528,9 @@ class Program
                 // (1100,42): hidden CS9335: The pattern is redundant.
                 //         return u switch { not null => 3, null => 1 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1100, 42),
-                // (1200,37): hidden CS9335: The pattern is redundant.
+                // (1200,37): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         return u switch { { } => 1, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 37)
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "null").WithLocation(1200, 37)
                 );
         }
 
@@ -32512,7 +32521,14 @@ public class C : System.Runtime.CompilerServices.ITuple
 
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TryGetValue(ITuple) False TryGetValue(ITuple) False TryGetValue(ITuple) True" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (38,21): error CS1061: 'S1' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'S1' could be found (are you missing a using directive or an assembly reference?)
+                //         return u is (_, 10);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(_, 10)").WithArguments("S1", "Deconstruct").WithLocation(38, 21),
+                // (38,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is (_, 10);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, 10)").WithArguments("S1", "2").WithLocation(38, 21)
+                );
         }
 
         [Fact]
@@ -46928,7 +46944,14 @@ public class C : System.Runtime.CompilerServices.ITuple
 
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TryGetValue(ITuple) False TryGetValue(ITuple) False TryGetValue(ITuple) True" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (46,21): error CS1061: 'S1' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'S1' could be found (are you missing a using directive or an assembly reference?)
+                //         return u is (_, 10);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(_, 10)").WithArguments("S1", "Deconstruct").WithLocation(46, 21),
+                // (46,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is (_, 10);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, 10)").WithArguments("S1", "2").WithLocation(46, 21)
+                );
         }
 
         [Fact]
@@ -58567,6 +58590,1365 @@ forLowering: false);
                 // (42,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         return u switch { I1 x => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
+                );
+        }
+
+        [Fact]
+        public void PropertyPattern_01_UnionInstance_Only()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    private readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(new C1(""11"")));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(null));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { {} => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldc.i4.1
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0009
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}
+");
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PropertyPattern_02_UnionInstance_Only()
+        {
+            var src = @"
+class C0;
+
+[System.Runtime.CompilerServices.Union]
+class C1 : C0
+{
+    private readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C0 x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C1(new C1(1))));
+        System.Console.Write(Test1(new C1(new C0())));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { C0 {} => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldc.i4.1
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0009
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}
+");
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PropertyPattern_03_UnionInstance_Only()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    private readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(string x) : C1(x);
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C1(""a"")));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(new C2(""a"")));
+        System.Console.Write(Test1(new C2(null)));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { C2 {} => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""C2""
+  IL_0006:  brfalse.s  IL_000c
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000e
+  IL_000c:  ldc.i4.0
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  ret
+}
+");
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PropertyPattern_04_UnionInstance_And_Value()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(new C1(new C2(11))));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C3(10)));
+        System.Console.Write(Test1(new C3(new C2(11))));
+        System.Console.Write(Test1(new C3(null)));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { I1 {} => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is I1 ? [4] : [1]
+[1]: t0 != null ? [2] : [5]
+[2]: t1 = t0.Value; [3]
+[3]: t1 is I1 ? [4] : [5]
+[4]: leaf <arm> `I1 {} => true`
+[5]: leaf <arm> `_ => false`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (42,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u switch { I1 {} => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1 {}").WithArguments("unions").WithLocation(42, 27)
+                );
+        }
+
+        [Fact]
+        public void PropertyPattern_05_UnionInstance_And_Value()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(new C1(11)));
+        System.Console.Write(Test1(new C1(new C2(10))));
+        System.Console.Write(Test1(new C1(new C2(11))));
+        System.Console.Write(Test1(new C1(new C2(null))));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C3(10)));
+        System.Console.Write(Test1(new C3(11)));
+        System.Console.Write(Test1(new C3(new C2(10))));
+        System.Console.Write(Test1(new C3(new C2(11))));
+        System.Console.Write(Test1(new C3(new C2(null))));
+        System.Console.Write(Test1(new C3(null)));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { I1 { Value1: 10 } => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is I1 ? [1] : [6]
+[1]: t1 = (I1)t0; [2]
+[2]: t2 = t1.Value1; [3]
+[3]: t2 is int ? [4] : [15]
+[4]: t3 = (int)t2; [5]
+[5]: t3 == 10 ? [14] : [15]
+[6]: t0 != null ? [7] : [15]
+[7]: t4 = t0.Value; [8]
+[8]: t4 is I1 ? [9] : [15]
+[9]: t5 = (I1)t4; [10]
+[10]: t6 = t5.Value1; [11]
+[11]: t6 is int ? [12] : [15]
+[12]: t7 = (int)t6; [13]
+[13]: t7 == 10 ? [14] : [15]
+[14]: leaf <arm> `I1 { Value1: 10 } => true`
+[15]: leaf <arm> `_ => false`
+",
+forLowering: true);
+
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrueFalseFalseFalseFalseTrueFalseFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PropertyPattern_06_UnionInstance_And_Value_Plus_Conjunction()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C4 x) { _value = x; }
+    public C1(C5 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+interface I2
+{
+    object Value2 { get; }
+}
+
+[System.Runtime.CompilerServices.Union]
+class C4 : C1
+{
+    public C4(int x) : base(x) {}
+    public C4(C5 x) : base(x) {}
+    protected C4(object x) : base(x) {}
+}
+
+class C5(object x) : I2
+{
+    public object Value2 => x;
+}
+
+class C6(object x) : C4(x), I2
+{
+    object I2.Value2 => _value;
+}
+
+class Program
+{
+    static bool Test1(C1 u)
+    {
+        return u switch { C4 { } and I2 and { Value2: 11 } => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is C4 ? [1] : [15]
+[1]: t1 = (C4)t0; [2]
+[2]: t1 is I2 ? [3] : [8]
+[3]: t2 = (I2)t1; [4]
+[4]: t3 = t2.Value2; [5]
+[5]: t3 is int ? [6] : [33]
+[6]: t4 = (int)t3; [7]
+[7]: t4 == 11 ? [32] : [33]
+[8]: t5 = t1.Value; [9]
+[9]: t5 is I2 ? [10] : [33]
+[10]: t6 = (I2)t5; [11]
+[11]: t7 = t6.Value2; [12]
+[12]: t7 is int ? [13] : [33]
+[13]: t8 = (int)t7; [14]
+[14]: t8 == 11 ? [32] : [33]
+[15]: t0 != null ? [16] : [33]
+[16]: t9 = t0.Value; [17]
+[17]: t9 is C4 ? [18] : [33]
+[18]: t10 = (C4)t9; [19]
+[19]: t10 is I2 ? [20] : [25]
+[20]: t11 = (I2)t10; [21]
+[21]: t12 = t11.Value2; [22]
+[22]: t12 is int ? [23] : [33]
+[23]: t13 = (int)t12; [24]
+[24]: t13 == 11 ? [32] : [33]
+[25]: t14 = t10.Value; [26]
+[26]: t14 is I2 ? [27] : [33]
+[27]: t15 = (I2)t14; [28]
+[28]: t16 = t15.Value2; [29]
+[29]: t16 is int ? [30] : [33]
+[30]: t17 = (int)t16; [31]
+[31]: t17 == 11 ? [32] : [33]
+[32]: leaf <arm> `C4 { } and I2 and { Value2: 11 } => true`
+[33]: leaf <arm> `_ => false`
+",
+forLowering: true);
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PropertyPattern_07_UnionInstance_And_Value_Plus_Conjunction()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    public C1(C4 x) { _value = x; }
+    public C1(C5 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+interface I2
+{
+    object Value2 { get; }
+}
+
+[System.Runtime.CompilerServices.Union]
+class C4 : C1
+{
+    public C4(int x) : base(x) {}
+    public C4(C5 x) : base(x) {}
+    protected C4(object x) : base(x) {}
+}
+
+class C5(object x) : I2
+{
+    public object Value2 => x;
+}
+
+class C6(object x) : C4(x), I2
+{
+    object I2.Value2 => _value;
+}
+
+class C7(object x) : C6(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+class Program
+{
+    static bool Test1(C1 u)
+    {
+        return u switch { I1 { Value1: 10 } and C4 and I2 and { Value2: 11 } => true, _ => false };
+    }   
+
+    static bool Test2(C1 u)
+    {
+        return u switch { I1 {} and { Value1: 10 } and C4 and I2 and { Value2: 11 } => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is I1 ? [1] : [21]
+[1]: t1 = (I1)t0; [2]
+[2]: t2 = t1.Value1; [3]
+[3]: t2 is int ? [4] : [45]
+[4]: t3 = (int)t2; [5]
+[5]: t3 == 10 ? [6] : [45]
+[6]: t1 is C4 ? [7] : [45]
+[7]: t4 = (C4)t1; [8]
+[8]: t4 is I2 ? [9] : [14]
+[9]: t5 = (I2)t4; [10]
+[10]: t6 = t5.Value2; [11]
+[11]: t6 is int ? [12] : [45]
+[12]: t7 = (int)t6; [13]
+[13]: t7 == 11 ? [44] : [45]
+[14]: t8 = t4.Value; [15]
+[15]: t8 is I2 ? [16] : [45]
+[16]: t9 = (I2)t8; [17]
+[17]: t10 = t9.Value2; [18]
+[18]: t10 is int ? [19] : [45]
+[19]: t11 = (int)t10; [20]
+[20]: t11 == 11 ? [44] : [45]
+[21]: t0 != null ? [22] : [45]
+[22]: t12 = t0.Value; [23]
+[23]: t12 is I1 ? [24] : [45]
+[24]: t13 = (I1)t12; [25]
+[25]: t14 = t13.Value1; [26]
+[26]: t14 is int ? [27] : [45]
+[27]: t15 = (int)t14; [28]
+[28]: t15 == 10 ? [29] : [45]
+[29]: t13 is C4 ? [30] : [45]
+[30]: t16 = (C4)t13; [31]
+[31]: t16 is I2 ? [32] : [37]
+[32]: t17 = (I2)t16; [33]
+[33]: t18 = t17.Value2; [34]
+[34]: t18 is int ? [35] : [45]
+[35]: t19 = (int)t18; [36]
+[36]: t19 == 11 ? [44] : [45]
+[37]: t20 = t16.Value; [38]
+[38]: t20 is I2 ? [39] : [45]
+[39]: t21 = (I2)t20; [40]
+[40]: t22 = t21.Value2; [41]
+[41]: t22 is int ? [42] : [45]
+[42]: t23 = (int)t22; [43]
+[43]: t23 == 11 ? [44] : [45]
+[44]: leaf <arm> `I1 { Value1: 10 } and C4 and I2 and { Value2: 11 } => true`
+[45]: leaf <arm> `_ => false`
+",
+forLowering: true);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is I1 ? [1] : [21]
+[1]: t1 = (I1)t0; [2]
+[2]: t2 = t1.Value1; [3]
+[3]: t2 is int ? [4] : [45]
+[4]: t3 = (int)t2; [5]
+[5]: t3 == 10 ? [6] : [45]
+[6]: t1 is C4 ? [7] : [45]
+[7]: t4 = (C4)t1; [8]
+[8]: t4 is I2 ? [9] : [14]
+[9]: t5 = (I2)t4; [10]
+[10]: t6 = t5.Value2; [11]
+[11]: t6 is int ? [12] : [45]
+[12]: t7 = (int)t6; [13]
+[13]: t7 == 11 ? [44] : [45]
+[14]: t8 = t4.Value; [15]
+[15]: t8 is I2 ? [16] : [45]
+[16]: t9 = (I2)t8; [17]
+[17]: t10 = t9.Value2; [18]
+[18]: t10 is int ? [19] : [45]
+[19]: t11 = (int)t10; [20]
+[20]: t11 == 11 ? [44] : [45]
+[21]: t0 != null ? [22] : [45]
+[22]: t12 = t0.Value; [23]
+[23]: t12 is I1 ? [24] : [45]
+[24]: t13 = (I1)t12; [25]
+[25]: t14 = t13.Value1; [26]
+[26]: t14 is int ? [27] : [45]
+[27]: t15 = (int)t14; [28]
+[28]: t15 == 10 ? [29] : [45]
+[29]: t13 is C4 ? [30] : [45]
+[30]: t16 = (C4)t13; [31]
+[31]: t16 is I2 ? [32] : [37]
+[32]: t17 = (I2)t16; [33]
+[33]: t18 = t17.Value2; [34]
+[34]: t18 is int ? [35] : [45]
+[35]: t19 = (int)t18; [36]
+[36]: t19 == 11 ? [44] : [45]
+[37]: t20 = t16.Value; [38]
+[38]: t20 is I2 ? [39] : [45]
+[39]: t21 = (I2)t20; [40]
+[40]: t22 = t21.Value2; [41]
+[41]: t22 is int ? [42] : [45]
+[42]: t23 = (int)t22; [43]
+[43]: t23 == 11 ? [44] : [45]
+[44]: leaf <arm> `I1 {} and { Value1: 10 } and C4 and I2 and { Value2: 11 } => true`
+[45]: leaf <arm> `_ => false`
+",
+index: 1, forLowering: true);
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PropertyPattern_08_UnionInstance_And_Value_Plus_Designation()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(new C1(new C2(11))));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C3(10)));
+        System.Console.Write(Test1(new C3(new C2(11))));
+        System.Console.Write(Test1(new C3(null)));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { I1 {} i1 => true, _ => false };
+    }   
+
+    static bool Test2(C1 u)
+    {
+        return u switch { I1 { Value1: var v1 } => true, _ => false };
+    }   
+
+    static bool Test3(C1 u)
+    {
+        return u switch { I1 {} and var i1 => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (42,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         return u switch { I1 {} i1 => true, _ => false };
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(42, 33),
+                // (47,44): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         return u switch { I1 { Value1: var v1 } => true, _ => false };
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(47, 44),
+                // (52,41): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         return u switch { I1 {} and var i1 => true, _ => false };
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(52, 41)
+                );
+        }
+
+        [Fact]
+        public void PositionalPattern_01_UnionInstance_Only()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    private readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(string x) { _value = x; }
+    public object Value => _value;
+
+    public void Deconstruct(out object x, out object y)
+    {
+        x = 1;
+        y = 2;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(new C1(""11"")));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(null));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { (_, _) => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldc.i4.1
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0009
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}
+");
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PositionalPattern_02_UnionInstance_Only()
+        {
+            var src = @"
+class C0
+{
+    public void Deconstruct(out object x, out object y)
+    {
+        x = 1;
+        y = 2;
+    }
+}
+
+[System.Runtime.CompilerServices.Union]
+class C1 : C0
+{
+    private readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C0 x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C1(new C1(1))));
+        System.Console.Write(Test1(new C1(new C0())));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { C0 (_, _) => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldc.i4.1
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0009
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}
+");
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PositionalPattern_03_UnionInstance_Only()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    private readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(string x) : C1(x)
+{
+    public void Deconstruct(out object x, out object y)
+    {
+        x = 1;
+        y = 2;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C1(""a"")));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(new C2(""a"")));
+        System.Console.Write(Test1(new C2(null)));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { C2 (_, _) => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""C2""
+  IL_0006:  brfalse.s  IL_000c
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000e
+  IL_000c:  ldc.i4.0
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  ret
+}
+");
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PositionalPattern_04_UnionInstance_And_Value()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+    void I1.Deconstruct(out object x, out object y) => throw null;
+}
+
+class C3(object x) : C1(x), I1
+{
+    void I1.Deconstruct(out object x, out object y) => throw null;
+}
+
+interface I1
+{
+    public void Deconstruct(out object x, out object y);
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(new C1(new C2(11))));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C3(10)));
+        System.Console.Write(Test1(new C3(new C2(11))));
+        System.Console.Write(Test1(new C3(null)));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { I1 (_, _) => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is I1 ? [4] : [1]
+[1]: t0 != null ? [2] : [5]
+[2]: t1 = t0.Value; [3]
+[3]: t1 is I1 ? [4] : [5]
+[4]: leaf <arm> `I1 (_, _) => true`
+[5]: leaf <arm> `_ => false`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (43,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u switch { I1 (_, _) => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1 (_, _)").WithArguments("unions").WithLocation(43, 27)
+                );
+        }
+
+        [Fact]
+        public void PositionalPattern_05_UnionInstance_And_Value()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    void I1.Deconstruct(out object x1, out object y1)
+    {
+        x1 = x;
+        y1 = 2;
+    }
+}
+
+class C3(object x) : C1(x), I1
+{
+    void I1.Deconstruct(out object x, out object y)
+    {
+        x = _value;
+        y = 2;
+    }
+}
+
+interface I1
+{
+    public void Deconstruct(out object x, out object y);
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(new C1(11)));
+        System.Console.Write(Test1(new C1(new C2(10))));
+        System.Console.Write(Test1(new C1(new C2(11))));
+        System.Console.Write(Test1(new C1(new C2(null))));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C3(10)));
+        System.Console.Write(Test1(new C3(11)));
+        System.Console.Write(Test1(new C3(new C2(10))));
+        System.Console.Write(Test1(new C3(new C2(11))));
+        System.Console.Write(Test1(new C3(new C2(null))));
+        System.Console.Write(Test1(new C3(null)));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { I1 (10, _) => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is I1 ? [1] : [6]
+[1]: t1 = (I1)t0; [2]
+[2]: (Item1, Item2) t2 = t1; [3]
+[3]: t2.Item1 is int ? [4] : [15]
+[4]: t3 = (int)t2.Item1; [5]
+[5]: t3 == 10 ? [14] : [15]
+[6]: t0 != null ? [7] : [15]
+[7]: t4 = t0.Value; [8]
+[8]: t4 is I1 ? [9] : [15]
+[9]: t5 = (I1)t4; [10]
+[10]: (Item1, Item2) t6 = t5; [11]
+[11]: t6.Item1 is int ? [12] : [15]
+[12]: t7 = (int)t6.Item1; [13]
+[13]: t7 == 10 ? [14] : [15]
+[14]: leaf <arm> `I1 (10, _) => true`
+[15]: leaf <arm> `_ => false`
+",
+forLowering: true);
+
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrueFalseFalseFalseFalseTrueFalseFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PositionalPattern_06_UnionInstance_And_Value_Plus_Conjunction()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C4 x) { _value = x; }
+    public C1(C5 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+interface I2
+{
+    public void Deconstruct(out object x1, out object y1);
+}
+
+[System.Runtime.CompilerServices.Union]
+class C4 : C1
+{
+    public C4(int x) : base(x) {}
+    public C4(C5 x) : base(x) {}
+    protected C4(object x) : base(x) {}
+
+    public void Deconstruct(out object x1, out object y1) => throw null;
+}
+
+class C5(object x) : I2
+{
+    public object Value2 => x;
+    void I2.Deconstruct(out object x1, out object y1) => throw null;
+}
+
+class C6(object x) : C4(x), I2
+{
+    void I2.Deconstruct(out object x1, out object y1) => throw null;
+}
+
+class Program
+{
+    static bool Test1(C1 u)
+    {
+        return u switch { C4 (_, _) and I2 and (11, _) => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is C4 ? [1] : [15]
+[1]: t1 = (C4)t0; [2]
+[2]: t1 is I2 ? [3] : [8]
+[3]: t2 = (I2)t1; [4]
+[4]: (Item1, Item2) t3 = t2; [5]
+[5]: t3.Item1 is int ? [6] : [33]
+[6]: t4 = (int)t3.Item1; [7]
+[7]: t4 == 11 ? [32] : [33]
+[8]: t5 = t1.Value; [9]
+[9]: t5 is I2 ? [10] : [33]
+[10]: t6 = (I2)t5; [11]
+[11]: (Item1, Item2) t7 = t6; [12]
+[12]: t7.Item1 is int ? [13] : [33]
+[13]: t8 = (int)t7.Item1; [14]
+[14]: t8 == 11 ? [32] : [33]
+[15]: t0 != null ? [16] : [33]
+[16]: t9 = t0.Value; [17]
+[17]: t9 is C4 ? [18] : [33]
+[18]: t10 = (C4)t9; [19]
+[19]: t10 is I2 ? [20] : [25]
+[20]: t11 = (I2)t10; [21]
+[21]: (Item1, Item2) t12 = t11; [22]
+[22]: t12.Item1 is int ? [23] : [33]
+[23]: t13 = (int)t12.Item1; [24]
+[24]: t13 == 11 ? [32] : [33]
+[25]: t14 = t10.Value; [26]
+[26]: t14 is I2 ? [27] : [33]
+[27]: t15 = (I2)t14; [28]
+[28]: (Item1, Item2) t16 = t15; [29]
+[29]: t16.Item1 is int ? [30] : [33]
+[30]: t17 = (int)t16.Item1; [31]
+[31]: t17 == 11 ? [32] : [33]
+[32]: leaf <arm> `C4 (_, _) and I2 and (11, _) => true`
+[33]: leaf <arm> `_ => false`
+",
+forLowering: true);
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PositionalPattern_07_UnionInstance_And_Value_Plus_Conjunction()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    public C1(C4 x) { _value = x; }
+    public C1(C5 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+    void I1.Deconstruct(out object x1, out object y1) => throw null;
+}
+
+class C3(object x) : C1(x), I1
+{
+    void I1.Deconstruct(out object x1, out object y1) => throw null;
+}
+
+interface I1
+{
+    public void Deconstruct(out object x1, out object y1);
+}
+
+interface I2
+{
+    public void Deconstruct(out object x1, out object y1);
+}
+
+[System.Runtime.CompilerServices.Union]
+class C4 : C1
+{
+    public C4(int x) : base(x) {}
+    public C4(C5 x) : base(x) {}
+    protected C4(object x) : base(x) {}
+}
+
+class C5(object x) : I2
+{
+    public object Value2 => x;
+    void I2.Deconstruct(out object x1, out object y1) => throw null;
+}
+
+class C6(object x) : C4(x), I2
+{
+    void I2.Deconstruct(out object x1, out object y1) => throw null;
+}
+
+class C7(object x) : C6(x), I1
+{
+    void I1.Deconstruct(out object x1, out object y1) => throw null;
+}
+
+class Program
+{
+    static bool Test1(C1 u)
+    {
+        return u switch { I1 (10, _) and C4 and I2 and (_, 11) => true, _ => false };
+    }   
+
+    static bool Test2(C1 u)
+    {
+        return u switch { I1 (_, _) and (10, _) and C4 and I2 and (_, 11) => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is I1 ? [1] : [21]
+[1]: t1 = (I1)t0; [2]
+[2]: (Item1, Item2) t2 = t1; [3]
+[3]: t2.Item1 is int ? [4] : [45]
+[4]: t3 = (int)t2.Item1; [5]
+[5]: t3 == 10 ? [6] : [45]
+[6]: t1 is C4 ? [7] : [45]
+[7]: t4 = (C4)t1; [8]
+[8]: t4 is I2 ? [9] : [14]
+[9]: t5 = (I2)t4; [10]
+[10]: (Item1, Item2) t6 = t5; [11]
+[11]: t6.Item2 is int ? [12] : [45]
+[12]: t7 = (int)t6.Item2; [13]
+[13]: t7 == 11 ? [44] : [45]
+[14]: t8 = t4.Value; [15]
+[15]: t8 is I2 ? [16] : [45]
+[16]: t9 = (I2)t8; [17]
+[17]: (Item1, Item2) t10 = t9; [18]
+[18]: t10.Item2 is int ? [19] : [45]
+[19]: t11 = (int)t10.Item2; [20]
+[20]: t11 == 11 ? [44] : [45]
+[21]: t0 != null ? [22] : [45]
+[22]: t12 = t0.Value; [23]
+[23]: t12 is I1 ? [24] : [45]
+[24]: t13 = (I1)t12; [25]
+[25]: (Item1, Item2) t14 = t13; [26]
+[26]: t14.Item1 is int ? [27] : [45]
+[27]: t15 = (int)t14.Item1; [28]
+[28]: t15 == 10 ? [29] : [45]
+[29]: t13 is C4 ? [30] : [45]
+[30]: t16 = (C4)t13; [31]
+[31]: t16 is I2 ? [32] : [37]
+[32]: t17 = (I2)t16; [33]
+[33]: (Item1, Item2) t18 = t17; [34]
+[34]: t18.Item2 is int ? [35] : [45]
+[35]: t19 = (int)t18.Item2; [36]
+[36]: t19 == 11 ? [44] : [45]
+[37]: t20 = t16.Value; [38]
+[38]: t20 is I2 ? [39] : [45]
+[39]: t21 = (I2)t20; [40]
+[40]: (Item1, Item2) t22 = t21; [41]
+[41]: t22.Item2 is int ? [42] : [45]
+[42]: t23 = (int)t22.Item2; [43]
+[43]: t23 == 11 ? [44] : [45]
+[44]: leaf <arm> `I1 (10, _) and C4 and I2 and (_, 11) => true`
+[45]: leaf <arm> `_ => false`
+",
+forLowering: true);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is I1 ? [1] : [21]
+[1]: t1 = (I1)t0; [2]
+[2]: (Item1, Item2) t2 = t1; [3]
+[3]: t2.Item1 is int ? [4] : [45]
+[4]: t3 = (int)t2.Item1; [5]
+[5]: t3 == 10 ? [6] : [45]
+[6]: t1 is C4 ? [7] : [45]
+[7]: t4 = (C4)t1; [8]
+[8]: t4 is I2 ? [9] : [14]
+[9]: t5 = (I2)t4; [10]
+[10]: (Item1, Item2) t6 = t5; [11]
+[11]: t6.Item2 is int ? [12] : [45]
+[12]: t7 = (int)t6.Item2; [13]
+[13]: t7 == 11 ? [44] : [45]
+[14]: t8 = t4.Value; [15]
+[15]: t8 is I2 ? [16] : [45]
+[16]: t9 = (I2)t8; [17]
+[17]: (Item1, Item2) t10 = t9; [18]
+[18]: t10.Item2 is int ? [19] : [45]
+[19]: t11 = (int)t10.Item2; [20]
+[20]: t11 == 11 ? [44] : [45]
+[21]: t0 != null ? [22] : [45]
+[22]: t12 = t0.Value; [23]
+[23]: t12 is I1 ? [24] : [45]
+[24]: t13 = (I1)t12; [25]
+[25]: (Item1, Item2) t14 = t13; [26]
+[26]: t14.Item1 is int ? [27] : [45]
+[27]: t15 = (int)t14.Item1; [28]
+[28]: t15 == 10 ? [29] : [45]
+[29]: t13 is C4 ? [30] : [45]
+[30]: t16 = (C4)t13; [31]
+[31]: t16 is I2 ? [32] : [37]
+[32]: t17 = (I2)t16; [33]
+[33]: (Item1, Item2) t18 = t17; [34]
+[34]: t18.Item2 is int ? [35] : [45]
+[35]: t19 = (int)t18.Item2; [36]
+[36]: t19 == 11 ? [44] : [45]
+[37]: t20 = t16.Value; [38]
+[38]: t20 is I2 ? [39] : [45]
+[39]: t21 = (I2)t20; [40]
+[40]: (Item1, Item2) t22 = t21; [41]
+[41]: t22.Item2 is int ? [42] : [45]
+[42]: t23 = (int)t22.Item2; [43]
+[43]: t23 == 11 ? [44] : [45]
+[44]: leaf <arm> `I1 (_, _) and (10, _) and C4 and I2 and (_, 11) => true`
+[45]: leaf <arm> `_ => false`
+",
+index: 1, forLowering: true);
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PositionalPattern_08_UnionInstance_And_Value_Plus_Designation()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+    void I1.Deconstruct(out object x, out object y) => throw null;
+}
+
+class C3(object x) : C1(x), I1
+{
+    void I1.Deconstruct(out object x, out object y) => throw null;
+}
+
+interface I1
+{
+    public void Deconstruct(out object x, out object y);
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(new C1(new C2(11))));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C3(10)));
+        System.Console.Write(Test1(new C3(new C2(11))));
+        System.Console.Write(Test1(new C3(null)));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { I1 (_, _) i1 => true, _ => false };
+    }   
+
+    static bool Test2(C1 u)
+    {
+        return u switch { I1 (var v1, _) => true, _ => false };
+    }   
+
+    static bool Test3(C1 u)
+    {
+        return u switch { I1 (_, _) and var i1 => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (43,37): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         return u switch { I1 (_, _) i1 => true, _ => false };
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(43, 37),
+                // (48,35): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         return u switch { I1 (var v1, _) => true, _ => false };
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(48, 35),
+                // (53,45): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         return u switch { I1 (_, _) and var i1 => true, _ => false };
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(53, 45)
                 );
         }
     }
