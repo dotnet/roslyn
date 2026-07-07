@@ -24316,11 +24316,10 @@ static class E
 using System;
 using System.Runtime.CompilerServices;
 
+ref S s = ref Unsafe.NullRef<S>();
 try
 {
-    ref S s = ref Unsafe.NullRef<S>();
     ref byte e = ref s[0];
-    e = 1;
     Console.WriteLine("ERROR: Should have thrown NullReferenceException");
 }
 catch (NullReferenceException)
@@ -24344,11 +24343,10 @@ public struct S { public byte F; }
 using System;
 using System.Runtime.CompilerServices;
 
+ref readonly S s = ref Unsafe.NullRef<S>();
 try
 {
-    ref readonly S s = ref Unsafe.NullRef<S>();
     ref readonly byte e = ref s[0];
-    _ = e;
     Console.WriteLine("ERROR: Should have thrown NullReferenceException");
 }
 catch (NullReferenceException)
@@ -24372,11 +24370,10 @@ public struct S { public byte F; }
 using System;
 using System.Runtime.CompilerServices;
 
+ref S s = ref Unsafe.NullRef<S>();
 try
 {
-    ref S s = ref Unsafe.NullRef<S>();
     ref byte e = ref s[1];
-    e = 1;
     Console.WriteLine("ERROR: Should have thrown NullReferenceException");
 }
 catch (NullReferenceException)
@@ -24400,11 +24397,10 @@ public struct S { public byte F; }
 using System;
 using System.Runtime.CompilerServices;
 
+ref readonly S s = ref Unsafe.NullRef<S>();
 try
 {
-    ref readonly S s = ref Unsafe.NullRef<S>();
     ref readonly byte e = ref s[1];
-    _ = e;
     Console.WriteLine("ERROR: Should have thrown NullReferenceException");
 }
 catch (NullReferenceException)
@@ -24428,11 +24424,10 @@ public struct S { public byte F; }
 using System;
 using System.Runtime.CompilerServices;
 
+ref S s = ref Unsafe.NullRef<S>();
 try
 {
-    ref S s = ref Unsafe.NullRef<S>();
     Span<byte> span = s;
-    span[0] = 1;
     Console.WriteLine("ERROR: Should have thrown NullReferenceException");
 }
 catch (NullReferenceException)
@@ -24456,11 +24451,10 @@ public struct S { public byte F; }
 using System;
 using System.Runtime.CompilerServices;
 
+ref readonly S s = ref Unsafe.NullRef<S>();
 try
 {
-    ref readonly S s = ref Unsafe.NullRef<S>();
     ReadOnlySpan<byte> span = s;
-    _ = span[0];
     Console.WriteLine("ERROR: Should have thrown NullReferenceException");
 }
 catch (NullReferenceException)
