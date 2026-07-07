@@ -24310,7 +24310,7 @@ static class E
         }
 
         [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
-        public void NullCheck_ElementRef()
+        public void NullCheck_FirstElementRef()
         {
             var src = """
 using System;
@@ -24338,7 +24338,7 @@ public struct S { public byte F; }
         }
 
         [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
-        public void NullCheck_ElementRefReadOnly()
+        public void NullCheck_FirstElementRefReadOnly()
         {
             var src = """
 using System;
@@ -24348,6 +24348,62 @@ try
 {
     ref readonly S s = ref Unsafe.NullRef<S>();
     ref readonly byte e = ref s[0];
+    _ = e;
+    Console.WriteLine("ERROR: Should have thrown NullReferenceException");
+}
+catch (NullReferenceException)
+{
+    Console.WriteLine("PASS");
+}
+
+[InlineArray(10)]
+public struct S { public byte F; }
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        public void NullCheck_ElementRef()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+try
+{
+    ref S s = ref Unsafe.NullRef<S>();
+    ref byte e = ref s[1];
+    e = 1;
+    Console.WriteLine("ERROR: Should have thrown NullReferenceException");
+}
+catch (NullReferenceException)
+{
+    Console.WriteLine("PASS");
+}
+
+[InlineArray(10)]
+public struct S { public byte F; }
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        public void NullCheck_ElementRefReadOnly()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+try
+{
+    ref readonly S s = ref Unsafe.NullRef<S>();
+    ref readonly byte e = ref s[1];
     _ = e;
     Console.WriteLine("ERROR: Should have thrown NullReferenceException");
 }

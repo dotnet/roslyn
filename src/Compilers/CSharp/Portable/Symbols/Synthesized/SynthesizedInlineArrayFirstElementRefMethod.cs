@@ -26,11 +26,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             try
             {
+                // if (Unsafe.IsNullRef(ref buffer))
+                //     throw new NullReferenceException();
+                var nullCheck = f.If(
+                    f.Call(null,
+                           f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__IsNullRef_T).Construct(TypeParameters[0]),
+                           f.Parameter(Parameters[0])),
+                    f.Throw(f.New(f.WellKnownType(WellKnownType.System_NullReferenceException))));
+
                 // return ref Unsafe.As<TBuffer, TElement>(ref buffer)
 
-                var body = f.Return(f.Call(null,
+                var body = f.Block(
+                    nullCheck,
+                    f.Return(f.Call(null,
                                            f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T).Construct(ImmutableArray<TypeSymbol>.CastUp(TypeParameters)),
-                                           f.Parameter(Parameters[0])));
+                                           f.Parameter(Parameters[0]))));
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
                 f.CloseMethod(body);
