@@ -1797,43 +1797,36 @@ struct S1
     public S1(string x) { Value = x; }
     public object Value { get; }
 
-    public void Deconstruct(out int x, out int y) => throw null;
+    public void Deconstruct(out int x, out int y)
+    {
+        x = 1;
+        y = 2;
+    }
 }
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new S1(10)));
-        System.Console.Write(Test1(default));
-        System.Console.Write(' ');
         System.Console.Write(Test2(new S1(10)));
         System.Console.Write(Test2(default(S1)));
         System.Console.Write(Test2(null));
     }
 
-    static int Test1(S1 u)
-    {
-        return (u switch {var (a, b) => a * 1000 + b * 10, _ => -1 } );
-    }   
-
     static int Test2(S1? u)
     {
+#line 200
         return (u switch {var (a, b) => a * 1000 + b * 10, _ => -1 } );
     }   
 }
 
 static class Extensions
 {
-    public static void Deconstruct(this object o, out int x, out int y)
-    {
-        x = 1;
-        y = 2;
-    }
+    public static void Deconstruct(this object o, out int x, out int y) => throw null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "1020-1 1020-1-1").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "10201020-1").VerifyDiagnostics();
         }
 
         [Fact]
@@ -1847,7 +1840,11 @@ class S1
     public S1(string x) { Value = x; }
     public object Value { get; }
 
-    public void Deconstruct(out int x, out int y) => throw null;
+    public void Deconstruct(out int x, out int y)
+    {
+        x = 1;
+        y = 2;
+    }
 }
 
 class Program
@@ -1866,11 +1863,7 @@ class Program
 
 static class Extensions
 {
-    public static void Deconstruct(this object o, out int x, out int y)
-    {
-        x = 1;
-        y = 2;
-    }
+    public static void Deconstruct(this object o, out int x, out int y) => throw null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
@@ -1911,16 +1904,19 @@ class Program
 
     static bool Test1(S1 u)
     {
+#line 100
         return u is var (_, i) && (int)i == 10;
     }   
 
     static bool Test2((S1, int) u)
     {
+#line 200
         return u is var ((_, i), _) && (int)i == 10;
     }   
 
     static bool Test3(C2 u)
     {
+#line 300
         return u is var (_, ((_, i), _, _)) && (int)i == 10;
     }   
 }
@@ -1950,7 +1946,26 @@ static class Extensions
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseFalseTrue FalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (100,25): error CS7036: There is no argument given that corresponds to the required parameter 'z' of 'Extensions.Deconstruct(object, out S1, out int, out int)'
+                //         return u is var (_, i) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(_, i)").WithArguments("z", "Extensions.Deconstruct(object, out S1, out int, out int)").WithLocation(100, 25),
+                // (100,25): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is var (_, i) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, i)").WithArguments("S1", "2").WithLocation(100, 25),
+                // (200,26): error CS7036: There is no argument given that corresponds to the required parameter 'z' of 'Extensions.Deconstruct(object, out S1, out int, out int)'
+                //         return u is var ((_, i), _) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(_, i)").WithArguments("z", "Extensions.Deconstruct(object, out S1, out int, out int)").WithLocation(200, 26),
+                // (200,26): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is var ((_, i), _) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, i)").WithArguments("S1", "2").WithLocation(200, 26),
+                // (300,30): error CS7036: There is no argument given that corresponds to the required parameter 'z' of 'Extensions.Deconstruct(object, out S1, out int, out int)'
+                //         return u is var (_, ((_, i), _, _)) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(_, i)").WithArguments("z", "Extensions.Deconstruct(object, out S1, out int, out int)").WithLocation(300, 30),
+                // (300,30): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is var (_, ((_, i), _, _)) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, i)").WithArguments("S1", "2").WithLocation(300, 30)
+                );
         }
 
         [Fact]
@@ -1990,16 +2005,19 @@ class Program
 
     static bool Test1(S1? u)
     {
+#line 100
         return u is var (_, i) && (int)i == 10;
     }   
 
     static bool Test2((S1?, int) u)
     {
+#line 200
         return u is var ((_, i), _) && (int)i == 10;
     }   
 
     static bool Test3(C2 u)
     {
+#line 300
         return u is var (_, ((_, i), _, _)) && (int)i == 10;
     }   
 }
@@ -2029,7 +2047,26 @@ static class Extensions
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseFalseTrueFalse FalseFalseTrueFalse FalseFalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (100,25): error CS7036: There is no argument given that corresponds to the required parameter 'z' of 'Extensions.Deconstruct(object, out S1?, out int, out int)'
+                //         return u is var (_, i) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(_, i)").WithArguments("z", "Extensions.Deconstruct(object, out S1?, out int, out int)").WithLocation(100, 25),
+                // (100,25): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is var (_, i) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, i)").WithArguments("S1", "2").WithLocation(100, 25),
+                // (200,26): error CS7036: There is no argument given that corresponds to the required parameter 'z' of 'Extensions.Deconstruct(object, out S1?, out int, out int)'
+                //         return u is var ((_, i), _) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(_, i)").WithArguments("z", "Extensions.Deconstruct(object, out S1?, out int, out int)").WithLocation(200, 26),
+                // (200,26): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is var ((_, i), _) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, i)").WithArguments("S1", "2").WithLocation(200, 26),
+                // (300,30): error CS7036: There is no argument given that corresponds to the required parameter 'z' of 'Extensions.Deconstruct(object, out S1?, out int, out int)'
+                //         return u is var (_, ((_, i), _, _)) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(_, i)").WithArguments("z", "Extensions.Deconstruct(object, out S1?, out int, out int)").WithLocation(300, 30),
+                // (300,30): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is var (_, ((_, i), _, _)) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, i)").WithArguments("S1", "2").WithLocation(300, 30)
+                );
         }
 
         [Fact]
@@ -2066,16 +2103,19 @@ class Program
 
     static bool Test1(S1 u)
     {
+#line 100
         return u is var (_, i) && (int)i == 10;
     }   
 
     static bool Test2((S1, int) u)
     {
+#line 200
         return u is var ((_, i), _) && (int)i == 10;
     }   
 
     static bool Test3(C2 u)
     {
+#line 300
         return u is var (_, ((_, i), _, _)) && (int)i == 10;
     }   
 }
@@ -2105,7 +2145,64 @@ static class Extensions
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueFalse FalseTrueFalse FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (100,25): error CS7036: There is no argument given that corresponds to the required parameter 'z' of 'Extensions.Deconstruct(object, out S1, out int, out int)'
+                //         return u is var (_, i) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(_, i)").WithArguments("z", "Extensions.Deconstruct(object, out S1, out int, out int)").WithLocation(100, 25),
+                // (100,25): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is var (_, i) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, i)").WithArguments("S1", "2").WithLocation(100, 25),
+                // (200,26): error CS7036: There is no argument given that corresponds to the required parameter 'z' of 'Extensions.Deconstruct(object, out S1, out int, out int)'
+                //         return u is var ((_, i), _) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(_, i)").WithArguments("z", "Extensions.Deconstruct(object, out S1, out int, out int)").WithLocation(200, 26),
+                // (200,26): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is var ((_, i), _) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, i)").WithArguments("S1", "2").WithLocation(200, 26),
+                // (300,30): error CS7036: There is no argument given that corresponds to the required parameter 'z' of 'Extensions.Deconstruct(object, out S1, out int, out int)'
+                //         return u is var (_, ((_, i), _, _)) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(_, i)").WithArguments("z", "Extensions.Deconstruct(object, out S1, out int, out int)").WithLocation(300, 30),
+                // (300,30): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         return u is var (_, ((_, i), _, _)) && (int)i == 10;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, i)").WithArguments("S1", "2").WithLocation(300, 30)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_04_Var_ITuple_04()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1 : System.Runtime.CompilerServices.ITuple
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C x) { _value = x; }
+    public object Value => _value;
+
+    int System.Runtime.CompilerServices.ITuple.Length => 1;
+    object System.Runtime.CompilerServices.ITuple.this[int i] => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(new S1(11)));
+        System.Console.Write(Test1(new S1(new C())));
+        System.Console.Write(Test1(null));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is var (i) && i is 10;
+    }   
+}
+
+public class C;
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5660,6 +5757,8 @@ struct S1
     public S1(int[] x) { _value = x; }
     public S1(string[] x) { _value = x; }
     public object Value => _value;
+
+    public int Length => 0;
 }
 
 class Program
@@ -5676,24 +5775,16 @@ class Program
         return u is [10];
     }   
 }
-
-static class Extensions
-{
-    extension(object o)
-    {
-        public int Length => 0;
-    }
-}
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
-                // (14,21): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                // (14,21): error CS0021: Cannot apply indexing with [] to an expression of type 'S1'
                 //         return u is [10];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("object").WithLocation(14, 21),
-                // (19,21): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("S1").WithLocation(14, 21),
+                // (19,21): error CS0021: Cannot apply indexing with [] to an expression of type 'S1'
                 //         return u is [10];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("object").WithLocation(19, 21)
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("S1").WithLocation(19, 21)
                 );
         }
 
@@ -5708,6 +5799,9 @@ struct S1
     public S1(int[] x) { _value = x; }
     public S1(string[] x) { _value = x; }
     public object Value => _value;
+
+    public int Length => 1;
+    public int this[System.Index i] => 10;
 }
 
 class Program
@@ -5727,6 +5821,7 @@ class Program
         s1 = default;
         System.Console.Write(Test1(s1));
         System.Console.Write(Test2(s1));
+        System.Console.Write(Test2(null));
     }
 
     static bool Test1(S1 u)
@@ -5739,85 +5834,64 @@ class Program
         return u is [10];
     }
 }
-
-static class Extensions
-{
-    extension(object o)
-    {
-        public int Length => 1;
-        public int this[System.Index i] => 10;
-    }
-}
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueTrue TrueTrue FalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueTrue TrueTrue TrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", """
 {
-  // Code size       46 (0x2e)
+  // Code size       37 (0x25)
   .maxstack  3
-  .locals init (object V_0,
-                bool V_1)
+  .locals init (bool V_0)
   IL_0000:  nop
   IL_0001:  ldarga.s   V_0
-  IL_0003:  call       "object S1.Value.get"
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  brfalse.s  IL_0028
-  IL_000c:  ldloc.0
-  IL_000d:  call       "int Extensions.get_Length(object)"
-  IL_0012:  ldc.i4.1
-  IL_0013:  bne.un.s   IL_0028
-  IL_0015:  ldloc.0
-  IL_0016:  ldc.i4.0
-  IL_0017:  ldc.i4.0
-  IL_0018:  newobj     "System.Index..ctor(int, bool)"
-  IL_001d:  call       "int Extensions.get_Item(object, System.Index)"
-  IL_0022:  ldc.i4.s   10
-  IL_0024:  ceq
-  IL_0026:  br.s       IL_0029
-  IL_0028:  ldc.i4.0
-  IL_0029:  stloc.1
-  IL_002a:  br.s       IL_002c
-  IL_002c:  ldloc.1
-  IL_002d:  ret
+  IL_0003:  call       "int S1.Length.get"
+  IL_0008:  ldc.i4.1
+  IL_0009:  bne.un.s   IL_001f
+  IL_000b:  ldarga.s   V_0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  newobj     "System.Index..ctor(int, bool)"
+  IL_0014:  call       "int S1.this[System.Index].get"
+  IL_0019:  ldc.i4.s   10
+  IL_001b:  ceq
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.0
+  IL_0021:  br.s       IL_0023
+  IL_0023:  ldloc.0
+  IL_0024:  ret
 }
 """);
             verifier.VerifyIL("Program.Test2", """
 {
-  // Code size       63 (0x3f)
+  // Code size       54 (0x36)
   .maxstack  3
   .locals init (S1 V_0,
-                object V_1,
-                bool V_2)
+                bool V_1)
   IL_0000:  nop
   IL_0001:  ldarga.s   V_0
   IL_0003:  call       "readonly bool S1?.HasValue.get"
-  IL_0008:  brfalse.s  IL_0039
+  IL_0008:  brfalse.s  IL_0030
   IL_000a:  ldarga.s   V_0
   IL_000c:  call       "readonly S1 S1?.GetValueOrDefault()"
   IL_0011:  stloc.0
   IL_0012:  ldloca.s   V_0
-  IL_0014:  call       "object S1.Value.get"
-  IL_0019:  stloc.1
-  IL_001a:  ldloc.1
-  IL_001b:  brfalse.s  IL_0039
-  IL_001d:  ldloc.1
-  IL_001e:  call       "int Extensions.get_Length(object)"
-  IL_0023:  ldc.i4.1
-  IL_0024:  bne.un.s   IL_0039
-  IL_0026:  ldloc.1
-  IL_0027:  ldc.i4.0
-  IL_0028:  ldc.i4.0
-  IL_0029:  newobj     "System.Index..ctor(int, bool)"
-  IL_002e:  call       "int Extensions.get_Item(object, System.Index)"
-  IL_0033:  ldc.i4.s   10
-  IL_0035:  ceq
-  IL_0037:  br.s       IL_003a
-  IL_0039:  ldc.i4.0
-  IL_003a:  stloc.2
-  IL_003b:  br.s       IL_003d
-  IL_003d:  ldloc.2
-  IL_003e:  ret
+  IL_0014:  call       "int S1.Length.get"
+  IL_0019:  ldc.i4.1
+  IL_001a:  bne.un.s   IL_0030
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldc.i4.0
+  IL_001f:  ldc.i4.0
+  IL_0020:  newobj     "System.Index..ctor(int, bool)"
+  IL_0025:  call       "int S1.this[System.Index].get"
+  IL_002a:  ldc.i4.s   10
+  IL_002c:  ceq
+  IL_002e:  br.s       IL_0031
+  IL_0030:  ldc.i4.0
+  IL_0031:  stloc.1
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldloc.1
+  IL_0035:  ret
 }
 """);
         }
@@ -8825,33 +8899,33 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (1100,18): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
+                // (1100,18): error CS8985: List patterns may not be used for a value of type 'S1'. No suitable 'Length' or 'Count' property was found.
                 //         _ = u is [] and C2;
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("object").WithLocation(1100, 18),
-                // (1100,18): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("S1").WithLocation(1100, 18),
+                // (1100,18): error CS0021: Cannot apply indexing with [] to an expression of type 'S1'
                 //         _ = u is [] and C2;
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("object").WithLocation(1100, 18),
-                // (1101,18): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("S1").WithLocation(1100, 18),
+                // (1101,18): error CS8985: List patterns may not be used for a value of type 'S1'. No suitable 'Length' or 'Count' property was found.
                 //         _ = u is [] and C4;
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("object").WithLocation(1101, 18),
-                // (1101,18): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("S1").WithLocation(1101, 18),
+                // (1101,18): error CS0021: Cannot apply indexing with [] to an expression of type 'S1'
                 //         _ = u is [] and C4;
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("object").WithLocation(1101, 18),
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("S1").WithLocation(1101, 18),
                 // (1101,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is [] and C4;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(1101, 25),
-                // (2100,18): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
+                // (2100,18): error CS8985: List patterns may not be used for a value of type 'S1'. No suitable 'Length' or 'Count' property was found.
                 //         _ = u is [] and C2;
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("object").WithLocation(2100, 18),
-                // (2100,18): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("S1").WithLocation(2100, 18),
+                // (2100,18): error CS0021: Cannot apply indexing with [] to an expression of type 'S1'
                 //         _ = u is [] and C2;
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("object").WithLocation(2100, 18),
-                // (2101,18): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("S1").WithLocation(2100, 18),
+                // (2101,18): error CS8985: List patterns may not be used for a value of type 'S1'. No suitable 'Length' or 'Count' property was found.
                 //         _ = u is [] and C4;
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("object").WithLocation(2101, 18),
-                // (2101,18): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[]").WithArguments("S1").WithLocation(2101, 18),
+                // (2101,18): error CS0021: Cannot apply indexing with [] to an expression of type 'S1'
                 //         _ = u is [] and C4;
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("object").WithLocation(2101, 18),
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[]").WithArguments("S1").WithLocation(2101, 18),
                 // (2101,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is [] and C4;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(2101, 25)
@@ -8950,7 +9024,17 @@ public class C : System.Runtime.CompilerServices.ITuple
 class D;
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (15,22): error CS1061: 'S1' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'S1' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = u is var (_, a) and D;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(_, a)").WithArguments("S1", "Deconstruct").WithLocation(15, 22),
+                // (15,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S1', with 2 out parameters and a void return type.
+                //         _ = u is var (_, a) and D;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, a)").WithArguments("S1", "2").WithLocation(15, 22),
+                // (15,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'D'.
+                //         _ = u is var (_, a) and D;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "D").WithArguments("S1", "D").WithLocation(15, 33)
+                );
         }
 
         [Fact]
@@ -58278,6 +58362,211 @@ class Program
                 // (700,48): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //             case C1 and I1 and { Value1: int } i1 when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(700, 48)
+                );
+        }
+
+        [Fact]
+        public void DeclarationPattern_01_UnionInstance_Only()
+        {
+            var src = @"
+class C0;
+
+[System.Runtime.CompilerServices.Union]
+class C1 : C0
+{
+    private readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C0 x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C1(new C1(1))));
+        System.Console.Write(Test1(new C1(new C0())));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { C1 x => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldc.i4.1
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0009
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}
+");
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeclarationPattern_02_UnionInstance_Only()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    private readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(string x) : C1(x);
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C1(""a"")));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(new C2(""a"")));
+        System.Console.Write(Test1(new C2(null)));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { C2 x => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""C2""
+  IL_0006:  brfalse.s  IL_000c
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000e
+  IL_000c:  ldc.i4.0
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  ret
+}
+");
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeclarationPattern_03_UnionInstance_And_Value()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(10)));
+        System.Console.Write(Test1(new C1(new C2(11))));
+        System.Console.Write(Test1(new C1(null)));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test1(new C3(10)));
+        System.Console.Write(Test1(new C3(new C2(11))));
+        System.Console.Write(Test1(new C3(null)));
+    }
+
+    static bool Test1(C1 u)
+    {
+        return u switch { I1 x => true, _ => false };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is I1 ? [1] : [2]
+[1]: t1 = (I1)t0; [7]
+[2]: t0 != null ? [3] : [9]
+[3]: t2 = t0.Value; [4]
+[4]: t2 != null ? [5] : [9]
+[5]: t2 is I1 ? [6] : [9]
+[6]: t3 = (I1)t2; [7]
+[7]: when <true> ? [8] : <unreachable>
+[8]: leaf <arm> `I1 x => true`
+[9]: leaf <arm> `_ => false`
+",
+forLowering: false);
+
+            comp.VerifyDiagnostics(
+                // (42,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         return u switch { I1 x => true, _ => false };
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
+                );
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (42,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         return u switch { I1 x => true, _ => false };
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
+                );
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (42,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u switch { I1 x => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1 x").WithArguments("unions").WithLocation(42, 27),
+                // (42,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         return u switch { I1 x => true, _ => false };
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
                 );
         }
     }

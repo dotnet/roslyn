@@ -20,12 +20,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ExclusiveInstancePattern is not null)
             {
+                switch (ExclusiveInstancePattern)
+                {
+                    case BoundTypePattern p1:
+                        Debug.Assert(p1.DeclaredType == (object)((BoundTypePattern)ExclusiveValuePattern).DeclaredType);
+                        break;
+                    case BoundDeclarationPattern p1:
+                        Debug.Assert(p1.DeclaredType == (object)((BoundDeclarationPattern)ExclusiveValuePattern).DeclaredType);
+                        break;
+                    default:
+                        throw ExceptionUtilities.Unreachable();
+                }
+
                 Debug.Assert(SharedRightOfPendingConjunction is not null || NarrowedType.Equals(ExclusiveInstancePattern.NarrowedType, TypeCompareKind.ConsiderEverything));
                 Debug.Assert(ExclusiveInstancePattern.InputType == (object)UnionMatchingInputType);
             }
         }
 
-        public BoundPatternWithUnionMatching(SyntaxNode syntax, TypeSymbol unionType, BoundTypePattern? exclusiveInstancePattern, BoundPropertySubpatternMember valueProperty, BoundPattern exclusiveValuePattern, BoundPattern? sharedRightOfPendingConjunction, TypeSymbol inputType)
+        public BoundPatternWithUnionMatching(SyntaxNode syntax, TypeSymbol unionType, BoundPattern? exclusiveInstancePattern, BoundPropertySubpatternMember valueProperty, BoundPattern exclusiveValuePattern, BoundPattern? sharedRightOfPendingConjunction, TypeSymbol inputType)
             : this(syntax, unionType, leftOfPendingConjunction: null,
                    exclusiveInstancePattern: exclusiveInstancePattern,
                    valueProperty: valueProperty,
@@ -36,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public BoundPatternWithUnionMatching(SyntaxNode syntax, TypeSymbol unionType, BoundPattern? leftOfPendingConjunction, BoundTypePattern? exclusiveInstancePattern, BoundPropertySubpatternMember valueProperty, BoundPattern exclusiveValuePattern, BoundPattern? sharedRightOfPendingConjunction, TypeSymbol inputType)
+        public BoundPatternWithUnionMatching(SyntaxNode syntax, TypeSymbol unionType, BoundPattern? leftOfPendingConjunction, BoundPattern? exclusiveInstancePattern, BoundPropertySubpatternMember valueProperty, BoundPattern exclusiveValuePattern, BoundPattern? sharedRightOfPendingConjunction, TypeSymbol inputType)
             : this(syntax, unionType, leftOfPendingConjunction: leftOfPendingConjunction,
                    exclusiveInstancePattern: exclusiveInstancePattern,
                    valueProperty: valueProperty,
