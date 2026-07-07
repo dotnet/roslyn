@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1295,7 +1295,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """");
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestStringWithNewLine()
         => VerifyRefactoringAsync("""
             public class C
@@ -1366,7 +1366,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """");
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestStringWithNewLineAtStartAndEnd()
         => VerifyRefactoringAsync("""
             public class C
@@ -1466,7 +1466,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """", index: 1);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIndentedString()
         => VerifyRefactoringAsync("""
             public class C
@@ -1516,7 +1516,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """", index: 1);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIndentedStringTopLevel()
         => VerifyRefactoringAsync("""
             var v = [||]$"goo\r\nbar";
@@ -1566,7 +1566,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """");
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIndentedStringOnOwnLine()
         => VerifyRefactoringAsync("""
             public class C
