@@ -532,6 +532,11 @@
         <target state="translated">Der Schnittstellenmember "{1}" wird von "{0}" nicht implementiert. "{1}" kann von "{2}" nicht implementiert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="new">'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
         <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
         <target state="translated">„{0}“: Ein geschlossener Typ „{1}“ aus einer anderen Assembly kann nicht als Basistyp verwendet werden.</target>

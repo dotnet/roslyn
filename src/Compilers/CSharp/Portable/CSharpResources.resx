@@ -8363,6 +8363,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ClosedExplicitlyAbstract" xml:space="preserve">
     <value>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</value>
   </data>
+  <data name="ERR_ClosedBadDerivedTypesProperty" xml:space="preserve">
+    <value>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</value>
+  </data>
   <data name="ERR_MissingUnionCaseTypes" xml:space="preserve">
     <value>A union type must have at least one union creation member.</value>
   </data>
