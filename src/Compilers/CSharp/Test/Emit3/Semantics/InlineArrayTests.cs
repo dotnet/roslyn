@@ -24470,5 +24470,228 @@ public struct S { public byte F; }
             var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
         }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        public void NullCheck_Slice_FullRange()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+ref S s = ref Unsafe.NullRef<S>();
+try
+{
+    Span<byte> span = s[..];
+    Console.WriteLine("ERROR: Should have thrown NullReferenceException");
+}
+catch (NullReferenceException)
+{
+    Console.WriteLine("PASS");
+}
+
+[InlineArray(10)]
+public struct S { public byte F; }
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        public void NullCheck_Slice_FullRange_ReadOnly()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+ref readonly S s = ref Unsafe.NullRef<S>();
+try
+{
+    ReadOnlySpan<byte> span = s[..];
+    Console.WriteLine("ERROR: Should have thrown NullReferenceException");
+}
+catch (NullReferenceException)
+{
+    Console.WriteLine("PASS");
+}
+
+[InlineArray(10)]
+public struct S { public byte F; }
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        public void NullCheck_Slice_FromStart()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+ref S s = ref Unsafe.NullRef<S>();
+try
+{
+    Span<byte> span = s[1..5];
+    Console.WriteLine("ERROR: Should have thrown NullReferenceException");
+}
+catch (NullReferenceException)
+{
+    Console.WriteLine("PASS");
+}
+
+[InlineArray(10)]
+public struct S { public byte F; }
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        public void NullCheck_Slice_FromStart_ReadOnly()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+ref readonly S s = ref Unsafe.NullRef<S>();
+try
+{
+    ReadOnlySpan<byte> span = s[1..5];
+    Console.WriteLine("ERROR: Should have thrown NullReferenceException");
+}
+catch (NullReferenceException)
+{
+    Console.WriteLine("PASS");
+}
+
+[InlineArray(10)]
+public struct S { public byte F; }
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        public void NullCheck_NonConstantIndex()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+ref S s = ref Unsafe.NullRef<S>();
+int index = 2;
+try
+{
+    ref byte e = ref s[index];
+    Console.WriteLine("ERROR: Should have thrown NullReferenceException");
+}
+catch (NullReferenceException)
+{
+    Console.WriteLine("PASS");
+}
+
+[InlineArray(10)]
+public struct S { public byte F; }
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        public void NullCheck_NonConstantIndex_ReadOnly()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+ref readonly S s = ref Unsafe.NullRef<S>();
+int index = 2;
+try
+{
+    ref readonly byte e = ref s[index];
+    Console.WriteLine("ERROR: Should have thrown NullReferenceException");
+}
+catch (NullReferenceException)
+{
+    Console.WriteLine("PASS");
+}
+
+[InlineArray(10)]
+public struct S { public byte F; }
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        public void NullCheck_ForEach()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+ref S s = ref Unsafe.NullRef<S>();
+try
+{
+    foreach (var item in s)
+    {
+        Console.WriteLine("ERROR: Should have thrown NullReferenceException");
+    }
+}
+catch (NullReferenceException)
+{
+    Console.WriteLine("PASS");
+}
+
+[InlineArray(10)]
+public struct S { public byte F; }
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84344")]
+        public void NullCheck_ForEach_ReadOnly()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+ref readonly S s = ref Unsafe.NullRef<S>();
+try
+{
+    foreach (var item in s)
+    {
+        Console.WriteLine("ERROR: Should have thrown NullReferenceException");
+    }
+}
+catch (NullReferenceException)
+{
+    Console.WriteLine("PASS");
+}
+
+[InlineArray(10)]
+public struct S { public byte F; }
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+        }
+
     }
 }
