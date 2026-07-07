@@ -22,6 +22,11 @@
         <target state="translated">Не удается создать сконструированный универсальный тип из неуниверсального типа.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractBaseRecordImplementation">
+        <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
+        <target state="translated">Элемент записи "{0}" должен быть объявлен явно, так как "{1}" является абстрактным.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
         <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
         <target state="translated">Определяемое пользователем преобразование в интерфейсе должно выполнять преобразование в параметр типа или из параметра типа для включающего типа, ограниченного включающим типом</target>
@@ -527,6 +532,11 @@
         <target state="translated">"{0}" не реализует элемент интерфейса "{1}". "{2}" не может реализовывать "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="new">'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
         <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
         <target state="translated">"{0}": невозможно использовать закрытый тип "{1}" из другой сборки в качестве базового типа.</target>
@@ -832,6 +842,11 @@
         <target state="translated">Явное применение атрибута "System.Runtime.CompilerServices.NullableAttribute" не допускается.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
+        <target state="translated">Поле в типе с явной или расширенной структурой должно быть помечено как "unsafe" или "safe".</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">Не используйте System.ParamArrayAttribute/System.Runtime.CompilerServices.ParamCollectionAttribute. Используйте ключевое слово "params".</target>
@@ -883,8 +898,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">Дерево выражений не может содержать доступ к свойству расширения</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="translated">Дерево выражений не может содержать доступ к индексатору или свойству расширения</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1518,14 +1533,24 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
-        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="translated">Тип поставщика элемента объединения должен содержать свойство общедоступного экземпляра "Value" типа "object?" или "object". У свойства должен быть метод доступа get.</target>
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="translated">Тип поставщика участника объединения должен иметь свойство экземпляра "Value" типа "object?" или "object". Свойство должно иметь открытый метод доступа get.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">"{0}" не содержит определение для "{1}", не найден доступный метод расширения "{1}", принимающий первый аргумент типа "{0}" (возможно, нужно было выполнить итерацию для синхронной коллекции с помощью "await foreach"?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="translated">Нет охватывающего цикла или оператора переключения с меткой "{0}", из которого можно выполнить останов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="translated">Нет охватывающего цикла с меткой "{0}", из которого можно продолжить</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
@@ -2493,8 +2518,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</source>
-        <target state="translated">Модификатор "safe" можно использовать только для элементов "extern", не помеченных как "unsafe".</target>
+        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
+        <target state="translated">Модификатор "safe" можно использовать только для членов, которые не помечены как "unsafe" и либо являются "extern", либо являются полями в типах с явной или расширенной структурой.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
@@ -2838,8 +2863,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="translated">Метод "{0}" использует функцию, для которой в настоящее время не поддерживается асинхронное выполнение в среде выполнения. Отключите асинхронное выполнение этого метода в среде выполнения, добавив атрибут "System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)".</target>
+        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="translated">Метод "{0}" использует функцию, для которой не поддерживается асинхронный запуск в среде выполнения. Отключите асинхронный запуск этого метода в среде выполнения, добавив атрибут "System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2901,6 +2926,11 @@
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Ожидался универсальный возвращаемый тип, схожий с задачей, но тип "{0}", обнаруженный в атрибуте "AsyncMethodBuilder", не подходит. Требуется неограниченный универсальный тип c арностью 1, а его содержащий тип (если есть) не должен быть универсальным</target>
         <note />
+      </trans-unit>
+      <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
+        <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
+        <target state="translated">"GetClosedDerivedTypeInfo()" можно вызвать, только если "IsClosed" имеет значение "true".</target>
+        <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
@@ -2997,6 +3027,11 @@
         <target state="translated">шаблоны расширенных свойств</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="translated">индексаторы расширений</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
         <target state="translated">расширения</target>
@@ -3060,6 +3095,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">элемент экземпляра в "nameof"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="translated">помеченный останов и продолжение</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract TypeSyntax TypeSyntax { get; }
 
-        protected abstract SyntaxTokenList ModifiersTokenList { get; }
+        internal abstract SyntaxTokenList ModifiersTokenList { get; }
 
         protected void TypeChecks(TypeSymbol type, BindingDiagnosticBag diagnostics)
         {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     ModifiersTokenList.GetModifierLocation(SyntaxKind.UnsafeKeyword, ErrorLocation),
@@ -190,22 +190,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
+            if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                if (ContainingModule.UseUpdatedMemorySafetyRules)
-                {
-                    return (Modifiers & DeclarationModifiers.Unsafe) != 0 &&
-                        AssociatedSymbol is null &&
-                        !IsConst
-                            ? CallerUnsafeMode.Explicit
-                            : CallerUnsafeMode.None;
-                }
-
-                return !IsFixedSizeBuffer && Type.ContainsPointerOrFunctionPointer()
-                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+                return HasUnsafeModifier &&
+                    AssociatedSymbol is null &&
+                    !IsConst
+                        ? CallerUnsafeMode.Explicit
+                        : CallerUnsafeMode.None;
             }
+
+            return !IsFixedSizeBuffer && GetFieldType(fieldsBeingBound).Type.ContainsPointerOrFunctionPointer()
+                ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
         }
 
         internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, bool isRefField, BindingDiagnosticBag diagnostics, out bool modifierErrors)
@@ -223,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Volatile |
                 DeclarationModifiers.Fixed |
                 DeclarationModifiers.Unsafe |
+                DeclarationModifiers.Safe |
                 DeclarationModifiers.Abstract |
                 DeclarationModifiers.Required; // Some of these are filtered out later, when illegal, for better error messages.
 
@@ -252,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Required, diagnostics, errorLocation);
 
                 result &= ~(DeclarationModifiers.Static | DeclarationModifiers.ReadOnly | DeclarationModifiers.Const | DeclarationModifiers.Volatile | DeclarationModifiers.Required);
-                Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.New)) == 0);
+                Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe | DeclarationModifiers.New)) == 0);
             }
 
             if ((result & DeclarationModifiers.Const) != 0)
@@ -428,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected sealed override SyntaxTokenList ModifiersTokenList
+        internal sealed override SyntaxTokenList ModifiersTokenList
         {
             get
             {

@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -95,7 +96,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             closed class C { }
             """;
 
-        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         verifier.VerifyTypeIL("C", """
@@ -103,7 +104,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 extends [System.Runtime]System.Object
             {
                 .custom instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::.ctor() = (
-                    01 00 00 00
+                    01 00 01 00 54 1d 50 0c 44 65 72 69 76 65 64 54
+                    79 70 65 73 00 00 00 00
                 )
                 // Methods
                 .method family hidebysig specialname rtspecialname 
@@ -133,6 +135,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
             var ctor = classC.Constructors.Single();
             // CompilerFeatureRequiredAttribute is filtered out
             Assert.Empty(ctor.GetAttributes());
+
+            if (module is PEModuleSymbol peModule)
+            {
+                var peType = (PENamedTypeSymbol)classC;
+                // Get attributes from metadata without doing any filtering
+                AssertEx.SetEqual([
+                        "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {})"
+                    ],
+                    GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+            }
         }
     }
 
@@ -148,7 +160,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         verifier.VerifyTypeIL("C", """
@@ -156,7 +168,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 extends [System.Runtime]System.Object
             {
                 .custom instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::.ctor() = (
-                    01 00 00 00
+                    01 00 01 00 54 1d 50 0c 44 65 72 69 76 65 64 54
+                    79 70 65 73 00 00 00 00
                 )
                 // Methods
                 .method public hidebysig specialname rtspecialname 
@@ -198,6 +211,888 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Assert.True(classC.IsClosed);
             // attribute is filtered out of source and metadata symbols.
             Assert.Empty(classC.GetAttributes());
+        }
+    }
+
+    private static readonly string s_reportHelper = """
+        using System.Runtime.CompilerServices;
+        using System.Linq;
+        using System;
+
+        public partial class Program
+        {
+            public static void Report(Type type)
+            {
+                var attr = (IsClosedTypeAttribute)type.GetCustomAttributes(typeof(IsClosedTypeAttribute), inherit: false).FirstOrDefault();
+                if (attr is null)
+                {
+                    Console.Write("<null> ");
+                    return;
+                }
+
+                Console.Write(attr.DerivedTypes.Length);
+                Console.Write(" ");
+                foreach (var derivedType in attr.DerivedTypes)
+                {
+                    Console.Write(derivedType.FullName);
+                    if (derivedType.IsConstructedGenericType)
+                        throw new Exception(); // unexpected
+
+                    if (derivedType.GetGenericArguments() is { Length: > 0 } args)
+                    {
+                        if (!derivedType.IsGenericTypeDefinition)
+                            throw new Exception(); // unexpected
+
+                        Console.Write("[");
+                        for (int i = 0; i < args.Length; i++)
+                        {
+                            if (i > 0)
+                            {
+                                Console.Write(",");
+                            }
+
+                            Console.Write(args[i].FullName ?? args[i].Name);
+                        }
+
+                        Console.Write("]");
+                    }
+                    Console.Write(" ");
+                }
+            }
+        }
+        """;
+
+    [Fact]
+    public void DerivedTypesMetadata_01()
+    {
+        // simple case
+        var source = """
+            Report(typeof(C));
+            Report(typeof(D1));
+
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+
+            class D3 : D1;
+            """;
+
+        var verifier = CompileAndVerify(
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper, CompilerFeatureRequiredAttribute],
+            symbolValidator: verifyMetadata,
+            expectedOutput: "2 D1 D2 <null>");
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.True(classC.IsClosed);
+            // attribute is filtered out of source and metadata symbols.
+            Assert.Empty(classC.GetAttributes());
+
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)classC;
+            // Get attributes from metadata without doing any filtering
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1), typeof(D2)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+
+            peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("D1");
+            AssertEx.Empty(GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_02()
+    {
+        // nested hierarchy
+        var source = """
+            Report(typeof(C));
+            Report(typeof(D1));
+            Report(typeof(D5));
+
+            closed class C;
+
+            closed class D1 : C;
+            class D2 : C;
+
+            class D3 : D1;
+            class D4 : D1;
+
+            class D5 : D4;
+            """;
+
+        var verifier = CompileAndVerify(
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper, CompilerFeatureRequiredAttribute],
+            symbolValidator: verifyMetadata,
+            expectedOutput: "2 D1 D2 2 D3 D4 <null>");
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1), typeof(D2)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+
+            peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("D1");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D3), typeof(D4)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_03()
+    {
+        // various generic subtypes
+        var source = """
+            Report(typeof(C<>));
+
+            closed class C<T>;
+
+            class D1 : C<string>;
+            class D2 : C<int>;
+            class D3<T> : C<T>;
+            class D4<T> : C<T*[]> where T : unmanaged;
+            class D5<T, U> : C<(T, U)>;
+            """;
+
+        var verifier = CompileAndVerify(
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper, CompilerFeatureRequiredAttribute],
+            symbolValidator: verifyMetadata,
+            expectedOutput: "5 D1 D2 D3`1[T] D4`1[T] D5`2[T,U]");
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1), typeof(D2), typeof(D3<>), typeof(D4<>), typeof(D5<,>)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_04()
+    {
+        // nested generic subtype
+        var source = """
+            Report(typeof(C<,>));
+            Report(typeof(C<int, string>));
+
+            closed class C<T, U>;
+
+            class Container<T>
+            {
+                internal class D1<U> : C<T, U>;
+                internal class D2 : C<T, string>;
+            }
+            """;
+
+        var verifier = CompileAndVerify(
+            [source, IsClosedTypeAttributeDefinition, s_reportHelper, CompilerFeatureRequiredAttribute],
+            symbolValidator: verifyMetadata,
+            expectedOutput: "2 Container`1+D1`1[T,U] Container`1+D2[T] 2 Container`1+D1`1[T,U] Container`1+D2[T]");
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(Container<>.D1<>), typeof(Container<>.D2)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_05()
+    {
+        // System.Type is missing
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.MakeTypeMissing(WellKnownType.System_Type);
+        comp.VerifyDiagnostics(
+            // (1,14): error CS9395: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14));
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_06()
+    {
+        // DerivedTypes property is missing
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute;
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute, CompilerFeatureRequiredAttribute]);
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifyMetadata);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_07()
+    {
+        // DerivedTypes only has getter
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes { get; }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (1,14): error CS9395: The property 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14));
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_08()
+    {
+        // DerivedTypes only has setter
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes { set { } }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (1,14): error CS9395: The property 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14));
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_09()
+    {
+        // DerivedTypes getter is internal.
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes { internal get; set; }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS9395: The property 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14));
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_10()
+    {
+        // DerivedTypes inaccessible setter
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes { get; private set; }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (1,14): error CS9395: The property 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14));
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_11()
+    {
+        // DerivedTypes wrong type
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public int[] DerivedTypes { get; set; }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (1,14): error CS9395: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14)
+            );
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_12()
+    {
+        // DerivedTypes property has parameters
+        var source1 = """
+            Namespace System.Runtime.CompilerServices
+                <System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple:=False, Inherited:=False)>
+                Public NotInheritable Class IsClosedTypeAttribute
+                    Inherits System.Attribute
+
+                    Private _derivedTypes As System.Type()
+
+                    Public Property DerivedTypes(Optional x As Integer = 0) As System.Type()
+                        Get
+                            Return _derivedTypes
+                        End Get
+                        Set(value As System.Type())
+                            _derivedTypes = value
+                        End Set
+                    End Property
+                End Class
+            End Namespace
+            """;
+
+        var source2 = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var comp = CreateCompilation([source2], references: [CreateVisualBasicCompilation(source1).EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (1,14): error CS9395: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14));
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_13()
+    {
+        // DerivedTypes argument from IL is missing a type
+        var ilSource = """
+      .class private auto ansi abstract beforefieldinit C
+          extends [mscorlib]System.Object
+      {
+          .custom instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::.ctor() = (
+              01 00 01 00 54 1d 50 0c 44 65 72 69 76 65 64 54 // ...DerivedT
+              79 70 65 73 01 00 00 00 02 44 31                // ypes...D1
+          )
+          // Methods
+          .method family hidebysig specialname rtspecialname 
+              instance void .ctor () cil managed 
+          {
+              .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+                  01 00 0d 43 6c 6f 73 65 64 43 6c 61 73 73 65 73
+                  00 00
+              )
+              // Method begins at RVA 0x2050
+              // Code size 7 (0x7)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: call instance void [mscorlib]System.Object::.ctor()
+              IL_0006: ret
+          } // end of method C::.ctor
+      } // end of class C
+
+      .class private auto ansi beforefieldinit D1
+          extends C
+      {
+          // Methods
+          .method public hidebysig specialname rtspecialname 
+              instance void .ctor () cil managed 
+          {
+              // Method begins at RVA 0x2058
+              // Code size 7 (0x7)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: call instance void C::.ctor()
+              IL_0006: ret
+          } // end of method D1::.ctor
+      } // end of class D1
+
+      .class private auto ansi beforefieldinit D2
+          extends C
+      {
+          // Methods
+          .method public hidebysig specialname rtspecialname 
+              instance void .ctor () cil managed 
+          {
+              // Method begins at RVA 0x2058
+              // Code size 7 (0x7)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: call instance void C::.ctor()
+              IL_0006: ret
+          } // end of method D2::.ctor
+      } // end of class D2
+
+      .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsClosedTypeAttribute
+          extends [mscorlib]System.Attribute
+      {
+          .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+              01 00 04 00 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+              4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+              72 69 74 65 64 00
+          )
+          // Fields
+          .field private class [mscorlib]System.Type[] '<DerivedTypes>k__BackingField'
+          .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+              01 00 00 00
+          )
+          // Methods
+          .method public hidebysig specialname 
+              instance class [mscorlib]System.Type[] get_DerivedTypes () cil managed 
+          {
+              .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                  01 00 00 00
+              )
+              // Method begins at RVA 0x2060
+              // Code size 7 (0x7)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: ldfld class [mscorlib]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::'<DerivedTypes>k__BackingField'
+              IL_0006: ret
+          } // end of method IsClosedTypeAttribute::get_DerivedTypes
+          .method public hidebysig specialname 
+              instance void set_DerivedTypes (
+                  class [mscorlib]System.Type[] 'value'
+              ) cil managed 
+          {
+              .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                  01 00 00 00
+              )
+              // Method begins at RVA 0x2068
+              // Code size 8 (0x8)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: ldarg.1
+              IL_0002: stfld class [mscorlib]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::'<DerivedTypes>k__BackingField'
+              IL_0007: ret
+          } // end of method IsClosedTypeAttribute::set_DerivedTypes
+          .method public hidebysig specialname rtspecialname 
+              instance void .ctor () cil managed 
+          {
+              // Method begins at RVA 0x2071
+              // Code size 7 (0x7)
+              .maxstack 8
+              IL_0000: ldarg.0
+              IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+              IL_0006: ret
+          } // end of method IsClosedTypeAttribute::.ctor
+          // Properties
+          .property instance class [mscorlib]System.Type[] DerivedTypes()
+          {
+              .get instance class [mscorlib]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::get_DerivedTypes()
+              .set instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::set_DerivedTypes(class [mscorlib]System.Type[])
+          }
+      } // end of class System.Runtime.CompilerServices.IsClosedTypeAttribute
+      """;
+
+        var comp = CreateCompilationWithIL("", ilSource, TargetFramework.Net100);
+
+        var peType = (PENamedTypeSymbol)comp.GetMember("C");
+        var peModule = peType.ContainingPEModule;
+        AssertEx.SetEqual([
+                "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1)})"
+            ],
+            GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+
+        AssertEx.SetEqual(["D1", "D2"], peType.CandidateClosedSubtypeDefinitions.ToTestDisplayStrings());
+        Assert.True(peType.TryGetClosedSubtypes(out var subtypes));
+        AssertEx.SetEqual(["D1", "D2"], subtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_14()
+    {
+        // DerivedTypes is a field, not a property
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes;
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify([source, isClosedTypeAttribute, CompilerFeatureRequiredAttribute], symbolValidator: verifyMetadata);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_15()
+    {
+        // DerivedTypes is a method, not a property
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes() => throw null;
+                    public Type[] DerivedTypes(bool ignored) => throw null;
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify([source, isClosedTypeAttribute, CompilerFeatureRequiredAttribute], symbolValidator: verifyMetadata);
+        verifier.VerifyDiagnostics();
+
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_16()
+    {
+        // DerivedTypes is static
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public static Type[] DerivedTypes { get; set; }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (1,14): error CS9395: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14)
+            );
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_17()
+    {
+        // DerivedTypes is ref-returning
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    private Type[] _derivedTypes = null;
+                    public ref Type[] DerivedTypes => ref _derivedTypes;
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (1,14): error CS9395: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14));
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_18()
+    {
+        // DerivedTypes has a 'CompilerFeatureRequiredAttribute' for an unsupported feature, resulting in a use-site error.
+        var il = """
+            .assembly extern System.Runtime { .ver 10:0:0:0 .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A) }
+
+            .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsClosedTypeAttribute
+                extends [System.Runtime]System.Attribute
+            {
+                .custom instance void [System.Runtime]System.AttributeUsageAttribute::.ctor(valuetype [System.Runtime]System.AttributeTargets) = (
+                    01 00 04 00 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+                    4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+                    72 69 74 65 64 00
+                )
+                // Fields
+                .field private class [System.Runtime]System.Type[] '<DerivedTypes>k__BackingField'
+                // Methods
+                .method public hidebysig specialname 
+                    instance class [System.Runtime]System.Type[] get_DerivedTypes () cil managed 
+                {
+                    IL_0000: ldarg.0
+                    IL_0001: ldfld class [System.Runtime]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::'<DerivedTypes>k__BackingField'
+                    IL_0006: ret
+                } // end of method IsClosedTypeAttribute::get_DerivedTypes
+                .method public hidebysig specialname 
+                    instance void set_DerivedTypes (
+                        class [System.Runtime]System.Type[] 'value'
+                    ) cil managed 
+                {
+                    IL_0000: ldarg.0
+                    IL_0001: ldarg.1
+                    IL_0002: stfld class [System.Runtime]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::'<DerivedTypes>k__BackingField'
+                    IL_0007: ret
+                } // end of method IsClosedTypeAttribute::set_DerivedTypes
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    IL_0000: ldarg.0
+                    IL_0001: call instance void [System.Runtime]System.Attribute::.ctor()
+                    IL_0006: ret
+                } // end of method IsClosedTypeAttribute::.ctor
+                // Properties
+                .property instance class [System.Runtime]System.Type[] DerivedTypes()
+                {
+                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+                        01 00 0b 4e 6f 6e 65 78 69 73 74 65 6e 74 00 00 // ...Nonexistent
+                    )
+                    .get instance class [System.Runtime]System.Type[] System.Runtime.CompilerServices.IsClosedTypeAttribute::get_DerivedTypes()
+                    .set instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::set_DerivedTypes(class [System.Runtime]System.Type[])
+                }
+            } // end of class System.Runtime.CompilerServices.IsClosedTypeAttribute
+            """;
+
+        var ilComp = CompileIL(il);
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var comp = CreateCompilation(source, references: [ilComp], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS9041: 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' requires compiler feature 'Nonexistent', which is not supported by this version of the C# compiler.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "C").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes", "Nonexistent").WithLocation(1, 14));
+    }
+
+    [Fact]
+    public void DerivedTypesMetadata_19()
+    {
+        // DerivedTypes property is internal.
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var isClosedTypeAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    internal Type[] DerivedTypes { get; set; }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source, isClosedTypeAttribute], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS9395: The property 'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.
+            // closed class C;
+            Diagnostic(ErrorCode.ERR_ClosedBadDerivedTypesProperty, "C").WithLocation(1, 14));
+    }
+
+    [Fact]
+    public void PublicAPI_01()
+    {
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols);
+        verifier.VerifyDiagnostics();
+
+        void verifySymbols(ModuleSymbol module)
+        {
+            ITypeSymbol classC = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetPublicSymbol();
+            Assert.True(classC.IsClosed);
+            // attribute is filtered out of source and metadata symbols.
+            Assert.Empty(classC.GetAttributes());
+
+            var derivedTypeInfo = classC.GetClosedDerivedTypeInfo(CancellationToken.None);
+            Assert.Equal(["D1", "D2"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
+            Assert.True(derivedTypeInfo.IsComplete);
+
+            var d1 = derivedTypeInfo.ClosedDerivedTypes[0];
+            Assert.False(d1.IsClosed);
+            Assert.Throws<InvalidOperationException>(() => d1.GetClosedDerivedTypeInfo(CancellationToken.None));
+
+            var source = new CancellationTokenSource();
+            source.Cancel();
+            Assert.Throws<OperationCanceledException>(() => classC.GetClosedDerivedTypeInfo(source.Token));
+        }
+    }
+
+    [Fact]
+    public void PublicAPI_02()
+    {
+        var source = """
+            closed class C<T>;
+
+            class D1<U1> : C<U1>;
+            class D2<U2> : C<U2[]>;
+            class D3 : C<string>;
+            """;
+
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        verify(comp);
+        verify(CreateCompilation([], references: [comp.ToMetadataReference()], targetFramework: TargetFramework.Net100));
+        verify(CreateCompilation([], references: [comp.EmitToImageReference()], targetFramework: TargetFramework.Net100));
+
+        void verify(CSharpCompilation comp)
+        {
+            var classC = comp.GetMember<NamedTypeSymbol>("C").GetPublicSymbol();
+            Assert.Equal("C<T>", classC.ToTestDisplayString());
+
+            var derivedTypeInfo = classC.GetClosedDerivedTypeInfo(CancellationToken.None);
+            Assert.False(derivedTypeInfo.IsComplete);
+            Assert.Equal(["D1<T>", "D3"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
+
+            var cOfIntArray = classC.Construct(comp.CreateArrayTypeSymbol(comp.GetSpecialType(SpecialType.System_Int32)));
+            Assert.Equal("C<System.Int32[]>", cOfIntArray.ToTestDisplayString());
+
+            derivedTypeInfo = cOfIntArray.GetClosedDerivedTypeInfo(CancellationToken.None);
+            Assert.True(derivedTypeInfo.IsComplete);
+            Assert.Equal(["D1<System.Int32[]>", "D2<System.Int32>"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
+
+            var cOfString = classC.Construct(comp.GetSpecialType(SpecialType.System_String));
+            Assert.Equal("C<System.String>", cOfString.ToTestDisplayString());
+            derivedTypeInfo = cOfString.GetClosedDerivedTypeInfo(CancellationToken.None);
+            Assert.True(derivedTypeInfo.IsComplete);
+            Assert.Equal(["D1<System.String>", "D3"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
         }
     }
 
@@ -599,11 +1494,22 @@ public sealed class ClosedClassesTests : CSharpTestBase
             public class D2<T> : C<T[]> { }
             public unsafe class D3<T> : C<T*[]> where T : unmanaged { }
             """;
-        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
-        comp1.VerifyEmitDiagnostics();
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute], options: TestOptions.UnsafeDebugDll);
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
         Assert.False(classC.TryGetClosedSubtypes(out _));
+
+        CompileAndVerify(comp1, symbolValidator: verifyMetadata).VerifyDiagnostics();
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            // Get attributes from metadata without doing any filtering
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1<>), typeof(D2<>), typeof(D3<>)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
     }
 
     [Fact]
@@ -636,12 +1542,23 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 public class D : C<U> { }
             }
             """;
-        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp1.VerifyEmitDiagnostics();
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute]);
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["Outer<T>.D"], subtypes.ToTestDisplayStrings());
+
+        CompileAndVerify(comp1, symbolValidator: verifyMetadata).VerifyDiagnostics();
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            // Get attributes from metadata without doing any filtering
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(Outer<>.D)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
     }
 
     [Fact]
@@ -675,12 +1592,23 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D : C { }
             class E<T> : D { }
             """;
-        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp1.VerifyEmitDiagnostics();
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute]);
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["D"], subtypes.ToTestDisplayStrings());
+
+        CompileAndVerify(comp1, symbolValidator: verifyMetadata).VerifyDiagnostics();
+        void verifyMetadata(ModuleSymbol module)
+        {
+            var peModule = (PEModuleSymbol)module;
+            var peType = (PENamedTypeSymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            // Get attributes from metadata without doing any filtering
+            AssertEx.SetEqual([
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D)})"
+                ],
+                GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+        }
     }
 
     [Fact]
@@ -950,7 +1878,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 public required string P { get; set; }
             }
             """;
-        var verifier = CompileAndVerify([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         verifyUse(verifier.Compilation.ToMetadataReference());
@@ -965,7 +1893,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // Get attributes from metadata without doing any filtering
             AssertEx.SetEqual([
                     "System.Runtime.CompilerServices.RequiredMemberAttribute",
-                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {})"
                 ],
                 GetAttributeStrings(peModule.GetCustomAttributesForToken(classC.Handle)));
             AssertEx.SetEqual([
@@ -1028,7 +1956,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         void verifyMetadataSymbols(ModuleSymbol module)
@@ -1039,7 +1967,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // Get attributes from metadata without doing any filtering
             AssertEx.SetEqual([
                     "System.Runtime.CompilerServices.RequiredMemberAttribute",
-                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {})"
                 ],
                 GetAttributeStrings(peModule.GetCustomAttributesForToken(classC.Handle)));
 
@@ -1067,7 +1995,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute], sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol module)
@@ -1076,6 +2004,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Assert.Equal("C", classC.ToTestDisplayString());
             Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
             Assert.Equal(["D1", "D2"], subtypes.ToTestDisplayStrings());
+
+            if (module is PEModuleSymbol peModule)
+            {
+                var peType = (PENamedTypeSymbol)classC;
+                // Get attributes from metadata without doing any filtering
+                AssertEx.SetEqual([
+                        "System.Runtime.CompilerServices.IsClosedTypeAttribute(DerivedTypes = {typeof(D1), typeof(D2)})"
+                    ],
+                    GetAttributeStrings(peModule.GetCustomAttributesForToken(peType.Handle)));
+            }
         }
     }
 
@@ -2564,7 +3502,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute]);
         comp.VerifyDiagnostics();
 
         VerifyDecisionDagDump<SwitchExpressionSyntax>(comp, """
@@ -2577,7 +3515,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """,
             forLowering: true);
 
-        var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+        var verifier = CompileAndVerify(comp);
         verifier.VerifyIL("Program.M", """
             {
               // Code size       30 (0x1e)
@@ -2627,9 +3565,19 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
             class D1 : C { }
             class D2 : C { }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class SwitchExpressionException : InvalidOperationException
+                {
+                    public SwitchExpressionException() {}
+                    public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+                    public object UnmatchedValue { get; }
+                }
+            }
             """;
 
-        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute]);
         comp.VerifyDiagnostics();
 
         VerifyDecisionDagDump<SwitchExpressionSyntax>(comp, """
@@ -2649,7 +3597,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """,
             forLowering: true);
 
-        var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+        var verifier = CompileAndVerify(comp);
         verifier.VerifyIL("Program.M", """
             {
               // Code size       41 (0x29)

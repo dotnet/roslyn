@@ -22,6 +22,11 @@
         <target state="translated">Nie można utworzyć konstruowanego typu ogólnego z typu nieogólnego.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractBaseRecordImplementation">
+        <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
+        <target state="translated">Element członkowski rekordu „{0}” musi być zadeklarowany jawnie, ponieważ element „{1}” jest abstrakcyjny.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
         <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
         <target state="translated">Konwersja zdefiniowana przez użytkownika w interfejsie musi być skonwertowana na lub z parametru typu w przypadku typu otaczającego ograniczonego do typu otaczającego</target>
@@ -527,6 +532,11 @@
         <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może implementować elementu „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="new">'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
         <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
         <target state="translated">„{0}”: nie można użyć typu zamkniętego „{1}” z innego zestawu jako typu podstawowego.</target>
@@ -832,6 +842,11 @@
         <target state="translated">Jawne stosowanie elementu „System.Runtime.CompilerServices.NullableAttribute” jest niedozwolone.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
+        <target state="translated">Pole w typie z układem jawnym lub rozszerzonym musi być oznaczone jako „unsafe” lub „safe”.</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">Nie używaj atrybutu „System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute”. Zamiast niego użyj słowa kluczowego „params”.</target>
@@ -883,8 +898,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">Drzewo wyrażeń może nie zawierać dostępu do właściwości rozszerzenia</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="translated">Drzewo wyrażeń nie może zawierać właściwości rozszerzenia ani dostępu indeksatora</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1518,14 +1533,24 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
-        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="translated">Typ dostawcy będący członkiem unii musi posiadać publiczną właściwość instancji o nazwie „Value” typu „object?” lub „object”. Właściwość musi posiadać metodę dostępową get.</target>
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="translated">Typ dostawcy składowej unii musi mieć właściwość „Value” wystąpienia typu „object?” lub „object”. Właściwość musi mieć publiczną metodę dostępu get.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">„{0}” nie zawiera definicji dla „{1}” i nie znaleziono dostępnej metody rozszerzenia „{1}”, która przyjmowałaby pierwszy argument typu „{0}” (czy chodziło Ci o iterację kolekcji asynchronicznej za pomocą polecenia „await foreach”?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="translated">Brak otaczającej pętli lub instrukcji switch z etykietą „{0}”, poza którą można dokonać przerwania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="translated">Brak otaczającej pętli z etykietą „{0}”, poza którą można kontynuować</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
@@ -2493,8 +2518,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</source>
-        <target state="translated">Modyfikator „safe” może być używany tylko w przypadku elementów „extern”, które nie są oznaczone jako „unsafe”.</target>
+        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
+        <target state="translated">Modyfikator „safe” można stosować tylko do składowych, które nie są oznaczone jako „unsafe” i są albo „extern”, albo przypominają pole w typach z układem jawnym lub rozszerzonym.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
@@ -2838,8 +2863,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="translated">Metoda „{0}” używa funkcji, która nie jest obecnie obsługiwana przez asynchroniczne środowisko uruchomieniowe. Wyłącz metodę z trybu asynchronicznego środowiska uruchomieniowego, przypisując jej atrybut „System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)”.</target>
+        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="translated">Metoda „{0}” używa funkcji, która nie jest obecnie obsługiwana przez asynchroniczne środowisko uruchomieniowe. Zrezygnuj z metody asynchronicznej w ramach środowiska uruchomieniowego, przypisując jej atrybut „System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2901,6 +2926,11 @@
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Oczekiwano zwracanego typu podobnego do zadania ogólnego, ale typ "{0}" znaleziony w atrybucie "AsyncMethodBuilder" był nieodpowiedni. Musi to być niepowiązany typ ogólny jednego argumentu, a zawarty w nim typ (jeśli występuje), nie może być ogólny.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
+        <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
+        <target state="translated">Polecenie „GetClosedDerivedTypeInfo()” może być wywoływane tylko wtedy, gdy właściwość „IsClosed” ma wartość „true”.</target>
+        <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
@@ -2997,6 +3027,11 @@
         <target state="translated">wzorce właściwości rozszerzonych</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="translated">indeksatory rozszerzeń</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
         <target state="translated">numery wewnętrzne</target>
@@ -3060,6 +3095,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">składowa wystąpienia w elemencie „nameof”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="translated">przerwanie oznaczone etykietą i kontynuowanie</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">

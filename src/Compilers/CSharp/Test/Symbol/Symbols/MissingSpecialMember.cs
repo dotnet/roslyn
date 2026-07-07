@@ -1062,6 +1062,7 @@ namespace System
                     case WellKnownMember.System_ReadOnlyMemory_T__Slice_Int:
                     case WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int:
                     case WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

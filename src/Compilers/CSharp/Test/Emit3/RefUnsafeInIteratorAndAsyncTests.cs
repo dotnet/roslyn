@@ -533,6 +533,165 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
         CompileAndVerify(source, expectedOutput: "0").VerifyDiagnostics();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83877")]
+    public void Await_RefStruct_OutVar_01()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            await new Test().M();
+
+            public class Test
+            {
+                public Task T() => Task.CompletedTask;
+
+                public async Task M()
+                {
+                    await T();
+
+                    if (!F(out var a) || !F(out var b))
+                    {
+                        return;
+                    }
+
+                    Console.Write(a.Value);
+                    Console.Write(b.Value);
+                }
+
+                private int number;
+
+                private bool F(out Ref<int> result)
+                {
+                    result = new Ref<int>(ref number);
+                    return true;
+                }
+            }
+
+            public ref struct Ref<T>
+            {
+                public ref T Value;
+
+                public Ref(ref T value)
+                {
+                    Value = ref value;
+                }
+            }
+            """;
+
+        var expectedOutput = IfSpans("00");
+
+        CompileAndVerify(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83877")]
+    public void Await_RefStruct_OutVar_02()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            await new Test().M();
+
+            public class Test
+            {
+                public Task T() => Task.CompletedTask;
+
+                public async Task M()
+                {
+                    await T();
+
+                    if (F(out var a) && F(out var b))
+                    {
+                        Console.Write(a.Value);
+                        Console.Write(b.Value);
+                    }
+                }
+
+                private int number;
+
+                private bool F(out Ref<int> result)
+                {
+                    result = new Ref<int>(ref number);
+                    return true;
+                }
+            }
+
+            public ref struct Ref<T>
+            {
+                public ref T Value;
+
+                public Ref(ref T value)
+                {
+                    Value = ref value;
+                }
+            }
+            """;
+
+        var expectedOutput = IfSpans("00");
+
+        CompileAndVerify(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83877")]
+    public void Await_RefStruct_OutVar_03()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            await new Test().M();
+
+            public class Test
+            {
+                public Task T() => Task.CompletedTask;
+
+                public async Task M()
+                {
+                    await T();
+
+                    if (!F(out var a))
+                    {
+                        return;
+                    }
+
+                    if (!F(out var b))
+                    {
+                        return;
+                    }
+
+                    Console.Write(a.Value);
+                    Console.Write(b.Value);
+                }
+
+                private int number;
+
+                private bool F(out Ref<int> result)
+                {
+                    result = new Ref<int>(ref number);
+                    return true;
+                }
+            }
+
+            public ref struct Ref<T>
+            {
+                public ref T Value;
+
+                public Ref(ref T value)
+                {
+                    Value = ref value;
+                }
+            }
+            """;
+
+        var expectedOutput = IfSpans("00");
+
+        CompileAndVerify(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
     [Fact]
     public void YieldReturn_RefLocal_Across()
     {

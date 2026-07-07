@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -41,5 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             => throw ExceptionUtilities.Unreachable();
+
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => UnderlyingMethod.GetCallerUnsafeMode(fieldsBeingBound);
     }
 }

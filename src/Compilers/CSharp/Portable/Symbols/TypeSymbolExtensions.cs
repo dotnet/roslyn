@@ -1917,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var name = @namespace.Name;
-            return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
+            return name.AsSpan().Equals(namespaceName.AsSpan(offset, length), comparison);
         }
 
         internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)

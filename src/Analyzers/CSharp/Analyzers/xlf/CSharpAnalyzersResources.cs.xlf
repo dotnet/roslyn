@@ -397,6 +397,11 @@
         <target state="translated">Použít kontrolu is object</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_labeled_jump_statement">
+        <source>Use labeled jump statement</source>
+        <target state="translated">Použít skokový příkaz s návěstím</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">Použít lokální funkci</target>

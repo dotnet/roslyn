@@ -12,6 +12,7 @@
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="System.Management" />
+    <PackageReference Include="Microsoft.Diagnostics.NETCore.Client" />
     <PackageReference Include="Mono.Options" />
     <PackageReference Include="Newtonsoft.Json" />
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />

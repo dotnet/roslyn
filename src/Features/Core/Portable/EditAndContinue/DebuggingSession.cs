@@ -517,6 +517,7 @@ internal sealed class DebuggingSession : IDisposable
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
+            EditSession.Log.Write($"Exception while analyzing document '{document.FilePath}': {e}");
             return [];
         }
     }

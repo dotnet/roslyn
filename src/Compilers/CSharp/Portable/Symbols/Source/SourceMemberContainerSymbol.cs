@@ -1945,7 +1945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsExtension)
             {
-                CheckExtensionMembers(this.GetMembers(), diagnostics);
+                CheckExtensionMembers(this.GetMembers(), compilation.LanguageVersion, diagnostics);
                 MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, compilation, location);
             }
 
@@ -1979,8 +1979,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsClosed)
             {
                 // Ensure necessary attributes are present
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, GetFirstLocation());
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
+                var isClosedTypeAttributeCtor = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, location);
+                _ = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, location);
+
+                // DerivedTypes property is optional but must have expected shape if present
+                var wellKnownDerivedTypesProperty = (PropertySymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes);
+                if (wellKnownDerivedTypesProperty is not null)
+                {
+                    Binder.ReportUseSite(wellKnownDerivedTypesProperty, diagnostics, location);
+
+                    if (wellKnownDerivedTypesProperty is not
+                        {
+                            GetMethod.DeclaredAccessibility: Accessibility.Public,
+                            SetMethod.DeclaredAccessibility: Accessibility.Public
+                        })
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
+                    }
+                }
+                else if (isClosedTypeAttributeCtor is not null)
+                {
+                    foreach (var derivedTypesSymbol in isClosedTypeAttributeCtor.ContainingType.GetMembers("DerivedTypes"))
+                    {
+                        if (derivedTypesSymbol.Kind == SymbolKind.Property)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
+                        }
+                    }
+                }
             }
 
             var baseType = BaseTypeNoUseSiteDiagnostics;
@@ -2082,7 +2108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsUnionType)
             {
-                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null) is null)
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null, ref discardedUseSiteInfo) is null)
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
                 }
@@ -2117,6 +2144,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected virtual void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
         {
+            foreach (var member in GetMembers())
+            {
+                member.AfterTypeMembersCompletedChecks(diagnostics);
+            }
         }
 
         private void CheckMemberNamesDistinctFromType(BindingDiagnosticBag diagnostics)
@@ -2434,7 +2465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (checkCollisionWithTypeParameters && typeParameterNames == null)
                         {
-                            if (!indexer.IsExtensionBlockMember() && indexer.ContainingType.Arity > 0)
+                            if (indexer.ContainingType.Arity > 0)
                             {
                                 typeParameterNames = PooledHashSet<string>.GetInstance();
                                 foreach (TypeParameterSymbol typeParameter in indexer.ContainingType.TypeParameters)
@@ -4782,25 +4813,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void CheckExtensionMembers(ImmutableArray<Symbol> members, BindingDiagnosticBag diagnostics)
+        private void CheckExtensionMembers(ImmutableArray<Symbol> members, LanguageVersion languageVersion, BindingDiagnosticBag diagnostics)
         {
             foreach (var member in members)
             {
-                checkExtensionMember(member, diagnostics);
+                checkExtensionMember(member, languageVersion, diagnostics);
             }
 
             return;
 
-            static void checkExtensionMember(Symbol member, BindingDiagnosticBag diagnostics)
+            void checkExtensionMember(Symbol member, LanguageVersion languageVersion, BindingDiagnosticBag diagnostics)
             {
-                if (!IsAllowedExtensionMember(member))
+                if (!IsAllowedExtensionMember(member, languageVersion))
                 {
-                    diagnostics.Add(ErrorCode.ERR_ExtensionDisallowsMember, member.GetFirstLocation());
+                    if (member is PropertySymbol property)
+                    {
+                        Debug.Assert(property.IsIndexer);
+                        MessageID.IDS_FeatureExtensionIndexers.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, member.GetFirstLocation());
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ExtensionDisallowsMember, member.GetFirstLocation());
+                    }
                 }
             }
         }
 
-        internal static bool IsAllowedExtensionMember(Symbol member)
+        internal static bool IsAllowedExtensionMember(Symbol member, LanguageVersion languageVersion)
         {
             switch (member.Kind)
             {
@@ -4827,11 +4866,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case SymbolKind.Property:
-                    if (!((PropertySymbol)member).IsIndexer)
+                    if (member is PropertySymbol { IsIndexer: true })
                     {
-                        return true;
+                        return MessageID.IDS_FeatureExtensionIndexers.RequiredVersion() <= languageVersion;
                     }
-                    break;
+
+                    return true;
 
                 case SymbolKind.Field:
                 case SymbolKind.Event:

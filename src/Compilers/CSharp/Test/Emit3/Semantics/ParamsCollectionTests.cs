@@ -13548,10 +13548,23 @@ class Program
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Params.Test(2, 3)").WithLocation(7, 9)
                 );
 
+            DiagnosticDescription[] expectedPreviewDiagnostics =
+            [
+                // (5,9): error CS9363: 'MyCollectionOfInt.MyCollectionOfInt(void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "Params.Test()").WithArguments("MyCollectionOfInt.MyCollectionOfInt(void*)").WithLocation(5, 9),
+                // (6,9): error CS9363: 'MyCollectionOfInt.MyCollectionOfInt(void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test(1);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "Params.Test(1)").WithArguments("MyCollectionOfInt.MyCollectionOfInt(void*)").WithLocation(6, 9),
+                // (7,9): error CS9363: 'MyCollectionOfInt.MyCollectionOfInt(void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test(2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "Params.Test(2, 3)").WithArguments("MyCollectionOfInt.MyCollectionOfInt(void*)").WithLocation(7, 9),
+            ];
+
             comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
-            comp4.VerifyEmitDiagnostics();
+            comp4.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
             comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
-            comp4.VerifyEmitDiagnostics();
+            comp4.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
 
             string source5 = """
 class Program
@@ -13654,10 +13667,23 @@ class Program
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "3").WithLocation(7, 24)
                 );
 
+            DiagnosticDescription[] expectedPreviewDiagnostics =
+            [
+                // (6,21): error CS9363: 'MyCollectionOfInt.Add(int, void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test(1);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "1").WithArguments("MyCollectionOfInt.Add(int, void*)").WithLocation(6, 21),
+                // (7,21): error CS9363: 'MyCollectionOfInt.Add(int, void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test(2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "2").WithArguments("MyCollectionOfInt.Add(int, void*)").WithLocation(7, 21),
+                // (7,24): error CS9363: 'MyCollectionOfInt.Add(int, void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test(2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "3").WithArguments("MyCollectionOfInt.Add(int, void*)").WithLocation(7, 24),
+            ];
+
             comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
-            comp4.VerifyEmitDiagnostics();
+            comp4.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
             comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
-            comp4.VerifyEmitDiagnostics();
+            comp4.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
 
             string source5 = """
 class Program
