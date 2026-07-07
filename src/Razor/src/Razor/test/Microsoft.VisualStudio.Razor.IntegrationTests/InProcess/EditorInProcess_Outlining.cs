@@ -68,8 +68,6 @@ internal partial class EditorInProcess
     {
         await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
         var outliningService = await TestServices.Shell.GetComponentModelServiceAsync<IOutliningManagerService>(cancellationToken);
-        var manager = outliningService.GetOutliningManager(textView);
-        Assumes.NotNull(manager);
-        return manager;
+        return outliningService.GetOutliningManager(textView);
     }
 }

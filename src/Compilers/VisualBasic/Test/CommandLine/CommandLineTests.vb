@@ -9733,7 +9733,7 @@ End Module
             result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
             AssertEx.Equal(
-                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName.Replace(".8", ".0")}' or one of its dependencies. The system cannot find the file specified.",
+                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
         End Sub
 
