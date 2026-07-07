@@ -6,6 +6,7 @@ extern alias MSBuildWorkspaces;
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -244,7 +245,8 @@ public sealed class RpcTests
         pipeClient.Connect();
         await pipeServerConnectionTask;
 
-        var server = new RpcServer(pipeServer);
+        var loggerOutput = new StringWriter();
+        var server = new RpcServer(pipeServer, new BuildHostLogger(loggerOutput));
         var serverRunTask = server.RunAsync();
 
         var rpcTarget = new ObjectWithRealAsyncMethod();
@@ -266,6 +268,9 @@ public sealed class RpcTests
 
             // Before the fix, the write failure here would crash RunAsync via Task.WhenAll.
             await serverRunTask;
+
+            // Confirm we actually hit the expected catch block, not some other path that happens not to crash.
+            Assert.Contains("Failed to write RPC response", loggerOutput.ToString());
         }
         finally
         {
