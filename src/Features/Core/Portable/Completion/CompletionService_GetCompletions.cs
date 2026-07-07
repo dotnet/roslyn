@@ -104,7 +104,20 @@ public abstract partial class CompletionService
         // that's all we'll return.
         var exclusiveContexts = triggeredContexts.WhereAsArray(t => t.IsExclusive);
         if (!exclusiveContexts.IsEmpty)
+        {
+            // Exclusive providers normally suppress every other item. However, an exclusive provider can opt
+            // into still allowing "expanded" items (e.g. unimported types) to be shown alongside its own items
+            // via CompletionContext.AllowExpandedItemsWhileExclusive (e.g. the cref completion provider). When
+            // every exclusive context opts in, also include the expand-item provider contexts and report the
+            // merged list as non-exclusive, so the editor's expanded-items pipeline isn't suppressed either.
+            if (exclusiveContexts.All(static t => t.AllowExpandedItemsWhileExclusive))
+            {
+                var expandedContexts = triggeredContexts.WhereAsArray(static t => t.Provider.IsExpandItemProvider);
+                return MergeAndPruneCompletionLists(exclusiveContexts.AddRange(expandedContexts), options, isExclusive: false);
+            }
+
             return MergeAndPruneCompletionLists(exclusiveContexts, options, isExclusive: true);
+        }
 
         // Great!  We had some items.  Now we want to see if any of the other providers 
         // would like to augment the completion list.  For example, we might trigger

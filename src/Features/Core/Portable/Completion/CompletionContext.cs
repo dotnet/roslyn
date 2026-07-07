@@ -99,6 +99,15 @@ public sealed class CompletionContext
     }
 
     /// <summary>
+    /// Set to true by an <see cref="IsExclusive"/> provider to indicate that, even though it takes over the
+    /// completion list, "expanded" items contributed by dedicated expand-item providers (e.g. unimported
+    /// type/import completion) should still be offered alongside its items. Has no effect unless the context is
+    /// also exclusive. This lets a provider such as the cref completion provider suppress unrelated regular
+    /// providers while still allowing unimported types to be suggested. See dotnet/roslyn#54742.
+    /// </summary>
+    internal bool AllowExpandedItemsWhileExclusive { get; set; }
+
+    /// <summary>
     /// The options that completion was started with.
     /// </summary>
     public OptionSet Options { get; }
