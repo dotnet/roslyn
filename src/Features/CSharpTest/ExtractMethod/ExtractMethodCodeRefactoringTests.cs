@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -114,6 +114,7 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 void M()
                 {
                     local();
+
                     {|Rename:NewMethod1|}();
 
                     Testing = 5;
@@ -1782,6 +1783,7 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 void M(CancellationToken ct)
                 {
                     var v = 0;
+
                     {|Rename:NewMethod|}(v, ct);
                 }
 
@@ -5520,6 +5522,7 @@ class Program
                 {
                     int a = 0;
                     int b = 0;
+
                     (a, b) = await {|Rename:NewMethod|}(a, b);
             
                     Console.Write(a);

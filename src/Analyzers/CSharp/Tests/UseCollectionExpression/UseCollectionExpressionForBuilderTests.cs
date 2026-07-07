@@ -1437,6 +1437,10 @@ public sealed partial class UseCollectionExpressionForBuilderTests
                     }
                 }
                 """ + s_arrayBuilderApi).ReplaceLineEndings(endOfLine),
+            EditorConfig = $"""
+                [*]
+                end_of_line = {(endOfLine == "\r\n" ? "crlf" : "lf")}
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             NumberOfFixAllIterations = 2,
