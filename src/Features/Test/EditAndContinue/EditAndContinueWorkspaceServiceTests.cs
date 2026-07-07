@@ -3139,6 +3139,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         //                                                               file watcher: workspace update
 
         var checksumAlg = SourceHashAlgorithms.Default;
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         var sjis = Encoding.GetEncoding("SJIS");
 
         var source0 = "class C1 { void こんにちは() { System.Console.WriteLine(0); } }";

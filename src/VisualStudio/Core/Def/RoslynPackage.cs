@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -45,6 +45,7 @@ internal sealed class RoslynPackage : AbstractPackage
     private ThreadSafeMenuCommandService? _menuCommandService;
     private RuleSetEventHandler? _ruleSetEventHandler;
     private SolutionEventMonitor? _solutionEventMonitor;
+    private PdbMatchingSourceTextProvider? _sourceTextProvider;
 
     internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
@@ -106,7 +107,6 @@ internal sealed class RoslynPackage : AbstractPackage
             _menuCommandService.AddCommand(Guids.StackTraceExplorerCommandId, 0x0102,
                 (s, e) => ComponentModel.GetService<StackTraceExplorerCommandHandler>().OnClear(s, e));
 
-            await RegisterEditorFactoryAsync(new SettingsEditorFactory(), cancellationToken).ConfigureAwait(true);
             await ProfferServiceBrokerServicesAsync(cancellationToken).ConfigureAwait(true);
         }
     }
@@ -122,11 +122,14 @@ internal sealed class RoslynPackage : AbstractPackage
 
         var hotReloadFactory = ComponentModel.GetService<ManagedHotReloadLanguageServiceFactory>();
         var solutionSnapshotProvider = ComponentModel.GetService<ISolutionSnapshotProvider>();
+        var hostWorkspaceProvider = ComponentModel.GetService<IHostWorkspaceProvider>();
+
+        _sourceTextProvider = new PdbMatchingSourceTextProvider(hostWorkspaceProvider.Workspace);
         serviceBrokerContainer.Proffer(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
             (_, _, serviceBroker, _) =>
             {
-                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider);
+                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider, _sourceTextProvider);
                 return ValueTask.FromResult<object?>(service);
             });
     }
@@ -182,6 +185,8 @@ internal sealed class RoslynPackage : AbstractPackage
 
         _solutionEventMonitor?.Dispose();
         _solutionEventMonitor = null;
+        _sourceTextProvider?.Dispose();
+        _sourceTextProvider = null;
 
         base.Dispose(disposing);
     }

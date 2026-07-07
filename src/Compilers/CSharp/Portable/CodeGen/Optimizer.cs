@@ -1079,6 +1079,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.Sequence:
+                    // The assignment should have been pushed inside the sequence during lowering,
+                    // so instead of `{...side-effects..., val} = something` we should get here with `{...side-effects..., (val = something)}`.
                     Debug.Assert(!IsIndirectAssignment(node.Update(((BoundSequence)node.Left).Value, node.Right, node.IsRef, node.Type)),
                         "indirect assignment to a sequence is unexpected");
                     return false;
@@ -1178,7 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     _counter += 1;
 
-                    if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                    if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: TypeParameterSymbol or NamedTypeSymbol { IsUnionType: true } } typeExpression)
                     {
                         receiver = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                             typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));
@@ -2319,7 +2321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     _nodeCounter++;
 
-                    if (receiverOpt is BoundTypeExpression { AliasOpt: null, BoundContainingTypeOpt: null, BoundDimensionsOpt: { IsEmpty: true }, Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                    if (receiverOpt is BoundTypeExpression { AliasOpt: null, BoundContainingTypeOpt: null, BoundDimensionsOpt: { IsEmpty: true }, Type: TypeParameterSymbol or NamedTypeSymbol { IsUnionType: true } } typeExpression)
                     {
                         receiverOpt = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                             typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));

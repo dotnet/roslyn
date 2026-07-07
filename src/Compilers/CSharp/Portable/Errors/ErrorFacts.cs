@@ -642,13 +642,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
                 or ErrorCode.ERR_RefLocalAcrossAwait
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
-                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_NonTaskMainCantBeAsync
                 or ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported
                 or ErrorCode.ERR_EncUpdateFailedMissingSymbol
                 or ErrorCode.ERR_EncNoPIAReference
                 or ErrorCode.ERR_EncReferenceToAddedMember
                 or ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
+                or ErrorCode.ERR_AbstractBaseRecordImplementation
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
@@ -2541,6 +2541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed
                 or ErrorCode.ERR_MemberNameSameAsExtendedType
                 or ErrorCode.ERR_FeatureNotAvailableInVersion14
+                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_ExtensionBlockCollision
                 or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
                 or ErrorCode.ERR_AttributeCannotBeAppliedManually
@@ -2588,6 +2589,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnsafeConstructorConstraint
                 or ErrorCode.WRN_UnsafeMeaningless
                 or ErrorCode.ERR_RequiresUnsafeAttributeInSource
+                or ErrorCode.ERR_ClosedTypeNameDisallowed
+                or ErrorCode.ERR_ClosedSealedStatic
+                or ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly
+                or ErrorCode.ERR_UnderspecifiedClosedSubtype
+                or ErrorCode.ERR_ClosedExplicitlyAbstract
+                or ErrorCode.ERR_MissingUnionCaseTypes
+                or ErrorCode.ERR_MissingUnionValueProperty
+                or ErrorCode.ERR_MemberProviderInUnionDeclaration
+                or ErrorCode.ERR_SafeModifierUnsupportedTarget
+                or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
+                or ErrorCode.ERR_PartialMemberSafeDifference
+                or ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe
+                or ErrorCode.ERR_NoBreakId
+                or ErrorCode.ERR_NoContinueId
+                or ErrorCode.ERR_ClosedBadDerivedTypesProperty
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

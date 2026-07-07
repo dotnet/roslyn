@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -424,8 +425,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             </Workspace>
             """));
 
-        await using var testLspServerOne = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);
-        await using var testLspServerTwo = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);
+        await using var testLspServerOne = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputHelper);
+        await using var testLspServerTwo = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputHelper);
 
         Assert.NotEqual(testLspServerOne.GetManager(), testLspServerTwo.GetManager());
 
@@ -491,9 +492,10 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         // This verifies that we will still see the lsp view of the document, even though it found out about a document
         // prior to a project system even telling it about a file, and even if the project system removes the file.
 
-        // Start with an empty workspace.
+        // Start with an empty workspace and composition with misc files provider.
+        var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
         await using var testLspServer = await CreateTestLspServerAsync(
-            [], mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+            [], mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition: composition);
 
         // Open the doc
         var filePath = TestHelpers.CreateAbsolutePath("\ue25b\ud86d\udeac.cs");

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => _syntax.AwaitKeyword != default;
 
         public ForEachLoopBinder(Binder enclosing, CommonForEachStatementSyntax syntax)
-            : base(enclosing)
+            : base(enclosing, syntax)
         {
             Debug.Assert(syntax != null);
             _syntax = syntax;
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!elementConversionClassification.IsValid)
             {
-                ImmutableArray<MethodSymbol> originalUserDefinedConversions = elementConversionClassification.OriginalUserDefinedConversions;
+                ImmutableArray<MethodSymbol> originalUserDefinedConversions = elementConversionClassification.OriginalUserDefinedOrUnionConversions;
                 if (originalUserDefinedConversions.Length > 1)
                 {
                     diagnostics.Add(ErrorCode.ERR_AmbigUDConv, foreachKeyword.GetLocation(), originalUserDefinedConversions[0], originalUserDefinedConversions[1], inferredType.Type, iterationVariableType);

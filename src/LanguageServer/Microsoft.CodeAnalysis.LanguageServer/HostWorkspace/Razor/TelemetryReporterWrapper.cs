@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 [Export(typeof(ILanguageServerTelemetryReporterWrapper))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class TelemetryReporterWrapper([Import(AllowDefault = true)] ITelemetryReporter? telemetryReporter) : ILanguageServerTelemetryReporterWrapper
+internal sealed class TelemetryReporterWrapper([Import(AllowDefault = true)] Lazy<ITelemetryReporter>? telemetryReporter) : ILanguageServerTelemetryReporterWrapper
 {
     public void ReportEvent(string name, List<KeyValuePair<string, object?>> properties)
     {
-        telemetryReporter?.Log(name, properties);
+        telemetryReporter?.Value.Log(name, properties);
     }
 }

@@ -523,6 +523,9 @@ public sealed class IDEDiagnosticIDConfigurationTests
             # IDE0391
             dotnet_diagnostic.IDE0391.severity = %value%
 
+            # IDE0410
+            dotnet_diagnostic.IDE0410.severity = %value%
+
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -850,7 +853,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0033", "dotnet_style_explicit_tuple_names", "true"),
             ("IDE0034", "csharp_prefer_simple_default_expression", "true"),
             ("IDE0035", null, null),
-            ("IDE0036", "csharp_preferred_modifier_order", "public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async"),
+            ("IDE0036", "csharp_preferred_modifier_order", "public,private,protected,internal,file,static,extern,new,virtual,abstract,closed,sealed,override,readonly,unsafe,required,volatile,async"),
             ("IDE0037", "dotnet_style_prefer_inferred_tuple_names", "true"),
             ("IDE0037", "dotnet_style_prefer_inferred_anonymous_type_member_names", "true"),
             ("IDE0038", "csharp_style_pattern_matching_over_is_with_cast_check", "true"),
@@ -942,6 +945,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0380", null, null),
             ("IDE0390", null, null),
             ("IDE0391", null, null),
+            ("IDE0410", "csharp_style_prefer_labeled_jump_statements", "true"),
             ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),

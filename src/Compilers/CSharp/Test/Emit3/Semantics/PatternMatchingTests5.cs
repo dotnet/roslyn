@@ -3077,12 +3077,12 @@ class N
             if (nullableEnable)
             {
                 comp.VerifyDiagnostics(
-                    // (12,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                    // (12,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
                     //         return this switch // 1
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(12, 21),
-                    // (27,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(12, 21),
+                    // (27,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
                     //         return this switch // 2
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(27, 21),
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(27, 21),
                     // (43,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
                     //         return this switch // 3
                     Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(43, 21),
@@ -5199,6 +5199,19 @@ class C
                 """;
             var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [9]
+[2]: t1 is string ? [3] : [4]
+[3]: leaf <arm> `string => 0`
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 3 ? [8] : [7]
+[7]: t2 == 5 ? [8] : [9]
+[8]: leaf <arm> `1 or 3 or 5 => 1`
+[9]: leaf <arm> `_ => 2`
+",
+forLowering: false);
             CompileAndVerify(comp, expectedOutput: "11120");
         }
 
@@ -5228,6 +5241,19 @@ class C
                 """;
             var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [9]
+[2]: t1 is string ? [3] : [4]
+[3]: leaf <arm> `string => 0`
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 3 ? [8] : [7]
+[7]: t2 == 5 ? [8] : [9]
+[8]: leaf <arm> `int and (1 or 3 or 5) => 1`
+[9]: leaf <arm> `_ => 2`
+",
+forLowering: false);
             CompileAndVerify(comp, expectedOutput: "11120");
         }
 

@@ -15,14 +15,14 @@ $ErrorActionPreference="Stop"
 $repoDir = Resolve-Path (Join-Path $PSScriptRoot "..")
 
 # Each entry is a hashtable with the project path and optional framework.
-# Comment out entries that are currently broken and file a tracking bug.
 $benchmarkProjects = @(
   @{ Project = "src/Tools/Benchmarks/Benchmarks.csproj" }
   @{ Project = "src/Razor/src/Compiler/perf/Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj"; Framework = "net10.0" }
   @{ Project = "src/Razor/src/Razor/benchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.csproj"; Framework = "net10.0" }
   @{ Project = "src/Razor/src/Compiler/perf/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj" }
 
-  # Currently broken, tracking bugs to be filed
+  # These projects are excluded because their current benchmark harnesses do not
+  # complete a Dry validation run in this script's execution model.
   # @{ Project = "src/Tools/IdeCoreBenchmarks/IdeCoreBenchmarks.csproj"; Framework = "net10.0" }
   # @{ Project = "src/Tools/IdeBenchmarks/IdeBenchmarks.csproj" }
 )
@@ -40,8 +40,11 @@ foreach ($entry in $benchmarkProjects) {
     "run"
     "--project", $projectPath
     "-c", $configuration
-    "--no-build"
   )
+
+  if ($ci) {
+    $args += "--disable-build-servers"
+  }
 
   if ($entry.ContainsKey("Framework")) {
     $args += "-f"

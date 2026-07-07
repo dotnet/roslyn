@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Xunit;
@@ -538,9 +538,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                Spacing = RazorSpacePlacement.AfterDot
+                Spacing = SpacePlacement.AfterDot
             });
     }
 
@@ -599,9 +599,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                Spacing = RazorSpacePlacement.AfterMethodCallName
+                Spacing = SpacePlacement.AfterMethodCallName
             });
     }
 
@@ -660,9 +660,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                Spacing = RazorSpacePlacement.AfterMethodCallName | RazorSpacePlacement.AfterMethodDeclarationName
+                Spacing = SpacePlacement.AfterMethodCallName | SpacePlacement.AfterMethodDeclarationName
             });
     }
 
@@ -717,9 +717,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.None
+                NewLines = default
             });
     }
 
@@ -773,9 +773,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.None
+                NewLines = default
             });
     }
 
@@ -810,9 +810,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
+                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
             });
     }
 
@@ -850,9 +850,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
+                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
             });
     }
 
@@ -890,9 +890,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
+                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
             });
     }
 
@@ -936,9 +936,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 }
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
+                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
             });
     }
 
@@ -972,9 +972,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.None
+                NewLines = default
             });
     }
 
@@ -1099,6 +1099,356 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    public async Task Section_Scripts_ThreeScriptTags()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                    <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                <script>
+                    var data = null;
+                    var allocationMoveTemplateFn = null;
+                    var allocationTableTemplateFn = null;
+                    var manufactureOrderInfoTemplateFn = null;
+                    var selectionsJsonTemplateFn = null;
+                
+                    function getAllocationMoveTemplate() {
+                        if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                        var sourceEl = document.getElementById('allocationMoveTemplate');
+                        if (!sourceEl || typeof Handlebars === 'undefined') {
+                            return null;
+                        }
+                
+                        allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                        return allocationMoveTemplateFn;
+                    }
+                
+                </script>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                    <script>
+                        var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                        var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    public async Task Section_Scripts_ThreeScriptTags_HtmlFormatterDoesNothing()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                    <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+                
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+                
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+                
+                </script>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                    <script>
+                        var data = null;
+                            var allocationMoveTemplateFn = null;
+                            var allocationTableTemplateFn = null;
+                                var manufactureOrderInfoTemplateFn = null;
+                            var selectionsJsonTemplateFn = null;
+                
+                            function getAllocationMoveTemplate() {
+                                if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                                var sourceEl = document.getElementById('allocationMoveTemplate');
+                                if (!sourceEl || typeof Handlebars === 'undefined') {
+                                    return null;
+                                }
+                
+                                allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                                return allocationMoveTemplateFn;
+                            }
+                
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: true);
+    }
+
+    [Fact]
+    public async Task Section_Scripts_ThreeScriptTags_Expanded()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                    </script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                </script>
+                    <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                </script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                </script>
+                <script>
+                    var data = null;
+                    var allocationMoveTemplateFn = null;
+                    var allocationTableTemplateFn = null;
+                    var manufactureOrderInfoTemplateFn = null;
+                    var selectionsJsonTemplateFn = null;
+                
+                    function getAllocationMoveTemplate() {
+                        if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                        var sourceEl = document.getElementById('allocationMoveTemplate');
+                        if (!sourceEl || typeof Handlebars === 'undefined') {
+                            return null;
+                        }
+                
+                        allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                        return allocationMoveTemplateFn;
+                    }
+                
+                </script>
+                ~
+                """,
+            expected: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                    </script>
+                    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                    </script>
+                    <script>
+                        var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                        var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+                
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+                
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+                
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    public async Task Section_Scripts_ThreeScriptTags_HtmlFormatterDoesNothing_Expanded()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                    </script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                </script>
+                    <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+
+                    </script>
+                """,
+            htmlFormatted: """
+                <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                </script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                </script>
+                <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+                
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+                
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+                
+                </script>
+                """,
+            expected: """
+                <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                </script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                </script>
+                <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+                
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+                
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+                
+                </script>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: true);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/10796")]
     public async Task Section_BraceOnNextLine_AtColumnZero()
     {
@@ -1177,6 +1527,85 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 }
                 """,
             inGlobalNamespace: inGlobalNamespace);
+    }
+
+    [Fact]
+    public async Task CodeBlock_TopLevel_WithMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                """,
+            htmlFormatted: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                """,
+            expected: """
+                @code
+                {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    public async Task CodeBlock_TopLevel_WithRazorMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            htmlFormatted: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            expected: """
+                @code
+                {
+                    private int currentCount = 0;
+                }
+
+                @if (currentCount > 0)
+                {
+                    <div>
+                        <p>Current count: @currentCount</p>
+                    </div>
+                }
+                """);
     }
 
     [Theory, CombinatorialData]
@@ -1678,6 +2107,50 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     {
                         currentCount++;
                     }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task FunctionsBlock_TopLevel_WithRazorMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @functions
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            htmlFormatted: """
+                @functions
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            expected: """
+                @functions
+                {
+                    private int currentCount = 0;
+                }
+
+                @if (currentCount > 0)
+                {
+                    <div>
+                        <p>Current count: @currentCount</p>
+                    </div>
                 }
                 """,
             fileKind: RazorFileKind.Legacy);
@@ -9475,6 +9948,68 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
+    public async Task Formats_IgnoresHtmlFormatterWrappingInMultilineRazorComment()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @* first
+                asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf *@
+
+                @code {
+                private int count;
+                }
+                """,
+            htmlFormatted: """
+                @* first
+                asdf asdf asdf asdf asdf asdf
+                asdf asdf asdf asdf asdf asdf *@
+
+                @code {
+                private int count;
+                }
+                """,
+            expected: """
+                @* first
+                asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf asdf *@
+
+                @code {
+                    private int count;
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
+    public async Task Formats_IgnoresHtmlFormatterChangesInSingleLineRazorComment()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @* first        second *@
+
+                @code {
+                private int count;
+                }
+                """,
+            htmlFormatted: """
+                @* first second *@
+
+                @code {
+                private int count;
+                }
+                """,
+            expected: """
+                @* first        second *@
+
+                @code {
+                    private int count;
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6192")]
     public async Task Formats_NoEditsForNoChanges()
     {
@@ -10033,11 +10568,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10119,11 +10654,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </PageTitle>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10202,11 +10737,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10285,11 +10820,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10368,11 +10903,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10457,11 +10992,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 ;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10522,11 +11057,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 ;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10656,6 +11191,751 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                         Foo();
+                         Bar();
+                     }) title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                     Foo();
+                     Bar();
+                     }) title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                    style=@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    }) title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                     Foo();
+                     Bar();
+                     }) title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                        style=@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        }) title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                     Foo();
+                     Bar();
+                     }) title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                     style="@(() =>
+                     {
+                         Foo();
+                         Bar();
+                     })" title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style="@(() =>
+                         {
+                             Foo();
+                             Bar();
+                         })" title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                    style="@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    })" title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                        style="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style="@(() =>
+                            {
+                                Foo();
+                                Bar();
+                            })" title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                                {
+                                    Foo();
+                                    Bar();
+                                }" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: $$"""
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                                    {
+                                        Foo();
+                                        Bar();
+                                    }" ImgSize=24 />
+                }
+
+                @code {
+                    private bool inChatMember = true;
+
+                    private void Foo()
+                    {
+                    }
+
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                    OnClick="() =>
+                    {
+                        Foo();
+                        Bar();
+                    }" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                        {
+                            Foo();
+                            Bar();
+                        }" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                        OnClick="() =>
+                        {
+                            Foo();
+                            Bar();
+                        }" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                            {
+                                Foo();
+                                Bar();
+                            }" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                    Foo();
+                                    Bar();
+                                }) ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                Foo();
+                                Bar();
+                                }) ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                    OnClick=@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    }) ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                Foo();
+                                Bar();
+                                }) ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                        OnClick=@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        }) ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                Foo();
+                                Bar();
+                                }) ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                                {
+                                    Foo();
+                                    Bar();
+                                })" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: $$"""
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                                    {
+                                        Foo();
+                                        Bar();
+                                    })" ImgSize=24 />
+                }
+
+                @code {
+                    private bool inChatMember = true;
+
+                    private void Foo()
+                    {
+                    }
+
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                    OnClick="@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    })" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                        OnClick="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                            {
+                                Foo();
+                                Bar();
+                            })" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
     }
 
     [Fact]
@@ -11649,6 +12929,34 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    public Task PreTag_SingleLine_DoesNotLeakIgnoreState()
+        => RunFormattingTestAsync(
+            input: """
+                <section>
+                    <pre>keep</pre>
+                <div>
+                <span>text</span>
+                </div>
+                </section>
+                """,
+            htmlFormatted: """
+                <section>
+                    <pre>keep</pre>
+                    <div>
+                        <span>text</span>
+                    </div>
+                </section>
+                """,
+            expected: """
+                <section>
+                    <pre>keep</pre>
+                    <div>
+                        <span>text</span>
+                    </div>
+                </section>
+                """);
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/11777")]
     public Task RangeFormat_AfterProperty()
         => RunFormattingTestAsync(
@@ -12634,9 +13942,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
+                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
             });
 
     [Fact]
@@ -12672,9 +13980,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
+                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
             });
 
     [Fact]
@@ -13116,11 +14424,25 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
     }
 
-    private static RazorCSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
-        => RazorCSharpSyntaxFormattingOptions.Default with
+    private (string fileName, string contents)[] GetCheckBoxButtonComponentFiles()
+        =>
+        [
+            (FilePath("CheckBoxButton.razor"), """
+                @using Microsoft.AspNetCore.Components
+
+                @code {
+                    [Parameter] public string? ImageContentSource { get; set; }
+                    [Parameter] public EventCallback OnClick { get; set; }
+                    [Parameter] public int ImgSize { get; set; }
+                }
+                """)
+        ];
+
+    private static CSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
+        => CSharpSyntaxFormattingOptions.Default with
         {
             NewLines = newLineBeforeBraceInLambda
-                ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
         };
 }

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
 
-                BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
+                BoundExpression left = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
                 ReportSuppressionIfNeeded(left, diagnostics);
                 BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
                 BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
@@ -922,8 +922,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (syntaxNodes.Count > 0)
             {
                 BinaryExpressionSyntax syntaxNode = syntaxNodes.Pop();
-                BindValueKind bindValueKind = GetBinaryAssignmentKind(syntaxNode.Kind());
-                BoundExpression left = CheckValue(result, bindValueKind, diagnostics);
+                Debug.Assert(IsSimpleBinaryOperator(syntaxNode.Kind()));
+                BoundExpression left = CheckValue(result, BindValueKind.RValue, diagnostics);
                 BoundExpression right = BindValue(syntaxNode.Right, diagnostics, BindValueKind.RValue);
                 BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right, leaveUnconvertedIfInterpolatedString: true);
                 result = boundOp;
@@ -4649,30 +4649,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BindValueKind GetBinaryAssignmentKind(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.SimpleAssignmentExpression:
-                    return BindValueKind.Assignable;
-                case SyntaxKind.AddAssignmentExpression:
-                case SyntaxKind.AndAssignmentExpression:
-                case SyntaxKind.DivideAssignmentExpression:
-                case SyntaxKind.ExclusiveOrAssignmentExpression:
-                case SyntaxKind.LeftShiftAssignmentExpression:
-                case SyntaxKind.ModuloAssignmentExpression:
-                case SyntaxKind.MultiplyAssignmentExpression:
-                case SyntaxKind.OrAssignmentExpression:
-                case SyntaxKind.RightShiftAssignmentExpression:
-                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
-                case SyntaxKind.SubtractAssignmentExpression:
-                case SyntaxKind.CoalesceAssignmentExpression:
-                    return BindValueKind.CompoundAssignment;
-                default:
-                    return BindValueKind.RValue;
-            }
-        }
-
         private static BindValueKind GetUnaryAssignmentKind(SyntaxKind kind)
         {
             switch (kind)
@@ -4898,7 +4874,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Therefore, the type isn't narrowed by this pattern and the following pattern, if any, will do union matching from scratch.
 
                         // Ensure that the null value can actually be also matched against the original input type, since we are matching it against the input value as well.
-                        BindExpressionForPatternContinued(originalExpression, unionType: null, inputType: unionMatchingInputType, patternExpression: node.Right, ref hasErrors, diagnostics, constantValueOpt: out _, patternExpressionConversion: out _);
+                        if (originalExpression.Type is not null && !originalExpression.Type.Equals(unionMatchingInputType.StrippedType(), TypeCompareKind.AllIgnoreOptions))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, node.Right.Location, unionMatchingInputType.StrippedType());
+                        }
 
                         boundConstantPattern = new BoundConstantPattern(
                             node.Right, convertedExpression, constantValueOpt, isUnionMatching: true, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors).MakeCompilerGenerated();
@@ -4931,8 +4910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (unionMatchingInputType is not null)
             {
                 bool hasErrors = CheckValidPatternType(node.Right, unionType, inputType, targetType, diagnostics: diagnostics);
-                // https://github.com/dotnet/roslyn/issues/82636: Add test coverage for isExplicitNotNullTest
-                var pattern = new BoundTypePattern(node, typeExpression, isExplicitNotNullTest: false, isUnionMatching: true, inputType: unionMatchingInputType, targetType, hasErrors);
+                var pattern = new BoundTypePattern(node, typeExpression, isExplicitNotNullTest: targetType.SpecialType == SpecialType.System_Object, isUnionMatching: true, inputType: unionMatchingInputType, targetType, hasErrors);
                 return MakeIsPatternExpression(node, operand, pattern.MakeCompilerGenerated(), hasUnionMatching: true, resultType, operandHasErrors, diagnostics);
             }
 
@@ -5846,7 +5824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
-            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
+            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.NullCoalescingAssignment);
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 

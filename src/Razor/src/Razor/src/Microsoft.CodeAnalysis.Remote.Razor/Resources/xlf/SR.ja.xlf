@@ -22,6 +22,11 @@
         <target state="translated">ジェネレーターの実行結果から取得したヒント名 '{0}' のソース生成ドキュメントを取得できませんでした。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_Component_FromTag_Title">
+        <source>Create component from tag</source>
+        <target state="translated">タグからコンポーネントを作成する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_does_not_belong_to_this_project">
         <source>Document does not belong to this project.</source>
         <target state="translated">ドキュメントはこのプロジェクトに属していません。</target>
@@ -30,6 +35,31 @@
       <trans-unit id="Document_is_not_a_Razor_document">
         <source>Document is not a Razor document.</source>
         <target state="translated">ドキュメントは Razor ドキュメントではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_CodeBehind_Title">
+        <source>Extract block to code behind</source>
+        <target state="translated">ブロック抽出から分離コード</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_Component_Title">
+        <source>Extract element to new component</source>
+        <target state="translated">要素を新しいコンポーネントに抽出する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_Css_Title">
+        <source>Extract to {0}.css</source>
+        <target state="translated">{0}.css に抽出する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Async_Event_Handler_Title">
+        <source>Generate Async Event Handler '{0}'</source>
+        <target state="translated">非同期イベント ハンドラー '{0}' の生成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Handler_Title">
+        <source>Generate Event Handler '{0}'</source>
+        <target state="translated">イベント ハンドラー '{0}' の生成</target>
         <note />
       </trans-unit>
       <trans-unit id="Generator_run_result_did_not_contain_a_code_document">
@@ -45,6 +75,11 @@
       <trans-unit id="Project_does_not_contain_any_Razor_documents">
         <source>Project does not contain any Razor documents.</source>
         <target state="translated">プロジェクトには Razor ドキュメントが含まれていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Promote_using_directive_to">
+        <source>Promote using directive to {0}</source>
+        <target state="translated">using ディレクティブを {0} に昇格します</target>
         <note />
       </trans-unit>
       <trans-unit id="Razor_source_generator_did_not_produce_a_host_output">
@@ -65,6 +100,41 @@
       <trans-unit id="Razor_source_generator_reference_incorrect">
         <source>Razor source generator is referenced from '{0}' but we are expecting '{1}', for project '{2}'.</source>
         <target state="translated">Razor ソース ジェネレーターは '{0}' から参照されていますが、プロジェクト '{2}' に対して '{1}' が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_directives">
+        <source>Remove unnecessary directives</source>
+        <target state="translated">不要なディレクティブを削除する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Fully_Qualified_Component_Title">
+        <source>Simplify fully qualified component</source>
+        <target state="translated">完全修飾コンポーネントの簡略化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
+        <source>Simplify tag to self-closing</source>
+        <target state="translated">タグを自己終了タグに簡略化する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_And_Consolidate_Usings_Title">
+        <source>Sort and consolidate usings</source>
+        <target state="translated">using の並べ替えと統合</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_RazorMetaCode">
+        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
+        <target state="translated">'{' or '}' 以外の RazorMetaCode にアクセスしようとしました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported type: '{0}'.</source>
+        <target state="translated">サポートされていない型: '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_attributes">
+        <source>Wrap attributes</source>
+        <target state="translated">属性の折り返し</target>
         <note />
       </trans-unit>
     </body>

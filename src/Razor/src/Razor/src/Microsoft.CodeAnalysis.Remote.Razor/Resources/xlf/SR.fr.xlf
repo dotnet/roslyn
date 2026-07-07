@@ -22,6 +22,11 @@
         <target state="translated">Impossible d’obtenir le document généré par la source pour le nom d’indicateur « {0} » obtenu à partir du résultat d’exécution du générateur.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_Component_FromTag_Title">
+        <source>Create component from tag</source>
+        <target state="translated">Créer un composant à partir de la balise</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_does_not_belong_to_this_project">
         <source>Document does not belong to this project.</source>
         <target state="translated">Le document n’appartient pas à ce projet.</target>
@@ -30,6 +35,31 @@
       <trans-unit id="Document_is_not_a_Razor_document">
         <source>Document is not a Razor document.</source>
         <target state="translated">Le document n’est pas un document Razor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_CodeBehind_Title">
+        <source>Extract block to code behind</source>
+        <target state="translated">Extraire le bloc vers le code-behind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_Component_Title">
+        <source>Extract element to new component</source>
+        <target state="translated">Extraire l’élément vers un nouveau composant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExtractTo_Css_Title">
+        <source>Extract to {0}.css</source>
+        <target state="translated">Extraire vers {0}.css</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Async_Event_Handler_Title">
+        <source>Generate Async Event Handler '{0}'</source>
+        <target state="translated">Générer le gestionnaire d’événements asynchrone « {0} »</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Handler_Title">
+        <source>Generate Event Handler '{0}'</source>
+        <target state="translated">Générer le gestionnaire d’événements '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generator_run_result_did_not_contain_a_code_document">
@@ -45,6 +75,11 @@
       <trans-unit id="Project_does_not_contain_any_Razor_documents">
         <source>Project does not contain any Razor documents.</source>
         <target state="translated">Le projet ne contient aucun document Razor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Promote_using_directive_to">
+        <source>Promote using directive to {0}</source>
+        <target state="translated">Promouvoir en utilisant la directive vers {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Razor_source_generator_did_not_produce_a_host_output">
@@ -65,6 +100,41 @@
       <trans-unit id="Razor_source_generator_reference_incorrect">
         <source>Razor source generator is referenced from '{0}' but we are expecting '{1}', for project '{2}'.</source>
         <target state="translated">Le générateur source Razor est référencé à partir de « {0} », mais nous attendons « {1} » pour le projet « {2} ».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_directives">
+        <source>Remove unnecessary directives</source>
+        <target state="translated">Supprimez les directives inutiles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Fully_Qualified_Component_Title">
+        <source>Simplify fully qualified component</source>
+        <target state="translated">Simplifier le composant complet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
+        <source>Simplify tag to self-closing</source>
+        <target state="translated">Simplifier la balise pour qu’elle se ferme automatiquement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_And_Consolidate_Usings_Title">
+        <source>Sort and consolidate usings</source>
+        <target state="translated">Trier et regrouper les utilisations</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_RazorMetaCode">
+        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
+        <target state="translated">Tentative de visite d’un RazorMetaCode autre que '{' or '}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported type: '{0}'.</source>
+        <target state="translated">Type non pris en charge : '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_attributes">
+        <source>Wrap attributes</source>
+        <target state="translated">Retour à la ligne des attributs</target>
         <note />
       </trans-unit>
     </body>

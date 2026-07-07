@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms
         public sealed class Project : RunApiOutput
         {
             public required string Content { get; init; }
+            public string? ProjectPath { get; init; }
             public required ImmutableArray<SimpleDiagnostic> Diagnostics { get; init; }
         }
     }

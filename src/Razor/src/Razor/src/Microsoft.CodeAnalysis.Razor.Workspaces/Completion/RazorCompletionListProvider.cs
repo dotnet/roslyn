@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Text;
+using RoslynPatternMatch = Microsoft.CodeAnalysis.PatternMatching.PatternMatch;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -29,53 +31,23 @@ internal class RazorCompletionListProvider(
     };
 
     // virtual for tests
-    public virtual (RazorVSInternalCompletionList? CompletionList, bool NeedsHtmlDependentPhase) GetCompletionList(
-        RazorCodeDocument codeDocument,
-        int absoluteIndex,
-        VSInternalCompletionContext completionContext,
-        VSInternalClientCapabilities clientCapabilities,
-        RazorCompletionOptions completionOptions)
+    public virtual RazorVSInternalCompletionList? GetCompletionList(
+        RazorCompletionContext razorCompletionContext,
+        VSInternalClientCapabilities clientCapabilities)
     {
-        var razorCompletionContext = CreateCompletionContext(codeDocument, absoluteIndex, completionContext, completionOptions);
-
         var result = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
-        _logger.LogTrace($"Resolved {result.Items.Length} completion items.");
+        _logger.LogTrace($"Resolved {result.Length} completion items.");
 
-        if (result.Items.Length == 0)
-        {
-            return (null, result.NeedsHtmlDependentCompletionItems);
-        }
-
-        var completionList = CreateAndCacheCompletionList(codeDocument, result.Items, clientCapabilities);
-        return (completionList, result.NeedsHtmlDependentCompletionItems);
-    }
-
-    // virtual for tests
-    public virtual RazorVSInternalCompletionList? GetHtmlDependentCompletionList(
-        RazorCodeDocument codeDocument,
-        int absoluteIndex,
-        VSInternalCompletionContext completionContext,
-        VSInternalClientCapabilities clientCapabilities,
-        RazorCompletionOptions completionOptions,
-        HashSet<string> htmlLabels)
-    {
-        var baseContext = CreateCompletionContext(codeDocument, absoluteIndex, completionContext, completionOptions);
-        var razorCompletionContext = new RazorHtmlDependentCompletionContext(baseContext, htmlLabels);
-
-        var razorCompletionItems = _completionFactsService.GetHtmlDependentCompletionItems(razorCompletionContext);
-
-        _logger.LogTrace($"Resolved {razorCompletionItems.Length} HTML-dependent completion items.");
-
-        if (razorCompletionItems.Length == 0)
+        if (result.Length == 0)
         {
             return null;
         }
 
-        return CreateAndCacheCompletionList(codeDocument, razorCompletionItems, clientCapabilities);
+        return CreateAndCacheCompletionList(razorCompletionContext.CodeDocument, result, clientCapabilities, razorCompletionContext.AbsoluteIndex);
     }
 
-    private static RazorCompletionContext CreateCompletionContext(
+    internal static RazorCompletionContext CreateCompletionContext(
         RazorCodeDocument codeDocument,
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
@@ -108,9 +80,12 @@ internal class RazorCompletionListProvider(
     private RazorVSInternalCompletionList CreateAndCacheCompletionList(
         RazorCodeDocument codeDocument,
         ImmutableArray<RazorCompletionItem> razorCompletionItems,
-        VSInternalClientCapabilities clientCapabilities)
+        VSInternalClientCapabilities clientCapabilities,
+        int absoluteIndex)
     {
         var completionList = CreateLSPCompletionList(razorCompletionItems, clientCapabilities);
+
+        FilterCompletionItems(completionList, codeDocument.Source.Text, absoluteIndex);
 
         // The completion list is cached and can be retrieved via this result id to enable the resolve completion functionality.
         var filePath = codeDocument.Source.FilePath.AssumeNotNull();
@@ -326,7 +301,7 @@ internal class RazorCompletionListProvider(
         {
             Label = razorCompletionItem.DisplayText,
             InsertText = razorCompletionItem.InsertText,
-            FilterText = razorCompletionItem.InsertText,
+            FilterText = razorCompletionItem.DisplayText,
             SortText = razorCompletionItem.SortText,
             InsertTextFormat = insertTextFormat,
             Kind = kind,
@@ -335,6 +310,10 @@ internal class RazorCompletionListProvider(
 
         if (razorCompletionItem.ReplacementRange is { } replacementRange)
         {
+            // The replacement range includes '@', and InsertText also includes '@'.
+            // For simple items (non-snippet, non-indexer), InsertText == DisplayText == Label,
+            // so we use it directly — zero allocations, and the optimizer can omit TextEditText
+            // when NewText equals Label.
             completionItem.TextEdit = new TextEdit()
             {
                 Range = replacementRange.ToRange(),
@@ -346,5 +325,145 @@ internal class RazorCompletionListProvider(
         completionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
 
         return completionItem;
+    }
+
+    private static void FilterCompletionItems(
+        RazorVSInternalCompletionList completionList,
+        SourceText sourceText,
+        int absoluteIndex,
+        int maxCompletionListSize = 1000)
+    {
+        // If our completion list hasn't hit the max size, we don't need to filter
+        if (completionList.Items.Length <= maxCompletionListSize)
+        {
+            return;
+        }
+
+        var filterText = GetFilterText(sourceText, absoluteIndex);
+
+        // Pattern match all items against filter text (like C# does in CompletionHandler.FilterCompletionList)
+        using var matchResults = new PooledArrayBuilder<(VSInternalCompletionItem Item, int Index, RoslynPatternMatch? Match)>(completionList.Items.Length);
+        AddMatchResults(completionList, filterText, ref matchResults.AsRef());
+
+        // Take top maxCompletionListSize items (like C# does)
+        var takeCount = Math.Min(maxCompletionListSize, matchResults.Count);
+        var preselectCount = 0;
+
+        // Count preselected items beyond takeCount (like C# does)
+        for (var i = takeCount; i < matchResults.Count; i++)
+        {
+            if (matchResults[i].Item.Preselect)
+            {
+                preselectCount++;
+            }
+        }
+
+        var result = new VSInternalCompletionItem[takeCount + preselectCount];
+
+        // Add the first takeCount items
+        for (var i = 0; i < takeCount; i++)
+        {
+            result[i] = matchResults[i].Item;
+        }
+
+        // Add preselected items beyond takeCount (like C# does)
+        if (preselectCount > 0)
+        {
+            var resultIndex = takeCount;
+            for (var i = takeCount; i < matchResults.Count; i++)
+            {
+                var matchResult = matchResults[i];
+                if (matchResult.Item.Preselect)
+                {
+                    result[resultIndex++] = matchResult.Item;
+                }
+            }
+        }
+
+        completionList.Items = result;
+        completionList.IsIncomplete = true;
+
+        return;
+
+        static string GetFilterText(SourceText sourceText, int absoluteIndex)
+        {
+            // Clamp to valid range to avoid IndexOutOfRangeException
+            var end = Math.Min(absoluteIndex, sourceText.Length);
+            var start = end;
+            while (start > 0 && IsWordCharacter(sourceText[start - 1]))
+            {
+                start--;
+            }
+
+            return (start < end)
+                ? sourceText.ToString(new TextSpan(start, end - start))
+                : string.Empty;
+
+            static bool IsWordCharacter(char ch)
+            {
+                return char.IsLetterOrDigit(ch) || ch == '_' || ch == '-' || ch == ':' || ch == '@';
+            }
+        }
+
+        static void AddMatchResults(RazorVSInternalCompletionList completionList, string filterText, ref PooledArrayBuilder<(VSInternalCompletionItem Item, int Index, RoslynPatternMatch? Match)> matchResults)
+        {
+            using var helper = string.IsNullOrEmpty(filterText) ? null : new Microsoft.CodeAnalysis.Completion.PatternMatchHelper(filterText);
+
+            for (var i = 0; i < completionList.Items.Length; i++)
+            {
+                var item = completionList.Items[i];
+
+                RoslynPatternMatch? bestMatch = null;
+                if (helper != null)
+                {
+                    var itemText = item.FilterText ?? item.Label;
+                    bestMatch = helper.GetMatch(itemText, includeMatchSpans: false, CultureInfo.CurrentCulture);
+                }
+
+                matchResults.Add((item, i, bestMatch));
+            }
+
+            // Sort by match quality, then alphabetically, then original order
+            matchResults.Sort(static (a, b) =>
+            {
+                if (a.Match.HasValue != b.Match.HasValue)
+                {
+                    // Items with matches come before items without matches
+                    return a.Match.HasValue ? -1 : 1;
+                }
+
+                if (a.Match.HasValue && b.Match.HasValue)
+                {
+                    // Both have matches - compare match quality
+                    var matchComparison = a.Match.Value.CompareTo(b.Match.Value);
+                    if (matchComparison != 0)
+                    {
+                        return matchComparison;
+                    }
+                }
+
+                // Equal match quality - sort by SortText, or Label if there is no SortText
+                var aSortText = a.Item.SortText ?? a.Item.Label;
+                var bSortText = b.Item.SortText ?? b.Item.Label;
+                var sortComparison = string.Compare(aSortText, bSortText, StringComparison.OrdinalIgnoreCase);
+                if (sortComparison != 0)
+                {
+                    return sortComparison;
+                }
+
+                // Preserve original order for equal items
+                return a.Index.CompareTo(b.Index);
+            });
+        }
+    }
+
+    internal readonly struct TestAccessor
+    {
+        public static void FilterCompletionItems(
+            RazorVSInternalCompletionList completionList,
+            SourceText sourceText,
+            int absoluteIndex,
+            int maxCompletionListSize = 1000)
+            => RazorCompletionListProvider.FilterCompletionItems(completionList, sourceText, absoluteIndex, maxCompletionListSize);
     }
 }

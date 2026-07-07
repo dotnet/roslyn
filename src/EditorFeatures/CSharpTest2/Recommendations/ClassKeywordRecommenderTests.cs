@@ -101,6 +101,11 @@ public sealed class ClassKeywordRecommenderTests : KeywordRecommenderTests
             $$
             """);
 
+    [Fact]
+    public Task TestAfterClosed()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
+            @"closed $$");
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
     public Task TestFileKeywordInsideNamespace()
         => VerifyKeywordAsync(

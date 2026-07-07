@@ -7,15 +7,25 @@
         <target state="translated">값은 null이거나 빈 문자열일 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Baseline_Newly_Available">
+        <source>🆕 Newly available across major browsers{0}</source>
+        <target state="translated">🆕 주요 브라우저에서 새로 사용 가능{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Since">
+        <source> (Baseline since {0})</source>
+        <target state="translated"> ({0} 이후 기준)</target>
+        <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Widely_Available">
+        <source>✅ Widely available across major browsers{0}</source>
+        <target state="translated">✅ 주요 브라우저에서 널리 사용 가능{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
       <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
         <source>{0} (and req'd attributes...)</source>
         <target state="translated">{0}(및 필수 특성...)</target>
         <note>The term "req'd" is an abbreviation for "required"</note>
-      </trans-unit>
-      <trans-unit id="Create_Component_FromTag_Title">
-        <source>Create component from tag</source>
-        <target state="translated">태그에서 구성 요소 만들기</target>
-        <note />
       </trans-unit>
       <trans-unit id="Blazor_directive_attributes">
         <source>Blazor directive attributes</source>
@@ -54,21 +64,6 @@
         <target state="translated">{0}에서 편집은 공백이 아닌 콘텐츠 '{1}'을(를) 삭제합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExtractTo_CodeBehind_Title">
-        <source>Extract block to code behind</source>
-        <target state="translated">코드 숨김에 블록 추출</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ExtractTo_Component_Title">
-        <source>Extract element to new component</source>
-        <target state="translated">새 구성 요소에 요소 추출</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ExtractTo_Css_Title">
-        <source>Extract to {0}.css</source>
-        <target state="translated">{0}.css로 추출</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
         <target state="translated">서식 작업이 중단되는 이유는 진단 중 하나를 더 도입하거나 제거할 수 있기 때문입니다.</target>
@@ -82,16 +77,6 @@
       <trans-unit id="Formatting_Error">
         <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
         <target state="translated">서식 오류입니다. 파일이 손상되지 않도록 추가 작업을 중단합니다. 이 문제를 보고하세요. 참조: https://aka.ms/razor-formatting-issue</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Async_Event_Handler_Title">
-        <source>Generate Async Event Handler '{0}'</source>
-        <target state="translated">비동기 이벤트 처리기 '{0}' 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Event_Handler_Title">
-        <source>Generate Event Handler '{0}'</source>
-        <target state="translated">이벤트 처리기 '{0}' 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">
@@ -119,6 +104,11 @@
         <target state="translated">Razor 언어 서비스가 제대로 구성되지 않았습니다. 언어 서비스 '{0}'이(가) 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="MDN_Reference">
+        <source>MDN Reference</source>
+        <target state="translated">MDN 참조</target>
+        <note>Link text for MDN documentation URL in HTML completion tooltips</note>
+      </trans-unit>
       <trans-unit id="Not_Available_In">
         <source>Not available in</source>
         <target state="translated">에서 사용할 수 없음</target>
@@ -134,31 +124,6 @@
         <target state="translated">'{2}'의 {1} 범위를 벗어나는 줄 '{0}'을(를) 쿼리했습니다. 문서가 최신이 아닐 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Promote_using_directive_to">
-        <source>Promote using directive to {0}</source>
-        <target state="translated">using 지시문을 {0} 수준 올리기</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_directives">
-        <source>Remove unnecessary directives</source>
-        <target state="translated">불필요한 지시문 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Fully_Qualified_Component_Title">
-        <source>Simplify fully qualified component</source>
-        <target state="translated">정규화된 구성 요소 간소화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
-        <source>Simplify tag to self-closing</source>
-        <target state="translated">태그를 자체 닫음으로 간소화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_And_Consolidate_Usings_Title">
-        <source>Sort and consolidate usings</source>
-        <target state="translated">using 정렬 및 통합</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Razor TagHelper 특성 문자 모양</target>
@@ -172,11 +137,6 @@
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
         <target state="translated">"완료된 항목 다시 트리거"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">''{' or '}' 이외의 RazorMetaCode를 방문하려고 했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
@@ -202,11 +162,6 @@
       <trans-unit id="Unsupported_razor_project_info_version_encountered">
         <source>Unsupported razor project info version encounted.</source>
         <target state="translated">지원되지 않는 Razor 프로젝트 정보 버전이 발견되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Wrap_attributes">
-        <source>Wrap attributes</source>
-        <target state="translated">특성을 래핑합니다.</target>
         <note />
       </trans-unit>
     </body>

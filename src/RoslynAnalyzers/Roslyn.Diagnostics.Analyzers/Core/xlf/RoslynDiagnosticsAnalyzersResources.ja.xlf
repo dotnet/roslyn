@@ -258,13 +258,13 @@
         <note />
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterDescription">
-        <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.</source>
-        <target state="new">Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.</target>
-        <note>{Locked="IRemoteJsonService"}{Locked="RazorPinnedSolutionInfoWrapper"}{Locked="DocumentId"}{Locked="JSON"}</note>
+        <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorSolutionWrapper or DocumentId as they are not JSON serializable.</source>
+        <target state="translated">IRemoteJsonService から継承するインターフェイス内のメソッドは、JSON シリアル化できないため、RazorSolutionWrapper または DocumentId 型のパラメーターを使用しないでください。</target>
+        <note>{Locked="IRemoteJsonService"}{Locked="RazorSolutionWrapper"}{Locked="DocumentId"}{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterMessage">
         <source>Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</source>
-        <target state="new">Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</target>
+        <target state="translated">'{1}.{2}' のパラメーター '{0}' は型 '{3}' です。これは JSON サービスでは許可されていません</target>
         <note>{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterTitle">

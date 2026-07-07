@@ -7,15 +7,25 @@
         <target state="translated">La valeur ne peut pas être Null ni être une chaîne vide.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Baseline_Newly_Available">
+        <source>🆕 Newly available across major browsers{0}</source>
+        <target state="translated">🆕 Nouveauté disponible sur les principaux navigateurs{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Since">
+        <source> (Baseline since {0})</source>
+        <target state="translated"> (Base de référence depuis {0})</target>
+        <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Widely_Available">
+        <source>✅ Widely available across major browsers{0}</source>
+        <target state="translated">✅ Largement disponible sur les principaux navigateurs{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
       <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
         <source>{0} (and req'd attributes...)</source>
         <target state="translated">{0} (et attributs requis...)</target>
         <note>The term "req'd" is an abbreviation for "required"</note>
-      </trans-unit>
-      <trans-unit id="Create_Component_FromTag_Title">
-        <source>Create component from tag</source>
-        <target state="translated">Créer un composant à partir de la balise</target>
-        <note />
       </trans-unit>
       <trans-unit id="Blazor_directive_attributes">
         <source>Blazor directive attributes</source>
@@ -54,21 +64,6 @@
         <target state="translated">Modifier à {0} supprime le contenu autre qu’un espace « {1} ».</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExtractTo_CodeBehind_Title">
-        <source>Extract block to code behind</source>
-        <target state="translated">Extraire le bloc vers le code-behind</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ExtractTo_Component_Title">
-        <source>Extract element to new component</source>
-        <target state="translated">Extraire l’élément vers un nouveau composant</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ExtractTo_Css_Title">
-        <source>Extract to {0}.css</source>
-        <target state="translated">Extraire vers {0}.css</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
         <target state="translated">Une opération de formatage est en cours d’abandon, car elle introduit ou supprime un ou plusieurs diagnostics.</target>
@@ -82,16 +77,6 @@
       <trans-unit id="Formatting_Error">
         <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
         <target state="translated">Erreur de mise en forme. Abandon du travail pour éviter de corrompre le fichier, veuillez signaler ce problème. Voir : https://aka.ms/razor-formatting-issue</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Async_Event_Handler_Title">
-        <source>Generate Async Event Handler '{0}'</source>
-        <target state="translated">Générer le gestionnaire d’événements asynchrone « {0} »</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Event_Handler_Title">
-        <source>Generate Event Handler '{0}'</source>
-        <target state="translated">Générer le gestionnaire d’événements '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">
@@ -119,6 +104,11 @@
         <target state="translated">Les services de langage Razor ne sont pas configurés correctement, le service de langage «{0}» manquant.</target>
         <note />
       </trans-unit>
+      <trans-unit id="MDN_Reference">
+        <source>MDN Reference</source>
+        <target state="translated">Référence MDN</target>
+        <note>Link text for MDN documentation URL in HTML completion tooltips</note>
+      </trans-unit>
       <trans-unit id="Not_Available_In">
         <source>Not available in</source>
         <target state="translated">Non disponible dans</target>
@@ -134,31 +124,6 @@
         <target state="translated">La ligne «{0}» en dehors de la plage{1} de «{2}» a été interrogée. Le document n’est peut-être pas à jour.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Promote_using_directive_to">
-        <source>Promote using directive to {0}</source>
-        <target state="translated">Promouvoir en utilisant la directive vers {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_directives">
-        <source>Remove unnecessary directives</source>
-        <target state="translated">Supprimez les directives inutiles</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Fully_Qualified_Component_Title">
-        <source>Simplify fully qualified component</source>
-        <target state="translated">Simplifier le composant complet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
-        <source>Simplify tag to self-closing</source>
-        <target state="translated">Simplifier la balise pour qu’elle se ferme automatiquement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_And_Consolidate_Usings_Title">
-        <source>Sort and consolidate usings</source>
-        <target state="translated">Trier et regrouper les utilisations</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Glyphe d’attribut Razor TagHelper</target>
@@ -172,11 +137,6 @@
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
         <target state="translated">« Déclencher à nouveau les complétions... »</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">Tentative de visite d’un RazorMetaCode autre que '{' or '}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
@@ -202,11 +162,6 @@
       <trans-unit id="Unsupported_razor_project_info_version_encountered">
         <source>Unsupported razor project info version encounted.</source>
         <target state="translated">Version des informations de projet Razor non prise en charge.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Wrap_attributes">
-        <source>Wrap attributes</source>
-        <target state="translated">Retour à la ligne des attributs</target>
         <note />
       </trans-unit>
     </body>

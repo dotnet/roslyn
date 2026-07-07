@@ -7,15 +7,25 @@
         <target state="translated">Hodnota nesmí být null ani prázdný řetězec.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Baseline_Newly_Available">
+        <source>🆕 Newly available across major browsers{0}</source>
+        <target state="translated">🆕 Nově dostupné v hlavních prohlížečích{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Since">
+        <source> (Baseline since {0})</source>
+        <target state="translated"> (Standardní hodnoty od {0})</target>
+        <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Widely_Available">
+        <source>✅ Widely available across major browsers{0}</source>
+        <target state="translated">✅ Široce dostupné v hlavních prohlížečích{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
       <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
         <source>{0} (and req'd attributes...)</source>
         <target state="translated">{0} (a požadované atributy...)</target>
         <note>The term "req'd" is an abbreviation for "required"</note>
-      </trans-unit>
-      <trans-unit id="Create_Component_FromTag_Title">
-        <source>Create component from tag</source>
-        <target state="translated">Vytvořit komponentu ze značky</target>
-        <note />
       </trans-unit>
       <trans-unit id="Blazor_directive_attributes">
         <source>Blazor directive attributes</source>
@@ -54,21 +64,6 @@
         <target state="translated">Úprava na {0} odstraní neprázdný obsah {1}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExtractTo_CodeBehind_Title">
-        <source>Extract block to code behind</source>
-        <target state="translated">Extrahovat blok do kódu na pozadí</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ExtractTo_Component_Title">
-        <source>Extract element to new component</source>
-        <target state="translated">Extrahovat element do nové komponenty</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ExtractTo_Css_Title">
-        <source>Extract to {0}.css</source>
-        <target state="translated">Extrahovat do {0}.css</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
         <target state="translated">Operace formátování je ukončována, protože by zavedla nebo odebrala jednu z více diagnostik.</target>
@@ -82,16 +77,6 @@
       <trans-unit id="Formatting_Error">
         <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
         <target state="translated">Chyba formátování Práce se přerušuje, aby nedošlo k poškození souboru, prosím nahlaste tento problém. Více informací zde: https://aka.ms/razor-formatting-issue</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Async_Event_Handler_Title">
-        <source>Generate Async Event Handler '{0}'</source>
-        <target state="translated">Generovat asynchronní obslužnou rutinu události {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Event_Handler_Title">
-        <source>Generate Event Handler '{0}'</source>
-        <target state="translated">Generovat obslužnou rutinu události {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">
@@ -119,6 +104,11 @@
         <target state="translated">Služby jazyka Razor nejsou správně nakonfigurované, chybí služba jazyka {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="MDN_Reference">
+        <source>MDN Reference</source>
+        <target state="translated">Referenční informace k MDN</target>
+        <note>Link text for MDN documentation URL in HTML completion tooltips</note>
+      </trans-unit>
       <trans-unit id="Not_Available_In">
         <source>Not available in</source>
         <target state="translated">Není k dispozici v</target>
@@ -134,31 +124,6 @@
         <target state="translated">Proběhl dotaz na řádek {0} mimo rozsah {1} {2}. Dokument nemusí být aktuální.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Promote_using_directive_to">
-        <source>Promote using directive to {0}</source>
-        <target state="translated">Zvýšit úroveň direktivy using na {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_directives">
-        <source>Remove unnecessary directives</source>
-        <target state="translated">Odebrat nepotřebné direktivy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Fully_Qualified_Component_Title">
-        <source>Simplify fully qualified component</source>
-        <target state="translated">Zjednodušení plně kvalifikované komponenty</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
-        <source>Simplify tag to self-closing</source>
-        <target state="translated">Zjednodušení značky na vlastní zavření</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_And_Consolidate_Usings_Title">
-        <source>Sort and consolidate usings</source>
-        <target state="translated">Řazení a konsolidace použití</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Piktogram atributu Razor TagHelper</target>
@@ -172,11 +137,6 @@
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
         <target state="translated">Aktivovat znovu dokončení…</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">Došlo k pokusu navštívit RazorMetaCode jiný než '{' or '}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
@@ -202,11 +162,6 @@
       <trans-unit id="Unsupported_razor_project_info_version_encountered">
         <source>Unsupported razor project info version encounted.</source>
         <target state="translated">Byla započítána nepodporovaná verze informací o projektu Razor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Wrap_attributes">
-        <source>Wrap attributes</source>
-        <target state="translated">Zalamovat atributy</target>
         <note />
       </trans-unit>
     </body>

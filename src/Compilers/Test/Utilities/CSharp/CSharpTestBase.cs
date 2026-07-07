@@ -29,7 +29,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
@@ -247,6 +246,17 @@ namespace System.Diagnostics.CodeAnalysis
                     }
 
                     public string ParameterName { get; }
+                }
+            }
+            """;
+
+        protected static readonly string IsClosedTypeAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes { get; set; }
                 }
             }
             """;
@@ -715,7 +725,7 @@ namespace System.Runtime.CompilerServices
         protected static readonly string RequiresUnsafeAttributeDefinition = """
             namespace System.Diagnostics.CodeAnalysis
             {
-                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
                 public sealed class RequiresUnsafeAttribute : Attribute { }
             }
             """;
@@ -3267,6 +3277,44 @@ namespace System.Runtime.CompilerServices
             return CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
         }
 
+        /// <summary>
+        /// Dumps all the cref xml doc nodes with their associated symbols in a format convenient for testing.
+        /// </summary>
+        internal static IEnumerable<string> PrintXmlCrefSymbols(SyntaxTree tree, SemanticModel model)
+        {
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var crefs = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlCrefAttributeSyntax>());
+            var result = crefs.Select(name => print(name));
+            return result;
+
+            string print(XmlCrefAttributeSyntax cref)
+            {
+                CrefSyntax crefSyntax = cref.Cref;
+                var symbol = model.GetSymbolInfo(crefSyntax).Symbol;
+                var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
+                return (crefSyntax, symbolDisplay).ToString();
+            }
+        }
+
+        /// <summary>
+        /// Dumps all the name xml doc attributes with their associated symbols in a format convenient for testing.
+        /// </summary>
+        internal static IEnumerable<string> PrintXmlNameSymbols(SyntaxTree tree, SemanticModel model)
+        {
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var xmlNames = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlNameAttributeSyntax>());
+            var result = xmlNames.Select(name => print(name));
+            return result;
+
+            string print(XmlNameAttributeSyntax name)
+            {
+                IdentifierNameSyntax identifier = name.Identifier;
+                var symbol = model.GetSymbolInfo(identifier).Symbol;
+                var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
+                return (identifier, symbolDisplay).ToString();
+            }
+        }
+
         #endregion
 
         protected static readonly string s_IAsyncEnumerable = @"
@@ -3318,9 +3366,10 @@ namespace System
                     }
                     break;
 
-                case IsPatternExpressionSyntax n:
+                case IsPatternExpressionSyntax:
+                case BinaryExpressionSyntax n when n.Kind() == SyntaxKind.IsExpression:
                     {
-                        var b = (BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        var b = (BoundIsPatternExpression)binder.BindExpression((ExpressionSyntax)(object)node, BindingDiagnosticBag.Discarded);
                         decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
                     }
                     break;

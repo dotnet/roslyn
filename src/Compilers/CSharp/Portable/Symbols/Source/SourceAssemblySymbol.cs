@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             NoLocation.Singleton);
                     }
                 }
-                else if (String.Compare(_compilation.Options.CryptoKeyContainer, assemblyKeyContainerAttributeSetting, StringComparison.OrdinalIgnoreCase) != 0)
+                else if (!string.Equals(_compilation.Options.CryptoKeyContainer, assemblyKeyContainerAttributeSetting, StringComparison.OrdinalIgnoreCase))
                 {
                     // Native compiler reports a warning in this case, notifying the user that attribute value from source is ignored,
                     // but it doesn't drop the attribute during emit. That might be fine if we produce an assembly because we actually sign it with correct
@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             NoLocation.Singleton);
                     }
                 }
-                else if (String.Compare(_compilation.Options.CryptoKeyFile, assemblyKeyFileAttributeSetting, StringComparison.OrdinalIgnoreCase) != 0)
+                else if (!string.Equals(_compilation.Options.CryptoKeyFile, assemblyKeyFileAttributeSetting, StringComparison.OrdinalIgnoreCase))
                 {
                     // Comment in similar section for CryptoKeyContainer is applicable here as well.
                     if (_compilation.Options.OutputKind == OutputKind.NetModule)
@@ -2370,7 +2370,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int signature;
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
-            if (attribute.IsTargetAttribute(AttributeDescription.InternalsVisibleToAttribute))
+            if (attribute is SourceAttributeData
+                && ReportExplicitUseOfReservedAttributes(in arguments,
+                    permitted: ReservedAttributes.DynamicAttribute
+                        | ReservedAttributes.IsReadOnlyAttribute
+                        | ReservedAttributes.IsUnmanagedAttribute
+                        | ReservedAttributes.IsByRefLikeAttribute
+                        | ReservedAttributes.TupleElementNamesAttribute
+                        | ReservedAttributes.NullableAttribute
+                        | ReservedAttributes.NullableContextAttribute
+                        | ReservedAttributes.NullablePublicOnlyAttribute
+                        | ReservedAttributes.NativeIntegerAttribute
+                        | ReservedAttributes.CaseSensitiveExtensionAttribute
+                        | ReservedAttributes.RequiredMemberAttribute
+                        | ReservedAttributes.ScopedRefAttribute
+                        | ReservedAttributes.RefSafetyRulesAttribute
+                        | ReservedAttributes.RequiresLocationAttribute
+                        | ReservedAttributes.ExtensionMarkerAttribute))
+            {
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.InternalsVisibleToAttribute))
             {
                 DecodeOneInternalsVisibleToAttribute(arguments.AttributeSyntaxOpt, attribute, diagnostics, index, ref _lazyInternalsVisibleToMap);
             }

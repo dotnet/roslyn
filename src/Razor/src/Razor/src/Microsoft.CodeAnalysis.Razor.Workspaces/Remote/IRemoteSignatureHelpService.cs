@@ -3,11 +3,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteSignatureHelpService : IRemoteJsonService
 {
-    ValueTask<LspSignatureHelp?> GetSignatureHelpAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId documentId, Position linePosition, CancellationToken cancellationToken);
+    ValueTask<LspSignatureHelp?> GetSignatureHelpAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId documentId, Position linePosition, CancellationToken cancellationToken);
 }

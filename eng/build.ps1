@@ -60,7 +60,9 @@ param (
 
   # Test actions
   [string]$testArch = "x64",
+  [string]$testFilter = "",
   [switch]$testVsi,
+  [switch]$skipCustomRoslynDeploy = $false,
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testCompilerOnly = $false,
@@ -97,6 +99,7 @@ function Print-Usage() {
   Write-Host ""
   Write-Host "Test actions"
   Write-Host "  -testArch                 Maps to --arch parameter of dotnet test"
+  Write-Host "  -testFilter               Filter tests to run (maps to --filter parameter of xunit)"
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
@@ -104,6 +107,7 @@ function Print-Usage() {
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
   Write-Host "  -testRuntimeAsync         Run tests with runtime async validation enabled (see DOTNET_RuntimeAsync in codebase)"
+  Write-Host "  -skipCustomRoslynDeploy   Skip custom Roslyn deployment when running integration tests (uses Roslyn from the VS)"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -272,6 +276,8 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
   $dotnetBuildTests = if ($buildTests -ne $null -and !$buildTests) { "/p:DotNetBuildTests=false" } else { "" }
+  # Ensure -testVsi builds also produce Razor's dependency VSIX for Deploy-VsixViaTool.
+  $buildDependencyVsix = if ($testVsi) { "/p:BuildDependencyVsix=true" } else { "" }
 
   try {
     MSBuild $toolsetBuildProj `
@@ -302,6 +308,7 @@ function BuildSolution() {
       $generateDocumentationFile `
       $roslynUseHardLinks `
       $dotnetBuildTests `
+      $buildDependencyVsix `
       @properties
   }
   finally {
@@ -410,6 +417,7 @@ function TestUsingRunTests() {
   }
 
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net10.0"
+  $timeout = 0;
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
@@ -420,10 +428,11 @@ function TestUsingRunTests() {
   $args += " --dotnet `"$dotnetExe`""
   $args += " --logs `"$LogDir`""
   $args += " --configuration $configuration"
+  $testFilters = @()
 
   if ($testCoreClr) {
     $args += " --runtime core"
-    $args += " --timeout 90"
+    $timeout = 90
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
     } else {
@@ -432,7 +441,7 @@ function TestUsingRunTests() {
   }
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
     $args += " --runtime framework"
-    $args += " --timeout 90"
+    $timeout = 90
 
     if ($testRuntimeAsync) {
       Write-Host "Cannot run desktop tests with runtime async validation enabled."
@@ -450,15 +459,27 @@ function TestUsingRunTests() {
     }
 
   } elseif ($testVsi) {
-    $args += " --timeout 220"
+    $timeout = 220
     $args += " --runtime both"
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
 
     if ($lspEditor) {
-      $args += " --testfilter Editor=LanguageServerProtocol"
+      $testFilters += "Editor=LanguageServerProtocol"
     }
+  }
+
+  if ($testFilter -ne "") {
+    $testFilters += $testFilter
+  }
+
+  if ($testFilters.Count -eq 1) {
+    $args += " --testfilter $($testFilters[0])"
+  }
+  elseif ($testFilters.Count -gt 1) {
+    $combinedTestFilter = ($testFilters | ForEach-Object { "($_)" }) -join "&"
+    $args += " --testfilter $combinedTestFilter"
   }
 
   if (-not $ci -and -not $testVsi) {
@@ -479,6 +500,9 @@ function TestUsingRunTests() {
 
   if ($helix) {
     $args += " --helix"
+  }
+  elseif ($timeout -gt 0) {
+    $args += " --timeout $timeout"
   }
 
   if ($helixQueueName) {
@@ -594,42 +618,46 @@ function Deploy-VsixViaTool() {
 
     Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
 
-    # InstanceIds is required here to ensure it installs the vsixes only into the specified VS instance.
-    # The default installer behavior without it is to install into every installed VS instance.
-    $baseArgs = "/rootSuffix:$hive /quiet /shutdownprocesses /instanceIds:$vsId /logFile:$logFileName"
+    if (-not $skipCustomRoslynDeploy) {
+      # InstanceIds is required here to ensure it installs the vsixes only into the specified VS instance.
+      # The default installer behavior without it is to install into every installed VS instance.
+      $baseArgs = "/rootSuffix:$hive /quiet /shutdownprocesses /instanceIds:$vsId /logFile:$logFileName"
 
-    $vsixInstallerExe = Join-Path $vsDir "Common7\IDE\VSIXInstaller.exe"
+      $vsixInstallerExe = Join-Path $vsDir "Common7\IDE\VSIXInstaller.exe"
 
-    Write-Host "Uninstalling old Roslyn VSIX"
+      Write-Host "Uninstalling old Roslyn VSIX"
 
-    # Actual uninstall is failing at the moment using the uninstall options. Temporarily using
-    # wildfire to uninstall our VSIX extensions
-    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
-    if (Test-Path $extDir) {
-      foreach ($dir in Get-ChildItem -Directory $extDir) {
-        $name = Split-Path -leaf $dir
-        Write-Host "`tUninstalling $name"
+      # Actual uninstall is failing at the moment using the uninstall options. Temporarily using
+      # wildfire to uninstall our VSIX extensions
+      $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
+      if (Test-Path $extDir) {
+        foreach ($dir in Get-ChildItem -Directory $extDir) {
+          $name = Split-Path -leaf $dir
+          Write-Host "`tUninstalling $name"
+        }
+        Remove-Item -re -fo $extDir
       }
-      Remove-Item -re -fo $extDir
-    }
 
-    Write-Host "Installing all Roslyn VSIX"
+      Write-Host "Installing all Roslyn and Razor VSIXs"
 
-    # VSIX files need to be installed in this specific order:
-    $orderedVsixFileNames = @(
-      "Roslyn.Compilers.Extension.vsix",
-      "Roslyn.VisualStudio.Setup.vsix",
-      "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
-      "Roslyn.VisualStudio.Setup.Dependencies.vsix",
-      "ExpressionEvaluatorPackage.vsix",
-      "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
-      "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
+      # VSIX files need to be installed in this specific order:
+      $orderedVsixFileNames = @(
+        "Roslyn.Compilers.Extension.vsix",
+        "Roslyn.VisualStudio.Setup.vsix",
+        "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
+        "Roslyn.VisualStudio.Setup.Dependencies.vsix",
+        "Microsoft.VisualStudio.RazorExtension.Dependencies.vsix",
+        "Microsoft.VisualStudio.RazorExtension.vsix",
+        "ExpressionEvaluatorPackage.vsix",
+        "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
+        "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
-    foreach ($vsixFileName in $orderedVsixFileNames) {
-      $vsixFile = Join-Path $VSSetupDir $vsixFileName
-      $fullArg = "$baseArgs $vsixFile"
-      Write-Host "`tInstalling $vsixFileName"
-      Exec-Command $vsixInstallerExe $fullArg
+      foreach ($vsixFileName in $orderedVsixFileNames) {
+        $vsixFile = Join-Path $VSSetupDir $vsixFileName
+        $fullArg = "$baseArgs $vsixFile"
+        Write-Host "`tInstalling $vsixFileName"
+        Exec-Command $vsixInstallerExe $fullArg
+      }
     }
 
     # Set up registry
@@ -785,19 +813,6 @@ try {
 
   if ($restore) {
     &(Ensure-DotNetSdk) tool restore
-  }
-
-  # Above InitializeDotNetCli or Ensure-DotNetSdk may have installed a local .NET SDK.
-  # $global:_DotNetInstallDir will point to the correct global or local SDK location.
-  # We need to make sure DOTNET_HOST_PATH points to that SDK as a workaround for older MSBuild
-  # which will not set it correctly.  Removal is tracked by https://github.com/dotnet/roslyn/issues/80742
-  if (-not $env:DOTNET_HOST_PATH -and (Test-Path variable:global:_DotNetInstallDir)) {
-    $env:DOTNET_HOST_PATH = Join-Path $global:_DotNetInstallDir 'dotnet'
-    if (-not (Test-Path $env:DOTNET_HOST_PATH)) {
-      $env:DOTNET_HOST_PATH = "$($env:DOTNET_HOST_PATH).exe"
-    }
-
-    Write-Host "Setting DOTNET_HOST_PATH to $env:DOTNET_HOST_PATH"
   }
 
   if ($bootstrap -and $bootstrapDir -eq "") {

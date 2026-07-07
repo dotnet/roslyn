@@ -238,12 +238,16 @@ internal static class HtmlFacts
             case MarkupTagHelperDirectiveAttributeSyntax tagHelperDirectiveAttribute:
                 prefixLocation = tagHelperDirectiveAttribute.NamePrefix?.Span;
                 name = tagHelperDirectiveAttribute.FullName;
-                nameLocation = TextSpan.FromBounds(tagHelperDirectiveAttribute.Transition.Span.Start, tagHelperDirectiveAttribute.Name.Span.End);
+                nameLocation = TextSpan.FromBounds(
+                    tagHelperDirectiveAttribute.Transition.Span.Start,
+                    tagHelperDirectiveAttribute.ParameterName?.Span.End ?? tagHelperDirectiveAttribute.Name.Span.End);
                 return true;
             case MarkupMinimizedTagHelperDirectiveAttributeSyntax minimizedTagHelperDirectiveAttribute:
                 prefixLocation = minimizedTagHelperDirectiveAttribute.NamePrefix?.Span;
                 name = minimizedTagHelperDirectiveAttribute.FullName;
-                nameLocation = TextSpan.FromBounds(minimizedTagHelperDirectiveAttribute.Transition.Span.Start, minimizedTagHelperDirectiveAttribute.Name.Span.End);
+                nameLocation = TextSpan.FromBounds(
+                    minimizedTagHelperDirectiveAttribute.Transition.Span.Start,
+                    minimizedTagHelperDirectiveAttribute.ParameterName?.Span.End ?? minimizedTagHelperDirectiveAttribute.Name.Span.End);
                 return true;
         }
 

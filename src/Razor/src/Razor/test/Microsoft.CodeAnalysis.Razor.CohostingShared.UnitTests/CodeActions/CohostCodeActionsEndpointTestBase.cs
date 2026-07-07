@@ -36,7 +36,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         RazorFileKind? fileKind = null,
         string? documentFilePath = null,
         (string filePath, string contents)[]? additionalFiles = null,
-        (Uri fileUri, string contents)[]? additionalExpectedFiles = null,
+        (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null,
         bool addDefaultImports = true,
         bool makeDiagnosticsRequest = false)
     {
@@ -56,7 +56,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
             ? codeAction.Edit.AssumeNotNull()
             : await ResolveCodeActionAsync(document, codeAction);
 
-        var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (new DocumentUri(e.fileUri), e.contents)).Concat([(document.GetURI(), expected)]);
+        var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (e.fileUri, e.contents)).Concat([(document.GetURI(), expected)]);
         await workspaceEdit.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
     }
 

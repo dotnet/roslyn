@@ -801,7 +801,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         foreach (var folder in folders)
         {
             var items = GetAllItems(project.ProjectItems);
-            var folderItem = items.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Compare(p.Name, folder) == 0);
+            var folderItem = items.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Name, folder));
             if (folderItem == null || folderItem.Kind != EnvDTE.Constants.vsProjectItemKindPhysicalFile)
             {
                 yield return folder;
