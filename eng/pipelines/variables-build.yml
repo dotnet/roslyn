@@ -14,6 +14,6 @@ variables:
 - name: MSBUILDDEBUGPATH
   value: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/MSBuild.comm.log'
 - name: DOTNET_CLI_USE_MSBUILD_SERVER
-  value: 0 # TODO: set to 1 once we move to SDK 10.0.400; https://github.com/dotnet/roslyn/issues/84326
+  value: 1
 - name: MSBUILDUSESERVER
-  value: 0 # TODO: set to 1 once we move to SDK 10.0.400; https://github.com/dotnet/roslyn/issues/84326
+  value: 1

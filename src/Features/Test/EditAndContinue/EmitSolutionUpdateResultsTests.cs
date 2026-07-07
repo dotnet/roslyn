@@ -158,6 +158,27 @@ public sealed class EmitSolutionUpdateResultsTests
     }
 
     [Fact]
+    public void CreateFromInternalError_UsesErrorMessage()
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution.AddTestProject("A", out var a).Solution;
+
+        var errorMessage = "Unexpected RPC failure";
+        var runningProjects = CreateRunningProjects([(a, noEffectRestarts: false)]);
+
+        var data = EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, errorMessage, runningProjects);
+
+        var diagnostics = data.GetAllDiagnostics();
+        var diagnostic = Assert.Single(diagnostics);
+
+        Assert.Equal(string.Format(FeaturesResources.CannotApplyChangesUnexpectedError, errorMessage), diagnostic.Message);
+        Assert.Equal(ManagedHotReloadDiagnosticSeverity.RestartRequired, diagnostic.Severity);
+        Assert.Equal(a.DebugName, Assert.Single(data.ProjectsToRestart.Keys).DebugName);
+        Assert.Equal(a.DebugName, Assert.Single(data.ProjectsToRebuild).DebugName);
+    }
+
+    [Fact]
     public void RunningProjects_Updates()
     {
         using var _ = CreateWorkspace(out var solution);

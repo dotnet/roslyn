@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using PolyType;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote.ProjectSystem;
@@ -15,8 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote.ProjectSystem;
 /// The dispose just releases any lifetime object tracking since this is an [RpcMarshalable] type.
 /// </summary>
 [RpcMarshalable]
-[TypeShape(IncludeMethods = MethodShapeFlags.PublicInstance)]
-internal partial interface IWorkspaceProjectBatch : IDisposable
+internal interface IWorkspaceProjectBatch : IDisposable
 {
     Task ApplyAsync(CancellationToken cancellationToken);
 }
