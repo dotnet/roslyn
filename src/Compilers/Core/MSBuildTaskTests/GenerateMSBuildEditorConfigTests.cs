@@ -377,5 +377,56 @@ build_property.Property2 = def456
             Assert.True(configTask.WriteMSBuildEditorConfig());
             Assert.Equal(expectedContents, File.ReadAllText(fileName));
         }
+
+        [Fact]
+        public void FileNameIsResolvedAgainstProjectDirectory()
+        {
+            string projectDirectory = Path.Combine(TempRoot.Root, nameof(FileNameIsResolvedAgainstProjectDirectory));
+            Directory.CreateDirectory(projectDirectory);
+
+            string relativeFileName = nameof(FileNameIsResolvedAgainstProjectDirectory) + ".editorconfig";
+            string currentDirectoryTarget = Path.Combine(Directory.GetCurrentDirectory(), relativeFileName);
+            File.Delete(currentDirectoryTarget);
+
+            var (configTask, resolvedProjectDirectory) = ExecuteWithProjectDirectory(projectDirectory, configTask =>
+            {
+                configTask.PropertyItems = new ITaskItem[]
+                {
+                    new TaskItem("Property1", new Dictionary<string, string> { { "Value", "abc123" } }),
+                };
+                configTask.FileName = new TaskItem(relativeFileName);
+            });
+
+            string projectDirectoryTarget = Path.Combine(resolvedProjectDirectory, relativeFileName);
+
+            // The file must be written relative to the project directory, not the process current directory.
+            Assert.True(File.Exists(projectDirectoryTarget));
+            Assert.False(File.Exists(currentDirectoryTarget));
+            Assert.Equal(configTask.ConfigFileContents, File.ReadAllText(projectDirectoryTarget));
+        }
+
+        /// <summary>
+        /// Runs the task against a multithreaded <see cref="TaskEnvironment"/> rooted at
+        /// <paramref name="projectDirectory"/>. Creating such an environment mutates the ambient
+        /// (async-local) working directory used to resolve %(FullPath), so the work is performed on a
+        /// separate execution context to keep that state from leaking into other tests that rely on the
+        /// process current directory.
+        /// </summary>
+        private static (GenerateMSBuildEditorConfig ConfigTask, string ResolvedProjectDirectory) ExecuteWithProjectDirectory(
+            string projectDirectory,
+            Action<GenerateMSBuildEditorConfig> configure)
+        {
+            return System.Threading.Tasks.Task.Run(() =>
+            {
+                TaskEnvironment taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory);
+                GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
+                {
+                    TaskEnvironment = taskEnvironment
+                };
+                configure(configTask);
+                configTask.Execute();
+                return (configTask, taskEnvironment.ProjectDirectory.Value);
+            }).GetAwaiter().GetResult();
+        }
     }
 }

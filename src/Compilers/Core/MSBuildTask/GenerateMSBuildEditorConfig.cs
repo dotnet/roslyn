@@ -37,8 +37,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// The Microsoft.Managed.Core.targets calls this task with the collected results of the <c>AnalyzerProperty</c> and 
     /// <c>AnalyzerItemMetadata</c> item groups. 
     /// </remarks>
-    public sealed class GenerateMSBuildEditorConfig : Task
+    [MSBuildMultiThreadableTask]
+    public sealed class GenerateMSBuildEditorConfig : Task, IMultiThreadableTask
     {
+        /// <inheritdoc />
+        public TaskEnvironment TaskEnvironment { get; set; } = TaskEnvironment.Fallback;
+
         /// <remarks>
         /// Although this task does its own writing to disk, this
         /// output parameter is here for testing purposes.
@@ -113,7 +117,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             try
             {
-                var targetFileName = FileName.ItemSpec;
+                var targetFileName = string.IsNullOrEmpty(FileName.ItemSpec) ? FileName.ItemSpec : TaskEnvironment.GetAbsolutePath(FileName.ItemSpec);
                 if (File.Exists(targetFileName))
                 {
                     string existingContents = File.ReadAllText(targetFileName);
