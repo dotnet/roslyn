@@ -62,6 +62,36 @@ public class ComponentCodeGenerationTestBase()
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13117")]
+    public void SwitchExpression_WithMarkupInLambdaArms()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components
+
+            @code {
+                public enum SampleType { Alpha, Beta, Gamma }
+
+                private static RenderFragment RenderBadge(SampleType type) => type switch
+                {
+                    SampleType.Alpha => (__builder) =>
+                    {
+                        <span>Alpha</span>
+                    },
+                    _ => (__builder) =>
+                    {
+                        <span>Unknown</span>
+                    }
+                };
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [Fact]
     public void SingleLineControlFlowStatements_InCodeBlock()
     {
