@@ -724,7 +724,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">İfade ağacı, genişletme özelliği erişimi içeremez</target>
+        <target state="new">An expression tree may not contain an extension property access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
