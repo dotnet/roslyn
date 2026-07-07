@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -80,9 +81,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             var engine = new MockEngine();
 
+            // Fixed project directory so resolution doesn't depend on the current working directory.
+            var projectDirectory = Utilities.FixFilePath(@"c:\MyProjects\MyProject\");
+            var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory);
+
             var task = new MapSourceRoots
             {
                 BuildEngine = engine,
+                TaskEnvironment = taskEnvironment,
                 SourceRoots = new[]
                 {
                     new TaskItem(@"!@#:;$%^&*()_+|{}\"),
@@ -106,18 +112,29 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(3, task.MappedSourceRoots.Length);
 
-            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow(@"!@#:;$%^&*()_+|{}\")), task.MappedSourceRoots[0].ItemSpec);
+            Assert.Equal(NormalizePath(@"!@#:;$%^&*()_+|{}\"), task.MappedSourceRoots[0].ItemSpec);
             Assert.Equal(@"/_1/", task.MappedSourceRoots[0].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow("****/")), task.MappedSourceRoots[1].ItemSpec);
+            Assert.Equal(NormalizePath("****/"), task.MappedSourceRoots[1].ItemSpec);
             Assert.Equal(@"/_/", task.MappedSourceRoots[1].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[1].GetMetadata("SourceControl"));
 
-            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow(@"****\|||:;\")), task.MappedSourceRoots[2].ItemSpec);
+            Assert.Equal(NormalizePath(@"****\|||:;\"), task.MappedSourceRoots[2].ItemSpec);
             Assert.Equal(@"/_/|||:;/", task.MappedSourceRoots[2].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[2].GetMetadata("SourceControl"));
 
             Assert.True(result);
+
+            // Mirror MapSourceRoots.NormalizePath (resolve against the project directory via the task's
+            // TaskEnvironment) so the expected ItemSpec tracks the task's own normalization on every framework.
+            string NormalizePath(string path)
+            {
+                var fullPath = Utilities.GetFullPathNoThrow(taskEnvironment.GetAbsolutePath(path));
+                var last = fullPath.Length == 0 ? '\0' : fullPath[fullPath.Length - 1];
+                return last == Path.DirectorySeparatorChar || last == Path.AltDirectorySeparatorChar
+                    ? fullPath
+                    : fullPath + Path.DirectorySeparatorChar;
+            }
         }
 
         [Fact]
@@ -498,5 +515,64 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
 
             Assert.True(result);
         }
+
+        [Fact]
+        public void RelativeSourceRoot_ResolvedAgainstProjectDirectory_NotCurrentDirectory()
+        {
+            // A project directory that is different from the current working directory.
+            var projectDirectory = Path.Combine(Path.GetTempPath(), "MapSourceRoots", "ProjectDir");
+            var relativeSourceRoot = "relativeRoot" + Path.DirectorySeparatorChar;
+
+            var mappedItemSpec = MapSingleSourceRoot(
+                TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory),
+                relativeSourceRoot);
+
+            // The relative source root is resolved against the task's project directory...
+            Assert.Equal(ResolveAgainst(projectDirectory, "relativeRoot"), mappedItemSpec);
+
+            // ...and not against the current working directory.
+            Assert.NotEqual(ResolveAgainst(Directory.GetCurrentDirectory(), "relativeRoot"), mappedItemSpec);
+        }
+
+        [Fact]
+        public void RelativeSourceRoot_FallbackTaskEnvironment_ResolvedAgainstCurrentDirectory()
+        {
+            var projectDirectory = Path.Combine(Path.GetTempPath(), "MapSourceRoots", "ProjectDir");
+            var relativeSourceRoot = "relativeRoot" + Path.DirectorySeparatorChar;
+
+            var mappedAgainstProjectDirectory = MapSingleSourceRoot(
+                TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory),
+                relativeSourceRoot);
+
+            // The default (fallback) environment resolves against the current working directory,
+            // demonstrating that the project directory is what changes the resolution above.
+            var mappedAgainstCurrentDirectory = MapSingleSourceRoot(TaskEnvironment.Fallback, relativeSourceRoot);
+
+            Assert.Equal(ResolveAgainst(Directory.GetCurrentDirectory(), "relativeRoot"), mappedAgainstCurrentDirectory);
+            Assert.NotEqual(mappedAgainstCurrentDirectory, mappedAgainstProjectDirectory);
+        }
+
+        private static string MapSingleSourceRoot(TaskEnvironment taskEnvironment, string sourceRoot)
+        {
+            var engine = new MockEngine();
+
+            var task = new MapSourceRoots
+            {
+                BuildEngine = engine,
+                TaskEnvironment = taskEnvironment,
+                SourceRoots = new[] { new TaskItem(sourceRoot) },
+                Deterministic = false,
+            };
+
+            bool result = task.Execute();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
+            Assert.True(result);
+
+            RoslynDebug.Assert(task.MappedSourceRoots is object);
+            return task.MappedSourceRoots.Single().ItemSpec;
+        }
+
+        private static string ResolveAgainst(string baseDirectory, string relativePath)
+            => Utilities.GetFullPathNoThrow(Path.Combine(baseDirectory, relativePath)) + Path.DirectorySeparatorChar;
     }
 }
