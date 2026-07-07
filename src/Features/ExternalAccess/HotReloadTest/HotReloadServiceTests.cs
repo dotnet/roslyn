@@ -36,6 +36,9 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
            .GetRequiredDocument(documentId)
            .GetTextAsync();
 
+    private static HotReloadService CreateHotReloadService(Workspace workspace, ImmutableArray<string> capabilities)
+        => new(workspace.Services.SolutionServices, () => ValueTask.FromResult(capabilities));
+
     [Fact]
     public async Task Test()
     {
@@ -53,7 +56,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 
         EmitLibrary(solution.GetRequiredProject(projectId));
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
@@ -188,7 +191,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         var generatorDiagnostics = await solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, CancellationToken.None);
         Assert.Empty(generatorDiagnostics);
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
@@ -232,7 +235,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 
         EmitLibrary(solution.GetRequiredProject(projectId));
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType"]);
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
@@ -278,7 +281,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 
         EmitLibrary(solution.GetRequiredProject(projectId));
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType"]);
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
@@ -318,7 +321,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 
         sourceFileA.WriteAllText(source2, Encoding.UTF8);
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
         // loads source text V2 from disk:
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
@@ -375,7 +378,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 
         additionalFileA.WriteAllText(source2);
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType"]);
 
         // V2 of the text is loaded from disk:
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
@@ -411,7 +414,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 
         sourceFileA.WriteAllText("source", Encoding.UTF8);
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline"]);
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
