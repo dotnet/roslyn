@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureClosedClasses) && input.Type.TryGetEffectiveClosedClass() is { } closedClass)
             {
+                // TODO2: We probably need this to accept a type parameter constrained to closed class also.
                 return new ClosedClassTypeUnionValueSetFactory(closedClass);
             }
 

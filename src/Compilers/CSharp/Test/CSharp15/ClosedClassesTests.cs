@@ -5720,26 +5720,20 @@ public sealed class ClosedClassesTests : CSharpTestBase
         static void verify(CSharpCompilation comp)
         {
             comp.VerifyEmitDiagnostics(
-                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'X' is not covered.
                 //         return x switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("X").WithLocation(100, 18),
                 // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             E => 3,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
-                // TODO2: these diagnostics here and in _04 test below seem unexpected. Why aren't they reported for analogous non-union case in Exhaustiveness_ConstrainedToClosedType_02?
-                // (206,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
-                //         return x switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(206, 18),
-                // (215,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
-                //         return x switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(215, 18));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13)
+                );
         }
     }
 
     [Fact]
     public void Exhaustiveness_ConstrainedToClosedType_04()
     {
-        // Similar to Exhaustiveness_ConstrainedToClosedType_03 except union only has one case type.
+        // A union case type is a type parameter constrained to closed class type and only has one case type.
         var source1 = """
             public closed class E;
             public sealed class F1 : E;
@@ -5812,18 +5806,13 @@ public sealed class ClosedClassesTests : CSharpTestBase
         static void verify(CSharpCompilation comp)
         {
             comp.VerifyEmitDiagnostics(
-                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'X' is not covered.
                 //         return x switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("X").WithLocation(100, 18),
                 // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             E => 3,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
-                // (206,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
-                //         return x switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(206, 18),
-                // (214,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
-                //         return x switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(214, 18));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13)
+                );
         }
     }
 
@@ -5944,10 +5933,11 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
                 int M12<X, Y>(object obj) where X : E where Y : X
                 {
+                #line 600
                     return obj switch
                     {
                         X => 1,
-                #line 600
+                #line 610
                         Y => 2,
                     };
                 }
@@ -6002,25 +5992,26 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 // (500,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             Y => 2,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(500, 13),
-                // (515,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // (600,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         return obj switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(515, 20),
-                // (600,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(600, 20),
+                // (610,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             Y => 2,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(600, 13),
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(610, 13),
                 // (700,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         return obj switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(700, 20),
                 // (800,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             F1 => 2,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(800, 13));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(800, 13)
+                );
         }
     }
 
     [Fact]
-    public void Exhaustiveness_ConstrainedToClosedType_06()
+    public void Exhaustiveness_ConstrainedUnionCaseType_01()
     {
-        // Union case type is a type parameter is constrained indirectly to closed type
+        // Union case type is a type parameter constrained indirectly to closed type
         var source1 = """
             public closed class E;
             public sealed class F1 : E;
@@ -6136,10 +6127,11 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
                 int M12<X, Y>(U<object> obj) where X : E where Y : X
                 {
+                #line 600
                     return obj switch
                     {
                         X => 1,
-                #line 600
+                #line 610
                         Y => 2,
                     };
                 }
@@ -6178,66 +6170,48 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         static void verify(CSharpCompilation comp)
         {
-            // TODO2: diagnostics are expected only on the `#line` lines.
             comp.VerifyDiagnostics(
-                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
                 // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             E => 3,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
-                // (206,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(206, 18),
-                // (214,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(214, 18),
-                // (223,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(223, 18),
-                // (231,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(231, 18),
-                // (240,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(240, 18),
                 // (300,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             Y => 2,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(300, 13),
-                // (306,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(306, 18),
-                // (406,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
-                //         return x switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(406, 18),
+                // (400,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             X => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "X").WithLocation(400, 13),
                 // (500,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             Y => 2,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(500, 13),
-                // (506,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
-                //         return x switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(506, 18),
-                // (515,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'object' is not covered.
+                // (600,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'object' is not covered.
                 //         return obj switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("object").WithLocation(515, 20),
-                // (600,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("object").WithLocation(600, 20),
+                // (610,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             Y => 2,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(600, 13),
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(610, 13),
                 // (700,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'object' is not covered.
                 //         return obj switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("object").WithLocation(700, 20),
-                // (709,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(709, 18));
+                // (800,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             F1 => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(800, 13)
+                );
         }
     }
 
     [Fact]
-    public void Exhaustiveness_ConstrainedUnionCaseType_01()
+    public void Exhaustiveness_ConstrainedUnionCaseType_02()
     {
         // A union case type is a type parameter constrained to non-closed class type
         // This is tested as a point of comparison with Exhaustiveness_ConstrainedToClosedType_04
         var source1 = """
             public union U<T>(T);
+
+            public class C;
+            public class D : C;
             """;
 
         var source2 = """
@@ -6277,9 +6251,6 @@ public sealed class ClosedClassesTests : CSharpTestBase
                     };
                 }
             }
-
-            class C;
-            class D : C;
             """;
 
         var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
@@ -6291,6 +6262,59 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Exhaustiveness_ConstrainedUnionCaseType_03()
+    {
+        // Union case type is a type parameter constrained indirectly to closed type
+        // Pared-down version of a scenario in Exhaustiveness_ConstrainedUnionCaseType_01
+        var source1 = """
+            public closed class E;
+            public sealed class F1 : E;
+            public sealed class F2 : E;
+
+            public union U<T>(T);
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M4<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                #line 210
+                    return y switch
+                    {
+                        X => 1,
+                    };
+                }
+
+                int M5<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                #line 220
+                    return y switch
+                    {
+                        F1 => 1,
+                        X => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyDiagnostics();
+        }
     }
 
     [Fact]

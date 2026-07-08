@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <param name="inputValue">Type symbol, or 'null' when we want to perform a check for null value.</param>
+        /// <returns>'true' if the set definitely contains 'inputValue'; 'false' if the set definitely does not contain 'inputValue'; 'null' if the set possibly contains 'inputValue'.</returns>
         private bool? EvaluateNodeForInputValue(Node node, TypeSymbol? inputValue, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             switch (node)
@@ -309,11 +310,55 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var t in _typesInUnion)
             {
-                if (EvaluateNodeForInputValue(root, t.CaseType, ref useSiteInfo) != false)
-                    return t;
+                // Any closed case type should have already been expanded if possible
+                Debug.Assert(t.CaseType is not NamedTypeSymbol { IsClosed: true } closedType || !closedType.TryGetClosedSubtypes(out var subtypes) || subtypes is []);
+
+                switch (EvaluateNodeForInputValue(root, t.CaseType, ref useSiteInfo))
+                {
+                    case false:
+                        continue;
+                    case true:
+                        return t;
+                    case null:
+                        if (t.CaseType is not TypeParameterSymbol { EffectiveBaseClassNoUseSiteDiagnostics: { IsClosed: true } effectiveClosedBase }
+                            || !effectiveClosedBase.TryGetClosedSubtypes(out var derivedTypes)
+                            || derivedTypes is [])
+                        {
+                            return t;
+                        }
+
+                        foreach (var derivedType in derivedTypes)
+                        {
+                            if (derivedTypeMayBePresent(root, derivedType, ref useSiteInfo))
+                                return t;
+                        }
+
+                        // Type parameter itself was not explicitly ruled in or out, and, all derived types in a closed hierarchy are definitely absent.
+                        // Consider the type parameter definitely absent.
+                        // TODO2: more testing of 'not T' patterns etc are needed here.
+                        continue;
+                }
             }
 
             return null;
+
+            bool derivedTypeMayBePresent(Node root, NamedTypeSymbol derivedType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(derivedType.BaseTypeNoUseSiteDiagnostics.IsClosed);
+                if (EvaluateNodeForInputValue(root, derivedType, ref useSiteInfo) != false)
+                    return true;
+
+                if (derivedType.TryGetClosedSubtypes(out var nestedDerivedTypes))
+                {
+                    foreach (var nestedDerivedType in nestedDerivedTypes)
+                    {
+                        if (derivedTypeMayBePresent(root, nestedDerivedType, ref useSiteInfo))
+                            return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         IValueSet IValueSet.Complement()

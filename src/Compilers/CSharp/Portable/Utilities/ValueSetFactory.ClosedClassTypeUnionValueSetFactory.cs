@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder, HashSet<TypeSymbol> setBuilder)
             {
-                if (possibleClosedClass.TryGetEffectiveClosedClass() is not { } namedType || !namedType.TryGetClosedSubtypes(out var subtypes) || subtypes.IsEmpty)
+                if (possibleClosedClass is not NamedTypeSymbol namedType || !namedType.TryGetClosedSubtypes(out var subtypes) || subtypes.IsEmpty)
                 {
                     AddCaseInfo(builder, setBuilder, possibleClosedClass, originalClosedBase: null);
                     return;
