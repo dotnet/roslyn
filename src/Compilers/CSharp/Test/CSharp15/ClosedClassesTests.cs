@@ -5610,6 +5610,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         X => 2,
                     };
                 }
+
+                int M6<X>(X x) where X : E
+                {
+                    return x switch
+                    {
+                        X => 2,
+            #line 300
+                        F1 => 1,
+                    };
+                }
             }
             """;
 
@@ -5631,7 +5641,11 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
                 // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             E => 3,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
+                // (300,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             F1 => 1,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(300, 13)
+                );
 
             var classE = comp.GetMember<NamedTypeSymbol>("E");
             Assert.True(classE.TryGetClosedSubtypes(out var subtypes));
@@ -5961,6 +5975,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         F1 => 2,
                     };
                 }
+
+                int M15<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                #line 900
+                        F1 => 2,
+                    };
+                }
             }
             """;
 
@@ -6003,8 +6027,674 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(700, 20),
                 // (800,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             F1 => 2,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(800, 13)
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(800, 13),
+                // (900,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             F1 => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(900, 13)
                 );
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_06()
+    {
+        // Type parameter is constrained indirectly to closed type, and closed type has no derived types
+        var source1 = """
+            public closed class E;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        E => 1,
+                    };
+                }
+            
+                int M4<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                    };
+                }
+
+                int M5<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        E => 1,
+                #line 100
+                        X => 2,
+                    };
+                }
+            
+                int M6<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                    };
+                }
+
+                int M7<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        E => 1,
+                #line 200
+                        Y => 2,
+                    };
+                }
+
+                int M8<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                #line 300
+                        Y => 2,
+                    };
+                }
+
+                int M9<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 400
+                        X => 2,
+                    };
+                }
+
+                int M10<X, Y>(X x) where X : E where Y : X
+                {
+                    return x switch
+                    {
+                        X => 1,
+                #line 500
+                        Y => 2,
+                    };
+                }
+
+                int M11<X, Y>(X x) where X : E where Y : X
+                {
+                    return x switch
+                    {
+                        Y => 1,
+                        X => 2,
+                    };
+                }
+
+                int M12<X, Y>(object obj) where X : E where Y : X
+                {
+                #line 600
+                    return obj switch
+                    {
+                        X => 1,
+                #line 610
+                        Y => 2,
+                    };
+                }
+
+                int M13<X, Y>(object obj) where X : E where Y : X
+                {
+                #line 700
+                    return obj switch
+                    {
+                        Y => 1,
+                        X => 2,
+                    };
+                }
+
+                int M14<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 800
+                        E => 2,
+                    };
+                }
+
+                int M15<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                #line 900
+                        E => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyDiagnostics(
+                // (100,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             X => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "X").WithLocation(100, 13),
+                // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(200, 13),
+                // (300,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(300, 13),
+                // (400,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             X => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "X").WithLocation(400, 13),
+                // (500,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(500, 13),
+                // (600,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return obj switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(600, 20),
+                // (610,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(610, 13),
+                // (700,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return obj switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(700, 20),
+                // (800,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             E => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(800, 13),
+                // (900,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             E => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(900, 13));
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_07()
+    {
+        // Type parameter is constrained indirectly to closed type, and closed hierarchy is nested
+        var source1 = """
+            public closed class E;
+
+            public class F1 : E;
+            public class F2 : E;
+            public closed class F3 : E;
+
+            public class G1 : F3;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        F2 => 2,
+                        F3 => 3,
+                    };
+                }
+
+                int M1_2<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        F2 => 2,
+                        G1 => 3,
+                    };
+                }
+
+                int M2<X, Y>(Y y) where X : E where Y : X
+                {
+            #line 100
+                    return y switch
+                    {
+                        F1 => 1,
+                    };
+                }
+
+                int M2_2<X, Y>(Y y) where X : E where Y : X
+                {
+            #line 150
+                    return y switch
+                    {
+                        G1 => 1,
+                    };
+                }
+
+                int M3<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        G1 => 0,
+                        F1 => 1,
+                        F2 => 2,
+            #line 200
+                        E => 3,
+                    };
+                }
+            
+                int M4<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                    };
+                }
+
+                int M5<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        X => 2,
+                    };
+                }
+
+                int M5_2<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        G1 => 1,
+                        X => 2,
+                    };
+                }
+            
+                int M6<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                    };
+                }
+
+                int M7<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        Y => 2,
+                    };
+                }
+
+                int M7_2<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        G1 => 1,
+                        Y => 2,
+                    };
+                }
+
+                int M8<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                #line 300
+                        Y => 2,
+                    };
+                }
+
+                int M9<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 400
+                        X => 2,
+                    };
+                }
+
+                int M10<X, Y>(X x) where X : E where Y : X
+                {
+                    return x switch
+                    {
+                        X => 1,
+                #line 500
+                        Y => 2,
+                    };
+                }
+
+                int M11<X, Y>(X x) where X : E where Y : X
+                {
+                    return x switch
+                    {
+                        Y => 1,
+                        X => 2,
+                    };
+                }
+
+                int M12<X, Y>(object obj) where X : E where Y : X
+                {
+                #line 600
+                    return obj switch
+                    {
+                        X => 1,
+                #line 610
+                        Y => 2,
+                    };
+                }
+
+                int M13<X, Y>(object obj) where X : E where Y : X
+                {
+                #line 700
+                    return obj switch
+                    {
+                        Y => 1,
+                        X => 2,
+                    };
+                }
+
+                int M14<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 800
+                        F1 => 2,
+                    };
+                }
+
+                int M14_2<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 850
+                        G1 => 2,
+                    };
+                }
+
+                int M15<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                #line 900
+                        F1 => 2,
+                    };
+                }
+
+                int M15_2<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                #line 950
+                        G1 => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
+                // (150,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(150, 18),
+                // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             E => 3,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
+                // (300,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(300, 13),
+                // (400,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             X => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "X").WithLocation(400, 13),
+                // (500,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(500, 13),
+                // (600,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return obj switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(600, 20),
+                // (610,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(610, 13),
+                // (700,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return obj switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(700, 20),
+                // (800,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             F1 => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(800, 13),
+                // (850,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             G1 => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "G1").WithLocation(850, 13),
+                // (900,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             F1 => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(900, 13),
+                // (950,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             G1 => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "G1").WithLocation(950, 13));
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_08()
+    {
+        // Type parameter is constrained to closed type, and matching is also performed against unrelated type parameter
+        var source1 = """
+            public closed class E;
+            public sealed class F1 : E;
+            public sealed class F2 : E;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X, Y>(Y y) where Y : E 
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        F2 => 2,
+                    };
+                }
+
+                int M2<X, Y>(Y y) where Y : E
+                {
+                #line 100
+                    return y switch
+                    {
+                        F1 => 1,
+                    };
+                }
+
+                int M3<X, Y>(Y y) where Y : E
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        F2 => 2,
+                #line 200
+                        E => 3,
+                    };
+                }
+            
+                int M4<X, Y>(Y y) where Y : E
+                {
+                #line 300
+                    return y switch
+                    {
+                        X => 1,
+                    };
+                }
+
+                int M5<X, Y>(Y y) where Y : E
+                {
+                #line 310
+                    return y switch
+                    {
+                        F1 => 1,
+                        X => 2,
+                    };
+                }
+            
+                int M6<X, Y>(Y y) where Y : E
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                    };
+                }
+
+                int M7<X, Y>(Y y) where Y : E
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        Y => 2,
+                    };
+                }
+
+                int M8<X, Y>(Y y) where Y : E
+                {
+                    return y switch
+                    {
+                        X => 1,
+                        Y => 2,
+                    };
+                }
+
+                int M9<X, Y>(Y y) where Y : E
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 400
+                        X => 2,
+                    };
+                }
+
+                int M10<X, Y>(X x) where Y : E
+                {
+                    return x switch
+                    {
+                        X => 1,
+                #line 500
+                        Y => 2,
+                    };
+                }
+
+                int M11<X, Y>(X x) where Y : E
+                {
+                    return x switch
+                    {
+                        Y => 1,
+                        X => 2,
+                    };
+                }
+
+                int M12<X, Y>(object obj) where Y : E
+                {
+                #line 600
+                    return obj switch
+                    {
+                        X => 1,
+                        Y => 2,
+                    };
+                }
+
+                int M13<X, Y>(object obj) where Y : E
+                {
+                #line 700
+                    return obj switch
+                    {
+                        Y => 1,
+                        X => 2,
+                    };
+                }
+
+                int M14<X, Y>(Y y) where Y : E
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 800
+                        F1 => 2,
+                    };
+                }
+
+                int M15<X, Y>(Y y) where Y : E
+                {
+                #line 900
+                    return y switch
+                    {
+                        X => 1,
+                        F1 => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
+                // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             E => 3,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
+                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(300, 18),
+                // (310,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(310, 18),
+                // (400,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             X => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "X").WithLocation(400, 13),
+                // (500,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(500, 13),
+                // (600,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return obj switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(600, 20),
+                // (700,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return obj switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(700, 20),
+                // (800,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             F1 => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(800, 13),
+                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(900, 18));
         }
     }
 

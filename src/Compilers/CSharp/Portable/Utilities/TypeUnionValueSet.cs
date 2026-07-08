@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <param name="inputValue">Type symbol, or 'null' when we want to perform a check for null value.</param>
-        /// <returns>'true' if the set definitely contains 'inputValue'; 'false' if the set definitely does not contain 'inputValue'; 'null' if the set possibly contains 'inputValue'.</returns>
+        /// <returns>'true' if 'node' definitely contains 'inputValue'; 'false' if 'node' definitely does not contain 'inputValue'; 'null' if 'node' possibly contains 'inputValue'.</returns>
         private bool? EvaluateNodeForInputValue(Node node, TypeSymbol? inputValue, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             switch (node)
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (EvaluateNodeForInputValue(root, t.CaseType, ref useSiteInfo))
                 {
                     case false:
-                        continue;
+                        break;
                     case true:
                         return t;
                     case null:
@@ -333,10 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return t;
                         }
 
-                        // Type parameter itself was not explicitly ruled in or out, and, all derived types in a closed hierarchy are definitely absent.
-                        // Consider the type parameter definitely absent.
-                        // TODO2: more testing of 'not T' patterns etc are needed here.
-                        continue;
+                        // All possible substitutions of the type parameter are definitely absent
+                        break;
                 }
             }
 
