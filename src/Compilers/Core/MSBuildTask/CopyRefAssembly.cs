@@ -13,8 +13,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// By default, this task copies the source over to the destination. 
     /// But if we're able to check that they are identical, the destination is left untouched.
     /// </summary>
-    public sealed class CopyRefAssembly : Task
+    [MSBuildMultiThreadableTask]
+    public sealed class CopyRefAssembly : Task, IMultiThreadableTask
     {
+        /// <inheritdoc />
+        public TaskEnvironment TaskEnvironment { get; set; } = TaskEnvironment.Fallback;
+
         [Required]
         public string SourcePath { get; set; }
 
@@ -33,18 +37,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public override bool Execute()
         {
-            if (!File.Exists(SourcePath))
+            var absoluteSourcePath = string.IsNullOrEmpty(SourcePath) ? SourcePath : TaskEnvironment.GetAbsolutePath(SourcePath);
+            var absoluteDestinationPath = string.IsNullOrEmpty(DestinationPath) ? DestinationPath : TaskEnvironment.GetAbsolutePath(DestinationPath);
+
+            if (!File.Exists(absoluteSourcePath))
             {
                 Log.LogErrorWithCodeFromResources("General_ExpectedFileMissing", SourcePath);
                 return false;
             }
 
-            if (File.Exists(DestinationPath))
+            if (File.Exists(absoluteDestinationPath))
             {
                 var source = Guid.Empty;
                 try
                 {
-                    source = ExtractMvid(SourcePath);
+                    source = ExtractMvid(absoluteSourcePath);
                 }
                 catch (Exception e)
                 {
@@ -59,7 +66,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     try
                     {
-                        Guid destination = ExtractMvid(DestinationPath);
+                        Guid destination = ExtractMvid(absoluteDestinationPath);
 
                         if (!source.Equals(Guid.Empty) && source.Equals(destination))
                         {
@@ -67,7 +74,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             return true;
                         }
 
-                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_Changed", SourcePath, File.GetLastWriteTimeUtc(SourcePath).ToString("O"), source, DestinationPath, File.GetLastWriteTimeUtc(DestinationPath).ToString("O"), destination);
+                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_Changed", SourcePath, File.GetLastWriteTimeUtc(absoluteSourcePath).ToString("O"), source, DestinationPath, File.GetLastWriteTimeUtc(absoluteDestinationPath).ToString("O"), destination);
                     }
                     catch (Exception)
                     {
@@ -76,15 +83,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            return Copy();
+            return Copy(absoluteSourcePath, absoluteDestinationPath);
         }
 
-        private bool Copy()
+        private bool Copy(string absoluteSourcePath, string absoluteDestinationPath)
         {
             try
             {
                 Log.LogMessageFromResources(MessageImportance.Normal, "CopyRefAssembly_Copying", SourcePath, DestinationPath);
-                File.Copy(SourcePath, DestinationPath, overwrite: true);
+                File.Copy(absoluteSourcePath, absoluteDestinationPath, overwrite: true);
             }
             catch (Exception e)
             {
