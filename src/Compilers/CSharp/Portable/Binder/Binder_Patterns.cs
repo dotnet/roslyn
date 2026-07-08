@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DiscardPatternSyntax p => BindDiscardPattern(p, inputType, diagnostics),
                 DeclarationPatternSyntax p => BindDeclarationPattern(p, ref unionType, inputType, ref permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
                 ConstantPatternSyntax p => BindConstantPatternWithFallbackToTypePattern(p, ref unionType, inputType, ref permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
-                RecursivePatternSyntax p => BindRecursivePattern(p, ref unionType, inputType, permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
+                RecursivePatternSyntax p => BindRecursivePattern(p, ref unionType, inputType, ref permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
                 VarPatternSyntax p => BindVarPattern(p, ref unionType, inputType, permitDesignations, hasErrors, diagnostics),
                 ParenthesizedPatternSyntax p => BindParenthesizedPattern(p, ref unionType, inputType, ref permitDesignations, hasErrors, diagnostics, underIsPattern, hasUnionMatching: out hasUnionMatching),
                 BinaryPatternSyntax p => BindBinaryPattern(p, ref unionType, inputType, ref permitDesignations, hasErrors, diagnostics, hasUnionMatching: out hasUnionMatching),
@@ -1554,24 +1554,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (boundDeclType, unionMatchingMode);
         }
 
-        private BoundTypeExpression BindTypeForPattern(
-            TypeSyntax typeSyntax,
-            NamedTypeSymbol? unionType,
-            TypeSymbol inputType,
-            BindingDiagnosticBag diagnostics,
-            ref bool hasErrors)
-        {
-            RoslynDebug.Assert(inputType is { });
-            TypeWithAnnotations declType = BindType(typeSyntax, diagnostics, out AliasSymbol aliasOpt);
-            Debug.Assert(declType.HasType);
-            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, typeWithAnnotations: declType);
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType.Type, diagnostics: diagnostics, ref useSiteInfo, conversion: out _) ||
-                         (unionType is not null && CheckValidPatternTypeForUnionCases(typeSyntax, unionType, declType.Type, diagnostics, ref useSiteInfo));
-            diagnostics.Add(typeSyntax, useSiteInfo);
-            return boundDeclType;
-        }
-
         private void BindPatternDesignation(
             VariableDesignationSyntax? designation,
             TypeWithAnnotations declType,
@@ -1633,27 +1615,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private TypeWithAnnotations BindRecursivePatternType(
-            TypeSyntax? typeSyntax,
-            NamedTypeSymbol? unionType,
-            TypeSymbol inputType,
-            BindingDiagnosticBag diagnostics,
-            ref bool hasErrors,
-            out BoundTypeExpression? boundDeclType)
-        {
-            if (typeSyntax != null)
-            {
-                boundDeclType = BindTypeForPattern(typeSyntax, unionType, inputType, diagnostics, ref hasErrors);
-                return boundDeclType.TypeWithAnnotations;
-            }
-            else
-            {
-                boundDeclType = null;
-                // remove the nullable part of the input's type; e.g. a nullable int becomes an int in a recursive pattern
-                return TypeWithAnnotations.Create(inputType.StrippedType(), NullableAnnotation.NotAnnotated);
-            }
-        }
-
         // Work around https://github.com/dotnet/roslyn/issues/20648: The compiler's internal APIs such as `declType.IsTupleType`
         // do not correctly treat the non-generic struct `System.ValueTuple` as a tuple type.  We explicitly perform the tests
         // required to identify it.  When that bug is fixed we should be able to remove this code and its callers.
@@ -1668,15 +1629,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             RecursivePatternSyntax node,
             ref NamedTypeSymbol? unionType,
             TypeSymbol inputType,
-            bool permitDesignations,
+            ref bool permitDesignations,
             bool hasErrors,
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
-            bool isUnionMatching = unionMatchingInputType is not null;
-            hasUnionMatching = isUnionMatching;
-
             MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
 
             if (inputType.IsPointerOrFunctionPointer())
@@ -1687,7 +1644,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSyntax? typeSyntax = node.Type;
-            TypeWithAnnotations declTypeWithAnnotations = BindRecursivePatternType(typeSyntax, unionType, inputType, diagnostics, ref hasErrors, out BoundTypeExpression? boundDeclType);
+            TypeWithAnnotations declTypeWithAnnotations;
+            BoundTypeExpression? boundDeclType;
+            UnionMatchingMode unionMatchingMode;
+
+            if (typeSyntax != null)
+            {
+                (boundDeclType, unionMatchingMode) = BindTypeForPattern(node, typeSyntax, unionType, inputType, ref permitDesignations, ref hasErrors, diagnostics);
+                declTypeWithAnnotations = boundDeclType.TypeWithAnnotations;
+            }
+            else
+            {
+                boundDeclType = null;
+                // remove the nullable part of the input's type; e.g. a nullable int becomes an int in a recursive pattern
+                declTypeWithAnnotations = TypeWithAnnotations.Create(inputType.StrippedType(), NullableAnnotation.NotAnnotated);
+                unionMatchingMode = UnionMatchingMode.None;
+            }
+
+            hasUnionMatching = unionMatchingMode != UnionMatchingMode.None;
+
             TypeSymbol declType = declTypeWithAnnotations.Type;
 
             MethodSymbol? deconstructMethod = null;
@@ -1723,6 +1698,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!anyDeconstructCandidates &&
                         ShouldUseITupleForRecursivePattern(node, declType, diagnostics, out var iTupleType, out var iTupleGetLength, out var iTupleGetItem))
                     {
+                        Debug.Assert(typeSyntax is null);
+                        Debug.Assert(unionMatchingMode == UnionMatchingMode.None);
+
                         // There was no Deconstruct, but the constraints for the use of ITuple are satisfied.
                         // Use that and forget any errors from trying to bind Deconstruct.
                         deconstructDiagnostics.Free();
@@ -1731,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         deconstructionSubpatterns = patternsBuilder.ToImmutableAndFree();
 
                         unionType = null;
-                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, deconstructionSubpatterns, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, iTupleType, hasErrors);
+                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, deconstructionSubpatterns, inputType: inputType, iTupleType, hasErrors);
                     }
                     else
                     {
@@ -1775,7 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, isExplicitNotNullTest: isExplicitNotNullTest,
-                isUnionMatching: isUnionMatching, variable: variableSymbol, variableAccess: variableAccess, inputType: unionMatchingInputType ?? inputType,
+                unionMatchingMode: unionMatchingMode, variable: variableSymbol, variableAccess: variableAccess, inputType: inputType,
                 narrowedType: boundDeclType?.Type ?? inputType.StrippedType(), hasErrors);
         }
 
@@ -2154,7 +2132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bindITupleSubpatterns(tupleDesignation, subPatterns, permitDesignations, diagnostics);
 
                         unionType = null;
-                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, subPatterns.ToImmutableAndFree(), isUnionMatching: false, inputType: strippedInputType, iTupleType, hasErrors);
+                        return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, subPatterns.ToImmutableAndFree(), inputType: strippedInputType, iTupleType, hasErrors);
                     }
                     else
                     {
@@ -2180,7 +2158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundRecursivePattern(
                     syntax: node, declaredType: null, deconstructMethod: deconstructMethod,
                     deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null,
-                    isExplicitNotNullTest: false, isUnionMatching: false, inputType: inputType, narrowedType: strippedInputType, hasErrors: hasErrors);
+                    isExplicitNotNullTest: false, unionMatchingMode: UnionMatchingMode.None, inputType: inputType, narrowedType: strippedInputType, hasErrors: hasErrors);
 
                 void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes)
                 {

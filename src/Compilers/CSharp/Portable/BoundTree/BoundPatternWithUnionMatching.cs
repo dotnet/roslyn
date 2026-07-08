@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDeclarationPattern p1:
                         Debug.Assert(p1.DeclaredType == (object)((BoundDeclarationPattern)ExclusiveValuePattern).DeclaredType);
                         break;
+                    case BoundRecursivePattern p1:
+                        Debug.Assert(p1.DeclaredType == (object?)((BoundRecursivePattern)ExclusiveValuePattern).DeclaredType);
+                        break;
                     default:
                         throw ExceptionUtilities.Unreachable();
                 }

@@ -115,8 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CreatePatternWithUnionMatching(
                     (NamedTypeSymbol)node.InputType,
-                    node.Update(
-                        node.DeclaredType, node.DeconstructMethod, node.Deconstruction, node.Properties, node.IsExplicitNotNullTest, isUnionMatching: false, node.Variable, node.VariableAccess,
+                    exclusiveInstancePattern: (node.UnionMatchingMode & UnionMatchingMode.UnionInstance) == 0 ? null :
+                                  node.Update(node.DeclaredType, node.DeconstructMethod, node.Deconstruction, node.Properties, node.IsExplicitNotNullTest,
+                                              unionMatchingMode: UnionMatchingMode.None, node.Variable, node.VariableAccess, inputType: node.InputType, narrowedType: node.NarrowedType),
+                    exclusiveValuePattern: node.Update(
+                        node.DeclaredType, node.DeconstructMethod, node.Deconstruction, node.Properties, node.IsExplicitNotNullTest, unionMatchingMode: UnionMatchingMode.None, node.Variable, node.VariableAccess,
                         inputType: ObjectType, narrowedType: node.NarrowedType));
             }
 
@@ -137,20 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!node.IsUnionMatching);
             return node.Update(subpatterns, node.HasSlice, lengthAccess, indexerAccess, receiverPlaceholder, argumentPlaceholder, variable, variableAccess, inputType, narrowedType);
-        }
-
-        public override BoundNode? VisitITuplePattern(BoundITuplePattern node)
-        {
-            node = (BoundITuplePattern)base.VisitITuplePattern(node)!;
-            if (node.IsUnionMatching)
-            {
-                return CreatePatternWithUnionMatching(
-                    (NamedTypeSymbol)node.InputType,
-                    node.Update(node.GetLengthMethod, node.GetItemMethod, node.Subpatterns,
-                        isUnionMatching: false, inputType: ObjectType, narrowedType: node.NarrowedType));
-            }
-
-            return node;
         }
 
         public override BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node)
@@ -474,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         variable: null,
                         variableAccess: null,
                         isExplicitNotNullTest: false,
-                        isUnionMatching: false,
+                        unionMatchingMode: UnionMatchingMode.None,
                         inputType: unionMatchingInputType,
                         narrowedType: unionMatchingInputType.StrippedType()).MakeCompilerGenerated();
 
@@ -495,6 +484,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                             case BoundDeclarationPattern declarationPattern:
                                 toNegate = makeTypePattern(declarationPattern.DeclaredType, declarationPattern.InputType);
+                                break;
+                            case BoundRecursivePattern { DeclaredType: { } declaredType } recursivePattern:
+                                toNegate = makeTypePattern(declaredType, recursivePattern.InputType);
                                 break;
                             default:
                                 throw ExceptionUtilities.Unreachable();
