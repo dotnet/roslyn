@@ -55,7 +55,8 @@ public static class EditorTestCompositions
             typeof(EditorNotificationServiceFactory), // TODO: use mock INotificationService instead (https://github.com/dotnet/roslyn/issues/46045)
             // The editor's BackgroundWorkIndicator eagerly creates a tooltip; export a no-op
             // IToolTipPresenterFactory so tests that exercise it can run headless.
-            typeof(TestToolTipPresenterFactory));
+            typeof(TestToolTipPresenterFactory),
+            typeof(TestObscuringTipManager));         // TODO: https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569
 
     public static readonly TestComposition EditorFeatures = FeaturesTestCompositions.Features
         .Add(Editor)

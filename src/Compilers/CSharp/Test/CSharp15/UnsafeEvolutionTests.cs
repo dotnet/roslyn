@@ -4718,6 +4718,105 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void UnsafeDeclarations_NameOf()
+    {
+        var source = """
+            #pragma warning disable CS0649, CS8019, CS8321 // unused field, using, local function
+            using unsafe U = int*;
+
+            _ = nameof(U);
+            _ = nameof(F);
+            _ = nameof(C);
+            _ = nameof(S);
+            _ = nameof(I);
+            _ = nameof(R);
+            _ = nameof(D);
+            _ = nameof(X.F);
+            _ = nameof(X.M);
+            _ = nameof(X.P);
+            _ = nameof(X.Pg);
+            _ = nameof(X.Ps);
+            _ = nameof(X.E);
+
+            unsafe void F() { }
+            unsafe class C;
+            unsafe struct S;
+            unsafe interface I;
+            unsafe record R;
+            unsafe delegate void D();
+            class X
+            {
+                public unsafe int F;
+                public unsafe void M() { }
+                public unsafe int P { get; set; }
+                public int Pg { unsafe get; set; }
+                public int Ps { get; unsafe set; }
+                public unsafe event System.Action E { add { } remove { } }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics(
+            // (29,21): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public int Pg { unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(29, 21),
+            // (30,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public int Ps { get; unsafe set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(30, 26));
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+            // (19,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe class C;
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C").WithLocation(19, 14),
+            // (20,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe struct S;
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "S").WithLocation(20, 15),
+            // (21,18): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe interface I;
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "I").WithLocation(21, 18),
+            // (22,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe record R;
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "R").WithLocation(22, 15),
+            // (23,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe delegate void D();
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(23, 22));
+    }
+
+    [Fact]
+    public void UnsafeDeclarations_NameOf_CompatMode()
+    {
+        var source = """
+            #pragma warning disable CS0649, CS8321 // unused field, local function
+
+            _ = nameof(F);
+            _ = nameof(D);
+            _ = nameof(X.F);
+            _ = nameof(X.M);
+            _ = nameof(X.P);
+            _ = nameof(X.E);
+
+            unsafe void F(int* p) { }
+            unsafe delegate int* D();
+            class X
+            {
+                public unsafe int* F;
+                public unsafe void M(int* p) { }
+                public unsafe int* P { get; set; }
+                public unsafe event System.Action<int*[]> E { add { } remove { } }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+            // (11,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe delegate int* D();
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(11, 22));
+    }
+
+    [Fact]
     public void UnsafeDeclarations_PointerToManagedType()
     {
         var source = """

@@ -45,10 +45,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="18.4.0" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="18.4.0" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.4.0" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.4.0" />
+    <PackageVersion Include="Microsoft.Build" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -60,12 +60,7 @@
     <!--
       Visual Studio
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="18.9.496-Preview" />
-    <!-- Pin ComponentModelHost to match Shell.Framework: in 18.9 the IComponentModel/IComponentModel2/SComponentModel
-         types moved into Shell.Framework, and ComponentModelHost 18.9.x type-forwards them there. Older transitive
-         versions still define those types, which collides with Shell.Framework (CS0433). -->
-    <PackageVersion Include="Microsoft.VisualStudio.ComponentModelHost" Version="18.9.453" />
-    <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="18.9.438" />
+    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="18.0.2188-preview.1" />
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="18.0.1211-preview.1" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.6.3200" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="18.0.52-preview1" />
@@ -110,7 +105,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Language" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.9.6" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.0.14-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="18.9.918" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="18.9.918" />

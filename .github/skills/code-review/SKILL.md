@@ -47,9 +47,18 @@ Now read the PR description, labels, linked issues (in full), author information
 
 1. **PR metadata**: Fetch the PR description, labels, linked issues, and author. Read linked issues in full — they often contain the repro, root cause analysis, and constraints the fix must satisfy.
 2. **Related issues**: Search for other open issues in the same area (same labels, same component). This can reveal known problems the PR should also address, or constraints the author may not be aware of.
-3. **Existing review comments**: Check if there are already review comments on the PR to avoid duplicating feedback.
+3. **Existing review comments**: Check **all** prior review comments on the PR — including those from earlier review iterations and those already marked resolved, outdated, or addressed. Do **not** post verbatim duplicates of feedback that has already been raised, and do **not** re-raise a concern that was previously resolved (the author fixed it, replied with a justification, or the comment was marked resolved/outdated) unless something has materially changed. Re-litigating settled feedback wastes the author's time and erodes trust in the review. If you genuinely believe a previously-raised concern is still unaddressed — or has become relevant again after subsequent edits — you may follow up, but do not simply repeat the original comment: explicitly acknowledge that it was raised before and explain precisely what new evidence shows it remains (or is again) unresolved.
 4. **Reconcile your assessment with the author's claims.** Where your independent reading of the code disagrees with the PR description or issue, investigate further — but do not simply defer to the author's framing. If the PR claims a bug fix, a performance improvement, or a behavioral correction, verify those claims against the code and any provided evidence. If your independent assessment found problems the PR narrative doesn't acknowledge, those problems are more likely to be real, not less.
 5. **Update your holistic assessment** if the additional context reveals information that genuinely changes your evaluation (e.g., a linked issue proves the bug is real, or an existing review comment already identified the same concern). But do not soften findings just because the PR description sounds reasonable.
+
+### Special Case: Revert PRs
+
+If the PR is a pure or targeted revert of an earlier commit, adjust the review scope before leaving feedback:
+
+1. **Confirm the revert shape.** Verify which commit(s) are being reverted and whether the diff is a faithful revert or includes additional changes.
+2. **Prioritize the revert rationale.** Reverts are often urgent mitigations for a specific pipeline, insertion, or customer-blocking failure. Read the linked failure context and evaluate whether reverting is a reasonable short-term mitigation.
+3. **Avoid reviewing the restored/original code shape.** Do not leave comments asking the author to improve code that merely returns to the previous state. That feedback was either in scope for the original PR or belongs in a follow-up. For a pure revert, comments about style, structure, tests, or design of the restored code are usually noise.
+4. **Focus only on revert-specific risks.** Review whether the revert is complete, whether it accidentally reverts unrelated work, whether follow-up tracking is needed to re-land safely, and whether any non-revert edits introduce new issues.
 
 ### Step 3: Detailed Analysis
 
@@ -60,7 +69,7 @@ Now read the PR description, labels, linked issues (in full), author information
    - ❌ **error** — Must fix before merge. Bugs, security issues, API violations, test gaps for behavior changes.
    - ⚠️ **warning** — Should fix. Performance issues, missing validation, inconsistency with established patterns.
    - 💡 **suggestion** — Consider changing. Style improvements, minor readability wins, optional optimizations.
-5. **Don't pile on.** If the same issue appears many times, flag it once on the primary file with a note listing all affected files. Do not leave separate comments for each occurrence.
+5. **Don't pile on, and don't repeat resolved feedback.** If the same issue appears many times, flag it once on the primary file with a note listing all affected files. Do not leave separate comments for each occurrence. Equally important: do not leave the same kind of feedback over and over across review iterations. If you have already made a comment of a given kind on this PR — or it was made in a prior review pass and has since been resolved, dismissed, or addressed — do not raise it again **unless something materially changed** (e.g., subsequent edits reintroduced the problem, or new evidence shows it was dismissed incorrectly). In that case, do not simply resurface the old comment: acknowledge the prior discussion and explain what is new. Repeatedly resurfacing the same resolved feedback without new justification is noise, not review value.
 6. **Respect existing style.** When modifying existing files, the file's current style takes precedence over general guidelines.
 7. **Don't flag what CI catches.** Do not flag issues that a linter, typechecker, compiler, analyzer, or CI build step would catch, e.g., missing usings, unsupported syntax, formatting. Assume CI will run separately.
 8. **Avoid false positives.** Before flagging any issue:
@@ -71,6 +80,21 @@ Now read the PR description, labels, linked issues (in full), author information
    - **Never assert that something "does not exist," "is deprecated," or "is unavailable" based on training data alone.** Your knowledge has a cutoff date. When uncertain, ask rather than assert.
 9. **Ensure code suggestions are valid.** Any code you suggest must be syntactically correct and complete. Ensure any suggestion would result in working code.
 10. **Label in-scope vs. follow-up.** Distinguish between issues the PR should fix and out-of-scope improvements. Be explicit when a suggestion is a follow-up rather than a blocker.
+
+### Step 4: Documentation Freshness Check (sub-agent)
+
+Code changes frequently outdate the agent knowledge base, but it's easy to miss during a code-focused review. Delegate this to a dedicated sub-agent so it doesn't dilute the primary review's focus. If the environment cannot launch sub-agents, perform this check inline instead.
+
+Launch a sub-agent (e.g., the `explore` or `task` agent) with the PR diff and list of changed files, and instruct it to verify whether the change should have updated — but didn't — any of the repo's living documentation:
+
+- **Knowledge base** (`.github/memory/`): `FILE_MAP.md` (files added/moved/renamed), `API_MAP.md`, `ARCHITECTURE.md`, `CONVENTIONS.md` (new patterns), `KNOWN_ISSUES.md` (repo-wide surprising behavior/workarounds), `TESTING_STRATEGY.md` (repo-wide test layout), and `INDEX.md` (if memory files were added/removed/renamed).
+- **Per-layer memory files**: `.github/memory/known-issues/{compiler,ide,razor}.md` (layer-specific quirks/workarounds) and `.github/memory/testing/{compiler,ide,razor}.md` (layer-specific test base classes/conventions) for the area the change touches.
+- **Path-scoped instruction files** (`.github/instructions/{Compiler,IDE,Razor}.instructions.md`): layer-specific directory detail, key files/APIs, diagnostic IDs, and coding conventions for the area the change touches.
+- **Entry points**: `.github/copilot-instructions.md` and `AGENTS.md` when build/test/orientation guidance changes.
+
+The sub-agent should cross-check the diff against the `update-agent-docs` skill checklist (`.github/skills/update-agent-docs/SKILL.md`) and report, for each gap, **which doc file** is now stale or incomplete and **what specific update** is needed. Only flag genuine omissions — do not invent busywork. If the PR already updated the relevant docs, confirm that and move on.
+
+Fold the sub-agent's findings into the review output as ⚠️ (or 💡 for minor) **Documentation** findings, and ask the author to make the updates. If a required doc update is missing for a behavior/API change, treat it as merge-blocking per the verdict rules.
 
 ## Multi-Model Review
 
@@ -125,6 +149,7 @@ When presenting the final review (whether as a PR comment or as output to the us
   - 💡 for minor suggestions or observations (nice-to-have)
 - **Cross-cutting analysis** should be included when relevant: check whether related code (sibling types, callers, VB compiler) is affected by the same issue or needs a similar fix.
 - **Test quality** should be assessed as its own finding when tests are part of the PR.
+- **Documentation freshness** (from Step 4) should be surfaced as its own finding when the change leaves any knowledge-base or instruction file stale.
 - Keep the review concise but thorough. Every claim should be backed by evidence from the code.
 
 ### Verdict Consistency Rules

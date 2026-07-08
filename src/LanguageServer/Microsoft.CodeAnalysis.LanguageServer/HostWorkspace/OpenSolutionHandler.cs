@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class OpenSolutionHandlerFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new OpenSolutionHandler(lspServices.GetRequiredService<LanguageServerProjectSystem>());
+        => new OpenSolutionHandler(
+            lspServices.GetRequiredService<LanguageServerProjectSystem>(),
+            lspServices.GetRequiredService<WorkDoneProgressManager>());
 }
 
 [Method(OpenSolutionName)]
@@ -26,18 +28,31 @@ internal sealed class OpenSolutionHandler : ILspService, ILspServiceNotification
     internal const string OpenSolutionName = "solution/open";
 
     private readonly LanguageServerProjectSystem _projectSystem;
+    private readonly WorkDoneProgressManager _workDoneProgressManager;
 
-    public OpenSolutionHandler(LanguageServerProjectSystem projectSystem)
+    public OpenSolutionHandler(LanguageServerProjectSystem projectSystem, WorkDoneProgressManager workDoneProgressManager)
     {
         _projectSystem = projectSystem;
+        _workDoneProgressManager = workDoneProgressManager;
     }
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => false;
 
-    Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    async Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        return _projectSystem.OpenSolutionAsync(request.Solution.GetDocumentFilePathFromUri());
+        var solutionPath = request.Solution.GetDocumentFilePathFromUri();
+
+        var loadingMessage = string.Format(LanguageServerResources.Loading_0, solutionPath);
+        await using var progressReporter = await _workDoneProgressManager.CreateWorkDoneProgressAsync(
+            reportProgressToClient: true,
+            title: loadingMessage,
+            startMessage: loadingMessage,
+            endMessage: string.Format(LanguageServerResources.Loaded_0, solutionPath),
+            clientCanCancel: false,
+            serverCancellationToken: cancellationToken);
+
+        await _projectSystem.OpenSolutionAsync(solutionPath, progressReporter);
     }
 
     internal sealed class NotificationParams

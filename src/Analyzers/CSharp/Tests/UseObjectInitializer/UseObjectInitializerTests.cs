@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1041,8 +1042,8 @@ public sealed partial class UseObjectInitializerTests
             
                     void M()
                     {
-                        var c = [|new|] C();
-                        c.i = 1;
+                        var c = {|#0:new|} C();
+                        {|#1:c.|}i = 1;
                     }
                 }
                 """;
@@ -1105,6 +1106,21 @@ public sealed partial class UseObjectInitializerTests
             LanguageVersion = LanguageVersion.CSharp12,
         };
 
+        if (enabled)
+        {
+            test.TestState.ExpectedDiagnostics.AddRange(
+                [
+                    VerifyCS.Diagnostic("IDE0017")
+                        .WithSeverity(DiagnosticSeverity.Info)
+                        .WithLocation(0)
+                        .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations),
+                    VerifyCS.Diagnostic("IDE0017")
+                        .WithSeverity(DiagnosticSeverity.Info)
+                        .WithLocation(1)
+                        .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations),
+                ]);
+        }
+
         await test.RunAsync();
     }
 
@@ -1155,6 +1171,72 @@ public sealed partial class UseObjectInitializerTests
             dotnet_diagnostic.IDE0017.severity = warning
 
             build_property.EnableCodeStyleSeverity = {enabled}
+            """),
+                }
+            },
+            FixedState = { Sources = { fixedCode } },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCodeStyleOptionSeverityAppliesToFadeOutDiagnosticOverCategorySeverity()
+    {
+        var testCode =
+            """
+            class C
+            {
+                int i;
+
+                void M()
+                {
+                    var c = {|#0:new|} C();
+                    {|#1:c.|}i = 1;
+                }
+            }
+            """;
+
+        var fixedCode =
+            """
+            class C
+            {
+                int i;
+
+                void M()
+                {
+                    var c = new C
+                    {
+                        i = 1
+                    };
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                ExpectedDiagnostics =
+                {
+                    VerifyCS.Diagnostic("IDE0017")
+                        .WithSeverity(DiagnosticSeverity.Info)
+                        .WithLocation(0)
+                        .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations),
+                    VerifyCS.Diagnostic("IDE0017")
+                        .WithSeverity(DiagnosticSeverity.Info)
+                        .WithLocation(1)
+                        .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations),
+                },
+                AnalyzerConfigFiles =
+                {
+                    ("/.globalconfig", """
+            is_global = true
+
+            dotnet_style_object_initializer = true:suggestion
+            dotnet_analyzer_diagnostic.category-Style.severity = warning
+
+            build_property.EnableCodeStyleSeverity = true
             """),
                 }
             },
