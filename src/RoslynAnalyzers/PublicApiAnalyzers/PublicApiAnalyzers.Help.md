@@ -21,7 +21,7 @@ The analyzer also supports tracking *internal* APIs (rules `RS0051`-`RS0058`) vi
 
 IVT grants to test projects and mocking frameworks are not real compatibility consumers, so they add no value to internal API tracking and only create noise. Because IVT is assembly-wide (not per-API), the analyzer makes this decision at the assembly level: it reads the compilation assembly's IVT grants, drops any that match the ignore patterns, and **if no real (non-ignored) IVT target remains, internal API tracking is disabled for that compilation**. To stay conservative, tracking is only disabled when there was at least one IVT grant and *every* grant is ignored; a project with internal API files but no IVT grants keeps tracking (the presence of the files is an explicit opt-in).
 
-The assembly name `DynamicProxyGenAssembly2` (used by Castle DynamicProxy, which backs mocking frameworks such as Moq) is **always** ignored by default. You can ignore additional IVT targets with the following .editorconfig option (a comma/semicolon-separated list; a trailing `*` wildcard and case-insensitive matching on the simple assembly name are supported):
+The assembly name `DynamicProxyGenAssembly2` (used by Castle DynamicProxy, which backs mocking frameworks such as Moq) is **always** ignored by default. You can ignore additional IVT targets with the following .editorconfig option (a comma/semicolon-separated list; a `*` wildcard anywhere in the pattern and case-insensitive matching on the simple assembly name are supported):
 
 ```ini
 [*.cs]

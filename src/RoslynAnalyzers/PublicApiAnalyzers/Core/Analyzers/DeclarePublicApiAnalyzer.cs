@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private const string NamespaceToIgnoreInTrackingEditorConfigOptionName = $"{BaseEditorConfigPath}.skip_namespaces";
 
         /// <summary>
-        /// Comma/semicolon-separated list of InternalsVisibleTo (IVT) target assembly names (supporting a trailing
-        /// <c>*</c> wildcard, e.g. <c>*.Tests</c>) that should be ignored when deciding whether internal API
-        /// tracking should run. See <see cref="ShouldTrackInternalApiBasedOnIvt"/>.
+        /// Comma/semicolon-separated list of InternalsVisibleTo (IVT) target assembly names (supporting a
+        /// <c>*</c> wildcard anywhere in the pattern, e.g. <c>*.Tests</c>) that should be ignored when deciding
+        /// whether internal API tracking should run. See <see cref="ShouldTrackInternalApiBasedOnIvt"/>.
         /// </summary>
         private const string InternalApiSkipIvtEditorConfigOptionName = $"{BaseEditorConfigPath}.internal_api_skip_ivt";
 
