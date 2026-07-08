@@ -3090,6 +3090,92 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
+        [Fact]
+        public async Task InternalApi_IvtOnlyToDynamicProxyGenAssembly2_NotTracked()
+        {
+            // Internal-only behavior: when the only IVT grant targets the Moq/Castle proxy assembly,
+            // internal API tracking is disabled so no RS0051 fires.
+            if (!IsInternalTest)
+            {
+                return;
+            }
+
+            await VerifyCSharpAsync($$"""
+
+                using System.Runtime.CompilerServices;
+                [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    private C() { }
+                }
+                """, @"", @"");
+        }
+
+        [Fact]
+        public async Task InternalApi_IvtToRealAssembly_Tracked()
+        {
+            // A real (non-ignored) IVT consumer keeps internal API tracking enabled.
+            if (!IsInternalTest)
+            {
+                return;
+            }
+
+            await VerifyCSharpAsync($$"""
+
+                using System.Runtime.CompilerServices;
+                [assembly: InternalsVisibleTo("SomeRealConsumer")]
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    private C() { }
+                }
+                """, @"", @"", GetCSharpResultAt(5, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"));
+        }
+
+        [Fact]
+        public async Task InternalApi_IvtToTestAssemblyMatchedByEditorConfig_NotTracked()
+        {
+            // A user-configured ignore pattern (here '*.Tests') disables tracking when it matches the only IVT grant.
+            if (!IsInternalTest)
+            {
+                return;
+            }
+
+            await VerifyCSharpAsync($$"""
+
+                using System.Runtime.CompilerServices;
+                [assembly: InternalsVisibleTo("MyProject.Tests")]
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    private C() { }
+                }
+                """, @"", @"", "[*]\r\ndotnet_public_api_analyzer.internal_api_skip_ivt = *.Tests");
+        }
+
+        [Fact]
+        public async Task InternalApi_MixedRealAndIgnoredIvt_Tracked()
+        {
+            // As long as one real IVT consumer remains, tracking stays enabled even when other grants are ignored.
+            if (!IsInternalTest)
+            {
+                return;
+            }
+
+            await VerifyCSharpAsync($$"""
+
+                using System.Runtime.CompilerServices;
+                [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+                [assembly: InternalsVisibleTo("SomeRealConsumer")]
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    private C() { }
+                }
+                """, @"", @"", GetCSharpResultAt(6, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"));
+        }
+
         #endregion
     }
 }
