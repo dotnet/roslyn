@@ -354,6 +354,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     internal int Field;
                     internal int Property { get; set; }
                     internal void Method() { }
+
+                    // Nested type is not itself annotated; it (and its members) must still be excluded
+                    // because an enclosing type is marked '[Embedded]'.
+                    internal class Nested
+                    {
+                        internal int NestedField;
+                        internal void NestedMethod() { }
+                    }
                 }
                 """, @"", @"");
 

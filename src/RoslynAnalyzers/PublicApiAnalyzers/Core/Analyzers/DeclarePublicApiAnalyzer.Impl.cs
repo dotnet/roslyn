@@ -913,8 +913,9 @@ start:
                     // Types marked with '[Microsoft.CodeAnalysis.Embedded]' (as well as their members) are an
                     // implementation detail that gets embedded into consuming assemblies. They should not be tracked
                     // as APIs. This also gives authors an opt-out for internal API tracking: applying the attribute to
-                    // an internal type excludes it (and its members) from tracking.
-                    if (HasEmbeddedAttribute(current))
+                    // an internal type excludes it (and its members) from tracking. The attribute only targets types,
+                    // so only check named types as we walk up the containing-type chain.
+                    if (current is INamedTypeSymbol namedType && HasEmbeddedAttribute(namedType))
                     {
                         return false;
                     }
@@ -936,7 +937,7 @@ start:
                 return true;
             }
 
-            private static bool HasEmbeddedAttribute(ISymbol symbol)
+            private static bool HasEmbeddedAttribute(INamedTypeSymbol symbol)
             {
                 foreach (var attribute in symbol.GetAttributes())
                 {
