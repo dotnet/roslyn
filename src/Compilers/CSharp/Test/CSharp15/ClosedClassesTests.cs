@@ -5620,6 +5620,17 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         F1 => 1,
                     };
                 }
+
+                int M7<X>(X x) where X : E
+                {
+                    return x switch
+                    {
+                        F1 => 1,
+                        F2 => 2,
+            #line 400
+                        X => 3,
+                    };
+                }
             }
             """;
 
@@ -5644,7 +5655,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
                 // (300,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             F1 => 1,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(300, 13)
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(300, 13),
+                // (400,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             X => 3,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "X").WithLocation(400, 13)
                 );
 
             var classE = comp.GetMember<NamedTypeSymbol>("E");
@@ -6780,6 +6794,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 {
                     return y switch
                     {
+            #line 400
                         F1 and X => 1,
                         F2 => 2,
                     };
@@ -6845,52 +6860,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(300, 18),
-                // (310,20): hidden CS9335: The pattern is redundant.
+                // (400,20): hidden CS9335: The pattern is redundant.
                 //             F1 and X => 1,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "X").WithLocation(310, 20)
-                );
-        }
-    }
-    [Fact]
-    public void Exhaustiveness_ConstrainedToClosedType_10()
-    {
-        // Type parameter is constrained indirectly to closed type. Pared down from _09
-        var source1 = """
-            public closed class E;
-            public sealed class F1 : E;
-            public sealed class F2 : E;
-            """;
-
-        var source2 = """
-            class Program
-            {
-                int M5_2<X, Y>(Y y) where X : E where Y : X
-                {
-                    return y switch
-                    {
-                        F1 and X => 1,
-                        F2 => 2,
-                    };
-                }
-            }
-            """;
-
-        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        verify(comp);
-
-        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
-        verify(comp);
-
-        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
-        verify(comp);
-
-        static void verify(CSharpCompilation comp)
-        {
-            comp.VerifyDiagnostics(
-                // (7,20): hidden CS9335: The pattern is redundant.
-                //             F1 and X => 1,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "X").WithLocation(7, 20)
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "X").WithLocation(400, 20)
                 );
         }
     }
