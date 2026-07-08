@@ -571,27 +571,28 @@ internal static partial class ISymbolExtensions
         // AttributeUsage is inherited: if the attribute type doesn't specify one directly, the effective
         // usage comes from the nearest base attribute type that does (matching the C# compiler's behavior).
         // Walk the base type chain to find it.
-        for (var currentType = attributeType; currentType is not null; currentType = currentType.BaseType)
+        var currentType = attributeType;
+        while (currentType is not null)
         {
             var attributeUsageAttribute = currentType.GetAttributes()
                 .FirstOrDefault(attr => attr.AttributeClass is { Name: "AttributeUsageAttribute", ContainingNamespace: { Name: "System", ContainingNamespace.IsGlobalNamespace: true } });
 
-            if (attributeUsageAttribute == null)
+            if (attributeUsageAttribute != null)
             {
-                // No AttributeUsage on this type; keep looking up the base chain.
-                continue;
+                // The first constructor argument is the AttributeTargets value
+                if (attributeUsageAttribute.ConstructorArguments is [{ Value: int targetsValue }, ..])
+                {
+                    var attributeTargets = (AttributeTargets)targetsValue;
+                    // Check if there's any overlap between the attribute's targets and the valid targets
+                    return (attributeTargets & validTargets) != 0;
+                }
+
+                // Found an AttributeUsage but couldn't determine the targets; default to allowing the attribute.
+                return true;
             }
 
-            // The first constructor argument is the AttributeTargets value
-            if (attributeUsageAttribute.ConstructorArguments is [{ Value: int targetsValue }, ..])
-            {
-                var attributeTargets = (AttributeTargets)targetsValue;
-                // Check if there's any overlap between the attribute's targets and the valid targets
-                return (attributeTargets & validTargets) != 0;
-            }
-
-            // Found an AttributeUsage but couldn't determine the targets; default to allowing the attribute.
-            return true;
+            // No AttributeUsage on this type; keep looking up the base chain.
+            currentType = currentType.BaseType;
         }
 
         // No AttributeUsage found anywhere in the inheritance chain; the default is AttributeTargets.All
