@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
-            Debug.Assert(!IsUnionMatching);
+            Debug.Assert(UnionMatchingMode == UnionMatchingMode.None);
             Debug.Assert(NarrowedType.IsCompilerServicesTopLevelType() && NarrowedType.Name == "ITuple");
         }
     }

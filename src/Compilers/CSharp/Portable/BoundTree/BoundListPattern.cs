@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(LengthAccess is null or BoundPropertyAccess or BoundBadExpression);
             Debug.Assert(IndexerAccess is null or BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess or BoundPointerElementAccess);
             Debug.Assert(Binder.GetIndexerOrImplicitIndexerSymbol(IndexerAccess) is var _);
-            Debug.Assert(!IsUnionMatching);
+            Debug.Assert(UnionMatchingMode == UnionMatchingMode.None);
             Debug.Assert(NarrowedType.Equals(InputType.StrippedType(), TypeCompareKind.AllIgnoreOptions));
         }
     }

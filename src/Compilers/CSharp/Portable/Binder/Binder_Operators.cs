@@ -4999,16 +4999,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         boundConstantPattern = new BoundConstantPattern(
-                            node.Right, convertedExpression, constantValueOpt, isUnionMatching: true, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors).MakeCompilerGenerated();
+                            node.Right, convertedExpression, constantValueOpt, unionMatchingMode: UnionMatchingMode.Both, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors).MakeCompilerGenerated();
                     }
                     else
                     {
 
                         boundConstantPattern = new BoundConstantPattern(
-                            node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, isUnionMatching: unionMatchingInputType is not null, inputType: unionMatchingInputType ?? inputType, convertedExpression.Type ?? inputType, hasErrors).MakeCompilerGenerated();
+                            node.Right, convertedExpression,
+                            constantValueOpt ?? ConstantValue.Bad,
+                            unionMatchingMode: unionMatchingInputType is not null ? UnionMatchingMode.UnionValue : UnionMatchingMode.None,
+                            inputType: unionMatchingInputType ?? inputType,
+                            convertedExpression.Type ?? inputType,
+                            hasErrors).MakeCompilerGenerated();
                     }
 
-                    return MakeIsPatternExpression(node, operand, boundConstantPattern, boundConstantPattern.IsUnionMatching, boolType: GetSpecialType(SpecialType.System_Boolean, diagnostics, node), operandHasErrors, diagnostics);
+                    return MakeIsPatternExpression(
+                        node, operand, boundConstantPattern,
+                        boundConstantPattern.UnionMatchingMode != UnionMatchingMode.None,
+                        boolType: GetSpecialType(SpecialType.System_Boolean, diagnostics, node),
+                        operandHasErrors, diagnostics);
                 }
 
                 return null;

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (DeclaredType is null)
             {
-                Debug.Assert(!IsUnionMatching);
+                Debug.Assert(UnionMatchingMode == UnionMatchingMode.None);
                 Debug.Assert(NarrowedType.Equals(InputType.StrippedType(), TypeCompareKind.AllIgnoreOptions));
             }
             else
@@ -22,7 +22,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(NarrowedType.Equals(DeclaredType.Type, TypeCompareKind.AllIgnoreOptions));
             }
         }
-
-        public override bool IsUnionMatching => UnionMatchingMode != UnionMatchingMode.None;
     }
 }
