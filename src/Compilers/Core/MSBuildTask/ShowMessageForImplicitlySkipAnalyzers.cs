@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// <summary>
     /// Logs a localizable message for implicitly skipping analyzers for implicitly triggered builds.
     /// </summary>
+    [MSBuildMultiThreadableTask]
     public sealed class ShowMessageForImplicitlySkipAnalyzers : Task
     {
         public override bool Execute()
