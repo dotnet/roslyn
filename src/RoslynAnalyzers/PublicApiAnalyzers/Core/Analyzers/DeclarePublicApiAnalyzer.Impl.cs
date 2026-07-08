@@ -910,6 +910,15 @@ start:
 
                 for (var current = symbol; current != null; current = current.ContainingType)
                 {
+                    // Types marked with '[Microsoft.CodeAnalysis.Embedded]' (as well as their members) are an
+                    // implementation detail that gets embedded into consuming assemblies. They should not be tracked
+                    // as APIs. This also gives authors an opt-out for internal API tracking: applying the attribute to
+                    // an internal type excludes it (and its members) from tracking.
+                    if (HasEmbeddedAttribute(current))
+                    {
+                        return false;
+                    }
+
                     switch (current.DeclaredAccessibility)
                     {
                         case Accessibility.Protected:
@@ -925,6 +934,34 @@ start:
                 }
 
                 return true;
+            }
+
+            private static bool HasEmbeddedAttribute(ISymbol symbol)
+            {
+                foreach (var attribute in symbol.GetAttributes())
+                {
+                    // Match 'Microsoft.CodeAnalysis.EmbeddedAttribute' by name rather than by symbol identity, since the
+                    // attribute is typically embedded (and hence duplicated) across assemblies, which makes a
+                    // well-known-type lookup ambiguous.
+                    if (attribute.AttributeClass is
+                        {
+                            Name: "EmbeddedAttribute",
+                            ContainingNamespace:
+                            {
+                                Name: "CodeAnalysis",
+                                ContainingNamespace:
+                                {
+                                    Name: "Microsoft",
+                                    ContainingNamespace.IsGlobalNamespace: true,
+                                },
+                            },
+                        })
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private bool CanTypeBeExtended(ITypeSymbol type)

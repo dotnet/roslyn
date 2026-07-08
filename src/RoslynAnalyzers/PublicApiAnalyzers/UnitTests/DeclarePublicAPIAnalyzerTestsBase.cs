@@ -338,6 +338,25 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 }
                 """, @"", @"");
 
+        [Fact, WorkItem(79658, "https://github.com/dotnet/roslyn/issues/79658")]
+        public Task EmbeddedTypesAndMembersAreNotTrackedAsync()
+            => VerifyCSharpAsync($$"""
+
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded]
+                    internal sealed class EmbeddedAttribute : System.Attribute { }
+                }
+
+                [Microsoft.CodeAnalysis.Embedded]
+                internal class C
+                {
+                    internal int Field;
+                    internal int Property { get; set; }
+                    internal void Method() { }
+                }
+                """, @"", @"");
+
         [Fact]
         public Task SimpleMissingMember_CSharpAsync()
             => VerifyCSharpAsync($$"""
