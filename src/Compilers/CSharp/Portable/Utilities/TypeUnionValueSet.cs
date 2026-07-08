@@ -343,16 +343,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool derivedTypeMayBePresent(Node root, NamedTypeSymbol derivedType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 Debug.Assert(derivedType.BaseTypeNoUseSiteDiagnostics.IsClosed);
-                if (EvaluateNodeForInputValue(root, derivedType, ref useSiteInfo) != false)
-                    return true;
-
-                if (derivedType.TryGetClosedSubtypes(out var nestedDerivedTypes))
+                if (derivedType.TryGetClosedSubtypes(out var nestedDerivedTypes) && nestedDerivedTypes is not [])
                 {
                     foreach (var nestedDerivedType in nestedDerivedTypes)
                     {
                         if (derivedTypeMayBePresent(root, nestedDerivedType, ref useSiteInfo))
                             return true;
                     }
+                }
+                else if (EvaluateNodeForInputValue(root, derivedType, ref useSiteInfo) != false)
+                {
+                    return true;
                 }
 
                 return false;
