@@ -349,7 +349,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // Fall through to ordinary file-based app handling.
         Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
 
-        var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _dotnetCliHelper, _logger, cancellationToken);
+        var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _dotnetCliHelper, _logger, localizeOutput: true, cancellationToken);
         if (content is not var (virtualProjectContent, virtualProjectPath, diagnostics))
         {
             _logger.LogError("Failed to obtain virtual project for '{documentPath}' using dotnet run-api.", documentPath);
