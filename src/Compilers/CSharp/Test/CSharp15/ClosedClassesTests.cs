@@ -6001,9 +6001,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
         static void verify(CSharpCompilation comp)
         {
             comp.VerifyDiagnostics(
-                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
                 // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             E => 3,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
@@ -6699,6 +6699,200 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_09()
+    {
+        // Type parameter is constrained indirectly to closed type. Test a few 'not'/'and'/'or' cases
+        var source1 = """
+            public closed class E;
+            public sealed class F1 : E;
+            public sealed class F2 : E;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 or F2 => 1,
+                    };
+                }
+
+                int M2<X, Y>(Y y) where X : E where Y : X
+                {
+            #line 100
+                    return y switch
+                    {
+                        not F1 => 1,
+                    };
+                }
+
+                int M2_2<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        not F1 => 1,
+                        F1 => 2,
+                    };
+                }
+
+                int M3<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+            #line 200
+                        F2 or Y => 3,
+                    };
+                }
+
+                int M3_2<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        not (F1 or F2) => 1,
+                        X => 2,
+                    };
+                }
+            
+                int M4<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                    };
+                }
+
+                int M5<X, Y>(Y y) where X : E where Y : X
+                {
+            #line 300
+                    return y switch
+                    {
+                        F1 and X => 1,
+                    };
+                }
+
+                int M5_2<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 and X => 1,
+                        F2 => 2,
+                    };
+                }
+            
+                int M6<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        not Y => 1,
+                        X => 2,
+                    };
+                }
+
+                int M7<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        not F1 => 1,
+                        Y => 2,
+                    };
+                }
+
+                int M14<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                        not F1 => 2,
+                    };
+                }
+
+                int M15<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                        not F2 => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
+                // (200,19): hidden CS9335: The pattern is redundant.
+                //             F2 or Y => 3,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "Y").WithLocation(200, 19),
+                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(300, 18),
+                // (310,20): hidden CS9335: The pattern is redundant.
+                //             F1 and X => 1,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "X").WithLocation(310, 20)
+                );
+        }
+    }
+    [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_10()
+    {
+        // Type parameter is constrained indirectly to closed type. Pared down from _09
+        var source1 = """
+            public closed class E;
+            public sealed class F1 : E;
+            public sealed class F2 : E;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M5_2<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 and X => 1,
+                        F2 => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyDiagnostics(
+                // (7,20): hidden CS9335: The pattern is redundant.
+                //             F1 and X => 1,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "X").WithLocation(7, 20)
+                );
+        }
+    }
+
+    [Fact]
     public void Exhaustiveness_ConstrainedUnionCaseType_01()
     {
         // Union case type is a type parameter constrained indirectly to closed type
@@ -6952,59 +7146,6 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Exhaustiveness_ConstrainedUnionCaseType_03()
-    {
-        // Union case type is a type parameter constrained indirectly to closed type
-        // Pared-down version of a scenario in Exhaustiveness_ConstrainedUnionCaseType_01
-        var source1 = """
-            public closed class E;
-            public sealed class F1 : E;
-            public sealed class F2 : E;
-
-            public union U<T>(T);
-            """;
-
-        var source2 = """
-            class Program
-            {
-                int M4<X, Y>(U<Y> y) where X : E where Y : X
-                {
-                #line 210
-                    return y switch
-                    {
-                        X => 1,
-                    };
-                }
-
-                int M5<X, Y>(U<Y> y) where X : E where Y : X
-                {
-                #line 220
-                    return y switch
-                    {
-                        F1 => 1,
-                        X => 2,
-                    };
-                }
-            }
-            """;
-
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        verify(comp);
-
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
-        verify(comp);
-
-        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
-        verify(comp);
-
-        static void verify(CSharpCompilation comp)
-        {
-            comp.VerifyDiagnostics();
-        }
     }
 
     [Fact]
