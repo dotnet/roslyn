@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,6 +26,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FileBasedPrograms;
 
 public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutputHelper) : AbstractLspMiscellaneousFilesWorkspaceTests(testOutputHelper)
 {
+    /// <summary>
+    /// .NET SDK versions used for testing. Each test that is sensitive to SDK behavior
+    /// differences should be parameterized over these versions via <see cref="SdkVersions"/>.
+    /// The <see cref="SdkAcquisition"/> helper ensures each version is available before use,
+    /// downloading via <c>dotnetup</c> only when the SDK is not already installed ambiently.
+    /// </summary>
+    private const string Net10SdkVersion = "10.0.108";
+    private const string Net11SdkVersion = "11.0.100-preview.5.26272.118";
+
+    /// <summary>
+    /// Provides SDK versions for parameterized tests. Each row is <c>(sdkVersion, isPrerelease)</c>.
+    /// </summary>
+    public static TheoryData<string, bool> SdkVersions => new()
+    {
+        { Net10SdkVersion, false },
+        { Net11SdkVersion, true },
+    };
+
     [Theory, CombinatorialData]
     public async Task TestFileBasedProgram_Simple(bool mutatingLspWorkspace)
     {
@@ -59,6 +78,32 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Diagnostics not reported for '#:'
         syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
+    }
+
+    [Theory, MemberData(nameof(SdkVersions))]
+    public async Task TestFileBasedProgram_MultiSdk(string sdkVersion, bool isPrerelease)
+    {
+        // Verifies file-based program loading works across SDK versions.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        var tempDir = CreateTempDirectoryWithGlobalJson(sdkVersion, isPrerelease);
+        var sourceText = """
+            #:sdk Microsoft.NET.Sdk
+            Console.WriteLine("Hello World!");
+            """;
+        var sourceFile = tempDir.CreateFile("App.cs").WriteAllText(sourceText);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(looseFileUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+        Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
+        Assert.Equal("App", document.Project.AssemblyName);
+
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
     }
 
@@ -120,6 +165,55 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // Diagnostics not reported for '#:'/'#!'
         syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
+    }
+
+    [Theory, MemberData(nameof(SdkVersions))]
+    public async Task TestMultipleFileBasedPrograms_WithWorkspaceDiscovery(string sdkVersion, bool isPrerelease)
+    {
+        // Test discovering and loading several file-based apps in a single batch.
+        // This is a regression test for MSB4025 caused by multi-node MSBuild re-evaluation of virtual projects.
+        var tempDir = CreateTempDirectoryWithGlobalJson(sdkVersion, isPrerelease);
+
+        var app1Text = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("app1");
+            """;
+        var app1File = tempDir.CreateFile("app1.cs").WriteAllText(app1Text);
+
+        var app2Text = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("app2");
+            """;
+        var app2File = tempDir.CreateFile("app2.cs").WriteAllText(app2Text);
+
+        var app3Text = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("app3");
+            """;
+        var app3File = tempDir.CreateFile("app3.cs").WriteAllText(app3Text);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }],
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
+
+        // Enable discovery and find all FBAs at once — they are queued and loaded in a single batch.
+        var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptions.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, true);
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        await discovery.FindAndLoadEntryPointsAsync();
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        // Verify all FBAs loaded successfully in the host workspace.
+        foreach (var file in new[] { app1File, app2File, app3File })
+        {
+            var uri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
+            var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(uri, testLspServer).ConfigureAwait(false);
+            Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+            Assert.True(document.Project.State.HasAllInformation, $"HasAllInformation was false for {file.Path}");
+        }
     }
 
     [Theory, CombinatorialData]
@@ -540,24 +634,23 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     }
 
     private TempDirectory CreateTempDirectoryWithGlobalJson()
+        => CreateTempDirectoryWithGlobalJson(Net10SdkVersion, allowPrerelease: false);
+
+    private TempDirectory CreateTempDirectoryWithGlobalJson(string sdkVersion, bool allowPrerelease)
     {
+        SdkAcquisition.EnsureSdkAvailable(sdkVersion, allowPrerelease);
+
         var tempDirectory = TempRoot.CreateDirectory();
-
-        string? globalJsonPath = null;
-        for (var path = AppContext.BaseDirectory; path != null; path = Path.GetDirectoryName(path))
-        {
-            var candidatePath = Path.Combine(path, "global.json");
-            if (File.Exists(candidatePath))
+        var globalJsonContent = $$"""
             {
-                globalJsonPath = candidatePath;
-                break;
+                "sdk": {
+                    "version": "{{sdkVersion}}",
+                    "allowPrerelease": {{(allowPrerelease ? "true" : "false")}},
+                    "rollForward": "latestPatch"
+                }
             }
-        }
-
-        if (globalJsonPath is null)
-            throw new InvalidOperationException($"The test was unable to find a global.json in the current directory tree: {AppContext.BaseDirectory}. This is likely a build authoring or deployment error.");
-
-        File.Copy(sourceFileName: globalJsonPath, destFileName: Path.Combine(tempDirectory.Path, "global.json"));
+            """;
+        tempDirectory.CreateFile("global.json").WriteAllText(globalJsonContent);
         return tempDirectory;
     }
 

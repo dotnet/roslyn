@@ -98,7 +98,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
     /// The max MSBuild node count to use for design-time builds.
     /// </summary>
     protected virtual int MaxNodeCount
-        // Don't overload the machine, so leave some CPU cores open. This was chosen without much supporting evidence, other than that it's still pretty close to max.
+        // Don't overload the machine, so leave some CPU cores open. This chosen without much support evidence, other than it's still pretty close to max.
         => Math.Max(Environment.ProcessorCount / 2, 1);
 
     protected LanguageServerProjectLoader(
