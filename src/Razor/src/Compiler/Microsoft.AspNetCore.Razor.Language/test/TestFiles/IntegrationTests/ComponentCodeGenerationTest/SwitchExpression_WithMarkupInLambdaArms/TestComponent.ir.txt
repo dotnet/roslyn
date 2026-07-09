@@ -1,0 +1,21 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (1:0,1 [37] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+            CSharpCode - (49:2,7 [194] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (49:2,7 [194] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public enum SampleType { Alpha, Beta, Gamma }\n\n    private static RenderFragment RenderBadge(SampleType type) => type switch\n    {\n        SampleType.Alpha => (__builder) =>\n        {
+            CSharpCode - (243:8,9 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (243:8,9 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n
+            MarkupBlock -  - <span>Alpha</span>
+            CSharpCode - (277:10,0 [50] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (277:10,0 [50] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -         },\n        _ => (__builder) =>\n        {
+            CSharpCode - (327:12,9 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (327:12,9 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n
+            MarkupBlock -  - <span>Unknown</span>
+            CSharpCode - (363:14,0 [19] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (363:14,0 [19] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -         }\n    };\n
