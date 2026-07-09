@@ -476,9 +476,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((char)GeneratedNameKind.ReadOnlyListType == 'z');
             string name = kind switch
             {
-                SynthesizedReadOnlyListKind.Array => "<>z__ReadOnlyArray",
-                SynthesizedReadOnlyListKind.List => "<>z__ReadOnlyList",
-                SynthesizedReadOnlyListKind.SingleElement => "<>z__ReadOnlySingleElementList",
+                SynthesizedReadOnlyListKind.Array => CommonGeneratedNames.SynthesizedReadOnlyList_ReadOnlyArrayPrefix,
+                SynthesizedReadOnlyListKind.List => CommonGeneratedNames.SynthesizedReadOnlyList_ReadOnlyListPrefix,
+                SynthesizedReadOnlyListKind.SingleElement => CommonGeneratedNames.SynthesizedReadOnlyList_SingleElementPrefix,
                 var v => throw ExceptionUtilities.UnexpectedValue(v)
             };
 

@@ -979,6 +979,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            const string DebuggerDisplayString = "Count = {System.Collections.ICollection.Count}";
+            AddSynthesizedAttribute(ref attributes, DeclaringCompilation.TrySynthesizeAttribute(
+                WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor,
+                [new TypedConstant(DeclaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, DebuggerDisplayString)]));
+
             AddSynthesizedAttribute(ref attributes, DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
 

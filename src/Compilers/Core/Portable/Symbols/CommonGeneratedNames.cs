@@ -9,4 +9,8 @@ internal static partial class CommonGeneratedNames
     public const char GenerationSeparator = '#';
 
     public const string FixedBufferFieldSuffix = ">e__FixedBuffer";
+
+    public const string SynthesizedReadOnlyList_ReadOnlyArrayPrefix = "<>z__ReadOnlyArray";
+    public const string SynthesizedReadOnlyList_ReadOnlyListPrefix = "<>z__ReadOnlyList";
+    public const string SynthesizedReadOnlyList_SingleElementPrefix = "<>z__ReadOnlySingleElementList";
 }

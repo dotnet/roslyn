@@ -43,6 +43,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (!value.IsNull)
             {
                 var proxyType = value.Type.GetProxyType();
+
+                // Check for special cases
+                if (proxyType is null)
+                {
+                    var lmrType = value.Type.GetLmrType();
+                    if (SynthesizedCollectionHelpers.IsSynthesizedCollectionType(lmrType))
+                    {
+                        proxyType = SynthesizedCollectionHelpers.TryGetCollectionDebugViewTypeForCollectionType(value.Type);
+                    }
+                }
+
                 if (proxyType != null)
                 {
                     if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.ShowValueRaw) != 0)

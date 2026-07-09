@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -694,6 +695,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             return null;
+        }
+
+        internal static DkmClrType TryResolveTypeName(this DkmClrModuleInstance module, string typeName, ReadOnlyCollection<DkmClrType> genericArguments)
+        {
+            try
+            {
+                return module.ResolveTypeName(typeName, genericArguments);
+            }
+            catch (ArgumentException)
+            {
+                // this exception is thrown if the type was not found in the module
+                return null;
+            }
         }
 
         /// <summary>
