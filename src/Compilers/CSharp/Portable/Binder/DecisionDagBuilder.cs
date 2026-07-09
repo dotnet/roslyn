@@ -1410,14 +1410,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // An evaluation is considered to always succeed, so there is no false branch
                             break;
                         case BoundDagTest d:
-                            bool foundExplicitNullTest = false;
+                            bool foundRelatedExplicitNullTest = false;
                             SplitCases(state, d,
                                 out var whenTrueDecisions, out var whenTrueValues,
                                 out var whenFalseDecisions, out var whenFalseValues,
-                                ref foundExplicitNullTest);
+                                ref foundRelatedExplicitNullTest);
                             state.TrueBranch = uniquifyState(whenTrueDecisions, whenTrueValues);
                             state.FalseBranch = uniquifyState(whenFalseDecisions, whenFalseValues);
-                            if (foundExplicitNullTest && d is BoundDagNonNullTest { IsExplicitTest: false } t)
+                            if (foundRelatedExplicitNullTest && d is BoundDagNonNullTest { IsExplicitTest: false } t)
                             {
                                 // Turn an "implicit" non-null test into an explicit one
                                 state.SelectedTest = new BoundDagNonNullTest(t.Syntax, isExplicitTest: true, t.Input, t.HasErrors);
@@ -1708,9 +1708,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             IValueSet? whenFalseValues,
             out StateForCase whenTrue,
             out StateForCase whenFalse,
-            ref bool foundExplicitNullTest)
+            ref bool foundRelatedExplicitNullTest)
         {
-            stateForCase.RemainingTests.Filter(this, test, state, whenTrueValues, whenFalseValues, out Tests whenTrueTests, out Tests whenFalseTests, ref foundExplicitNullTest);
+            stateForCase.RemainingTests.Filter(this, test, state, whenTrueValues, whenFalseValues, out Tests whenTrueTests, out Tests whenFalseTests, ref foundRelatedExplicitNullTest);
             whenTrue = stateForCase.WithRemainingTests(whenTrueTests);
             whenFalse = stateForCase.WithRemainingTests(whenFalseTests);
         }
@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
             out FrozenArrayBuilder<StateForCase> whenFalse,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
-            ref bool foundExplicitNullTest)
+            ref bool foundRelatedExplicitNullTest)
         {
             var cases = state.Cases;
             var whenTrueBuilder = ArrayBuilder<StateForCase>.GetInstance(cases.Count);
@@ -1740,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SplitCase(
                     state, stateForCase, test,
                     whenTrueValuesOpt, whenFalseValuesOpt,
-                    out var whenTrueState, out var whenFalseState, ref foundExplicitNullTest);
+                    out var whenTrueState, out var whenFalseState, ref foundRelatedExplicitNullTest);
                 // whenTrueState.IsImpossible occurs when Split results in a state for a given case where the case has been ruled
                 // out (because its test has failed). If not whenTruePossible, we don't want to add anything to the state.  In
                 // either case, we do not want to add the current case to the state.
@@ -1965,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool falseTestPermitsTrueOther,
             out bool trueTestImpliesTrueOther,
             out bool falseTestImpliesTrueOther,
-            ref bool foundExplicitNullTest)
+            ref bool foundRelatedExplicitNullTest)
         {
             // innocent until proven guilty
             trueTestPermitsTrueOther = true;
@@ -1984,7 +1984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             falseTestPermitsTrueOther = false;
                             break;
                         case BoundDagExplicitNullTest _:
-                            foundExplicitNullTest = true;
+                            foundRelatedExplicitNullTest = true;
                             // v != null --> !(v == null)
                             trueTestPermitsTrueOther = false;
                             // !(v != null) --> v == null
@@ -1992,7 +1992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundDagNonNullTest n2:
                             if (n2.IsExplicitTest)
-                                foundExplicitNullTest = true;
+                                foundRelatedExplicitNullTest = true;
                             // v != null --> v != null
                             trueTestImpliesTrueOther = true;
                             // !(v != null) --> !(v != null)
@@ -2021,7 +2021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundDagNonNullTest n2:
                             if (n2.IsExplicitTest)
-                                foundExplicitNullTest = true;
+                                foundRelatedExplicitNullTest = true;
                             // v is T --> v != null
                             trueTestImpliesTrueOther = true;
                             break;
@@ -2030,7 +2030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundDagExplicitNullTest _:
                             {
-                                foundExplicitNullTest = true;
+                                foundRelatedExplicitNullTest = true;
                                 // v is T --> !(v == null)
                                 trueTestPermitsTrueOther = false;
                             }
@@ -2043,12 +2043,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundDagNonNullTest n2:
                             if (n2.IsExplicitTest)
-                                foundExplicitNullTest = true;
+                                foundRelatedExplicitNullTest = true;
                             // v == K --> v != null
                             trueTestImpliesTrueOther = true;
                             break;
                         case BoundDagExplicitNullTest _:
-                            foundExplicitNullTest = true;
+                            foundRelatedExplicitNullTest = true;
                             // v == K --> !(v == null)
                             trueTestPermitsTrueOther = false;
                             break;
@@ -2081,12 +2081,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundDagExplicitNullTest _:
-                    foundExplicitNullTest = true;
                     switch (other)
                     {
                         case BoundDagNonNullTest n2:
                             if (n2.IsExplicitTest)
-                                foundExplicitNullTest = true;
+                                foundRelatedExplicitNullTest = true;
                             // v == null --> !(v != null)
                             trueTestPermitsTrueOther = false;
                             // !(v == null) --> v != null
@@ -2107,7 +2106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             trueTestPermitsTrueOther = false;
                             break;
                         case BoundDagExplicitNullTest _:
-                            foundExplicitNullTest = true;
+                            foundRelatedExplicitNullTest = true;
                             // v == null --> v == null
                             trueTestImpliesTrueOther = true;
                             // !(v == null) --> !(v == null)
@@ -3252,7 +3251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IValueSet? whenFalseValues,
                 out Tests whenTrue,
                 out Tests whenFalse,
-                ref bool foundExplicitNullTest);
+                ref bool foundRelatedExplicitNullTest);
             public virtual BoundDagTest ComputeSelectedTest(DecisionDagBuilder builder) => throw ExceptionUtilities.Unreachable();
 
             protected readonly struct RemoveEvaluationAndUpdateTempReferencesResult
@@ -3395,7 +3394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
-                    ref bool foundExplicitNullTest)
+                    ref bool foundRelatedExplicitNullTest)
                 {
                     whenTrue = whenFalse = this;
                 }
@@ -3419,7 +3418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
-                    ref bool foundExplicitNullTest)
+                    ref bool foundRelatedExplicitNullTest)
                 {
                     whenTrue = whenFalse = this;
                 }
@@ -3446,7 +3445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
-                    ref bool foundExplicitNullTest)
+                    ref bool foundRelatedExplicitNullTest)
                 {
                     SyntaxNode syntax = test.Syntax;
                     BoundDagTest other = this.Test;
@@ -3474,7 +3473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             falseTestPermitsTrueOther: out falseDecisionPermitsTrueOther,
                             trueTestImpliesTrueOther: out trueDecisionImpliesTrueOther,
                             falseTestImpliesTrueOther: out falseDecisionImpliesTrueOther,
-                            foundExplicitNullTest: ref foundExplicitNullTest);
+                            foundRelatedExplicitNullTest: ref foundRelatedExplicitNullTest);
 
                         split(trueDecisionPermitsTrueOther, falseDecisionPermitsTrueOther, trueDecisionImpliesTrueOther, falseDecisionImpliesTrueOther, out whenTrue, out whenFalse);
                         return;
@@ -4036,7 +4035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
-                    ref bool foundExplicitNullTest)
+                    ref bool foundRelatedExplicitNullTest)
                 {
                     if (test is BoundDagEvaluation)
                     {
@@ -4191,9 +4190,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
-                    ref bool foundExplicitNullTest)
+                    ref bool foundRelatedExplicitNullTest)
                 {
-                    Negated.Filter(builder, test, state, whenTrueValues, whenFalseValues, out var whenTestTrue, out var whenTestFalse, ref foundExplicitNullTest);
+                    Negated.Filter(builder, test, state, whenTrueValues, whenFalseValues, out var whenTestTrue, out var whenTestFalse, ref foundRelatedExplicitNullTest);
                     whenTrue = Not.Create(whenTestTrue);
                     whenFalse = Not.Create(whenTestFalse);
                 }
@@ -4218,7 +4217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
-                    ref bool foundExplicitNullTest)
+                    ref bool foundRelatedExplicitNullTest)
                 {
                     var testsToFilter = ArrayBuilder<Tests?>.GetInstance();
                     var testsToAssemble = ArrayBuilder<SequenceTests>.GetInstance();
@@ -4251,7 +4250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             default:
                                 {
-                                    current.Filter(builder, test, state, whenTrueValues, whenFalseValues, out Tests oneTrue, out Tests oneFalse, ref foundExplicitNullTest);
+                                    current.Filter(builder, test, state, whenTrueValues, whenFalseValues, out Tests oneTrue, out Tests oneFalse, ref foundRelatedExplicitNullTest);
                                     trueTests.Push(oneTrue);
                                     falseTests.Push(oneFalse);
                                 }
