@@ -4,6 +4,7 @@
 
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.CodeAnalysis.Symbols;
+using System;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -11,9 +12,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
 internal static class SynthesizedCollectionHelpers
 {
     public static bool IsSynthesizedCollectionType(Type t) =>
-        t.Name.StartsWith(CommonGeneratedNames.SynthesizedReadOnlyList_ReadOnlyListPrefix) ||
-        t.Name.StartsWith(CommonGeneratedNames.SynthesizedReadOnlyList_ReadOnlyArrayPrefix) ||
-        t.Name.StartsWith(CommonGeneratedNames.SynthesizedReadOnlyList_SingleElementPrefix);
+        t.Name.StartsWith(CommonGeneratedNames.SynthesizedReadOnlyList_ReadOnlyListPrefix, StringComparison.Ordinal) ||
+        t.Name.StartsWith(CommonGeneratedNames.SynthesizedReadOnlyList_ReadOnlyArrayPrefix, StringComparison.Ordinal) ||
+        t.Name.StartsWith(CommonGeneratedNames.SynthesizedReadOnlyList_SingleElementPrefix, StringComparison.Ordinal);
 
     public static DkmClrType? TryGetCollectionDebugViewTypeForCollectionType(DkmClrType collectionType)
     {

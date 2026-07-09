@@ -17,7 +17,7 @@ public class SynthesizedCollectionExpansionTests : CSharpResultProviderTestBase
     [Fact]
     public void SynthesizedCollections_Core()
     {
-        // Synthesized collection types don't generate with a DebuggerTypeProxy attribute, but the ResultProvider should treat them specially and apply the DebugCollectionView type as a type proxy.
+        // Synthesized collection types don't generate with a DebuggerTypeProxy attribute, but the ResultProvider should treat them specially and apply ICollectionDebugView as a type proxy.
         var source = @"
 using System.Collections.Generic;
 
