@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         // On-disk layout in the partially-AOT .NET SDK CLI: the runtime muxer (dotnet.exe) lives at the
         // install root and loads <sdk_dir>\dotnet-aot.dll as a native library, so it is not a managed entry
-        // point running from the SDK directory - there AppContext.BaseDirectory is the install root, not the
+        // point running from the SDK directory - AppContext.BaseDirectory is the install root, not the
         // SDK directory (see GetBuildTaskDirectory for how the SDK directory is recovered):
         //
         // C:\Program Files\dotnet\                     <- install root; the muxer process runs from here
