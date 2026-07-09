@@ -34,11 +34,11 @@ class Program
         var assembly = GetAssembly(source);
         var types = assembly.GetTypes();
         var inspectionContext = CreateDkmInspectionContext(runtimeInstance: new DkmClrRuntimeInstance(typeof(object).Assembly));
-        VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlySingleElementList`1")), 1, [1], "<>z__ReadOnlySingleElementList<int>");
-        VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlyArray`1")), new int[] { 2, 3 }, [2, 3], "<>z__ReadOnlyArray<int>");
-        VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlyList`1")), new List<int>() { 1 }, [1], "<>z__ReadOnlyList<int>");
+        VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlySingleElementList`1")), 1, [1]);
+        VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlyArray`1")), new int[] { 2, 3 }, [2, 3]);
+        VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlyList`1")), new List<int>() { 1 }, [1]);
 
-        void VerifySynthesizedType<T>(Type genericType, T ctorArgs, List<int> expectedChildValues, string expectedInstantiatedType)
+        void VerifySynthesizedType<T>(Type genericType, T ctorArgs, List<int> expectedChildValues)
         {
             var constructedType = genericType.MakeGenericType(typeof(int));
             var value = CreateDkmClrValue(constructedType.Instantiate(ctorArgs), constructedType, inspectionContext, evalFlags: DkmEvaluationResultFlags.None);
