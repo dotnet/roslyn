@@ -18,7 +18,7 @@ internal static class SynthesizedCollectionHelpers
 
     public static DkmClrType? TryGetCollectionDebugViewTypeForCollectionType(DkmClrType collectionType)
     {
-        // Mscorlib_CollectionDebugView (internal) was renamed to ICollectionDebugView (public), we'll look for either one.
+        // Mscorlib_CollectionDebugView was renamed to ICollectionDebugView, we'll look for either one.
         const string ICollectionDebugViewName = "System.Collections.Generic.ICollectionDebugView`1";
         const string MscorlibCollectionDebugViewName = "System.Collections.Generic.Mscorlib_CollectionDebugView`1";
 
