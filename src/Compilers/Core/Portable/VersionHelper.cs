@@ -66,12 +66,6 @@ namespace Microsoft.CodeAnalysis
             // the last must be a exactly single asterisk without whitespace.
             bool hasWildcard = allowWildcard && elements[elements.Length - 1] == "*";
 
-            if (hasWildcard && elements.Length < 3)
-            {
-                version = AssemblyIdentity.NullVersion;
-                return false;
-            }
-
             // A Win32 FIXEDFILEINFO version has only four components. A string with more
             // than four dot-separated components (e.g. a SemVer2 informational version such
             // as "1.2.3-p.4.5+metadata", which splits into five elements) is not a well-formed
@@ -79,19 +73,14 @@ namespace Microsoft.CodeAnalysis
             // it outright. Otherwise (file and product versions) we keep the first four elements
             // and fall through to the partial parse below so the leading numeric components are
             // still emitted rather than falling back to 0.0.0.0.
-            int elementCount = elements.Length;
-
-            bool tooManyComponents = elementCount > 4;
-            if (tooManyComponents)
+            if ((hasWildcard && elements.Length < 3) || (elements.Length > 4 && !allowPartialParse))
             {
-                if (!allowPartialParse)
-                {
-                    version = AssemblyIdentity.NullVersion;
-                    return false;
-                }
-
-                elementCount = 4;
+                version = AssemblyIdentity.NullVersion;
+                return false;
             }
+
+            bool tooManyComponents = elements.Length > 4;
+            int elementCount = tooManyComponents ? 4 : elementCount;
 
             ushort[] values = new ushort[4];
             int lastExplicitValue = hasWildcard ? elementCount - 1 : elementCount;
