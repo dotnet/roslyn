@@ -6014,7 +6014,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         static void verify(CSharpCompilation comp)
         {
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
@@ -6198,7 +6198,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         static void verify(CSharpCompilation comp)
         {
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (100,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             X => 2,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "X").WithLocation(100, 13),
@@ -6465,7 +6465,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         static void verify(CSharpCompilation comp)
         {
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
@@ -6679,7 +6679,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         static void verify(CSharpCompilation comp)
         {
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
@@ -6850,7 +6850,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         static void verify(CSharpCompilation comp)
         {
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
@@ -6929,7 +6929,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         static void verify(CSharpCompilation comp)
         {
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
@@ -7196,7 +7196,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         static void verify(CSharpCompilation comp)
         {
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
@@ -7280,14 +7280,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics();
 
         var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
