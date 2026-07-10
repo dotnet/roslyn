@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 #else
                 // IsSdkFrameworkToCoreBridgeTask is only ever true on .NET Framework, so the bridge-only
                 // response file handling above is never reached on .NET Core.
-                Debug.Assert(false, "The SDK framework-to-core bridge task only runs on .NET Framework MSBuild.");
+                Debug.Fail("The SDK framework-to-core bridge task only runs on .NET Framework MSBuild.");
 #endif
             }
 

@@ -21,18 +21,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public abstract class ManagedToolTask : ToolTask
     {
-        // Task class hierarchy - ToolNameWithoutExtension is the only per-language input to the discovery
-        // machinery; every derived task reuses the same ManagedToolTask plumbing to turn <build task dir>
-        // into a concrete tool path:
-        //
-        // ToolTask                                   (MSBuild, Microsoft.Build.Utilities.Core)
-        //   └─ ManagedToolTask        (abstract)     defines GetBuildTaskDirectory / GetToolDirectory
-        //        ├─ ManagedCompiler   (abstract)     adds the VBCSCompiler build-server path
-        //        │    ├─ Csc                         ToolNameWithoutExtension = "csc"
-        //        │    └─ Vbc                         ToolNameWithoutExtension = "vbc"
-        //        └─ InteractiveCompiler (abstract)
-        //             └─ Csi                         ToolNameWithoutExtension = "csi"
-
         private bool? _useAppHost;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
@@ -185,6 +173,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return Path.Combine(ToolPath ?? "", ToolExe);
         }
 
+        /// <summary>
+        /// Gets the base name used to derive the built-in tool's managed assembly and apphost names.
+        /// </summary>
         protected abstract string ToolNameWithoutExtension { get; }
 
         protected abstract void AddCommandLineCommands(CommandLineBuilderExtension commandLine);
