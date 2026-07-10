@@ -132,7 +132,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                     referenceItem.DisplayPath = mappedUri.AbsolutePath;
                     referenceItem.DocumentName = mappedUri.AbsolutePath;
 
-                    var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(DocumentMappingService, context.GetSolutionQueryOperations(), mappedRange.Start.Line, mappedUri.GetDocumentFilePathFromUri(), cancellationToken).ConfigureAwait(false);
+                    var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(context.GetSolutionQueryOperations(), mappedRange.Start.Line, mappedUri.GetDocumentFilePathFromUri(), cancellationToken).ConfigureAwait(false);
                     referenceItem.Text = fixedResultText ?? referenceItem.Text;
                 }
             }

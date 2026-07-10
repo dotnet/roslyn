@@ -1,0 +1,69 @@
+﻿RazorDocument - [0..99)::99 - [<MyComponent Parameter1="SomeValue" Parameter2="@true" @* comment *@ Parameter3="SomeOtherValue" />]
+    MarkupBlock - [0..99)::99
+        MarkupElement - [0..99)::99
+            MarkupStartTag - [0..99)::99 - [<MyComponent Parameter1="SomeValue" Parameter2="@true" @* comment *@ Parameter3="SomeOtherValue" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[MyComponent];
+                MarkupAttributeBlock - [12..35)::23 - [ Parameter1="SomeValue"]
+                    MarkupTextLiteral - [12..13)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..23)::10 - [Parameter1] - Gen<Markup>
+                        Text;[Parameter1];
+                    Equals;[=];
+                    MarkupTextLiteral - [24..25)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [25..34)::9
+                        MarkupLiteralAttributeValue - [25..34)::9 - [SomeValue]
+                            MarkupTextLiteral - [25..34)::9 - [SomeValue] - Gen<Markup>
+                                Text;[SomeValue];
+                    MarkupTextLiteral - [34..35)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupAttributeBlock - [35..54)::19 - [ Parameter2="@true"]
+                    MarkupTextLiteral - [35..36)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [36..46)::10 - [Parameter2] - Gen<Markup>
+                        Text;[Parameter2];
+                    Equals;[=];
+                    MarkupTextLiteral - [47..48)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [48..53)::5
+                        MarkupDynamicAttributeValue - [48..53)::5 - [@true]
+                            GenericBlock - [48..53)::5
+                                CSharpCodeBlock - [48..53)::5
+                                    CSharpImplicitExpression - [48..53)::5
+                                        CSharpTransition - [48..49)::1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [49..53)::4
+                                            CSharpCodeBlock - [49..53)::4
+                                                CSharpExpressionLiteral - [49..53)::4 - [true] - Gen<Expr>
+                                                    Keyword;[true];
+                    MarkupTextLiteral - [53..54)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTextLiteral - [54..55)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                RazorComment - [55..68)::13
+                    RazorCommentTransition;[@];
+                    RazorCommentStar;[*];
+                    RazorCommentLiteral;[ comment ];
+                    RazorCommentStar;[*];
+                    RazorCommentTransition;[@];
+                MarkupAttributeBlock - [68..96)::28 - [ Parameter3="SomeOtherValue"]
+                    MarkupTextLiteral - [68..69)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [69..79)::10 - [Parameter3] - Gen<Markup>
+                        Text;[Parameter3];
+                    Equals;[=];
+                    MarkupTextLiteral - [80..81)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [81..95)::14
+                        MarkupLiteralAttributeValue - [81..95)::14 - [SomeOtherValue]
+                            MarkupTextLiteral - [81..95)::14 - [SomeOtherValue] - Gen<Markup>
+                                Text;[SomeOtherValue];
+                    MarkupTextLiteral - [95..96)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [96..97)::1
+                    MarkupTextLiteral - [96..97)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];
