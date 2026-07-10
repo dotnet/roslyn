@@ -6868,6 +6868,173 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_10()
+    {
+        // Test when a derived type of case type is absent, but case type itself is present
+        var source1 = """
+            public closed class E;
+            public class F1 : E;
+            public class G1 : F1;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<Y>(Y y) where Y : E
+                {
+                    return y switch
+                    {
+                        G1 => 1,
+                        F1 => 2,
+                    };
+                }
+
+                int M2(E e)
+                {
+                    return e switch
+                    {
+                        G1 => 1,
+                        F1 => 2,
+                    };
+                }
+                int M3<Y>(Y y) where Y : E
+                {
+            #line 100
+                    return y switch
+                    {
+                        G1 => 1,
+                    };
+                }
+
+                int M4(E e)
+                {
+            #line 200
+                    return e switch
+                    {
+                        G1 => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return e switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(200, 18)
+                );
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_11()
+    {
+        // Exercise 'trueTestImpliesTrueOther' detection
+        var source1 = """
+            public closed class E;
+            public class F1 : E;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<Y>(Y y) where Y : E
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                    };
+                }
+
+                int M2(E e)
+                {
+                    return e switch
+                    {
+                        F1 => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_12()
+    {
+        // Exercise 'falseTestImpliesTrueOther' detection
+        var source1 = """
+            public closed class E;
+            public class F1 : E;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<Y>(Y y) where Y : E
+                {
+                    return y switch
+                    {
+                        null => 1,
+                        F1 => 1,
+                    };
+                }
+
+                int M2(E e)
+                {
+                    return e switch
+                    {
+                        null => 1,
+                        F1 => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+    }
+
+    [Fact]
     public void Exhaustiveness_ConstrainedUnionCaseType_01()
     {
         // Union case type is a type parameter constrained indirectly to closed type
