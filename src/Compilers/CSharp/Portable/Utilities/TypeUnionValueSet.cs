@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case NotNode not:
                         {
-                            return !EvaluateNodeForInputValue(not.Negated, inputValue, ref useSiteInfo);
+                            return !evaluateCore(not.Negated, inputValue, ref useSiteInfo);
                         }
                     case IsNullNode:
                         {
@@ -238,8 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case AndNode andNode:
                         {
-                            var leftResult = EvaluateNodeForInputValue(andNode.Left, inputValue, ref useSiteInfo);
-                            var rightResult = EvaluateNodeForInputValue(andNode.Right, inputValue, ref useSiteInfo);
+                            var leftResult = evaluateCore(andNode.Left, inputValue, ref useSiteInfo);
+                            var rightResult = evaluateCore(andNode.Right, inputValue, ref useSiteInfo);
                             if (leftResult == false || rightResult == false)
                                 return false;
                             if (leftResult == true && rightResult == true)
@@ -250,8 +250,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case OrNode orNode:
                         {
-                            var leftResult = EvaluateNodeForInputValue(orNode.Left, inputValue, ref useSiteInfo);
-                            var rightResult = EvaluateNodeForInputValue(orNode.Right, inputValue, ref useSiteInfo);
+                            var leftResult = evaluateCore(orNode.Left, inputValue, ref useSiteInfo);
+                            var rightResult = evaluateCore(orNode.Right, inputValue, ref useSiteInfo);
                             if (leftResult == true || rightResult == true)
                                 return true;
                             if (leftResult == false && rightResult == false)
