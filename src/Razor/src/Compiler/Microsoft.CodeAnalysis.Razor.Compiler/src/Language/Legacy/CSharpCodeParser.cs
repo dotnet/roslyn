@@ -2956,6 +2956,10 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
                     // Reset backtracking since we've already outputted some spans.
                     startPosition = CurrentStart.AbsoluteIndex;
+
+                    // Start the next iteration with the token after the embedded transition.
+                    // This keeps adjacent Razor comments from consuming the next comment's transition as C#.
+                    continue;
                 }
 
                 if (At(SyntaxKind.Transition))
