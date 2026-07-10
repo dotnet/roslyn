@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureClosedClasses)
-                && input.Type is (NamedTypeSymbol { IsClosed: true } or TypeParameterSymbol { EffectiveBaseClassNoUseSiteDiagnostics.IsClosed: true }) and var closedClass)
+                && input.Type is (NamedTypeSymbol { IsClosed: true } or TypeParameterSymbol { EffectiveBaseClassNoUseSiteDiagnostics.IsClosed: true }) and var closedClassOrTypeParameter)
             {
-                return new ClosedClassTypeUnionValueSetFactory(closedClass);
+                return new ClosedClassTypeUnionValueSetFactory(closedClassOrTypeParameter);
             }
 
             return null;
