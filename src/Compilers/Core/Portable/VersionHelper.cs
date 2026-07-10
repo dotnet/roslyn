@@ -79,20 +79,22 @@ namespace Microsoft.CodeAnalysis
             // it outright. Otherwise (file and product versions) we keep the first four elements
             // and fall through to the partial parse below so the leading numeric components are
             // still emitted rather than falling back to 0.0.0.0.
-            bool tooManyComponents = elements.Length > 4;
-            if (tooManyComponents)
-            {
-                if (!allowPartialParse)
-                {
-                    version = AssemblyIdentity.NullVersion;
-                    return false;
-                }
+int elementCount = elements.Length;
 
-                Array.Resize(ref elements, 4);
-            }
+bool tooManyComponents = elementCount > 4;
+if (tooManyComponents)
+{
+    if (!allowPartialParse)
+    {
+        version = AssemblyIdentity.NullVersion;
+        return false;
+    }
 
-            ushort[] values = new ushort[4];
-            int lastExplicitValue = hasWildcard ? elements.Length - 1 : elements.Length;
+    elementCount = 4;
+}
+
+ushort[] values = new ushort[4];
+int lastExplicitValue = hasWildcard ? elementCount - 1 : elementCount;
             // Dropping extra components means the input was not fully consumed, so the parse is
             // never considered complete when there were too many components.
             bool parseError = tooManyComponents;
