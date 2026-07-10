@@ -51,6 +51,8 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.UnitTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.UnitTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.ExternalAccess" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ExternalAccess" />
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />

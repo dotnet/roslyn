@@ -21,7 +21,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
   </ItemGroup>
   
   <ItemGroup>

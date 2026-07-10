@@ -12107,7 +12107,7 @@ class C
             result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
             AssertEx.Equal(
-                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
+                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".8", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
         }
 
