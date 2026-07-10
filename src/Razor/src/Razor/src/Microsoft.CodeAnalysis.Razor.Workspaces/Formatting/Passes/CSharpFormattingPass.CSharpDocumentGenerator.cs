@@ -574,9 +574,7 @@ internal partial class CSharpFormattingPass
                 // If we're here, it means this is a "normal" line of C#, so we can just emit it as is. The exception to this is
                 // when we're inside a string literal. We still want to emit it as is, but we need to make sure we tell the formatter
                 // to ignore any existing indentation too.
-                if (_documentMappingService.TryMapToCSharpDocumentPosition(_csharpDocument, _currentToken.SpanStart, out _, out var csharpIndex) &&
-                    _csharpSyntaxRoot.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
-                    csharpNode.IsStringLiteral(multilineOnly: true))
+                if (_documentMappingService.IsInStringLiteral(_csharpDocument, _csharpSyntaxRoot, _currentToken.SpanStart, multilineOnly: true))
                 {
                     _builder.AppendLine(_currentLine.ToString());
                     return CreateLineInfo(processIndentation: false, processFormatting: true, checkForNewLines: true);
