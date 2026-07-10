@@ -3,10 +3,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -47,8 +47,10 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
         }
 
         var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+        // DocumentUri doesn't serialize through MessagePack nicely, and since we know generated documents always have parsable Uris, since they're
+        // created by Roslyn, it's easiest to just use Uri.
         return new InlineCompletionRequestInfo(
-            GeneratedDocumentUri: generatedDocument.CreateSystemUri(),
+            GeneratedDocumentUri: generatedDocument.GetURI().GetRequiredParsedUri(),
             Position: mappedPosition,
             InDeclDocument: inDeclDocument);
     }

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -28,11 +29,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]
 internal sealed class GenerateEventHandlerCodeActionResolver(
-    IRoslynCodeActionHelpers roslynCodeActionHelpers,
     IRazorFormattingService razorFormattingService,
     RemoteSnapshotManager snapshotManager) : IRazorCodeActionResolver
 {
-    private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
 
@@ -54,7 +53,8 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
         // If we can't get the namespace, or the syntax tree (possibly because the file doesn't exist), or if the file does exist
         // but doesn't have the class declaration we'd expect, then we don't risk it and just generate a code block.
         if (!code.TryGetNamespace(fallbackToRootNamespace: true, out var razorNamespace) ||
-            await GetCodeBehindSyntaxTreeAsync(documentSnapshot, codeBehindPath, cancellationToken).ConfigureAwait(false) is not { } syntaxTree ||
+            !TryGetCodeBehindDocument(documentSnapshot, codeBehindPath, out var codeBehindDocument) ||
+            await codeBehindDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false) is not { } syntaxTree ||
             GetCSharpClassDeclarationSyntax(syntaxTree, razorNamespace, razorClassName) is not { } classDecl)
         {
             return await GenerateEventHandlerInCodeBlockAsync(
@@ -64,10 +64,6 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
                 options,
                 cancellationToken).ConfigureAwait(false);
         }
-
-        var codeBehindUri = LspFactory.CreateFilePathUri(codeBehindPath);
-
-        var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = codeBehindUri };
 
         var classLocationLineSpan = classDecl.GetLocation().GetLineSpan();
         var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -80,12 +76,13 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             character: 0,
             eventHandler);
 
-        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentSnapshot, codeBehindUri.GetRequiredSystemUri(), edit, cancellationToken).ConfigureAwait(false);
+        var result = await RoslynCodeActionHelpers.GetSimplifiedEditsAsync(codeBehindDocument, edit, cancellationToken).ConfigureAwait(false);
 
+        var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = codeBehindDocument.GetURI() };
         var codeBehindTextDocEdit = new TextDocumentEdit()
         {
             TextDocument = codeBehindTextDocumentIdentifier,
-            Edits = [.. result ?? [edit]]
+            Edits = result
         };
 
         return new WorkspaceEdit() { DocumentChanges = new[] { codeBehindTextDocEdit } };
@@ -118,8 +115,10 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             character: 0,
             eventHandler);
 
+        var generatedDocument = await documentSnapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+
         // Call the simplifier to reduce things like `global::System.Threading.Task` down to just `Task`, if possible.
-        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentSnapshot, codeBehindUri: null, tempTextEdit, cancellationToken).ConfigureAwait(false);
+        var result = await RoslynCodeActionHelpers.GetSimplifiedEditsAsync(generatedDocument, tempTextEdit, cancellationToken).ConfigureAwait(false);
         if (result is not { } edits)
         {
             return null;
@@ -127,7 +126,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
 
         // Now we run the changes through the formatter, via the TryGetCSharpCodeActionEditAsync. This is the same as what the CSharpCodeActionResolver does.
         var csharpDocument = code.GetRequiredCSharpDocument(declarationDocument: false);
-        var csharpTextChanges = edits.SelectAsArray(csharpDocument.Text.GetTextChange);
+        var csharpTextChanges = edits.SelectAsArray(e => csharpDocument.Text.GetTextChange(e.First));
         var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(documentSnapshot, csharpTextChanges,
             declarationDocument: false,
             options, cancellationToken).ConfigureAwait(false);
@@ -173,23 +172,25 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             """;
     }
 
-    private async Task<SyntaxTree?> GetCodeBehindSyntaxTreeAsync(RemoteDocumentSnapshot documentSnapshot, string codeBehindPath, CancellationToken cancellationToken)
+    private bool TryGetCodeBehindDocument(RemoteDocumentSnapshot documentSnapshot, string codeBehindPath, [NotNullWhen(true)] out Document? document)
     {
+        document = null;
         var razorDocumentSnapshot = _snapshotManager.GetSnapshot(documentSnapshot.TextDocument);
         var solution = razorDocumentSnapshot.TextDocument.Project.Solution;
         var projectId = razorDocumentSnapshot.TextDocument.Project.Id;
 
         if (solution.GetDocumentIdsWithFilePath(codeBehindPath).FirstOrDefault(id => id.ProjectId == projectId) is not { } codeBehindDocumentId)
         {
-            return null;
+            return false;
         }
 
         if (!solution.TryGetDocument(codeBehindDocumentId, out var codeBehindDocument))
         {
-            return null;
+            return false;
         }
 
-        return await codeBehindDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        document = codeBehindDocument;
+        return true;
     }
 
     private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(SyntaxTree syntaxTree, string razorNamespace, string razorClassName)

@@ -53,7 +53,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         };
     }
 
-    internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, VSTextDocumentIdentifier textDocument, TextDocumentEdit? additionalEdit, Uri? delegatedDocumentUri, [NotNullWhen(true)] out string? @namespace, [NotNullWhen(true)] out RazorCodeActionResolutionParams? resolutionParams)
+    internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, VSTextDocumentIdentifier textDocument, TextDocumentEdit? additionalEdit, DocumentUri? delegatedDocumentUri, [NotNullWhen(true)] out string? @namespace, [NotNullWhen(true)] out RazorCodeActionResolutionParams? resolutionParams)
     {
         @namespace = GetNamespaceFromFQN(fullyQualifiedName);
         if (string.IsNullOrEmpty(@namespace))
@@ -67,7 +67,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         return true;
     }
 
-    internal static RazorCodeActionResolutionParams CreateAddUsingResolutionParams(string @namespace, VSTextDocumentIdentifier textDocument, TextDocumentEdit? additionalEdit, Uri? delegatedDocumentUri)
+    internal static RazorCodeActionResolutionParams CreateAddUsingResolutionParams(string @namespace, VSTextDocumentIdentifier textDocument, TextDocumentEdit? additionalEdit, DocumentUri? delegatedDocumentUri)
     {
         var actionParams = new AddUsingsCodeActionParams
         {

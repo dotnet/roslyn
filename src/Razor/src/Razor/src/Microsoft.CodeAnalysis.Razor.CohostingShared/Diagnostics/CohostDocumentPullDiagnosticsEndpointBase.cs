@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -47,7 +47,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement GetHtmlDiagnostics");
     }
 
-    protected virtual TRequest CreateHtmlParams(Uri uri)
+    protected virtual TRequest CreateHtmlParams(DocumentUri uri)
     {
         throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement CreateHtmlParams");
     }
@@ -131,7 +131,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
 
     private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correlationId, CancellationToken cancellationToken)
     {
-        var diagnosticsParams = CreateHtmlParams(razorDocument.CreateSystemUri());
+        var diagnosticsParams = CreateHtmlParams(razorDocument.GetURI());
 
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequest, TResponse>(
             razorDocument,

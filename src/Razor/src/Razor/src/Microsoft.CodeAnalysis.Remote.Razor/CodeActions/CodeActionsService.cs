@@ -14,15 +14,15 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
@@ -88,13 +88,13 @@ internal sealed class CodeActionsService(
         async Task ProcessCSharpCodeActionsAsync(HashSet<string> seenTitles, RazorVSInternalCodeAction[] codeActions, bool declarationDocument)
         {
             var csharpDocument = await documentSnapshot.GetGeneratedDocumentAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
-            var csharpDocumentUri = csharpDocument.CreateSystemUri();
+            var csharpDocumentUri = csharpDocument.GetURI();
             var context = razorCodeActionContext with { DelegatedDocumentUri = csharpDocumentUri };
             var filteredCodeActions = await FilterDelegatedCodeActionsAsync(context, [.. ExtractCSharpCodeActionNamesFromData(codeActions)], cancellationToken).ConfigureAwait(false);
             ConvertCodeActionsToSumType(filteredCodeActions, "B-Delegated", csharpDocumentUri, seenTitles);
         }
 
-        void ConvertCodeActionsToSumType(ImmutableArray<RazorVSInternalCodeAction> codeActions, string groupName, Uri? csharpDocumentUri = null, HashSet<string>? seenTitles = null)
+        void ConvertCodeActionsToSumType(ImmutableArray<RazorVSInternalCodeAction> codeActions, string groupName, DocumentUri? csharpDocumentUri = null, HashSet<string>? seenTitles = null)
         {
             // We must cast the RazorCodeAction into a platform compliant code action
             // For VS (SupportsCodeActionResolve = true) this means just encapsulating the RazorCodeAction in the `CommandOrCodeAction` struct

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -60,7 +59,7 @@ internal static partial class RazorCodeDocumentExtensions
         return document.GetRequiredCSharpDocument(declarationDocument: false);
     }
 
-    public static bool TryGetCSharpDocumentForGeneratedUri(this RazorCodeDocument codeDocument, Solution solution, Uri generatedDocumentUri, [NotNullWhen(true)] out RazorCSharpDocument? csharpDocument)
+    public static bool TryGetCSharpDocumentForGeneratedUri(this RazorCodeDocument codeDocument, Solution solution, DocumentUri generatedDocumentUri, [NotNullWhen(true)] out RazorCSharpDocument? csharpDocument)
     {
         if (solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity))
         {

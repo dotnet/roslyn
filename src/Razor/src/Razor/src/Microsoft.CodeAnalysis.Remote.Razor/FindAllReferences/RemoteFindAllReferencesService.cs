@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -113,7 +112,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 continue;
             }
 
-            var generatedDocumentUri = UriExtensions.GetRequiredSystemUri(location.DocumentUri);
+            var generatedDocumentUri = location.DocumentUri;
             var (mappedUri, mappedRange) = await DocumentMappingService
                 .MapToHostDocumentUriAndRangeAsync(
                     snapshot,
@@ -122,8 +121,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                     cancellationToken)
                 .ConfigureAwait(false);
 
-            var documentUri = mappedUri.CreateDocumentUriFromSystemUri();
-            if (documentUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
+            if (mappedUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
             {
                 // Couldn't map, so probably a hidden part of the code-gen, let's skip it.
                 continue;
@@ -135,23 +133,24 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 referenceItem.Origin = VSInternalItemOrigin.Exact;
 
                 // If we're going to change the Uri, then also override the file paths
-                if (mappedUri != UriExtensions.GetRequiredSystemUri(location.DocumentUri))
+                if (mappedUri != location.DocumentUri)
                 {
-                    referenceItem.DisplayPath = mappedUri.AbsolutePath;
-                    referenceItem.DocumentName = mappedUri.AbsolutePath;
+                    var path = mappedUri.GetDocumentFilePathFromUri();
+                    referenceItem.DisplayPath = path;
+                    referenceItem.DocumentName = path;
 
                     var fixedResultText = await GetResultTextAsync(
                         snapshot,
                         generatedDocumentUri,
                         mappedRange.Start.Line,
-                        mappedUri.GetDocumentFilePathFromUri(),
+                        path,
                         cancellationToken)
                         .ConfigureAwait(false);
                     referenceItem.Text = fixedResultText ?? referenceItem.Text;
                 }
             }
 
-            location.DocumentUri = documentUri;
+            location.DocumentUri = mappedUri;
             location.Range = mappedRange.ToRange();
 
             mappedResults.Add(result);
@@ -162,7 +161,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
 
     private async Task<string?> GetResultTextAsync(
         RemoteDocumentSnapshot snapshot,
-        Uri generatedDocumentUri,
+        DocumentUri generatedDocumentUri,
         int lineNumber,
         string filePath,
         CancellationToken cancellationToken)

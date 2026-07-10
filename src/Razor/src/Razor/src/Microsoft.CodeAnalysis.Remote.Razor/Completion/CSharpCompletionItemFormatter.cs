@@ -8,10 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Roslyn.Utilities;
@@ -49,7 +48,7 @@ internal static class CSharpCompletionItemFormatter
             // In cohosting case, command parameters will be of the correct types (or deserialized by now in LSP case)
             if (args is [TextDocumentIdentifier textDocumentIdentifier, TextEdit complexEdit, _, int nextCursorPosition])
             {
-                var commandGeneratedDocumentUri = textDocumentIdentifier.DocumentUri.GetRequiredSystemUri();
+                var commandGeneratedDocumentUri = textDocumentIdentifier.DocumentUri;
                 // Just in case the edit is for a different document, however unlikely, we'll use the uri as the source of truth
                 if (!codeDocument.TryGetCSharpDocumentForGeneratedUri(solution, commandGeneratedDocumentUri, out var commandCSharpDocument))
                 {

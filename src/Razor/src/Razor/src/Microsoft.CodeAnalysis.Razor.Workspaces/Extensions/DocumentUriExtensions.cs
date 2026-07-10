@@ -13,15 +13,10 @@ internal static class DocumentUriExtensions
     {
         public bool IsRazorCSharpDocumentUri(Solution solution)
         {
-            if (documentUri.ParsedUri is not { } uri)
-            {
-                return false;
-            }
-
-            return solution.TryGetSourceGeneratedDocumentIdentity(uri, out _);
+            return solution.TryGetSourceGeneratedDocumentIdentity(documentUri, out _);
         }
 
-        public bool IsRazorHtmlDocumentUri([NotNullWhen(true)] out Uri? razorDocumentUri)
+        public bool IsRazorHtmlDocumentUri([NotNullWhen(true)] out DocumentUri? razorDocumentUri)
         {
             razorDocumentUri = null;
             if (documentUri.ParsedUri is not { } uri)
@@ -49,7 +44,7 @@ internal static class DocumentUriExtensions
             if (filePath.EndsWith(LanguageServerConstants.HtmlVirtualDocumentSuffix, StringComparison.Ordinal))
             {
                 var razorFilePath = filePath[..^LanguageServerConstants.HtmlVirtualDocumentSuffix.Length];
-                razorDocumentUri = new Uri(razorFilePath, UriKind.Absolute);
+                razorDocumentUri = LspFactory.CreateFilePathUri(razorFilePath);
                 return true;
             }
 

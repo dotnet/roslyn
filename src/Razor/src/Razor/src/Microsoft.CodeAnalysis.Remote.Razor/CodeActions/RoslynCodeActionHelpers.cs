@@ -1,10 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
-using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -12,9 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.CodeActions;
-using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -22,49 +16,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-[Export(typeof(IRoslynCodeActionHelpers)), Shared]
-internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
+internal static class RoslynCodeActionHelpers
 {
-    public Task<string> GetFormattedNewFileContentsAsync(RemoteProjectSnapshot projectSnapshot, Uri csharpFileUri, string newFileContent, CancellationToken cancellationToken)
+    public static async Task<string> GetFormattedNewFileContentsAsync(Project project, string csharpFilePath, string newFileContent, CancellationToken cancellationToken)
     {
-        Debug.Assert(projectSnapshot is RemoteProjectSnapshot);
-        var project = ((RemoteProjectSnapshot)projectSnapshot).Project;
-
-        var filePath = csharpFileUri.GetDocumentFilePathFromUri();
         var source = SourceText.From(newFileContent, Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256);
-        var document = project.AddDocument(filePath, source, filePath: filePath);
+        var document = project.AddDocument(csharpFilePath, source, filePath: csharpFilePath);
 
-        return GetFormattedNewFileContentAsync(document, cancellationToken);
-    }
-
-    public async Task<TextEdit[]?> GetSimplifiedTextEditsAsync(RemoteDocumentSnapshot documentSnapshot, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)
-    {
-        Document document;
-        if (codeBehindUri is null)
-        {
-            // Edit is for inserting into the generated document. Since we're just getting the simplification edits, it doesn't matter
-            // which C# document we use, so just use the impl document since it always exists.
-            document = await documentSnapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            // Edit is for inserting into a C# document
-            var solution = documentSnapshot.TextDocument.Project.Solution;
-            var documentIds = solution.GetDocumentIdsWithUri(codeBehindUri);
-            if (documentIds.Length == 0)
-            {
-                return null;
-            }
-
-            document = solution.GetRequiredDocument(documentIds.First(d => d.ProjectId == documentSnapshot.TextDocument.Project.Id));
-        }
-
-        return await GetSimplifiedEditsAsync(document, edit, cancellationToken).ConfigureAwait(false);
-    }
-
-    private static async Task<string> GetFormattedNewFileContentAsync(Document document, CancellationToken cancellationToken)
-    {
-        var project = document.Project;
         // Run the new document formatting service, to make sure the right namespace type is used, among other things
         var formattingService = document.GetLanguageService<INewDocumentFormattingService>();
         if (formattingService is not null)
@@ -90,7 +48,7 @@ internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
         return root.ToFullString();
     }
 
-    private static async Task<TextEdit[]> GetSimplifiedEditsAsync(Document document, TextEdit textEdit, CancellationToken cancellationToken)
+    public static async Task<SumType<TextEdit, AnnotatedTextEdit>[]> GetSimplifiedEditsAsync(Document document, TextEdit textEdit, CancellationToken cancellationToken)
     {
         // Create a temporary syntax tree that includes the text edit.
         var originalSourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -111,6 +69,6 @@ internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
         var options = simplificationService.GetSimplifierOptions(configOptions);
         var newDocument = await Simplifier.ReduceAsync(annotatedDocument, options, cancellationToken).ConfigureAwait(false);
         var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-        return [.. changes.Select(change => ProtocolConversions.TextChangeToTextEdit(change, originalSourceText))];
+        return [.. changes.Select(change => new SumType<TextEdit, AnnotatedTextEdit>(ProtocolConversions.TextChangeToTextEdit(change, originalSourceText)))];
     }
 }
