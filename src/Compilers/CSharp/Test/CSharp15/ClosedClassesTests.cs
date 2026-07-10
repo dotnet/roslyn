@@ -3281,7 +3281,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             closed class C<T>;
             class D1 : C<string>;
             class D2 : C<int>;
-            
+
             class Program
             {
                 int Match1(C<int> c) =>
@@ -5593,7 +5593,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         E => 3,
                     };
                 }
-            
+
                 int M4<X>(X x) where X : E
                 {
                     return x switch
@@ -5885,7 +5885,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         E => 3,
                     };
                 }
-            
+
                 int M4<X, Y>(Y y) where X : E where Y : X
                 {
                     return y switch
@@ -5902,7 +5902,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         X => 2,
                     };
                 }
-            
+
                 int M6<X, Y>(Y y) where X : E where Y : X
                 {
                     return y switch
@@ -6067,7 +6067,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         E => 1,
                     };
                 }
-            
+
                 int M4<X, Y>(Y y) where X : E where Y : X
                 {
                     return y switch
@@ -6085,7 +6085,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         X => 2,
                     };
                 }
-            
+
                 int M6<X, Y>(Y y) where X : E where Y : X
                 {
                     return y switch
@@ -6298,7 +6298,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         E => 3,
                     };
                 }
-            
+
                 int M4<X, Y>(Y y) where X : E where Y : X
                 {
                     return y switch
@@ -6324,7 +6324,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         X => 2,
                     };
                 }
-            
+
                 int M6<X, Y>(Y y) where X : E where Y : X
                 {
                     return y switch
@@ -6522,7 +6522,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var source2 = """
             class Program
             {
-                int M1<X, Y>(Y y) where Y : E 
+                int M1<X, Y>(Y y) where Y : E
                 {
                     return y switch
                     {
@@ -6550,7 +6550,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         E => 3,
                     };
                 }
-            
+
                 int M4<X, Y>(Y y) where Y : E
                 {
                 #line 300
@@ -6569,7 +6569,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         X => 2,
                     };
                 }
-            
+
                 int M6<X, Y>(Y y) where Y : E
                 {
                     return y switch
@@ -6772,7 +6772,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         X => 2,
                     };
                 }
-            
+
                 int M4<X, Y>(Y y) where X : E where Y : X
                 {
                     return y switch
@@ -6799,7 +6799,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         F2 => 2,
                     };
                 }
-            
+
                 int M6<X, Y>(Y y) where X : E where Y : X
                 {
                     return y switch
@@ -7077,7 +7077,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         E => 3,
                     };
                 }
-            
+
                 int M4<X, Y>(U<Y> y) where X : E where Y : X
                 {
                     return y switch
@@ -7094,7 +7094,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         X => 2,
                     };
                 }
-            
+
                 int M6<X, Y>(U<Y> y) where X : E where Y : X
                 {
                     return y switch
