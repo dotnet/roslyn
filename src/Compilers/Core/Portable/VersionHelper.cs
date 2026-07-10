@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             bool tooManyComponents = elements.Length > 4;
-            int elementCount = tooManyComponents ? 4 : elementCount;
+            int elementCount = tooManyComponents ? 4 : elements.Length;
 
             ushort[] values = new ushort[4];
             int lastExplicitValue = hasWildcard ? elementCount - 1 : elementCount;
