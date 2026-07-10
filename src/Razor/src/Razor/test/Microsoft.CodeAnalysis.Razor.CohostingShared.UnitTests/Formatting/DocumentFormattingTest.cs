@@ -124,6 +124,35 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task RawStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """"
+                @code {
+                	string s = $"""
+                			
+                """;
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                	string s = $"""
+
+                """;
+                }
+                """",
+            expected: """"
+                @code {
+                	string s = $"""
+                			
+                """;
+                }
+                """",
+            insertSpaces: false);
+    }
+
+    [Fact]
     [WorkItem("https://developercommunity.visualstudio.com/t/Razor-Formatting-Feature-internal-error/11041869")]
     public async Task TextAndTagOnSameLine()
     {
