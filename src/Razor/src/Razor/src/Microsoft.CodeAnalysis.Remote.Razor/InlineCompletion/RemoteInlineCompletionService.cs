@@ -47,8 +47,10 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
         }
 
         var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+        // DocumentUri doesn't serialize through MessagePack nicely, and since we know generated documents always have parsable Uris, since they're
+        // created by Roslyn, it's easiest to just use Uri.
         return new InlineCompletionRequestInfo(
-            GeneratedDocumentUri: generatedDocument.GetURI(),
+            GeneratedDocumentUri: generatedDocument.GetURI().GetRequiredParsedUri(),
             Position: mappedPosition,
             InDeclDocument: inDeclDocument);
     }
