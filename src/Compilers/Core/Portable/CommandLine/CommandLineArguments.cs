@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -469,6 +470,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="analyzerLoader">Load an assembly from a file path</param>
         /// <returns>Yields resolved <see cref="AnalyzerFileReference"/> or <see cref="UnresolvedAnalyzerReference"/>.</returns>
+        [RequiresUnreferencedCode("Loads analyzer types with reflection.")]
         public IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(IAnalyzerAssemblyLoader analyzerLoader)
         {
             foreach (CommandLineAnalyzerReference cmdLineReference in AnalyzerReferences)
@@ -478,6 +480,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [RequiresUnreferencedCode("Loads analyzer types with reflection.")]
         internal void ResolveAnalyzersFromArguments(
             string language,
             List<DiagnosticInfo> diagnostics,
@@ -573,6 +576,7 @@ namespace Microsoft.CodeAnalysis
             bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;
         }
 
+        [RequiresUnreferencedCode("Uses reflection to load analyzer assemblies.")]
         private AnalyzerFileReference? ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
         {
             string? resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);

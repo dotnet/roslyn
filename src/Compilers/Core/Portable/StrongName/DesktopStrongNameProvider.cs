@@ -190,13 +190,12 @@ namespace Microsoft.CodeAnalysis
             {
                 return ClrStrongName.GetInstance();
             }
-            catch (MarshalDirectiveException) when (PathUtilities.IsUnixLikePlatform)
+            catch (Exception ex) when (PathUtilities.IsUnixLikePlatform && ex is DllNotFoundException or MarshalDirectiveException)
             {
                 // CoreCLR, when not on Windows, doesn't support IClrStrongName (or COM in general).
-                // This is really hard to detect/predict without false positives/negatives.
-                // It turns out that CoreCLR throws a MarshalDirectiveException when attempting
-                // to get the interface (Message "Cannot marshal 'return value': Unknown error."),
-                // so just catch that and state that it's not supported.
+                // On non-Windows platforms, mscoree.dll is not available, resulting in a DllNotFoundException.
+                // On older .NET builds using built-in COM interop, CoreCLR may throw a MarshalDirectiveException
+                // (Message "Cannot marshal 'return value': Unknown error.").
 
                 // We're deep in a try block that reports the exception's Message as part of a diagnostic.
                 // This exception will skip through the IOException wrapping by `Sign` (in this class),

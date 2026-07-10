@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
+    [RequiresUnreferencedCode("Analyzer assemblies are loaded dynamically")]
     internal sealed partial class AnalyzerAssemblyLoader
     {
         internal static IAnalyzerAssemblyResolver DiskAnalyzerAssemblyResolver => DiskResolver.Instance;
@@ -183,6 +185,7 @@ namespace Microsoft.CodeAnalysis
                 _loader = loader;
             }
 
+            [UnconditionalSuppressMessage("AssemblyLocation", "IL3000", Justification = "Analyzer assemblies are expected to be on disk and loaded from path")]
             protected override Assembly? Load(AssemblyName assemblyName)
             {
                 foreach (var resolver in _loader.AnalyzerAssemblyResolvers)
@@ -244,6 +247,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [RequiresUnreferencedCode("Analyzer assemblies are loaded dynamically")]
         private sealed class DiskResolver : IAnalyzerAssemblyResolver
         {
             public static readonly IAnalyzerAssemblyResolver Instance = new DiskResolver();
@@ -264,6 +268,7 @@ namespace Microsoft.CodeAnalysis
         /// the AV will scan the assembly every single time. That cost is significant and easily shows up in
         /// performance profiles.
         /// </remarks>
+        [RequiresUnreferencedCode("Analyzer assemblies are loaded dynamically")]
         private sealed class StreamResolver : IAnalyzerAssemblyResolver
         {
             public static readonly IAnalyzerAssemblyResolver Instance = new StreamResolver();

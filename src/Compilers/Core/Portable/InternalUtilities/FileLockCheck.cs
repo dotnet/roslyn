@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -32,34 +32,31 @@ internal static class FileLockCheck
         public FILETIME ProcessStartTime;
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    private struct RM_PROCESS_INFO
+    [StructLayout(LayoutKind.Sequential)]
+    private unsafe struct RM_PROCESS_INFO
     {
         private const int CCH_RM_MAX_APP_NAME = 255;
         private const int CCH_RM_MAX_SVC_NAME = 63;
 
         internal RM_UNIQUE_PROCESS Process;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCH_RM_MAX_APP_NAME + 1)]
-        public string strAppName;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCH_RM_MAX_SVC_NAME + 1)]
-        public string strServiceShortName;
+        public fixed char strAppName[CCH_RM_MAX_APP_NAME + 1];
+        public fixed char strServiceShortName[CCH_RM_MAX_SVC_NAME + 1];
         internal int ApplicationType;
         public uint AppStatus;
         public uint TSSessionId;
-        [MarshalAs(UnmanagedType.Bool)]
-        public bool bRestartable;
+        public int bRestartable;
     }
 
     private const string RestartManagerDll = "rstrtmgr.dll";
 
-    [DllImport(RestartManagerDll, CharSet = CharSet.Unicode)]
-    private static extern int RmRegisterResources(uint pSessionHandle,
+    [DllImport(RestartManagerDll, ExactSpelling = true)]
+    private static extern unsafe int RmRegisterResources(uint pSessionHandle,
         uint nFiles,
-        string[] rgsFilenames,
+        char** rgsFilenames,
         uint nApplications,
-        [In] RM_UNIQUE_PROCESS[]? rgApplications,
+        RM_UNIQUE_PROCESS* rgApplications,
         uint nServices,
-        string[]? rgsServiceNames);
+        char** rgsServiceNames);
 
     /// <summary>
     /// Starts a new Restart Manager session.
@@ -84,7 +81,7 @@ internal static class FileLockCheck
     /// </param>
     /// <returns>System error codes that are defined in Winerror.h.</returns>
     /// <remarks>
-    /// The Rm­­StartSession function doesn’t properly null-terminate
+    /// The RmStartSession function doesn't properly null-terminate
     /// the session key, even though the function is documented as
     /// returning a null-terminated string. To work around this bug,
     /// we pre-fill the buffer with null characters so that whatever
@@ -94,9 +91,9 @@ internal static class FileLockCheck
     /// see <see href="http://blogs.msdn.com/b/oldnewthing/archive/2012/02/17/10268840.aspx"/>.
     /// </para>
     /// </remarks>
-    [DllImport(RestartManagerDll, CharSet = CharSet.Unicode)]
+    [DllImport(RestartManagerDll, ExactSpelling = true)]
     private static extern unsafe int RmStartSession(
-        out uint pSessionHandle,
+        uint* pSessionHandle,
         int dwSessionFlags,
         char* strSessionKey);
 
@@ -112,15 +109,15 @@ internal static class FileLockCheck
     /// <returns>
     /// The function can return one of the system error codes that are defined in Winerror.h.
     /// </returns>
-    [DllImport(RestartManagerDll)]
+    [DllImport(RestartManagerDll, ExactSpelling = true)]
     private static extern int RmEndSession(uint pSessionHandle);
 
-    [DllImport(RestartManagerDll, CharSet = CharSet.Unicode)]
-    private static extern int RmGetList(uint dwSessionHandle,
-        out uint pnProcInfoNeeded,
-        ref uint pnProcInfo,
-        [In, Out] RM_PROCESS_INFO[]? rgAffectedApps,
-        ref uint lpdwRebootReasons);
+    [DllImport(RestartManagerDll, ExactSpelling = true)]
+    private static extern unsafe int RmGetList(uint dwSessionHandle,
+        uint* pnProcInfoNeeded,
+        uint* pnProcInfo,
+        void* rgAffectedApps,
+        uint* lpdwRebootReasons);
 
     public static ImmutableArray<(int processId, string applicationName)> TryGetLockingProcessInfos(string path)
     {
@@ -139,20 +136,15 @@ internal static class FileLockCheck
         }
     }
 
-    private static ImmutableArray<(int processId, string applicationName)> GetLockingProcessInfosImpl(string[] paths)
+    private static unsafe ImmutableArray<(int processId, string applicationName)> GetLockingProcessInfosImpl(string[] paths)
     {
         const int MaxRetries = 6;
         const int ERROR_MORE_DATA = 234;
         const uint RM_REBOOT_REASON_NONE = 0;
 
         uint handle;
-        int res;
-
-        unsafe
-        {
-            char* key = stackalloc char[sizeof(Guid) * 2 + 1];
-            res = RmStartSession(out handle, 0, key);
-        }
+        char* key = stackalloc char[sizeof(Guid) * 2 + 1];
+        int res = RmStartSession(&handle, 0, key);
 
         if (res != 0)
         {
@@ -161,7 +153,12 @@ internal static class FileLockCheck
 
         try
         {
-            res = RmRegisterResources(handle, (uint)paths.Length, paths, 0, null, 0, null);
+            fixed (char* path0 = paths[0])
+            {
+                char** fileNames = &path0;
+                res = RmRegisterResources(handle, (uint)paths.Length, fileNames, 0, null, 0, null);
+            }
+
             if (res != 0)
             {
                 return [];
@@ -187,32 +184,38 @@ internal static class FileLockCheck
             do
             {
                 uint lpdwRebootReasons = RM_REBOOT_REASON_NONE;
-                res = RmGetList(handle, out uint pnProcInfoNeeded, ref pnProcInfo, rgAffectedApps, ref lpdwRebootReasons);
-                if (res == 0)
+                uint pnProcInfoNeeded;
+                fixed (RM_PROCESS_INFO* ptr = rgAffectedApps)
                 {
-                    // If pnProcInfo == 0, then there is simply no locking process (found), in this case rgAffectedApps is "null".
-                    if (pnProcInfo == 0)
+                    res = RmGetList(handle, &pnProcInfoNeeded, &pnProcInfo, ptr, &lpdwRebootReasons);
+
+                    if (res == 0)
+                    {
+                        // If pnProcInfo == 0, then there is simply no locking process (found), in this case rgAffectedApps is "null".
+                        if (pnProcInfo == 0)
+                        {
+                            return [];
+                        }
+
+                        Debug.Assert(rgAffectedApps != null);
+
+                        var lockInfos = ArrayBuilder<(int, string)>.GetInstance((int)pnProcInfo);
+                        for (int i = 0; i < pnProcInfo; i++)
+                        {
+                            lockInfos.Add(((int)ptr[i].Process.dwProcessId, new string(ptr[i].strAppName)));
+                        }
+
+                        return lockInfos.ToImmutableAndFree();
+                    }
+
+                    if (res != ERROR_MORE_DATA)
                     {
                         return [];
                     }
 
-                    Debug.Assert(rgAffectedApps != null);
-
-                    var lockInfos = ArrayBuilder<(int, string)>.GetInstance((int)pnProcInfo);
-                    for (int i = 0; i < pnProcInfo; i++)
-                    {
-                        lockInfos.Add(((int)rgAffectedApps[i].Process.dwProcessId, rgAffectedApps[i].strAppName));
-                    }
-
-                    return lockInfos.ToImmutableAndFree();
+                    pnProcInfo = pnProcInfoNeeded;
                 }
 
-                if (res != ERROR_MORE_DATA)
-                {
-                    return [];
-                }
-
-                pnProcInfo = pnProcInfoNeeded;
                 rgAffectedApps = new RM_PROCESS_INFO[pnProcInfo];
             }
             while (res == ERROR_MORE_DATA && retry++ < MaxRetries);
