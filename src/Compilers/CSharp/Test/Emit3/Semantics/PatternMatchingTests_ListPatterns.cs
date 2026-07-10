@@ -9682,6 +9682,43 @@ class C : System.Collections.ICollection
     }
 
     [Fact]
+    public void SlicePattern_NestedLengthOrPattern()
+    {
+        var source = """
+            using System;
+
+            class Program
+            {
+                static bool Test(int[] input) => input is [_, .. { Length: 1 or 2 }];
+
+                static void Main()
+                {
+                    Console.Write(Test([]));
+                    Console.Write(Test([0]));
+                    Console.Write(Test([0, 1]));
+                    Console.Write(Test([0, 1, 2]));
+                    Console.Write(Test([0, 1, 2, 3]));
+                }
+            }
+            """ + TestSources.GetSubArray;
+
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        compilation.VerifyDiagnostics();
+
+        VerifyDecisionDagDump<IsPatternExpressionSyntax>(compilation,
+@"[0]: t0 != null ? [1] : [6]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [6]
+[3]: t1 == 2 ? [5] : [4]
+[4]: t1 == 3 ? [5] : [6]
+[5]: leaf <isPatternSuccess> `[_, .. { Length: 1 or 2 }]`
+[6]: leaf <isPatternFailure> `[_, .. { Length: 1 or 2 }]`
+");
+
+        CompileAndVerify(compilation, expectedOutput: "FalseFalseTrueTrueFalse");
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/82398")]
     public void IndexerEvaluation_DifferentResultTypes()
     {

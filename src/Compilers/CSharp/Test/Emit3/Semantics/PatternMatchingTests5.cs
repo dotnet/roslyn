@@ -5176,9 +5176,9 @@ class C
         [Fact]
         public void ValueSet_UnionNonNullTest_Implicit()
         {
-            // Exercises ValueSet.Filter with BoundDagNonNullTest from unions.
-            // The `1 or 3 or 5` pattern on a union value creates a ValueSet.
-            // The union DAG generates a non-null test on the Value temp.
+            // Captures the DAG shape for an implicit union value pattern. Unlike the
+            // explicit type-pattern cases below, this form is not expected to create
+            // a ValueSet on the union value input.
             var source = """
                 union S1(int, string)
                 {
@@ -5220,7 +5220,8 @@ forLowering: false);
         {
             // Exercises ValueSet.Filter with BoundDagNonNullTest from unions.
             // The `int and (1 or 3 or 5)` pattern forces an explicit type test which
-            // generates a non-null test on the same input as the ValueSet.
+            // generates a non-null test on the union Value temp, before the ValueSet
+            // on the extracted int temp.
             var source = """
                 union S1(int, string)
                 {
@@ -5321,15 +5322,30 @@ forLowering: false);
                 """;
             var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 == null ? [4] : [1]
+[1]: t1 = (S1)t0; [2]
+[2]: t2 = t1.Value; [3]
+[3]: t2 == null ? [4] : [5]
+[4]: leaf <arm> `null => 9`
+[5]: t2 is int ? [6] : [12]
+[6]: t3 = (int)t2; [7]
+[7]: t3 == 1 ? [10] : [8]
+[8]: t3 == 3 ? [10] : [9]
+[9]: t3 == 5 ? [10] : [11]
+[10]: leaf <arm> `int and (1 or 3 or 5) => 1`
+[11]: leaf <arm> `_ => 2`
+[12]: leaf <arm> `string => 0`
+",
+forLowering: false);
             CompileAndVerify(comp, expectedOutput: "11209");
         }
 
         [Fact]
         public void ValueSet_UnionNonNullTest_WithNullArm()
         {
-            // Exercises both BoundDagExplicitNullTest and BoundDagNonNullTest reaching
-            // the ValueSet. The null arm creates an explicit null test that filters the
-            // ValueSet, and the union generates a non-null test.
+            // Exercises an explicit null arm together with a union value arm that can
+            // form a ValueSet behind an explicit type pattern.
             var source = """
                 union S1(int, string)
                 {
@@ -5355,6 +5371,20 @@ forLowering: false);
                 """;
             var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 == null ? [2] : [3]
+[2]: leaf <arm> `null => 9`
+[3]: t1 is int ? [4] : [10]
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 3 ? [8] : [7]
+[7]: t2 == 5 ? [8] : [9]
+[8]: leaf <arm> `int and (1 or 3 or 5) => 1`
+[9]: leaf <arm> `_ => 2`
+[10]: leaf <arm> `string => 0`
+",
+forLowering: false);
             CompileAndVerify(comp, expectedOutput: "1120");
         }
 
@@ -5386,6 +5416,19 @@ forLowering: false);
                 """;
             var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [8]
+[2]: t1 is string ? [3] : [4]
+[3]: leaf <arm> `string => 0`
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 3 ? [8] : [7]
+[7]: t2 == 5 ? [8] : [9]
+[8]: leaf <arm> `_ => 1`
+[9]: leaf <arm> `int and not (1 or 3 or 5) => 2`
+",
+forLowering: false);
             CompileAndVerify(comp, expectedOutput: "120");
         }
 
@@ -5418,6 +5461,23 @@ forLowering: false);
                 """;
             var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [13]
+[2]: t1 is string ? [3] : [4]
+[3]: leaf <arm> `string => 0`
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 2 ? [8] : [7]
+[7]: t2 == 3 ? [8] : [9]
+[8]: leaf <arm> `int and (1 or 2 or 3) => 1`
+[9]: t2 == 4 ? [12] : [10]
+[10]: t2 == 5 ? [12] : [11]
+[11]: t2 == 6 ? [12] : [13]
+[12]: leaf <arm> `int and (4 or 5 or 6) => 2`
+[13]: leaf <arm> `_ => 3`
+",
+forLowering: false);
             CompileAndVerify(comp, expectedOutput: "1230");
         }
 

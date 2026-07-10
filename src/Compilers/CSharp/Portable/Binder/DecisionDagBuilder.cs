@@ -3606,7 +3606,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(savedTempMap == tempsUpdatedResultTempMap);
                     }
 
-                    Tests finalResult = RemoveEvaluation(tempsUpdatedResult, builder, state, ref tempMap, e, out var condition);
+                    Tests finalResult;
+                    Tests? condition;
+                    if (tempsUpdatedResult.Test is BoundDagEvaluation)
+                    {
+                        finalResult = removeEvaluation(tempsUpdatedResult, builder, state, ref tempMap, e, out condition);
+                    }
+                    else
+                    {
+                        Debug.Assert(removeEvaluationLeavesInputUnchanged(tempsUpdatedResult, builder, state, tempMap, e));
+                        finalResult = tempsUpdatedResult;
+                        condition = null;
+                    }
 
                     Debug.Assert(!finalResult.Equals(tempsUpdatedResult) || tempsUpdatedResultTempMap == tempMap);
                     Debug.Assert(condition is null ||
@@ -3642,41 +3653,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                         tempMap,
                         condition,
                         condition is null ? null : tempsUpdatedResult);
-                }
 
-                public static Tests RemoveEvaluation(One tests, DecisionDagBuilder builder, DagState state, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e, out Tests? condition)
-                {
-                    switch (e)
+                    static Tests removeEvaluation(One tests, DecisionDagBuilder builder, DagState state, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e, out Tests? condition)
                     {
-                        case BoundDagTypeEvaluation typeEval:
-                            {
-                                condition = null;
-                                return RemoveTypeEvaluation(tests, builder, ref tempMap, typeEval);
-                            }
-                        case BoundDagIndexerEvaluation indexer:
-                            {
-                                return RemoveIndexerEvaluation(tests, builder, state, ref tempMap, indexer, out condition);
-                            }
-                        case BoundDagDeconstructEvaluation deconstruct:
-                            {
-                                condition = null;
-                                return RemoveDeconstructEvaluation(tests, ref tempMap, deconstruct);
-                            }
-                        case BoundDagFieldEvaluation:
-                        case BoundDagPropertyEvaluation:
-                        case BoundDagIndexEvaluation:
-                        case BoundDagSliceEvaluation:
-                            {
-                                condition = null;
-                                return RemoveSimpleEvaluationWithResultTemp(tests, ref tempMap, e);
-                            }
-                        case BoundDagAssignmentEvaluation assignment:
-                            {
-                                condition = null;
-                                return RemoveAssignmentEvaluation(tests, assignment);
-                            }
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(e);
+                        switch (e)
+                        {
+                            case BoundDagTypeEvaluation typeEval:
+                                {
+                                    condition = null;
+                                    return RemoveTypeEvaluation(tests, builder, ref tempMap, typeEval);
+                                }
+                            case BoundDagIndexerEvaluation indexer:
+                                {
+                                    return RemoveIndexerEvaluation(tests, builder, state, ref tempMap, indexer, out condition);
+                                }
+                            case BoundDagDeconstructEvaluation deconstruct:
+                                {
+                                    condition = null;
+                                    return RemoveDeconstructEvaluation(tests, ref tempMap, deconstruct);
+                                }
+                            case BoundDagFieldEvaluation:
+                            case BoundDagPropertyEvaluation:
+                            case BoundDagIndexEvaluation:
+                            case BoundDagSliceEvaluation:
+                                {
+                                    condition = null;
+                                    return RemoveSimpleEvaluationWithResultTemp(tests, ref tempMap, e);
+                                }
+                            case BoundDagAssignmentEvaluation assignment:
+                                {
+                                    condition = null;
+                                    return RemoveAssignmentEvaluation(tests, assignment);
+                                }
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(e);
+                        }
+                    }
+
+                    static bool removeEvaluationLeavesInputUnchanged(
+                        One tests,
+                        DecisionDagBuilder builder,
+                        DagState state,
+                        ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap,
+                        BoundDagEvaluation e)
+                    {
+                        var originalTempMap = tempMap;
+                        Tests result = removeEvaluation(tests, builder, state, ref tempMap, e, out Tests? condition);
+                        return result == tests && tempMap == originalTempMap && condition is null;
                     }
                 }
 
@@ -4941,6 +4964,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         default:
                             return false;
+                    }
+
+                    // Keep nested slice-length tests separate until RewriteNestedLengthTests updates
+                    // each test to use the top-level length temp and adjusted constant. When that
+                    // rewrite reassembles this sequence, OrSequence.Update calls Create and retries
+                    // collapsing the rewritten tests into a ValueSet.
+                    if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } lengthEvaluation &&
+                        TryGetTopLevelLengthTemp(lengthEvaluation).lengthTemp is not null)
+                    {
+                        return false;
                     }
 
                     // All elements must be ValueSet or One(BoundDagValueTest) on the same input

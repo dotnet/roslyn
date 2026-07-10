@@ -56,6 +56,11 @@ foreach ($entry in $benchmarkProjects) {
   $args += "--job"
   $args += "Dry"
 
+  if ($ci) {
+    # Keep the filter as one argument so PowerShell does not expand '*' into file names.
+    $args += "--filter=*"
+  }
+
   Write-Host "dotnet $($args -join ' ')"
 
   & dotnet @args
