@@ -555,14 +555,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         var siblings = containingSymbol.GetMembers();
                         foreach (var sibling in siblings)
                         {
-                            if (sibling.IsImplicitlyDeclared)
-                            {
-                                if (sibling is not IMethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.PropertyGet or MethodKind.PropertySet })
-                                {
-                                    continue;
-                                }
-                            }
-                            else if (!IsTrackedAPI(sibling, cancellationToken))
+                            if (!IsTrackedAPI(sibling, cancellationToken))
                             {
                                 continue;
                             }
