@@ -338,6 +338,33 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 }
                 """, @"", @"");
 
+        [Fact, WorkItem(79658, "https://github.com/dotnet/roslyn/issues/79658")]
+        public Task EmbeddedTypesAndMembersAreNotTrackedAsync()
+            => VerifyCSharpAsync($$"""
+
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded]
+                    internal sealed class EmbeddedAttribute : System.Attribute { }
+                }
+
+                [Microsoft.CodeAnalysis.Embedded]
+                internal class C
+                {
+                    internal int Field;
+                    internal int Property { get; set; }
+                    internal void Method() { }
+
+                    // Nested type is not itself annotated; it (and its members) must still be excluded
+                    // because an enclosing type is marked '[Embedded]'.
+                    internal class Nested
+                    {
+                        internal int NestedField;
+                        internal void NestedMethod() { }
+                    }
+                }
+                """, @"", @"");
+
         [Fact]
         public Task SimpleMissingMember_CSharpAsync()
             => VerifyCSharpAsync($$"""
