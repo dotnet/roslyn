@@ -48,7 +48,7 @@ internal static class RoslynCodeActionHelpers
         return root.ToFullString();
     }
 
-    public static async Task<TextEdit[]> GetSimplifiedEditsAsync(Document document, TextEdit textEdit, CancellationToken cancellationToken)
+    public static async Task<SumType<TextEdit, AnnotatedTextEdit>[]> GetSimplifiedEditsAsync(Document document, TextEdit textEdit, CancellationToken cancellationToken)
     {
         // Create a temporary syntax tree that includes the text edit.
         var originalSourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -69,6 +69,6 @@ internal static class RoslynCodeActionHelpers
         var options = simplificationService.GetSimplifierOptions(configOptions);
         var newDocument = await Simplifier.ReduceAsync(annotatedDocument, options, cancellationToken).ConfigureAwait(false);
         var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-        return [.. changes.Select(change => ProtocolConversions.TextChangeToTextEdit(change, originalSourceText))];
+        return [.. changes.Select(change => new SumType<TextEdit, AnnotatedTextEdit>(ProtocolConversions.TextChangeToTextEdit(change, originalSourceText)))];
     }
 }

@@ -82,7 +82,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
         var codeBehindTextDocEdit = new TextDocumentEdit()
         {
             TextDocument = codeBehindTextDocumentIdentifier,
-            Edits = [.. result ?? [edit]]
+            Edits = result
         };
 
         return new WorkspaceEdit() { DocumentChanges = new[] { codeBehindTextDocEdit } };
@@ -126,7 +126,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
 
         // Now we run the changes through the formatter, via the TryGetCSharpCodeActionEditAsync. This is the same as what the CSharpCodeActionResolver does.
         var csharpDocument = code.GetRequiredCSharpDocument(declarationDocument: false);
-        var csharpTextChanges = edits.SelectAsArray(csharpDocument.Text.GetTextChange);
+        var csharpTextChanges = edits.SelectAsArray(e => csharpDocument.Text.GetTextChange(e.First));
         var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(documentSnapshot, csharpTextChanges,
             declarationDocument: false,
             options, cancellationToken).ConfigureAwait(false);
