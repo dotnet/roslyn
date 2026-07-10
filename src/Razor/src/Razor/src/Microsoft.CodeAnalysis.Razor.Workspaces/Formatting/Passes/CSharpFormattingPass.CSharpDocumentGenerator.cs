@@ -240,6 +240,14 @@ internal partial class CSharpFormattingPass
                             }
                         }
                     }
+                    else if (_documentMappingService.IsInStringLiteral(_csharpDocument, _csharpSyntaxRoot, line.Start, multilineOnly: false))
+                    {
+                        // Whitespace in a multiline string is content, so preserve it in the formatting document.
+                        _currentLine = line;
+                        _currentFirstNonWhitespacePosition = line.Start;
+                        _builder.AppendLine(line.ToString());
+                        _lineInfoBuilder.Add(CreateLineInfo(processIndentation: false, processFormatting: true, checkForNewLines: true));
+                    }
                     else
                     {
                         _builder.AppendLine();
