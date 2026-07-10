@@ -142,6 +142,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(VersionHelper.TryParseAssemblyVersion("1.2. 3.4", allowWildcard: true, version: out version));
             Assert.Equal(expected, version);
 
+            // More than four dot-separated components (e.g. SemVer2 informational versions).
+            // Partial parsing is not allowed for assembly versions, so these fail to the null version.
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.2.3.4.5", allowWildcard: true, version: out version));
+            Assert.Equal(expected, version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.2.3.4.5", allowWildcard: false, version: out version));
+            Assert.Equal(expected, version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.2.3-p.4.5+metadata", allowWildcard: true, version: out version));
+            Assert.Equal(expected, version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.2.3.4.*", allowWildcard: true, version: out version));
+            Assert.Equal(expected, version);
+
             // U+FF11 FULLWIDTH DIGIT ONE 
             Assert.False(VersionHelper.TryParseAssemblyVersion("\uFF11.\uFF10.\uFF10.\uFF10", allowWildcard: true, version: out version));
             Assert.Equal(expected, version);
