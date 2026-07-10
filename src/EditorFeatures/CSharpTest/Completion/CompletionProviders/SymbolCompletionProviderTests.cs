@@ -436,6 +436,62 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             ItemExpectation.Absent("AttributeUsage"),
         ]);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84394")]
+    public async Task AttributeTargetFiltering_InheritedAttributeUsage()
+    {
+        // AttributeUsage is inherited by derived attribute types. A method-only attribute and an attribute
+        // deriving from it (without its own AttributeUsage) should both be filtered out on a non-method target.
+        var code = """
+            [$$]
+            record struct TestRecordStruct
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class FactAttribute : System.Attribute
+            {
+            }
+
+            public class CulturedFactAttribute : FactAttribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Absent("Fact"),
+            ItemExpectation.Absent("CulturedFact")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84394")]
+    public async Task AttributeTargetFiltering_InheritedAttributeUsageOnValidTarget()
+    {
+        // On a valid (method) target both the method-only attribute and its derived attribute are offered.
+        var code = """
+            class TestClass
+            {
+                [$$]
+                public void M()
+                {
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class FactAttribute : System.Attribute
+            {
+            }
+
+            public class CulturedFactAttribute : FactAttribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("Fact"),
+            ItemExpectation.Exists("CulturedFact")
+        ]);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
     public async Task AttributeTargetFiltering_AssemblyAttribute()
     {
@@ -3818,6 +3874,211 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     int Goo;
                     goto Goo $$
             """, "Goo");
+
+    [Fact]
+    public Task LabelAfterBreak_ImmediateWhile()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: while (true)
+                    {
+                        break $$
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterContinue_ImmediateFor()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: for (int i = 0; i < 10; i++)
+                    {
+                        continue $$
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterBreak_OuterWhile_SkipsInnerWhile()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: while (true)
+                    {
+                        while (true)
+                        {
+                            break $$
+                        }
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterContinue_OuterFor_SkipsInnerWhile()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: for (int i = 0; i < 10; i++)
+                    {
+                        while (true)
+                        {
+                            continue $$
+                        }
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterBreak_Switch()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F(int x)
+                {
+                    outer: switch (x)
+                    {
+                        case 0:
+                            break $$
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterContinue_DoesNotOfferSwitchLabel()
+        => VerifyItemIsAbsentAsync("""
+            class C
+            {
+                void F(int x)
+                {
+                    outer: switch (x)
+                    {
+                        case 0:
+                            inner: while (true)
+                            {
+                                continue $$
+                            }
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterContinue_OffersLoopLabelInsideSwitch()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F(int x)
+                {
+                    outer: switch (x)
+                    {
+                        case 0:
+                            inner: while (true)
+                            {
+                                continue $$
+                            }
+                    }
+                }
+            }
+            """, "inner");
+
+    [Fact]
+    public Task LabelAfterBreak_DoesNotOfferNonEnclosingLabel()
+        => VerifyItemIsAbsentAsync("""
+            class C
+            {
+                void F()
+                {
+                    other: while (true) { }
+
+                    outer: while (true)
+                    {
+                        break $$
+                    }
+                }
+            }
+            """, "other");
+
+    [Fact]
+    public Task LabelAfterBreak_DoesNotOfferPlainLabel()
+        => VerifyItemIsAbsentAsync("""
+            class C
+            {
+                void F()
+                {
+                    plain: ;
+                    outer: while (true)
+                    {
+                        break $$
+                    }
+                }
+            }
+            """, "plain");
+
+    [Fact]
+    public Task LabelAfterBreak_DoesNotOfferPlainLabel_PartiallyWritten()
+        => VerifyItemIsAbsentAsync("""
+            class C
+            {
+                void F()
+                {
+                    plain: ;
+                    outer: while (true)
+                    {
+                        break pl$$
+                    }
+                }
+            }
+            """, "plain");
+
+    [Fact]
+    public Task LabelAfterBreak_OffersMultipleEnclosingLabels()
+        => VerifyExpectedItemsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: while (true)
+                    {
+                        inner: while (true)
+                        {
+                            break $$
+                        }
+                    }
+                }
+            }
+            """, [
+            ItemExpectation.Exists("outer"),
+            ItemExpectation.Exists("inner"),
+        ]);
+
+    [Fact]
+    public Task LabelAfterBreak_ExistingIdentifier()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: while (true)
+                    {
+                        break ou$$
+                    }
+                }
+            }
+            """, "outer");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
     public Task AttributeName()

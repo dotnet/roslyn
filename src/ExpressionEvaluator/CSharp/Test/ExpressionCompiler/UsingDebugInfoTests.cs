@@ -576,7 +576,7 @@ namespace N
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
-        public void BadPdb_NonStaticTypeImport()
+        public void NonStaticTypeImport()
         {
             var source = @"
 namespace N
@@ -610,7 +610,70 @@ namespace N
             var evalContext = CreateMethodContext(runtime, "N.C.Main");
             var compContext = evalContext.CreateCompilationContext();
             var imports = compContext.NamespaceBinder.ImportChain.Single();
-            Assert.Equal(0, imports.Usings.Length); // Note: the import is dropped
+            var actualType = imports.Usings.Single().NamespaceOrType;
+            Assert.Equal(SymbolKind.NamedType, actualType.Kind);
+            Assert.Equal("System.String", actualType.ToTestDisplayString());
+            Assert.Equal(0, imports.UsingAliases.Count);
+            Assert.Equal(0, imports.ExternAliases.Length);
+        }
+
+        [Fact]
+        public void BadPdb_ExtensionMarkerTypeImport()
+        {
+            var source = """
+public class C
+{
+    public static void Main()
+    {
+    }
+}
+
+public static class E
+{
+    extension(int i)
+    {
+        public int P => i;
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: SyntaxHelpers.PreviewParseOptions, options: TestOptions.DebugDll);
+            comp.VerifyEmitDiagnostics();
+
+            using var runtime = CreateRuntimeInstance(comp);
+            var evalContext = CreateMethodContext(runtime, "C.Main");
+            var runtimeCompContext = evalContext.CreateCompilationContext();
+            var currentFrame = (MethodSymbol)runtimeCompContext.Compilation.GlobalNamespace
+                .GetTypeMembers("C").Single()
+                .GetMembers("Main").Single();
+            var extension = runtimeCompContext.Compilation.GlobalNamespace
+                .GetTypeMembers("E").Single()
+                .GetTypeMembers().Single(t => t.IsExtension);
+            Assert.True(extension.IsExtension);
+            var importRecordGroups = ImmutableArray.Create(
+                ImmutableArray.Create(new ImportRecord(ImportTargetKind.Type, targetType: extension)));
+
+            var methodDebugInfo = new MethodDebugInfo<TypeSymbol, LocalSymbol>(
+                ImmutableArray<HoistedLocalScopeRecord>.Empty,
+                importRecordGroups,
+                ImmutableArray<ExternAliasRecord>.Empty,
+                dynamicLocalMap: null,
+                tupleLocalMap: null,
+                defaultNamespaceName: "",
+                localVariableNames: ImmutableArray<string>.Empty,
+                localConstants: ImmutableArray<LocalSymbol>.Empty,
+                reuseSpan: ILSpan.MaxValue,
+                containingDocumentName: null,
+                isPrimaryConstructor: false);
+
+            var compContext = new CompilationContext(
+                runtimeCompContext.Compilation,
+                currentFrame,
+                currentFrame,
+                locals: [],
+                inScopeHoistedLocalSlots: [],
+                methodDebugInfo);
+            var imports = compContext.NamespaceBinder.ImportChain.Single();
+            Assert.Equal(0, imports.Usings.Length); // Note: the import is dropped.
             Assert.Equal(0, imports.UsingAliases.Count);
             Assert.Equal(0, imports.ExternAliases.Length);
         }

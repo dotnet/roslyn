@@ -45737,10 +45737,17 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "[2, 3]").WithLocation(5, 24)
                 );
 
+            DiagnosticDescription[] expectedPreviewDiagnostics =
+            [
+                // (5,24): error CS9363: 'MyCollectionOfInt.MyCollectionOfInt(void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Overloads.Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "[2, 3]").WithArguments("MyCollectionOfInt.MyCollectionOfInt(void*)").WithLocation(5, 24),
+            ];
+
             comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
-            comp3.VerifyDiagnostics();
+            comp3.VerifyDiagnostics(expectedPreviewDiagnostics);
             comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe);
-            comp3.VerifyDiagnostics();
+            comp3.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -45825,10 +45832,20 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "3").WithLocation(5, 28)
                 );
 
+            DiagnosticDescription[] expectedPreviewDiagnostics =
+            [
+                // (5,25): error CS9363: 'MyCollectionOfInt.Add(int, void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Overloads.Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "2").WithArguments("MyCollectionOfInt.Add(int, void*)").WithLocation(5, 25),
+                // (5,28): error CS9363: 'MyCollectionOfInt.Add(int, void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Overloads.Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "3").WithArguments("MyCollectionOfInt.Add(int, void*)").WithLocation(5, 28),
+            ];
+
             comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
-            comp3.VerifyDiagnostics();
+            comp3.VerifyDiagnostics(expectedPreviewDiagnostics);
             comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe);
-            comp3.VerifyDiagnostics();
+            comp3.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]

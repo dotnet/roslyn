@@ -817,7 +817,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -1040,7 +1041,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
