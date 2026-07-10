@@ -166,8 +166,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected, version);
             Assert.False(VersionHelper.TryParse(".1.2.", out version));
             Assert.Equal(expected, version);
-            Assert.False(VersionHelper.TryParse("1.234.56.7.8", out version));
-            Assert.Equal(expected, version);
             Assert.False(VersionHelper.TryParse("*", out version));
             Assert.Equal(expected, version);
             Assert.False(VersionHelper.TryParse("-1.2.3.4", out version));
@@ -207,6 +205,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(new Version(1, 1, 31073, 23), version);
             Assert.False(VersionHelper.TryParse("65536.2.65536.1", out version));
             Assert.Equal(new Version(0, 2, 0, 1), version);
+            // More than four dot-separated components (e.g. SemVer2 informational versions).
+            // The leading numeric components are emitted rather than falling back to 0.0.0.0.
+            Assert.False(VersionHelper.TryParse("1.234.56.7.8", out version));
+            Assert.Equal(new Version(1, 234, 56, 7), version);
+            Assert.False(VersionHelper.TryParse("1.2.3-p.4.5+metadata", out version));
+            Assert.Equal(new Version(1, 2, 3, 0), version);
+            Assert.False(VersionHelper.TryParse("18.10.0-ci.26360.1+95817c0", out version));
+            Assert.Equal(new Version(18, 10, 0, 0), version);
+            Assert.False(VersionHelper.TryParse("1.2.3.4.5", out version));
+            Assert.Equal(new Version(1, 2, 3, 4), version);
         }
     }
 }

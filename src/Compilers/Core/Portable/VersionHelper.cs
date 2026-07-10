@@ -66,15 +66,36 @@ namespace Microsoft.CodeAnalysis
             // the last must be a exactly single asterisk without whitespace.
             bool hasWildcard = allowWildcard && elements[elements.Length - 1] == "*";
 
-            if ((hasWildcard && elements.Length < 3) || elements.Length > 4)
+            if (hasWildcard && elements.Length < 3)
             {
                 version = AssemblyIdentity.NullVersion;
                 return false;
             }
 
+            // A Win32 FIXEDFILEINFO version has only four components. A string with more
+            // than four dot-separated components (e.g. a SemVer2 informational version such
+            // as "1.2.3-p.4.5+metadata", which splits into five elements) is not a well-formed
+            // n.n.n.n version. When partial parsing is not allowed (assembly versions) we reject
+            // it outright. Otherwise (file and product versions) we keep the first four elements
+            // and fall through to the partial parse below so the leading numeric components are
+            // still emitted rather than falling back to 0.0.0.0.
+            bool tooManyComponents = elements.Length > 4;
+            if (tooManyComponents)
+            {
+                if (!allowPartialParse)
+                {
+                    version = AssemblyIdentity.NullVersion;
+                    return false;
+                }
+
+                Array.Resize(ref elements, 4);
+            }
+
             ushort[] values = new ushort[4];
             int lastExplicitValue = hasWildcard ? elements.Length - 1 : elements.Length;
-            bool parseError = false;
+            // Dropping extra components means the input was not fully consumed, so the parse is
+            // never considered complete when there were too many components.
+            bool parseError = tooManyComponents;
             for (int i = 0; i < lastExplicitValue; i++)
             {
 
