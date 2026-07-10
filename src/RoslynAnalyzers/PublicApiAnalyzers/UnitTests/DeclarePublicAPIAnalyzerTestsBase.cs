@@ -2770,7 +2770,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 
         [Fact]
         [WorkItem(84462, "https://github.com/dotnet/roslyn/issues/84462")]
-        public Task Record_ToString_FixRetainsImplicitTrackedSiblingsAsync()
+        public Task Record_FixRetainsImplicitSiblings_ToStringAsync()
             => VerifyNet50CSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifierCSharp}} record {|{{AddNewApiId}}:R|}(int P);
@@ -2813,7 +2813,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 
         [Fact]
         [WorkItem(84462, "https://github.com/dotnet/roslyn/issues/84462")]
-        public Task Record_PrintMembers_FixRetainsImplicitTrackedSiblingsAsync()
+        public Task Record_FixRetainsImplicitSiblings_PrintMembersAsync()
             => VerifyNet50CSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifierCSharp}} record {|{{AddNewApiId}}:R|}(int P);
