@@ -59,7 +59,12 @@ public sealed class CSharpPreviewLanguageFeaturesIntegrationTest()
             """));
 
         var generated = CompileToCSharp("""
+            @{
+                var content = new Test.SlotContent(new MarkupString("<strong>hello</strong>"));
+            }
+
             <Slot Content="hello" />
+            <Slot Content="@content" />
             """);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);

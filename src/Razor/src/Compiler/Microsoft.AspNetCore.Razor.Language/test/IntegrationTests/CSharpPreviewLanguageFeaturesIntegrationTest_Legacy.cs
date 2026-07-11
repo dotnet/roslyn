@@ -111,7 +111,12 @@ public sealed class CSharpPreviewLanguageFeaturesIntegrationTest_Legacy : Integr
             @inherits global::LegacyTemplateBase
             @addTagHelper *, TestAssembly
 
+            @{
+                var content = new Test.SlotContent(42);
+            }
+
             <slot content="hello"></slot>
+            <slot content="@content"></slot>
             """,
             filePath: DefaultLegacyFileName);
 
