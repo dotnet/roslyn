@@ -92,7 +92,7 @@ internal sealed class CSharpEncapsulateFieldService() : AbstractEncapsulateField
 
             var field = semanticModel.GetDeclaredSymbol(declarator, cancellationToken) as IFieldSymbol;
 
-            var fieldToAdd = declarationAnnotation.AddAnnotationToSymbol(CodeGenerationSymbolFactory.CreateFieldSymbol(
+            var fieldToAdd = CodeGenerationSymbolFactory.CreateFieldSymbol(
                 field.GetAttributes(),
                 Accessibility.Private,
                 new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isConst: field.IsConst),
@@ -100,7 +100,7 @@ internal sealed class CSharpEncapsulateFieldService() : AbstractEncapsulateField
                 field.Name,
                 field.HasConstantValue,
                 field.ConstantValue,
-                declarator.Initializer));
+                declarator.Initializer);
 
             var withField = await codeGenService.AddFieldAsync(
                 new CodeGenerationSolutionContext(
@@ -110,6 +110,10 @@ internal sealed class CSharpEncapsulateFieldService() : AbstractEncapsulateField
                 fieldToAdd,
                 cancellationToken).ConfigureAwait(false);
             root = await withField.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var newFieldDeclaration = root.GetAnnotatedNodes(CodeGenerator.Annotation).First() as FieldDeclarationSyntax;
+            var newFieldDeclarator = newFieldDeclaration.Declaration.Variables.First();
+            root = root.ReplaceNode(newFieldDeclarator, newFieldDeclarator.WithAdditionalAnnotations(declarationAnnotation));
 
             declarator = root.GetAnnotatedNodes<VariableDeclaratorSyntax>(tempAnnotation).First();
             declaration = declarator.Parent as VariableDeclarationSyntax;
