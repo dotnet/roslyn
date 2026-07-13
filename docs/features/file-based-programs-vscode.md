@@ -1,5 +1,7 @@
 # File-based programs VS Code support
 
+**File-based app** and **file-based program** are synonymous.
+
 See also:
 
 - [.NET SDK file-based apps](https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps)
@@ -11,8 +13,6 @@ See also:
 ## Feature overview
 
 A file-based program embeds a subset of MSBuild project capabilities into C# code, allowing single files to stand alone as ordinary projects.
-
-**File-based app** and **file-based program** are synonymous.
 
 The following is a file-based program:
 
