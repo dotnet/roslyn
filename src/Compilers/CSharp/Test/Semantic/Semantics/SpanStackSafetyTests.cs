@@ -693,6 +693,30 @@ public class Program
             );
         }
 
+        [Fact]
+        public void SpanToImplicitHeapMemory()
+        {
+            var source = @"
+class Test
+{
+    static void Method1(int[] array)
+    {
+        var a = new { P = stackalloc int[3] { 1, 2, 3 } };
+        var b = (dynamic)stackalloc int[3] { 1, 2, 3 };
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8)
+                .VerifyDiagnostics(
+                // (6,23): error CS0828: Cannot assign 'Span<int>' to anonymous type property
+                //         var a = new { P = stackalloc int[3] { 1, 2, 3 } };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "P = stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(6, 23),
+                // (7,17): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'dynamic' is not possible.
+                //         var b = (dynamic)stackalloc int[3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(dynamic)stackalloc int[3] { 1, 2, 3 }").WithArguments("int", "dynamic").WithLocation(7, 17)
+                );
+        }
+
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
         public void InterfaceImpl_01()
