@@ -149,7 +149,7 @@ We are adding support for an `#:include` directive to file-based apps, which let
 
 Because all these projects are simply added as projects to the host workspace, it's expected that features like "active project context" and multi-targeting-aware Quick Info "just work" with all of them.
 
-One key assumption we are making is: it is not valid for a file-based app *entry point* to be a member of an ordinary project. e.g. you cannot have the following:
+One key assumption we are making is: it is not valid for a file-based app *entry point* to be a member of an ordinary project. For example, you cannot have the following:
 - `Util.cs` (an ordinary source file)
 - `App1.cs`, a file-based app entry point containing `#:include Util.cs`
 - `MyProject.csproj`, containing `<Compile Include="App1.cs" />` **<-- This part is considered malformed**
