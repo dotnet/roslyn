@@ -205,7 +205,7 @@ extends:
             packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
             allowPackageConflicts: true
             nuGetFeedType: external
-            publishFeedCredentials: 'DevDiv - VS package feed'
+            publishFeedCredentials: 'dnceng-devdiv-vs-feed-push'
 
           # Publish an artifact that the RoslynInsertionTool is able to find by its name.
           - output: pipelineArtifact
