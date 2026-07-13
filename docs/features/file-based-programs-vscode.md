@@ -216,7 +216,7 @@ For this reason, we put `#!`-at-start as a standard for entry points of file-bas
 
 ## Future considerations
 
-This section is not intended to serve as permanent documentation but as more of a roadmap for a series of changes we may make in this area in the near future. It should not be necessary to read/understand this in order to evaluate a PR currently under review. Anything that the current PR is actually implementing is covered in previous sections. Where individual tracking items exist, they are linked below.
+This section is not intended to serve as permanent documentation but as more of a roadmap for a series of changes we may make in this area in the near future. It should not be necessary to read/understand this in order to evaluate a PR currently under review. Anything that the current PR is actually implementing is covered in previous sections.
 
 ### Treating files with no directives as file-based app entry points
 
