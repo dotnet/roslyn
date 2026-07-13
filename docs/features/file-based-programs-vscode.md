@@ -227,7 +227,7 @@ We may want to stop using this designation for files which exist on disk. Instea
 ### Allowing non-entry-point files to contain `#:` directives
 
 We are considering adding support for non-entry-point files to contain `#:` in the future. In this case, we would need an additional bit of information to distinguish entry points from non-entry-points. Related work is tracked by:
-- [issue 81284: included file-based app sources](https://github.com/dotnet/roslyn/pull/81284)
+- [PR 81284: included file-based app sources](https://github.com/dotnet/roslyn/pull/81284)
 - [issue 82292: `#:include` scenario when entry point opened manually](https://github.com/dotnet/roslyn/issues/82292)
 - [PR 83185: Adjust heuristics to properly handle transitive directives](https://github.com/dotnet/roslyn/pull/83185)
 
