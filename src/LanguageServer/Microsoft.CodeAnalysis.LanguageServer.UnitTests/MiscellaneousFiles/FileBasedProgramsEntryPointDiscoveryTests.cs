@@ -68,15 +68,16 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Theory]
-    [InlineData("#!/usr/bin/env dotnet\nclass C { }", false, FileBasedProgramEntryPointKind.Explicit)]
-    [InlineData("\uFEFF#!/usr/bin/env dotnet\nclass C { }", false, FileBasedProgramEntryPointKind.Explicit)]
-    [InlineData("#:sdk Microsoft.NET.Sdk\nConsole.WriteLine(\"Hello World\");", false, FileBasedProgramEntryPointKind.Explicit)]
-    [InlineData("#:sdk Microsoft.NET.Sdk\nclass C { }", false, FileBasedProgramEntryPointKind.None)]
-    [InlineData("Console.WriteLine(\"Hello World\");", false, FileBasedProgramEntryPointKind.None)]
-    [InlineData("Console.WriteLine(\"Hello World\");", true, FileBasedProgramEntryPointKind.Ambiguous)]
-    [InlineData("class C { }", true, FileBasedProgramEntryPointKind.None)]
-    public void TestEntryPointHeuristic(string source, bool includeAmbiguousEntryPoints, FileBasedProgramEntryPointKind expected)
+    [InlineData("#!/usr/bin/env dotnet\nclass C { }", false, "Explicit")]
+    [InlineData("\uFEFF#!/usr/bin/env dotnet\nclass C { }", false, "Explicit")]
+    [InlineData("#:sdk Microsoft.NET.Sdk\nConsole.WriteLine(\"Hello World\");", false, "Explicit")]
+    [InlineData("#:sdk Microsoft.NET.Sdk\nclass C { }", false, "None")]
+    [InlineData("Console.WriteLine(\"Hello World\");", false, "None")]
+    [InlineData("Console.WriteLine(\"Hello World\");", true, "Ambiguous")]
+    [InlineData("class C { }", true, "None")]
+    public void TestEntryPointHeuristic(string source, bool includeAmbiguousEntryPoints, string expectedName)
     {
+        var expected = Enum.Parse<FileBasedProgramEntryPointKind>(expectedName);
         var sourceText = SourceText.From(source);
         Assert.Equal(expected, FileBasedProgramEntryPointHeuristic.GetEntryPointKind(sourceText, includeAmbiguousEntryPoints, CancellationToken.None));
     }
