@@ -52,7 +52,13 @@ The `dotnet` command line interprets the `#:` directives in source files, produc
 
 ## Rich miscellaneous files
 
-There is long-standing tracking to enhance the experience of working with miscellaneous files ("loose files" not associated with any project), including [issue 55287: MiscellaneousFilesWorkspace design debt](https://github.com/dotnet/roslyn/issues/55287), [issue 11599: lost IntelliSense when transferring a document to miscellaneous files](https://github.com/dotnet/roslyn/issues/11599), and [issue 80743: canonical miscellaneous files project for VS Code](https://github.com/dotnet/roslyn/issues/80743). As part of the file-based app work, we can enable the following in such files without substantial issues:
+There is long-standing tracking to enhance the experience of working with miscellaneous files ("loose files" not associated with any project), including:
+
+- [issue 55287: MiscellaneousFilesWorkspace design debt](https://github.com/dotnet/roslyn/issues/55287)
+- [issue 11599: lost IntelliSense when transferring a document to miscellaneous files](https://github.com/dotnet/roslyn/issues/11599)
+- [issue 80743: canonical miscellaneous files project for VS Code](https://github.com/dotnet/roslyn/issues/80743).
+
+As part of the file-based app work, we can enable the following in such files without substantial issues:
 - Syntax diagnostics.
 - IntelliSense for the "default" set of references, for example those references which are included in the project created by `dotnet new console` with the current SDK.
 - In certain cases, we can even enable semantic diagnostics, with reasonable confidence that the resulting errors are useful to the user.
