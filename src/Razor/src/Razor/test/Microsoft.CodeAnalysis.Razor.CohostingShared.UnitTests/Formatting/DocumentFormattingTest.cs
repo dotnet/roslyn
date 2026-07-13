@@ -124,6 +124,209 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task RawStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """"
+                @code {
+                	string s = $"""
+                			
+                """;
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                	string s = $"""
+
+                """;
+                }
+                """",
+            expected: """"
+                @code {
+                	string s = $"""
+                			
+                """;
+                }
+                """",
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task NonInterpolatedRawStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """"
+                @code {
+                	string s = """
+                			
+                """;
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                	string s = """
+
+                """;
+                }
+                """",
+            expected: """"
+                @code {
+                	string s = """
+                			
+                """;
+                }
+                """",
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task Utf8RawStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """"
+                @code {
+                	ReadOnlySpan<byte> s = """
+                			
+                """u8;
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                	ReadOnlySpan<byte> s = """
+
+                """u8;
+                }
+                """",
+            expected: """"
+                @code {
+                	ReadOnlySpan<byte> s = """
+                			
+                """u8;
+                }
+                """",
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task VerbatimStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code {
+                	string s = @"
+                			
+                ";
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                	string s = @"
+
+                ";
+                }
+                """,
+            expected: """
+                @code {
+                	string s = @"
+                			
+                ";
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task DollarAtInterpolatedVerbatimStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code {
+                	string s = $@"
+                			
+                ";
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                	string s = $@"
+
+                ";
+                }
+                """,
+            expected: """
+                @code {
+                	string s = $@"
+                			
+                ";
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task AtDollarInterpolatedVerbatimStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code {
+                	string s = @$"
+                			
+                ";
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                	string s = @$"
+
+                ";
+                }
+                """,
+            expected: """
+                @code {
+                	string s = @$"
+                			
+                ";
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13192")]
+    public async Task Utf8VerbatimStringLiteralWithTabIndents()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code {
+                	ReadOnlySpan<byte> s = @"
+                			
+                "u8;
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                	ReadOnlySpan<byte> s = @"
+
+                "u8;
+                }
+                """,
+            expected: """
+                @code {
+                	ReadOnlySpan<byte> s = @"
+                			
+                "u8;
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
     [WorkItem("https://developercommunity.visualstudio.com/t/Razor-Formatting-Feature-internal-error/11041869")]
     public async Task TextAndTagOnSameLine()
     {
