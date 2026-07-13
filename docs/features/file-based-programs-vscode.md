@@ -168,7 +168,7 @@ Manages projects for file-based apps and miscellaneous files.
 
 This project system effectively performs the classification process described in [File-based app detection](#file-based-app-detection) when a design-time build is performed for the project, and transitions the state of the project to match the latest classification.
 
-This uses the file-based app entry point file, translates it to a virtual MSBuild project, then runs a design-time build on that project. If it detects missing assets, it may also restore the virtual project.
+The project system uses the file-based app entry point file, translates it to a virtual MSBuild project, then runs a design-time build on that project. If it detects missing assets, it may also restore the virtual project.
 
 It uses file watchers to watch the project globs and redo the design-time build on relevant changes, such as changes to `#:` directives.
 
