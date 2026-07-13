@@ -67,7 +67,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         AssertEx.SequenceEqual(expected, actualFactory());
     }
 
-    [Theory]
+    [Theory, WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2369")]
     [InlineData("#!/usr/bin/env dotnet\nclass C { }", false, "Explicit")]
     [InlineData("\uFEFF#!/usr/bin/env dotnet\nclass C { }", false, "Explicit")]
     [InlineData("#:sdk Microsoft.NET.Sdk\nConsole.WriteLine(\"Hello World\");", false, "Explicit")]
