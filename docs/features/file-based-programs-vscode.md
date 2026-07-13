@@ -144,7 +144,7 @@ We also have a second, finer-grained opt-out flag `dotnet.projects.enableFileBas
 ## LSP handling of file-based apps
 
 When a C# file adds `#:` or `#!` directives, it becomes a file-based app.
-Conceptually, what happens is: the file becomes both a C# source file, and a project file, in one.
+Conceptually, the file becomes both a C# source file and a project file in one.
 
 Conversely, when all `#:`/`#!` directives are removed, it stops being a project file, and goes back to being a C# source file only. In this scheme, we think of a file which contains `#:` as being the "entry point file" of the file-based app.
 
