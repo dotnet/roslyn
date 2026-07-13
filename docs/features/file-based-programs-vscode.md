@@ -72,7 +72,7 @@ The implementation strategy is: the editor creates a "canonical misc files proje
 A C# file has multiple possible *classifications* in the editor:
 - **Project-Based App**. The file is part of an ordinary `.csproj` project.
 - **File-Based App**. The file is part of a "file-based app" project, i.e. it is either the entry point of a file-based app or it is `#:include`d by the entry point of the same.
-- **Miscellaneous File With Standard References and Semantic Errors**. The file is a valid entry point for either a file-based app, but lacks the `#:`/`#!` directives which give us high certainty that this is the user's intent.
+- **Miscellaneous File With Standard References and Semantic Errors**. The file is a valid entry point for a file-based app, but lacks the `#:`/`#!` directives which give us high certainty that this is the user's intent.
    - Tooling will light up accordingly, showing syntax errors, semantic errors, semantic info for the core library, etc. See [Rich miscellaneous files](#rich-miscellaneous-files).
    - These files will not be restored.
 - **Miscellaneous File With Standard References**. The file isn't part of any project, and heuristics indicate it's not intended to be a file-based app. The file uses the regular C# language (not the `.csx` scripting dialect).
