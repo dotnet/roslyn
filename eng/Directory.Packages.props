@@ -54,6 +54,7 @@
 
   <ItemGroup>
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.6.10" />
+    <PackageVersion Include="MessagePack" Version="2.5.302" />
 
     <!--
       Visual Studio
