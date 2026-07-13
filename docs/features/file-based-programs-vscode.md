@@ -54,8 +54,8 @@ The `dotnet` command line interprets the `#:` directives in source files, produc
 
 There is long-standing tracking to enhance the experience of working with miscellaneous files ("loose files" not associated with any project), including:
 
-- [issue 55287: MiscellaneousFilesWorkspace design debt](https://github.com/dotnet/roslyn/issues/55287)
 - [issue 11599: lost IntelliSense when transferring a document to miscellaneous files](https://github.com/dotnet/roslyn/issues/11599)
+- [issue 55287: MiscellaneousFilesWorkspace design debt](https://github.com/dotnet/roslyn/issues/55287)
 - [issue 80743: canonical miscellaneous files project for VS Code](https://github.com/dotnet/roslyn/issues/80743).
 
 As part of the file-based app work, we can enable the following in such files without substantial issues:
