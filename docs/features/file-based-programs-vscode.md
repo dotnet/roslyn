@@ -227,9 +227,9 @@ We may want to stop using this designation for files which exist on disk. Instea
 ### Allowing non-entry-point files to contain `#:` directives
 
 We are considering adding support for non-entry-point files to contain `#:` in the future. In this case, we would need an additional bit of information to distinguish entry points from non-entry-points. Related work is tracked by:
+- [issue 81284: included file-based app sources](https://github.com/dotnet/roslyn/pull/81284)
 - [issue 82292: `#:include` scenario](https://github.com/dotnet/roslyn/issues/82292)
 - [PR 83185: transitive directive heuristic](https://github.com/dotnet/roslyn/pull/83185)
-- [issue 81284: included file-based app sources](https://github.com/dotnet/roslyn/pull/81284)
 
 For *multi-file file-based apps*, users should use a `#!` at the top of the entry point file to make it easy to identify.
 For *single-file file-based apps*, we think that just using `#:` and top-level statements together should be enough, to identify a file that was explicitly opened in the editor as an entry point.
