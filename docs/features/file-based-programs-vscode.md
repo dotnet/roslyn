@@ -1,4 +1,4 @@
-# File-based programs VS Code support
+# File-based apps VS Code support
 
 **File-based app** and **file-based program** are synonymous.
 
@@ -12,9 +12,9 @@ See also:
 
 ## Feature overview
 
-A file-based program embeds a subset of MSBuild project capabilities into C# code, allowing single files to stand alone as ordinary projects.
+A file-based app embeds a subset of MSBuild project capabilities into C# code, allowing single files to stand alone as ordinary projects.
 
-The following is a file-based program:
+The following is a file-based app:
 
 ```cs
 Console.WriteLine("Hello World!");
@@ -52,7 +52,7 @@ The `dotnet` command line interprets the `#:` directives in source files, produc
 
 ## Rich miscellaneous files
 
-There is long-standing tracking to enhance the experience of working with miscellaneous files ("loose files" not associated with any project), including [issue 55287: MiscellaneousFilesWorkspace design debt](https://github.com/dotnet/roslyn/issues/55287), [issue 11599: lost IntelliSense when transferring a document to miscellaneous files](https://github.com/dotnet/roslyn/issues/11599), and [issue 80743: canonical miscellaneous files project for VS Code](https://github.com/dotnet/roslyn/issues/80743). As part of the file-based program work, we can enable the following in such files without substantial issues:
+There is long-standing tracking to enhance the experience of working with miscellaneous files ("loose files" not associated with any project), including [issue 55287: MiscellaneousFilesWorkspace design debt](https://github.com/dotnet/roslyn/issues/55287), [issue 11599: lost IntelliSense when transferring a document to miscellaneous files](https://github.com/dotnet/roslyn/issues/11599), and [issue 80743: canonical miscellaneous files project for VS Code](https://github.com/dotnet/roslyn/issues/80743). As part of the file-based app work, we can enable the following in such files without substantial issues:
 - Syntax diagnostics.
 - IntelliSense for the "default" set of references, for example those references which are included in the project created by `dotnet new console` with the current SDK.
 - In certain cases, we can even enable semantic diagnostics, with reasonable confidence that the resulting errors are useful to the user.
@@ -127,12 +127,12 @@ This is the decision tree for determining how to classify a C# file:
 
 ### Opt-out
 
-We added an opt-out flag with option name `dotnet.projects.enableFileBasedPrograms`. If issues arise with the file-based program experience, then VS Code users should set the corresponding setting `"dotnet.projects.enableFileBasedPrograms": false` to revert back to the old miscellaneous files experience.
+We added an opt-out flag with option name `dotnet.projects.enableFileBasedPrograms`. If issues arise with the file-based app experience, then VS Code users should set the corresponding setting `"dotnet.projects.enableFileBasedPrograms": false` to revert back to the old miscellaneous files experience.
 
-We also have a second, finer-grained opt-out flag `dotnet.projects.enableFileBasedProgramsWhenAmbiguous`. This flag is conditional on the previous flag (i.e. it is ignored when `enableFileBasedPrograms` is `false`). This is used to allow opting out only in cases where it is unclear from the single file itself, whether it should be treated as a file-based program. Presence of `#:` or `#!` directives in a `.cs` file strongly indicates that the file is a file-based program, and editor functionality will continue to light up for such files, even when `enableFileBasedProgramsWhenAmbiguous` is `false`.
+We also have a second, finer-grained opt-out flag `dotnet.projects.enableFileBasedProgramsWhenAmbiguous`. This flag is conditional on the previous flag (i.e. it is ignored when `enableFileBasedPrograms` is `false`). This is used to allow opting out only in cases where it is unclear from the single file itself, whether it should be treated as a file-based app. Presence of `#:` or `#!` directives in a `.cs` file strongly indicates that the file is a file-based app, and editor functionality will continue to light up for such files, even when `enableFileBasedProgramsWhenAmbiguous` is `false`.
 
 > [!NOTE]
-> The second flag is being used on a short-term basis while we work out the set of heuristics and cross-component APIs needed to efficiently and satisfactorily resolve whether a file with top-level statements but no directives is a file-based program in the context of a complex workspace.
+> The second flag is being used on a short-term basis while we work out the set of heuristics and cross-component APIs needed to efficiently and satisfactorily resolve whether a file with top-level statements but no directives is a file-based app in the context of a complex workspace.
 
 ## LSP handling of file-based apps
 
@@ -164,11 +164,11 @@ We expect the appropriate project system(s) to be able to observe either of the 
 
 ### `FileBasedProgramsProjectSystem`
 
-Manages projects for file-based programs and miscellaneous files.
+Manages projects for file-based apps and miscellaneous files.
 
 This project system effectively performs the classification process described in [File-based app detection](#file-based-app-detection) when a design-time build is performed for the project, and transitions the state of the project to match the latest classification.
 
-This uses the file-based program entry point file, translates it to a virtual MSBuild project, then runs a design-time build on that project. If it detects missing assets, it may also restore the virtual project.
+This uses the file-based app entry point file, translates it to a virtual MSBuild project, then runs a design-time build on that project. If it detects missing assets, it may also restore the virtual project.
 
 It uses file watchers to watch the project globs and redo the design-time build on relevant changes, such as changes to `#:` directives.
 
