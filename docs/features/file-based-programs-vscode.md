@@ -94,7 +94,7 @@ This is the decision tree for determining how to classify a C# file:
    - **Yes** → Continue to next check
 
 4. **Does the file have an absolute path and exist on disk?** (i.e. it is not a "virtual document" created for a new, not-yet-saved file, or similar.)
-   - **No** → Classify as **Classify as Miscellaneous File With Standard References**
+   - **No** → Classify as **Miscellaneous File With Standard References**
    - **Yes** → Continue to next check
 
 5. **Does the file have `#!` directives?**
