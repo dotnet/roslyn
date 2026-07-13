@@ -1101,7 +1101,13 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 Accept(in read);
                 if (CurrentToken.Content == "switch")
                 {
-                    AcceptUntil(SyntaxKind.LeftBrace); // TODO: how do we do error recovery at this point?
+                    AcceptUntil(SyntaxKind.LeftBrace);
+
+                    // An incomplete switch (still being typed) has no '{' to balance; bail out so Balance isn't handed a null token at EOF.
+                    if (!At(SyntaxKind.LeftBrace))
+                    {
+                        return;
+                    }
 
                     // In contexts that permit markup in code blocks (components), a switch expression
                     // arm can contain markup nested inside a lambda body, so parse nested blocks as
