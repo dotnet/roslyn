@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterSymbol inlineArrayParameter = inlineArrayHelperMethod.Parameters[0];
             Debug.Assert(inlineArrayParameter.RefKind is RefKind.Ref or RefKind.In);
 
-            // For refernce, the following code is used by Unsafe.IsNullRef helper: 
+            // For reference, the following code is used by Unsafe.IsNullRef helper:
             //
             //      ldarg.0
             //      ldc.i4.0
