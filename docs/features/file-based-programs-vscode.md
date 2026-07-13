@@ -156,7 +156,7 @@ One key assumption we are making is: it is not valid for a file-based app *entry
 
 An error is reported generally for presence of `#:`/`#!` directives in ordinary projects. Depending on the order that things load, such files may or may not also be detected as file-based app entry points.
 
-In this case we want the user to do one of 2 things to resolve the issue:
+In this case we want the user to do one of two things to resolve the issue:
 1. Delete the `#:`/`#!` directives. We will unload the file as file-based app in this case.
 2. Remove the file-based app entry point as a member of any ordinary project(s).
 
