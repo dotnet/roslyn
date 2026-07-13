@@ -206,9 +206,9 @@ This design requires files to start with `#!` in order to participate in discove
 Specifically, a discoverable file must start with either the byte sequence `0x23, 0x21` (ASCII/UTF-8 `#!`), or the byte sequence `0xEF, 0xBB, 0xBF, 0x23, 0x21` (UTF-8 BOM followed by `#!`).
 
 The reason for this is: we anticipate adding support for `#:` to non-entry-point files. This means that having `#:` is not going to be enough to identify a file as definitely the entry point. Related work is tracked by:
+- [PR 81284: included file-based app sources](https://github.com/dotnet/roslyn/pull/81284)
 - [issue 82292: `#:include` scenario](https://github.com/dotnet/roslyn/issues/82292)
 - [PR 83185: transitive directive heuristic](https://github.com/dotnet/roslyn/pull/83185)
-- [PR 81284: included file-based app sources](https://github.com/dotnet/roslyn/pull/81284)
 
 Instead, it will be necessary to search for both `#:` and top-level statements at a minimum. This cost is acceptable for files that were explicitly opened in the editor, but is a bit steep for a broad discovery pass.
 
