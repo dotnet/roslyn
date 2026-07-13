@@ -202,7 +202,7 @@ The reason for this is: we anticipate adding support for `#:` to non-entry-point
 
 Instead, it will be necessary to search for both `#:` and top-level statements at a minimum. This cost is acceptable for files that were explicitly opened in the editor, but is a bit steep for a broad discovery pass.
 
-For this reason, we intend to put `#!`-at-start as a standard for entry points of file-based apps. Related live directive diagnostics work is tracked by [issue 80006: the live directive diagnostics issue](https://github.com/dotnet/roslyn/issues/80006) and [PR 80575: the live directive diagnostics PR](https://github.com/dotnet/roslyn/pull/80575).
+For this reason, we intend to put `#!`-at-start as a standard for entry points of file-based apps. We plan to report a warning in files which contain both `#:include` and top-level statements, but do not have `#!` at the top. Related live directive diagnostics work is tracked by [issue 80006: live directive diagnostics](https://github.com/dotnet/roslyn/issues/80006) and [PR 80575: live directive diagnostics](https://github.com/dotnet/roslyn/pull/80575).
 
 ## Future considerations
 
