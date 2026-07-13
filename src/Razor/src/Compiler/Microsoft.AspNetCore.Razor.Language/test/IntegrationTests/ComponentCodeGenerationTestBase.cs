@@ -243,6 +243,57 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13188")]
+    public void ChildComponent_WithStringLiteralUnionParameter()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            #nullable enable
+
+            namespace System.Runtime.CompilerServices
+            {
+                public interface IUnion
+                {
+                    object? Value { get; }
+                }
+
+                public class UnionAttribute : System.Attribute
+                {
+                }
+            }
+            """));
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public union SlotContent(string, MarkupString, RenderFragment);
+
+                public class Slot : ComponentBase
+                {
+                    [Parameter] public SlotContent Content { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @{
+                var content = new Test.SlotContent("from variable");
+            }
+
+            <Slot Content="hello" />
+            <Slot Content="new Test.SlotContent()" />
+            <Slot Content="@content" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/7271")]
     public void ChildComponent_WithParametersAndRazorComment()
     {
