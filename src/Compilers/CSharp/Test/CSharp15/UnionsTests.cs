@@ -2772,6 +2772,43 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse TrueFalseFalseFalse FalseTrueFalse TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
+
+            var src2 = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    const int _int_10 = 10;
+
+    static bool Test10(S1 u)
+    {
+        return u is _int_10;
+    }   
+}
+";
+            comp = CreateCompilation([src2, UnionAttributeSource], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation([src2, UnionAttributeSource], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (17,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is _int_10;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is _int_10").WithArguments("unions").WithLocation(17, 16)
+                );
+
+            comp = CreateCompilation([src2, UnionAttributeSource], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            comp.VerifyDiagnostics(
+                // (17,21): error CS0246: The type or namespace name '_int_10' could not be found (are you missing a using directive or an assembly reference?)
+                //         return u is _int_10;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_int_10").WithArguments("_int_10").WithLocation(17, 21)
+                );
         }
 
         [Fact]
@@ -3802,7 +3839,7 @@ class Program
     static void Main()
     {
         System.Console.Write(Test1(new S1(10)));
-        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(default(S1)));
         System.Console.Write(Test1(new S1(""11"")));
         System.Console.Write(Test1(new S1(0)));
         System.Console.Write(' ');
@@ -3876,6 +3913,16 @@ class Program
                 // (34,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u is int;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is int").WithArguments("unions").WithLocation(34, 16)
+                );
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular6);
+            comp.VerifyDiagnostics(
+                // (29,16): warning CS0184: The given expression is never of the provided ('int') type
+                //         return u is int;
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "u is int").WithArguments("int").WithLocation(29, 16),
+                // (34,16): warning CS0184: The given expression is never of the provided ('int') type
+                //         return u is int;
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "u is int").WithArguments("int").WithLocation(34, 16)
                 );
         }
 
@@ -57029,7 +57076,7 @@ class Program
         public void TypePattern_05_UnionInstance_Only_BindIsOperator()
         {
             var src = @"
-class C0;
+class C0 {}
 
 [System.Runtime.CompilerServices.Union]
 class C1 : C0
@@ -57073,6 +57120,9 @@ class Program
             CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular6);
             CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
         }
 
@@ -57953,13 +58003,16 @@ class C1
     public object Value => _value;
 }
 
-class C2(object x) : I1
+class C2 : I1
 {
-    public object Value1 => x;
+    private object _x;
+    public C2(object x) { _x = x; }
+    public object Value1 => _x;
 }
 
-class C3(object x) : C1(x), I1
+class C3 : C1, I1
 {
+    public C3(object x) : base(x) { }
     object I1.Value1 => _value;
 }
 
@@ -57983,6 +58036,7 @@ class Program
 
     static bool Test1(C1 u)
     {
+#line 42
         return u is I1;
     }   
 }
@@ -58010,6 +58064,9 @@ forLowering: true);
                 //         return u is I1;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is I1").WithArguments("unions").WithLocation(42, 16)
                 );
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular6);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrueTrue").VerifyDiagnostics();
         }
 
         [Fact]
