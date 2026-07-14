@@ -717,6 +717,63 @@ class Test
                 );
         }
 
+        [Fact]
+        public void SpanToImplicitHeapMemoryInLinq()
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class Test
+{
+    static void Method1(int[] array)
+    {   
+        var q = from c in M()
+                join p in M() on c equals p into g
+                select g;
+
+        var q2 = from x in M()
+                 from y in M()
+                 select x[0] + y[1];
+
+        var q3 = from x in M()
+                group x by x into g
+                select g;
+
+        static IEnumerable<Span<int>> M() {
+            throw new Exception();
+        }
+    }
+}";
+            // Generic ref structs​ first appeared in .NET 9 / C# 13.
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net90, parseOptions: TestOptions.Regular13);
+
+            comp.VerifyDiagnostics(
+                // (11,17): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TOuter' in the generic type or method 'Enumerable.GroupJoin<TOuter, TInner, TKey, TResult>(IEnumerable<TOuter>, IEnumerable<TInner>, Func<TOuter, TKey>, Func<TInner, TKey>, Func<TOuter, IEnumerable<TInner>, TResult>)'
+                //                 join p in M() on c equals p into g
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "join p in M() on c equals p into g").WithArguments("System.Linq.Enumerable.GroupJoin<TOuter, TInner, TKey, TResult>(System.Collections.Generic.IEnumerable<TOuter>, System.Collections.Generic.IEnumerable<TInner>, System.Func<TOuter, TKey>, System.Func<TInner, TKey>, System.Func<TOuter, System.Collections.Generic.IEnumerable<TInner>, TResult>)", "TOuter", "System.Span<int>").WithLocation(11, 17),
+                // (11,17): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TInner' in the generic type or method 'Enumerable.GroupJoin<TOuter, TInner, TKey, TResult>(IEnumerable<TOuter>, IEnumerable<TInner>, Func<TOuter, TKey>, Func<TInner, TKey>, Func<TOuter, IEnumerable<TInner>, TResult>)'
+                //                 join p in M() on c equals p into g
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "join p in M() on c equals p into g").WithArguments("System.Linq.Enumerable.GroupJoin<TOuter, TInner, TKey, TResult>(System.Collections.Generic.IEnumerable<TOuter>, System.Collections.Generic.IEnumerable<TInner>, System.Func<TOuter, TKey>, System.Func<TInner, TKey>, System.Func<TOuter, System.Collections.Generic.IEnumerable<TInner>, TResult>)", "TInner", "System.Span<int>").WithLocation(11, 17),
+                // (11,17): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TKey' in the generic type or method 'Enumerable.GroupJoin<TOuter, TInner, TKey, TResult>(IEnumerable<TOuter>, IEnumerable<TInner>, Func<TOuter, TKey>, Func<TInner, TKey>, Func<TOuter, IEnumerable<TInner>, TResult>)'
+                //                 join p in M() on c equals p into g
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "join p in M() on c equals p into g").WithArguments("System.Linq.Enumerable.GroupJoin<TOuter, TInner, TKey, TResult>(System.Collections.Generic.IEnumerable<TOuter>, System.Collections.Generic.IEnumerable<TInner>, System.Func<TOuter, TKey>, System.Func<TInner, TKey>, System.Func<TOuter, System.Collections.Generic.IEnumerable<TInner>, TResult>)", "TKey", "System.Span<int>").WithLocation(11, 17),
+                // (15,18): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TSource' in the generic type or method 'Enumerable.SelectMany<TSource, TCollection, TResult>(IEnumerable<TSource>, Func<TSource, IEnumerable<TCollection>>, Func<TSource, TCollection, TResult>)'
+                //                  from y in M()
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "from y in M()").WithArguments("System.Linq.Enumerable.SelectMany<TSource, TCollection, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, System.Collections.Generic.IEnumerable<TCollection>>, System.Func<TSource, TCollection, TResult>)", "TSource", "System.Span<int>").WithLocation(15, 18),
+                // (15,18): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TCollection' in the generic type or method 'Enumerable.SelectMany<TSource, TCollection, TResult>(IEnumerable<TSource>, Func<TSource, IEnumerable<TCollection>>, Func<TSource, TCollection, TResult>)'
+                //                  from y in M()
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "from y in M()").WithArguments("System.Linq.Enumerable.SelectMany<TSource, TCollection, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, System.Collections.Generic.IEnumerable<TCollection>>, System.Func<TSource, TCollection, TResult>)", "TCollection", "System.Span<int>").WithLocation(15, 18),
+                // (19,17): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TSource' in the generic type or method 'Enumerable.GroupBy<TSource, TKey>(IEnumerable<TSource>, Func<TSource, TKey>)'
+                //                 group x by x into g
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "group x by x").WithArguments("System.Linq.Enumerable.GroupBy<TSource, TKey>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TKey>)", "TSource", "System.Span<int>").WithLocation(19, 17),
+                // (19,17): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TKey' in the generic type or method 'Enumerable.GroupBy<TSource, TKey>(IEnumerable<TSource>, Func<TSource, TKey>)'
+                //                 group x by x into g
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "group x by x").WithArguments("System.Linq.Enumerable.GroupBy<TSource, TKey>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TKey>)", "TKey", "System.Span<int>").WithLocation(19, 17)
+                );
+        }
+
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
         public void InterfaceImpl_01()
