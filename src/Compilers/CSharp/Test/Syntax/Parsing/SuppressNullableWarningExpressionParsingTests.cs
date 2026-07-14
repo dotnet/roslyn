@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         {
             var text = "x?.y!.z";
 
-            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true).VerifyDiagnostics(
                 // (1,1): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // x?.y!.z
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x?.y!.z").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 // (1,8): error CS1002: ; expected
                 // x?.y!.z
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 8));
-            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular8, skipUsesIsNullable: true).VerifyDiagnostics(
                 // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // x?.y!.z
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "x?.y!.z").WithArguments("top-level statements", "9.0").WithLocation(1, 1),

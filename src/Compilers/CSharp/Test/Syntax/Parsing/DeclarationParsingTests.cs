@@ -8580,7 +8580,7 @@ class A : B : C
 {
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true).VerifyDiagnostics(
                 // (2,11): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2, 11),
