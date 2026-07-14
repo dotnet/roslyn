@@ -11643,27 +11643,27 @@ class Program
                 // (300,88): hidden CS9335: The pattern is redundant.
                 //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 88),
-                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'S1{ Value: null }' is not covered.
                 //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
-                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("S1{ Value: null }").WithLocation(500, 18),
+                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'S1{ Value: string }' is not covered.
                 //         return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(600, 18),
-                // (700,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("S1{ Value: string }").WithLocation(600, 18),
+                // (700,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'S1{ Value: string }' is not covered.
                 //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(700, 18),
-                // (800,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("S1{ Value: string }").WithLocation(700, 18),
+                // (800,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'S1{ Value: string }' is not covered.
                 //         return u switch { S1 { Value: int } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(800, 18),
-                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("S1{ Value: string }").WithLocation(800, 18),
+                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'S1{ Value: int }' is not covered.
                 //         return u switch { S1 { Value: not int } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(900, 18),
-                // (1000,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("S1{ Value: int }").WithLocation(900, 18),
+                // (1000,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'S1{ Value: int }' is not covered.
                 //         return u switch {  S1 { Value: null } => 3, S1 { Value: not int } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(1000, 18),
-                // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("S1{ Value: int }").WithLocation(1000, 18),
+                // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'S1{ Value: null }' is not covered.
                 //         return u switch { S1 { Value: not null } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1150, 18),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("S1{ Value: null }").WithLocation(1150, 18),
                 // (1200,68): hidden CS9335: The pattern is redundant.
                 //         return u switch { S1 { Value: null } => 3, S1 { Value: not null } => 1, not S1 => -100 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 68),
@@ -57666,16 +57666,46 @@ class Program
             C1 and I1 and { Value1: true } => 2,
             not C1 => 3,
         };
+    }  
+
+    static int Test4(object u)
+    {
+#line 400
+        return u switch
+        {
+            C1 { Value: I1 { Value1: false } } => 1,
+            C1 and I1 and { Value1: true } => 2,
+            not C1 => 3,
+            C1 { Value: int } => 4,
+        };
+    }   
+
+    static int Test5(object u)
+    {
+#line 500
+        return u switch
+        {
+            C1 { Value: I1 { Value1: false } } => 1,
+            C1 and I1 and { Value1: true } => 2,
+            not C1 => 3,
+            C1 { Value: int } => 4,
+            C1 => 5,
+        };
     }   
 }
 ";
             comp = CreateCompilation([src3, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE: Adjust pattern explainer to show "C1 and int"
             comp.VerifyDiagnostics(
-                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1{ Value: int }' is not covered.
                 //         return u switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(300, 18)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1{ Value: int }").WithLocation(300, 18),
+                // (400,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1' is not covered.
+                //         return u switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1").WithLocation(400, 18),
+                // (503,37): hidden CS9335: The pattern is redundant.
+                //             C1 and I1 and { Value1: true } => 2,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(503, 37)
                 );
 
             var src4 = @"
