@@ -28,14 +28,8 @@ internal sealed class VisualStudioWorkspaceContextService : IWorkspaceContextSer
         _globalOptions = globalOptions;
     }
 
-    public bool IsCloudEnvironmentClient()
-        // https://github.com/dotnet/roslyn/issues/84261: Revisit use of obsolete CloudEnvironmentConnected_guid.
-#pragma warning disable CS0618 // Type or member is obsolete
-        => UIContext.FromUIContextGuid(VSConstants.UICONTEXT.CloudEnvironmentConnected_guid).IsActive;
-#pragma warning restore CS0618 // Type or member is obsolete
-
     public bool IsInLspEditorContext()
-        => IsLiveShareGuest() || IsCloudEnvironmentClient() || _globalOptions.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
+        => IsLiveShareGuest() || _globalOptions.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 
     /// <summary>
     /// Checks if the VS instance is running as a Live Share guest session.
