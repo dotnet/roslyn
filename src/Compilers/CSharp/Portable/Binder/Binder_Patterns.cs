@@ -1849,7 +1849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 NamedTypeSymbol? unionType = null;
-                bool clausePermitDesignations = permitDesignations; // PROTOTYPE: Add coverage for the fact that permitDesignations flows in, but doesn't flow out here.
+                bool clausePermitDesignations = permitDesignations;
                 var boundSubpattern = new BoundPositionalSubpattern(
                     subpatternSyntax,
                     null,

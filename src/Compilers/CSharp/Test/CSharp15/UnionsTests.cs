@@ -58774,6 +58774,85 @@ class Program
         }
 
         [Fact]
+        public void TypePattern_22_UnionInstance_And_Value_Plus_Designation()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class Program
+{
+    static int Test1(System.Runtime.CompilerServices.ITuple u)
+    {
+        switch (u)
+        {
+#line 100
+            case (C1 and I1 and var i1, _ ):
+                return -(int)i1.Value1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test2(System.Runtime.CompilerServices.ITuple u)
+    {
+        switch (u)
+        {
+#line 200
+            case (C1 and I1, var i1 ) and var u1:
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test3(System.Runtime.CompilerServices.ITuple u)
+    {
+        switch (u)
+        {
+#line 300
+            case not (var i1, _ ):
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (100,37): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //             case (C1 and I1 and var i1, _ ):
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 37),
+                // (300,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //             case not (var i1, _ ):
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
+                );
+        }
+
+        [Fact]
         public void DeclarationPattern_01_UnionInstance_Only()
         {
             var src = @"
