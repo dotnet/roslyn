@@ -107,7 +107,8 @@ internal sealed partial class ViewCodeCommandHandler(
 
     private bool TryGetRazorFilePath(string filePath, [NotNullWhen(true)] out string? razorFilePath)
     {
-        if (!filePath.EndsWith(RazorLSPConstants.CSharpFileExtension, StringComparison.OrdinalIgnoreCase))
+        if (!filePath.EndsWith(RazorLSPConstants.RazorFileExtension + RazorLSPConstants.CSharpFileExtension, StringComparison.OrdinalIgnoreCase) &&
+            !filePath.EndsWith(RazorLSPConstants.CSHTMLFileExtension + RazorLSPConstants.CSharpFileExtension, StringComparison.OrdinalIgnoreCase))
         {
             razorFilePath = null;
             return false;

@@ -59,6 +59,8 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
         files.Delete();
 
         // Even though the file doesn't exist now, we should still be available because the result is cached
+        result = handler.GetCommandState(args);
+
         Assert.True(result.IsAvailable);
         Assert.False(File.Exists(razorFilePath + ".cs"), "The premise of this test is bad and it should feel bad");
     }
