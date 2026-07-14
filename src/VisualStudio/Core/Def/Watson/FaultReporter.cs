@@ -38,6 +38,8 @@ internal static class FaultReporter
         FatalError.CopyHandlersTo(typeof(Compilation).Assembly);
     }
 
+    public static bool IncludeServiceHubLogFiles = true;
+
     private static FaultSeverity ConvertSeverity(ErrorSeverity severity)
     {
         return severity switch
@@ -166,15 +168,17 @@ internal static class FaultReporter
 
                     if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
                     {
-                        // add ServiceHub log files:
-                        foreach (var path in CollectServiceHubLogFilePaths())
+                        if (IncludeServiceHubLogFiles)
                         {
-                            faultUtility.AddFile(path);
-                        }
+                            foreach (var path in CollectServiceHubLogFilePaths())
+                            {
+                                faultUtility.AddFile(path);
+                            }
 
-                        foreach (var loghubPath in CollectLogHubFilePaths())
-                        {
-                            faultUtility.AddFile(loghubPath);
+                            foreach (var loghubPath in CollectLogHubFilePaths())
+                            {
+                                faultUtility.AddFile(loghubPath);
+                            }
                         }
                     }
 
