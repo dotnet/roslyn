@@ -534,7 +534,7 @@
       </trans-unit>
       <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
         <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
-        <target state="new">'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</target>
+        <target state="translated">'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes'는 public get 및 set 접근자가 있고 매개 변수가 없으며 형식이 'System.Type[]'인 인스턴스 속성이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">

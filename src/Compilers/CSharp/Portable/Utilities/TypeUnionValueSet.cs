@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!typesInUnion.IsEmpty);
             Debug.Assert(!typesInUnion.Any(t => t.CaseType.IsNullableType()));
+            Debug.Assert(!typesInUnion.Any(t => t.CaseType is NamedTypeSymbol { IsClosed: true } closedType && closedType.TryGetClosedSubtypes(out var subtypes) && subtypes is not []));
 
             _typesInUnion = typesInUnion;
             _root = root;
@@ -178,68 +179,90 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <param name="inputValue">Type symbol, or 'null' when we want to perform a check for null value.</param>
+        /// <seealso cref="_root"/>
         private bool? EvaluateNodeForInputValue(Node node, TypeSymbol? inputValue, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            switch (node)
+            var result = evaluateCore(node, inputValue, ref useSiteInfo);
+            if (result == null
+                && inputValue is TypeParameterSymbol { EffectiveBaseClassNoUseSiteDiagnostics: { IsClosed: true } effectiveClosedBase }
+                && effectiveClosedBase.TryGetClosedSubtypes(out var derivedTypes)
+                && derivedTypes is not [])
             {
-                case IsTrueNode:
-                    return true;
-                case IsFalseNode:
-                    return false;
-                case IsTypeNode { Type: var t2 }:
-                    {
-                        switch (inputValue)
+                foreach (var derivedType in derivedTypes)
+                {
+                    if (closedDerivedTypeMayBePresent(node, derivedType, ref useSiteInfo))
+                        return null;
+                }
+
+                // All possible substitutions of the type parameter are definitely absent
+                return false;
+            }
+
+            return result;
+
+            bool? evaluateCore(Node node, TypeSymbol? inputValue, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                switch (node)
+                {
+                    case IsTrueNode:
+                        return true;
+                    case IsFalseNode:
+                        return false;
+                    case IsTypeNode { Type: var t2 }:
                         {
-                            case null:
-                                return false;
-                            case TypeSymbol t1:
-                                return evaluateTypeMatch(t1, t2, ref useSiteInfo);
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(inputValue);
+                            switch (inputValue)
+                            {
+                                case null:
+                                    return false;
+                                case TypeSymbol t1:
+                                    return evaluateTypeMatch(t1, t2, ref useSiteInfo);
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(inputValue);
+                            }
                         }
-                    }
-                case NotNode not:
-                    {
-                        return !EvaluateNodeForInputValue(not.Negated, inputValue, ref useSiteInfo);
-                    }
-                case IsNullNode:
-                    {
-                        switch (inputValue)
+                    case NotNode not:
                         {
-                            case null:
+                            return !evaluateCore(not.Negated, inputValue, ref useSiteInfo);
+                        }
+                    case IsNullNode:
+                        {
+                            switch (inputValue)
+                            {
+                                case null:
+                                    return true;
+                                case TypeSymbol:
+                                    return false;
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(inputValue);
+                            }
+                        }
+                    case AndNode andNode:
+                        {
+                            var leftResult = evaluateCore(andNode.Left, inputValue, ref useSiteInfo);
+                            var rightResult = evaluateCore(andNode.Right, inputValue, ref useSiteInfo);
+                            if (leftResult == false || rightResult == false)
+                                return false;
+                            if (leftResult == true && rightResult == true)
                                 return true;
-                            case TypeSymbol:
-                                return false;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(inputValue);
+
+                            // Propagate unknown
+                            return null;
                         }
-                    }
-                case AndNode andNode:
-                    {
-                        var leftResult = EvaluateNodeForInputValue(andNode.Left, inputValue, ref useSiteInfo);
-                        var rightResult = EvaluateNodeForInputValue(andNode.Right, inputValue, ref useSiteInfo);
-                        if (leftResult == false || rightResult == false)
-                            return false;
-                        if (leftResult == true && rightResult == true)
-                            return true;
+                    case OrNode orNode:
+                        {
+                            var leftResult = evaluateCore(orNode.Left, inputValue, ref useSiteInfo);
+                            var rightResult = evaluateCore(orNode.Right, inputValue, ref useSiteInfo);
+                            if (leftResult == true || rightResult == true)
+                                return true;
+                            if (leftResult == false && rightResult == false)
+                                return false;
 
-                        // Propagate unknown
-                        return null;
-                    }
-                case OrNode orNode:
-                    {
-                        var leftResult = EvaluateNodeForInputValue(orNode.Left, inputValue, ref useSiteInfo);
-                        var rightResult = EvaluateNodeForInputValue(orNode.Right, inputValue, ref useSiteInfo);
-                        if (leftResult == true || rightResult == true)
-                            return true;
-                        if (leftResult == false && rightResult == false)
-                            return false;
-
-                        // Propagate unknown
-                        return null;
-                    }
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node);
+                            // Propagate unknown
+                            return null;
+                        }
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(node);
+                }
             }
 
             bool? evaluateTypeMatch(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -259,6 +282,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return null;
+            }
+
+            bool closedDerivedTypeMayBePresent(Node root, NamedTypeSymbol derivedType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(derivedType.BaseTypeNoUseSiteDiagnostics.IsClosed);
+                if (derivedType.TryGetClosedSubtypes(out var nestedDerivedTypes) && nestedDerivedTypes is not [])
+                {
+                    foreach (var nestedDerivedType in nestedDerivedTypes)
+                    {
+                        if (closedDerivedTypeMayBePresent(root, nestedDerivedType, ref useSiteInfo))
+                            return true;
+                    }
+                }
+                else if (evaluateCore(root, derivedType, ref useSiteInfo) != false)
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
 
