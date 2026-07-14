@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     NamedTypeSymbol? unionType = null;
-                    bool clausePermitDesignations = permitDesignations; // PROTOTYPE: Add coverage for the fact that permitDesignations flows in, but doesn't flow out here.
+                    bool clausePermitDesignations = permitDesignations;
                     boundPattern = BindPattern(pattern, ref unionType, elementType, ref clausePermitDesignations, hasErrors, diagnostics, out bool patternHasUnionMatching, underIsPattern: false);
                     hasUnionMatching |= patternHasUnionMatching;
                 }
