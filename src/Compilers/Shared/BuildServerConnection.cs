@@ -188,6 +188,26 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     logger,
                     cancellationToken);
 
+        internal static Task<BuildResponse> RunServerBuildRequestAsync(
+            BuildRequest buildRequest,
+            string pipeName,
+            string clientDirectory,
+            ProcessStartInfo processStartInfo,
+            ICompilerServerLogger logger,
+            CancellationToken cancellationToken)
+                => RunServerBuildRequestAsync(
+                    buildRequest,
+                    pipeName,
+                    timeoutOverride: null,
+                    tryCreateServerFunc: (pipeName, logger) => TryCreateServer(
+                        clientDirectory,
+                        pipeName,
+                        processStartInfo,
+                        logger,
+                        out int _),
+                    logger,
+                    cancellationToken);
+
         internal static async Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
             string pipeName,
@@ -447,7 +467,30 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(string clientDir, string pipeName)
+        /// <summary>
+        /// Gets the executable path and command-line arguments used to start the compiler server.
+        /// </summary>
+        /// <param name="clientDir">Absolute path to the directory containing the compiler client and server binaries.</param>
+        /// <param name="pipeName">Name of the compiler-server pipe.</param>
+        internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(string clientDir, string pipeName) =>
+            GetServerProcessInfo(
+                clientDir,
+                pipeName,
+                Environment.GetEnvironmentVariable,
+                static path => path);
+
+        /// <summary>
+        /// Gets the executable path and command-line arguments used to start the compiler server.
+        /// </summary>
+        /// <param name="clientDir">Absolute path to the directory containing the compiler client and server binaries.</param>
+        /// <param name="pipeName">Name of the compiler-server pipe.</param>
+        /// <param name="getEnvironmentVariable">Reads the named environment variable.</param>
+        /// <param name="getFullPath">Resolves paths before filesystem access.</param>
+        internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
+            string clientDir,
+            string pipeName,
+            Func<string, string?> getEnvironmentVariable,
+            Func<string, string> getFullPath)
         {
             var processFilePath = Path.Combine(clientDir, $"VBCSCompiler{PlatformInformation.ExeExtension}");
             var commandLineArgs = $@"""-pipename:{pipeName}""";
@@ -456,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 // Fallback to not use the apphost if it is not present (can happen in compiler toolset scenarios for example).
                 commandLineArgs = RuntimeHostInfo.GetDotNetExecCommandLine(Path.ChangeExtension(processFilePath, ".dll"), commandLineArgs);
-                processFilePath = RuntimeHostInfo.GetDotNetPathOrDefault();
+                processFilePath = RuntimeHostInfo.GetDotNetPathOrDefault(getEnvironmentVariable, getFullPath);
             }
 
             return (processFilePath, commandLineArgs);
@@ -506,28 +549,49 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return null;
             }
 
-            // Start with current environment
+            return CreateServerEnvironmentVariables(currentEnvironment, dotNetRoot, logger);
+        }
+
+        internal static Dictionary<string, string> GetServerEnvironmentVariables(
+            ProcessStartInfo processStartInfo,
+            Func<string, string?> getEnvironmentVariable,
+            Func<string, string> getFullPath,
+            ICompilerServerLogger? logger = null)
+        {
+            var dotNetRoot = IsBuiltinToolRunningOnCoreClr
+                ? RuntimeHostInfo.GetToolDotNetRoot(
+                    getEnvironmentVariable,
+                    getFullPath,
+                    logger is null ? null : logger.Log)
+                : null;
+
+            return CreateServerEnvironmentVariables(processStartInfo.EnvironmentVariables, dotNetRoot, logger);
+        }
+
+        private static Dictionary<string, string> CreateServerEnvironmentVariables(
+            System.Collections.IEnumerable currentEnvironment,
+            string? dotNetRoot,
+            ICompilerServerLogger? logger)
+        {
             var environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (System.Collections.DictionaryEntry entry in currentEnvironment)
             {
                 var key = (string)entry.Key;
                 var value = (string?)entry.Value;
-
-                // Clear DOTNET_ROOT* variables such as DOTNET_ROOT_X64 by setting them to empty,
-                // as we want to set our own DOTNET_ROOT and avoid conflicts
-                if (dotNetRoot != null && key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
-                {
-                    environmentVariables[key] = string.Empty;
-                }
-                else
-                {
-                    environmentVariables[key] = value ?? string.Empty;
-                }
+                environmentVariables[key] = value ?? string.Empty;
             }
 
-            // Set our DOTNET_ROOT
             if (dotNetRoot != null)
             {
+                // Clear DOTNET_ROOT* variables such as DOTNET_ROOT_X64 before setting our own DOTNET_ROOT.
+                foreach (var key in environmentVariables.Keys.ToArray())
+                {
+                    if (key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        environmentVariables[key] = string.Empty;
+                    }
+                }
+
                 logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName] = dotNetRoot;
             }
@@ -548,10 +612,61 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// compiler server process was successful, it does not state whether the server successfully
         /// started or not (it could crash on startup).
         /// </summary>
-        internal static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger, out int processId)
+        internal static bool TryCreateServer(
+            string clientDirectory,
+            string pipeName,
+            ICompilerServerLogger logger,
+            out int processId) =>
+            TryCreateServerCore(
+                clientDirectory,
+                pipeName,
+                Environment.GetEnvironmentVariable,
+                static path => path,
+                processStartInfo: null,
+                logger,
+                out processId);
+
+        internal static bool TryCreateServer(
+            string clientDirectory,
+            string pipeName,
+            ProcessStartInfo processStartInfo,
+            ICompilerServerLogger logger,
+            out int processId)
+        {
+            string? getEnvironmentVariable(string name) =>
+                processStartInfo.EnvironmentVariables.ContainsKey(name)
+                    ? processStartInfo.EnvironmentVariables[name]
+                    : null;
+            string getFullPath(string path) =>
+                string.IsNullOrEmpty(processStartInfo.WorkingDirectory)
+                    ? path
+                    : Path.Combine(processStartInfo.WorkingDirectory, path);
+
+            return TryCreateServerCore(
+                clientDirectory,
+                pipeName,
+                getEnvironmentVariable,
+                getFullPath,
+                processStartInfo,
+                logger,
+                out processId);
+        }
+
+        private static bool TryCreateServerCore(
+            string clientDirectory,
+            string pipeName,
+            Func<string, string?> getEnvironmentVariable,
+            Func<string, string> getFullPath,
+            ProcessStartInfo? processStartInfo,
+            ICompilerServerLogger logger,
+            out int processId)
         {
             processId = 0;
-            var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
+            var serverInfo = GetServerProcessInfo(
+                clientDirectory,
+                pipeName,
+                getEnvironmentVariable,
+                getFullPath);
 
             if (!File.Exists(serverInfo.processFilePath))
             {
@@ -560,7 +675,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
 
-            var environmentVariables = GetServerEnvironmentVariables(Environment.GetEnvironmentVariables(), logger);
+            var environmentVariables = processStartInfo is null
+                ? GetServerEnvironmentVariables(Environment.GetEnvironmentVariables(), logger)
+                : GetServerEnvironmentVariables(
+                    processStartInfo,
+                    getEnvironmentVariable,
+                    getFullPath,
+                    logger);
 
             if (PlatformInformation.IsWindows)
             {
@@ -627,21 +748,24 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 try
                 {
-                    var startInfo = new ProcessStartInfo()
-                    {
-                        FileName = serverInfo.processFilePath,
-                        Arguments = serverInfo.commandLineArguments,
-                        UseShellExecute = false,
-                        WorkingDirectory = clientDirectory,
-                        RedirectStandardInput = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    };
+                    var startInfo = processStartInfo ?? new ProcessStartInfo();
+                    startInfo.FileName = serverInfo.processFilePath;
+                    startInfo.Arguments = serverInfo.commandLineArguments;
+                    startInfo.UseShellExecute = false;
+                    startInfo.WorkingDirectory = clientDirectory;
+                    startInfo.RedirectStandardInput = true;
+                    startInfo.RedirectStandardOutput = true;
+                    startInfo.RedirectStandardError = true;
+                    startInfo.CreateNoWindow = true;
 
                     // Set environment variables directly on ProcessStartInfo
                     if (environmentVariables != null)
                     {
+                        if (processStartInfo != null)
+                        {
+                            startInfo.EnvironmentVariables.Clear();
+                        }
+
                         foreach (var kvp in environmentVariables)
                         {
                             startInfo.EnvironmentVariables[kvp.Key] = kvp.Value;
@@ -664,6 +788,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     return false;
                 }
             }
+
         }
 
         /// <returns>

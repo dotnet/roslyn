@@ -40,10 +40,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
         /// </summary>
-        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger)
-        {
-            var dotNetPath = GetDotNetPathOrDefault();
+        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger) =>
+            GetToolDotNetRoot(GetDotNetPathOrDefault(), logger);
 
+        internal static string? GetToolDotNetRoot(
+            Func<string, string?> getEnvironmentVariable,
+            Func<string, string> getFullPath,
+            Action<string, object[]>? logger) =>
+            GetToolDotNetRoot(GetDotNetPathOrDefault(getEnvironmentVariable, getFullPath), logger);
+
+        internal static string? GetToolDotNetRoot(string dotNetPath, Action<string, object[]>? logger)
+        {
             // Resolve symlinks to dotnet
             try
             {
@@ -73,14 +80,19 @@ namespace Microsoft.CodeAnalysis
         /// in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
         /// this will return simply "dotnet".
         /// </summary>
-        internal static string GetDotNetPathOrDefault()
+        internal static string GetDotNetPathOrDefault() =>
+            GetDotNetPathOrDefault(Environment.GetEnvironmentVariable, static path => path);
+
+        internal static string GetDotNetPathOrDefault(
+            Func<string, string?> getEnvironmentVariable,
+            Func<string, string> getFullPath)
         {
-            if (Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
+            if (getEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
             {
                 return pathToDotNet;
             }
 
-            if (Environment.GetEnvironmentVariable(DotNetExperimentalHostPathEnvironmentName) is { Length: > 0 } pathToDotNetExperimental)
+            if (getEnvironmentVariable(DotNetExperimentalHostPathEnvironmentName) is { Length: > 0 } pathToDotNetExperimental)
             {
                 return pathToDotNetExperimental;
             }
@@ -89,12 +101,12 @@ namespace Microsoft.CodeAnalysis
                 ? ("dotnet.exe", new char[] { ';' })
                 : ("dotnet", new char[] { ':' });
 
-            var path = Environment.GetEnvironmentVariable("PATH") ?? "";
+            var path = getEnvironmentVariable("PATH") ?? "";
             foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
             {
                 try
                 {
-                    var filePath = Path.Combine(item, fileName);
+                    var filePath = getFullPath(Path.Combine(item, fileName));
                     if (File.Exists(filePath))
                     {
                         return filePath;

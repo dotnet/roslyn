@@ -4,7 +4,6 @@
 
 #if NET
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp;
@@ -190,5 +189,6 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
             ? VisualBasicCommandLineParser.Default.Parse(arguments, Directory.GetCurrentDirectory(), sdkDirectory: null, additionalReferenceDirectories: null).ParseOptions.Features
             : CSharpCommandLineParser.Default.Parse(arguments, baseDirectory: Directory.GetCurrentDirectory(), sdkDirectory: null, additionalReferenceDirectories: null).ParseOptions.Features;
     }
+
 }
 #endif
