@@ -58690,6 +58690,90 @@ class Program
         }
 
         [Fact]
+        public void TypePattern_21_UnionInstance_And_Value_Plus_Designation()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class C4
+{
+    public void Deconstruct(out C1 c, out object x) => throw null;
+}
+
+class Program
+{
+    static int Test1(C4 u)
+    {
+        switch (u)
+        {
+#line 100
+            case (I1 and var i1, _ ):
+                return -(int)i1.Value1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test2(C4 u)
+    {
+        switch (u)
+        {
+#line 200
+            case (I1, var i1 ) and var u1:
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test3(C4 u)
+    {
+        switch (u)
+        {
+#line 300
+            case not (var i1, _ ):
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (100,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //             case (I1 and var i1, _ ):
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
+                // (300,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //             case not (var i1, _ ):
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
+                );
+        }
+
+        [Fact]
         public void DeclarationPattern_01_UnionInstance_Only()
         {
             var src = @"
