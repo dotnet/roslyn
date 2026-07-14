@@ -181,7 +181,7 @@ internal sealed class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructure
         if (node.Parent.IsKind(SyntaxKind.IfStatement) || node.Parent.IsKind(SyntaxKind.TryStatement))
         {
             // For an if-statement or try-statement, just collapse up to the end of the block.
-            // We don't want collapse the whole statement just for the 'true' portion (of an
+            // We don't want to collapse the whole statement just for the 'true' portion (of an
             // 'if'), or just the 'try' portion (of a 'try/catch/finally'). Each attached
             // clause (else/catch/finally) gets its own collapsible region instead.
             // Also, while outlining might be ok, the Indent-Guide would look very strange for nodes
