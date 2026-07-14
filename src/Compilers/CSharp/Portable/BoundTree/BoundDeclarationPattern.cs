@@ -13,7 +13,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(DeclaredType is not null);
             Debug.Assert(NarrowedType.Equals(DeclaredType.Type, TypeCompareKind.AllIgnoreOptions));
         }
-
-        public override bool IsUnionMatching => UnionMatchingMode != UnionMatchingMode.None;
     }
 }

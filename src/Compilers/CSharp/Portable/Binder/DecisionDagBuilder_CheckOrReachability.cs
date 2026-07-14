@@ -795,7 +795,7 @@ start:
 
             public override BoundNode? Visit(BoundNode? node)
             {
-                Debug.Assert(node is not BoundPattern { IsUnionMatching: true });
+                Debug.Assert(node is not BoundPattern { UnionMatchingMode: not UnionMatchingMode.None });
                 Debug.Assert(node is BoundBinaryPattern
                     or BoundRecursivePattern
                     or BoundListPattern
@@ -1014,12 +1014,12 @@ start:
                 if (pattern is BoundConstantPattern constantPattern)
                 {
                     var narrowedType = constantPattern.ConstantValue.IsNull ? inputType : constantPattern.NarrowedType;
-                    return constantPattern.Update(constantPattern.Value, constantPattern.ConstantValue, isUnionMatching: false, inputType, narrowedType);
+                    return constantPattern.Update(constantPattern.Value, constantPattern.ConstantValue, unionMatchingMode: UnionMatchingMode.None, inputType, narrowedType);
                 }
 
                 if (pattern is BoundRelationalPattern relationalPattern)
                 {
-                    return relationalPattern.Update(relationalPattern.Relation, relationalPattern.Value, relationalPattern.ConstantValue, isUnionMatching: false, inputType, relationalPattern.NarrowedType);
+                    return relationalPattern.Update(relationalPattern.Relation, relationalPattern.Value, relationalPattern.ConstantValue, unionMatchingMode: UnionMatchingMode.None, inputType, relationalPattern.NarrowedType);
                 }
 
                 if (pattern is BoundDeclarationPattern declarationPattern)
@@ -1096,7 +1096,7 @@ start:
                     // `not null`
                     var nullCheck = new BoundConstantPattern(node.Syntax,
                         new BoundLiteral(node.Syntax, constantValueOpt: ConstantValue.Null, type: node.InputType, hasErrors: false),
-                        ConstantValue.Null, isUnionMatching: false, node.InputType, node.InputType, hasErrors: false);
+                        ConstantValue.Null, unionMatchingMode: UnionMatchingMode.None, node.InputType, node.InputType, hasErrors: false);
                     initialCheck = new BoundNegatedPattern(node.Syntax, nullCheck, node.InputType, narrowedType: node.InputType);
                 }
                 else

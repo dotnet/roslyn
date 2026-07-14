@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         None = 0,
         UnionInstance = 1,
         UnionValue = 2,
+        Both = UnionInstance | UnionValue,
     }
 
     partial class Binder
@@ -1025,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     unionType = unionTypeOnEntry;
                     return new BoundConstantPattern(
-                        node, convertedExpression, constantValueOpt, isUnionMatching: true, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors);
+                        node, convertedExpression, constantValueOpt, unionMatchingMode: UnionMatchingMode.Both, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors);
                 }
 
                 if (unionType is not null && !convertedType.IsObjectType())
@@ -1034,7 +1035,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new BoundConstantPattern(
-                    node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, convertedType, hasErrors || constantValueOpt is null);
+                    node, convertedExpression,
+                    constantValueOpt ?? ConstantValue.Bad,
+                    unionMatchingMode: hasUnionMatching ? UnionMatchingMode.UnionValue : UnionMatchingMode.None,
+                    inputType: unionMatchingInputType ?? inputType,
+                    convertedType,
+                    hasErrors || constantValueOpt is null);
             }
             else
             {
@@ -2585,7 +2591,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 unionType = null;
             }
 
-            return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, type, hasErrors);
+            return new BoundRelationalPattern(
+                node,
+                operation | opType,
+                value, constantValueOpt,
+                unionMatchingMode: hasUnionMatching ? UnionMatchingMode.UnionValue : UnionMatchingMode.None,
+                inputType: unionMatchingInputType ?? inputType,
+                type,
+                hasErrors);
 
             static BinaryOperatorKind tokenKindToBinaryOperatorKind(SyntaxKind kind) => kind switch
             {
@@ -2847,7 +2860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 while (true)
                 {
-                    if (pat is { IsUnionMatching: true })
+                    if (pat is { UnionMatchingMode: not UnionMatchingMode.None })
                     {
                         candidate = pat.InputType;
                         return;

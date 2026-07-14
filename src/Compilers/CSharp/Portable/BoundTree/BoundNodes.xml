@@ -2462,7 +2462,7 @@
   <Node Name="BoundConstantPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2525,7 +2525,7 @@
   <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
     <Field Name="IsVar" Type="bool"/>
-    <Field Name="UnionMatchingMode" Type="UnionMatchingMode"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2538,7 +2538,7 @@
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
     <Field Name="Properties" Type="ImmutableArray&lt;BoundPropertySubpattern&gt;" Null="allow"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
-    <Field Name="UnionMatchingMode" Type="UnionMatchingMode"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2609,7 +2609,7 @@
   <Node Name="BoundTypePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
-    <Field Name="UnionMatchingMode" Type="UnionMatchingMode"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
   </Node>
 
   <!-- 
@@ -2643,7 +2643,7 @@
     <Field Name="Relation" Type="BinaryOperatorKind"/>
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
   </Node>
 
   <Node Name="BoundDiscardExpression" Base="BoundExpression">

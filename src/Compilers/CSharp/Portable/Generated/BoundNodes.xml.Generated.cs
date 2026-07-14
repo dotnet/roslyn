@@ -8140,7 +8140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConstantPattern : BoundPattern
     {
-        public BoundConstantPattern(SyntaxNode syntax, BoundExpression value, ConstantValue constantValue, bool isUnionMatching, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
+        public BoundConstantPattern(SyntaxNode syntax, BoundExpression value, ConstantValue constantValue, UnionMatchingMode unionMatchingMode, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
             : base(BoundKind.ConstantPattern, syntax, inputType, narrowedType, hasErrors || value.HasErrors())
         {
 
@@ -8151,7 +8151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Value = value;
             this.ConstantValue = constantValue;
-            this.IsUnionMatching = isUnionMatching;
+            this.UnionMatchingMode = unionMatchingMode;
             Validate();
         }
 
@@ -8160,16 +8160,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Value { get; }
         public ConstantValue ConstantValue { get; }
-        public override bool IsUnionMatching { get; }
+        public override UnionMatchingMode UnionMatchingMode { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitConstantPattern(this);
 
-        public BoundConstantPattern Update(BoundExpression value, ConstantValue constantValue, bool isUnionMatching, TypeSymbol inputType, TypeSymbol narrowedType)
+        public BoundConstantPattern Update(BoundExpression value, ConstantValue constantValue, UnionMatchingMode unionMatchingMode, TypeSymbol inputType, TypeSymbol narrowedType)
         {
-            if (value != this.Value || constantValue != this.ConstantValue || isUnionMatching != this.IsUnionMatching || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(narrowedType, this.NarrowedType, TypeCompareKind.ConsiderEverything))
+            if (value != this.Value || constantValue != this.ConstantValue || unionMatchingMode != this.UnionMatchingMode || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(narrowedType, this.NarrowedType, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConstantPattern(this.Syntax, value, constantValue, isUnionMatching, inputType, narrowedType, this.HasErrors);
+                var result = new BoundConstantPattern(this.Syntax, value, constantValue, unionMatchingMode, inputType, narrowedType, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8301,7 +8301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression DeclaredType { get; }
         public bool IsVar { get; }
-        public UnionMatchingMode UnionMatchingMode { get; }
+        public override UnionMatchingMode UnionMatchingMode { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDeclarationPattern(this);
@@ -8344,7 +8344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundPositionalSubpattern> Deconstruction { get; }
         public ImmutableArray<BoundPropertySubpattern> Properties { get; }
         public bool IsExplicitNotNullTest { get; }
-        public UnionMatchingMode UnionMatchingMode { get; }
+        public override UnionMatchingMode UnionMatchingMode { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitRecursivePattern(this);
@@ -8613,7 +8613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression DeclaredType { get; }
         public bool IsExplicitNotNullTest { get; }
-        public UnionMatchingMode UnionMatchingMode { get; }
+        public override UnionMatchingMode UnionMatchingMode { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTypePattern(this);
@@ -8705,7 +8705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRelationalPattern : BoundPattern
     {
-        public BoundRelationalPattern(SyntaxNode syntax, BinaryOperatorKind relation, BoundExpression value, ConstantValue constantValue, bool isUnionMatching, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
+        public BoundRelationalPattern(SyntaxNode syntax, BinaryOperatorKind relation, BoundExpression value, ConstantValue constantValue, UnionMatchingMode unionMatchingMode, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
             : base(BoundKind.RelationalPattern, syntax, inputType, narrowedType, hasErrors || value.HasErrors())
         {
 
@@ -8717,7 +8717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Relation = relation;
             this.Value = value;
             this.ConstantValue = constantValue;
-            this.IsUnionMatching = isUnionMatching;
+            this.UnionMatchingMode = unionMatchingMode;
             Validate();
         }
 
@@ -8727,16 +8727,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BinaryOperatorKind Relation { get; }
         public BoundExpression Value { get; }
         public ConstantValue ConstantValue { get; }
-        public override bool IsUnionMatching { get; }
+        public override UnionMatchingMode UnionMatchingMode { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitRelationalPattern(this);
 
-        public BoundRelationalPattern Update(BinaryOperatorKind relation, BoundExpression value, ConstantValue constantValue, bool isUnionMatching, TypeSymbol inputType, TypeSymbol narrowedType)
+        public BoundRelationalPattern Update(BinaryOperatorKind relation, BoundExpression value, ConstantValue constantValue, UnionMatchingMode unionMatchingMode, TypeSymbol inputType, TypeSymbol narrowedType)
         {
-            if (relation != this.Relation || value != this.Value || constantValue != this.ConstantValue || isUnionMatching != this.IsUnionMatching || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(narrowedType, this.NarrowedType, TypeCompareKind.ConsiderEverything))
+            if (relation != this.Relation || value != this.Value || constantValue != this.ConstantValue || unionMatchingMode != this.UnionMatchingMode || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(narrowedType, this.NarrowedType, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundRelationalPattern(this.Syntax, relation, value, constantValue, isUnionMatching, inputType, narrowedType, this.HasErrors);
+                var result = new BoundRelationalPattern(this.Syntax, relation, value, constantValue, unionMatchingMode, inputType, narrowedType, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -12518,7 +12518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
             TypeSymbol? inputType = this.VisitType(node.InputType);
             TypeSymbol? narrowedType = this.VisitType(node.NarrowedType);
-            return node.Update(value, node.ConstantValue, node.IsUnionMatching, inputType, narrowedType);
+            return node.Update(value, node.ConstantValue, node.UnionMatchingMode, inputType, narrowedType);
         }
         public override BoundNode? VisitPatternWithUnionMatching(BoundPatternWithUnionMatching node)
         {
@@ -12637,7 +12637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
             TypeSymbol? inputType = this.VisitType(node.InputType);
             TypeSymbol? narrowedType = this.VisitType(node.NarrowedType);
-            return node.Update(node.Relation, value, node.ConstantValue, node.IsUnionMatching, inputType, narrowedType);
+            return node.Update(node.Relation, value, node.ConstantValue, node.UnionMatchingMode, inputType, narrowedType);
         }
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
@@ -15213,7 +15213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol inputType = GetUpdatedSymbol(node, node.InputType);
             TypeSymbol narrowedType = GetUpdatedSymbol(node, node.NarrowedType);
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(value, node.ConstantValue, node.IsUnionMatching, inputType, narrowedType);
+            return node.Update(value, node.ConstantValue, node.UnionMatchingMode, inputType, narrowedType);
         }
 
         public override BoundNode? VisitPatternWithUnionMatching(BoundPatternWithUnionMatching node)
@@ -15329,7 +15329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol inputType = GetUpdatedSymbol(node, node.InputType);
             TypeSymbol narrowedType = GetUpdatedSymbol(node, node.NarrowedType);
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(node.Relation, value, node.ConstantValue, node.IsUnionMatching, inputType, narrowedType);
+            return node.Update(node.Relation, value, node.ConstantValue, node.UnionMatchingMode, inputType, narrowedType);
         }
 
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
@@ -17462,7 +17462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("constantValue", node.ConstantValue, null),
-            new TreeDumperNode("isUnionMatching", node.IsUnionMatching, null),
+            new TreeDumperNode("unionMatchingMode", node.UnionMatchingMode, null),
             new TreeDumperNode("inputType", node.InputType, null),
             new TreeDumperNode("narrowedType", node.NarrowedType, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -17607,7 +17607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("relation", node.Relation, null),
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("constantValue", node.ConstantValue, null),
-            new TreeDumperNode("isUnionMatching", node.IsUnionMatching, null),
+            new TreeDumperNode("unionMatchingMode", node.UnionMatchingMode, null),
             new TreeDumperNode("inputType", node.InputType, null),
             new TreeDumperNode("narrowedType", node.NarrowedType, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
