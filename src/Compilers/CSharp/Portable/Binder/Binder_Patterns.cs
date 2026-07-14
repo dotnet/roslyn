@@ -2261,7 +2261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, expr is MemberAccessExpressionSyntax memberAccess ? memberAccess.Name : expr); // Since new exhaustiveness rules will be used by DecisionDagBuilder.
                 }
 
-                bool clausePermitDesignations = permitDesignations; // PROTOTYPE: Add coverage for the fact that permitDesignations doesn't flow out here.
+                bool clausePermitDesignations = permitDesignations;
                 BoundPattern boundPattern = BindPattern(pattern, ref unionType, memberType, ref clausePermitDesignations, hasErrors, diagnostics, out bool patternHasUnionMatching, underIsPattern: false);
                 hasUnionMatching |= patternHasUnionMatching;
                 var subpattern = new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern);
