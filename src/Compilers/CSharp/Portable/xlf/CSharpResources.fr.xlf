@@ -718,8 +718,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="translated">Une variable ne peut pas être déclarée dans un modèle 'not' ou 'or'.</target>
+        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
+        <target state="needs-review-translation">Une variable ne peut pas être déclarée dans un modèle 'not' ou 'or'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">

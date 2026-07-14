@@ -51975,7 +51975,7 @@ class Program
 
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (13,31): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (13,31): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (this is T and var val)
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "val").WithLocation(13, 31)
                 );
@@ -58155,9 +58155,8 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE: Adjust wording 
             comp.VerifyDiagnostics(
-                // (48,48): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (48,48): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 and { Value1: int i } => -i, _ => -999 };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i").WithLocation(48, 48)
                 );
@@ -58222,7 +58221,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (48,45): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (48,45): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if ( u is not (I1 and { Value1: int i }))
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i").WithLocation(48, 45)
                 );
@@ -58284,7 +58283,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (48,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (48,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 and var i1 and { Value1: int } => -(int)i1.Value1, _ => -999 };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(48, 38)
                 );
@@ -58451,25 +58450,25 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (100,29): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (100,29): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case I1 and var i1 and { Value1: int } when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 29),
-                // (200,36): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (200,36): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case C1 and I1 and var i1 and { Value1: int } when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(200, 36),
-                // (300,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (300,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case C1 and (I1) and var i1 and { Value1: int } when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 38),
-                // (400,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (400,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case (C1 and I1) and var i1 and { Value1: int } when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(400, 38),
-                // (500,58): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (500,58): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case C1 and (I1 and { Value1: int }) and var i1 when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(500, 58),
-                // (600,59): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (600,59): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case (C1 and I1) and ({ Value1: int } and var i1) when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(600, 59),
-                // (700,48): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (700,48): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case C1 and I1 and { Value1: int } i1 when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(700, 48)
                 );
@@ -58549,10 +58548,10 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (100,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (100,33): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case [.. I1 and var i1, _ ]:
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 33),
-                // (300,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (300,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case not [.. var i1, _ ]:
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 30)
                 );
@@ -58628,10 +58627,10 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (100,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case [I1 and var i1, _ ]:
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case not [var i1, _ ]:
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
                 );
@@ -58707,13 +58706,13 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (100,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case (I1 and var i1, _ ):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
                 // (300,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case not (var i1, _ ):
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "not (var i1, _ )").WithLocation(300, 18),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case not (var i1, _ ):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
                 );
@@ -58794,10 +58793,10 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (100,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case (I1 and var i1, _ ):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case not (var i1, _ ):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
                 );
@@ -58873,10 +58872,10 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (100,37): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (100,37): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case (C1 and I1 and var i1, _ ):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 37),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case not (var i1, _ ):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
                 );
@@ -58958,10 +58957,10 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (100,34): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (100,34): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case { C: I1 and var i1, O: _ }:
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 34),
-                // (300,31): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (300,31): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case not { C: var i1, O: _ }:
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 31)
                 );
@@ -59149,14 +59148,14 @@ class Program
 forLowering: false);
 
             comp.VerifyDiagnostics(
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 x => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
                 );
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 x => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
                 );
@@ -59166,7 +59165,7 @@ forLowering: false);
                 // (42,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u switch { I1 x => true, _ => false };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1 x").WithArguments("unions").WithLocation(42, 27),
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 x => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
                 );
@@ -59822,13 +59821,13 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (42,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (42,33): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 {} i1 => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(42, 33),
-                // (47,44): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (47,44): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 { Value1: var v1 } => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(47, 44),
-                // (52,41): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (52,41): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 {} and var i1 => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(52, 41)
                 );
@@ -60519,13 +60518,13 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (43,37): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (43,37): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 (_, _) i1 => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(43, 37),
-                // (48,35): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (48,35): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 (var v1, _) => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(48, 35),
-                // (53,45): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (53,45): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 (_, _) and var i1 => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(53, 45)
                 );

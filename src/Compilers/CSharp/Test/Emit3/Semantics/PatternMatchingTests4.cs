@@ -5052,13 +5052,13 @@ class B { }
                 // (2,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 // _ = o is var x1 or not A or B; // 1, 2
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is var x1 or not A or B").WithArguments("object").WithLocation(2, 5),
-                // (2,14): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (2,14): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is var x1 or not A or B; // 1, 2
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x1").WithLocation(2, 14),
                 // (3,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 // _ = o is var x2 or not (A or B); // 3, 4
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is var x2 or not (A or B)").WithArguments("object").WithLocation(3, 5),
-                // (3,14): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (3,14): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is var x2 or not (A or B); // 3, 4
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x2").WithLocation(3, 14),
                 // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
@@ -6049,10 +6049,10 @@ class Derived : C { }
                 // (8,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 //         if (o is not (1 and not int x2)) { } // 3, 4
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is not (1 and not int x2)").WithArguments("object").WithLocation(8, 13),
-                // (8,37): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (8,37): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (o is not (1 and not int x2)) { } // 3, 4
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x2").WithLocation(8, 37),
-                // (9,41): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (9,41): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (o is not (1 and not not int x3)) { } // 5
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x3").WithLocation(9, 41),
                 // (11,24): hidden CS9335: The pattern is redundant.
@@ -6061,10 +6061,10 @@ class Derived : C { }
                 // (15,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
                 //         if (c is not (Derived and null)) { } else { y1.ToString(); } // 7
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "c is not (Derived and null)").WithArguments("C").WithLocation(15, 13),
-                // (16,42): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (16,42): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (c is not Derived or not (var z1, var z2)) { } else { z1.ToString(); } // 8, 9, 10
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z1").WithLocation(16, 42),
-                // (16,50): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (16,50): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (c is not Derived or not (var z1, var z2)) { } else { z1.ToString(); } // 8, 9, 10
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z2").WithLocation(16, 50),
                 // (16,66): error CS0165: Use of unassigned local variable 'z1'
@@ -6073,16 +6073,16 @@ class Derived : C { }
                 // (21,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             not (var w1, var w2) => 42, // 11, 12, 13
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not (var w1, var w2)").WithLocation(21, 13),
-                // (21,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (21,22): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             not (var w1, var w2) => 42, // 11, 12, 13
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "w1").WithLocation(21, 22),
-                // (21,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (21,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             not (var w1, var w2) => 42, // 11, 12, 13
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "w2").WithLocation(21, 30),
-                // (26,43): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (26,43): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (c is (not Derived or not (int t1, int t2))) { } else { t1.ToString(); } // 14, 15, 16
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "t1").WithLocation(26, 43),
-                // (26,51): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (26,51): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (c is (not Derived or not (int t1, int t2))) { } else { t1.ToString(); } // 14, 15, 16
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "t2").WithLocation(26, 51),
                 // (26,68): error CS0165: Use of unassigned local variable 't1'
@@ -6091,13 +6091,13 @@ class Derived : C { }
                 // (31,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             not (int u1, int u2) => 42, // 17, 18, 19
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not (int u1, int u2)").WithLocation(31, 13),
-                // (31,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (31,22): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             not (int u1, int u2) => 42, // 17, 18, 19
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "u1").WithLocation(31, 22),
-                // (31,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (31,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             not (int u1, int u2) => 42, // 17, 18, 19
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "u2").WithLocation(31, 30),
-                // (35,34): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (35,34): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (o is (1 or 2) or int v1) { } // 20
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(35, 34));
         }
@@ -6239,22 +6239,22 @@ class B { }
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,17): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (2,17): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is A or B x1; // 1
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x1").WithLocation(2, 17),
-                // (3,21): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (3,21): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is not A or B x2; // 2
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x2").WithLocation(3, 21),
                 // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     B y2 => 2, // 3
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B y2").WithLocation(8, 5),
-                // (13,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (13,22): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is not (A or B x4); // 4
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x4").WithLocation(13, 22),
                 // (14,25): error CS8121: An expression of type 'A' cannot be handled by a pattern of type 'B'.
                 // _ = o is not (A and not B x5); // 5, 6
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "B").WithArguments("A", "B").WithLocation(14, 25),
-                // (14,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (14,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is not (A and not B x5); // 5, 6
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x5").WithLocation(14, 27));
         }
@@ -7356,10 +7356,10 @@ public class C
                 // (13,5): warning CS8794: An expression of type 'C' always matches the provided pattern.
                 // _ = c is not object or (int x4, int y4); // 7, 8, 9
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "c is not object or (int x4, int y4)").WithArguments("C").WithLocation(13, 5),
-                // (13,29): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (13,29): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = c is not object or (int x4, int y4); // 7, 8, 9
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x4").WithLocation(13, 29),
-                // (13,37): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (13,37): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = c is not object or (int x4, int y4); // 7, 8, 9
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y4").WithLocation(13, 37),
                 // (14,5): warning CS8794: An expression of type 'C' always matches the provided pattern.
@@ -7780,10 +7780,10 @@ public struct S
                 // (13,32): hidden CS9335: The pattern is redundant.
                 // _ = o is not [42 and not 43, ..var z or var t]; // 15, 16, 17, 18
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "var z or var t").WithLocation(13, 32),
-                // (13,36): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (13,36): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is not [42 and not 43, ..var z or var t]; // 15, 16, 17, 18
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(13, 36),
-                // (13,45): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (13,45): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is not [42 and not 43, ..var z or var t]; // 15, 16, 17, 18
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "t").WithLocation(13, 45));
         }
@@ -9101,13 +9101,13 @@ class Derived : Base { }
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,17): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (2,17): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is string x1 or string; // 1, 2
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x1").WithLocation(2, 17),
                 // (2,23): hidden CS9335: The pattern is redundant.
                 // _ = o is string x1 or string; // 1, 2
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(2, 23),
-                // (3,17): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (3,17): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is object x2 or string; // 3, 4
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x2").WithLocation(3, 17),
                 // (3,23): hidden CS9335: The pattern is redundant.
@@ -9116,10 +9116,10 @@ class Derived : Base { }
                 // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     string => 1, // 5
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(8, 5),
-                // (11,17): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (11,17): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is string x3 or int; // 6
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x3").WithLocation(11, 17),
-                // (21,17): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (21,17): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = b is object x5 or Derived; // 7, 8
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x5").WithLocation(21, 17),
                 // (21,23): hidden CS9335: The pattern is redundant.
@@ -9128,13 +9128,13 @@ class Derived : Base { }
                 // (26,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     Derived => 1, // 9
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Derived").WithLocation(26, 5),
-                // (30,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (30,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is string or string x7; // 10
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x7").WithLocation(30, 27),
-                // (31,24): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (31,24): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is string or int x8; // 11
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x8").WithLocation(31, 24),
-                // (32,28): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (32,28): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = b is Derived or object x9; // 12
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x9").WithLocation(32, 28),
                 // (35,5): error CS8518: An expression of type 'object' can never match the provided pattern.
