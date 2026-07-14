@@ -25,6 +25,8 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
         var result = handler.GetCommandState(args);
 
         Assert.True(result.IsAvailable);
+        Assert.True(result.IsEnabled);
+        Assert.True(result.IsVisible);
     }
 
     [UIFact]
@@ -37,6 +39,8 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
         var result = handler.GetCommandState(args);
 
         Assert.True(result.IsAvailable);
+        Assert.True(result.IsEnabled);
+        Assert.True(result.IsVisible);
     }
 
     [UIFact]
@@ -49,10 +53,13 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
         var result = handler.GetCommandState(args);
 
         Assert.True(result.IsAvailable);
+        Assert.True(result.IsEnabled);
+        Assert.True(result.IsVisible);
 
         files.Delete();
 
         // Even though the file doesn't exist now, we should still be available because the result is cached
+        result = handler.GetCommandState(args);
         Assert.True(result.IsAvailable);
         Assert.False(File.Exists(razorFilePath + ".cs"), "The premise of this test is bad and it should feel bad");
     }
@@ -105,11 +112,70 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
         Assert.False(result.IsAvailable);
     }
 
-    private (ViewCodeCommandHandler, ViewCodeCommandArgs) CreateHandlerAndArgs(string razorFilePath)
+    [UIFact]
+    public void RazorCodeBehindFile_Available()
+    {
+        using var _ = CreateTestFiles("test.razor", out var razorFilePath);
+
+        var (handler, args) = CreateHandlerAndArgs(razorFilePath + ".cs");
+
+        var result = handler.GetCommandState(args);
+
+        Assert.True(result.IsAvailable);
+        Assert.True(result.IsEnabled);
+        Assert.False(result.IsVisible);
+    }
+
+    [UIFact]
+    public void CsHtmlCodeBehindFile_Available()
+    {
+        using var _ = CreateTestFiles("test.cshtml", out var razorFilePath);
+
+        var (handler, args) = CreateHandlerAndArgs(razorFilePath + ".cs");
+
+        var result = handler.GetCommandState(args);
+
+        Assert.True(result.IsAvailable);
+        Assert.True(result.IsEnabled);
+        Assert.False(result.IsVisible);
+    }
+
+    [UIFact]
+    public void RazorCodeBehindFile_NoRazorFile_NotAvailable()
+    {
+        using var files = new TempFileCollection();
+        var razorFilePath = Path.Combine(files.TempDir, "test.razor");
+        var csharpFilePath = razorFilePath + ".cs";
+        File.WriteAllText(csharpFilePath, "");
+        files.AddFile(csharpFilePath, false);
+
+        var (handler, args) = CreateHandlerAndArgs(csharpFilePath);
+
+        var result = handler.GetCommandState(args);
+
+        Assert.False(result.IsAvailable);
+    }
+
+    [UIFact]
+    public void CSharpFile_NotAvailable()
+    {
+        using var files = new TempFileCollection();
+        var csharpFilePath = Path.Combine(files.TempDir, "test.cs");
+        File.WriteAllText(csharpFilePath, "");
+        files.AddFile(csharpFilePath, false);
+
+        var (handler, args) = CreateHandlerAndArgs(csharpFilePath);
+
+        var result = handler.GetCommandState(args);
+
+        Assert.False(result.IsAvailable);
+    }
+
+    private (ViewCodeCommandHandler, ViewCodeCommandArgs) CreateHandlerAndArgs(string filePath)
     {
         var textBuffer = StrictMock.Of<ITextBuffer>();
         var textDocument = StrictMock.Of<ITextDocument>(doc
-            => doc.FilePath == razorFilePath);
+            => doc.FilePath == filePath);
         var textDocumentFactory = StrictMock.Of<ITextDocumentFactoryService>(factory =>
             factory.TryGetTextDocument(textBuffer, out textDocument) == true);
 
@@ -129,10 +195,12 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
         razorFilePath = Path.Combine(files.TempDir, razorFileName);
         var csharpFilePath = razorFilePath + ".cs";
 
-        // Create our temp file
+        // Create our temp files
+        File.WriteAllText(razorFilePath, "");
         File.WriteAllText(csharpFilePath, "");
 
-        // Add it to the list so it gets cleaned up
+        // Add them to the list so they get cleaned up
+        files.AddFile(razorFilePath, false);
         files.AddFile(csharpFilePath, false);
 
         return files;
