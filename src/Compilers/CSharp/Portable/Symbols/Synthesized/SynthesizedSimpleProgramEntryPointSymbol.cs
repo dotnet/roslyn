@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
                               TypeWithAnnotations.Create(
                                   ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly,
-                                      TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_String, NoLocation.Singleton, diagnostics)))), 0, RefKind.None, "args"));
+                                      TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_String, NoLocation.Singleton, diagnostics), NullableAnnotation.NotAnnotated)), NullableAnnotation.NotAnnotated), 0, RefKind.None, "args"));
         }
 
         private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(SourceMemberContainerTypeSymbol containingType, SingleTypeDeclaration declaration)

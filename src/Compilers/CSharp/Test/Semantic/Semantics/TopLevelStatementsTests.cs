@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Equal(1, entryPoint.ParameterCount);
             ParameterSymbol parameter = entryPoint.Parameters.Single();
-            Assert.Equal("System.String[] args", parameter.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("System.String![]! args", parameter.ToTestDisplayString(includeNonNullable: true));
             Assert.True(parameter.IsImplicitlyDeclared);
             Assert.Same(entryPoint, parameter.ContainingSymbol);
         }
