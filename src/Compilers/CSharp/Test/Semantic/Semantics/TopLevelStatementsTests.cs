@@ -2009,17 +2009,17 @@ namespace N1
 }
 ";
 
-            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions, skipUsesIsNullable: true);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(text1 + text2, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp = CreateCompilation(text1 + text2, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions, skipUsesIsNullable: true);
             comp.VerifyDiagnostics();
 
             Assert.Throws<System.ArgumentException>(() => CreateCompilation(new[] { Parse(text1, filename: "text1", DefaultParseOptions),
                                                                                     Parse(text1, filename: "text2", TestOptions.Regular6) },
                                                                             options: TestOptions.DebugExe));
 
-            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
                 // (2,1): error CS8107: Feature 'top-level statements' is not available in C# 7.0. Please use language version 9.0 or greater.
                 // string Test = "1";
@@ -2390,13 +2390,13 @@ namespace N1
 }
 ";
 
-            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions, skipUsesIsNullable: true);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(text1 + text2, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp = CreateCompilation(text1 + text2, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions, skipUsesIsNullable: true);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
                 // (2,1): error CS8107: Feature 'top-level statements' is not available in C# 7.0. Please use language version 9.0 or greater.
                 // string Test() => "1";
@@ -6270,7 +6270,10 @@ static extern void local1();
                 }
 
                 MethodSymbol method = program.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName);
-                Assert.Empty(method.GetAttributes());
+                if (!fromSource)
+                {
+                    Assert.Equal(new[] { "NullableContextAttribute" }, GetAttributeNames(method.GetAttributes()));
+                }
                 Assert.False(method.IsImplicitlyDeclared);
 
                 if (!fromSource)
@@ -8212,6 +8215,9 @@ return default;
 
             var comp = CreateCompilation(text, options: TestOptions.ReleaseModule, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics(
+                // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                // System.Console.WriteLine("Hi!");
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"System.Console.WriteLine(""Hi!"");").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(1, 1),
                 // (1,1): error CS8805: Program using top-level statements must be an executable.
                 // System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, @"System.Console.WriteLine(""Hi!"");").WithLocation(1, 1)
@@ -9209,7 +9215,10 @@ System.Console.WriteLine(""Hi!"");
                 {
                     Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(program.GetAttributes().As<CSharpAttributeData>()));
                 }
-                Assert.Empty(program.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).GetAttributes());
+                if (!fromSource)
+                {
+                    Assert.Equal(new[] { "NullableContextAttribute" }, GetAttributeNames(program.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).GetAttributes()));
+                }
 
                 if (fromSource)
                 {
@@ -9253,10 +9262,14 @@ public partial class Program
 
             void validate(ModuleSymbol module)
             {
+                bool fromSource = module is SourceModuleSymbol;
                 var program = module.GlobalNamespace.GetMember<NamedTypeSymbol>(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
                 Assert.Empty(program.GetAttributes().As<CSharpAttributeData>());
                 Assert.False(program.IsImplicitlyDeclared);
-                Assert.Empty(program.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).GetAttributes().As<CSharpAttributeData>());
+                if (!fromSource)
+                {
+                    Assert.Equal(new[] { "NullableContextAttribute" }, GetAttributeNames(program.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).GetAttributes().As<CSharpAttributeData>()));
+                }
             }
         }
 
