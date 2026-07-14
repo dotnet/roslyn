@@ -66,7 +66,7 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
     }
 
     [UIFact]
-    public void NonRazorFile_NotAvailable()
+    public void NonRazorFile_Unspecified()
     {
         using var _ = CreateTestFiles("test.daveswebframework", out var razorFilePath);
 
@@ -74,7 +74,7 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
 
         var result = handler.GetCommandState(args);
 
-        Assert.False(result.IsAvailable);
+        Assert.True(result.IsUnspecified);
     }
 
     [UIFact]
@@ -87,6 +87,7 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
         var result = handler.GetCommandState(args);
 
         Assert.False(result.IsAvailable);
+        Assert.False(result.IsUnspecified);
     }
 
     [UIFact]
@@ -99,6 +100,7 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
         var result = handler.GetCommandState(args);
 
         Assert.False(result.IsAvailable);
+        Assert.False(result.IsUnspecified);
     }
 
     [UIFact]
@@ -111,6 +113,7 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
         var result = handler.GetCommandState(args);
 
         Assert.False(result.IsAvailable);
+        Assert.False(result.IsUnspecified);
     }
 
     [UIFact]
@@ -142,7 +145,7 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
     }
 
     [UIFact]
-    public void RazorCodeBehindFile_NoRazorFile_NotAvailable()
+    public void RazorCodeBehindFile_NoRazorFile_Unspecified()
     {
         using var files = new TempFileCollection();
         var razorFilePath = Path.Combine(files.TempDir, "test.razor");
@@ -154,11 +157,11 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
 
         var result = handler.GetCommandState(args);
 
-        Assert.False(result.IsAvailable);
+        Assert.True(result.IsUnspecified);
     }
 
     [UIFact]
-    public void CSharpFile_NotAvailable()
+    public void CSharpFile_Unspecified()
     {
         using var files = new TempFileCollection();
         var csharpFilePath = Path.Combine(files.TempDir, "test.cs");
@@ -169,7 +172,7 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
 
         var result = handler.GetCommandState(args);
 
-        Assert.False(result.IsAvailable);
+        Assert.True(result.IsUnspecified);
     }
 
     private (ViewCodeCommandHandler, ViewCodeCommandArgs) CreateHandlerAndArgs(string filePath)

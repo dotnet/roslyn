@@ -45,12 +45,12 @@ internal sealed partial class ViewCodeCommandHandler(
 
     public CommandState GetCommandState(ViewCodeCommandArgs args)
     {
-        if (TryGetTargetFilePath(args.SubjectBuffer, out _, out var isVisible))
+        if (TryGetTargetFilePath(args.SubjectBuffer, out _, out var isRazorFile))
         {
-            return isVisible ? s_availableCommandState : s_hiddenAvailableCommandState;
+            return isRazorFile ? s_availableCommandState : s_hiddenAvailableCommandState;
         }
 
-        return CommandState.Unavailable;
+        return isRazorFile ? CommandState.Unavailable : CommandState.Unspecified;
     }
 
     public bool ExecuteCommand(ViewCodeCommandArgs args, CommandExecutionContext executionContext)
@@ -67,25 +67,26 @@ internal sealed partial class ViewCodeCommandHandler(
     private bool TryGetTargetFilePath(
         ITextBuffer buffer,
         [NotNullWhen(true)] out string? targetFilePath,
-        out bool isVisible)
+        out bool isRazorFile)
     {
         // Command state checks and execution should always happen on the main thread.
         // However, if that changes, we should assert because our FileExistsHelper will likely be corrupted.
         _joinableTaskContext.AssertUIThread();
 
+        isRazorFile = false;
         if (_textDocumentFactoryService.TryGetTextDocument(buffer, out var document) &&
             document?.FilePath is string filePath)
         {
-            if (TryGetCSharpFilePath(filePath, out targetFilePath) ||
-                TryGetRazorFilePath(filePath, out targetFilePath))
+            isRazorFile = FileUtilities.IsAnyRazorFilePath(filePath, StringComparison.OrdinalIgnoreCase);
+            if (isRazorFile
+                ? TryGetCSharpFilePath(filePath, out targetFilePath)
+                : TryGetRazorFilePath(filePath, out targetFilePath))
             {
-                isVisible = FileUtilities.IsAnyRazorFilePath(filePath, StringComparison.OrdinalIgnoreCase);
                 return true;
             }
         }
 
         targetFilePath = null;
-        isVisible = false;
         return false;
     }
 
