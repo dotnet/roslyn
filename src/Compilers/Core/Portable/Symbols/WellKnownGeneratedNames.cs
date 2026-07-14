@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Symbols;
 
-internal static partial class CommonGeneratedNames
+internal static partial class WellKnownGeneratedNames
 {
     public const char GenerationSeparator = '#';
 
@@ -13,4 +13,6 @@ internal static partial class CommonGeneratedNames
     public const string SynthesizedReadOnlyList_ReadOnlyArrayPrefix = "<>z__ReadOnlyArray";
     public const string SynthesizedReadOnlyList_ReadOnlyListPrefix = "<>z__ReadOnlyList";
     public const string SynthesizedReadOnlyList_SingleElementPrefix = "<>z__ReadOnlySingleElementList";
+    public const string SynthesizedReadOnlyList_SingleElementFieldName = "_item";
+    public const string SynthesizedReadOnlyList_ItemsFieldName = "_items";
 }

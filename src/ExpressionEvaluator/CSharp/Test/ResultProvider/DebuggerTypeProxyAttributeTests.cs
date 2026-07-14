@@ -1151,46 +1151,5 @@ class P
                 EvalResult("[1]", "20", "int", "new P(new C()).PrivateRootHidden[1]"),
                 EvalResult("Raw View", null, "", "new C(), raw", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
         }
-
-        [Fact]
-        public void SynthesizedCollections_Mscorlib()
-        {
-            // Synthesized collection types don't generate with a DebuggerTypeProxy attribute, but the ResultProvider should treat them specially and apply Mscorlib_CollectionDebugView as a type proxy.
-            // Since the type changed between netfx and netcore, this is separate from the nearly identical test in NetCoreTests
-            var source = @"
-using System.Collections.Generic;
-
-class Program
-{
-    static void Main()
-    {
-        IEnumerable<int> x = [1];
-        IEnumerable<int> y = [2, 3];
-        IEnumerable<int> z = [.. x];
-    }
-}
-";
-            var assembly = GetAssembly(source);
-            var types = assembly.GetTypes();
-            var inspectionContext = CreateDkmInspectionContext(runtimeInstance: new DkmClrRuntimeInstance(typeof(object).Assembly));
-            VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlySingleElementList`1")), 1, [1]);
-            VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlyArray`1")), new int[] { 2, 3 }, [2, 3]);
-            VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlyList`1")), new List<int>() { 1 }, [1]);
-
-            void VerifySynthesizedType<T>(Type genericType, T ctorArgs, List<int> expectedChildValues)
-            {
-                var constructedType = genericType.MakeGenericType(typeof(int));
-                var value = CreateDkmClrValue(constructedType.Instantiate(ctorArgs), constructedType, inspectionContext, evalFlags: DkmEvaluationResultFlags.None);
-                var result = FormatResult("x", value, inspectionContext: inspectionContext);
-                var children = GetChildren(result, inspectionContext);
-                DkmEvaluationResult[] expectedChildren =
-                [
-                    ..expectedChildValues.Select((c, i) => EvalResult($"[{i}]", $"{c}", "int", $"new System.Collections.Generic.Mscorlib_CollectionDebugView<int>(x).Items[{i}]")),
-                    EvalResult("Raw View", null, "", "x, raw", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Data)
-                ];
-
-                Verify(children, expectedChildren);
-            }
-        }
     }
 }

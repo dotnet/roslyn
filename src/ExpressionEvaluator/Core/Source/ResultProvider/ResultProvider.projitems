@@ -32,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\NativeViewExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\PointerDereferenceExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\ResultsViewExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\SynthesizedCollectionExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\TypeVariablesExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\ArrayBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DebuggerDisplayInfo.cs" />

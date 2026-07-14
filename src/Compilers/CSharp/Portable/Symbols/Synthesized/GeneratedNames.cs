@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // the native compiler adds numeric digits at the end.  Roslyn does not.
             Debug.Assert((char)GeneratedNameKind.FixedBufferField == 'e');
-            return "<" + fieldName + CommonGeneratedNames.FixedBufferFieldSuffix;
+            return "<" + fieldName + WellKnownGeneratedNames.FixedBufferFieldSuffix;
         }
 
         internal static string MakeStateMachineStateFieldName()
@@ -476,14 +476,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((char)GeneratedNameKind.ReadOnlyListType == 'z');
             string name = kind switch
             {
-                SynthesizedReadOnlyListKind.Array => CommonGeneratedNames.SynthesizedReadOnlyList_ReadOnlyArrayPrefix,
-                SynthesizedReadOnlyListKind.List => CommonGeneratedNames.SynthesizedReadOnlyList_ReadOnlyListPrefix,
-                SynthesizedReadOnlyListKind.SingleElement => CommonGeneratedNames.SynthesizedReadOnlyList_SingleElementPrefix,
+                SynthesizedReadOnlyListKind.Array => WellKnownGeneratedNames.SynthesizedReadOnlyList_ReadOnlyArrayPrefix,
+                SynthesizedReadOnlyListKind.List => WellKnownGeneratedNames.SynthesizedReadOnlyList_ReadOnlyListPrefix,
+                SynthesizedReadOnlyListKind.SingleElement => WellKnownGeneratedNames.SynthesizedReadOnlyList_SingleElementPrefix,
                 var v => throw ExceptionUtilities.UnexpectedValue(v)
             };
 
             // Synthesized list types need to have unique name across generations because they are not reused.
-            return (generation > 0) ? name + CommonGeneratedNames.GenerationSeparator + generation : name;
+            return (generation > 0) ? name + WellKnownGeneratedNames.GenerationSeparator + generation : name;
         }
 
         internal static string AsyncBuilderFieldName()

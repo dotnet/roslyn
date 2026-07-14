@@ -2,44 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.CodeAnalysis.Symbols;
 using System;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
 
+internal enum SynthesizedCollectionKind
+{
+    SingleElement,
+    Array,
+    List,
+}
+
 internal static class SynthesizedCollectionHelpers
 {
-    public static bool IsSynthesizedCollectionType(Type t) =>
-        t.Name.StartsWith(CommonGeneratedNames.SynthesizedReadOnlyList_ReadOnlyListPrefix, StringComparison.Ordinal) ||
-        t.Name.StartsWith(CommonGeneratedNames.SynthesizedReadOnlyList_ReadOnlyArrayPrefix, StringComparison.Ordinal) ||
-        t.Name.StartsWith(CommonGeneratedNames.SynthesizedReadOnlyList_SingleElementPrefix, StringComparison.Ordinal);
-
-    public static DkmClrType? TryGetCollectionDebugViewTypeForCollectionType(DkmClrType collectionType)
+    public static bool TryGetKind(Type t, out SynthesizedCollectionKind kind)
     {
-        // Mscorlib_CollectionDebugView was renamed to ICollectionDebugView, we'll look for either one.
-        const string ICollectionDebugViewName = "System.Collections.Generic.ICollectionDebugView`1";
-        const string MscorlibCollectionDebugViewName = "System.Collections.Generic.Mscorlib_CollectionDebugView`1";
-
-        foreach (var module in collectionType.AppDomain.GetClrModuleInstances())
+        if (t is { IsGenericType: true } && t.GetGenericArguments() is { Length: 1 })
         {
-            // Both types are defined in the runtime module
-            if (!module.ClrFlags.HasFlag(DkmClrModuleFlags.RuntimeModule))
+            if (t.Name.StartsWith(WellKnownGeneratedNames.SynthesizedReadOnlyList_SingleElementPrefix, StringComparison.Ordinal))
             {
-                continue;
+                kind = SynthesizedCollectionKind.SingleElement;
+                return true;
             }
 
-            var proxyType = module.TryResolveTypeName(ICollectionDebugViewName, collectionType.GenericArguments) ??
-                            module.TryResolveTypeName(MscorlibCollectionDebugViewName, collectionType.GenericArguments);
-            if (proxyType is not null)
+            if (t.Name.StartsWith(WellKnownGeneratedNames.SynthesizedReadOnlyList_ReadOnlyArrayPrefix, StringComparison.Ordinal))
             {
-                return proxyType;
+                kind = SynthesizedCollectionKind.Array;
+                return true;
             }
 
-            break;
+            if (t.Name.StartsWith(WellKnownGeneratedNames.SynthesizedReadOnlyList_ReadOnlyListPrefix, StringComparison.Ordinal))
+            {
+                kind = SynthesizedCollectionKind.List;
+                return true;
+            }
         }
 
-        return null;
+        kind = default;
+        return false;
     }
 }

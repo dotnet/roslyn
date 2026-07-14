@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -282,7 +283,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             };
 
             _enumeratorType = kind == SynthesizedReadOnlyListKind.SingleElement ? new SynthesizedReadOnlyListEnumeratorTypeSymbol(this, typeParameter) : null;
-            _field = new SynthesizedFieldSymbol(this, fieldType, kind == SynthesizedReadOnlyListKind.SingleElement ? "_item" : "_items", isReadOnly: true);
+            _field = new SynthesizedFieldSymbol(
+                this,
+                fieldType,
+                kind == SynthesizedReadOnlyListKind.SingleElement
+                    ? WellKnownGeneratedNames.SynthesizedReadOnlyList_SingleElementFieldName
+                    : WellKnownGeneratedNames.SynthesizedReadOnlyList_ItemsFieldName,
+                isReadOnly: true);
 
             var iEnumerable = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
             var iCollection = compilation.GetWellKnownType(WellKnownType.System_Collections_ICollection);
