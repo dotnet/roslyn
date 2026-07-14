@@ -1014,6 +1014,19 @@ catch(bar) { baz(); }");
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13117")]
+    public void SwitchExpression_WithMarkupInLambda_Incomplete()
+    {
+        ParseDocumentTest("""
+            @{
+                var val = value switch
+                {
+                    1 => (__builder) =>
+                    {
+                        <span>incomplete
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/7230")]
     public void SwitchExpression_WithWrongKeyword()
     {
