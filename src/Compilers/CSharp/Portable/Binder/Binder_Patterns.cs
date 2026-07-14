@@ -796,7 +796,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 NamedTypeSymbol? unionType = null;
-                // PROTOTYPE: Add coverage for the fact that permitDesignations flows in, but doesn't flow out this function.
                 pattern = BindPattern(node.Pattern, ref unionType, sliceType, ref permitDesignations, hasErrors, diagnostics, out hasUnionMatching, underIsPattern: false);
             }
             else
