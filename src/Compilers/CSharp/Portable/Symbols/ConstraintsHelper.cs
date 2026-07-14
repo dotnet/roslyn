@@ -1172,11 +1172,11 @@ hasRelatedInterfaces:
             TypeWithAnnotations constraintType,
             ref bool hasError)
         {
-            if (SatisfiesConstraintType(args.Conversions.WithNullability(false), typeArgument, constraintType, ref useSiteInfo))
+            if (SatisfiesConstraintType(args.Conversions.WithNullability(false), typeArgument, constraintType, ref useSiteInfo, args.Diagnostics))
             {
                 if (nullabilityDiagnosticsBuilderOpt != null)
                 {
-                    if (!SatisfiesConstraintType(args.Conversions.WithNullability(true), typeArgument, constraintType, ref useSiteInfo) ||
+                    if (!SatisfiesConstraintType(args.Conversions.WithNullability(true), typeArgument, constraintType, ref useSiteInfo, args.Diagnostics) ||
                         !constraintTypeAllows(constraintType, getTypeArgumentState(typeArgument)))
                     {
                         nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument))));
@@ -1345,10 +1345,17 @@ hasRelatedInterfaces:
             ConversionsBase conversions,
             TypeWithAnnotations typeArgument,
             TypeWithAnnotations constraintType,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            BindingDiagnosticBag diagnostics = null)
         {
             if (constraintType.Type.IsErrorType())
             {
+                // In a semantic model context (discarded diagnostics or null diagnostics),
+                // return true to keep the method in candidates for GetSymbolInfo.
+                if (diagnostics == null || !diagnostics.AccumulatesDiagnostics)
+                {
+                    return true;
+                }
                 return false;
             }
 
