@@ -352,4 +352,9 @@ internal sealed class ProjectBuildManager : IDisposable
             _buildLogger.TryUnregisterLog(submission.SubmissionId);
         }
     }
+
+    public void UnloadProject(MSB.Evaluation.Project project)
+    {
+        _projectCollection.UnloadProject(project);
+    }
 }

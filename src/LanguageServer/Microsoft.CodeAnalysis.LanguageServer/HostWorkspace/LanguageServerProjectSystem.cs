@@ -119,7 +119,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
-        var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
+        await using var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
         return new RemoteProjectLoadResult
         {
             ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
