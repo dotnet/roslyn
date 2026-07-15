@@ -1350,13 +1350,7 @@ hasRelatedInterfaces:
         {
             if (constraintType.Type.IsErrorType())
             {
-                // In a semantic model context (discarded diagnostics or null diagnostics),
-                // return true to keep the method in candidates for GetSymbolInfo.
-                if (diagnostics == null || !diagnostics.AccumulatesDiagnostics)
-                {
-                    return true;
-                }
-                return false;
+                return true;
             }
 
             // Spec 4.4.4 describes the valid conversions from

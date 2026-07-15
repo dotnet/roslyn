@@ -1551,10 +1551,7 @@ class C
             comp.VerifyDiagnostics(
                 // (8,23): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
                 //             where U : t
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(8, 23),
-                // (11,9): error CS0311: The type 'object' cannot be used as type parameter 'U' in the generic type or method 'Local<T, U>(T)'. There is no implicit reference conversion from 'object' to 't'.
-                //         Local<object, object>(null);
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Local<object, object>").WithArguments("Local<T, U>(T)", "t", "U", "object").WithLocation(11, 9));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(8, 23));
         }
 
         [Fact]
@@ -10251,12 +10248,6 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics(
-                // (6,9): error CS0311: The type 'object' cannot be used as type parameter 'TParameter' in the generic type or method 'local<TParameter>(int)'. There is no implicit reference conversion from 'object' to 'parameter'.
-                //         local<object>(0);
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "local<object>").WithArguments("local<TParameter>(int)", "parameter", "TParameter", "object").WithLocation(6, 9),
-                // (7,9): error CS0311: The type 'object' cannot be used as type parameter 'TParameter' in the generic type or method 'C.M2<TParameter>(int)'. There is no implicit reference conversion from 'object' to 'parameter'.
-                //         M2<object>(0);
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M2<object>").WithArguments("C.M2<TParameter>(int)", "parameter", "TParameter", "object").WithLocation(7, 9),
                 // (9,66): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
                 //         void local<TParameter>(int parameter) where TParameter : parameter => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(9, 66),
