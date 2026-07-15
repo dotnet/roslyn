@@ -761,11 +761,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // Set environment variables directly on ProcessStartInfo
                     if (environmentVariables != null)
                     {
-                        if (processStartInfo != null)
-                        {
-                            startInfo.EnvironmentVariables.Clear();
-                        }
-
                         foreach (var kvp in environmentVariables)
                         {
                             startInfo.EnvironmentVariables[kvp.Key] = kvp.Value;
@@ -788,7 +783,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     return false;
                 }
             }
-
         }
 
         /// <returns>
