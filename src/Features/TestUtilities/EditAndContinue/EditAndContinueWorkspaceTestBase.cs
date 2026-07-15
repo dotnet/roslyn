@@ -34,6 +34,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 
 public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
 {
+    static EditAndContinueWorkspaceTestBase()
+    {
+        // TODO: remove https://github.com/dotnet/roslyn/issues/81728
+        AbstractEditAndContinueAnalyzer.EnableProjectLevelAnalysis = true;
+    }
+
     private protected static readonly Guid s_solutionTelemetryId = Guid.Parse("00000000-AAAA-AAAA-AAAA-000000000000");
     private protected static readonly Guid s_defaultProjectTelemetryId = Guid.Parse("00000000-AAAA-AAAA-AAAA-111111111111");
     private protected static readonly Regex s_timePropertiesRegex = new("[|](EmitDifferenceMilliseconds|TotalAnalysisMilliseconds)=[0-9]+");
@@ -157,7 +163,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
 
     internal EditAndContinueService GetEditAndContinueService(TestWorkspace workspace)
     {
-        var service = (EditAndContinueService)workspace.GetService<IEditAndContinueService>();
+        var service = (EditAndContinueService)workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
         var accessor = service.GetTestAccessor();
 
         // Empty guid means project is not built.

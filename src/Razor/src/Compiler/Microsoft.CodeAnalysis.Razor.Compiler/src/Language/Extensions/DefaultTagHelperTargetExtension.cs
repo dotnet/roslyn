@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -302,7 +303,14 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
         }
 
         // If we get there, this is the first time seeing this property so we need to evaluate the expression.
-        if (node.BoundAttribute.ExpectsStringValue(node.AttributeName))
+
+        // A union-valued attribute can also be supplied by a C# expression producing any union member.
+        // Only literals or mixed content for such attributes require the string-writing scope.
+        var requiresStringWritingScope = !node.BoundAttribute.AcceptsStringLiteral() ||
+            node.Children is not [CSharpExpressionIntermediateNode];
+
+        if (node.BoundAttribute.ExpectsStringValue(node.AttributeName) &&
+            requiresStringWritingScope)
         {
             context.CodeWriter.WriteMethodInvocation(BeginWriteTagHelperAttributeMethodName);
 

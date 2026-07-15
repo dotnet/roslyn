@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Logging;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -15,18 +15,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 internal sealed class LanguageServerHost
 #pragma warning restore CA1001 // The JsonRpc instance is disposed of by the AbstractLanguageServer during shutdown
 {
-    // TODO: replace this with a MEF part instead
-    /// <summary>
-    /// A static reference to the server instance.
-    /// Used by components to send notifications and requests back to the client.
-    /// </summary>
-    internal static LanguageServerHost? Instance { get; private set; }
-
-    private readonly ILogger _logger;
     private readonly AbstractLanguageServer<RequestContext> _roslynLanguageServer;
     private readonly JsonRpc _jsonRpc;
+    private volatile bool _hasStarted;
 
-    public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILoggerFactory loggerFactory, AbstractTypeRefResolver typeRefResolver)
+    internal ILogger GlobalLogger { get; }
+    internal bool HasStarted => _hasStarted;
+
+    public LanguageServerHost(
+        Stream inputStream,
+        Stream outputStream,
+        ExportProvider exportProvider,
+        AbstractTypeRefResolver typeRefResolver)
     {
         var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
@@ -38,27 +38,30 @@ internal sealed class LanguageServerHost
             ExceptionStrategy = ExceptionProcessing.CommonErrorData,
         };
 
-        var roslynLspFactory = exportProvider.GetExportedValue<ILanguageServerFactory>();
-
-        _logger = loggerFactory.CreateLogger("LSP");
-        var lspLogger = new LspServiceLogger(_logger);
+        var roslynLspFactory = exportProvider.GetExportedValue<CSharpVisualBasicLanguageServerFactory>();
 
         var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
         _roslynLanguageServer = roslynLspFactory.Create(
             _jsonRpc,
             messageFormatter.JsonSerializerOptions,
             WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            lspLogger,
             hostServices,
             typeRefResolver);
+
+        GlobalLogger = _roslynLanguageServer.GetLspServices().GetRequiredService<ILoggerFactory>().CreateLogger("Global");
     }
 
     public void Start()
     {
-        _jsonRpc.StartListening();
+        Contract.ThrowIfTrue(_hasStarted);
 
-        // Now that the server is started, update the our instance reference
-        Instance = this;
+        // Eagerly resolve the workspace factory from the per-server LSP services, since right now the language server
+        // assumes there's at least one Workspace. This as a side effect creates the actual workspace object which is
+        // registered by the LspWorkspaceRegistrationEventListener.
+        _ = GetLspServices().GetRequiredService<LanguageServerWorkspaceFactory>();
+
+        _jsonRpc.StartListening();
+        _hasStarted = true;
     }
 
     public Task WaitForExitAsync()

@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractBaseRecordImplementation">
         <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
-        <target state="new">Record member '{0}' must be declared explicitly because '{1}' is abstract.</target>
+        <target state="translated">Der Datensatzmember „{0}“ muss explizit deklariert werden, da „{1}“ abstrakt ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
@@ -532,6 +532,11 @@
         <target state="translated">Der Schnittstellenmember "{1}" wird von "{0}" nicht implementiert. "{1}" kann von "{2}" nicht implementiert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="translated">„System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes“ muss eine Instanzeigenschaft mit öffentlichen Get- und Set-Zugriffsmethoden, ohne Parameter und vom Typ „System.Type[]“ sein.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
         <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
         <target state="translated">„{0}“: Ein geschlossener Typ „{1}“ aus einer anderen Assembly kann nicht als Basistyp verwendet werden.</target>
@@ -837,6 +842,11 @@
         <target state="translated">Die explizite Anwendung von "System.Runtime.CompilerServices.NullableAttribute" ist unzulässig.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
+        <target state="translated">Ein Feld in einem Typ mit explizitem oder erweitertem Layout muss als „unsicher“ oder „sicher“ markiert sein.</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">Verwenden Sie nicht "System.ParamArrayAttribute"/"System.Runtime.CompilerServices.ParamCollectionAttribute". Verwenden Sie stattdessen das Schlüsselwort "Params".</target>
@@ -888,8 +898,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">Ein Ausdrucksbaum darf keinen Zugriff auf eine Erweiterungseigenschaft enthalten.</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="translated">Ein Ausdrucksbaum darf keinen Zugriff auf eine Erweiterungseigenschaft oder Indexer enthalten</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1523,14 +1533,24 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
-        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="translated">Ein Typ eines Union-Memberanbieters muss eine öffentliche Instanzeigenschaft „Value“ vom Typ „object?“ oder „object“ aufweisen. Die Eigenschaft muss einen get-Accessor haben.</target>
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="translated">Ein Typ eines Union-Memberanbieters muss eine öffentliche Instanzeigenschaft „Value“ vom Typ „object?“ oder „object“ aufweisen. Die Eigenschaft muss einen öffentlichen get-Accessor haben.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">„{0}“ enthält keine Definition für „{1}“, und es konnte keine zugängliche Erweiterungsmethode „{1}“ gefunden werden, die ein erstes Argument vom Typ „{0}“ akzeptiert (wollten Sie die asynchrone Sammlung mit „await foreach“ durchlaufen?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="translated">Keine umschließende Schleife oder switch-Anweisung mit der Bezeichnung „{0}“, aus der ausgebrochen werden kann</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="translated">Keine umschließende Schleife mit der Bezeichnung „{0}“, aus der fortgefahren werden kann</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
@@ -2498,8 +2518,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</source>
-        <target state="translated">Der Modifizierer „sicher“ darf nur für externe Mitglieder verwendet werden, die nicht als „unsicher“ gekennzeichnet sind.</target>
+        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
+        <target state="translated">Der Modifizierer „sicher“ darf nur für Member verwendet werden, die nicht als „unsicher“ markiert sind und entweder „extern“ oder in Typen mit explizitem oder erweitertem Layout feldähnlich sind.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
@@ -2843,8 +2863,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="translated">Die Methode „{0}“ verwendet ein Feature, das von der asynchronen Runtime derzeit nicht unterstützt wird. Deaktivieren Sie die Methode für die asynchrone Runtime, indem Sie sie mit „System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)“ kennzeichnen.</target>
+        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="translated">Die Methode „{0}“ verwendet ein Feature, das von der asynchronen Runtime nicht unterstützt wird. Deaktivieren Sie die Methode für die asynchrone Runtime, indem Sie sie mit „System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)“ kennzeichnen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2906,6 +2926,11 @@
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Ein generischer aufgabenähnlicher Rückgabetyp wurde erwartet, aber der Typ „{0}“, der im Attribut „AsyncMethodBuilder“ gefunden wurde, war nicht geeignet. Es muss sich um einen ungebundenen generischen Typ von Stelligkeit Eins handelt, und der enthaltende Typ (falls vorhanden) muss nicht generisch sein.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
+        <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
+        <target state="translated">„GetClosedDerivedTypeInfo()“ kann nur aufgerufen werden, wenn „IsClosed“ auf „true“ festgelegt ist.</target>
+        <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
@@ -3002,6 +3027,11 @@
         <target state="translated">Muster für erweiterte Eigenschaften</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="translated">Erweiterungsindexer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
         <target state="translated">Erweiterungen</target>
@@ -3065,6 +3095,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">Instanzmember in "nameof"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="translated">beschriftete Unterbrechung und fortfahren</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">

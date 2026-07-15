@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractBaseRecordImplementation">
         <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
-        <target state="new">Record member '{0}' must be declared explicitly because '{1}' is abstract.</target>
+        <target state="translated">Člen záznamu {0} musí být deklarován explicitně, protože{1} je abstraktní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
@@ -532,6 +532,11 @@
         <target state="translated">{0} neimplementuje člen rozhraní {1}. {2} nemůže implementovat {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="translated">System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes musí být vlastnost instance s veřejnými přístupovými metodami get a set, bez parametrů a typu System.Type[].</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
         <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
         <target state="translated">{0}: Uzavřený typ {1} z jiného sestavení nelze použít jako základní typ.</target>
@@ -837,6 +842,11 @@
         <target state="translated">Explicitní použití System.Runtime.CompilerServices.NullableAttribute není povolené.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
+        <target state="translated">Pole v explicitním nebo rozšířeném typu rozložení musí být označené jako „unsafe“ nebo „safe“.</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">Nepoužívejte System.ParamArrayAttribute/System.Runtime.CompilerServices.ParamCollectionAttribute. Použijte místo něj klíčové slovo params.</target>
@@ -888,8 +898,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">Strom výrazů nesmí obsahovat přístup k vlastnosti rozšíření.</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="translated">Strom výrazů nesmí obsahovat přístup k vlastnosti rozšíření ani k indexeru.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1523,14 +1533,24 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
-        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="translated">Typ poskytovatele člena sjednocení musí mít veřejnou vlastnost instance Value typu object? nebo object. Vlastnost musí mít přístupový objekt get.</target>
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="translated">Typ poskytovatele člena sjednocení musí mít vlastnost instance Value typu object? nebo object. Vlastnost musí mít veřejný přístupový objekt get.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">{0} neobsahuje definici pro {1} a nebyla nalezena žádná přístupná metoda rozšíření {1}, která by přijímala první argument typu {0}. (Nechtěli jste místo toho iterovat asynchronní kolekci pomocí await foreach?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="translated">Nebyla nalezena žádná nadřazená smyčka ani příkaz switch s návěstím {0}, z něhož by bylo možné vyskočit pomocí příkazu break.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="translated">Nebyla nalezena žádná nadřazená smyčka s návěstím {0}, v níž by bylo možné pokračovat pomocí příkazu continue.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
@@ -2498,8 +2518,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</source>
-        <target state="translated">Modifikátor safe lze použít pouze u členů extern, které nejsou označeny jako unsafe.</target>
+        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
+        <target state="translated">Modifikátor „safe“ lze použít pouze u členů, které nejsou označeny jako „unsafe“ a jsou buď „extern“, nebo mají podobu pole v typech s explicitním či rozšířeným rozložením.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
@@ -2843,8 +2863,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="translated">Metoda {0} používá funkci, kterou aktuální asynchronní režim runtime nepodporuje. Vyjádřete výslovný nesouhlas s asynchronním zpracováním metody za běhu tak, že ji označíte atributem System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false).</target>
+        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="translated">Metoda {0} používá funkci, kterou asynchronní režim runtime nepodporuje. Vyjádřete výslovný nesouhlas s asynchronním zpracováním metody za běhu tak, že ji označíte atributem System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2906,6 +2926,11 @@
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Očekával se obecný návratový typ podobný úloze, ale typ {0} nalezený v atributu AsyncMethodBuilder nebyl vhodný. Musí se jednat o nevázaný obecný typ arity a jeho nadřazený typ (pokud existuje) nesmí být obecný.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
+        <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
+        <target state="translated">GetClosedDerivedTypeInfo() lze volat pouze tehdy, když je IsClosed true.</target>
+        <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
@@ -3002,6 +3027,11 @@
         <target state="translated">vzory rozšířených vlastností</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="translated">indexery rozšíření</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
         <target state="translated">rozšíření</target>
@@ -3065,6 +3095,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">člen instance v nameof</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="translated">break a continue s návěstím</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">

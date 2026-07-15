@@ -3,7 +3,22 @@
 # More information: https://github.com/blog/2392-introducing-code-owners
 
 *.yml @dotnet/roslyn-infrastructure
+AGENTS.md @dotnet/roslyn-infrastructure
 .github/ @dotnet/roslyn-infrastructure
+.github/copilot-instructions.md @dotnet/roslyn-infrastructure
+.github/instructions/ @dotnet/roslyn-infrastructure
+.github/memory/ @dotnet/roslyn-infrastructure
+.github/skills/ @dotnet/roslyn-infrastructure
+
+.github/instructions/Compiler.instructions.md @dotnet/roslyn-compiler
+.github/instructions/IDE.instructions.md @dotnet/roslyn-ide
+.github/instructions/Razor.instructions.md @dotnet/razor-tooling
+.github/memory/known-issues/compiler.md @dotnet/roslyn-compiler
+.github/memory/known-issues/ide.md @dotnet/roslyn-ide
+.github/memory/known-issues/razor.md @dotnet/razor-tooling
+.github/memory/testing/compiler.md @dotnet/roslyn-compiler
+.github/memory/testing/ide.md @dotnet/roslyn-ide
+.github/memory/testing/razor.md @dotnet/razor-tooling
 
 docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide

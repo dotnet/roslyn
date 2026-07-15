@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -440,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var p in currentParameters)
             {
-                if (string.CompareOrdinal(p.Name, name) == 0)
+                if (string.Equals(p.Name, name, StringComparison.Ordinal))
                 {
                     return false;
                 }

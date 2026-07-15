@@ -24,6 +24,9 @@ internal class ExportableRemoteServiceInvoker : IRemoteServiceInvoker
         _remoteServiceInvoker = remoteServiceInvoker;
     }
 
+    public ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Func<TService, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
+        => _remoteServiceInvoker.AssumeNotNull().TryInvokeAsync(invocation, cancellationToken, callerFilePath, callerMemberName);
+
     public ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorSolutionWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
         => _remoteServiceInvoker.AssumeNotNull().TryInvokeAsync(solution, invocation, cancellationToken, callerFilePath, callerMemberName);
 }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery</RootNamespace>
+    <TargetFramework>$(NetVSCode)</TargetFramework>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery</PackageId>
+    <PackageDescription>
+      A supporting package for source-based test discovery in C# Dev Kit. It exposes a stable brokered
+      service contract whose implementation is provided as a workspace service by C# Dev Kit.
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- ⚠ Only C# Dev Kit assemblies should be added here ⚠ -->
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharpDevKit.SourceTestDiscovery" Key="$(VisualStudioKey)" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
+  </ItemGroup>
+</Project>

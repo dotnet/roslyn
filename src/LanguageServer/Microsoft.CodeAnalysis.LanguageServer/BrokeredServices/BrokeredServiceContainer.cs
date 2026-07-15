@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
 using Microsoft.VisualStudio.Composition;
@@ -35,10 +36,13 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
     internal ImmutableDictionary<ServiceMoniker, ServiceRegistration> GetRegisteredServices()
         => RegisteredServices;
 
-    internal static async Task<BrokeredServiceContainer> CreateAsync(ExportProvider exportProvider, ImmutableArray<IServiceBrokerInitializer> serviceBrokerInitializers, CancellationToken cancellationToken)
+    internal static async Task<BrokeredServiceContainer> CreateAsync(
+        ExportProvider exportProvider,
+        ImmutableArray<IServiceBrokerInitializer> serviceBrokerInitializers,
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken)
     {
-        var traceListener = exportProvider.GetExportedValue<BrokeredServiceTraceListener>();
-        var container = new BrokeredServiceContainer(traceListener.Source);
+        var container = new BrokeredServiceContainer(BrokeredServiceTraceListener.CreateTraceSource(loggerFactory));
 
         container.ProfferIntrinsicService(
             FrameworkServices.Authorization,

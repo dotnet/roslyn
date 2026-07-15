@@ -915,6 +915,36 @@ $$
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/84394")>
+        Public Async Function TestAttributeWithMethodTargetUsageFilteredWhenBoundToTypeTarget(showCompletionInArgumentLists As Boolean) As Task
+            ' When an attribute is being typed above a type declaration (no method target), attributes whose
+            ' AttributeUsage restricts them to methods should be filtered out. This must respect *inherited*
+            ' AttributeUsage: CulturedFactAttribute derives from a Method-only FactAttribute, so it too must be
+            ' filtered out. Otherwise typing "[Fact" would be completed to the still-visible "[CulturedFact".
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+using System;
+
+[AttributeUsage(AttributeTargets.Method)]
+class FactAttribute : Attribute { }
+class CulturedFactAttribute : FactAttribute { }
+
+class C
+{
+    $$
+    internal partial record struct TypeWithStatefulConverter(int Value);
+}
+]]></Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("[Fact")
+                Await state.WaitForAsynchronousOperationsAsync()
+                ' Neither Fact nor CulturedFact is a valid attribute on a type target, so neither should be offered.
+                Await state.AssertCompletionItemsDoNotContainAny("Fact", "CulturedFact")
+            End Using
+        End Function
+
         <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/71851"), CombinatorialData>
         Public Async Function TestDeletingWholeWordResetCompletionToTheDefaultItem(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(

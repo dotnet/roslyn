@@ -94,6 +94,13 @@ internal abstract class LanguageServerProjectLoader : IDisposable
     /// </summary>
     protected virtual bool EnableProgressReporting => true;
 
+    /// <summary>
+    /// The max MSBuild node count to use for design-time builds.
+    /// </summary>
+    protected virtual int MaxNodeCount
+        // Don't overload the machine, so leave some CPU cores open. This was chosen without much supporting evidence, other than that it's still pretty close to max.
+        => Math.Max(Environment.ProcessorCount / 2, 1);
+
     protected LanguageServerProjectLoader(
         ILspServices lspServices,
         IGlobalOptionService globalOptionService,
@@ -111,7 +118,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
         Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-        _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
+        _logger = loggerFactory.CreateLogger(this.GetTypeDisplayName());
         _projectLoadTelemetryReporter = lspServices.GetRequiredService<ProjectLoadTelemetryReporter>();
         _binLogPathProvider = binLogPathProvider;
         _dotnetCliHelper = dotnetCliHelper;
@@ -176,7 +183,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
                 knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
                 globalMSBuildProperties: AdditionalProperties,
                 binaryLogPathProvider: _binLogPathProvider,
-                maxNodeCount: Math.Max(Environment.ProcessorCount / 2, 1), // Don't overload the machine, so leave some CPU cores open. This chosen without much support evidence, other than it's still pretty close to max.
+                maxNodeCount: MaxNodeCount,
                 loggerFactory: LoggerFactory))
             {
                 var toastErrorReporter = new ToastErrorReporter(_clientLanguageServerManager);

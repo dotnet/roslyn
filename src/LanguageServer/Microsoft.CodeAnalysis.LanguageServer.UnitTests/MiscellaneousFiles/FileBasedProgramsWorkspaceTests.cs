@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FileBasedPrograms;
 
 public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutputHelper) : AbstractLspMiscellaneousFilesWorkspaceTests(testOutputHelper)
 {
-
     [Theory, CombinatorialData]
     public async Task TestFileBasedProgram_Simple(bool mutatingLspWorkspace)
     {
@@ -33,7 +32,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var sourceText = """
             #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
@@ -70,7 +69,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var sourceText = """
             #:sdk Microsoft.Net.Sdk
             class C { }
@@ -92,7 +91,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var sourceText = """
             #!/usr/bin/env dotnet
             #:sdk Microsoft.NET.Sdk
@@ -124,13 +123,61 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     }
 
     [Theory, CombinatorialData]
+    public async Task TestMultipleFileBasedPrograms_WithWorkspaceDiscovery(bool mutatingLspWorkspace)
+    {
+        // Test discovering and loading several file-based apps in a single batch.
+        var tempDir = CreateTempDirectoryWithGlobalJson();
+
+        var app1Text = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("app1");
+            """;
+        var app1File = tempDir.CreateFile("app1.cs").WriteAllText(app1Text);
+
+        var app2Text = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("app2");
+            """;
+        var app2File = tempDir.CreateFile("app2.cs").WriteAllText(app2Text);
+
+        var app3Text = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("app3");
+            """;
+        var app3File = tempDir.CreateFile("app3.cs").WriteAllText(app3Text);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }],
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
+
+        // Enable discovery and find all FBAs at once — they are queued and loaded in a single batch.
+        var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptions.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, true);
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        await discovery.FindAndLoadEntryPointsAsync();
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        // Verify all FBAs loaded successfully in the host workspace.
+        foreach (var file in new[] { app1File, app2File, app3File })
+        {
+            var uri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
+            var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(uri, testLspServer).ConfigureAwait(false);
+            Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+            Assert.True(document.Project.State.HasAllInformation, $"HasAllInformation was false for {file.Path}");
+        }
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestFileBasedProgram_Multitargeting(bool mutatingLspWorkspace)
     {
         // Load a file-based app which multitargets via `#:property TargetFrameworks`.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var sourceText = """
             #:property TargetFrameworks=net8.0;net10.0
             Console.WriteLine("Hello World!");
@@ -156,7 +203,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var sourceText = """
             #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
@@ -184,7 +231,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var sourceText = """
             #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
@@ -217,7 +264,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var sourceText = """
             #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
@@ -319,7 +366,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var initialText = """
             class C { }
             """;
@@ -455,7 +502,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var sourceText = """
             #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
@@ -492,6 +539,28 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
     }
 
+    private TempDirectory CreateTempDirectoryWithGlobalJson()
+    {
+        var tempDirectory = TempRoot.CreateDirectory();
+
+        string? globalJsonPath = null;
+        for (var path = AppContext.BaseDirectory; path != null; path = Path.GetDirectoryName(path))
+        {
+            var candidatePath = Path.Combine(path, "global.json");
+            if (File.Exists(candidatePath))
+            {
+                globalJsonPath = candidatePath;
+                break;
+            }
+        }
+
+        if (globalJsonPath is null)
+            throw new InvalidOperationException($"The test was unable to find a global.json in the current directory tree: {AppContext.BaseDirectory}. This is likely a build authoring or deployment error.");
+
+        File.Copy(sourceFileName: globalJsonPath, destFileName: Path.Combine(tempDirectory.Path, "global.json"));
+        return tempDirectory;
+    }
+
     private async ValueTask WaitForProjectLoad(DocumentUri looseFileUri, TestLspServer testLspServer)
     {
         _ = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
@@ -504,7 +573,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // Regression test ensuring the project loader disposes the projects (and hence their file watches) it created
         // when the server shuts down. Each file watch holds an operating system handle (e.g. an inotify instance on
         // Linux); leaking them across server restarts eventually exhausts the per-user limit.
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var sourceText = """
             #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
@@ -539,7 +608,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var sourceText = """
             #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
@@ -580,7 +649,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var sourceText = """
             Console.WriteLine("Hello World!");
             """;
@@ -665,7 +734,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var initialText = """
             Console.WriteLine("Hello World!");
             """;
@@ -711,14 +780,14 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
-        Assert.Contains(document.Project.Documents, d => d.Name == "SomeFile.AssemblyInfo.cs");
+        Assert.Contains(document.Project.Documents, d => d.Name == "SomeFile.cs.AssemblyInfo.cs");
         Assert.True(document.Project.State.HasAllInformation);
     }
 
     [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83192"), CombinatorialData]
     public async Task TestFileStopsBeingFileBasedProgramWhenDirectivesDeleted(bool mutatingLspWorkspace)
     {
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var appCsText = """
             #!/usr/bin/env dotnet
             Console.WriteLine("Hello World!");
@@ -832,7 +901,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     public async Task TestMultiFile_Simulated_01(bool mutatingLspWorkspace)
     {
         // Use a Directory.Build.props in the same directory to simulate an '#:include' directive.
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var dbPropsText = """
             <Project>
                 <ItemGroup>
@@ -888,7 +957,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     public async Task TestMultiFile_Simulated_02(bool mutatingLspWorkspace)
     {
         // Reference the same non-entry-point file in both an `#:include` and `<Compile Include=...` of an ordinary project
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var dbPropsText = """
             <Project>
                 <ItemGroup>
@@ -957,7 +1026,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // When the primary file (with `#:` + top-level statements) is opened,
         // the secondary file moves from misc workspace to the primary file's project.
         // Directory.Build.props simulates the `#:include` directive.
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var dbPropsText = """
             <Project>
                 <ItemGroup>
@@ -1019,7 +1088,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // When the primary file (with `#:` + top-level statements) is opened,
         // the secondary file moves from misc workspace to the primary file's project.
         // Directory.Build.props simulates the `#:include` directive.
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var dbPropsText = """
             <Project>
                 <ItemGroup>
@@ -1079,7 +1148,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     {
         // Error scenario: open a file-based app entry point document,
         // then load a project which contains the same document.
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var appCsText = """
             #:property A=B
             Console.WriteLine("Hello");
@@ -1143,7 +1212,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     {
         // Error scenario: load a project which contains a file-based app entry point,
         // then open the file-based app entry point.
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var appCsText = """
             #:property A=B
             Console.WriteLine("Hello");
@@ -1193,7 +1262,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     public async Task TestCsprojInCone_01(bool mutatingLspWorkspace)
     {
         // in-cone: csproj in a containing directory (one level of nesting)
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var csprojFile = tempDir.CreateFile("Project.csproj");
 
         var srcDir = tempDir.CreateDirectory("src");
@@ -1254,7 +1323,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     public async Task TestCsprojInCone_02(bool mutatingLspWorkspace)
     {
         // in-cone: csproj in same directory
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var csprojFile = tempDir.CreateFile("Project.csproj");
 
         var fileText = """
@@ -1282,7 +1351,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     public async Task TestCsprojInCone_03(bool mutatingLspWorkspace)
     {
         // in-cone: csproj in a nested containing directory
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var csprojFile = tempDir.CreateFile("Project.csproj");
 
         var src1Dir = tempDir.CreateDirectory("src1");
@@ -1312,7 +1381,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     public async Task TestCsprojInCone_04(bool mutatingLspWorkspace)
     {
         // not-in-cone: csproj in a sibling directory
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
 
         var src1Dir = tempDir.CreateDirectory("src");
         var csprojFile = src1Dir.CreateFile("Project.csproj");
@@ -1375,7 +1444,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     public async Task TestCsprojInCone_05(bool mutatingLspWorkspace)
     {
         // not-in-cone: csproj in a child directory
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var fileText = """
             Console.WriteLine("Hello World");
             """;
@@ -1405,7 +1474,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     {
         // not-in-cone: csproj in a parent directory above a workspace directory.
         // even though the csproj file is "in-cone" in the file system, it's not within the workspace folder, so we act as if it's not-in-cone.
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var csprojFile = tempDir.CreateFile("Project.csproj");
 
         var src1Dir = tempDir.CreateDirectory("src1");
@@ -1440,7 +1509,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     {
         // in-cone: Test an edge case where multiple workspace folders are in-cone with each other.
         // The csproj-in-cone check may do unnecessary work in this case, but, observable behavior must be correct
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var csprojFile = tempDir.CreateFile("Project.csproj");
 
         var src1Dir = tempDir.CreateDirectory("src1");
@@ -1473,7 +1542,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     public async Task TestCsprojInCone_08(bool mutatingLspWorkspace)
     {
         // not-in-cone: No workspace folder is opened at all. Therefore no search is done for a csproj in cone.
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var csprojFile = tempDir.CreateFile("Project.csproj");
 
         var fileText = """
@@ -1498,7 +1567,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     {
         // not-in-cone: A workspace folder is open, but a .cs file outside that folder was opened.
         // No search is done for a .csproj-in-cone.
-        var tempDir = TempRoot.CreateDirectory();
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var src1Dir = tempDir.CreateDirectory("src1");
         var src2Dir = tempDir.CreateDirectory("src2");
         var csprojFile = src2Dir.CreateFile("Project.csproj");

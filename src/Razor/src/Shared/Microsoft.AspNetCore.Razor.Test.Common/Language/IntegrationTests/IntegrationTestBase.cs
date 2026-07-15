@@ -383,6 +383,28 @@ public abstract class IntegrationTestBase
         IntermediateNodeVerifier.Verify(document, baseline);
     }
 
+    protected void AssertSyntaxTreeMatchesBaseline(RazorCodeDocument codeDocument, [CallerMemberName] string testName = "")
+    {
+        var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".stree.txt");
+        var actualSyntaxNodes = TestSyntaxSerializer.Serialize(codeDocument.GetRequiredSyntaxTree().Root);
+
+        if (GenerateBaselines.ShouldGenerate)
+        {
+            var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
+            File.WriteAllText(baselineFullPath, actualSyntaxNodes, _baselineEncoding);
+            return;
+        }
+
+        var stFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
+        if (!stFile.Exists())
+        {
+            throw new XunitException($"The resource {baselineFileName} was not found.");
+        }
+
+        var syntaxNodeBaseline = stFile.ReadAllText();
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(syntaxNodeBaseline, actualSyntaxNodes);
+    }
+
     internal void AssertHtmlDocumentMatchesBaseline(RazorHtmlDocument htmlDocument, [CallerMemberName] string testName = "")
     {
         var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".codegen.html");
@@ -419,7 +441,7 @@ public abstract class IntegrationTestBase
             File.WriteAllText(baselineFullPath, csharpDocument.Text.ToString(), _baselineEncoding);
 
             var baselineDiagnosticsFullPath = Path.Combine(TestProjectRoot, baselineDiagnosticsFileName);
-            var lines = csharpDocument.Diagnostics.Select(RazorDiagnosticSerializer.Serialize).ToArray();
+            var lines = csharpDocument.Diagnostics.Select(RazorDiagnosticSerializer.SerializeAssertingFilePath).ToArray();
             if (lines.Any())
             {
                 File.WriteAllLines(baselineDiagnosticsFullPath, lines, _baselineEncoding);
@@ -451,7 +473,7 @@ public abstract class IntegrationTestBase
             baselineDiagnostics = diagnosticsFile.ReadAllText();
         }
 
-        var actualDiagnostics = string.Concat(csharpDocument.Diagnostics.Select(d => NormalizeNewLines(RazorDiagnosticSerializer.Serialize(d)) + "\r\n"));
+        var actualDiagnostics = string.Concat(csharpDocument.Diagnostics.Select(d => NormalizeNewLines(RazorDiagnosticSerializer.SerializeAssertingFilePath(d)) + "\r\n"));
         Assert.Equal(baselineDiagnostics, actualDiagnostics);
     }
 
