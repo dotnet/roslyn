@@ -953,7 +953,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 (inspectionContext.EvaluationFlags & DkmEvaluationFlags.ShowValueRaw) == 0 &&
                 SynthesizedCollectionHelpers.TryGetKind(runtimeType, out var synthesizedCollectionKind))
             {
-                var synthesizedCollectionExpansion = SynthesizedCollectionExpansion.CreateExpansion(this, inspectionContext, value, synthesizedCollectionKind);
+                var synthesizedCollectionExpansion = SynthesizedCollectionExpansion.CreateExpansion(this, inspectionContext, declaredTypeAndInfo, value, synthesizedCollectionKind);
                 if (synthesizedCollectionExpansion is not null)
                 {
                     return synthesizedCollectionExpansion;

@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static Expansion? CreateExpansion(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
+            TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value,
             SynthesizedCollectionKind kind)
         {
@@ -23,7 +24,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(!value.IsNull);
             Debug.Assert((inspectionContext.EvaluationFlags & DkmEvaluationFlags.ShowValueRaw) == 0);
 
-            var elementTypeAndInfo = new TypeAndCustomInfo(value.Type.GenericArguments[0]);
+            var elementCustomTypeInfo = GetElementCustomTypeInfo(declaredTypeAndInfo);
+            var elementTypeAndInfo = new TypeAndCustomInfo(
+                value.Type.GenericArguments[0],
+                elementCustomTypeInfo);
 
             DkmClrValue? singleElementValue = null;
             EvalResult? items = null;
@@ -49,6 +53,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         items = CreateItemsDataItem(
                             resultProvider,
                             inspectionContext,
+                            elementCustomTypeInfo,
                             itemsValue,
                             itemCount,
                             expansionFlags: ExpansionFlags.IncludeBaseMembers);
@@ -68,6 +73,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         items = CreateItemsDataItem(
                             resultProvider,
                             inspectionContext,
+                            elementCustomTypeInfo,
                             itemsValue,
                             itemCount,
                             expansionFlags: ExpansionFlags.All);
@@ -90,9 +96,58 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 itemCount);
         }
 
+        private static DkmClrCustomTypeInfo? GetElementCustomTypeInfo(TypeAndCustomInfo declaredTypeAndInfo)
+        {
+            if (declaredTypeAndInfo.Info is null)
+            {
+                return null;
+            }
+
+            var declaredType = declaredTypeAndInfo.Type;
+            if (declaredType is not { IsGenericType: true })
+            {
+                return null;
+            }
+
+            if (declaredType.GetGenericTypeDefinition().GetGenericArguments().Length != 1)
+            {
+                return null;
+            }
+
+            return CustomTypeInfo.SkipOne(declaredTypeAndInfo.Info);
+        }
+
+        private static DkmClrCustomTypeInfo? GetCollectionCustomTypeInfo(DkmClrCustomTypeInfo? elementCustomTypeInfo)
+        {
+            if (elementCustomTypeInfo is null)
+            {
+                return null;
+            }
+
+            CustomTypeInfo.Decode(
+                elementCustomTypeInfo.PayloadTypeId,
+                elementCustomTypeInfo.Payload,
+                out var elementDynamicFlags,
+                out var tupleElementNames);
+
+            if (elementDynamicFlags is null)
+            {
+                return CustomTypeInfo.Create(dynamicFlags: null, tupleElementNames: tupleElementNames);
+            }
+
+            var builder = ArrayBuilder<bool>.GetInstance();
+            builder.Add(false);
+            DynamicFlagsCustomTypeInfo.CopyTo(elementDynamicFlags, builder);
+            var dynamicFlags = DynamicFlagsCustomTypeInfo.ToBytes(builder);
+            builder.Free();
+
+            return CustomTypeInfo.Create(dynamicFlags, tupleElementNames);
+        }
+
         private static EvalResult? CreateItemsDataItem(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
+            DkmClrCustomTypeInfo? elementCustomTypeInfo,
             DkmClrValue itemsValue,
             int itemCount,
             ExpansionFlags expansionFlags)
@@ -106,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 inspectionContext,
                 WellKnownGeneratedNames.SynthesizedReadOnlyList_ItemsFieldName,
                 typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
-                declaredTypeAndInfo: new TypeAndCustomInfo(itemsValue.Type),
+                declaredTypeAndInfo: new TypeAndCustomInfo(itemsValue.Type, GetCollectionCustomTypeInfo(elementCustomTypeInfo)),
                 value: itemsValue,
                 useDebuggerDisplay: false,
                 expansionFlags: expansionFlags,

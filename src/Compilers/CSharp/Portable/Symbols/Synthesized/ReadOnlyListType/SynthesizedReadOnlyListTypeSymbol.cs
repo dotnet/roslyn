@@ -987,10 +987,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            const string DebuggerDisplayString = "Count = {System.Collections.ICollection.Count}";
+            const string debuggerDisplayString = "Count = {System.Collections.ICollection.Count}";
             AddSynthesizedAttribute(ref attributes, DeclaringCompilation.TrySynthesizeAttribute(
                 WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor,
-                [new TypedConstant(DeclaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, DebuggerDisplayString)]));
+                [new TypedConstant(DeclaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, debuggerDisplayString)]));
 
             AddSynthesizedAttribute(ref attributes, DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
