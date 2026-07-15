@@ -9719,6 +9719,120 @@ class C : System.Collections.ICollection
     }
 
     [Fact]
+    public void SlicePattern_NestedLengthOrPattern_Overflow()
+    {
+        var source = """
+            using System;
+
+            class Program
+            {
+                static bool Test(int[] input) => input is [_, .. { Length: 1 or 2147483647 }];
+
+                static void Main()
+                {
+                    Console.Write(Test([]));
+                    Console.Write(Test([0]));
+                    Console.Write(Test([0, 1]));
+                    Console.Write(Test([0, 1, 2]));
+                }
+            }
+            """ + TestSources.GetSubArray;
+
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        compilation.VerifyDiagnostics(
+            // (5,69): hidden CS9335: The pattern is redundant.
+            //     static bool Test(int[] input) => input is [_, .. { Length: 1 or 2147483647 }];
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "2147483647").WithLocation(5, 69));
+
+        VerifyDecisionDagDump<IsPatternExpressionSyntax>(compilation,
+@"[0]: t0 != null ? [1] : [5]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [5]
+[3]: t1 == 2 ? [4] : [5]
+[4]: leaf <isPatternSuccess> `[_, .. { Length: 1 or 2147483647 }]`
+[5]: leaf <isPatternFailure> `[_, .. { Length: 1 or 2147483647 }]`
+");
+
+        CompileAndVerify(compilation, expectedOutput: "FalseFalseTrueFalse");
+    }
+
+    [Fact]
+    public void SlicePattern_NestedLengthOrPattern_Negated()
+    {
+        var source = """
+            using System;
+
+            class Program
+            {
+                static bool Test(int[] input) => input is [_, .. { Length: not (1 or 2) }];
+
+                static void Main()
+                {
+                    Console.Write(Test([]));
+                    Console.Write(Test([0]));
+                    Console.Write(Test([0, 1]));
+                    Console.Write(Test([0, 1, 2]));
+                    Console.Write(Test([0, 1, 2, 3]));
+                }
+            }
+            """ + TestSources.GetSubArray;
+
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        compilation.VerifyDiagnostics();
+
+        VerifyDecisionDagDump<IsPatternExpressionSyntax>(compilation,
+@"[0]: t0 != null ? [1] : [5]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [5]
+[3]: t1 == 2 ? [5] : [4]
+[4]: t1 == 3 ? [5] : [6]
+[5]: leaf <isPatternFailure> `[_, .. { Length: not (1 or 2) }]`
+[6]: leaf <isPatternSuccess> `[_, .. { Length: not (1 or 2) }]`
+");
+
+        CompileAndVerify(compilation, expectedOutput: "FalseTrueFalseFalseTrue");
+    }
+
+    [Fact]
+    public void SlicePattern_NestedLengthOrPattern_MultipleSlices()
+    {
+        var source = """
+            using System;
+
+            class Program
+            {
+                static bool Test(int[] input) => input is [_, .. [_, .. { Length: 1 or 2 }]];
+
+                static void Main()
+                {
+                    Console.Write(Test([]));
+                    Console.Write(Test([0]));
+                    Console.Write(Test([0, 1]));
+                    Console.Write(Test([0, 1, 2]));
+                    Console.Write(Test([0, 1, 2, 3]));
+                    Console.Write(Test([0, 1, 2, 3, 4]));
+                }
+            }
+            """ + TestSources.GetSubArray;
+
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        compilation.VerifyDiagnostics();
+
+        VerifyDecisionDagDump<IsPatternExpressionSyntax>(compilation,
+@"[0]: t0 != null ? [1] : [7]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [7]
+[3]: t1 >= 2 ? [4] : [7]
+[4]: t1 == 3 ? [6] : [5]
+[5]: t1 == 4 ? [6] : [7]
+[6]: leaf <isPatternSuccess> `[_, .. [_, .. { Length: 1 or 2 }]]`
+[7]: leaf <isPatternFailure> `[_, .. [_, .. { Length: 1 or 2 }]]`
+");
+
+        CompileAndVerify(compilation, expectedOutput: "FalseFalseFalseTrueTrueFalse");
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/82398")]
     public void IndexerEvaluation_DifferentResultTypes()
     {

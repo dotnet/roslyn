@@ -18,8 +18,8 @@ $repoDir = Resolve-Path (Join-Path $PSScriptRoot "..")
 $benchmarkProjects = @(
   @{ Project = "src/Tools/Benchmarks/Benchmarks.csproj" }
   @{ Project = "src/Razor/src/Compiler/perf/Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj"; Framework = "net10.0" }
-  @{ Project = "src/Razor/src/Razor/benchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.csproj"; Framework = "net10.0" }
-  @{ Project = "src/Razor/src/Compiler/perf/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj" }
+  @{ Project = "src/Razor/src/Razor/benchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.csproj"; Framework = "net10.0"; HasValidationMode = $true }
+  @{ Project = "src/Razor/src/Compiler/perf/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj"; HasValidationMode = $true }
 
   # These projects are excluded because their current benchmark harnesses do not
   # complete a Dry validation run in this script's execution model.
@@ -53,8 +53,15 @@ foreach ($entry in $benchmarkProjects) {
 
   # Separator between dotnet args and BenchmarkDotNet args
   $args += "--"
-  $args += "--job"
-  $args += "Dry"
+  if ($entry.ContainsKey("HasValidationMode")) {
+    # These harnesses define multiple jobs for normal benchmark runs. Their validation
+    # mode replaces those jobs with one Dry job instead of unioning a CLI job with them.
+    $args += "--validate"
+  }
+  else {
+    $args += "--job"
+    $args += "Dry"
+  }
 
   if ($ci) {
     # Keep the filter as one argument so PowerShell does not expand '*' into file names.

@@ -37,3 +37,12 @@ won't be built/tested by the importing projects.
 **Description:** The same key in two global configs causes compiler error
 `MultipleGlobalAnalyzerKeys`, and the key is left unset.
 **Workaround:** Don't redefine a key already present in the base config.
+
+## BenchmarkDotNet CLI jobs are additive
+
+**Affected area:** Razor benchmark harnesses with jobs configured in code
+**Description:** Passing `--job Dry` adds a job instead of replacing configured
+jobs. This can create invalid job/toolchain combinations or concurrently rebuild
+the Roslyn graph through multiple generated projects that share `artifacts/obj`.
+**Workaround:** Use a harness-owned validation argument that is removed before
+BenchmarkDotNet parses the command line and configures exactly one Dry job.

@@ -48509,7 +48509,7 @@ class C2
             var src = @"
 union S1(int, bool) : S1.IUnionMembers
 {
-    public interface IUnionMembers
+    public interface IUnionMembers  
     {
         public static S1 Create(string x) => throw null;
         public object Value { get; }
@@ -48518,7 +48518,7 @@ union S1(int, bool) : S1.IUnionMembers
 
 union S2(int, bool)
 {
-    public interface IUnionMembers
+    public interface IUnionMembers  
     {
         public static S2 Create(string x) => throw null;
         public object Value { get; }

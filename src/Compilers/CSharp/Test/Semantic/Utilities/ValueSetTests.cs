@@ -19,6 +19,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static readonly Random Random = new Random();
 
+        [Fact]
+        public void TestAddLengthOffset()
+        {
+            IConstantValueSet<int> values = ForLength.Related(Equal, 1)
+                .Union(ForLength.Related(Equal, 2))
+                .Union(ForLength.Related(Equal, 4))
+                .Union(ForLength.Related(Equal, int.MaxValue));
+
+            Assert.Same(values, AddLengthOffset(values, 0));
+            Assert.Equal("[2..3],[5..5]", AddLengthOffset(values, 1).ToString());
+            Assert.Equal("", AddLengthOffset(ForLength.Related(Equal, int.MaxValue), 1).ToString());
+            Assert.Equal(
+                $"[{int.MaxValue}..{int.MaxValue}]",
+                AddLengthOffset(ForLength.Related(GreaterThanOrEqual, int.MaxValue - 2), 2).ToString());
+        }
+
         [Theory]
         [InlineData(0)]
         [InlineData(1)]

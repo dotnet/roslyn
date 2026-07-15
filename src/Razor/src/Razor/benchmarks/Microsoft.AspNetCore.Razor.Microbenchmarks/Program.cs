@@ -26,10 +26,12 @@ internal class Program
         var argList = new List<string>(args);
 
         bool getDiffableDisasm;
+        bool validate;
 
         try
         {
             ParseAndRemoveBooleanParameter(argList, "--disasm-diff", out getDiffableDisasm);
+            ParseAndRemoveBooleanParameter(argList, "--validate", out validate);
         }
         catch (ArgumentException ex)
         {
@@ -39,11 +41,11 @@ internal class Program
 
         return BenchmarkSwitcher
             .FromAssembly(typeof(Program).Assembly)
-            .Run(args, GetConfig(getDiffableDisasm))
+            .Run([.. argList], GetConfig(getDiffableDisasm, validate))
             .ToExitCode();
     }
 
-    private static IConfig GetConfig(bool getDiffableDisasm)
+    private static IConfig GetConfig(bool getDiffableDisasm, bool validate)
     {
         if (Debugger.IsAttached)
         {
@@ -56,12 +58,19 @@ internal class Program
             .AddAnalyser(DefaultConfig.Instance.GetAnalysers().ToArray()) // copy default analysers
             .AddExporter(MarkdownExporter.GitHub) // export to GitHub markdown
             .AddColumnProvider(DefaultColumnProviders.Instance) // display default columns (method name, args etc)
-            .AddJob(Job.Default.DontEnforcePowerPlan()) // use the current runtime with Roslyn's shared BenchmarkDotNet defaults
-            .AddJob(GetJob(CsProjClassicNetToolchain.Net472))
             .AddDiagnoser(MemoryDiagnoser.Default)
             .AddExporter(JsonExporter.Full)
             .AddColumn(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
             .WithSummaryStyle(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
+
+        if (validate)
+        {
+            return config.AddJob(Job.Dry.DontEnforcePowerPlan());
+        }
+
+        config = config
+            .AddJob(Job.Default.DontEnforcePowerPlan()) // use the current runtime with Roslyn's shared BenchmarkDotNet defaults
+            .AddJob(GetJob(CsProjClassicNetToolchain.Net472));
 
         if (getDiffableDisasm)
         {

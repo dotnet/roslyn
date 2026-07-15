@@ -2404,6 +2404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Returns true if the tests are related i.e. they have the same input, otherwise false.</summary>
+        /// <remarks>Keep in sync with ValueSet.Filter.isInputRelated</remarks>
         private bool CheckInputRelation(
             BoundDagTest test,
             BoundDagTest other)
@@ -3699,7 +3700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var originalTempMap = tempMap;
                         Tests result = removeEvaluation(tests, builder, state, ref tempMap, e, out Tests? condition);
-                        return result == tests && tempMap == originalTempMap && condition is null;
+                        return ReferenceEquals(result, tests) && ReferenceEquals(tempMap, originalTempMap) && condition is null;
                     }
                 }
 
@@ -4039,15 +4040,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public readonly BoundDagTemp Input;
                 public readonly IConstantValueSet Values;
                 internal readonly SyntaxNode Syntax;
-                internal readonly IConstantValueSetFactory Factory;
 
-                public ValueSet(BoundDagTemp input, IConstantValueSet values, SyntaxNode syntax, IConstantValueSetFactory factory)
+                public ValueSet(BoundDagTemp input, IConstantValueSet values, SyntaxNode syntax)
                 {
                     Debug.Assert(!values.IsEmpty);
                     Input = input;
                     Values = values;
                     Syntax = syntax;
-                    Factory = factory;
                 }
 
                 public override void Filter(
@@ -4096,9 +4095,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // For value/relational tests, use set operations
-                    whenTrue = ComputeFilteredResult(whenTrueValues);
-                    whenFalse = ComputeFilteredResult(whenFalseValues);
+                    if (test is BoundDagValueTest or BoundDagRelationalTest)
+                    {
+                        whenTrue = ComputeFilteredResult(whenTrueValues);
+                        whenFalse = ComputeFilteredResult(whenFalseValues);
+                        return;
+                    }
 
+                    Debug.Fail("New type of non-evaluation test added, please update filter for this");
+                    whenTrue = whenFalse = this;
+
+                    // Keep in sync with DecisionDagBuilder.CheckInputRelation
                     static bool isInputRelated(BoundDagTest test, BoundDagTemp valueSetInput)
                     {
                         if (test.Input == valueSetInput)
@@ -4128,15 +4135,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return False.Instance;
 
                     // Check if all possible values are in our set (guaranteed to match)
-                    var outsideOurSet = (IConstantValueSet)possibleValues.Intersect(Values.Complement());
-                    if (outsideOurSet.IsEmpty)
+                    if (intersection.Equals(possibleValues))
                         return True.Instance;
 
                     // Still pending, possibly narrowed
                     if (intersection.Equals(Values))
                         return this;
 
-                    return new ValueSet(Input, intersection, Syntax, Factory);
+                    return new ValueSet(Input, intersection, Syntax);
                 }
 
                 public override BoundDagTest ComputeSelectedTest(DecisionDagBuilder builder)
@@ -4154,14 +4160,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (TryGetTempReplacement(tempMap, Input, out BoundDagTemp? replacement))
                     {
                         return new RemoveEvaluationAndUpdateTempReferencesResult(
-                            new ValueSet(replacement, Values, Syntax, Factory), tempMap,
+                            new ValueSet(replacement, Values, Syntax), tempMap,
                             conditionToUseFinalResult: null, tempsUpdatedResult: null);
                     }
 
                     return new RemoveEvaluationAndUpdateTempReferencesResult(this, tempMap, conditionToUseFinalResult: null, tempsUpdatedResult: null);
                 }
 
-                public override Tests RewriteNestedLengthTests() => this;
+                public override Tests RewriteNestedLengthTests()
+                {
+                    if (Input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e &&
+                        TryGetTopLevelLengthTemp(e) is (BoundDagTemp lengthTemp, int offset))
+                    {
+                        Debug.Assert(ValueSetFactory.ForInput(Input) == ValueSetFactory.ForLength);
+                        IConstantValueSet<int> values = ValueSetFactory.AddLengthOffset(Values, offset);
+                        return values.IsEmpty
+                            ? False.Instance
+                            : new ValueSet(lengthTemp, values, Syntax);
+                    }
+
+                    return this;
+                }
                 public override string Dump(Func<BoundDagTest, string> dump) => $"VALUES({Values})";
                 public override bool Equals(object? obj) => this == obj || (obj is ValueSet other && Input.Equals(other.Input) && Values.Equals(other.Values));
                 public override int GetHashCode() => Hash.Combine(Input.GetHashCode(), Values.GetHashCode());
@@ -4954,9 +4973,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case ValueSet vs:
                             input = vs.Input;
-                            factory = vs.Factory;
+                            factory = ValueSetFactory.ForInput(vs.Input);
                             break;
-                        case One { Test: BoundDagValueTest firstValueTest }:
+                        case One { Test: BoundDagValueTest firstValueTest } when !firstValueTest.Value.IsBad:
                             input = firstValueTest.Input;
                             factory = ValueSetFactory.ForInput(input);
                             if (factory is null)
@@ -4966,16 +4985,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                     }
 
-                    // Keep nested slice-length tests separate until RewriteNestedLengthTests updates
-                    // each test to use the top-level length temp and adjusted constant. When that
-                    // rewrite reassembles this sequence, OrSequence.Update calls Create and retries
-                    // collapsing the rewritten tests into a ValueSet.
-                    if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } lengthEvaluation &&
-                        TryGetTopLevelLengthTemp(lengthEvaluation).lengthTemp is not null)
-                    {
-                        return false;
-                    }
-
                     // All elements must be ValueSet or One(BoundDagValueTest) on the same input
                     for (int i = 1; i < builder.Count; i++)
                     {
@@ -4983,7 +4992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case ValueSet vs when vs.Input == input:
                                 break;
-                            case One { Test: BoundDagValueTest vt } when vt.Input == input:
+                            case One { Test: BoundDagValueTest vt } when vt.Input == input && !vt.Value.IsBad:
                                 break;
                             default:
                                 return false;
@@ -5004,7 +5013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => throw ExceptionUtilities.Unreachable()
                     };
 
-                    result = new ValueSet(input, values, syntax, factory);
+                    result = new ValueSet(input, values, syntax);
                     return true;
 
                     static IConstantValueSet getValueSetForElement(Tests element, IConstantValueSetFactory factory)
