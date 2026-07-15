@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -59,10 +60,22 @@ internal sealed class ProjectBuildManager : IDisposable
     public string[] KnownCommandLineParserLanguages { get; }
 
     private readonly MSB.Evaluation.ProjectCollection _projectCollection;
-    private readonly MSBuildDiagnosticLogger _buildLogger = new()
-    {
-        Verbosity = MSB.Framework.LoggerVerbosity.Normal
-    };
+    private readonly MSBuildDiagnosticLogger _buildLogger = new() { Verbosity = MSB.Framework.LoggerVerbosity.Normal };
+    private readonly MSB.Execution.BuildParameters _buildParameters;
+
+    /// <summary>
+    /// An object used as a monitor to guard <see cref="_activeBuilds"/> and <see cref="_unloadedProjectsSinceLastCacheReset"/>.
+    /// For us to call <see cref="MSB.Execution.BuildManager.ResetCaches"/>; we need to end builds, call ResetCaches, and then begin build again.
+    /// This lets us easily count how many active builds there are, wait until that hits zero, and then block new builds from starting until
+    /// we're done with the reset.
+    ///
+    /// It's unclear if we could do a simpler approach taking advantage of the fact that EndBuild() will block on running builds, but it appears
+    /// submissions that aren't actually started will not get blocked for, which we need.
+    /// </summary>
+    private readonly object _activeBuildsLock = new object();
+    private int _activeBuilds;
+    private int _unloadedProjectsSinceLastCacheReset;
+
     private bool _disposed;
 
     public ProjectBuildManager(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, ILogger? msbuildLogger = null, int? maxNodeCount = null)
@@ -84,7 +97,7 @@ internal sealed class ProjectBuildManager : IDisposable
         // Pass empty loggers array to workaround LoggerException when passing binary logger to both evaluation and build. See https://github.com/dotnet/msbuild/issues/11867
         _projectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers: [], MSB.Evaluation.ToolsetDefinitionLocations.Default);
 
-        var buildParameters = new MSB.Execution.BuildParameters(_projectCollection)
+        _buildParameters = new MSB.Execution.BuildParameters(_projectCollection)
         {
             // The loggers are not inherited from the project collection, so specify both the
             // binlog logger and the _buildLogger for the build steps.
@@ -99,9 +112,9 @@ internal sealed class ProjectBuildManager : IDisposable
         };
 
         if (maxNodeCount is int nodeCount)
-            buildParameters.MaxNodeCount = nodeCount;
+            _buildParameters.MaxNodeCount = nodeCount;
 
-        MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
+        MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(_buildParameters);
     }
 
     public async Task<(MSB.Evaluation.Project? project, DiagnosticLog log)> LoadProjectAsync(
@@ -319,10 +332,18 @@ internal sealed class ProjectBuildManager : IDisposable
         // the RPC layer we use to call into the BuildHost doesn't support cancellation anyways so there's no reason to have lots of extra code.
         cancellationToken.ThrowIfCancellationRequested();
 
-        var submission = MSB.Execution.BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
+        // Before we start a build, record that one is running; this will block if we're currently clearing caches.
+        lock (_activeBuildsLock)
+        {
+            _activeBuilds++;
+        }
+
+        BuildSubmission? submission = null;
 
         try
         {
+            submission = MSB.Execution.BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
+
             // The SubmissionId is assigned by PendBuildRequest and is the same SubmissionId that appears on the
             // BuildEventContext of every event raised while this submission builds.
             _buildLogger.RegisterLog(submission.SubmissionId, log);
@@ -348,13 +369,41 @@ internal sealed class ProjectBuildManager : IDisposable
         }
         finally
         {
+            lock (_activeBuildsLock)
+            {
+                _activeBuilds--;
+
+                if (_activeBuilds == 0)
+                    Monitor.PulseAll(_activeBuildsLock);
+            }
+
             // Ensure the log is cleaned up if it's still there no matter if we take an exceptional path or not
-            _buildLogger.TryUnregisterLog(submission.SubmissionId);
+            if (submission is not null)
+                _buildLogger.TryUnregisterLog(submission.SubmissionId);
         }
     }
 
     public void UnloadProject(MSB.Evaluation.Project project)
     {
         _projectCollection.UnloadProject(project);
+
+        lock (_activeBuildsLock)
+        {
+            // If we've unloaded a lot of projects since our last reset, let's just reset it. 500 is chosen with no evidence
+            // whatsoever.
+            if (++_unloadedProjectsSinceLastCacheReset >= 500)
+            {
+                _unloadedProjectsSinceLastCacheReset = 0;
+
+                // We need to wait until there are no active builds before we reset caches
+                while (_activeBuilds > 0)
+                    Monitor.Wait(_activeBuildsLock);
+
+                // No active builds, so clear caches
+                MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
+                MSB.Execution.BuildManager.DefaultBuildManager.ResetCaches();
+                MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(_buildParameters);
+            }
+        }
     }
 }
