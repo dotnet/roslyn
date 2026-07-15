@@ -125,7 +125,10 @@ internal sealed class CompletionSource : IAsyncExpandingCompletionSource
 
             // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
-            _textView.Properties[PotentialCommitCharacters] = service.GetRules(options).DefaultCommitCharacters;
+            // Commit characters are not used in the debugger text view.
+            _textView.Properties[PotentialCommitCharacters] = _isDebuggerTextView
+                ? []
+                : service.GetRules(options).DefaultCommitCharacters;
 
             // Reset a flag which means a snippet triggered by ? + Tab.
             // Set it later if met the condition.
@@ -400,7 +403,7 @@ internal sealed class CompletionSource : IAsyncExpandingCompletionSource
 
         var filters = filterSet.GetFilterStatesInSet();
 
-        if (completionList.SuggestionModeItem is null)
+        if (_isDebuggerTextView || completionList.SuggestionModeItem is null)
             return (new(completionItemList, suggestionItemOptions: null, selectionHint: AsyncCompletionData.InitialSelectionHint.RegularSelection, filters, isIncomplete: false, null), completionList);
 
         var suggestionItemOptions = new AsyncCompletionData.SuggestionItemOptions(
