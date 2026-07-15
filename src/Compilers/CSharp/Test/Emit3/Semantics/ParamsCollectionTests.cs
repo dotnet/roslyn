@@ -91,7 +91,7 @@ class Program
             CompileAndVerify(
                 comp,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xc }" }
+                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }" }
                             : Verification.Skipped,
                 sourceSymbolValidator: static (m) =>
                 {
@@ -3004,7 +3004,7 @@ void M(params System.ReadOnlySpan<CustomHandler> handlers)
 
             var verifier = CompileAndVerify(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false, includeOneTimeHelpers: false) }, targetFramework: TargetFramework.Net80,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }" }
+                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }" }
                             : Verification.Skipped,
                 expectedOutput: ExpectedOutput(@"
 literal:Literal
@@ -5659,7 +5659,7 @@ class C1 : IEnumerable<char>
             CompileAndVerify(
                 comp,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xc }" }
+                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }" }
                             : Verification.Skipped,
                 expectedOutput: ExpectedOutput(@"
 int
