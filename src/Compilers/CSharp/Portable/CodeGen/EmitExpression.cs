@@ -1434,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                               ContainingSymbol:
                                    SynthesizedInlineArrayAsReadOnlySpanMethod or SynthesizedInlineArrayAsSpanMethod or SynthesizedInlineArrayElementRefMethod or
                                    SynthesizedInlineArrayElementRefReadOnlyMethod or SynthesizedInlineArrayFirstElementRefMethod or SynthesizedInlineArrayFirstElementRefReadOnlyMethod
-                          }));
+                          })); // See a comment in SynthesizedInlineArrayAsSpanMethod.ThrowIfInlineArrayIsNullRef about the 'byte' type relaxation for some parameters.
 
             if (used || parameter.ParameterSymbol.RefKind != RefKind.None)  // unused value parameter has no side-effects
             {
