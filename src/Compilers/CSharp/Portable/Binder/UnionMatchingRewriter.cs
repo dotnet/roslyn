@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.UnionMatchingMode != UnionMatchingMode.None)
             {
                 Debug.Assert(node.InputType.IsSubjectForUnionMatching);
+                Debug.Assert((node.UnionMatchingMode & UnionMatchingMode.UnionValue) != 0);
 
                 if ((node.UnionMatchingMode & UnionMatchingMode.UnionInstance) != 0)
                 {
-                    Debug.Assert((node.UnionMatchingMode & UnionMatchingMode.UnionValue) != 0);
                     Debug.Assert(Binder.IsClassOrNullableValueTypeUnionNullPatternMatching((NamedTypeSymbol)node.InputType, node.ConstantValue));
                     Debug.Assert(node.NarrowedType.Equals(node.InputType, TypeCompareKind.AllIgnoreOptions));
 

@@ -2772,6 +2772,43 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse TrueFalseFalseFalse FalseTrueFalse TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
+
+            var src2 = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    const int _int_10 = 10;
+
+    static bool Test10(S1 u)
+    {
+        return u is _int_10;
+    }   
+}
+";
+            comp = CreateCompilation([src2, UnionAttributeSource], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation([src2, UnionAttributeSource], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                // (17,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is _int_10;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is _int_10").WithArguments("unions").WithLocation(17, 16)
+                );
+
+            comp = CreateCompilation([src2, UnionAttributeSource], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            comp.VerifyDiagnostics(
+                // (17,21): error CS0246: The type or namespace name '_int_10' could not be found (are you missing a using directive or an assembly reference?)
+                //         return u is _int_10;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_int_10").WithArguments("_int_10").WithLocation(17, 21)
+                );
         }
 
         [Fact]
@@ -3802,7 +3839,7 @@ class Program
     static void Main()
     {
         System.Console.Write(Test1(new S1(10)));
-        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(default(S1)));
         System.Console.Write(Test1(new S1(""11"")));
         System.Console.Write(Test1(new S1(0)));
         System.Console.Write(' ');
@@ -3876,6 +3913,16 @@ class Program
                 // (34,16): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u is int;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is int").WithArguments("unions").WithLocation(34, 16)
+                );
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular6);
+            comp.VerifyDiagnostics(
+                // (29,16): warning CS0184: The given expression is never of the provided ('int') type
+                //         return u is int;
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "u is int").WithArguments("int").WithLocation(29, 16),
+                // (34,16): warning CS0184: The given expression is never of the provided ('int') type
+                //         return u is int;
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "u is int").WithArguments("int").WithLocation(34, 16)
                 );
         }
 
@@ -11596,27 +11643,27 @@ class Program
                 // (300,88): hidden CS9335: The pattern is redundant.
                 //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 88),
-                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'S1{ Value: null }' is not covered.
                 //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
-                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("S1{ Value: null }").WithLocation(500, 18),
+                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'S1{ Value: string }' is not covered.
                 //         return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(600, 18),
-                // (700,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("S1{ Value: string }").WithLocation(600, 18),
+                // (700,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'S1{ Value: string }' is not covered.
                 //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(700, 18),
-                // (800,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("S1{ Value: string }").WithLocation(700, 18),
+                // (800,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'S1{ Value: string }' is not covered.
                 //         return u switch { S1 { Value: int } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(800, 18),
-                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("S1{ Value: string }").WithLocation(800, 18),
+                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'S1{ Value: int }' is not covered.
                 //         return u switch { S1 { Value: not int } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(900, 18),
-                // (1000,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("S1{ Value: int }").WithLocation(900, 18),
+                // (1000,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'S1{ Value: int }' is not covered.
                 //         return u switch {  S1 { Value: null } => 3, S1 { Value: not int } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(1000, 18),
-                // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("S1{ Value: int }").WithLocation(1000, 18),
+                // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'S1{ Value: null }' is not covered.
                 //         return u switch { S1 { Value: not null } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1150, 18),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("S1{ Value: null }").WithLocation(1150, 18),
                 // (1200,68): hidden CS9335: The pattern is redundant.
                 //         return u switch { S1 { Value: null } => 3, S1 { Value: not null } => 1, not S1 => -100 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 68),
@@ -51928,7 +51975,7 @@ class Program
 
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (13,31): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (13,31): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (this is T and var val)
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "val").WithLocation(13, 31)
                 );
@@ -57029,7 +57076,7 @@ class Program
         public void TypePattern_05_UnionInstance_Only_BindIsOperator()
         {
             var src = @"
-class C0;
+class C0 {}
 
 [System.Runtime.CompilerServices.Union]
 class C1 : C0
@@ -57073,6 +57120,9 @@ class Program
             CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular6);
             CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
         }
 
@@ -57616,16 +57666,46 @@ class Program
             C1 and I1 and { Value1: true } => 2,
             not C1 => 3,
         };
+    }  
+
+    static int Test4(object u)
+    {
+#line 400
+        return u switch
+        {
+            C1 { Value: I1 { Value1: false } } => 1,
+            C1 and I1 and { Value1: true } => 2,
+            not C1 => 3,
+            C1 { Value: int } => 4,
+        };
+    }   
+
+    static int Test5(object u)
+    {
+#line 500
+        return u switch
+        {
+            C1 { Value: I1 { Value1: false } } => 1,
+            C1 and I1 and { Value1: true } => 2,
+            not C1 => 3,
+            C1 { Value: int } => 4,
+            C1 => 5,
+        };
     }   
 }
 ";
             comp = CreateCompilation([src3, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
 
-            // PROTOTYPE: Adjust pattern explainer to show "C1 and int"
             comp.VerifyDiagnostics(
-                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1{ Value: int }' is not covered.
                 //         return u switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(300, 18)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1{ Value: int }").WithLocation(300, 18),
+                // (400,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1' is not covered.
+                //         return u switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1").WithLocation(400, 18),
+                // (503,37): hidden CS9335: The pattern is redundant.
+                //             C1 and I1 and { Value1: true } => 2,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(503, 37)
                 );
 
             var src4 = @"
@@ -57953,13 +58033,16 @@ class C1
     public object Value => _value;
 }
 
-class C2(object x) : I1
+class C2 : I1
 {
-    public object Value1 => x;
+    private object _x;
+    public C2(object x) { _x = x; }
+    public object Value1 => _x;
 }
 
-class C3(object x) : C1(x), I1
+class C3 : C1, I1
 {
+    public C3(object x) : base(x) { }
     object I1.Value1 => _value;
 }
 
@@ -57983,6 +58066,7 @@ class Program
 
     static bool Test1(C1 u)
     {
+#line 42
         return u is I1;
     }   
 }
@@ -58010,6 +58094,9 @@ forLowering: true);
                 //         return u is I1;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "u is I1").WithArguments("unions").WithLocation(42, 16)
                 );
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular6);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrueTrue").VerifyDiagnostics();
         }
 
         [Fact]
@@ -58068,9 +58155,8 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE: Adjust wording 
             comp.VerifyDiagnostics(
-                // (48,48): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (48,48): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 and { Value1: int i } => -i, _ => -999 };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i").WithLocation(48, 48)
                 );
@@ -58135,7 +58221,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (48,45): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (48,45): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if ( u is not (I1 and { Value1: int i }))
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i").WithLocation(48, 45)
                 );
@@ -58197,7 +58283,7 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (48,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (48,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 and var i1 and { Value1: int } => -(int)i1.Value1, _ => -999 };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(48, 38)
                 );
@@ -58364,27 +58450,519 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (100,29): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (100,29): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case I1 and var i1 and { Value1: int } when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 29),
-                // (200,36): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (200,36): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case C1 and I1 and var i1 and { Value1: int } when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(200, 36),
-                // (300,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (300,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case C1 and (I1) and var i1 and { Value1: int } when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 38),
-                // (400,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (400,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case (C1 and I1) and var i1 and { Value1: int } when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(400, 38),
-                // (500,58): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (500,58): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case C1 and (I1 and { Value1: int }) and var i1 when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(500, 58),
-                // (600,59): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (600,59): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case (C1 and I1) and ({ Value1: int } and var i1) when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(600, 59),
-                // (700,48): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (700,48): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //             case C1 and I1 and { Value1: int } i1 when GetTrue(ref i1):
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(700, 48)
+                );
+        }
+
+        [Fact]
+        public void TypePattern_18_UnionInstance_And_Value_Plus_Designation()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+
+    public int Length => 0;
+    public object this[int i] => null;
+    public C1 this[System.Range i] => null;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class Program
+{
+    static int Test1(C1 u)
+    {
+        switch (u)
+        {
+#line 100
+            case [.. I1 and var i1, _ ]:
+                return -(int)i1.Value1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test2(C1 u)
+    {
+        switch (u)
+        {
+#line 200
+            case [.. I1, var i1 ] and var u1:
+                return -(int)i1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test3(C1 u)
+    {
+        switch (u)
+        {
+#line 300
+            case not [.. var i1, _ ]:
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (100,33): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case [.. I1 and var i1, _ ]:
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 33),
+                // (300,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case not [.. var i1, _ ]:
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 30)
+                );
+        }
+
+        [Fact]
+        public void TypePattern_19_UnionInstance_And_Value_Plus_Designation()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class Program
+{
+    static int Test1(C1[] u)
+    {
+        switch (u)
+        {
+#line 100
+            case [I1 and var i1, _ ]:
+                return -(int)i1.Value1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test2(C1[] u)
+    {
+        switch (u)
+        {
+#line 200
+            case [I1, var i1 ] and var u1:
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test3(C1[] u)
+    {
+        switch (u)
+        {
+#line 300
+            case not [var i1, _ ]:
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case [I1 and var i1, _ ]:
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
+                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case not [var i1, _ ]:
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
+                );
+        }
+
+        [Fact]
+        public void TypePattern_20_UnionInstance_And_Value_Plus_Designation()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class Program
+{
+    static int Test1((C1, object) u)
+    {
+        switch (u)
+        {
+#line 100
+            case (I1 and var i1, _ ):
+                return -(int)i1.Value1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test2((C1, object) u)
+    {
+        switch (u)
+        {
+#line 200
+            case (I1, var i1 ) and var u1:
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test3((C1, object) u)
+    {
+        switch (u)
+        {
+#line 300
+            case not (var i1, _ ):
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case (I1 and var i1, _ ):
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
+                // (300,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case not (var i1, _ ):
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "not (var i1, _ )").WithLocation(300, 18),
+                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case not (var i1, _ ):
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
+                );
+        }
+
+        [Fact]
+        public void TypePattern_21_UnionInstance_And_Value_Plus_Designation()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class C4
+{
+    public void Deconstruct(out C1 c, out object x) => throw null;
+}
+
+class Program
+{
+    static int Test1(C4 u)
+    {
+        switch (u)
+        {
+#line 100
+            case (I1 and var i1, _ ):
+                return -(int)i1.Value1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test2(C4 u)
+    {
+        switch (u)
+        {
+#line 200
+            case (I1, var i1 ) and var u1:
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test3(C4 u)
+    {
+        switch (u)
+        {
+#line 300
+            case not (var i1, _ ):
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case (I1 and var i1, _ ):
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
+                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case not (var i1, _ ):
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
+                );
+        }
+
+        [Fact]
+        public void TypePattern_22_UnionInstance_And_Value_Plus_Designation()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class Program
+{
+    static int Test1(System.Runtime.CompilerServices.ITuple u)
+    {
+        switch (u)
+        {
+#line 100
+            case (C1 and I1 and var i1, _ ):
+                return -(int)i1.Value1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test2(System.Runtime.CompilerServices.ITuple u)
+    {
+        switch (u)
+        {
+#line 200
+            case (C1 and I1, var i1 ) and var u1:
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test3(System.Runtime.CompilerServices.ITuple u)
+    {
+        switch (u)
+        {
+#line 300
+            case not (var i1, _ ):
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (100,37): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case (C1 and I1 and var i1, _ ):
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 37),
+                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case not (var i1, _ ):
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
+                );
+        }
+
+        [Fact]
+        public void TypePattern_23_UnionInstance_And_Value_Plus_Designation()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(C2 x) { _value = x; }
+    protected C1(object x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2(object x) : I1
+{
+    public object Value1 => x;
+}
+
+class C3(object x) : C1(x), I1
+{
+    object I1.Value1 => _value;
+}
+
+interface I1
+{
+    object Value1 { get; }
+}
+
+class C4
+{
+    public C1 C => throw null;
+    public object O => throw null;
+}
+
+class Program
+{
+    static int Test1(C4 u)
+    {
+        switch (u)
+        {
+#line 100
+            case { C: I1 and var i1, O: _ }:
+                return -(int)i1.Value1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test2(C4 u)
+    {
+        switch (u)
+        {
+#line 200
+            case { C: I1, O: var i1 } and var u1:
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+
+    static int Test3(C4 u)
+    {
+        switch (u)
+        {
+#line 300
+            case not { C: var i1, O: _ }:
+                return -1;
+            default:
+                return -999;
+        }
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (100,34): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case { C: I1 and var i1, O: _ }:
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 34),
+                // (300,31): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                //             case not { C: var i1, O: _ }:
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 31)
                 );
         }
 
@@ -58570,14 +59148,14 @@ class Program
 forLowering: false);
 
             comp.VerifyDiagnostics(
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 x => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
                 );
 
             comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 x => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
                 );
@@ -58587,7 +59165,7 @@ forLowering: false);
                 // (42,27): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u switch { I1 x => true, _ => false };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1 x").WithArguments("unions").WithLocation(42, 27),
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 x => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
                 );
@@ -59243,13 +59821,13 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (42,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (42,33): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 {} i1 => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(42, 33),
-                // (47,44): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (47,44): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 { Value1: var v1 } => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(47, 44),
-                // (52,41): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (52,41): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 {} and var i1 => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(52, 41)
                 );
@@ -59940,13 +60518,13 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (43,37): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (43,37): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 (_, _) i1 => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(43, 37),
-                // (48,35): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (48,35): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 (var v1, _) => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(48, 35),
-                // (53,45): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (53,45): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         return u switch { I1 (_, _) and var i1 => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(53, 45)
                 );

@@ -796,7 +796,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 NamedTypeSymbol? unionType = null;
-                // PROTOTYPE: Add coverage for the fact that permitDesignations flows in, but doesn't flow out this function.
                 pattern = BindPattern(node.Pattern, ref unionType, sliceType, ref permitDesignations, hasErrors, diagnostics, out hasUnionMatching, underIsPattern: false);
             }
             else
@@ -832,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     NamedTypeSymbol? unionType = null;
-                    bool clausePermitDesignations = permitDesignations; // PROTOTYPE: Add coverage for the fact that permitDesignations flows in, but doesn't flow out here.
+                    bool clausePermitDesignations = permitDesignations;
                     boundPattern = BindPattern(pattern, ref unionType, elementType, ref clausePermitDesignations, hasErrors, diagnostics, out bool patternHasUnionMatching, underIsPattern: false);
                     hasUnionMatching |= patternHasUnionMatching;
                 }
@@ -1815,7 +1814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 NamedTypeSymbol? unionType = null;
-                bool clausePermitDesignations = permitDesignations; // PROTOTYPE: Add coverage for the fact that permitDesignations flows in, but doesn't flow out here.
+                bool clausePermitDesignations = permitDesignations;
                 var boundSubpattern = new BoundPositionalSubpattern(
                     subPattern,
                     parameter,
@@ -1850,7 +1849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 NamedTypeSymbol? unionType = null;
-                bool clausePermitDesignations = permitDesignations; // PROTOTYPE: Add coverage for the fact that permitDesignations flows in, but doesn't flow out here.
+                bool clausePermitDesignations = permitDesignations;
                 var boundSubpattern = new BoundPositionalSubpattern(
                     subpatternSyntax,
                     null,
@@ -1897,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 NamedTypeSymbol? unionType = null;
-                bool clausePermitDesignations = permitDesignations; // PROTOTYPE: Add coverage for the fact that permitDesignations flows in, but doesn't flow out here.
+                bool clausePermitDesignations = permitDesignations;
                 BoundPositionalSubpattern boundSubpattern = new BoundPositionalSubpattern(
                     subpatternSyntax,
                     foundField,
@@ -2262,7 +2261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, expr is MemberAccessExpressionSyntax memberAccess ? memberAccess.Name : expr); // Since new exhaustiveness rules will be used by DecisionDagBuilder.
                 }
 
-                bool clausePermitDesignations = permitDesignations; // PROTOTYPE: Add coverage for the fact that permitDesignations doesn't flow out here.
+                bool clausePermitDesignations = permitDesignations;
                 BoundPattern boundPattern = BindPattern(pattern, ref unionType, memberType, ref clausePermitDesignations, hasErrors, diagnostics, out bool patternHasUnionMatching, underIsPattern: false);
                 hasUnionMatching |= patternHasUnionMatching;
                 var subpattern = new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern);

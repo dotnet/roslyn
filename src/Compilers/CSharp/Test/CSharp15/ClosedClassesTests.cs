@@ -2208,10 +2208,18 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         D1 => 1,
                         D2 and string => 2,
                     };
+            
+                public int Match6(C c)
+            #line 400
+                    => c switch
+                    {
+                        D1 => 1,
+                        D2 and string => 2,
+                        D2 { Value: int } => 3,
+                    };
             }
             """;
 
-        // https://github.com/dotnet/roslyn/issues/83617: The pattern `int` suggested for line 300 is invalid. A pattern like `D2` or `D2 and int` should be suggested instead.
         var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (100,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'string'.
@@ -2223,9 +2231,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (200,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'int'.
             //             int => 3,
             Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("C", "int").WithLocation(200, 13),
-            // (300,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+            // (300,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2{ Value: int }' is not covered.
             //         => c switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(300, 14));
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2{ Value: int }").WithLocation(300, 14));
     }
 
     [Fact]

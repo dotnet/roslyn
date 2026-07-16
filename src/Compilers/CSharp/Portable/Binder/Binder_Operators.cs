@@ -4847,7 +4847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             diagnostics.AddRangeAndFree(isTypeDiagnostics);
 
-            if (((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) && // PROTOTYPE: Add test coverage for this case
+            if (((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) &&
                 inputType?.IsUnionMatchingInputType(unionType: out _) == true)
             {
                 var tryUnionMatchingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
