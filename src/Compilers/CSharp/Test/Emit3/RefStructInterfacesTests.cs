@@ -21510,7 +21510,13 @@ ref struct S1
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyDiagnostics(
-                // Errors are expected for both queries, but it is a pre-existing condition - https://github.com/dotnet/roslyn/issues/72945    
+                // （Fixed）Errors are expected for both queries, but it is a pre-existing condition - https://github.com/dotnet/roslyn/issues/72945
+                // (100,33): error CS1932: Cannot assign T to a range variable
+                //         var q = from x in outer join y in inner1 on x.P equals y.P
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "join y in inner1 on x.P equals y.P").WithArguments("T").WithLocation(100, 33),
+                // (200,33): error CS1932: Cannot assign S1 to a range variable
+                //         var q = from x in outer join y in inner1 on x.P equals y.P
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "join y in inner1 on x.P equals y.P").WithArguments("S1").WithLocation(200, 33)
                 );
         }
 
