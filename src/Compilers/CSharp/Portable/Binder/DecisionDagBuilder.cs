@@ -4102,7 +4102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    Debug.Fail("New type of non-evaluation test added, please update filter for this");
+                    Debug.Assert(test is BoundDagTypeTest, "New type of non-evaluation test added, please update filter for this");
                     whenTrue = whenFalse = this;
 
                     // Keep in sync with DecisionDagBuilder.CheckInputRelation
