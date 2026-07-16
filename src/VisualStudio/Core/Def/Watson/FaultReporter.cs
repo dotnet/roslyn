@@ -111,6 +111,11 @@ internal static class FaultReporter
         "System.Collections.Immutable.",
         "System.Linq.",
         "System.Runtime.CompilerServices.",
+        "System.ThrowHelper.",
+
+        // Ignore anything from our text span helpers, since any mixup of positions would be the caller's mistake
+        typeof(Text.LinePosition).FullName + ".",
+        typeof(Text.TextSpan).FullName + ".",
     ];
 
     /// <summary>
