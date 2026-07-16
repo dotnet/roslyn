@@ -3,6 +3,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -24,9 +26,11 @@ internal partial class RazorEditService
             Text = text;
         }
 
-        public static CSharpMember? TryCreate(MemberDeclarationSyntax member, SourceText sourceText)
+        public static CSharpMember? TryCreate(MemberDeclarationSyntax member, SourceText sourceText, RazorFileKind fileKind)
             => member switch
             {
+                // We never want to consider the primary method (eg BuildRenderTree) as being added, since it's never user code
+                MethodDeclarationSyntax method when IsGeneratedPrimaryMethod(method, fileKind) => null,
                 BaseMethodDeclarationSyntax method => new(method, GetComparisonSpan(method), sourceText),
                 TypeDeclarationSyntax typeDeclaration => new(typeDeclaration, GetComparisonSpan(typeDeclaration), sourceText),
                 IndexerDeclarationSyntax indexer => new(indexer, GetComparisonSpan(indexer), sourceText),
@@ -36,6 +40,24 @@ internal partial class RazorEditService
                 FieldDeclarationSyntax field => new(field, GetComparisonSpan(field), sourceText),
                 _ => null,
             };
+
+        private static bool IsGeneratedPrimaryMethod(MethodDeclarationSyntax method, RazorFileKind fileKind)
+        {
+            if (fileKind == RazorFileKind.Legacy)
+            {
+                return method is
+                {
+                    Identifier.ValueText: "ExecuteAsync",
+                    ParameterList.Parameters: [],
+                };
+            }
+
+            return method is
+            {
+                Identifier.ValueText: ComponentsApi.ComponentBase.BuildRenderTree,
+                ParameterList.Parameters: [{ Identifier.ValueText: ComponentsApi.RenderTreeBuilder.BuilderParameter }],
+            };
+        }
 
         public bool Equals(CSharpMember? other)
         {
