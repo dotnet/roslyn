@@ -707,15 +707,15 @@ class Test
 
             CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8)
                 .VerifyDiagnostics(
-                // (7,41): error CS1932: Cannot assign Span<int> to a range variable
+                // (7,45): error CS1932: Cannot assign Span<int> to a range variable
                 //         var q1 = from item in array let v = stackalloc int[3] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "v = stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 41),
-                // (8,41): error CS1932: Cannot assign Span<int> to a range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 45),
+                // (8,45): error CS1932: Cannot assign Span<int> to a range variable
                 //         var q2 = from item in array let v = stackalloc int[ ] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "v = stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 41),
-                // (9,41): error CS1932: Cannot assign Span<int> to a range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 45),
+                // (9,45): error CS1932: Cannot assign Span<int> to a range variable
                 //         var q3 = from item in array let v = stackalloc    [ ] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "v = stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 41)
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 45)
                 );
         }
 
