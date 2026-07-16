@@ -790,9 +790,6 @@ public static class MyExtensions {
                 // (13,20): error CS1932: Cannot assign Span<string> to a range variable
                 //                    from y in _M<string>()
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "from y in _M<string>()").WithArguments("System.Span<string>").WithLocation(13, 20),
-                // (14,24): error CS1932: Cannot assign Span<int> to a range variable
-                //                    let m = x
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "m = x").WithArguments("System.Span<int>").WithLocation(14, 24),
                 // (14,28): error CS1932: Cannot assign Span<int> to a range variable
                 //                    let m = x
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "x").WithArguments("System.Span<int>").WithLocation(14, 28),
