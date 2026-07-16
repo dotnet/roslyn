@@ -7030,7 +7030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return parameters;
             }
 
-            ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
+            ParameterSymbol? extensionParameter = member.RequiredContainingType.ExtensionParameter;
             Debug.Assert(extensionParameter is not null);
 
             return [extensionParameter, .. parameters];
@@ -7064,7 +7064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static RefKind GetExtensionReceiverRefKind(Symbol member)
         {
-            ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
+            ParameterSymbol? extensionParameter = member.RequiredContainingType.ExtensionParameter;
             Debug.Assert(extensionParameter is not null);
             // See "OverloadResolution.IsApplicable": we only give an implicit `ref` on the receiver for a `ref` parameter
             // For `ref readonly` or `in`, we use "none"
@@ -7187,7 +7187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // check whether 'method', when called on this receiver, is an implementation of 'constructedMethod'.
                 for (var baseType = receiverType; baseType is object && method is object; baseType = baseType.BaseTypeNoUseSiteDiagnostics)
                 {
-                    var implementationMethod = baseType.FindImplementationForInterfaceMember(constructedMethod);
+                    var implementationMethod = (MethodSymbol?)baseType.FindImplementationForInterfaceMember(constructedMethod);
                     if (implementationMethod is null)
                     {
                         // we know no base type will implement this interface member either
@@ -9181,7 +9181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return symbol.SymbolAsMember(containingType);
             }
 
-            var symbolContainer = symbol.ContainingType;
+            var symbolContainer = symbol.RequiredContainingType;
             if (symbolContainer.IsAnonymousType)
             {
                 int? memberIndex = symbol.Kind == SymbolKind.Property ? symbol.MemberIndexOpt : null;
@@ -9193,7 +9193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (!symbolContainer.IsGenericType)
             {
-                Debug.Assert(symbol.ContainingType.IsDefinition);
+                Debug.Assert(symbolContainer.IsDefinition);
                 return symbol;
             }
             if (!containingType.IsGenericType)

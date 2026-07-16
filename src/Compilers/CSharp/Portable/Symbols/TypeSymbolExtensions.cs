@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Delegate:
                         {
                             var containingType = current.ContainingType;
-                            if ((object)containingType != null)
+                            if ((object?)containingType != null)
                             {
                                 isNestedNamedType = true;
                                 var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType, visitCustomModifiers);
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case TypeKind.Submission:
-                        RoslynDebug.Assert((object)current.ContainingType == null);
+                        RoslynDebug.Assert((object?)current.ContainingType == null);
                         break;
                 }
 
@@ -1088,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var parent1 = s1.ContainingType;
 
-                            if ((object)parent1 == null)
+                            if ((object?)parent1 == null)
                             {
                                 // not helpful
                             }
@@ -1096,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 // if s2 is private and within s1's parent or within a subclass of s1's parent,
                                 // then this is at least as restrictive as s1's protected.
-                                for (var parent2 = s2.ContainingType; (object)parent2 != null; parent2 = parent2.ContainingType)
+                                for (var parent2 = s2.ContainingType; (object?)parent2 != null; parent2 = parent2.ContainingType)
                                 {
                                     if (parent1.IsAccessibleViaInheritance(parent2, ref useSiteInfo))
                                     {
@@ -1109,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // if s2 is protected, and it's parent is a subclass (or the same as) s1's parent
                                 // then this is at least as restrictive as s1's protected
                                 var parent2 = s2.ContainingType;
-                                if ((object)parent2 != null && parent1.IsAccessibleViaInheritance(parent2, ref useSiteInfo))
+                                if ((object?)parent2 != null && parent1.IsAccessibleViaInheritance(parent2, ref useSiteInfo))
                                 {
                                     return true;
                                 }
@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var parent1 = s1.ContainingType;
 
-                            if ((object)parent1 == null)
+                            if ((object?)parent1 == null)
                             {
                                 break;
                             }
@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         return true;
                                     }
 
-                                    for (var parent2 = s2.ContainingType; (object)parent2 != null; parent2 = parent2.ContainingType)
+                                    for (var parent2 = s2.ContainingType; (object?)parent2 != null; parent2 = parent2.ContainingType)
                                     {
                                         if (parent1.IsAccessibleViaInheritance(parent2, ref useSiteInfo))
                                         {
@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 case Accessibility.Protected:
                                     // if s2 is protected, and it's parent is a subclass (or the same as) s1's parent
                                     // then this is at least as restrictive as s1's internal protected
-                                    if (parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteInfo))
+                                    if (parent1.IsAccessibleViaInheritance(s2.RequiredContainingType, ref useSiteInfo))
                                     {
                                         return true;
                                     }
@@ -1172,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     // if s2 is private protected, and it's parent is a subclass (or the same as) s1's parent
                                     // or its in the same assembly as s1, then this is at least as restrictive as s1's protected
                                     if (s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly) ||
-                                        parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteInfo))
+                                        parent1.IsAccessibleViaInheritance(s2.RequiredContainingType, ref useSiteInfo))
                                     {
                                         return true;
                                     }
@@ -1183,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     // if s2 is internal protected, and it's parent is a subclass (or the same as) s1's parent
                                     // and its in the same assembly as s1, then this is at least as restrictive as s1's protected
                                     if (s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly) &&
-                                        parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteInfo))
+                                        parent1.IsAccessibleViaInheritance(s2.RequiredContainingType, ref useSiteInfo))
                                     {
                                         return true;
                                     }
@@ -1198,15 +1198,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // if s2 is private, and it is within s1's parent, then this is at
                             // least as restrictive as s1's private.
-                            NamedTypeSymbol parent1 = s1.ContainingType;
+                            NamedTypeSymbol? parent1 = s1.ContainingType;
 
-                            if ((object)parent1 == null)
+                            if ((object?)parent1 == null)
                             {
                                 break;
                             }
 
                             var parent1OriginalDefinition = parent1.OriginalDefinition;
-                            for (var parent2 = s2.ContainingType; (object)parent2 != null; parent2 = parent2.ContainingType)
+                            for (var parent2 = s2.ContainingType; (object?)parent2 != null; parent2 = parent2.ContainingType)
                             {
                                 if (ReferenceEquals(parent2.OriginalDefinition, parent1OriginalDefinition) || parent1OriginalDefinition.TypeKind == TypeKind.Submission && parent2.TypeKind == TypeKind.Submission)
                                 {

@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDagTemp OriginalInput(BoundDagTemp input, Symbol symbol)
         {
-            while (input.Source is BoundDagTypeEvaluation source && isDerivedType(source.Input.Type, symbol.ContainingType))
+            while (input.Source is BoundDagTypeEvaluation source && isDerivedType(source.Input.Type, symbol.RequiredContainingType))
             {
                 if (IsAnyUnionValue(source.Input, out _))
                 {

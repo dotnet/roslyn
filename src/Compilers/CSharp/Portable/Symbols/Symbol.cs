@@ -107,22 +107,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public abstract Symbol ContainingSymbol { get; }
 
+#nullable enable
         /// <summary>
         /// Returns the nearest lexically enclosing type, or null if there is none.
         /// </summary>
-        public virtual NamedTypeSymbol ContainingType
+        public virtual NamedTypeSymbol? ContainingType
         {
             get
             {
                 Symbol container = this.ContainingSymbol;
 
-                NamedTypeSymbol containerAsType = container as NamedTypeSymbol;
+                NamedTypeSymbol? containerAsType = container as NamedTypeSymbol;
 
                 // NOTE: container could be null, so we do not check 
                 //       whether containerAsType is not null, but 
                 //       instead check if it did not change after 
                 //       the cast.
-                if ((object)containerAsType == (object)container)
+                if ((object?)containerAsType == (object)container)
                 {
                     // this should be relatively uncommon
                     // most symbols that may be contained in a type
@@ -136,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return container.ContainingType;
             }
         }
+#nullable disable
 
         /// <summary>
         /// Gets the nearest enclosing namespace for this namespace or type. For a nested type,

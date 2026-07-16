@@ -951,9 +951,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private RefKind GetExtensionBlockMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
         {
             Debug.Assert(rewrittenReceiver.Type is { });
-            Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is { });
 
-            RefKind receiverRefKind = methodOrIndexer.ContainingType.ExtensionParameter.RefKind;
+            RefKind receiverRefKind = methodOrIndexer.GetRequiredExtensionParameter().RefKind;
             bool isReceiverTakenByValue = receiverRefKind == RefKind.None;
 
             if (rewrittenReceiver.Type.IsReferenceType ||
@@ -1331,8 +1330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (methodOrIndexer.IsExtensionBlockMember())
                 {
-                    Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is not null);
-                    return methodOrIndexer.ContainingType.ExtensionParameter.Type as NamedTypeSymbol;
+                    return methodOrIndexer.GetRequiredExtensionParameter().Type as NamedTypeSymbol;
                 }
 
                 return (NamedTypeSymbol?)methodOrIndexer.ContainingType;

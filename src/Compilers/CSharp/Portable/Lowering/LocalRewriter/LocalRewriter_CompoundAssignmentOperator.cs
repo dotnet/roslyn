@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         static bool IsExtensionBlockMemberWithByValPossiblyStructReceiver(Symbol symbol)
         {
-            return symbol.IsExtensionBlockMember() && !symbol.IsStatic && symbol.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
+            return symbol.IsExtensionBlockMember(out var extension) && !symbol.IsStatic && extension.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
         }
 
         private BoundExpression? TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression? receiverOpt, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenReceiver.Type is { });
             if (rewrittenReceiver.Type.IsTypeParameter())
             {
-                var memberContainingType = fieldOrEvent.ContainingType;
+                var memberContainingType = fieldOrEvent.RequiredContainingType;
 
                 // From the verifier perspective type parameters do not contain fields or methods.
                 // the instance must be "boxed" to access the field

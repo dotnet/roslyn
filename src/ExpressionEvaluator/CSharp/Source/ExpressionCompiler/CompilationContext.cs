@@ -1753,7 +1753,7 @@ REPARSE:
                         }
                     }
                 }
-                else if (variableKind != DisplayClassVariableKind.This || GeneratedNameParser.GetKind(instance.Type.ContainingType.Name) != GeneratedNameKind.LambdaDisplayClass)
+                else if (variableKind != DisplayClassVariableKind.This || GeneratedNameParser.GetKind(instance.Type.RequiredContainingType.Name) != GeneratedNameKind.LambdaDisplayClass)
                 {
                     // In async lambdas, the hoisted "this" field in the state machine type will point to the display class instance, if there is one.
                     // In such cases, we want to add the display class "this" to the map instead (or nothing, if it lacks one).

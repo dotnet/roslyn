@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => ParameterSymbol.ContainingSymbol.ContainingSymbol;
 
         public override NamedTypeSymbol ContainingType
-            => ParameterSymbol.ContainingSymbol.ContainingType;
+            => ParameterSymbol.ContainingSymbol.RequiredContainingType;
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {

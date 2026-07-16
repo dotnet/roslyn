@@ -23,6 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
+        public override NamedTypeSymbol ContainingType
+        {
+            get
+            {
+                var containingType = base.ContainingType;
+                Debug.Assert(containingType is not null || this is FunctionPointerParameterSymbol);
+                return containingType!;
+            }
+        }
+
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
@@ -167,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return !IsParams && IsMetadataOptional &&
                        ((refKind = RefKind) == RefKind.None ||
                         (refKind is RefKind.In or RefKind.RefReadOnlyParameter) ||
-                        (refKind == RefKind.Ref && ContainingSymbol.ContainingType.IsComImport));
+                        (refKind == RefKind.Ref && ContainingType.IsComImport));
             }
         }
 

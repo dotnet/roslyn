@@ -80,6 +80,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
+        extension(Symbol symbol)
+        {
+            internal NamedTypeSymbol RequiredContainingType
+            {
+                get
+                {
+                    var containingType = symbol.ContainingType;
+                    Debug.Assert(containingType is not null);
+                    return containingType;
+                }
+            }
+        }
+
+        internal static bool IsExtensionBlockMember(this Symbol member, [NotNullWhen(true)] out NamedTypeSymbol? extension)
+        {
+            if (!member.IsExtensionBlockMember())
+            {
+                extension = null;
+                return false;
+            }
+
+            extension = member.RequiredContainingType;
+            return true;
+        }
+
         internal static bool IsExtensionBlockMember(this Symbol member)
         {
             switch (member.Kind)
@@ -103,12 +128,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
         }
 
+        internal static ParameterSymbol GetRequiredExtensionParameter(this Symbol symbol)
+        {
+            var extensionParameter = symbol.RequiredContainingType.ExtensionParameter;
+            Debug.Assert(extensionParameter is not null);
+            return extensionParameter;
+        }
+
         internal static bool TryGetInstanceExtensionParameter(this Symbol symbol, [NotNullWhen(true)] out ParameterSymbol? extensionParameter)
         {
             if (symbol is not null
-                && symbol.IsExtensionBlockMember()
+                && symbol.IsExtensionBlockMember(out var extension)
                 && !symbol.IsStatic
-                && symbol.ContainingType.ExtensionParameter is { } foundExtensionParameter)
+                && extension.ExtensionParameter is { } foundExtensionParameter)
             {
                 extensionParameter = foundExtensionParameter;
                 return true;
@@ -120,9 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static int GetMemberArityIncludingExtension(this Symbol member)
         {
-            if (member.IsExtensionBlockMember())
+            if (member.IsExtensionBlockMember(out var extension))
             {
-                return member.ContainingType.Arity + member.GetMemberArity();
+                return extension.Arity + member.GetMemberArity();
             }
 
             return member.GetMemberArity();
@@ -183,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, consider optimizing
             if (!skipExtensionIfStatic || !symbol.IsStatic)
             {
-                if (symbol.IsExtensionBlockMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)
+                if (symbol.IsExtensionBlockMember(out var extension) && extension.ExtensionParameter is { } extensionParameter)
                 {
                     return [extensionParameter, .. symbol.GetParameters()];
                 }
@@ -194,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static int GetParameterCountIncludingExtensionParameter(this Symbol symbol)
         {
-            bool hasExtensionParameter = symbol.IsExtensionBlockMember() && symbol.ContainingType.ExtensionParameter is { };
+            bool hasExtensionParameter = symbol.IsExtensionBlockMember(out var extension) && extension.ExtensionParameter is { };
             return symbol.GetParameterCount() + (hasExtensionParameter ? 1 : 0);
         }
 

@@ -158,9 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (containingMemberOrLambda.Kind)
                 {
                     case SymbolKind.Field:
-                        if (containingMemberOrLambda.ContainingType.IsScriptClass)
+                        var field = (FieldSymbol)containingMemberOrLambda;
+                        if (field.ContainingType.IsScriptClass)
                         {
-                            if (((FieldSymbol)containingMemberOrLambda).IsStatic)
+                            if (field.IsStatic)
                             {
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitInStaticVariableInitializer);
                             }

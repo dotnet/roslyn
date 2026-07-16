@@ -53,6 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override NamedTypeSymbol ContainingType
+        {
+            get
+            {
+                var containingType = base.ContainingType;
+                Debug.Assert(containingType is not null);
+                return containingType;
+            }
+        }
+
         /// <summary>
         /// The ordinal position of the type parameter in the parameter list which declares
         /// it. The first type parameter has ordinal zero.

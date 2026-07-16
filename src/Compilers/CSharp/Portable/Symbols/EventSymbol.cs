@@ -27,6 +27,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
+        public override NamedTypeSymbol ContainingType
+        {
+            get
+            {
+                var containingType = base.ContainingType;
+                Debug.Assert(containingType is not null);
+                return containingType;
+            }
+        }
+
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in

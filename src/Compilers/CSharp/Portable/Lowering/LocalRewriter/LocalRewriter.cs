@@ -1153,8 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (member.IsExtensionBlockMember())
             {
                 Debug.Assert(!member.IsStatic);
-                ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
-                Debug.Assert(extensionParameter is not null);
+                ParameterSymbol extensionParameter = member.GetRequiredExtensionParameter();
                 return ConvertReceiverForExtensionIfNeeded(receiver, markAsChecked, extensionParameter);
             }
 

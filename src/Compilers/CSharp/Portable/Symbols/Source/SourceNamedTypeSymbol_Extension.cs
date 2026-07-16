@@ -1176,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(extensionMember.IsExtensionBlockMember());
 
-            NamedTypeSymbol extension = extensionMember.ContainingType;
+            NamedTypeSymbol extension = extensionMember.RequiredContainingType;
             if (extension.ExtensionParameter is null)
             {
                 wasExtensionFullyInferred = false;
@@ -1202,9 +1202,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ConversionsBase conversions = compilation?.Conversions ?? (ConversionsBase)extensionMember.ContainingAssembly.CorLibrary.TypeConversions;
 
-            Debug.Assert(result.ContainingType.ExtensionParameter is not null);
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            Conversion conversion = conversions.ConvertExtensionMethodThisArg(parameterType: result.ContainingType.ExtensionParameter.Type, receiverType, ref discardedUseSiteInfo, isMethodGroupConversion: false);
+            Conversion conversion = conversions.ConvertExtensionMethodThisArg(parameterType: result.GetRequiredExtensionParameter().Type, receiverType, ref discardedUseSiteInfo, isMethodGroupConversion: false);
             if (!conversion.Exists)
             {
                 return null;
