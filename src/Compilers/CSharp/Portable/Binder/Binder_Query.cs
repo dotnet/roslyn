@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Display);
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), CreateErrorType());
                 }
-                else if (!yExpression.HasAnyErrors && (yExpression.Type!.IsVoidType() || yExpression.Type!.IsRefLikeOrAllowsRefLikeType()))
+                else if (!yExpression.HasAnyErrors && yExpression.Type!.IsVoidType())
                 {
                     Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Type!);
                     Debug.Assert(yExpression.Type is { });
