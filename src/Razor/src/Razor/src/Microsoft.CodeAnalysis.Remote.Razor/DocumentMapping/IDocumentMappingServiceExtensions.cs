@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -123,6 +124,27 @@ internal static class IDocumentMappingServiceExtensions
         }
 
         return false;
+    }
+
+    public static bool IsInStringLiteral(
+        this IDocumentMappingService service,
+        RazorCodeDocument codeDocument,
+        SyntaxNode csharpSyntaxRoot,
+        SyntaxNode? declSyntaxRoot,
+        int razorIndex,
+        bool multilineOnly)
+    {
+        if (!service.TryMapToCSharpDocumentLinePosition(codeDocument, razorIndex, out _, out var csharpIndex, out var inDeclDocument))
+        {
+            return false;
+        }
+
+        var syntaxRoot = inDeclDocument
+            ? declSyntaxRoot
+            : csharpSyntaxRoot;
+
+        return syntaxRoot?.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
+            csharpNode.IsStringLiteral(multilineOnly);
     }
 
     /// <summary>

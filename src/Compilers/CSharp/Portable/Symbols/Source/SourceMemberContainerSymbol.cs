@@ -1979,8 +1979,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsClosed)
             {
                 // Ensure necessary attributes are present
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, GetFirstLocation());
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
+                var isClosedTypeAttributeCtor = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, location);
+                _ = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, location);
+
+                // DerivedTypes property is optional but must have expected shape if present
+                var wellKnownDerivedTypesProperty = (PropertySymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes);
+                if (wellKnownDerivedTypesProperty is not null)
+                {
+                    Binder.ReportUseSite(wellKnownDerivedTypesProperty, diagnostics, location);
+
+                    if (wellKnownDerivedTypesProperty is not
+                        {
+                            GetMethod.DeclaredAccessibility: Accessibility.Public,
+                            SetMethod.DeclaredAccessibility: Accessibility.Public
+                        })
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
+                    }
+                }
+                else if (isClosedTypeAttributeCtor is not null)
+                {
+                    foreach (var derivedTypesSymbol in isClosedTypeAttributeCtor.ContainingType.GetMembers("DerivedTypes"))
+                    {
+                        if (derivedTypesSymbol.Kind == SymbolKind.Property)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
+                        }
+                    }
+                }
             }
 
             var baseType = BaseTypeNoUseSiteDiagnostics;

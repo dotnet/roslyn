@@ -532,6 +532,11 @@
         <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może implementować elementu „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="translated">Element „System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes” musi być właściwością wystąpienia z publicznymi metodami dostępu get i set, bez parametrów i typem „System.Type[]”.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
         <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
         <target state="translated">„{0}”: nie można użyć typu zamkniętego „{1}” z innego zestawu jako typu podstawowego.</target>
@@ -839,7 +844,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
         <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</target>
+        <target state="translated">Pole w typie z układem jawnym lub rozszerzonym musi być oznaczone jako „unsafe” lub „safe”.</target>
         <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
@@ -894,7 +899,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property or indexer access</source>
-        <target state="new">An expression tree may not contain an extension property or indexer access</target>
+        <target state="translated">Drzewo wyrażeń nie może zawierać właściwości rozszerzenia ani dostępu indeksatora</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1529,7 +1534,7 @@
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
         <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
-        <target state="new">A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</target>
+        <target state="translated">Typ dostawcy składowej unii musi mieć właściwość „Value” wystąpienia typu „object?” lub „object”. Właściwość musi mieć publiczną metodę dostępu get.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
@@ -1539,12 +1544,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoBreakId">
         <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
-        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break</target>
+        <target state="translated">Brak otaczającej pętli lub instrukcji switch z etykietą „{0}”, poza którą można dokonać przerwania</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoContinueId">
         <source>No enclosing loop with the label '{0}' out of which to continue</source>
-        <target state="new">No enclosing loop with the label '{0}' out of which to continue</target>
+        <target state="translated">Brak otaczającej pętli z etykietą „{0}”, poza którą można kontynuować</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
@@ -2514,7 +2519,7 @@
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
         <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
+        <target state="translated">Modyfikator „safe” można stosować tylko do składowych, które nie są oznaczone jako „unsafe” i są albo „extern”, albo przypominają pole w typach z układem jawnym lub rozszerzonym.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
@@ -2859,7 +2864,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
         <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="new">Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
+        <target state="translated">Metoda „{0}” używa funkcji, która nie jest obecnie obsługiwana przez asynchroniczne środowisko uruchomieniowe. Zrezygnuj z metody asynchronicznej w ramach środowiska uruchomieniowego, przypisując jej atrybut „System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2924,7 +2929,7 @@
       </trans-unit>
       <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
         <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
-        <target state="new">'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</target>
+        <target state="translated">Polecenie „GetClosedDerivedTypeInfo()” może być wywoływane tylko wtedy, gdy właściwość „IsClosed” ma wartość „true”.</target>
         <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
@@ -3024,7 +3029,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensionIndexers">
         <source>extension indexers</source>
-        <target state="new">extension indexers</target>
+        <target state="translated">indeksatory rozszerzeń</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
@@ -3094,7 +3099,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLabeledBreakContinue">
         <source>labeled break and continue</source>
-        <target state="new">labeled break and continue</target>
+        <target state="translated">przerwanie oznaczone etykietą i kontynuowanie</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">

@@ -109,8 +109,8 @@ internal sealed partial class RazorEditService(
 
         AddUsingsChanges(ref edits, codeDocument, addedUsings, removedUsings, cancellationToken);
 
-        var oldMembers = FindMembers(originalCSharpSyntaxRoot, originalCSharpSourceText);
-        var newMembers = FindMembers(newCSharpSyntaxRoot, newCSharpSourceText);
+        var oldMembers = FindMembers(originalCSharpSyntaxRoot, originalCSharpSourceText, codeDocument.FileKind);
+        var newMembers = FindMembers(newCSharpSyntaxRoot, newCSharpSourceText, codeDocument.FileKind);
         var addedMembers = Delta.Compute(oldMembers, newMembers);
 
         AddMemberChanges(ref edits, codeDocument, addedMembers, options);
