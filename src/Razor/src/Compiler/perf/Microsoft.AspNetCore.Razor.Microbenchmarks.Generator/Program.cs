@@ -7,6 +7,7 @@ using BenchmarkDotNet.Exporters.Csv;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Diagnostics.Windows;
+using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using Microsoft.Diagnostics.Tracing.Session;
 
 var validate = args.Contains("--validate", StringComparer.Ordinal);
@@ -29,7 +30,9 @@ var config = ManualConfig.CreateMinimumViable()
             .AddDiagnoser(MemoryDiagnoser.Default);
 
 config = validate
-    ? config.AddJob(Job.Dry.WithId("Validation"))
+    ? config.AddJob(Job.Dry
+        .WithId("Validation")
+        .WithToolchain(InProcessNoEmitToolchain.Instance))
     : config
         .AddJob(baseJob.WithCustomBuildConfiguration("Release").WithId("Current"))
         .AddJob(baseJob.WithCustomBuildConfiguration("Release_Nuget").WithId("Baseline").WithBaseline(true));

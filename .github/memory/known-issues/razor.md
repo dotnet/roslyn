@@ -43,6 +43,11 @@ won't be built/tested by the importing projects.
 **Affected area:** Razor benchmark harnesses with jobs configured in code
 **Description:** Passing `--job Dry` adds a job instead of replacing configured
 jobs. This can create invalid job/toolchain combinations or concurrently rebuild
-the Roslyn graph through multiple generated projects that share `artifacts/obj`.
+the Roslyn graph through multiple generated projects that override output paths
+and race on shared assemblies. The latter can surface as timeouts, file-access
+errors, or duplicate framework/polyfill type errors.
 **Workaround:** Use a harness-owned validation argument that is removed before
-BenchmarkDotNet parses the command line and configures exactly one Dry job.
+BenchmarkDotNet parses the command line and configures exactly one Dry job. For
+Razor benchmarks that reference the Roslyn project graph, use
+`InProcessNoEmitToolchain` for that validation job so BenchmarkDotNet does not
+generate and build a second project graph.

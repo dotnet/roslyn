@@ -16,6 +16,7 @@ using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CsProj;
+using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
@@ -65,7 +66,9 @@ internal class Program
 
         if (validate)
         {
-            return config.AddJob(Job.Dry.DontEnforcePowerPlan());
+            return config.AddJob(Job.Dry
+                .WithToolchain(InProcessNoEmitToolchain.Instance)
+                .DontEnforcePowerPlan());
         }
 
         config = config
