@@ -5024,7 +5024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void ReportIsOperatorDiagnostics(
+        private void ReportIsOperatorDiagnostics(
             CSharpSyntaxNode syntax,
             BindingDiagnosticBag diagnostics,
             TypeSymbol operandType,
@@ -5037,7 +5037,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE:    we want to perform constant analysis of is/as expressions to generate warnings if the
             // NOTE:    expression will always be true/false/null.
 
-            ConstantValue constantValue = GetIsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            ConstantValue constantValue = GetIsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue, ref useSiteInfo);
+            diagnostics.Add(syntax, useSiteInfo);
+
             if (constantValue != null)
             {
                 if (constantValue.IsBad)
@@ -5066,6 +5069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol targetType,
             ConversionKind conversionKind,
             ConstantValue operandConstantValue,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             bool operandCouldBeNull = true)
         {
             Debug.Assert((object)targetType != null);
@@ -5224,6 +5228,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         return ConstantValue.Bad;
+                    }
+
+                    // The following logic doesn't come from native compiler
+
+                    if (operandType.IsStructType())
+                    {
+                        // This logic is important for Unions feature to detect types that a union instance can never satisfy.
+                        if (targetType is TypeParameterSymbol tp &&
+                            !operandType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo).IsEqualToOrDerivedFrom(tp.EffectiveBaseClass(ref useSiteInfo), TypeCompareKind.AllIgnoreOptions, ref useSiteInfo))
+                        {
+                            return ConstantValue.False;
+                        }
+
+                        // https://github.com/dotnet/roslyn/issues/82636: We probably can detect more impossible scenarios.
+                        // Like:
+                        // - targetType is an open class, or not a class that a struct can derive from (SpecialType.System_Enum)
+                        // - target type is a different struct
+                        // - target type is an interface that struct doesn't implement, or a type parameter constrained to an interface like that
+                        // - etc.
                     }
 
                     // * Otherwise, we give up. Though there are other situations in which we can deduce that
@@ -5521,7 +5544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder, operandConversion, resultType, hasErrors);
         }
 
-        private static bool ReportAsOperatorConversionDiagnostics(
+        private bool ReportAsOperatorConversionDiagnostics(
             CSharpSyntaxNode node,
             BindingDiagnosticBag diagnostics,
             CSharpCompilation compilation,
@@ -5584,7 +5607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return hasErrors;
         }
 
-        private static void ReportAsOperatorDiagnostics(
+        private void ReportAsOperatorDiagnostics(
             CSharpSyntaxNode node,
             BindingDiagnosticBag diagnostics,
             TypeSymbol operandType,
@@ -5597,7 +5620,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE:    we want to perform constant analysis of is/as expressions to generate warnings if the
             // NOTE:    expression will always be true/false/null.
 
-            ConstantValue constantValue = GetAsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            ConstantValue constantValue = GetAsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue, ref useSiteInfo);
+            diagnostics.Add(node, useSiteInfo);
+
             if (constantValue != null)
             {
                 if (constantValue.IsBad)
@@ -5618,14 +5644,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///  - <see cref="ConstantValue.Bad"/> - compiler doesn't support the type check, i.e. cannot perform it, even at runtime
         ///  - 'null' value - result is not known at compile time    
         /// </summary>
-        internal static ConstantValue GetAsOperatorConstantResult(TypeSymbol operandType, TypeSymbol targetType, ConversionKind conversionKind, ConstantValue operandConstantValue)
+        internal static ConstantValue GetAsOperatorConstantResult(TypeSymbol operandType, TypeSymbol targetType, ConversionKind conversionKind, ConstantValue operandConstantValue, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // NOTE:    Even though BoundIsOperator and BoundAsOperator will always have no ConstantValue
             // NOTE:    (they are non-constant expressions according to Section 7.19 of the specification),
             // NOTE:    we want to perform constant analysis of is/as expressions during binding to generate warnings (always true/false/null)
             // NOTE:    and during rewriting for optimized codegen.
 
-            ConstantValue isOperatorConstantResult = GetIsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue);
+            ConstantValue isOperatorConstantResult = GetIsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue, ref useSiteInfo);
             if (isOperatorConstantResult != null)
             {
                 if (isOperatorConstantResult.IsBad)

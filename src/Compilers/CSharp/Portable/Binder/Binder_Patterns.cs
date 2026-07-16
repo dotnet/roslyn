@@ -1499,7 +1499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             conversion = conversions.ClassifyBuiltInConversion(expressionType, patternType, isChecked: false, ref useSiteInfo);
-            ConstantValue result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
+            ConstantValue result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, ref useSiteInfo, operandCouldBeNull);
 
             // Don't need to worry about checked user-defined operators
             Debug.Assert((!conversion.IsUserDefined && !conversion.IsUnion) || result == ConstantValue.False || result == ConstantValue.Bad);

@@ -7283,6 +7283,55 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_ConstrainedUnionCaseType_03()
+    {
+        // Union case type is a type parameter constrained indirectly to closed type
+        var source1 = """
+            public closed class E;
+            public sealed class F1 : E;
+            public sealed class F2 : E;
+
+            public union U<T>(T);
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M9<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 400
+                        X => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1 + source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+
+        VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [3]
+[2]: leaf <arm> `Y => 1`
+[3]: leaf <default> `y switch
+        {
+            Y => 1,
+    #line 400
+            X => 2,
+        }`
+",
+forLowering: false);
+
+        comp.VerifyEmitDiagnostics(
+                // (400,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             X => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "X").WithLocation(400, 13)
+                );
+    }
+
+    [Fact]
     public void Exhaustiveness_BaseTypeArguments_Array_01()
     {
         var source1 = """

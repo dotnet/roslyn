@@ -58967,6 +58967,78 @@ class Program
         }
 
         [Fact]
+        public void TypePattern_24_UnionInstance_And_Value()
+        {
+            var source1 = @"
+public union U<T>(T);
+
+class Program
+{
+    int M9<Y>(U<Y> y)
+    {
+        return y switch
+        {
+            Y => 1,
+        };
+    }
+}
+";
+
+            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [3] : [1]
+[1]: t1 = t0.Value; [2]
+[2]: t1 != null ? [3] : [4]
+[3]: leaf <arm> `Y => 1`
+[4]: leaf <default> `y switch
+        {
+            Y => 1,
+        }`
+",
+forLowering: false);
+
+            // https://github.com/dotnet/roslyn/issues/82636: A warning about non-exhaustive switch should be reported, but it is not.
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TypePattern_25_UnionInstance_And_Value()
+        {
+            var source1 = @"
+public union U<T>(T);
+
+class Program
+{
+    int M9<Y>(U<Y> y) where Y : struct
+    {
+        return y switch
+        {
+            Y => 1,
+        };
+    }
+}
+";
+
+            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [3] : [1]
+[1]: t1 = t0.Value; [2]
+[2]: t1 != null ? [3] : [4]
+[3]: leaf <arm> `Y => 1`
+[4]: leaf <default> `y switch
+        {
+            Y => 1,
+        }`
+",
+forLowering: false);
+
+            // https://github.com/dotnet/roslyn/issues/82636: A warning about non-exhaustive switch should be reported, but it is not.
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void DeclarationPattern_01_UnionInstance_Only()
         {
             var src = @"
