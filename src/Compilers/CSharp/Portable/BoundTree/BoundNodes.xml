@@ -40,6 +40,7 @@
   <ValueType Name="AccessorKind" />
   <ValueType Name="SafeContext" />
   <ValueType Name="InConversionGroupFlags" />
+  <ValueType Name="UnionMatchingMode" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -2461,7 +2462,7 @@
   <Node Name="BoundConstantPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2470,15 +2471,15 @@
       of any bound node, except another BoundPatternWithUnionMatching node. In which case,
       it must be the LeftOfPendingConjunction child.
 
-      The ValueProperty and ValuePattern represents a Union matching operation
-      pending a rewrite to a BoundRecursivePattern. 
+      The ExclusiveInstancePattern, ValueProperty, ExclusiveValuePattern and SharedRightOfPendingConjunction
+      represent a Union matching operation pending a rewrite to a BoundRecursivePattern and possibly a
+      disjunction. 
 
       The BoundPatternWithUnionMatching node represents either a standalone Union matching operation
       (LeftOfPendingConjunction is null), or a conjunction with a Union matching operation
       on the right hand side. The left hand side of the conjunction is then
-      represented by the LeftOfPendingConjunction child, and it is not applied
-      to the ValueProperty. It represents a pattern that is matched immediately
-      before ValueProperty is matched against ValuePattern. 
+      represented by the LeftOfPendingConjunction child. It represents a pattern that is matched immediately
+      before the union match. 
 
       A Union matching operation corresponding to the top most BoundPatternWithUnionMatching node
       represents the last Union matching operation in evaluation order in the entire hierarchy.
@@ -2487,16 +2488,19 @@
       Etc.
 
       InputType is LeftOfPendingConjunction.InputType ?? UnionMatchingInputType 
-      NarrowedType is Pattern.NarrowedType
+      NarrowedType is (SharedRightOfPendingConjunction ?? ExclusiveValuePattern).NarrowedType
   -->
   <Node Name="BoundPatternWithUnionMatching" Base="BoundPattern" HasValidate="true" DoesNotSurvive="InitialBinding">
     <!-- The Union or Nullable<Union> type matched -->
     <Field Name="UnionMatchingInputType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="LeftOfPendingConjunction" Type="BoundPattern?"/>
-    <!-- Info for the corresponding IUnion.Value property -->    
+    <Field Name="ExclusiveInstancePattern" Type="BoundPattern?" Null="allow"/>
+    <!-- Info for the corresponding union Value property -->    
     <Field Name="ValueProperty" Type="BoundPropertySubpatternMember"/>
-    <!-- The pattern to match against the IUnion.Value property -->
-    <Field Name="ValuePattern" Type="BoundPattern"/>
+    <!-- The pattern to match against the union Value property -->
+    <Field Name="ExclusiveValuePattern" Type="BoundPattern"/>
+    <!-- The pattern that is conjunctively combined with ExclusiveInstancePattern and with ExclusiveValuePattern -->
+    <Field Name="SharedRightOfPendingConjunction" Type="BoundPattern?"/>
   </Node>
 
   <!-- NarrowedType is always the InputType -->
@@ -2515,13 +2519,13 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression?"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </AbstractNode>
 
   <!-- NarrowedType is the DeclaredType if given, or an InputType -->
   <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
     <Field Name="IsVar" Type="bool"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2534,6 +2538,7 @@
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
     <Field Name="Properties" Type="ImmutableArray&lt;BoundPropertySubpattern&gt;" Null="allow"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2580,7 +2585,6 @@
     <Field Name="GetLengthMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="GetItemMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="disallow"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <AbstractNode Name="BoundSubpattern" Base="BoundNode" HasValidate="true">
@@ -2605,7 +2609,7 @@
   <Node Name="BoundTypePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
   </Node>
 
   <!-- 
@@ -2639,7 +2643,7 @@
     <Field Name="Relation" Type="BinaryOperatorKind"/>
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
   </Node>
 
   <Node Name="BoundDiscardExpression" Base="BoundExpression">

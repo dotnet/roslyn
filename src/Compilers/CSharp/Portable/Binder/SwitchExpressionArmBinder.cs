@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = switchGoverningType.IsErrorType();
             ImmutableArray<LocalSymbol> locals = _armScopeBinder.Locals;
             NamedTypeSymbol? unionType = null;
-            BoundPattern pattern = armBinder.BindPattern(node.Pattern, ref unionType, switchGoverningType, permitDesignations: true, hasErrors, diagnostics, out bool hasUnionMatching);
+            bool permitDesignations = true;
+            BoundPattern pattern = armBinder.BindPattern(node.Pattern, ref unionType, switchGoverningType, ref permitDesignations, hasErrors, diagnostics, out bool hasUnionMatching, underIsPattern: false);
             BoundExpression? whenClause = node.WhenClause != null
                 ? armBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;
