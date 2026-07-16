@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly ImmutableArray<(T first, T last)> _intervals;
             private readonly INumericTC<T> _tc;
 
-            internal ImmutableArray<(T first, T last)> Intervals => _intervals;
-
             public static NumericValueSet<T> AllValues(INumericTC<T> tc) => new NumericValueSet<T>(tc.MinValue, tc.MaxValue, tc);
 
             public static NumericValueSet<T> NoValues(INumericTC<T> tc) => new NumericValueSet<T>(ImmutableArray<(T first, T last)>.Empty, tc);
@@ -327,31 +325,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return Hash.Combine(Hash.CombineValues(_intervals), _intervals.Length);
             }
-        }
-
-        internal static IConstantValueSet<int> AddLengthOffset(IConstantValueSet values, int offset)
-        {
-            Debug.Assert(offset >= 0);
-
-            var lengthValues = (NumericValueSet<int>)values;
-            if (offset == 0 || lengthValues.IsEmpty)
-            {
-                return lengthValues;
-            }
-
-            int maxValueBeforeOffset = int.MaxValue - offset;
-            var builder = ArrayBuilder<(int first, int last)>.GetInstance();
-            foreach (var (first, last) in lengthValues.Intervals)
-            {
-                if (first > maxValueBeforeOffset)
-                {
-                    break;
-                }
-
-                builder.Add((first + offset, Math.Min(last, maxValueBeforeOffset) + offset));
-            }
-
-            return new NumericValueSet<int>(builder.ToImmutableAndFree(), IntTC.NonNegativeInstance);
         }
     }
 }

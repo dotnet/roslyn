@@ -4169,16 +4169,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override Tests RewriteNestedLengthTests()
                 {
-                    if (Input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e &&
-                        TryGetTopLevelLengthTemp(e) is (BoundDagTemp lengthTemp, int offset))
-                    {
-                        Debug.Assert(ValueSetFactory.ForInput(Input) == ValueSetFactory.ForLength);
-                        IConstantValueSet<int> values = ValueSetFactory.AddLengthOffset(Values, offset);
-                        return values.IsEmpty
-                            ? False.Instance
-                            : new ValueSet(lengthTemp, values, Syntax);
-                    }
-
+                    // This should have been rejected in OrSequence.TryCreateValueSet. See the comment there for
+                    // more details.
+                    Debug.Assert(Input.Source is not BoundDagPropertyEvaluation { IsLengthOrCount: true } e ||
+                        TryGetTopLevelLengthTemp(e).lengthTemp is null);
                     return this;
                 }
                 public override string Dump(Func<BoundDagTest, string> dump) => $"VALUES({Values})";
@@ -4978,11 +4972,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case One { Test: BoundDagValueTest firstValueTest } when !firstValueTest.Value.IsBad:
                             input = firstValueTest.Input;
                             factory = ValueSetFactory.ForInput(input);
-                            if (factory is null)
-                                return false;
                             break;
                         default:
                             return false;
+                    }
+
+                    if (factory is null)
+                    {
+                        return false;
+                    }
+
+                    // Keep nested slice-length tests separate until RewriteNestedLengthTests updates
+                    // each test to use the top-level length temp and adjusted constant. When that
+                    // rewrite reassembles this sequence, OrSequence.Update calls Create and retries
+                    // collapsing the rewritten tests into a ValueSet.
+                    if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } lengthEvaluation &&
+                        TryGetTopLevelLengthTemp(lengthEvaluation).lengthTemp is not null)
+                    {
+                        return false;
                     }
 
                     // All elements must be ValueSet or One(BoundDagValueTest) on the same input
