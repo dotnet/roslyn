@@ -85,12 +85,18 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         TimeSpan? keepAlive = null,
         ServerConfiguration? serverConfiguration = null)
     {
-        var configuration = serverConfiguration ?? ServerConfigurationWithoutDevKit;
+        var configuration = serverConfiguration ?? (ServerConfigurationWithoutDevKit with { IsDaemon = true });
+        Contract.ThrowIfFalse(configuration.IsDaemon);
         var extensionManager = ExtensionAssemblyManager.Create(configuration, LoggerFactory);
         var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, LoggerFactory);
         var exportProvider = await CreateExportProviderAsync(configuration, LoggerFactory, extensionManager, assemblyLoader);
         var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, LoggerFactory);
-        return TestDaemon.Create(exportProvider, typeRefResolver, keepAlive ?? Timeout.InfiniteTimeSpan, LoggerFactory, TestOutputHelper);
+        return TestDaemon.Create(
+            exportProvider,
+            typeRefResolver,
+            keepAlive ?? Timeout.InfiniteTimeSpan,
+            LoggerFactory,
+            TestOutputHelper);
     }
 
     internal static async Task WaitForConditionAsync(Func<bool> condition)
@@ -324,13 +330,12 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             string pipeName,
             ExportProvider exportProvider,
             ClientCapabilities clientCapabilities,
-            ITestOutputHelper testOutputHelper,
-            CancellationToken cancellationToken)
+            ITestOutputHelper testOutputHelper)
         {
             var clientStream = NamedPipeUtil.CreateClient(serverName: ".", pipeName, PipeDirection.InOut, System.IO.Pipes.PipeOptions.Asynchronous);
             try
             {
-                await clientStream.ConnectAsync(timeout: 30_000, cancellationToken);
+                await clientStream.ConnectAsync();
             }
             catch
             {
@@ -408,7 +413,13 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             {
                 try
                 {
-                    await connectionManager.RunAsync(source, keepAlive, exportProvider, typeRefResolver, logger, cts.Token).ConfigureAwait(false);
+                    await connectionManager.RunAsync(
+                        source,
+                        keepAlive,
+                        exportProvider,
+                        typeRefResolver,
+                        logger,
+                        cts.Token).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -447,15 +458,19 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         /// <summary>The language servers the daemon currently has running, one per connected client.</summary>
         internal ImmutableArray<LanguageServerHost> GetStartedServers() => _connectionManager.GetStartedServers();
 
+        /// <summary>Exposes the connection manager's test-only API for injecting startup failures.</summary>
+        internal LanguageServerConnectionManager.TestAccessor GetConnectionManagerTestAccessor()
+            => _connectionManager.GetTestAccessor();
+
         /// <summary>
         /// Connects a new client to the daemon, initializes it, and associates it with the server the daemon spun up
         /// for the connection. Clients are created one at a time (the new server is correlated by diffing the daemon's
         /// server set, which assumes a single connection is in flight).
         /// </summary>
-        internal async Task<DaemonClientTestLspServer> CreateClientAsync(ClientCapabilities? clientCapabilities = null, CancellationToken cancellationToken = default)
+        internal async Task<DaemonClientTestLspServer> CreateClientAsync(ClientCapabilities? clientCapabilities = null)
         {
             var serversBefore = _connectionManager.GetStartedServers();
-            var client = await DaemonClientTestLspServer.CreateAsync(_pipeName, _exportProvider, clientCapabilities ?? new ClientCapabilities(), _testOutputHelper, cancellationToken);
+            var client = await DaemonClientTestLspServer.CreateAsync(_pipeName, _exportProvider, clientCapabilities ?? new ClientCapabilities(), _testOutputHelper);
 
             LanguageServerHost? newServer = null;
             await WaitForConditionAsync(() =>

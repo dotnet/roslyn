@@ -23,7 +23,7 @@ internal static class Program
         {
             thinClientArguments = ThinClientArguments.Parse(args);
         }
-        catch (Exception ex) when (ex is ArgumentException or ArgumentNullException)
+        catch (ArgumentException ex)
         {
             Console.Error.WriteLine(ex.Message);
             return ExitCodes.BadArguments;
@@ -33,7 +33,7 @@ internal static class Program
 
         try
         {
-            var executable = ServerExecutableResolver.Resolve();
+            var executable = ServerExecutable.ResolveLanguageServer();
 
             if (thinClientArguments.DaemonMode)
             {
@@ -47,7 +47,7 @@ internal static class Program
                     // transport to the daemon's pipe (it connects to both and relays between them).
                     using var editorConnection = await EditorConnection.CreateAsync(thinClientArguments).ConfigureAwait(false);
                     return await RelayDaemonAsync(
-                        daemonResult.Stream,
+                        daemonResult.NamedPipeStream,
                         editorConnection).ConfigureAwait(false);
                 }
 
@@ -62,7 +62,7 @@ internal static class Program
         }
         catch (Exception ex) when (ex is FileNotFoundException or IOException or InvalidOperationException or TimeoutException)
         {
-            Console.Error.WriteLine(ex.Message);
+            Console.Error.WriteLine(ex);
             return ExitCodes.ServerLaunchOrConnectFailure;
         }
     }
@@ -101,11 +101,11 @@ internal static class Program
 
         return Task.Run(async () =>
         {
-            Process? process = null;
             try
             {
-                process = Process.GetProcessById(processId.Value);
+                using var process = Process.GetProcessById(processId.Value);
                 await process.WaitForExitAsync().ConfigureAwait(false);
+                Console.Error.WriteLine("Monitored editor process exited.");
             }
             catch (Exception ex)
             {
@@ -113,7 +113,6 @@ internal static class Program
             }
             finally
             {
-                Console.Error.WriteLine("Monitored editor process exited.");
                 Environment.Exit(ExitCodes.EditorConnectionLost);
             }
         }, CancellationToken.None);

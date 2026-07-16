@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Daemon;
 
@@ -21,6 +21,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Daemon;
 internal static class DaemonPipeName
 {
     private const string GlobalMutexPrefix = "Global\\";
+
+    /// <summary>
+    /// Restricts daemon mutex access to the current user while keeping the mutex visible across sessions.
+    /// </summary>
+    public static NamedWaitHandleOptions MutexOptions => new()
+    {
+        CurrentUserOnly = true,
+        CurrentSessionOnly = false,
+    };
 
     /// <summary>
     /// Optional environment variable that, when set, is used verbatim as the daemon pipe name instead of the
@@ -55,10 +64,10 @@ internal static class DaemonPipeName
     /// </summary>
     public static string GetPipeName(string userName, bool isAdmin, string toolIdentifier)
     {
-        // Normalize away trailing separators and casing so we don't spin up multiple daemons for
-        // identifiers that differ only cosmetically.
-        toolIdentifier = toolIdentifier.TrimEnd(Path.DirectorySeparatorChar);
-        toolIdentifier = toolIdentifier.ToLowerInvariant();
+        // Windows paths are case-insensitive. Preserve casing on other platforms, where paths may be
+        // case-sensitive and distinct executables must not share a daemon.
+        if (OperatingSystem.IsWindows())
+            toolIdentifier = toolIdentifier.ToLowerInvariant();
 
         var pipeNameInput = $"{userName}.{isAdmin}.{toolIdentifier}";
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(pipeNameInput));

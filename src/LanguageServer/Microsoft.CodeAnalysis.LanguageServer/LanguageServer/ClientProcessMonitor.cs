@@ -8,19 +8,24 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal class ClientProcessMonitor(ServerConfiguration serverConfiguration, IInitializeManager initializeManager) : IClientProcessMonitor
+internal sealed class ClientProcessMonitor(ServerConfiguration serverConfiguration, IInitializeManager initializeManager) : IClientProcessMonitor
 {
     public IClientProcessMonitor.ShutdownStrategy Strategy => serverConfiguration.IsDaemon ? IClientProcessMonitor.ShutdownStrategy.LSPShutdown : IClientProcessMonitor.ShutdownStrategy.ProcessExit;
 
     public int? GetClientProcessId()
     {
-        // Get the process id of the client process to monitor.  In single server mode this comes from the CLI arg or the initialize params.
-        // In daemon mode, we only read the process id from the initialize params as the CLI arg only captures the client that launched the daemon.
+        // In daemon mode, monitor the process from this connection's initialize params. In single-server mode,
+        // Program monitors the command-line process ID before LSP initialization, so only start this logical-server
+        // monitor when the command-line ID was absent and initialize supplied one.
 
-        var initializeParams = initializeManager?.TryGetInitializeParams();
+        var initializeParams = initializeManager.TryGetInitializeParams();
         Contract.ThrowIfNull(initializeParams, "Initialize has not been called yet");
 
-        return serverConfiguration.IsDaemon ? initializeParams.ProcessId : serverConfiguration?.ClientProcessId ?? initializeParams.ProcessId;
+        var processId = serverConfiguration.IsDaemon || serverConfiguration.ClientProcessId is null
+            ? initializeParams.ProcessId
+            : null;
+
+        return processId == RoslynLanguageServer.ServerProcessId ? null : processId;
     }
 
     [ExportCSharpVisualBasicLspServiceFactory(typeof(ClientProcessMonitor)), Shared]

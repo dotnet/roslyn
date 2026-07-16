@@ -129,12 +129,38 @@ internal static class LanguageServerCommandLine
             DefaultValueFactory = _ => false,
         };
 
-        var daemonKeepAliveOption = new Option<int?>("--daemonKeepAlive")
+        var daemonKeepAliveOption = new Option<int>("--daemonKeepAlive")
         {
             Description = "Seconds the daemon stays alive after its last client disconnects before exiting. " +
-                          "A value of zero or less keeps the daemon alive indefinitely. Defaults to the env var " +
+                          "Zero exits immediately and -1 keeps the daemon alive indefinitely. Defaults to the env var " +
                           $"'{DaemonKeepAliveEnvironmentVariable}' if set, otherwise {DefaultDaemonKeepAliveSeconds} seconds.",
             Required = false,
+            DefaultValueFactory = argumentResult =>
+            {
+                if (!int.TryParse(Environment.GetEnvironmentVariable(DaemonKeepAliveEnvironmentVariable), out var value))
+                    return DefaultDaemonKeepAliveSeconds;
+
+                if (value >= -1)
+                    return value;
+
+                argumentResult.AddError(
+                    $"Invalid value '{value}' for {DaemonKeepAliveEnvironmentVariable}; expected -1 or a non-negative integer.");
+                return DefaultDaemonKeepAliveSeconds;
+            },
+            CustomParser = argumentResult =>
+            {
+                if (argumentResult.Tokens.Count == 1 &&
+                    int.TryParse(argumentResult.Tokens[0].Value, out var value) &&
+                    value >= -1)
+                {
+                    return value;
+                }
+
+                var valueText = argumentResult.Tokens.Count == 0 ? "" : argumentResult.Tokens[0].Value;
+                argumentResult.AddError(
+                    $"Invalid value '{valueText}' for --daemonKeepAlive; expected -1 or a non-negative integer.");
+                return DefaultDaemonKeepAliveSeconds;
+            },
         };
 
         var rootCommand = new RootCommand()
@@ -209,18 +235,13 @@ internal static class LanguageServerCommandLine
     /// </summary>
     internal const string DaemonKeepAliveEnvironmentVariable = "ROSLYN_LANGUAGE_SERVER_DAEMON_KEEPALIVE";
 
-    private static TimeSpan ResolveDaemonKeepAlive(int? optionSeconds)
+    private static TimeSpan ResolveDaemonKeepAlive(int seconds)
     {
-        var seconds = optionSeconds;
-        if (seconds is null &&
-            int.TryParse(Environment.GetEnvironmentVariable(DaemonKeepAliveEnvironmentVariable), out var envSeconds))
+        return seconds switch
         {
-            seconds = envSeconds;
-        }
-
-        seconds ??= DefaultDaemonKeepAliveSeconds;
-
-        // Zero or negative means stay alive indefinitely.
-        return seconds <= 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(seconds.Value);
+            -1 => Timeout.InfiniteTimeSpan,
+            >= 0 => TimeSpan.FromSeconds(seconds),
+            _ => throw new ArgumentOutOfRangeException(nameof(seconds)),
+        };
     }
 }

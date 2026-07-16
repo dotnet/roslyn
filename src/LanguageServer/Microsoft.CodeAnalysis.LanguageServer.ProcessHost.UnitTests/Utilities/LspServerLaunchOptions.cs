@@ -38,11 +38,12 @@ internal sealed record LspServerLaunchOptions
     public string? DaemonPipeName { get; init; }
 
     /// <summary>
-    /// The keepalive window the launched daemon uses after its last client disconnects. Forwarded to the daemon via
-    /// the keepalive environment variable; ignored unless <see cref="DaemonMode"/> is set. When unset the daemon
-    /// uses its default.
+    /// The keepalive value, in seconds, the launched daemon uses after its last client disconnects. This uses the
+    /// same format as <c>--daemonKeepAlive</c>: zero exits immediately and -1 stays alive indefinitely. Forwarded
+    /// through the keepalive environment variable and ignored unless <see cref="DaemonMode"/> is set. When unset,
+    /// the daemon uses its default.
     /// </summary>
-    public TimeSpan? DaemonKeepAlive { get; init; }
+    public int? DaemonKeepAlive { get; init; }
 
     /// <summary>
     /// The process id sent in the LSP <c>initialize</c> request's <c>processId</c> field. In daemon mode the

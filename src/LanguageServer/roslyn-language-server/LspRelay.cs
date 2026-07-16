@@ -12,7 +12,6 @@ internal enum RelayEndpoint
 
 internal readonly struct RelayResult(RelayEndpoint closedEndpoint, bool bothSidesClosed)
 {
-
     /// <summary>The endpoint whose stream closed first, ending the relay.</summary>
     public RelayEndpoint ClosedEndpoint { get; } = closedEndpoint;
 
@@ -33,14 +32,14 @@ internal static class LspRelay
     private static readonly TimeSpan s_secondCloseGracePeriod = TimeSpan.FromSeconds(5);
 
     public static async Task<RelayResult> RelayAsync(
-        Stream editorInput,
-        Stream editorOutput,
-        Stream serverInput,
-        Stream serverOutput)
+        Stream fromEditor,
+        Stream toEditor,
+        Stream fromServer,
+        Stream toServer)
     {
         using var cancellationSource = new CancellationTokenSource();
-        var editorToServer = CopyUntilClosedAsync(editorInput, serverOutput, RelayEndpoint.Editor, RelayEndpoint.Server, cancellationSource.Token);
-        var serverToEditor = CopyUntilClosedAsync(serverInput, editorOutput, RelayEndpoint.Server, RelayEndpoint.Editor, cancellationSource.Token);
+        var editorToServer = CopyUntilClosedAsync(fromEditor, toServer, RelayEndpoint.Editor, RelayEndpoint.Server, cancellationSource.Token);
+        var serverToEditor = CopyUntilClosedAsync(fromServer, toEditor, RelayEndpoint.Server, RelayEndpoint.Editor, cancellationSource.Token);
         var completedTask = await Task.WhenAny(editorToServer, serverToEditor).ConfigureAwait(false);
 
         // Give the other direction a brief window to finish on its own. If it does, both sides closed, which

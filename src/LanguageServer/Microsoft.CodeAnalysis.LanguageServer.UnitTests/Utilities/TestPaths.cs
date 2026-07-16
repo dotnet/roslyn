@@ -22,7 +22,7 @@ internal static class TestPaths
 
     /// <summary>
     /// The thin client (dotnet tool entry point) is deployed into the same directory as the language server it
-    /// bundles, so that its <c>ServerExecutableResolver</c> finds the server next to itself.
+    /// bundles, so that its <c>ServerExecutable</c> finds the server next to itself.
     /// </summary>
     private const string ThinClientAssemblyFileName = "roslyn-language-server.dll";
 

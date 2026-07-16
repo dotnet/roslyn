@@ -27,7 +27,7 @@ internal static class DaemonServerMutex
     public static bool TryAcquire(string pipeName, [NotNullWhen(true)] out Mutex? mutex)
     {
         var mutexName = DaemonPipeName.GetServerMutexName(pipeName);
-        var candidate = new Mutex(initiallyOwned: false, mutexName, out var createdNew);
+        var candidate = new Mutex(initiallyOwned: false, mutexName, DaemonPipeName.MutexOptions, out var createdNew);
         if (!createdNew)
         {
             candidate.Dispose();
@@ -48,7 +48,7 @@ internal static class DaemonServerMutex
         Mutex? mutex = null;
         try
         {
-            return Mutex.TryOpenExisting(mutexName, out mutex);
+            return Mutex.TryOpenExisting(mutexName, DaemonPipeName.MutexOptions, out mutex);
         }
         catch
         {

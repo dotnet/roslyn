@@ -11,18 +11,9 @@
          tool entry point and package; it bundles this project's full published output side-by-side and
          launches it. See ..\roslyn-language-server\roslyn-language-server.csproj. -->
     <IsPackable>false</IsPackable>
-
-    <!-- Publishing settings -->
-    <SelfContained>false</SelfContained>
-    <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
-
-    <!-- List of runtime identifiers that we want to publish an executable for. -->
-    <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
-
-    <!-- Publish ready to run executables when we're publishing platform specific executables. -->
-    <PublishReadyToRun Condition="'$(Configuration)' == 'Release' AND '$(DotNetBuildUseMonoRuntime)' != 'true' ">true</PublishReadyToRun>
-
   </PropertyGroup>
+
+  <Import Project="..\LanguageServerPublish.props" />
 
   <ItemGroup Label="Shared daemon connection files">
     <!-- Source-shared (linked) with the roslyn-language-server thin client so both compute identical

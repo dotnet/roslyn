@@ -58,9 +58,9 @@ public partial class AbstractLanguageServerClientTests
             var pipeServer = new NamedPipeServerStream(lspClientPipeName, PipeDirection.InOut, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
             var thinClientProcess = CreateThinClient(lspServerPipeName, clientProcessId, extensionLogsPath, launchOptions, loggerFactory, logOutput: true);
 
-            // In daemon mode the thin client first connects to (or launches) the daemon, and only then connects back to
-            // the editor pipe to start relaying. Capture an early thin-client exit so a daemon launch/connect failure
-            // surfaces here rather than hanging until the connection timeout.
+            // The daemon-mode thin client establishes its daemon connection before connecting to the editor pipe.
+            // Race the editor-pipe connection against thin-client exit so daemon startup/connect failures fail
+            // immediately instead of waiting for the pipe timeout.
             var pipeWaitTask = WaitForPipeServerConnectionAsync(pipeServer);
             var thinClientExitTask = thinClientProcess.WaitForExitAsync();
             var completedTask = await Task.WhenAny(pipeWaitTask, thinClientExitTask);

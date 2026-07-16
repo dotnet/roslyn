@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests;
 
 public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
+    private const string DaemonBootstrapArgument = "--daemon-launch";
+    private const int ThinClientBadArgumentsExitCode = 4;
+
     [Theory, CombinatorialData]
     public async Task MultipleClients_ShareOneDaemon_AndEachShutsDownCleanly(bool useNamedPipe)
     {
@@ -106,7 +109,7 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
     [Fact]
     public async Task KeepAlive_DaemonReusedWithinWindow_ThenExitsWhenIdle()
     {
-        var keepAlive = TimeSpan.FromSeconds(15);
+        const int keepAlive = 15;
         await using var daemon = CreateDaemon(keepAlive);
 
         await using var first = await daemon.CreateClientAsync(useNamedPipe: true);
@@ -159,7 +162,7 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
         // connecting client must serialize behind it and so cannot reach the "check server, launch if absent" step.
         var holderThread = new Thread(() =>
         {
-            using var clientMutex = new Mutex(initiallyOwned: false, DaemonPipeName.GetClientMutexName(daemon.PipeName));
+            using var clientMutex = new Mutex(initiallyOwned: false, DaemonPipeName.GetClientMutexName(daemon.PipeName), DaemonPipeName.MutexOptions);
             clientMutex.WaitOne();
             mutexAcquired.Set();
             releaseMutex.Wait();
@@ -200,6 +203,18 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
         await using var second = await daemon.CreateClientAsync(useNamedPipe: true);
         Assert.NotEqual(firstDaemonProcessId, await daemon.GetDaemonProcessIdAsync(second));
         Assert.True(daemon.IsRunning);
+    }
+
+    [Fact]
+    public async Task BootstrapWithoutPipe_ExitsWithBadArguments()
+    {
+        using var bootstrapProcess = StartThinClientProcess(DaemonBootstrapArgument);
+        var standardErrorTask = bootstrapProcess.StandardError.ReadToEndAsync();
+
+        await bootstrapProcess.WaitForExitAsync();
+
+        Assert.Equal(ThinClientBadArgumentsExitCode, bootstrapProcess.ExitCode);
+        Assert.Contains("--pipe", await standardErrorTask);
     }
 
     [Fact]
@@ -244,20 +259,22 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
         Assert.True(daemon.IsRunning);
     }
 
-    // Test daemons use a short keepalive so that, once a test's clients disconnect, the daemon shuts itself down
-    // promptly - which the TestDaemon then verifies. It is comfortably longer than the sub-second gap between a daemon
-    // arming its idle timer at startup and its first client connecting, so it never fires mid-test.
-    private static readonly TimeSpan s_defaultKeepAlive = TimeSpan.FromSeconds(5);
+    /// <summary>
+    /// Test daemons use a short keepalive so that, once a test's clients disconnect, the daemon shuts itself down
+    /// promptly - which the TestDaemon then verifies. The daemon's separate initial-connection timeout protects the
+    /// startup window before the first client connects.
+    /// </summary>
+    private const int DefaultKeepAliveSeconds = 15;
 
-    private TestDaemon CreateDaemon(TimeSpan? keepAlive = null)
-        => new(this, keepAlive ?? s_defaultKeepAlive);
+    private TestDaemon CreateDaemon(int? keepAlive = null)
+        => new(this, keepAlive ?? DefaultKeepAliveSeconds);
 
     /// <summary>
     /// Connects one daemon-mode thin client to the daemon named by <paramref name="daemonPipeName"/>, opening
     /// <paramref name="workspaceContent"/> in that client's server. Clients sharing a pipe name share a daemon; distinct
     /// names use distinct daemons.
     /// </summary>
-    private Task<TestLspClient> ConnectDaemonClientAsync(string daemonPipeName, bool useNamedPipe, TimeSpan keepAlive, int? initializeProcessId, LspWorkspaceContent workspaceContent)
+    private Task<TestLspClient> ConnectDaemonClientAsync(string daemonPipeName, bool useNamedPipe, int keepAlive, int? initializeProcessId, LspWorkspaceContent workspaceContent)
         => CreateLanguageServerAsync(
             workspaceContent,
             new LspServerLaunchOptions
@@ -346,6 +363,28 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
         Assert.False(process.HasExited);
     }
 
+    private static Process StartThinClientProcess(params string[] arguments)
+    {
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet",
+            UseShellExecute = false,
+            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+        };
+
+        processStartInfo.Environment["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1";
+        processStartInfo.ArgumentList.Add(TestPaths.GetThinClientPath());
+        foreach (var argument in arguments)
+            processStartInfo.ArgumentList.Add(argument);
+
+        var process = Process.Start(processStartInfo);
+        Assert.NotNull(process);
+        return process!;
+    }
+
     /// <summary>
     /// A single isolated daemon for one test, identified by a unique pipe name and created via <see cref="CreateDaemon"/>.
     /// Clients are created off it with <see cref="CreateClientAsync"/> and held by the test in <c>await using</c>
@@ -354,7 +393,7 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
     /// kills the daemon (a daemon that fails to exit is a bug). Mirrors the in-process
     /// <c>AbstractLanguageServerHostTests.TestDaemon</c>.
     /// </summary>
-    private sealed class TestDaemon(DaemonServerLifecycleTests test, TimeSpan keepAlive) : IAsyncDisposable
+    private sealed class TestDaemon(DaemonServerLifecycleTests test, int keepAlive) : IAsyncDisposable
     {
         private readonly object _gate = new();
         private readonly Dictionary<int, Process> _daemonProcessesById = [];

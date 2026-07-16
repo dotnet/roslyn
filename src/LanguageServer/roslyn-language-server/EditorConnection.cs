@@ -32,11 +32,7 @@ internal sealed class EditorConnection : IDisposable
         }
 
         var pipeName = NormalizeEditorPipeName(arguments.EditorPipeName!);
-        var pipeClient = new NamedPipeClientStream(
-            serverName: ".",
-            pipeName,
-            PipeDirection.InOut,
-            PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+        var pipeClient = NamedPipeUtil.CreateClient(serverName: ".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
 
         try
         {

@@ -59,13 +59,6 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     /// </summary>
     private readonly TaskCompletionSource<object?> _serverExitedSource = new();
 
-    /// <summary>
-    /// Completes when the server has been initialized (the <c>initialized</c> notification has been handled,
-    /// after the <c>initialize</c> request). Used by hosts that need to observe initialization - e.g. to read
-    /// the client process id from the initialize params once it is available.
-    /// </summary>
-    private readonly TaskCompletionSource<object?> _serverInitializedSource = new();
-
     public AbstractTypeRefResolver TypeRefResolver { get; }
 
     protected AbstractLanguageServer(
@@ -176,17 +169,6 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     public virtual void OnInitialized()
     {
         IsInitialized = true;
-        _serverInitializedSource.TrySetResult(null);
-    }
-
-    /// <summary>
-    /// Waits for the server to be initialized (see <see cref="_serverInitializedSource"/>). Remains incomplete
-    /// until the <c>initialized</c> notification is handled; callers that may race with server exit should also
-    /// observe <see cref="WaitForExitAsync"/>.
-    /// </summary>
-    public Task WaitForInitializedAsync()
-    {
-        return _serverInitializedSource.Task;
     }
 
     protected virtual IRequestExecutionQueue<TRequestContext> ConstructRequestExecutionQueue()

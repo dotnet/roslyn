@@ -50,7 +50,7 @@ internal static class ChildServerHost
 
         childArguments.AddRange(arguments.ServerArguments);
 
-        using var process = StartChildProcess(executable, childArguments);
+        using var process = executable.Start(childArguments);
         using var forwardingCancellationSource = new CancellationTokenSource();
 
         // Always bridge the server's stdio to ours; the server decides whether to use it for LSP (stdio transport)
@@ -60,11 +60,10 @@ internal static class ChildServerHost
         var stdoutTask = ProcessUtilities.ForwardStreamAsync(process.StandardOutput.BaseStream, Console.OpenStandardOutput(), CancellationToken.None);
         var stderrTask = ProcessUtilities.ForwardStreamAsync(process.StandardError.BaseStream, Console.OpenStandardError(), CancellationToken.None);
 
-        Console.Error.WriteLine($"Started language server child: {ProcessUtilities.GetCommandLineForDisplay(executable, childArguments)}");
-
         await process.WaitForExitAsync().ConfigureAwait(false);
 
-        // The server has exited; stop forwarding and let the output forwarders drain what's left.
+        // The editor-input copy may still be blocked after the child exits, so cancel it before returning to stop it
+        // touching the child's stdin. Leave the output forwarders uncancelled so they drain remaining output to EOF.
         forwardingCancellationSource.Cancel();
         await Task.WhenAll(stdoutTask, stderrTask).ConfigureAwait(false);
 
@@ -83,11 +82,9 @@ internal static class ChildServerHost
         {
             process.StandardInput.Close();
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or InvalidOperationException)
         {
-        }
-        catch (InvalidOperationException)
-        {
+            // The child may already have exited or closed its redirected standard-input stream.
         }
     }
 
@@ -109,23 +106,5 @@ internal static class ChildServerHost
 
         Console.Error.WriteLine("Language server child did not exit as expected.");
         return ExitCodes.ServerConnectionLost;
-    }
-
-    private static Process StartChildProcess(ServerExecutable executable, IReadOnlyList<string> childArguments)
-    {
-        var startInfo = new ProcessStartInfo
-        {
-            UseShellExecute = false,
-            RedirectStandardInput = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true,
-        };
-        executable.ConfigureStartInfo(startInfo);
-        foreach (var argument in childArguments)
-            startInfo.ArgumentList.Add(argument);
-
-        return Process.Start(startInfo)
-            ?? throw new InvalidOperationException("Failed to start the language server child process.");
     }
 }

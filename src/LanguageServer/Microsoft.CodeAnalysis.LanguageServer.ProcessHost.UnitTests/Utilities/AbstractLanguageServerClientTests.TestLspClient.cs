@@ -543,13 +543,10 @@ public partial class AbstractLanguageServerClientTests
             if (launchOptions.DaemonPipeName is { } daemonPipeName)
                 processStartInfo.Environment[DaemonPipeName.PipeNameOverrideEnvironmentVariable] = daemonPipeName;
 
-            // The thin client launches the daemon as a child, which inherits this environment, so the daemon picks up
-            // the requested keepalive window. A non-positive (e.g. infinite) value maps to the "stay alive" sentinel.
+            // The thin client launches the daemon as a child, which inherits this environment, so forward the same
+            // integer value accepted by --daemonKeepAlive directly to the daemon.
             if (launchOptions.DaemonKeepAlive is { } daemonKeepAlive)
-            {
-                var keepAliveSeconds = daemonKeepAlive <= TimeSpan.Zero ? 0 : (int)Math.Ceiling(daemonKeepAlive.TotalSeconds);
-                processStartInfo.Environment[LanguageServerCommandLine.DaemonKeepAliveEnvironmentVariable] = keepAliveSeconds.ToString(CultureInfo.InvariantCulture);
-            }
+                processStartInfo.Environment[LanguageServerCommandLine.DaemonKeepAliveEnvironmentVariable] = daemonKeepAlive.ToString(CultureInfo.InvariantCulture);
         }
 
         processStartInfo.ArgumentList.Add("--logLevel");

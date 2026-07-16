@@ -39,7 +39,7 @@ All options are optional. One of `--stdio` or `--pipe` should typically be speci
 
 - `--stdio` - Use standard I/O for communication with the client (default: false)
 - `--pipe <name>` - Use a named pipe for communication
-- `--daemon-mode` - Allow connecting to (or starting) a shared, multi-client language server daemon instead of hosting a server in-process.
+- `--daemon-mode` - Allow connecting to (or starting) a shared, multi-client language server daemon instead of launching a dedicated language-server child process for that client.
 - `--autoLoadProjects` - Automatically discover and load projects based on workspace folders (default: false)
 - `--logLevel <level>` - Set the minimum log verbosity: Trace, Debug, Information, Warning, Error, or None (default: Information)
 - `--extensionLogDirectory <path>` - Directory for log files

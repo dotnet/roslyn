@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Xunit;
 
@@ -45,19 +44,14 @@ public sealed class DaemonPipeNameTests
     }
 
     [Fact]
-    public void PipeName_NormalizesToolIdentifierCasing()
+    public void PipeName_NormalizesToolIdentifierCasingOnWindows()
     {
         var mixedCase = DaemonPipeName.GetPipeName("user", isAdmin: false, "/Tools/V1/Server.dll");
         var lowerCase = DaemonPipeName.GetPipeName("user", isAdmin: false, "/tools/v1/server.dll");
-        Assert.Equal(mixedCase, lowerCase);
-    }
-
-    [Fact]
-    public void PipeName_NormalizesTrailingSeparator()
-    {
-        var withSeparator = DaemonPipeName.GetPipeName("user", isAdmin: false, "/tools/v1/dir" + Path.DirectorySeparatorChar);
-        var withoutSeparator = DaemonPipeName.GetPipeName("user", isAdmin: false, "/tools/v1/dir");
-        Assert.Equal(withSeparator, withoutSeparator);
+        if (OperatingSystem.IsWindows())
+            Assert.Equal(mixedCase, lowerCase);
+        else
+            Assert.NotEqual(mixedCase, lowerCase);
     }
 
     [Fact]

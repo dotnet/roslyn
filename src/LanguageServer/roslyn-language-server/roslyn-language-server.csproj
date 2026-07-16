@@ -21,17 +21,9 @@
     <PackageId>roslyn-language-server</PackageId>
     <ToolCommandName>roslyn-language-server</ToolCommandName>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-
-    <!-- Publishing settings. Mirrors the language server so the bundled output lands side-by-side. -->
-    <SelfContained>false</SelfContained>
-    <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
-
-    <!-- List of runtime identifiers that we want to publish an executable for. -->
-    <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
-
-    <!-- R2R-compile the (tiny) thin client for fast startup when publishing platform-specific executables. -->
-    <PublishReadyToRun Condition="'$(Configuration)' == 'Release' AND '$(DotNetBuildUseMonoRuntime)' != 'true'">true</PublishReadyToRun>
   </PropertyGroup>
+
+  <Import Project="..\LanguageServerPublish.props" />
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="" />

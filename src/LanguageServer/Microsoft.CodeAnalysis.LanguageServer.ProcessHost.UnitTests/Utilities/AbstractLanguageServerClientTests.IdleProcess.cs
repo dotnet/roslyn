@@ -17,10 +17,12 @@ public partial class AbstractLanguageServerClientTests
     {
         var startInfo = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? new ProcessStartInfo("cmd.exe")
-            : new ProcessStartInfo("sleep");
+            : new ProcessStartInfo("cat");
 
         startInfo.UseShellExecute = false;
         startInfo.CreateNoWindow = true;
+        // Both commands block reading stdin. If the test host terminates without disposing IdleProcess, the OS closes
+        // its end of the redirected pipe and the child exits after observing EOF instead of being left orphaned.
         startInfo.RedirectStandardInput = true;
         startInfo.RedirectStandardOutput = true;
         startInfo.RedirectStandardError = true;
@@ -30,10 +32,6 @@ public partial class AbstractLanguageServerClientTests
             startInfo.ArgumentList.Add("/d");
             startInfo.ArgumentList.Add("/c");
             startInfo.ArgumentList.Add("pause > nul");
-        }
-        else
-        {
-            startInfo.ArgumentList.Add("2147483647");
         }
 
         var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start the idle editor process.");

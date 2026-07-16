@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Client;
@@ -27,11 +28,11 @@ internal static class DaemonBootstrap
     private const string PipeArgument = "--pipe";
 
     /// <summary>
-    /// Upper bound on how long the bootstrap waits for the daemon to become ready before orphaning it anyway. The
+    /// Upper bound on how long the bootstrap waits for the daemon to become ready before terminating it. The
     /// bootstrap normally exits as soon as the daemon signals readiness (within a few seconds); this only caps a
     /// pathologically slow or hung startup so the bootstrap process itself never lingers indefinitely.
     /// </summary>
-    private static readonly TimeSpan s_readyTimeout = TimeSpan.FromSeconds(60);
+    internal static readonly TimeSpan ReadyTimeout = TimeSpan.FromSeconds(60);
 
     /// <summary>Whether <paramref name="args"/> request the daemon bootstrap stage.</summary>
     public static bool IsBootstrapRequested(string[] args)
@@ -43,27 +44,18 @@ internal static class DaemonBootstrap
     /// </summary>
     public static async Task<int> RunAsync(string[] args)
     {
+        if (!TryGetPipeName(args, out var pipeName, out var error))
+        {
+            Console.Error.WriteLine(error);
+            return ExitCodes.BadArguments;
+        }
+
         // The daemon command line: our args, but the thin-client bootstrap marker becomes the server's --daemon flag.
         var daemonArguments = Array.ConvertAll(args, static arg => arg == BootstrapArgument ? DaemonArgument : arg);
 
-        var executable = ServerExecutableResolver.Resolve();
+        var executable = ServerExecutable.ResolveLanguageServer();
 
-        var startInfo = new ProcessStartInfo
-        {
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardInput = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-
-        // Resolve the executable path and the environment (notably DOTNET_ROOT, so the bundled apphost finds the
-        // runtime) exactly as a normal server launch would.
-        executable.ConfigureStartInfo(startInfo);
-        foreach (var argument in daemonArguments)
-            startInfo.ArgumentList.Add(argument);
-
-        var daemonProcess = StartDaemon(startInfo);
+        var daemonProcess = executable.StartWithStandardHandleInheritanceSuppressed(daemonArguments);
 
         // The daemon serves clients over its named pipe, never stdin; close our write end so it sees EOF if it reads.
         try
@@ -83,83 +75,117 @@ internal static class DaemonBootstrap
         var drainStandardOutput = ProcessUtilities.CopyStreamAsync(daemonProcess.StandardOutput.BaseStream, Stream.Null, forwardingCancellation.Token);
         var forwardStandardError = ProcessUtilities.CopyStreamAsync(daemonProcess.StandardError.BaseStream, Console.OpenStandardError(), forwardingCancellation.Token);
 
-        var daemonExitCode = await WaitForReadyOrExitAsync(daemonProcess, GetPipeName(args)).ConfigureAwait(false);
+        var readiness = await WaitForReadyOrExitAsync(daemonProcess, pipeName).ConfigureAwait(false);
 
-        forwardingCancellation.Cancel();
-
-        if (daemonExitCode is int exitCode)
+        if (readiness.State == DaemonReadinessState.Exited)
         {
             // The daemon exited during startup (e.g. it failed to compose, or another daemon already owns the pipe).
             // Flush its diagnostics so the failure reason surfaces, then propagate its exit code.
             await FlushForwardersAsync(drainStandardOutput, forwardStandardError).ConfigureAwait(false);
+            var exitCode = readiness.ExitCode!.Value;
             Console.Error.WriteLine($"The language server daemon exited during startup with code {exitCode}.");
+            daemonProcess.Dispose();
             return exitCode;
         }
 
-        // The daemon is ready (or we hit the cap). Return immediately to orphan it; it now owns its own lifetime and
-        // logs to its files. We intentionally do not wait on the forwarders here so the orphaning isn't delayed.
-        return ExitCodes.Success;
-    }
+        if (readiness.State == DaemonReadinessState.TimedOut)
+        {
+            Console.Error.WriteLine($"Timed out waiting {ReadyTimeout} for the language server daemon to become ready; terminating it.");
+            await TerminateDaemonAsync(daemonProcess).ConfigureAwait(false);
+            await FlushForwardersAsync(drainStandardOutput, forwardStandardError).ConfigureAwait(false);
+            daemonProcess.Dispose();
+            return ExitCodes.DaemonReadyTimeout;
+        }
 
-    private static Process StartDaemon(ProcessStartInfo startInfo)
-    {
-        // On Windows, mark our standard handles non-inheritable across the launch so the long-lived daemon doesn't
-        // inherit (copies of) our standard handles - which, through the editor -> thin client -> us launch chain, are
-        // the editor's LSP stdio pipes. A daemon holding those would keep them from reaching EOF after we exit and, in
-        // stdio mode, corrupt the editor's LSP channel. A no-op off Windows.
-        DaemonHandleInheritance.SetStandardHandlesInheritable(false);
-        try
-        {
-            return Process.Start(startInfo)
-                ?? throw new InvalidOperationException("Failed to start the language server daemon process.");
-        }
-        finally
-        {
-            DaemonHandleInheritance.SetStandardHandlesInheritable(true);
-        }
+        // The daemon is ready. Return immediately to orphan it; it now owns its own lifetime and logs to its files.
+        // We intentionally do not wait on the forwarders here so the orphaning isn't delayed.
+        forwardingCancellation.Cancel();
+        daemonProcess.Dispose();
+        return ExitCodes.Success;
     }
 
     /// <summary>
     /// Polls until the daemon signals readiness by acquiring its server mutex, exits, or the ready timeout elapses.
-    /// Returns the daemon's exit code if it exited, or <see langword="null"/> if it became ready (or the cap elapsed).
     /// </summary>
-    private static async Task<int?> WaitForReadyOrExitAsync(Process daemonProcess, string? pipeName)
+    private static async Task<DaemonReadinessResult> WaitForReadyOrExitAsync(Process daemonProcess, string pipeName)
     {
         var stopwatch = Stopwatch.StartNew();
         while (true)
         {
             if (daemonProcess.HasExited)
-                return daemonProcess.ExitCode;
+                return DaemonReadinessResult.Exited(daemonProcess.ExitCode);
 
             // The daemon holds its server mutex for its whole lifetime once it is ready to accept clients, so its
-            // existence is our readiness signal. (We always pass --pipe; if it is somehow absent we can't detect
-            // readiness and simply fall through to the timeout cap.)
-            if (pipeName is not null && DaemonServerMutex.IsRunning(pipeName))
-                return null;
+            // existence is our readiness signal.
+            if (DaemonServerMutex.IsRunning(pipeName))
+                return DaemonReadinessResult.Ready;
 
-            if (stopwatch.Elapsed >= s_readyTimeout)
-                return null;
+            if (stopwatch.Elapsed >= ReadyTimeout)
+                return DaemonReadinessResult.TimedOut;
 
             await Task.Delay(TimeSpan.FromMilliseconds(50)).ConfigureAwait(false);
         }
     }
 
+    private static async Task TerminateDaemonAsync(Process daemonProcess)
+    {
+        try
+        {
+            if (!daemonProcess.HasExited)
+                daemonProcess.Kill(entireProcessTree: true);
+        }
+        catch (InvalidOperationException)
+        {
+        }
+
+        await daemonProcess.WaitForExitAsync().ConfigureAwait(false);
+    }
+
     private static async Task FlushForwardersAsync(Task drainStandardOutput, Task forwardStandardError)
     {
-        // The daemon has exited, so its streams are at EOF and the forwarders will complete on their own; bound the
-        // wait so a stuck stream can't hang the bootstrap.
+        // The caller invokes this only after the daemon exited or was killed, so both redirected streams should reach
+        // EOF. Wait briefly for forwarding to finish, but cap the wait in case a stream fails to complete.
         var flushed = Task.WhenAll(drainStandardOutput, forwardStandardError);
         await Task.WhenAny(flushed, Task.Delay(TimeSpan.FromSeconds(2))).ConfigureAwait(false);
     }
 
-    private static string? GetPipeName(string[] args)
+    private static bool TryGetPipeName(string[] args, [NotNullWhen(true)] out string? pipeName, [NotNullWhen(false)] out string? error)
     {
         for (var i = 0; i < args.Length - 1; i++)
         {
             if (args[i] == PipeArgument)
-                return args[i + 1];
+            {
+                pipeName = args[i + 1];
+                if (string.IsNullOrWhiteSpace(pipeName))
+                {
+                    error = "Expected a non-empty value for --pipe.";
+                    pipeName = null;
+                    return false;
+                }
+
+                error = null;
+                return true;
+            }
         }
 
-        return null;
+        pipeName = null;
+        error = "Expected --pipe <name> when launching the daemon bootstrap.";
+        return false;
+    }
+
+    private enum DaemonReadinessState
+    {
+        Ready,
+        Exited,
+        TimedOut,
+    }
+
+    private readonly record struct DaemonReadinessResult(DaemonReadinessState State, int? ExitCode = null)
+    {
+        public static DaemonReadinessResult Ready { get; } = new(DaemonReadinessState.Ready);
+        public static DaemonReadinessResult TimedOut { get; } = new(DaemonReadinessState.TimedOut);
+
+        public static DaemonReadinessResult Exited(int exitCode)
+            => new(DaemonReadinessState.Exited, exitCode);
     }
 }

@@ -26,10 +26,9 @@ internal static class ProcessUtilities
     /// </summary>
     public static Task ForwardStreamAsync(Stream source, Stream destination, CancellationToken cancellationToken)
     {
-        return Task.Run(async () =>
-        {
-            _ = await CopyStreamAsync(source, destination, cancellationToken).ConfigureAwait(false);
-        }, CancellationToken.None);
+        // Cancellation belongs to CopyStreamAsync rather than Task.Run. CopyStreamAsync converts expected
+        // cancellation to StreamCopyCompletion.Cancelled, so the forwarding task completes normally.
+        return Task.Run(() => CopyStreamAsync(source, destination, cancellationToken), CancellationToken.None);
     }
 
     public static async Task<StreamCopyCompletion> CopyStreamAsync(Stream source, Stream destination, CancellationToken cancellationToken)
@@ -68,24 +67,5 @@ internal static class ProcessUtilities
         {
             return StreamCopyCompletion.Cancelled;
         }
-    }
-
-    public static string GetCommandLineForDisplay(ServerExecutable executable, IReadOnlyList<string> arguments)
-    {
-        var parts = new List<string>();
-        parts.Add(executable.FileName);
-        parts.AddRange(arguments);
-        return string.Join(" ", parts.Select(QuoteForDisplay));
-    }
-
-    private static string QuoteForDisplay(string value)
-    {
-        if (value.Length == 0)
-            return "\"\"";
-
-        if (!value.Any(static c => char.IsWhiteSpace(c) || c == '"'))
-            return value;
-
-        return "\"" + value.Replace("\"", "\\\"", StringComparison.Ordinal) + "\"";
     }
 }

@@ -37,7 +37,7 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
         _logger = logger;
     }
 
-    public bool IsolateConnectionFaults => true;
+    public bool ShouldIsolateConnectionFaults => true;
 
     /// <summary>
     /// Attempts to become the daemon for <paramref name="pipeName"/> by acquiring the server mutex.

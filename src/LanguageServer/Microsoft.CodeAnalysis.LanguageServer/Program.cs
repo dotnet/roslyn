@@ -35,6 +35,7 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     {
         Contract.ThrowIfTrue(serverConfiguration.UseStdIo, "Server cannot be started with --daemon together with --stdio.");
         Contract.ThrowIfNull(serverConfiguration.ServerPipeName, "Server started with --daemon must also specify --pipe.");
+        Contract.ThrowIfTrue(serverConfiguration.ClientProcessId is not null, "Server cannot be started with --daemon together with --clientProcessId.");
     }
     else if (serverConfiguration.UseStdIo)
     {
@@ -162,9 +163,14 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         // The VS Code LSP client passes a full pipe path (e.g. \\.\pipe\<guid> on Windows, /tmp/<id>.sock on Unix).
         // NamedPipeClientStream expects just the pipe name on Windows (it prepends \\.\pipe\ itself),
         // and the full socket path on Unix.
-        var pipeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? serverConfiguration.ServerPipeName!.Replace(@"\\.\pipe\", "")
-            : serverConfiguration.ServerPipeName!;
+        var pipeName = serverConfiguration.ServerPipeName!;
+        const string windowsPipePrefix = @"\\.\pipe\";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+            pipeName.StartsWith(windowsPipePrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            pipeName = pipeName[windowsPipePrefix.Length..];
+        }
+
         var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
         await pipeClient.ConnectAsync(cancellationToken);
         connectionSource = new SingleLanguageServerConnectionSource(new LanguageServerConnection(pipeClient, pipeClient, pipeClient));

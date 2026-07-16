@@ -210,34 +210,48 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
 
     private async Task MonitorClientProcessAsync(int processId, IClientProcessMonitor.ShutdownStrategy strategy)
     {
+        var clientProcessExitTask = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
         try
         {
-            var clientProcessExitTask = new TaskCompletionSource<bool>();
-
             using var clientProcess = Process.GetProcessById(processId);
             clientProcess.EnableRaisingEvents = true;
-            clientProcess.Exited += (sender, args) => clientProcessExitTask.SetResult(true);
-
-            if (!clientProcess.HasExited)
+            clientProcess.Exited += OnClientProcessExited;
+            try
             {
-                // Wait for the client process to exit.
-                await clientProcessExitTask.Task.ConfigureAwait(false);
+                if (!clientProcess.HasExited)
+                {
+                    // Stop monitoring when this logical server exits. In daemon mode the client process may
+                    // remain alive after disconnecting, so retaining the process event would leak this server.
+                    if (await Task.WhenAny(clientProcessExitTask.Task, WaitForExitAsync()).ConfigureAwait(false) != clientProcessExitTask.Task)
+                        return;
+                }
+            }
+            finally
+            {
+                clientProcess.Exited -= OnClientProcessExited;
             }
         }
         finally
         {
-            // The process didn't exist, exited, or we ran into
-            // issues checking whether the process had exited.
-            if (strategy == IClientProcessMonitor.ShutdownStrategy.ProcessExit)
+            // The process didn't exist, exited, or we ran into issues checking whether it had exited. If the
+            // logical server has not already exited, apply the configured process-exit shutdown behavior.
+            if (!WaitForExitAsync().IsCompleted)
             {
-                Environment.Exit(ServerExitCodes.ClientProcessExited);
-            }
-            else
-            {
-                await ShutdownAsync().ConfigureAwait(false);
-                await ExitAsync().ConfigureAwait(false);
+                if (strategy == IClientProcessMonitor.ShutdownStrategy.ProcessExit)
+                {
+                    Environment.Exit(ServerExitCodes.ClientProcessExited);
+                }
+                else
+                {
+                    await ShutdownAsync().ConfigureAwait(false);
+                    await ExitAsync().ConfigureAwait(false);
+                }
             }
         }
+
+        void OnClientProcessExited(object? sender, EventArgs args)
+            => clientProcessExitTask.TrySetResult(true);
     }
 
     public override bool TryGetLanguageForRequest(string methodName, object? serializedParameters, [NotNullWhen(true)] out string? language)
