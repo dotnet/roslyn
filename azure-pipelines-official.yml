@@ -9,6 +9,7 @@ trigger:
     - release/dev18.*
     - release/insiders
     - release/stable
+    - demos/mvu-experimentation
     - features/lsp_tools_host
     - features/runtime-async
     exclude:
