@@ -796,22 +796,22 @@ public static class MyExtensions {
             comp.VerifyDiagnostics(
                 // (100,24): error CS0828: Cannot assign 'Span<string>' to anonymous type property
                 //                        from y in _M<string>()
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from y in _M<string>()").WithArguments("System.Span<string>").WithLocation(1, 24),
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from y in _M<string>()").WithArguments("System.Span<string>").WithLocation(100, 24),
                 // (200,24): error CS0828: Cannot assign 'Span<int>' to anonymous type property
                 //                        let l = x
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let l = x").WithArguments("System.Span<int>").WithLocation(2, 24),
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let l = x").WithArguments("System.Span<int>").WithLocation(200, 24),
                 // (300,24): error CS0828: Cannot assign 'void*' to anonymous type property
                 //                        let m = _GetPointer()
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let m = _GetPointer()").WithArguments("void*").WithLocation(3, 24),
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let m = _GetPointer()").WithArguments("void*").WithLocation(300, 24),
                 // (400,24): error CS0828: Cannot assign 'delegate*<int>' to anonymous type property
                 //                        let n = _GetDelegatePointer()
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let n = _GetDelegatePointer()").WithArguments("delegate*<int>").WithLocation(4, 24),
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let n = _GetDelegatePointer()").WithArguments("delegate*<int>").WithLocation(400, 24),
                 // (500,17): error CS0828: Cannot assign 'Span<int>' to anonymous type property
                 //                 from x in _M<int>()
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from x in _M<int>()").WithArguments("System.Span<int>").WithLocation(5, 17),
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from x in _M<int>()").WithArguments("System.Span<int>").WithLocation(500, 17),
                 // (600,18): error CS0828: Cannot assign 'Span<string>' to anonymous type property
                 //                  from y in _M<string>()
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from y in _M<string>()").WithArguments("System.Span<string>").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from y in _M<string>()").WithArguments("System.Span<string>").WithLocation(600, 18)
             );
         }
 
