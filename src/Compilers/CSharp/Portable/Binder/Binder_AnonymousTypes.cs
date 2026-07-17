@@ -204,6 +204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private TypeSymbol GetAnonymousTypeFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, BindingDiagnosticBag diagnostics)
+        {
+            bool hasError = false;
+            return GetAnonymousTypeFieldType(expression, errorSyntax, diagnostics, ref hasError);
+        }
+
         /// <summary>
         /// Returns the type to be used as a field type; generates errors in case the type is not
         /// supported for anonymous type fields.
@@ -217,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (expression.HasExpressionType())
                 {
-                    RoslynDebug.Assert(expressionType is object);
+                    RoslynDebug.Assert(expressionType is not null);
                     if (expressionType.IsVoidType())
                     {
                         errorArg = expressionType;
@@ -239,10 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (expressionType is null)
-            {
-                expressionType = CreateErrorType("error");
-            }
+            expressionType ??= CreateErrorType("error");
 
             if (errorArg != null)
             {
