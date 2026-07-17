@@ -15761,7 +15761,7 @@ namespace System
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/72539")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/74676")]
-        public void SynthesizedCollections_EnsureCompilerGenerated()
+        public void SynthesizedCollections_EnsureAttributes()
         {
             string source = """
                 using System;
@@ -15801,15 +15801,20 @@ namespace System
                     verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlyList"));
                 },
                 expectedOutput: """
-                    <>z__ReadOnlySingleElementList`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
-                    <>z__ReadOnlyArray`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
-                    <>z__ReadOnlyList`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlySingleElementList`1: System.Diagnostics.DebuggerDisplayAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlyArray`1: System.Diagnostics.DebuggerDisplayAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlyList`1: System.Diagnostics.DebuggerDisplayAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
 
                     """);
 
             static void verifyCompilerGeneratedType(NamedTypeSymbol type)
             {
                 Assert.Collection(type.GetAttributes(),
+                    a =>
+                    {
+                        Assert.Equal("System.Diagnostics.DebuggerDisplayAttribute", a.AttributeClass?.ToTestDisplayString());
+                        Assert.Equal("Count = {System.Collections.ICollection.Count}", a.CommonConstructorArguments.Single().Value);
+                    },
                     a => Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", a.AttributeClass?.ToTestDisplayString()));
                 Assert.DoesNotContain(type.GetMembers(),
                     m => m.GetAttributes().Any(a => a.AttributeClass?.ToTestDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute"));
