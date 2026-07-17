@@ -412,10 +412,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 NamedTypeSymbol? result;
 
-                NamedTypeSymbol containingType = type.ContainingType;
+                NamedTypeSymbol? containingType = type.ContainingType;
                 MetadataTypeName mdName;
 
-                if ((object)containingType != null)
+                if ((object?)containingType != null)
                 {
                     // Nested type.  We need to retarget 
                     // the enclosing type and then go back and get the type we are interested in.

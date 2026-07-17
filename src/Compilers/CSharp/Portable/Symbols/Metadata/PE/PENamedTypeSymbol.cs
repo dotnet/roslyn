@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private class ExtensionInfo(PENamedTypeSymbol markerType, MethodDefinitionHandle markerMethod)
         {
             public readonly PENamedTypeSymbol MarkerTypeSymbol = markerType;
-            public PENamedTypeSymbol GroupingTypeSymbol => (PENamedTypeSymbol)MarkerTypeSymbol.ContainingType;
+            public PENamedTypeSymbol GroupingTypeSymbol => (PENamedTypeSymbol)MarkerTypeSymbol.RequiredContainingType;
             public readonly MethodDefinitionHandle MarkerMethodHandle = markerMethod;
             public PEMethodSymbol? LazyMarkerMethodSymbol;
             public StrongBox<ParameterSymbol?>? LazyExtensionParameter;
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             static MethodSymbol? findCorrespondingExtensionImplementationMethod(MethodSymbol method, PENamedTypeSymbol @this)
             {
-                foreach (var member in @this.ContainingType.GetMembers(method.Name))
+                foreach (var member in @this.RequiredContainingType.GetMembers(method.Name))
                 {
                     if (member is not MethodSymbol { IsStatic: true } candidate)
                     {
@@ -863,13 +863,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override NamedTypeSymbol ContainingType
+#nullable enable
+        public override NamedTypeSymbol? ContainingType
         {
             get
             {
                 return _container as NamedTypeSymbol;
             }
         }
+#nullable disable
 
         internal override bool IsRecord
         {
