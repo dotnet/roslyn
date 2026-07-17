@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -58,15 +55,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // mapping contents are read-only hereafter
         }
 
-        private static SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> ForType(NamedTypeSymbol containingType)
+        private static SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> ForType(NamedTypeSymbol? containingType)
         {
             var substituted = containingType as SubstitutedNamedTypeSymbol;
-            return (object)substituted != null ?
+            return (object?)substituted != null ?
                 new SmallDictionary<TypeParameterSymbol, TypeWithAnnotations>(substituted.TypeSubstitution.Mapping, ReferenceEqualityComparer.Instance) :
                 new SmallDictionary<TypeParameterSymbol, TypeWithAnnotations>(ReferenceEqualityComparer.Instance);
         }
 
-        internal TypeMap(NamedTypeSymbol containingType, ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeWithAnnotations> typeArguments)
+        internal TypeMap(NamedTypeSymbol? containingType, ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeWithAnnotations> typeArguments)
             : base(ForType(containingType))
         {
             for (int i = 0; i < typeParameters.Length; i++)
@@ -166,25 +163,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // That is, stopAt's type parameters are excluded - the parameters are in the range (stopAt, oldOwner]
             // A null stopAt means "include everything"
             var parameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
-            while (oldOwner != null && oldOwner != stopAt)
+            var currentMethod = oldOwner;
+            while (currentMethod != null && currentMethod != stopAt)
             {
-                var currentParameters = oldOwner.OriginalDefinition.TypeParameters;
+                var currentParameters = currentMethod.OriginalDefinition.TypeParameters;
 
                 for (int i = currentParameters.Length - 1; i >= 0; i--)
                 {
                     parameters.Add(currentParameters[i]);
                 }
 
-                oldOwner = oldOwner.ContainingSymbol.OriginalDefinition as MethodSymbol;
+                currentMethod = currentMethod.ContainingSymbol.OriginalDefinition as MethodSymbol;
             }
             parameters.ReverseContents();
 
             // Ensure that if stopAt was provided, it actually was in the chain and we stopped at it.
-            // If not provided, both should be null (if stopAt != null && oldOwner == null, then it wasn't in the chain).
+            // If not provided, both should be null (if stopAt != null && currentMethod == null, then it wasn't in the chain).
             // Alternately, we were inside a field initializer, in which case we were to stop at the constructor,
             // but never made it that far because we encountered the field in the ContainingSymbol chain.
             Debug.Assert(
-                stopAt == oldOwner ||
+                stopAt == currentMethod ||
                 stopAt?.MethodKind == MethodKind.StaticConstructor ||
                 stopAt?.MethodKind == MethodKind.Constructor);
 
