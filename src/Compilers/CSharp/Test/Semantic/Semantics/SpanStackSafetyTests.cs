@@ -731,29 +731,38 @@ class Test
     {   
         var array2 = new int[] { 1, 2, 3 };
 
-        var strs = from x in _M<int>()
-                   from y in _M<string>()
-                   let m = x
-                   select x.ToString() + y.ToString();
-
-        foreach (var str in strs)
-            Console.WriteLine(str);
-
+        unsafe {
+            var strs = from x in _M<int>()
+#line 100
+                       from y in _M<string>()
+#line 200
+                       let l = x
+#line 300
+                       let m = _GetPointer()
+#line 400
+                       let n = _GetDelegatePointer()
+                       select x.ToString() + y.ToString();
+        }
+        
         var q = from c in array
+#line 500
                 from x in _M<int>()
                 join p in array2 on c equals p into g
                 select g;
 
-        var q3 = from x in _M<int>()
+        var q2 = from x in _M<int>()
+#line 600
                  from y in _M<string>()
                  group x by y into g
                  select g;
 
-        foreach (var str in q3) {
-            Console.WriteLine(str);
-        }
-
         static IEnumerable<Span<T>> _M<T>() {
+            throw new Exception();
+        }
+        static void* _GetPointer() {
+            throw new Exception();
+        }
+        static delegate*<int> _GetDelegatePointer() {
             throw new Exception();
         }
     }
@@ -769,7 +778,6 @@ public static class MyExtensions {
     }
 
     public class MyGrouping<TKey, TElement>
-
     where TKey : allows ref struct
     where TElement : allows ref struct {
         
@@ -783,22 +791,27 @@ public static class MyExtensions {
     }
 }
 ";
-            // Generic ref structs​ first appeared in .NET 9 / C# 13.
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net90 /*, parseOptions: TestOptions.Regular13*/);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), targetFramework: TargetFramework.Net90);
 
             comp.VerifyDiagnostics(
-                // (13,20): error CS1932: Cannot assign Span<string> to a range variable
-                //                    from y in _M<string>()
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "from y in _M<string>()").WithArguments("System.Span<string>").WithLocation(13, 20),
-                // (14,28): error CS1932: Cannot assign Span<int> to a range variable
-                //                    let m = x
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "x").WithArguments("System.Span<int>").WithLocation(14, 28),
-                // (21,17): error CS1932: Cannot assign Span<int> to a range variable
+                // (100,24): error CS0828: Cannot assign 'Span<string>' to anonymous type property
+                //                        from y in _M<string>()
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from y in _M<string>()").WithArguments("System.Span<string>").WithLocation(1, 24),
+                // (200,24): error CS0828: Cannot assign 'Span<int>' to anonymous type property
+                //                        let l = x
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let l = x").WithArguments("System.Span<int>").WithLocation(2, 24),
+                // (300,24): error CS0828: Cannot assign 'void*' to anonymous type property
+                //                        let m = _GetPointer()
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let m = _GetPointer()").WithArguments("void*").WithLocation(3, 24),
+                // (400,24): error CS0828: Cannot assign 'delegate*<int>' to anonymous type property
+                //                        let n = _GetDelegatePointer()
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let n = _GetDelegatePointer()").WithArguments("delegate*<int>").WithLocation(4, 24),
+                // (500,17): error CS0828: Cannot assign 'Span<int>' to anonymous type property
                 //                 from x in _M<int>()
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "from x in _M<int>()").WithArguments("System.Span<int>").WithLocation(21, 17),
-                // (26,18): error CS1932: Cannot assign Span<string> to a range variable
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from x in _M<int>()").WithArguments("System.Span<int>").WithLocation(5, 17),
+                // (600,18): error CS0828: Cannot assign 'Span<string>' to anonymous type property
                 //                  from y in _M<string>()
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "from y in _M<string>()").WithArguments("System.Span<string>").WithLocation(26, 18)
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from y in _M<string>()").WithArguments("System.Span<string>").WithLocation(6, 18)
             );
         }
 
