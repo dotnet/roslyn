@@ -33,8 +33,13 @@ internal sealed class RpcServer
     private readonly TextReader _streamReader;
     private readonly RpcMethodInvoker _rpcMethodInvoker;
 
-    private readonly ConcurrentDictionary<int, object> _rpcTargets = [];
-    private volatile int _nextRpcTargetIndex = -1; // We'll start at -1 so the first value becomes zero
+    /// <summary>
+    /// A lock to guard <see cref="_rpcTargets"/>, <see cref="_rpcTargetToIndex"/> and <see cref="_nextRpcTargetIndex"/>.
+    /// </summary>
+    private readonly ReaderWriterLockSlim _rpcTargetsLock = new();
+    private readonly Dictionary<int, object> _rpcTargets = [];
+    private readonly Dictionary<object, int> _rpcTargetToIndex = [];
+    private int _nextRpcTargetIndex = 0;
 
     private readonly CancellationTokenSource _shutdownTokenSource = new();
 
@@ -53,11 +58,28 @@ internal sealed class RpcServer
     {
         // Loop until we successfully have a new index for this; practically we don't expect this to ever collide, since that'd mean we'd have
         // billions of long lived projects, but...
-        while (true)
+        using (_rpcTargetsLock.DisposableWrite())
         {
-            var nextIndex = Interlocked.Increment(ref _nextRpcTargetIndex);
-            if (_rpcTargets.TryAdd(nextIndex, rpcTarget))
-                return nextIndex;
+            while (true)
+            {
+                var nextIndex = _nextRpcTargetIndex++;
+                if (!_rpcTargets.ContainsKey(nextIndex))
+                {
+                    _rpcTargets.Add(nextIndex, rpcTarget);
+                    _rpcTargetToIndex.Add(rpcTarget, nextIndex);
+                    return nextIndex;
+                }
+            }
+        }
+    }
+
+    public void RemoveTarget(object rpcTarget)
+    {
+        using (_rpcTargetsLock.DisposableWrite())
+        {
+            Contract.ThrowIfFalse(_rpcTargetToIndex.TryGetValue(rpcTarget, out var targetIndex));
+            _rpcTargetToIndex.Remove(rpcTarget);
+            _rpcTargets.Remove(targetIndex);
         }
     }
 
@@ -115,9 +137,14 @@ internal sealed class RpcServer
 
         try
         {
-            Contract.ThrowIfFalse(
-                _rpcTargets.TryGetValue(request.TargetObject, out var rpcTarget),
-                $"Received a request for target object {request.TargetObject} but we don't have a registered object for that.");
+            object rpcTarget;
+
+            using (_rpcTargetsLock.DisposableRead())
+            {
+                Contract.ThrowIfFalse(
+                    _rpcTargets.TryGetValue(request.TargetObject, out rpcTarget!),
+                    $"Received a request for target object {request.TargetObject} but we don't have a registered object for that.");
+            }
 
             var method = rpcTarget.GetType().GetMethod(request.Method, BindingFlags.Public | BindingFlags.Instance);
 
