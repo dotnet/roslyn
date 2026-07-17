@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            Debug.Assert((object)result.ContainingType == null || IsValidWellKnownType(result.ContainingType),
+            Debug.Assert((object?)result.ContainingType == null || IsValidWellKnownType(result.ContainingType),
                 "Checking the containing type is the caller's responsibility.");
 
             return result.DeclaredAccessibility == Accessibility.Public || IsSymbolAccessible(result, this);

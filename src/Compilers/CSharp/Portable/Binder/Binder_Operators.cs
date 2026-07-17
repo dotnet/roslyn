@@ -1945,7 +1945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = UnaryOperatorOverloadResolutionResult.GetInstance();
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
-                NamedTypeSymbol extensionContainingType = signature.Method.OriginalDefinition.ContainingType.ContainingType;
+                NamedTypeSymbol extensionContainingType = signature.Method.OriginalDefinition.ContainingType.RequiredContainingType;
 
                 UnaryOperatorAnalysisResult? bestTrue = extensionUnaryOperatorOverloadResolution(syntax, extensionCandidates, result, extensionContainingType, UnaryOperatorKind.True, leftPlaceholder, ref useSiteInfo);
                 UnaryOperatorAnalysisResult? bestFalse = null;

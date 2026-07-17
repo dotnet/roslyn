@@ -3202,7 +3202,7 @@ OuterBreak:
                 compilation,
                 conversions,
                 extension.TypeParameters,
-                extension.ContainingType,
+                extension.RequiredContainingType,
                 [extension.ExtensionParameter.TypeWithAnnotations],
                 [extension.ExtensionParameter.RefKind],
                 [receiver],

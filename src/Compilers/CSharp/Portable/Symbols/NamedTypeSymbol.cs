@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override NamedTypeSymbol ContainingType
+#nullable enable
+        public override NamedTypeSymbol? ContainingType
         {
             get
             {
@@ -119,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.ContainingSymbol as NamedTypeSymbol;
             }
         }
+#nullable disable
 
         /// <summary>
         /// Returns true for a struct type containing a cycle.

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ((SourceMemberContainerTypeSymbol)ContainingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerMethodVisibility(this);
+                return ((SourceMemberContainerTypeSymbol)ContainingType.RequiredContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerMethodVisibility(this);
             }
         }
 

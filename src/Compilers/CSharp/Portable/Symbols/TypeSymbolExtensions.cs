@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsTopLevelType(this NamedTypeSymbol type)
         {
-            return (object)type.ContainingType == null;
+            return (object?)type.ContainingType == null;
         }
 
         /// <summary>
@@ -1691,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return code;
 
-            static bool wasConstructedForAnnotations(NamedTypeSymbol type)
+            static bool wasConstructedForAnnotations([DisallowNull] NamedTypeSymbol? type)
             {
                 do
                 {
@@ -1769,7 +1769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static ImmutableArray<TypeParameterSymbol> GetAllTypeParameters(this NamedTypeSymbol type)
         {
             // Avoid allocating a builder in the common case.
-            if ((object)type.ContainingType == null)
+            if ((object?)type.ContainingType == null)
             {
                 return type.TypeParameters;
             }
@@ -1786,7 +1786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static void GetAllTypeParameters(this NamedTypeSymbol type, ArrayBuilder<TypeParameterSymbol> result)
         {
             var containingType = type.ContainingType;
-            if ((object)containingType != null)
+            if ((object?)containingType != null)
             {
                 containingType.GetAllTypeParameters(result);
             }
@@ -1798,7 +1798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Return the nearest type parameter with the given name in
         /// this type or any enclosing type.
         /// </summary>
-        internal static TypeParameterSymbol? FindEnclosingTypeParameter(this NamedTypeSymbol type, string name)
+        internal static TypeParameterSymbol? FindEnclosingTypeParameter([DisallowNull] this NamedTypeSymbol? type, string name)
         {
             do
             {

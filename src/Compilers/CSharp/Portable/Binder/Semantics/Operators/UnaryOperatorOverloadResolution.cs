@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(x is { });
                 Debug.Assert(y is { });
 
-                if (x.OriginalDefinition.ContainingType.ContainingType != (object)x.OriginalDefinition.ContainingType.ContainingType)
+                if (x.OriginalDefinition.ContainingType.ContainingType != (object?)x.OriginalDefinition.ContainingType.ContainingType)
                 {
                     return false;
                 }
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var typeComparer = Symbols.SymbolEqualityComparer.AllIgnoreOptions;
 
-                int result = typeComparer.GetHashCode(op.OriginalDefinition.ContainingType.ContainingType);
+                int result = typeComparer.GetHashCode(op.OriginalDefinition.ContainingType.RequiredContainingType);
 
                 var extension = op.OriginalDefinition.ContainingType;
                 var groupingKey = extension.ExtensionGroupingName;
