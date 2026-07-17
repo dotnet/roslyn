@@ -11,6 +11,5 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 [method: ImportingConstructor]
 internal class VSCodeLanguageServerFeatureOptions() : LanguageServerFeatureOptions
 {
-    public override bool SupportsFileManipulation => true;
     public override bool ShowAllCSharpCodeActions => false;
 }

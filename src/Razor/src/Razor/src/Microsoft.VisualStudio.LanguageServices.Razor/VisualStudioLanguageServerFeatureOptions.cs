@@ -11,14 +11,11 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(LanguageServerFeatureOptions))]
 internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {
-    private readonly ILspEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
 
     [ImportingConstructor]
-    public VisualStudioLanguageServerFeatureOptions(ILspEditorFeatureDetector lspEditorFeatureDetector)
+    public VisualStudioLanguageServerFeatureOptions()
     {
-        _lspEditorFeatureDetector = lspEditorFeatureDetector;
-
         _showAllCSharpCodeActions = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SVsFeatureFlags));
@@ -26,11 +23,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
             return showAllCSharpCodeActions;
         });
     }
-
-    // We don't currently support file creation operations on VS Codespaces or VS Liveshare
-    public override bool SupportsFileManipulation => !IsCodespacesOrLiveshare;
-
-    private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 
     public override bool ShowAllCSharpCodeActions => _showAllCSharpCodeActions.Value;
 }

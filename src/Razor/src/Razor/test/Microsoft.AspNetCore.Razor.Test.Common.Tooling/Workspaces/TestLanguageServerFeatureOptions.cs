@@ -10,7 +10,5 @@ internal class TestLanguageServerFeatureOptions(
 {
     public static readonly LanguageServerFeatureOptions Instance = new TestLanguageServerFeatureOptions();
 
-    public override bool SupportsFileManipulation => false;
-
     public override bool ShowAllCSharpCodeActions => showAllCSharpCodeActions;
 }

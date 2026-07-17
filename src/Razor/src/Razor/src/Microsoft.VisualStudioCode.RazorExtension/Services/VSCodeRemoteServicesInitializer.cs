@@ -54,7 +54,6 @@ internal sealed class VSCodeRemoteServicesInitializer(
 
         await service.InitializeAsync(new RemoteClientInitializationOptions
         {
-            SupportsFileManipulation = _featureOptions.SupportsFileManipulation,
             ShowAllCSharpCodeActions = _featureOptions.ShowAllCSharpCodeActions,
         }, cancellationToken).ConfigureAwait(false);
 

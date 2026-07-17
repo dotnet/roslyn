@@ -212,7 +212,6 @@ internal sealed class RemoteServiceInvoker(
 
                 var initParams = new RemoteClientInitializationOptions
                 {
-                    SupportsFileManipulation = _languageServerFeatureOptions.SupportsFileManipulation,
                     ShowAllCSharpCodeActions = _languageServerFeatureOptions.ShowAllCSharpCodeActions,
                 };
 

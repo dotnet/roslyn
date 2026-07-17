@@ -19,7 +19,5 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
         _options = options;
     }
 
-    public override bool SupportsFileManipulation => _options.SupportsFileManipulation;
-
     public override bool ShowAllCSharpCodeActions => _options.ShowAllCSharpCodeActions;
 }

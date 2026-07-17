@@ -34,7 +34,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
 {
     private ExportProvider? _exportProvider;
     private TestIncompatibleProjectService _incompatibleProjectService = null!;
-    private RemoteClientInitializationOptions _clientInitializationOptions;
     private RemoteClientLSPInitializationOptions _clientLSPInitializationOptions;
     private CodeAnalysis.Workspace? _localWorkspace;
     private ExportProvider? _localExportProvider;
@@ -87,12 +86,10 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         remoteLogger.SetTargetLoggerFactory(LoggerFactory);
         remoteLogger.AddLoggerProvider(new ThrowingErrorLoggerProvider());
 
-        _clientInitializationOptions = new()
+        FeatureOptions.SetOptions(new()
         {
-            SupportsFileManipulation = true,
             ShowAllCSharpCodeActions = false,
-        };
-        UpdateClientInitializationOptions(c => c);
+        });
 
         _clientLSPInitializationOptions = GetRemoteClientLSPInitializationOptions();
         UpdateClientLSPInitializationOptions(c => c);
@@ -145,12 +142,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         => composition;
 
     private protected abstract RemoteClientLSPInitializationOptions GetRemoteClientLSPInitializationOptions();
-
-    private protected void UpdateClientInitializationOptions(Func<RemoteClientInitializationOptions, RemoteClientInitializationOptions> mutation)
-    {
-        _clientInitializationOptions = mutation(_clientInitializationOptions);
-        FeatureOptions.SetOptions(_clientInitializationOptions);
-    }
 
     private protected void UpdateClientLSPInitializationOptions(Func<RemoteClientLSPInitializationOptions, RemoteClientLSPInitializationOptions> mutation)
     {

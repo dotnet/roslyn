@@ -7,9 +7,6 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal struct RemoteClientInitializationOptions
 {
-    [JsonPropertyName("supportsFileManipulation")]
-    public required bool SupportsFileManipulation { get; set; }
-
     [JsonPropertyName("showAllCSharpCodeActions")]
     public required bool ShowAllCSharpCodeActions { get; set; }
 }
