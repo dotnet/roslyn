@@ -321,13 +321,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool ISymbolInternal.IsImplicitlyDeclared => this.IsImplicitlyDeclared;
 
-        INamedTypeSymbolInternal ISymbolInternal.ContainingType
+#nullable enable
+        INamedTypeSymbolInternal? ISymbolInternal.ContainingType
         {
             get
             {
                 return this.ContainingType;
             }
         }
+#nullable disable
 
         ISymbol ISymbolInternal.GetISymbol() => this.ISymbol;
 
