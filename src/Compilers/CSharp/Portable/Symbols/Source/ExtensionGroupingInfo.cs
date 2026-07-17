@@ -105,9 +105,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<Cci.INestedTypeDefinition>.CastUp(_groupingTypes);
         }
 
-        public Cci.ITypeDefinition GetCorrespondingMarkerType(SynthesizedExtensionMarker markerMethod)
+        public Cci.ITypeDefinition GetCorrespondingCciMarkerType(SynthesizedExtensionMarker markerMethod)
         {
             return GetCorrespondingMarkerType((SourceNamedTypeSymbol)markerMethod.ContainingType);
+        }
+
+        public Cci.ITypeDefinition GetCorrespondingCciMarkerType(SourceNamedTypeSymbol extension)
+        {
+            return GetCorrespondingMarkerType(extension);
         }
 
         private ExtensionMarkerType GetCorrespondingMarkerType(SourceNamedTypeSymbol extension)
@@ -627,8 +632,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             IEnumerable<IFieldDefinition> ITypeDefinition.GetFields(EmitContext context)
             {
-                return SpecializedCollections.EmptyEnumerable<IFieldDefinition>();
+                return GetFields(context);
             }
+
+            protected abstract IEnumerable<IFieldDefinition> GetFields(EmitContext context);
 
             ISymbolInternal? IReference.GetInternalSymbol()
             {
@@ -760,6 +767,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+
+            protected override IEnumerable<IFieldDefinition> GetFields(EmitContext context) => SpecializedCollections.EmptyEnumerable<IFieldDefinition>();
 
             protected override IEnumerable<INestedTypeDefinition> NestedTypes => ExtensionMarkerTypes;
 
@@ -937,6 +946,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (marker is { })
                 {
                     yield return marker.GetCciAdapter();
+                }
+            }
+
+            protected override IEnumerable<IFieldDefinition> GetFields(EmitContext context)
+            {
+                foreach (var type in UnderlyingExtensions)
+                {
+                    foreach (FieldSymbol field in type.GetFieldsToEmit())
+                    {
+                        Debug.Assert((object)field != null);
+
+                        IFieldDefinition definition = field.GetCciAdapter();
+                        if (definition.ShouldInclude(context))
+                        {
+                            yield return definition;
+                        }
+                    }
                 }
             }
 

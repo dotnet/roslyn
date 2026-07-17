@@ -2476,11 +2476,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var privateFieldNameToSymbols = new MultiDictionary<string, PEFieldSymbol>();
 
-            if (IsExtension)
-            {
-                return privateFieldNameToSymbols;
-            }
-
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
 
@@ -2531,7 +2526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             try
             {
-                foreach (var fieldRid in module.GetFieldsOfTypeOrThrow(_handle))
+                foreach (var fieldRid in module.GetFieldsOfTypeOrThrow(IsExtension ? _lazyUncommonProperties.extensionInfo.MarkerTypeSymbol.Handle : _handle))
                 {
                     try
                     {

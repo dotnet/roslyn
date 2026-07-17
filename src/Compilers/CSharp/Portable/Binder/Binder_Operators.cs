@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     analyzedArguments,
                     overloadResolutionResult,
                     ref useSiteInfo,
-                    OverloadResolution.Options.DisallowExpandedForm | (isExtension ? OverloadResolution.Options.IsExtensionMethodResolution : OverloadResolution.Options.None));
+                    OverloadResolution.Options.DisallowExpandedForm | (isExtension ? OverloadResolution.Options.IsExtensionResolution : OverloadResolution.Options.None));
 
                 typeArguments.Free();
                 diagnostics.Add(node, useSiteInfo);
@@ -3570,7 +3570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     analyzedArguments,
                     overloadResolutionResult,
                     ref useSiteInfo,
-                    OverloadResolution.Options.DisallowExpandedForm | (isExtension ? OverloadResolution.Options.IsExtensionMethodResolution : OverloadResolution.Options.None));
+                    OverloadResolution.Options.DisallowExpandedForm | (isExtension ? OverloadResolution.Options.IsExtensionResolution : OverloadResolution.Options.None));
 
                 typeArguments.Free();
                 diagnostics.Add(node, useSiteInfo);

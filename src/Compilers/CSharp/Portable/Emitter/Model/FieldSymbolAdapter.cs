@@ -94,6 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(this.IsDefinitionOrDistinct());
 
+            if (AdaptedFieldSymbol.IsExtensionBlockMember())
+            {
+                Debug.Assert(AdaptedFieldSymbol.IsConst);
+                var extension = (SourceNamedTypeSymbol)AdaptedFieldSymbol.ContainingType;
+                return ((SourceMemberContainerTypeSymbol)extension.ContainingType).GetExtensionGroupingInfo().GetCorrespondingCciMarkerType(extension);
+            }
+
             return moduleBeingBuilt.Translate(AdaptedFieldSymbol.ContainingType,
                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                               diagnostics: context.Diagnostics,
@@ -273,6 +280,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
+
+                if (AdaptedFieldSymbol.IsExtensionBlockMember())
+                {
+                    Debug.Assert(AdaptedFieldSymbol.IsConst);
+                    var extension = (SourceNamedTypeSymbol)AdaptedFieldSymbol.ContainingType;
+                    return ((SourceMemberContainerTypeSymbol)extension.ContainingType).GetExtensionGroupingInfo().GetCorrespondingCciMarkerType(extension);
+                }
+
                 return AdaptedFieldSymbol.ContainingType.GetCciAdapter();
             }
         }

@@ -2541,10 +2541,7 @@ static class C
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (5,19): error CS9282: This member is not allowed in an extension block
-            //         const int i = 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "i").WithLocation(5, 19));
+        comp.VerifyEmitDiagnostics();
 
         UsingTree(src, TestOptions.RegularPreview);
 

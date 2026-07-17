@@ -2652,10 +2652,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (3,35): error CS9282: This member is not allowed in an extension block
-            //     extension(object) { const int i = 0; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "i").WithLocation(3, 35));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -37440,13 +37437,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (1,9): error CS0117: 'int' does not contain a definition for 'Const'
-            // _ = int.Const;
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Const").WithArguments("int", "Const").WithLocation(1, 9),
-            // (7,26): error CS9282: This member is not allowed in an extension block
-            //         public const int Const = 42;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Const").WithLocation(7, 26));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]

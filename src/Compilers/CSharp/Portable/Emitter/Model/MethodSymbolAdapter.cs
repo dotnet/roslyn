@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (AdaptedMethodSymbol is SynthesizedExtensionMarker marker)
             {
-                return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
+                return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingCciMarkerType(marker);
             }
             else if (AdaptedMethodSymbol.IsExtensionBlockMember())
             {
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (AdaptedMethodSymbol is SynthesizedExtensionMarker marker)
                 {
-                    return ((SourceMemberContainerTypeSymbol)AdaptedMethodSymbol.ContainingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
+                    return ((SourceMemberContainerTypeSymbol)AdaptedMethodSymbol.ContainingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingCciMarkerType(marker);
                 }
                 else if (AdaptedMethodSymbol.IsExtensionBlockMember())
                 {

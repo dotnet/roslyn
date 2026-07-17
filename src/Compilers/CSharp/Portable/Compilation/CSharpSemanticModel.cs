@@ -4658,7 +4658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {
-                        if (singleLookupResult.Symbol is not (MethodSymbol or PropertySymbol))
+                        if (singleLookupResult.Symbol is not (MethodSymbol or PropertySymbol or FieldSymbol))
                         {
                             continue;
                         }

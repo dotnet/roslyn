@@ -8300,6 +8300,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
 
+                case FieldSymbol fieldSymbol:
+                    Debug.Assert(fieldSymbol.IsConst);
+                    Debug.Assert(fieldSymbol.ContainingType.ExtensionParameter is not null);
+                    ReportDiagnosticsIfObsolete(diagnostics, fieldSymbol, syntax, hasBaseReceiver: false);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, fieldSymbol, syntax);
+                    ReportDisallowedExtensionBlockConstant(fieldSymbol, syntax, diagnostics);
+
+                    Debug.Assert(receiver is BoundTypeExpression);
+                    return BindFieldAccess(syntax, receiver, fieldSymbol, diagnostics, LookupResultKind.Viable, indexed: false, hasErrors: false);
+
                 case ExtendedErrorTypeSymbol errorTypeSymbol:
                     // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, we should likely reduce (ie. do type inference and substitute) the candidates (like ToBadExpression)
                     return new BoundBadExpression(syntax, LookupResultKind.Viable, errorTypeSymbol.CandidateSymbols!, [AdjustBadExpressionChild(receiver)], CreateErrorType());
@@ -8890,9 +8900,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Regarding 'acceptOnlyMethods', consider if it would be better to add a special 'LookupOptions' value to filter out properties during lookup
                 OverloadResolutionResult<PropertySymbol>? propertyResult = arity != 0 || acceptOnlyMethods ? null : resolveProperties(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
+                OverloadResolutionResult<FieldSymbol>? fieldResult = arity != 0 || acceptOnlyMethods ? null : resolveFields(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
 
                 // 4. determine member kind
-                if (!methodResult.HasAnyApplicableMethod && propertyResult?.HasAnyApplicableMember != true)
+                if (!methodResult.HasAnyApplicableMethod && propertyResult?.HasAnyApplicableMember != true && fieldResult?.HasAnyApplicableMember != true)
                 {
                     // Found nothing applicable. Store aside the first non-applicable result and continue searching for an applicable result.
                     if (firstResult.IsEmpty)
@@ -8900,13 +8911,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (propertyResult != null)
                         {
                             Debug.Assert(actualReceiverArguments is not null);
-                            firstResult = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
+                            firstResult = makeErrorResult(methodResult, propertyResult, fieldResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
                             methodResult.Free(keepArguments: true);
-                            propertyResult.Free();
+                            propertyResult?.Free();
+                            fieldResult?.Free();
                         }
                         else
                         {
                             firstResult = methodResult;
+                            fieldResult?.Free();
                         }
                     }
                     else
@@ -8916,6 +8929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // The arguments lifetime is managed by the caller (ResolveExtension).
                         methodResult.Free(keepArguments: true);
                         propertyResult?.Free();
+                        fieldResult?.Free();
                     }
 
                     return false;
@@ -8925,7 +8939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // If the search in the current scope resulted in any applicable method (regardless of whether a best
                     // applicable method could be determined) then our search is complete.
-                    if (propertyResult?.HasAnyApplicableMember != true)
+                    if (propertyResult?.HasAnyApplicableMember != true && fieldResult?.HasAnyApplicableMember != true)
                     {
                         // methods win
                         propertyResult?.Free();
@@ -8933,11 +8947,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    // ambiguous between methods and properties
-                    Debug.Assert(actualReceiverArguments is not null);
-                    result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
+                    // ambiguous between methods and other extension members
+                    Debug.Assert(fieldResult?.HasAnyApplicableMember == true || actualReceiverArguments is not null);
+                    result = makeErrorResult(methodResult, propertyResult, fieldResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
                     methodResult.Free(keepArguments: true);
                     propertyResult?.Free();
+                    fieldResult?.Free();
+                    return true;
+                }
+
+                if (fieldResult?.HasAnyApplicableMember == true)
+                {
+                    if (fieldResult.Succeeded && fieldResult.BestResult.Member is { } bestField && propertyResult?.HasAnyApplicableMember != true)
+                    {
+                        // field win
+                        result = new MethodGroupResolution(bestField, LookupResultKind.Viable, diagnostics.ToReadOnly());
+                    }
+                    else
+                    {
+                        // ambiguous between field and other extension members
+                        result = makeErrorResult(methodResult, propertyResult, fieldResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
+                    }
+
+                    methodResult.Free(keepArguments: true);
+                    propertyResult?.Free();
+                    fieldResult.Free();
                     return true;
                 }
 
@@ -8955,10 +8989,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // ambiguous between multiple applicable properties
                 Debug.Assert(actualReceiverArguments is not null);
-                result = makeErrorResult(methodResult, propertyResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
+                result = makeErrorResult(methodResult, propertyResult, fieldResult, expression, left, memberName, arity, lookupResult, actualReceiverArguments, binder, diagnostics);
                 methodResult.Free(keepArguments: true);
                 propertyResult.Free();
+                fieldResult?.Free();
                 return true;
+            }
+
+            // The caller is responsible for freeing the result
+            static OverloadResolutionResult<FieldSymbol>? resolveFields(
+                BoundExpression left,
+                LookupResult lookupResult,
+                Binder binder,
+                ref AnalyzedArguments? actualReceiverArguments,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                ArrayBuilder<FieldSymbol>? fields = null;
+                foreach (var member in lookupResult.Symbols)
+                {
+                    if (member is FieldSymbol { IsConst: true } field)
+                    {
+                        Debug.Assert(field.IsExtensionBlockMember());
+                        fields ??= ArrayBuilder<FieldSymbol>.GetInstance();
+                        fields.Add(field);
+                    }
+                }
+
+                if (fields is null)
+                {
+                    return null;
+                }
+
+                var result = binder.ResolveExtensionFields(left, fields, analyzedArguments: null, ref actualReceiverArguments, ref useSiteInfo);
+                fields.Free();
+                return result;
             }
 
             // The caller is responsible for freeing the result
@@ -8991,40 +9055,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static MethodGroupResolution makeErrorResult(
                 MethodGroupResolution methodResult,
-                OverloadResolutionResult<PropertySymbol> propertyResult,
+                OverloadResolutionResult<PropertySymbol>? propertyResult,
+                OverloadResolutionResult<FieldSymbol>? fieldResult,
                 SyntaxNode expression,
                 BoundExpression left,
                 string memberName,
                 int arity,
                 LookupResult lookupResult,
-                AnalyzedArguments actualReceiverArguments,
+                AnalyzedArguments? actualReceiverArguments,
                 Binder binder,
                 BindingDiagnosticBag diagnostics)
             {
-                Debug.Assert(propertyResult is not null);
+                Debug.Assert(propertyResult is not null || fieldResult is not null);
                 ImmutableArray<Symbol> symbols = lookupResult.Symbols.ToImmutable();
 
-                DiagnosticInfo errorInfo;
-                if (methodResult.HasAnyApplicableMethod && propertyResult.HasAnyApplicableMember)
+                var symbolsBuilder = ArrayBuilder<Symbol>.GetInstance();
+                if (methodResult.HasAnyApplicableMethod)
                 {
-                    MethodSymbol representativeMethod = methodResult.OverloadResolutionResult is { } methodResolution
+                    MethodSymbol methodRepresentative = methodResult.OverloadResolutionResult is { } methodResolution
                         ? methodResolution.PickRepresentativeMember()
                         : methodResult.MethodGroup.Methods[0];
 
+                    symbolsBuilder.Add(methodRepresentative);
+                }
+
+                if (propertyResult?.HasAnyApplicableMember == true)
+                {
                     PropertySymbol representativeProperty = propertyResult.PickRepresentativeMember();
+                    symbolsBuilder.Add(representativeProperty);
+                }
 
-                    errorInfo = OverloadResolutionResult<Symbol>.CreateAmbiguousCallDiagnosticInfo(binder.Compilation, representativeMethod, representativeProperty, symbols, isExtension: true);
+                if (fieldResult?.HasAnyApplicableMember == true)
+                {
+                    FieldSymbol representativeField = fieldResult.PickRepresentativeMember();
+                    symbolsBuilder.Add(representativeField);
+                }
 
+                DiagnosticInfo errorInfo;
+                if (symbolsBuilder.Count > 1)
+                {
+                    errorInfo = OverloadResolutionResult<Symbol>.CreateAmbiguousCallDiagnosticInfo(binder.Compilation, symbolsBuilder[0], symbolsBuilder[1], symbols, isExtension: true);
                     diagnostics.Add(errorInfo, expression.Location);
                 }
-                else
+                else if (propertyResult is not null)
                 {
                     propertyResult.ReportDiagnostics(binder, expression.Location, expression, diagnostics, memberName, left, left.Syntax, actualReceiverArguments, symbols,
                         typeContainingConstructor: null, delegateTypeBeingInvoked: null, isMethodGroupConversion: false, isExtension: true);
 
                     errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_ExtensionResolutionFailed, left.Type, memberName);
                 }
+                else
+                {
+                    Debug.Assert(fieldResult is not null);
+                    fieldResult.ReportDiagnostics(binder, expression.Location, expression, diagnostics, memberName, left, left.Syntax, actualReceiverArguments, symbols,
+                        typeContainingConstructor: null, delegateTypeBeingInvoked: null, isMethodGroupConversion: false, isExtension: true);
 
+                    errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_ExtensionResolutionFailed, left.Type, memberName);
+                }
+
+                symbolsBuilder.Free();
                 ExtendedErrorTypeSymbol resultSymbol = new ExtendedErrorTypeSymbol(containingSymbol: null, symbols, LookupResultKind.OverloadResolutionFailure, errorInfo, arity);
                 Debug.Assert(lookupResult.Kind == LookupResultKind.Viable);
                 return new MethodGroupResolution(resultSymbol, lookupResult.Kind, diagnostics.ToReadOnly());
@@ -9104,7 +9193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments: actualMethodArguments,
                 result: overloadResolutionResult,
                 ref useSiteInfo,
-                options: options | OverloadResolution.Options.IsExtensionMethodResolution,
+                options: options | OverloadResolution.Options.IsExtensionResolution,
                 returnRefKind: returnRefKind,
                 returnType: returnType,
                 in callingConvention);
@@ -9132,7 +9221,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             var overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
 
             this.OverloadResolution.PropertyOverloadResolution(properties, receiver, actualArguments, overloadResolutionResult,
-                allowRefOmittedArguments: this.AllowRefOmittedArguments(receiver), dynamicResolution: actualArguments.HasDynamicArgument, ref useSiteInfo);
+                allowRefOmittedArguments: this.AllowRefOmittedArguments(receiver), dynamicResolution: actualArguments.HasDynamicArgument,
+                isExtensionResolution: true, ref useSiteInfo);
+
+            return overloadResolutionResult;
+        }
+
+        // The caller is responsible for freeing the result
+        private OverloadResolutionResult<FieldSymbol> ResolveExtensionFields(
+            BoundExpression receiver,
+            ArrayBuilder<FieldSymbol> fields,
+            AnalyzedArguments? analyzedArguments,
+            [NotNull] ref AnalyzedArguments? actualArguments,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (actualArguments == null)
+            {
+                // Create a set of arguments for overload resolution including the receiver.
+                actualArguments = AnalyzedArguments.GetInstance();
+                CombineExtensionMethodArguments(receiver, analyzedArguments, actualArguments);
+            }
+
+            var overloadResolutionResult = OverloadResolutionResult<FieldSymbol>.GetInstance();
+
+            this.OverloadResolution.FieldOverloadResolution(fields, receiver, actualArguments, overloadResolutionResult,
+                allowRefOmittedArguments: this.AllowRefOmittedArguments(receiver), ref useSiteInfo);
 
             return overloadResolutionResult;
         }
@@ -11119,6 +11232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiver, analyzedArguments, overloadResolutionResult,
                 allowRefOmittedArguments: AllowRefOmittedArguments(receiver),
                 dynamicResolution: analyzedArguments.HasDynamicArgument,
+                isExtensionResolution: false,
                 ref useSiteInfo);
 
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)

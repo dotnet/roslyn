@@ -727,6 +727,22 @@ namespace System.Runtime.CompilerServices
             }
             """;
 
+        internal static readonly string MemorySafetyRulesAttributeIL = """
+
+.class public System.Runtime.CompilerServices.MemorySafetyRulesAttribute extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+}
+""";
+
+        internal static readonly string RequiresUnsafeAttributeIL = """
+
+.class public System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+""";
+
         protected static readonly string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {

@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (containingType.StaticConstructors.IsEmpty)
+            if (containingType.StaticConstructors.IsEmpty && !containingType.IsExtension)
             {
                 // In the case there are field initializers but we haven't created an implicit static constructor (.cctor) for it,
                 // (since we may not add .cctor implicitly created for decimals into the symbol table)

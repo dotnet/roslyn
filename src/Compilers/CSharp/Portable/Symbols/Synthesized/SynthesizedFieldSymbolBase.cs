@@ -59,7 +59,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
             }
 
-            if (!this.SuppressDynamicAttribute &&
+            AddSynthesizedAttributesForFieldType(this, typeWithAnnotations, moduleBuilder, ref attributes, suppressDynamicAttribute: SuppressDynamicAttribute);
+        }
+
+        internal static void AddSynthesizedAttributesForFieldType(
+            FieldSymbol field,
+            TypeWithAnnotations typeWithAnnotations,
+            PEModuleBuilder moduleBuilder,
+            ref ArrayBuilder<CSharpAttributeData> attributes,
+            bool suppressDynamicAttribute)
+        {
+            CSharpCompilation compilation = field.DeclaringCompilation;
+            var type = typeWithAnnotations.Type;
+
+            if (!suppressDynamicAttribute &&
                 type.ContainsDynamic() &&
                 compilation.HasDynamicEmitAttributes(BindingDiagnosticBag.Discarded, Location.None) &&
                 compilation.CanEmitBoolean())
@@ -69,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (compilation.ShouldEmitNativeIntegerAttributes(type))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(field, type));
             }
 
             if (type.ContainsTupleNames() &&
@@ -77,12 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(Type));
+                    compilation.SynthesizeTupleNamesAttribute(type));
             }
 
-            if (compilation.ShouldEmitNullableAttributes(this))
+            if (compilation.ShouldEmitNullableAttributes(field))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, ContainingType.GetNullableContextValue(), typeWithAnnotations));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(field, field.ContainingType.GetNullableContextValue(), typeWithAnnotations));
             }
         }
 
