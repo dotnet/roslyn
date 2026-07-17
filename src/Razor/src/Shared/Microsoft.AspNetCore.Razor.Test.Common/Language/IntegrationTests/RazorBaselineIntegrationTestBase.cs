@@ -174,6 +174,11 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
         var csharpDocument = codeDocument.GetImplCSharpDocument();
         Assert.NotNull(csharpDocument);
         var linePragmas = csharpDocument.LinePragmas;
+        if (codeDocument.GetDeclCSharpDocument() is { } declDocument)
+        {
+            linePragmas = linePragmas.AddRange(declDocument.LinePragmas);
+        }
+
         var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree() ?? codeDocument.GetRequiredSyntaxTree();
         var sourceContent = syntaxTree.Source.Text.ToString();
         var classifiedSpans = syntaxTree.GetClassifiedSpans();

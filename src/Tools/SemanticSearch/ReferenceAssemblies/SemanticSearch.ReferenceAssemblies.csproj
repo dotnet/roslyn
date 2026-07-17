@@ -44,7 +44,7 @@
     in subsequent builds because the task assembly can't be written by the
     next build.
   -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask" AssemblyFile="$(_BuildTaskAssemblyFile)" TaskFactory="TaskHostFactory" Runtime="$(_BuildTaskRuntime)" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask" AssemblyFile="$(_BuildTaskAssemblyFile)" TaskFactory="TaskHostFactory" Runtime="$(_BuildTaskRuntime)" Architecture="CurrentArchitecture" />
 
   <Target Name="_CalculateFilteredReferenceAssembliesInputsAndOutputs" DependsOnTargets="ResolveAssemblyReferences">
     <PropertyGroup>

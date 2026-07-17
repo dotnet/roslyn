@@ -1193,6 +1193,12 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         // If we encounter a transition (@) here, it can be parsed as CSharp or Markup depending on the feature flag.
         // For example, in Components, we want to parse it as Markup so we can support directive attributes.
         //
+        if (At(SyntaxKind.RazorCommentTransition))
+        {
+            // There is razor comment in the attribute area. Don't try to parse the name.
+            return AttributeNameParsingResult.RazorComment;
+        }
+
         if (Context.Options.AllowCSharpInMarkupAttributeArea)
         {
             if (At(SyntaxKind.Transition))
@@ -1213,11 +1219,6 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                     // There is CSharp in the attribute area. Don't try to parse the name.
                     return AttributeNameParsingResult.CSharp;
                 }
-            }
-            else if (At(SyntaxKind.RazorCommentTransition))
-            {
-                // There is razor comment in the attribute area. Don't try to parse the name.
-                return AttributeNameParsingResult.RazorComment;
             }
         }
 
