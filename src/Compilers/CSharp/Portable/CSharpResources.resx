@@ -8267,6 +8267,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureExtensionIndexers" xml:space="preserve">
     <value>extension indexers</value>
   </data>
+  <data name="IDS_FeatureExtensionConstants" xml:space="preserve">
+    <value>extension constants</value>
+  </data>
   <data name="IDS_FeatureUnsafeEvolution" xml:space="preserve">
     <value>updated memory safety rules</value>
   </data>

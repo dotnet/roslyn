@@ -12311,7 +12311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Symbol VisitMemberAccess(BoundExpression node, BoundExpression? receiverOpt, Symbol member)
         {
             Debug.Assert(!IsConditionalState);
-            Debug.Assert(!member.IsExtensionBlockMember());
+            Debug.Assert(!member.IsExtensionBlockMember() || member is FieldSymbol { IsConst: true });
 
             var receiverType = (receiverOpt != null) ? VisitRvalueWithState(receiverOpt) : default;
 

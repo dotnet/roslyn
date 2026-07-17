@@ -6061,7 +6061,7 @@ int.M();
 
         var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         Assert.True(extension.IsExtension);
-        AssertEx.Equal(["void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()"], extension.GetMembers().ToTestDisplayStrings());
+        AssertEx.Equal(["System.Int32 E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.field", "void E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()"], extension.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]

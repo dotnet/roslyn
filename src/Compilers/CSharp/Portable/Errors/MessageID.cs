@@ -313,6 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureStaticMembersInInterfaces = MessageBase + 12861,
         IDS_FeatureClosedClasses = MessageBase + 12862,
         IDS_FeatureExtensionIndexers = MessageBase + 12863,
+        IDS_FeatureExtensionConstants = MessageBase + 12864,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -499,6 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureStaticMembersInInterfaces:
                 case MessageID.IDS_FeatureClosedClasses: // semantic check
                 case MessageID.IDS_FeatureExtensionIndexers:
+                case MessageID.IDS_FeatureExtensionConstants:
                     return LanguageVersion.Preview;
 
                 // C# 14.0 features.

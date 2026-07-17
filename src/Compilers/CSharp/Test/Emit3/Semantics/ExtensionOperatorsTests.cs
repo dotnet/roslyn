@@ -70,6 +70,71 @@ static class C1
                 );
         }
 
+        [Fact]
+        public void Conversions_002_MetadataSymbolModel()
+        {
+            // Extension conversion operator from PE metadata
+            var il = ExtensionMarkerAttributeIL + """
+
+.class private auto ansi abstract sealed beforefieldinit Extensions
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+
+    .class nested public auto ansi sealed specialname '<G>$3B24C9A1A6673CA92CA71905DDEE0A6C'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+
+        .method public hidebysig specialname static int32 op_Implicit(valuetype S 'value') cil managed
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 30 45 39 38 39 32 45 30 32
+                36 43 33 41 41 36 31 37 42 45 36 30 38 41 33 32
+                39 38 39 41 32 43 38 00 00
+            )
+            .maxstack 8
+            ldc.i4.0
+            ret
+        }
+
+        .class nested public auto ansi abstract sealed specialname '<M>$0E9892E026C3AA617BE608A32989A2C8'
+            extends [mscorlib]System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$'(valuetype S s) cil managed
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                .maxstack 8
+                ret
+            }
+        }
+    }
+}
+
+.class public sequential ansi sealed beforefieldinit S
+    extends [mscorlib]System.ValueType
+{
+}
+""";
+
+            var comp = CreateCompilationWithMscorlib40AndSystemCore("", references: [CompileIL(il)], options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+
+            var extensions = comp.GetMember<NamedTypeSymbol>("Extensions");
+            var extension = extensions.GetTypeMembers().Single(t => t.IsExtension);
+            Assert.Equal(TypeKind.Extension, extension.TypeKind);
+            Assert.True(extension.IsExtension);
+            Assert.Equal("<M>$0E9892E026C3AA617BE608A32989A2C8", extension.MetadataName);
+
+            var method = extension.GetMembers().OfType<MethodSymbol>().Single(m => m.Name == WellKnownMemberNames.ImplicitConversionName);
+            Assert.Equal("PEMethodSymbol", method.GetType().Name);
+            Assert.Equal(MethodKind.Conversion, method.MethodKind);
+            Assert.True(method.IsStatic);
+            Assert.Equal("Extensions.extension(S).implicit operator int(S)", method.ToDisplayString());
+            Assert.Equal(SpecialType.System_Int32, method.ReturnType.SpecialType);
+            Assert.Equal("S", method.Parameters.Single().Type.ToDisplayString());
+        }
+
         [Theory]
         [CombinatorialData]
         public void Unary_001_Declaration([CombinatorialValues("+", "-", "!", "~")] string op)

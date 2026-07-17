@@ -124,7 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             InferWithDynamic = 1 << 2,
             IgnoreNormalFormIfHasValidParamsParameter = 1 << 3,
             IsFunctionPointerResolution = 1 << 4,
-            IsExtensionMethodResolution = 1 << 5,
+            // Indicates overload resolution for extension candidates. Used to skip overridden/hidden filtering.
+            IsExtensionResolution = 1 << 5,
             DynamicResolution = 1 << 6,
             DynamicConvertsToAnything = 1 << 7,
             DisallowExpandedNonArrayParams = 1 << 8,
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((options & Options.IsMethodGroupConversion) == 0 || (options & Options.DynamicResolution) == 0);
             Debug.Assert((options & Options.InferWithDynamic) == 0 || (options & Options.IsMethodGroupConversion) != 0);
 
-            MethodOrPropertyOverloadResolution(
+            MethodOrPropertyOrConstOverloadResolution(
                 methods, typeArguments, receiver, arguments, result,
                 ref useSiteInfo, options,
                 returnRefKind, returnType,
@@ -168,21 +169,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<PropertySymbol> result,
             bool allowRefOmittedArguments,
             bool dynamicResolution,
+            bool isExtensionResolution,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!dynamicResolution || arguments.HasDynamicArgument);
 
             ArrayBuilder<TypeWithAnnotations> typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            MethodOrPropertyOverloadResolution(
+            MethodOrPropertyOrConstOverloadResolution(
                 indexers, typeArguments, receiverOpt, arguments, result,
                 useSiteInfo: ref useSiteInfo,
                 options: (allowRefOmittedArguments ? Options.AllowRefOmittedArguments : Options.None) |
-                         (dynamicResolution ? Options.DynamicResolution : Options.None),
+                         (dynamicResolution ? Options.DynamicResolution : Options.None) |
+                         (isExtensionResolution ? Options.IsExtensionResolution : Options.None),
                 callingConventionInfo: default);
             typeArguments.Free();
         }
 
-        internal void MethodOrPropertyOverloadResolution<TMember>(
+        // Perform overload resolution on a set of extension fields.
+        public void FieldOverloadResolution(
+            ArrayBuilder<FieldSymbol> fields,
+            BoundExpression receiverOpt,
+            AnalyzedArguments arguments,
+            OverloadResolutionResult<FieldSymbol> result,
+            bool allowRefOmittedArguments,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(fields.All(f => f is { ContainingType.IsExtension: true, IsConst: true }));
+            ArrayBuilder<TypeWithAnnotations> typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+            MethodOrPropertyOrConstOverloadResolution(
+                fields, typeArguments, receiverOpt, arguments, result,
+                useSiteInfo: ref useSiteInfo,
+                options: Options.IsExtensionResolution |
+                         (allowRefOmittedArguments ? Options.AllowRefOmittedArguments : Options.None),
+                callingConventionInfo: default);
+            typeArguments.Free();
+        }
+
+        internal void MethodOrPropertyOrConstOverloadResolution<TMember>(
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeWithAnnotations> typeArguments,
             BoundExpression receiver,
@@ -195,13 +218,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             in CallingConventionInfo callingConventionInfo = default)
             where TMember : Symbol
         {
+            Debug.Assert(members.All(m => m is MethodSymbol or PropertySymbol or FieldSymbol { ContainingType.IsExtension: true, IsConst: true }));
             var results = result.ResultsBuilder;
 
-            // No need to check for overridden or hidden methods if the members were
-            // resolved as extension methods and the extension methods are defined in
+            // No need to check for overridden or hidden members if the members were
+            // resolved as extensions and are extension-block members or are defined in
             // types derived from System.Object.
-            bool checkOverriddenOrHidden = !((options & Options.IsExtensionMethodResolution) != 0 &&
-                members.All(static m => m.ContainingSymbol is NamedTypeSymbol { BaseTypeNoUseSiteDiagnostics.SpecialType: SpecialType.System_Object }));
+            bool checkOverriddenOrHidden = !((options & Options.IsExtensionResolution) != 0 &&
+                members.All(static m => m.IsExtensionBlockMember() ||
+                                        m.ContainingSymbol is NamedTypeSymbol { BaseTypeNoUseSiteDiagnostics.SpecialType: SpecialType.System_Object }));
 
             // First, attempt overload resolution not getting complete results.
             PerformMemberOverloadResolution(
@@ -1876,7 +1901,7 @@ outerDefault:
             }
 
             // Attempt to avoid any allocations by starting with a quick pass through all results and seeing if any have non-default priority. If so, we'll do the full sort and filter.
-            if (results.All(r => r.MemberWithPriority?.GetOverloadResolutionPriority() is null or 0))
+            if (results.All(r => GetOverloadResolutionPriorityOpt(r.MemberWithPriority) is null or 0))
             {
                 // All default, nothing to do
                 return;
@@ -1905,8 +1930,8 @@ outerDefault:
 
                 if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
                 {
-                    var previousPriority = previousResults.First().MemberWithPriority.GetOverloadResolutionPriority();
-                    var currentPriority = memberWithPriority.GetOverloadResolutionPriority();
+                    var previousPriority = GetOverloadResolutionPriorityOpt(previousResults.First().MemberWithPriority) ?? 0;
+                    var currentPriority = GetOverloadResolutionPriorityOpt(memberWithPriority) ?? 0;
 
                     if (currentPriority > previousPriority)
                     {
@@ -1920,7 +1945,7 @@ outerDefault:
                     else
                     {
                         removedMembers = true;
-                        Debug.Assert(previousResults.All(r => r.MemberWithPriority.GetOverloadResolutionPriority() == previousPriority));
+                        Debug.Assert(previousResults.All(r => (GetOverloadResolutionPriorityOpt(r.MemberWithPriority) ?? 0) == previousPriority));
                     }
                 }
                 else
@@ -1946,6 +1971,9 @@ outerDefault:
             resultsByContainingType.Free();
             inapplicableMembers.Free();
         }
+
+        private static int? GetOverloadResolutionPriorityOpt(Symbol member)
+            => member is MethodSymbol or PropertySymbol ? member.GetOverloadResolutionPriority() : null;
 
         private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
@@ -4400,10 +4428,10 @@ outerDefault:
                         ? method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations)
                         : method.TypeArgumentsWithAnnotations;
                 }
-                else if (member is PropertySymbol property)
+                else if (member is PropertySymbol or FieldSymbol)
                 {
                     Debug.Assert(isExtensionBlockMember);
-                    var result = property.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                    var result = member.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
                     Debug.Assert(!result.IsDefaultOrEmpty);
                     return result;
                 }
@@ -4785,6 +4813,7 @@ outerDefault:
             switch (member.Kind)
             {
                 case SymbolKind.Property:
+                case SymbolKind.Field:
                     return member;
                 case SymbolKind.Method:
                     return (TMember)(Symbol)(member as MethodSymbol).ConstructedFrom;

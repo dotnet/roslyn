@@ -108,6 +108,7 @@ See also [types](#types) and [members](#members) lists below.
     - methods
     - operators (except conversion operators)
     - properties and indexers (including get/set/init accessors)
+    - constants
 
 ## Code
 - Operators (see Eric's list below)

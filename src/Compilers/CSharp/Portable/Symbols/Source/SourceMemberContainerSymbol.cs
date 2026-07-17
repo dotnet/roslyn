@@ -2250,7 +2250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (symbol.Kind != SymbolKind.Method || lastSym.Kind != SymbolKind.Method)
                         {
-                            if (symbol.Kind != SymbolKind.Field || !symbol.IsImplicitlyDeclared)
+                            if (symbol.Kind != SymbolKind.Field || !symbol.IsImplicitlyDeclared || symbol is SourceExtensionImplementationFieldSymbol)
                             {
                                 // The type '{0}' already contains a definition for '{1}'
                                 if (!mightHaveMembersFromDistinctNonPartialDeclarations)
@@ -2844,7 +2844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (member.DeclaredAccessibility.HasProtected() && member is not SourceExtensionImplementationMethodSymbol)
+                    if (member.DeclaredAccessibility.HasProtected() && member is not (SourceExtensionImplementationMethodSymbol or SourceExtensionImplementationFieldSymbol))
                     {
                         if (member.Kind != SymbolKind.Method || ((MethodSymbol)member).MethodKind != MethodKind.Destructor)
                         {
@@ -4022,6 +4022,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             builder.AddNonTypeMember(this, new SourceExtensionImplementationMethodSymbol(method), declaredMembersAndInitializers);
                         }
+                        else if (member is FieldSymbol { IsImplicitlyDeclared: false, IsConst: true } field)
+                        {
+                            builder.AddNonTypeMember(this, new SourceExtensionImplementationFieldSymbol(field), declaredMembersAndInitializers);
+                        }
                     }
                 }
             }
@@ -4805,6 +4809,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(property.IsIndexer);
                         MessageID.IDS_FeatureExtensionIndexers.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, member.GetFirstLocation());
                     }
+                    else if (member is FieldSymbol { IsConst: true })
+                    {
+                        MessageID.IDS_FeatureExtensionConstants.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, member.GetFirstLocation());
+                    }
                     else
                     {
                         diagnostics.Add(ErrorCode.ERR_ExtensionDisallowsMember, member.GetFirstLocation());
@@ -4848,6 +4856,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
 
                 case SymbolKind.Field:
+                    if (member is FieldSymbol { IsConst: true })
+                    {
+                        return MessageID.IDS_FeatureExtensionConstants.RequiredVersion() <= languageVersion;
+                    }
+                    return false;
+
                 case SymbolKind.Event:
                 case SymbolKind.NamedType:
                     break;

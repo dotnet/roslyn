@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Get the parameters of a member symbol.  Should be a method, property, or event.
+        /// Get the parameters of a member symbol.  Should be a method, property, field, or event.
         /// </summary>
         internal static ImmutableArray<ParameterSymbol> GetParameters(this Symbol member)
         {
@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Property:
                     return ((PropertySymbol)member).Parameters;
                 case SymbolKind.Event:
+                case SymbolKind.Field:
                     return ImmutableArray<ParameterSymbol>.Empty;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Get the types of the parameters of a member symbol.  Should be a method, property, or event.
+        /// Get the types of the parameters of a member symbol.  Should be a method, property, field, or event.
         /// </summary>
         internal static ImmutableArray<TypeWithAnnotations> GetParameterTypes(this Symbol member)
         {
@@ -59,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Property:
                     return ((PropertySymbol)member).ParameterTypesWithAnnotations;
                 case SymbolKind.Event:
+                case SymbolKind.Field:
                     return ImmutableArray<TypeWithAnnotations>.Empty;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
@@ -73,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ((MethodSymbol)member).IsVararg;
                 case SymbolKind.Property:
                 case SymbolKind.Event:
+                case SymbolKind.Field:
                     return false;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
@@ -88,6 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return IsExtensionBlockMember((MethodSymbol)member);
                 case SymbolKind.Property:
                     return IsExtensionBlockMember((PropertySymbol)member);
+                case SymbolKind.Field:
+                    return IsExtensionBlockMember((FieldSymbol)member);
                 default:
                     return false;
             }
@@ -99,6 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static bool IsExtensionBlockMember(this PropertySymbol member)
+        {
+            return member.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
+        }
+
+        internal static bool IsExtensionBlockMember(this FieldSymbol member)
         {
             return member.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
         }
@@ -139,10 +149,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : method.TypeParameters;
             }
 
-            if (member is PropertySymbol property)
+            if (member is PropertySymbol or FieldSymbol)
             {
-                Debug.Assert(property.IsExtensionBlockMember());
-                return property.ContainingType.TypeParameters;
+                Debug.Assert(member.IsExtensionBlockMember());
+                return member.ContainingType.TypeParameters;
             }
 
             throw ExceptionUtilities.UnexpectedValue(member);
@@ -170,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ordinals;
             }
 
-            if (member is PropertySymbol)
+            if (member is PropertySymbol or FieldSymbol)
             {
                 return null;
             }
@@ -226,17 +236,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (TMember)(Symbol)method.Construct(typeArguments);
             }
 
-            if (member is PropertySymbol property)
+            if (member is PropertySymbol or FieldSymbol)
             {
-                Debug.Assert(property.IsExtensionBlockMember());
-                NamedTypeSymbol extension = property.ContainingType;
+                Debug.Assert(member.IsExtensionBlockMember());
+                NamedTypeSymbol extension = member.ContainingType;
                 Debug.Assert(extension.Arity > 0);
                 Debug.Assert(extension.Arity == typeArguments.Length);
 
                 extension = extension.Construct(typeArguments);
-                property = property.AsMember(extension);
-
-                return (TMember)(Symbol)property;
+                return (TMember)member.SymbolAsMember(extension);
             }
 
             throw ExceptionUtilities.UnexpectedValue(member);
@@ -291,12 +299,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return constructed;
             }
-            else if (member is PropertySymbol property)
+            else if (member is PropertySymbol or FieldSymbol)
             {
                 // infer type arguments based off the receiver type if needed, check applicability
                 Debug.Assert(receiverType is not null);
-                Debug.Assert(property.IsExtensionBlockMember());
-                var result = (PropertySymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation, property, receiverType, wasExtensionFullyInferred: out bool wasFullyInferred);
+                Debug.Assert(member.IsExtensionBlockMember());
+                var result = SourceNamedTypeSymbol.ReduceExtensionMember(compilation, member, receiverType, wasExtensionFullyInferred: out bool wasFullyInferred);
                 if (checkFullyInferred && !wasFullyInferred)
                 {
                     return null;
@@ -318,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
         /// <summary>
-        /// Get the ref kinds of the parameters of a member symbol.  Should be a method, property, or event.
+        /// Get the ref kinds of the parameters of a member symbol.  Should be a method, property, field, or event.
         /// </summary>
         internal static ImmutableArray<RefKind> GetParameterRefKinds(this Symbol member)
         {
@@ -328,6 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ((MethodSymbol)member).ParameterRefKinds;
                 case SymbolKind.Property:
                     return ((PropertySymbol)member).ParameterRefKinds;
+                case SymbolKind.Field:
                 case SymbolKind.Event:
                     return default(ImmutableArray<RefKind>);
                 default:
@@ -478,9 +487,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ((MethodSymbol)m).CustomModifierCount();
                 case SymbolKind.Property:
                     return ((PropertySymbol)m).CustomModifierCount();
+                case SymbolKind.Field:
+                    return ((FieldSymbol)m).CustomModifierCount();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(m.Kind);
             }
+        }
+
+        public static int CustomModifierCount(this FieldSymbol field)
+        {
+            var type = field.TypeWithAnnotations;
+            return type.CustomModifiers.Length + field.RefCustomModifiers.Length + type.Type.CustomModifierCount();
         }
 
         public static int CustomModifierCount(this EventSymbol e)
