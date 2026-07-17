@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Composition;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
@@ -14,5 +13,4 @@ internal class VSCodeLanguageServerFeatureOptions() : LanguageServerFeatureOptio
 {
     public override bool SupportsFileManipulation => true;
     public override bool ShowAllCSharpCodeActions => false;
-    public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => PlatformInformation.IsWindows;
 }

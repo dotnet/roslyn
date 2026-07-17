@@ -7,9 +7,6 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal struct RemoteClientInitializationOptions
 {
-    [JsonPropertyName("returnCodeActionAndRenamePathsWithPrefixedSlash")]
-    public required bool ReturnCodeActionAndRenamePathsWithPrefixedSlash { get; set; }
-
     [JsonPropertyName("supportsFileManipulation")]
     public required bool SupportsFileManipulation { get; set; }
 

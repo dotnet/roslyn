@@ -212,7 +212,6 @@ internal sealed class RemoteServiceInvoker(
 
                 var initParams = new RemoteClientInitializationOptions
                 {
-                    ReturnCodeActionAndRenamePathsWithPrefixedSlash = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash,
                     SupportsFileManipulation = _languageServerFeatureOptions.SupportsFileManipulation,
                     ShowAllCSharpCodeActions = _languageServerFeatureOptions.ShowAllCSharpCodeActions,
                 };

@@ -54,7 +54,6 @@ internal sealed class VSCodeRemoteServicesInitializer(
 
         await service.InitializeAsync(new RemoteClientInitializationOptions
         {
-            ReturnCodeActionAndRenamePathsWithPrefixedSlash = _featureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash,
             SupportsFileManipulation = _featureOptions.SupportsFileManipulation,
             ShowAllCSharpCodeActions = _featureOptions.ShowAllCSharpCodeActions,
         }, cancellationToken).ConfigureAwait(false);

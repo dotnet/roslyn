@@ -22,6 +22,4 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
     public override bool SupportsFileManipulation => _options.SupportsFileManipulation;
 
     public override bool ShowAllCSharpCodeActions => _options.ShowAllCSharpCodeActions;
-
-    public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => _options.ReturnCodeActionAndRenamePathsWithPrefixedSlash;
 }
