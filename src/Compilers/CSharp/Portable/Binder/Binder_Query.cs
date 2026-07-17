@@ -820,26 +820,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeConstruction(node, anonymousType, ImmutableArray.Create(field1Value, field2Value), diagnostics);
 
             AnonymousTypeField createField(string fieldName, BoundExpression fieldValue) =>
-                new AnonymousTypeField(fieldName, fieldValue.Syntax.Location, TypeWithAnnotations.Create(TypeOrErrorForHeapMemory(fieldValue, diagnostics)), RefKind.None, ScopedKind.None);
+                new AnonymousTypeField(fieldName, fieldValue.Syntax.Location, TypeWithAnnotations.Create(GetAnonymousTypeFieldType(fieldValue, node, diagnostics)), RefKind.None, ScopedKind.None);
         }
 
         private TypeSymbol TypeOrError(BoundExpression e)
         {
             return e.Type ?? CreateErrorType();
-        }
-
-        private TypeSymbol TypeOrErrorForHeapMemory(BoundExpression e, BindingDiagnosticBag diagnostics)
-        {
-            if (e.Type is null)
-            {
-                return CreateErrorType();
-            }
-            if (e.Type.IsRefLikeOrAllowsRefLikeType())
-            {
-                var info = new CSDiagnosticInfo(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, e.Type);
-                Error(diagnostics, info, e.Syntax);
-            }
-            return e.Type;
         }
 
         private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression, bool withDependencies)
