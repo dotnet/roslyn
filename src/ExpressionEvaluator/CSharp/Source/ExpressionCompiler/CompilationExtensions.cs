@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var containingType = method.ContainingType;
             if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(containingType.Name, GeneratedNameKind.StateMachineType, out var sourceMethodName))
             {
-                foreach (var member in containingType.ContainingType.GetMembers(sourceMethodName))
+                foreach (var member in containingType.RequiredContainingType.GetMembers(sourceMethodName))
                 {
                     if (member is PEMethodSymbol candidateMethod &&
                         metadataDecoder.Module.HasStateMachineAttribute(candidateMethod.Handle, out var stateMachineTypeName) &&
