@@ -132,6 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ThreeState _lazyEmitNullablePublicOnly;
 
+        private ThreeState _lazyAreRedundantPatternDiagnosticsElevated;
+
         /// <summary>
         /// The set of trees for which a <see cref="CompilationUnitCompletedEvent"/> has been added to the queue.
         /// </summary>
@@ -4909,6 +4911,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _lazyEmitNullablePublicOnly = value.ToThreeState();
                 }
                 return _lazyEmitNullablePublicOnly.Value();
+            }
+        }
+
+        /// <summary>Check if <see cref="ErrorCode.HDN_RedundantPattern"/> has been elevated to higher severity.</summary>
+        internal bool AreRedundantPatternDiagnosticsElevated
+        {
+            get
+            {
+                if (!_lazyAreRedundantPatternDiagnosticsElevated.HasValue())
+                {
+                    var diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)ErrorCode.HDN_RedundantPattern);
+                    var reportDiagnostic = MessageProvider.GetDiagnosticReport(diagnosticInfo, Options);
+                    bool isElevated = reportDiagnostic is not (ReportDiagnostic.Default or ReportDiagnostic.Hidden or ReportDiagnostic.Suppress);
+                    _lazyAreRedundantPatternDiagnosticsElevated = isElevated.ToThreeState();
+                }
+                return _lazyAreRedundantPatternDiagnosticsElevated.Value();
             }
         }
 

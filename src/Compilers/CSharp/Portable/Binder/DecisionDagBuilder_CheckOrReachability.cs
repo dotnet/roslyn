@@ -70,6 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (!EnableRedundantPatternsCheckForSpecificPattern(compilation, syntax))
+            {
+                return;
+            }
+
             LabelSymbol defaultLabel = new GeneratedLabelSymbol("defaultLabel");
             var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
             BoundDagTemp rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
@@ -82,6 +87,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             redundantNodes.Free();
             Debug.Assert(noPreviousCases.Count == 0);
             noPreviousCases.Free();
+        }
+
+        private static bool EnableRedundantPatternsCheckForSpecificPattern(CSharpCompilation compilation, SyntaxNode patternSyntax)
+        {
+            if (compilation.AreRedundantPatternDiagnosticsElevated)
+                return true;
+
+            // Easy out to avoid work in cases when the diagnostics would never be visible to the user.
+            // See also 'ReportRedundant().shouldWarn()'.
+            var hasWarningSeveritySyntaxForm = patternSyntax.DescendantNodesAndSelf().Any(static node => node is BinaryPatternSyntax binary && binary.Left.IsKind(SyntaxKind.NotPattern));
+            return hasWarningSeveritySyntaxForm;
         }
 
         internal static bool EnableRedundantPatternsCheck(CSharpCompilation compilation)
@@ -99,6 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             BindingDiagnosticBag diagnostics)
         {
+            if (!switchArms.Any(static (switchArm, compilation) => EnableRedundantPatternsCheckForSpecificPattern(compilation, switchArm.Pattern.Syntax), compilation))
+            {
+                return;
+            }
+
             var redundantNodes = PooledHashSet<SyntaxNode>.GetInstance();
             var existingCases = ArrayBuilder<StateForCase>.GetInstance(switchArms.Length);
 
@@ -150,6 +171,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchSection> switchSections,
             BindingDiagnosticBag diagnostics)
         {
+            bool anyPatternMayHaveRedundantSubpatterns = false;
+            foreach (var switchSection in switchSections)
+            {
+                foreach (var switchLabel in switchSection.SwitchLabels)
+                {
+                    if (EnableRedundantPatternsCheckForSpecificPattern(compilation, switchLabel.Pattern.Syntax))
+                    {
+                        anyPatternMayHaveRedundantSubpatterns = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!anyPatternMayHaveRedundantSubpatterns)
+            {
+                return;
+            }
+
             var redundantNodes = PooledHashSet<SyntaxNode>.GetInstance();
             var existingCases = ArrayBuilder<StateForCase>.GetInstance();
 
