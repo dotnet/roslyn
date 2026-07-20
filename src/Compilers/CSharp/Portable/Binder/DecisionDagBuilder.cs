@@ -4074,7 +4074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // A BoundDagNonNullTest can reach here with unions. When a union's Value
                     // property is tested (e.g., `union S1(int, string)` with pattern
                     // `int and (1 or 3 or 5)`), a non-null test is generated on the Value temp.
-                    // Since ValueSets only contain non-nullable value type constants, the non-null
+                    // Since ValueSets only contain non-null constants, the non-null
                     // test is always true for the values in the set.
                     if (test is BoundDagNonNullTest)
                     {
