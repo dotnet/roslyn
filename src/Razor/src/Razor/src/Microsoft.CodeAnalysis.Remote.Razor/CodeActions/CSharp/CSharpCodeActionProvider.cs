@@ -16,13 +16,13 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 [Export(typeof(ICSharpCodeActionProvider)), Shared]
 [method: ImportingConstructor]
-internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions languageServerFeatureOptions) : ICSharpCodeActionProvider
+internal sealed class CSharpCodeActionProvider(IClientSettingsManager clientSettingsManager) : ICSharpCodeActionProvider
 {
     // Internal for testing
     internal static readonly HashSet<string> SupportedDefaultCodeActionNames =
@@ -61,7 +61,7 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
         PredefinedCodeFixProviderNames.GenerateVariable,
     ];
 
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
 
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(
         RazorCodeActionContext context,
@@ -82,6 +82,7 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
         var allowList = isInImplicitExpression
             ? SupportedImplicitExpressionCodeActionNames
             : SupportedDefaultCodeActionNames;
+        var showAllCSharpCodeActions = _clientSettingsManager.GetClientSettings().AdvancedSettings.ShowAllCSharpCodeActions;
 
         using var results = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
@@ -91,7 +92,7 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
 
             // If this code action isn't on the allow list, it might have been handled by another provider, which means
             // it will already have been wrapped, so we have to check not to double-wrap it.
-            if (_languageServerFeatureOptions.ShowAllCSharpCodeActions &&
+            if (showAllCSharpCodeActions &&
                 CanDeserializeTo<RazorCodeActionResolutionParams>(codeAction.Data))
             {
                 // This code action has already been wrapped by something else, so skip it here, or it could
@@ -99,7 +100,7 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
                 continue;
             }
 
-            if (_languageServerFeatureOptions.ShowAllCSharpCodeActions || isOnAllowList)
+            if (showAllCSharpCodeActions || isOnAllowList)
             {
                 results.Add(codeAction.WrapResolvableCodeAction(context, isOnAllowList: isOnAllowList));
             }
