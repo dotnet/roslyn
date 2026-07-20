@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
@@ -75,7 +77,7 @@ internal static class ProjectDependencyHelper
 
     /// <summary>
     /// Uses the <c>project.nuget.cache</c> file NuGet writes next to <paramref name="projectAssetsPath"/> to
-    /// confirm—without parsing the (potentially large) <c>project.assets.json</c>—that the last restore is still
+    /// confirm without parsing the (potentially large) <c>project.assets.json</c> that the last restore is still
     /// applicable to the project we're loading. The cache must be valid (<see cref="CacheFile.IsValid"/> verifies
     /// the format version matches the NuGet library we build against, the last restore succeeded, and a dependency
     /// graph hash was recorded) and the packages that restore produced
@@ -103,16 +105,13 @@ internal static class ProjectDependencyHelper
             return false;
         }
 
-        CacheFile cacheFile;
-        try
+        var cacheFile = IOUtilities.PerformIO<CacheFile?>(() =>
         {
             using var stream = File.OpenRead(cachePath);
+            return CacheFileFormat.Read(stream, NuGet.Common.NullLogger.Instance, cachePath);
+        });
 
-            // CacheFileFormat.Read handles malformed content internally (returning an invalid cache), so we
-            // only need to guard against failures opening the file itself.
-            cacheFile = CacheFileFormat.Read(stream, NuGet.Common.NullLogger.Instance, cachePath);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        if (cacheFile is null)
         {
             return false;
         }
@@ -151,9 +150,9 @@ internal static class ProjectDependencyHelper
     /// <c>{packagesFolder}/{id}/{version}/{id}.{version}.nupkg.sha512</c>, so the package id and resolved version
     /// are the two directories that contain the file. Returns <see langword="null"/> if no package could be parsed.
     /// </summary>
-    private static Dictionary<string, ImmutableArray<NuGetVersion>>? TryCreateRestoredPackagesMap(IList<string> expectedPackageFilePaths)
+    private static Dictionary<string, OneOrMany<NuGetVersion>>? TryCreateRestoredPackagesMap(IList<string> expectedPackageFilePaths)
     {
-        var versionsById = new Dictionary<string, List<NuGetVersion>>(StringComparer.OrdinalIgnoreCase);
+        var versionsById = new Dictionary<string, OneOrMany<NuGetVersion>>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var filePath in expectedPackageFilePaths)
         {
@@ -172,28 +171,15 @@ internal static class ProjectDependencyHelper
 
             if (!versionsById.TryGetValue(id, out var versions))
             {
-                versions = new List<NuGetVersion>(capacity: 1);
-                versionsById.Add(id, versions);
+                versionsById.Add(id, OneOrMany.Create(version));
             }
-
-            if (!versions.Contains(version))
+            else if (!versions.Contains(version))
             {
-                versions.Add(version);
+                versionsById[id] = versions.Add(version);
             }
         }
 
-        if (versionsById.Count == 0)
-        {
-            return null;
-        }
-
-        var map = new Dictionary<string, ImmutableArray<NuGetVersion>>(versionsById.Count, StringComparer.OrdinalIgnoreCase);
-        foreach (var (id, versions) in versionsById)
-        {
-            map.Add(id, versions.ToImmutableArray());
-        }
-
-        return map;
+        return versionsById.Count == 0 ? null : versionsById;
     }
 
     /// <summary>
@@ -202,7 +188,7 @@ internal static class ProjectDependencyHelper
     /// reference is resolved when its name is present and at least one restored version satisfies the requested
     /// version range.
     /// </summary>
-    private static bool IsPackageReferenceResolved(PackageReferenceItem reference, IReadOnlyDictionary<string, ImmutableArray<NuGetVersion>> restoredPackages)
+    private static bool IsPackageReferenceResolved(PackageReferenceItem reference, IReadOnlyDictionary<string, OneOrMany<NuGetVersion>> restoredPackages)
     {
         if (!restoredPackages.TryGetValue(reference.Name, out var versions))
         {
@@ -255,12 +241,12 @@ internal static class ProjectDependencyHelper
 
         return false;
 
-        static ImmutableDictionary<string, ImmutableArray<NuGetVersion>> CreateProjectAssetsMap(LockFile lockFile)
+        static ImmutableDictionary<string, OneOrMany<NuGetVersion>> CreateProjectAssetsMap(LockFile lockFile)
         {
             // Create a map of package names to all versions in the lock file.
             var map = lockFile.Libraries
                 .GroupBy(l => l.Name, l => l.Version, StringComparer.OrdinalIgnoreCase)
-                .ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray(), StringComparer.OrdinalIgnoreCase);
+                .ToImmutableDictionary(g => g.Key, g => OneOrMany.Create(g.ToImmutableArray()), StringComparer.OrdinalIgnoreCase);
 
             return map;
         }
