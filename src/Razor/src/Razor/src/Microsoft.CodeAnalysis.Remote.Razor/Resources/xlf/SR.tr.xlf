@@ -132,6 +132,11 @@
         <target state="translated">Desteklenmeyen tür: '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Untested">
+        <source>Untested</source>
+        <target state="new">Untested</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_attributes">
         <source>Wrap attributes</source>
         <target state="translated">Öznitelikleri kaydır</target>
