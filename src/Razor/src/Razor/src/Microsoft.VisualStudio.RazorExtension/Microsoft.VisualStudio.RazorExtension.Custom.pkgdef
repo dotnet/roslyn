@@ -51,4 +51,4 @@
 [$RootKey$\SettingsManifests\{13b72f58-279e-49e0-a56d-296be02f0805}]
 @="Microsoft.VisualStudio.RazorExtension.RazorPackage"
 "ManifestPath"="$PackageFolder$\UnifiedSettings\razor.registration.json"
-"CacheTag"=qword:91324F976E73CC57
+"CacheTag"=qword:A925EEC5A7C20391
