@@ -74,7 +74,7 @@ internal static class CodeActionExtensions
 
         if (!isOnAllowList)
         {
-            razorCodeAction.Title = $"(Exp) {razorCodeAction.Title} ({razorCodeAction.Name})";
+            razorCodeAction.Title = $"{razorCodeAction.Title} ({SR.Untested})";
         }
 
         if (razorCodeAction.Children != null)
@@ -159,7 +159,7 @@ internal static class CodeActionExtensions
 
         if (!isOnAllowList)
         {
-            razorCodeAction.Title = "(Exp) " + razorCodeAction.Title;
+            razorCodeAction.Title = $"{razorCodeAction.Title} ({SR.Untested})";
         }
 
         if (razorCodeAction.Children != null)
