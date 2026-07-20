@@ -22,13 +22,11 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 [Export(typeof(IRazorCohostStartupService))]
 [method: ImportingConstructor]
 internal sealed class VSCodeRemoteServicesInitializer(
-    LanguageServerFeatureOptions featureOptions,
     ISemanticTokensLegendService semanticTokensLegendService,
     IWorkspaceProvider workspaceProvider,
     IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory) : IRazorCohostStartupService, IDisposable
 {
-    private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
@@ -51,11 +49,6 @@ internal sealed class VSCodeRemoteServicesInitializer(
         logger.LogDebug("Initializing remote services.");
         var service = await InProcServiceFactory.CreateServiceAsync<IRemoteClientInitializationService>(serviceInterceptor, _workspaceProvider, _loggerFactory).ConfigureAwait(false);
         logger.LogDebug("Initialized remote services.");
-
-        await service.InitializeAsync(new RemoteClientInitializationOptions
-        {
-            ShowAllCSharpCodeActions = _featureOptions.ShowAllCSharpCodeActions,
-        }, cancellationToken).ConfigureAwait(false);
 
         await service.InitializeLspAsync(new RemoteClientLSPInitializationOptions
         {

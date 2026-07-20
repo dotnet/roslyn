@@ -41,7 +41,6 @@ public class RemoteClientSettingsServiceTest(ITestOutputHelper testOutput) : Coh
         workspaceProvider.SetWorkspace(LocalWorkspace);
 
         var initializer = new VSCodeRemoteServicesInitializer(
-            new VSCodeLanguageServerFeatureOptions(),
             SemanticTokensLegendService,
             workspaceProvider,
             ClientSettingsManager,

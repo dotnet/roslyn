@@ -44,7 +44,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
     private protected abstract TestComposition LocalComposition { get; }
 
     private protected TestIncompatibleProjectService IncompatibleProjectService => _incompatibleProjectService.AssumeNotNull();
-    private protected RemoteLanguageServerFeatureOptions FeatureOptions => OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
     private protected RemoteClientCapabilitiesService ClientCapabilitiesService => (RemoteClientCapabilitiesService)OOPExportProvider.GetExportedValue<IClientCapabilitiesService>();
     private protected CodeAnalysis.Workspace LocalWorkspace => _localWorkspace.AssumeNotNull();
     private protected IClientSettingsManager ClientSettingsManager => _clientSettingsManager.AssumeNotNull();
@@ -85,11 +84,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         var remoteLogger = _exportProvider.GetExportedValue<RemoteLoggerFactory>();
         remoteLogger.SetTargetLoggerFactory(LoggerFactory);
         remoteLogger.AddLoggerProvider(new ThrowingErrorLoggerProvider());
-
-        FeatureOptions.SetOptions(new()
-        {
-            ShowAllCSharpCodeActions = false,
-        });
 
         _clientLSPInitializationOptions = GetRemoteClientLSPInitializationOptions();
         UpdateClientLSPInitializationOptions(c => c);

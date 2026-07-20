@@ -31,7 +31,6 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
     private JoinableTaskFactory? _joinableTaskFactory;
     private LSPDocumentManager? _documentManager;
     private FileUriProvider? _fileUriProvider;
-    private LanguageServerFeatureOptions? _languageServerFeatureOptions;
     private LSPRequestInvoker? _lspRequestInvoker;
     private IRemoteServiceInvoker? _remoteServiceInvoker;
     private uint _runningDocumentTableCookie;
@@ -60,13 +59,12 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         InitializeRunningDocumentTable();
     }
 
-    [MemberNotNull(nameof(_joinableTaskFactory), nameof(_documentManager), nameof(_fileUriProvider), nameof(_languageServerFeatureOptions), nameof(_lspRequestInvoker), nameof(_remoteServiceInvoker))]
+    [MemberNotNull(nameof(_joinableTaskFactory), nameof(_documentManager), nameof(_fileUriProvider), nameof(_lspRequestInvoker), nameof(_remoteServiceInvoker))]
     private void EnsureInitialized()
     {
         if (_joinableTaskFactory is not null &&
             _documentManager is not null &&
             _fileUriProvider is not null &&
-            _languageServerFeatureOptions is not null &&
             _lspRequestInvoker is not null &&
             _remoteServiceInvoker is not null)
         {
@@ -76,7 +74,6 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         _joinableTaskFactory = VSServiceHelpers.GetRequiredMefService<JoinableTaskContext>().Factory;
         _documentManager = VSServiceHelpers.GetRequiredMefService<LSPDocumentManager>();
         _fileUriProvider = VSServiceHelpers.GetRequiredMefService<FileUriProvider>();
-        _languageServerFeatureOptions = VSServiceHelpers.GetRequiredMefService<LanguageServerFeatureOptions>();
         _lspRequestInvoker = VSServiceHelpers.GetRequiredMefService<LSPRequestInvoker>();
         _remoteServiceInvoker = VSServiceHelpers.GetRequiredMefService<IRemoteServiceInvoker>();
     }
