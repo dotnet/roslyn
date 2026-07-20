@@ -26,12 +26,10 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Rename;
 [method: ImportingConstructor]
 internal sealed class RenameService(
     IRazorComponentSearchEngine componentSearchEngine,
-    IFileSystem fileSystem,
-    LanguageServerFeatureOptions languageServerFeatureOptions) : IRenameService
+    IFileSystem fileSystem) : IRenameService
 {
     private readonly IRazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
     private readonly IFileSystem _fileSystem = fileSystem;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public async Task<RenameResult> TryGetRazorRenameEditsAsync(
         RemoteDocumentContext documentContext,
@@ -140,8 +138,8 @@ internal sealed class RenameService(
     private RenameFile GetRenameFileEdit(string oldFilePath, string newFilePath)
         => new()
         {
-            OldDocumentUri = LspFactory.CreateFilePathUri(oldFilePath, _languageServerFeatureOptions),
-            NewDocumentUri = LspFactory.CreateFilePathUri(newFilePath, _languageServerFeatureOptions),
+            OldDocumentUri = LspFactory.CreateFilePathUri(oldFilePath),
+            NewDocumentUri = LspFactory.CreateFilePathUri(newFilePath),
         };
 
     private static string MakeNewPath(string originalPath, string newName)

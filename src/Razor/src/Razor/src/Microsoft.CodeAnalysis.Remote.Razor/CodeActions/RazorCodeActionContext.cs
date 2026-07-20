@@ -18,7 +18,6 @@ internal sealed record class RazorCodeActionContext(
     int EndAbsoluteIndex,
     Protocol.RazorLanguageKind LanguageKind,
     SourceText SourceText,
-    bool SupportsFileCreation,
     bool SupportsCodeActionResolve)
 {
     public bool HasSelection => StartAbsoluteIndex != EndAbsoluteIndex;
