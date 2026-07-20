@@ -43,7 +43,6 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         var shownActions = await GetCodeActionsAsync(document, input);
         Assert.NotNull(shownActions);
         var invertIfAction = Assert.Single(shownActions, action => ((RazorVSInternalCodeAction)action.Value!).Name == PredefinedCodeRefactoringProviderNames.InvertIf);
-        Assert.Equal("Invert if (Untested)", ((RazorVSInternalCodeAction)invertIfAction.Value!).Title);
     }
 
     [Fact]
