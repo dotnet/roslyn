@@ -101,6 +101,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
         // Don't overload the machine, so leave some CPU cores open. This was chosen without much supporting evidence, other than that it's still pretty close to max.
         => Math.Max(Environment.ProcessorCount / 2, 1);
 
+    /// <summary>
     /// Maps the set of project file paths that were determined to need a NuGet restore to the set of paths that restore
     /// should actually be invoked on. The base implementation restores each project individually. Derived loaders may
     /// override this to coalesce the work, e.g. restoring an entire solution at once instead of restoring each contained
