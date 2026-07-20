@@ -76,16 +76,55 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
     /// than restoring each contained project individually. A single solution-level restore is significantly faster than
     /// running <c>dotnet restore</c> once per project, which matters most for large, completely unrestored solutions.
     /// </summary>
-    protected override ImmutableArray<string> GetPathsToRestore(ImmutableArray<string> projectsThatNeedRestore)
+    /// <remarks>
+    /// A solution-level restore only covers the projects contained in the solution. It is possible for a project to be
+    /// loaded into this project system without being part of the open solution (for example, a project opened on its own
+    /// via <see cref="OpenProjectsAsync"/>). Such projects are not covered by the solution restore, so they are still
+    /// restored individually alongside the solution. The solution's project set is re-read from disk here (rather than
+    /// cached) so that edits to the solution file are always reflected in the restore scope.
+    /// </remarks>
+    protected override async ValueTask<ImmutableArray<string>> GetPathsToRestoreAsync(ImmutableArray<string> projectsThatNeedRestore, CancellationToken cancellationToken)
     {
         var solutionPath = _hostProjectFactory.SolutionPath;
-        if (solutionPath is not null)
+
+        // If no solution is open, restore each project individually.
+        if (solutionPath is null)
+            return projectsThatNeedRestore;
+
+        // Re-read the solution's current project set so a solution-level restore only collapses projects that are
+        // actually part of the solution as it exists on disk right now (the set can change if the solution file is
+        // edited between restores).
+        ImmutableHashSet<string> solutionProjectPaths;
+        try
         {
-            _logger.LogInformation("Restoring solution '{SolutionPath}' instead of {ProjectCount} individual project(s).", solutionPath, projectsThatNeedRestore.Length);
-            return [solutionPath];
+            var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionPath, DiagnosticReportingMode.Throw, cancellationToken);
+            solutionProjectPaths = projects.Select(static p => p.ProjectPath).ToImmutableHashSet(PathUtilities.Comparer);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            // If the solution can't be read (for example it was edited into an invalid state), fall back to restoring
+            // each project individually rather than failing the restore entirely.
+            _logger.LogWarning(e, "Unable to read solution '{SolutionPath}' to determine restore scope; restoring {ProjectCount} project(s) individually.", solutionPath, projectsThatNeedRestore.Length);
+            return projectsThatNeedRestore;
         }
 
-        return projectsThatNeedRestore;
+        // Separate out any projects that need a restore but are not part of the open solution. Those are not covered by
+        // a solution-level restore, so they must still be restored on their own.
+        var projectsNotInSolution = projectsThatNeedRestore.WhereAsArray(
+            static (path, solutionProjectPaths) => !solutionProjectPaths.Contains(path), solutionProjectPaths);
+
+        // If none of the projects that need a restore are actually part of the solution, restore them individually
+        // rather than kicking off a solution restore that would not cover any of them.
+        if (projectsNotInSolution.Length == projectsThatNeedRestore.Length)
+            return projectsThatNeedRestore;
+
+        if (projectsNotInSolution.IsEmpty)
+            _logger.LogInformation("Restoring solution '{SolutionPath}' instead of {ProjectCount} individual project(s).", solutionPath, projectsThatNeedRestore.Length);
+        else
+            _logger.LogInformation("Restoring solution '{SolutionPath}' for its projects, plus {ProjectCount} project(s) not contained in the solution.", solutionPath, projectsNotInSolution.Length);
+
+        // Restore the solution as a whole (covering all of its projects), plus any projects outside the solution.
+        return [solutionPath, .. projectsNotInSolution];
     }
 
     public async Task OpenSolutionAsync(string solutionFilePath, IProgress<LSP.WorkDoneProgress>? progressReporter = null)

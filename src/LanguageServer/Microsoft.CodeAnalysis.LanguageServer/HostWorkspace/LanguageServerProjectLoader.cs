@@ -104,10 +104,11 @@ internal abstract class LanguageServerProjectLoader : IDisposable
     /// Maps the set of project file paths that were determined to need a NuGet restore to the set of paths that restore
     /// should actually be invoked on. The base implementation restores each project individually. Derived loaders may
     /// override this to coalesce the work, e.g. restoring an entire solution at once instead of restoring each contained
-    /// project one at a time.
+    /// project one at a time. This is invoked at restore time (rather than cached) so overrides can consult current,
+    /// possibly-changed state such as the on-disk contents of the open solution.
     /// </summary>
-    protected virtual ImmutableArray<string> GetPathsToRestore(ImmutableArray<string> projectsThatNeedRestore)
-        => projectsThatNeedRestore;
+    protected virtual ValueTask<ImmutableArray<string>> GetPathsToRestoreAsync(ImmutableArray<string> projectsThatNeedRestore, CancellationToken cancellationToken)
+        => new(projectsThatNeedRestore);
 
     protected LanguageServerProjectLoader(
         ILspServices lspServices,
@@ -220,7 +221,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
 
             if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
-                var pathsToRestore = GetPathsToRestore(projectsThatNeedRestore);
+                var pathsToRestore = await GetPathsToRestoreAsync(projectsThatNeedRestore, cancellationToken);
 
                 // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
                 await ProjectDependencyHelper.RestoreProjectsAsync(_workDoneProgressManager, pathsToRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
