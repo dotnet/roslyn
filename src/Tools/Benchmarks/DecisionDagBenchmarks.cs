@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,11 +17,11 @@ namespace Benchmarks;
 
 /// <summary>
 /// Benchmarks the decision DAG builder for switch expressions with many 'or' patterns.
-/// This simulates the pattern in ErrorFacts.IsBuildOnlyDiagnostic which has ~2000 or'd enum values.
+/// Includes both synthetic cases and a snapshot of ErrorFacts.IsBuildOnlyDiagnostic from the compiler build.
 /// </summary>
 [MemoryDiagnoser]
 [EventPipeProfiler(EventPipeProfile.GcVerbose)]
-public class DecisionDagBenchmarks
+public partial class DecisionDagBenchmarks
 {
     private const int TrueArmCount = 56;
     private const int FalseArmCount = 1935;
@@ -70,6 +70,9 @@ public class DecisionDagBenchmarks
 
     [Benchmark]
     public object EmitWithSwitchStatement() => EmitCore(_switchStatementSource!);
+
+    [Benchmark]
+    public object EmitIsBuildOnlyDiagnostic() => EmitCore(IsBuildOnlyDiagnosticSource);
 
     [Benchmark]
     public object EmitWithoutSwitch() => EmitCore("""
