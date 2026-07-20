@@ -13,15 +13,18 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 
 internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
 {
+    private readonly Compilation _compilation;
     private readonly BindTagHelperProducer? _bindTagHelperProducer;
 
-    private ComponentTagHelperProducer(BindTagHelperProducer? bindTagHelperProducer)
+    private ComponentTagHelperProducer(Compilation compilation, BindTagHelperProducer? bindTagHelperProducer)
     {
+        _compilation = compilation;
         _bindTagHelperProducer = bindTagHelperProducer;
     }
 
@@ -45,14 +48,14 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
         // don't need to compute them twice.
         var properties = GetProperties(type);
 
-        var shortNameMatchingDescriptor = CreateShortNameMatchingDescriptor(type, properties);
+        var shortNameMatchingDescriptor = CreateShortNameMatchingDescriptor(_compilation, type, properties);
         results.Add(shortNameMatchingDescriptor);
 
         // If the component is in the global namespace, skip adding this descriptor which will be the same as the short name one.
         TagHelperDescriptor? fullyQualifiedNameMatchingDescriptor = null;
         if (!type.ContainingNamespace.IsGlobalNamespace)
         {
-            fullyQualifiedNameMatchingDescriptor = CreateFullyQualifiedNameMatchingDescriptor(type, properties);
+            fullyQualifiedNameMatchingDescriptor = CreateFullyQualifiedNameMatchingDescriptor(_compilation, type, properties);
             results.Add(fullyQualifiedNameMatchingDescriptor);
         }
 
@@ -79,16 +82,19 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
     }
 
     private static TagHelperDescriptor CreateShortNameMatchingDescriptor(
+        Compilation compilation,
         INamedTypeSymbol type,
         ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties)
-        => CreateNameMatchingDescriptor(type, properties, fullyQualified: false);
+        => CreateNameMatchingDescriptor(compilation, type, properties, fullyQualified: false);
 
     private static TagHelperDescriptor CreateFullyQualifiedNameMatchingDescriptor(
+        Compilation compilation,
         INamedTypeSymbol type,
         ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties)
-        => CreateNameMatchingDescriptor(type, properties, fullyQualified: true);
+        => CreateNameMatchingDescriptor(compilation, type, properties, fullyQualified: true);
 
     private static TagHelperDescriptor CreateNameMatchingDescriptor(
+        Compilation compilation,
         INamedTypeSymbol type,
         ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties,
         bool fullyQualified)
@@ -170,7 +176,7 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
                 continue;
             }
 
-            CreateProperty(builder, type, property, kind);
+            CreateProperty(compilation, builder, type, property, kind);
         }
 
         if (builder.BoundAttributes.Any(static a => a.IsParameterizedChildContentProperty()) &&
@@ -187,7 +193,7 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
         return builder.Build();
     }
 
-    private static void CreateProperty(TagHelperDescriptorBuilder builder, INamedTypeSymbol containingSymbol, IPropertySymbol property, PropertyKind kind)
+    private static void CreateProperty(Compilation compilation, TagHelperDescriptorBuilder builder, INamedTypeSymbol containingSymbol, IPropertySymbol property, PropertyKind kind)
     {
         builder.BindAttribute(pb =>
         {
@@ -230,6 +236,11 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
             if (property.SetMethod.AssumeNotNull().IsInitOnly)
             {
                 builder.IsInitOnlyProperty = true;
+            }
+
+            if (compilation.CanConvertStringLiteral(property.Type))
+            {
+                builder.AcceptsStringLiteral = true;
             }
 
             pb.SetMetadata(builder.Build());

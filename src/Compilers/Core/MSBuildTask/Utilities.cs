@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Security;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -161,26 +160,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                                                                 params object[] args)
         {
             return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args));
-        }
-
-        internal static string? TryGetAssemblyPath(Assembly assembly)
-        {
-#if NETFRAMEWORK
-            if (assembly.GlobalAssemblyCache)
-            {
-                return null;
-            }
-
-            if (assembly.CodeBase is { } codebase)
-            {
-                var uri = new Uri(codebase);
-                return uri.IsFile ? uri.LocalPath : assembly.Location;
-            }
-
-            return null;
-#else
-            return assembly.Location;
-#endif
         }
     }
 }

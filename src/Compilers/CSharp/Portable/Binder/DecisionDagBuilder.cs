@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out TestInputOutputInfo output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            Debug.Assert(!pattern.IsUnionMatching);
+            Debug.Assert(pattern.UnionMatchingMode == UnionMatchingMode.None);
             Debug.Assert(input.UnionValue is null ?
                 (pattern.HasErrors || pattern.InputType.Equals(input.DagTemp.Type, TypeCompareKind.AllIgnoreOptions) || pattern.InputType.IsErrorType()) :
                 (pattern.InputType.SpecialType == SpecialType.System_Object));

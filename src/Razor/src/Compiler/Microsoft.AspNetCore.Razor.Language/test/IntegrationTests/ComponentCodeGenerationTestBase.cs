@@ -243,6 +243,88 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13188")]
+    public void ChildComponent_WithStringLiteralUnionParameter()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            #nullable enable
+
+            namespace System.Runtime.CompilerServices
+            {
+                public interface IUnion
+                {
+                    object? Value { get; }
+                }
+
+                public class UnionAttribute : System.Attribute
+                {
+                }
+            }
+            """));
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public union SlotContent(string, MarkupString, RenderFragment);
+
+                public class Slot : ComponentBase
+                {
+                    [Parameter] public SlotContent Content { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @{
+                var content = new Test.SlotContent("from variable");
+            }
+
+            <Slot Content="hello" />
+            <Slot Content="new Test.SlotContent()" />
+            <Slot Content="@content" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7271")]
+    public void ChildComponent_WithParametersAndRazorComment()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter] public string Parameter1 { get; set; }
+                    [Parameter] public bool Parameter2 { get; set; }
+                    [Parameter] public string Parameter3 { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent Parameter1="SomeValue"
+                Parameter2="@true" @* NOTE: this does not work! *@
+                Parameter3="SomeOtherValue" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [Fact]
     public void ComponentWithDecimalParameter()
     {

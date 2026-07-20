@@ -17,7 +17,7 @@ public class MEFCompositionTest(ITestOutputHelper testOutputHelper) : ToolingTes
     public void Composes()
     {
         var testComposition = TestComposition.RoslynFeatures
-            .AddAssemblies(typeof(VSCodeLanguageServerFeatureOptions).Assembly);
+            .AddAssemblies(typeof(VSCodeRemoteServicesInitializer).Assembly);
 
         var errors = testComposition.GetCompositionErrors().Order().ToArray();
 

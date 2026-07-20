@@ -1,0 +1,44 @@
+﻿Source Location: (2:0,2 [60] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    var content = new Test.SlotContent("from variable");
+|
+Generated Location: (734:21,0 [60] )
+|
+    var content = new Test.SlotContent("from variable");
+|
+
+Source Location: (68:4,1 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Slot|
+Generated Location: (895:28,49 [4] )
+|Slot|
+
+Source Location: (73:4,6 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|Content|
+Generated Location: (1061:32,0 [7] )
+|Content|
+
+Source Location: (94:5,1 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Slot|
+Generated Location: (1397:40,49 [4] )
+|Slot|
+
+Source Location: (99:5,6 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|Content|
+Generated Location: (1563:44,0 [7] )
+|Content|
+
+Source Location: (137:6,1 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Slot|
+Generated Location: (1916:52,49 [4] )
+|Slot|
+
+Source Location: (142:6,6 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|Content|
+Generated Location: (2082:56,0 [7] )
+|Content|
+
+Source Location: (152:6,16 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|content|
+Generated Location: (2348:64,0 [7] )
+|content|
+

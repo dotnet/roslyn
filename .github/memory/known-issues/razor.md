@@ -38,6 +38,18 @@ won't be built/tested by the importing projects.
 `MultipleGlobalAnalyzerKeys`, and the key is left unset.
 **Workaround:** Don't redefine a key already present in the base config.
 
+## Empty tag pairs use missing name tokens
+
+**Affected area:** Razor syntax consumers such as linked editing
+**Description:** The parser represents `<></>` with start- and end-tag name
+tokens that are both missing and have zero-width spans. The general
+`SyntaxToken.IsValid()` helper rejects these tokens.
+**Workaround:** Features that intentionally support editing an empty tag pair
+must recognize both missing name tokens together and use their zero-width spans.
+Do not accept only one missing name token when producing LSP linked-editing
+ranges because the protocol requires all ranges to have identical content and
+length.
+
 ## BenchmarkDotNet CLI jobs are additive
 
 **Affected area:** Razor benchmark harnesses with jobs configured in code

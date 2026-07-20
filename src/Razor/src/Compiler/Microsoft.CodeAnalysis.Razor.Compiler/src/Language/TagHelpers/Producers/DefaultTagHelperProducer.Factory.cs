@@ -25,7 +25,7 @@ internal sealed partial class DefaultTagHelperProducer
                 return false;
             }
 
-            var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation, excludeHidden);
+            var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation, excludeHidden);
 
             result = new DefaultTagHelperProducer(factory, iTagHelperType);
             return true;
