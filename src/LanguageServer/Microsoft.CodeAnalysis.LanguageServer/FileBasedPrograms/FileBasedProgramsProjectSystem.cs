@@ -34,6 +34,11 @@ internal static class FileBasedProgramEntryPointHeuristic
 {
     private static readonly CSharpParseOptions s_fileBasedProgramParseOptions = CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]);
 
+    /// <summary>
+    /// Classifies a file as a file-based app as
+    /// an entrypoint, a non-entrypoint, or an ambiguous entrypoint
+    /// based on the presence of file-based app directives and top-level statements.
+    /// </summary>
     public static FileBasedProgramEntryPointKind GetEntryPointKind(SourceText sourceText, bool includeAmbiguousEntryPoints, CancellationToken cancellationToken)
     {
         var tokenizer = SyntaxFactory.CreateTokenParser(sourceText, s_fileBasedProgramParseOptions);
