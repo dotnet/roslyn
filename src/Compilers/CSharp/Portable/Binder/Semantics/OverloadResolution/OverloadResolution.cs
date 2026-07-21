@@ -2103,7 +2103,6 @@ outerDefault:
         {
             Debug.Assert(m1.Result.IsValid);
             Debug.Assert(m2.Result.IsValid);
-            Debug.Assert(m2.Result.IsValid);
             Debug.Assert(arguments != null);
 
             // Prefer overloads that did not use the inferred type of lambdas or method groups
