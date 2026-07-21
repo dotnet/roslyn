@@ -387,8 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_SealedStaticClass, GetFirstLocation(), this);
             }
 
-            if (!modifierErrors &&
-                (mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+            if ((mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
                 this.ContainingModule.UseUpdatedMemorySafetyRules)
             {
                 diagnostics.Add(ErrorCode.ERR_UnsafeMeaningless, GetFirstLocation());

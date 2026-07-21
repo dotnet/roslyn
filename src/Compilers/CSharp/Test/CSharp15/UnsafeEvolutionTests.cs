@@ -5814,6 +5814,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void UnsafeClass_OtherModifierErrors()
+    {
+        var source = """
+            unsafe virtual class C;
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (1,22): error CS0106: The modifier 'virtual' is not valid for this item
+            // unsafe virtual class C;
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("virtual").WithLocation(1, 22),
+            // (1,22): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe virtual class C;
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(1, 22));
+    }
+
+    [Fact]
     public void Member_Method_ConvertToFunctionPointer()
     {
         CompileAndVerifyUnsafe(
@@ -9349,6 +9364,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Constructor_Static_OtherModifierErrors()
+    {
+        var source = """
+            class C
+            {
+                unsafe virtual static C() { }
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (3,5): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            //     unsafe virtual static C() { }
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(3, 5),
+            // (3,27): error CS0106: The modifier 'virtual' is not valid for this item
+            //     unsafe virtual static C() { }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("virtual").WithLocation(3, 27));
+    }
+
+    [Fact]
     public void Member_Constructor_Attribute()
     {
         CompileAndVerifyUnsafe(
@@ -9782,6 +9815,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedUnsafeSymbols: [],
             expectedSafeSymbols: ["C.Finalize"],
             expectedDefinition: AttributeDefinition.None);
+    }
+
+    [Fact]
+    public void Member_Destructor_OtherModifierErrors()
+    {
+        var source = """
+            class C
+            {
+                unsafe virtual ~C() { }
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (3,5): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            //     unsafe virtual ~C() { }
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(3, 5),
+            // (3,21): error CS0106: The modifier 'virtual' is not valid for this item
+            //     unsafe virtual ~C() { }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("virtual").WithLocation(3, 21));
     }
 
     [Fact]
