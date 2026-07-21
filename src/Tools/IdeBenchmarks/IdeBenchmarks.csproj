@@ -23,7 +23,16 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
+    <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" />
   </ItemGroup>
+  <PropertyGroup>
+    <!-- The DiagnosticsHub package auto-injects an [assembly: Config] attribute, which conflicts
+         with the existing one in Properties/AssemblyInfo.cs (MemoryDiagnoserConfig). Disable the
+         package's auto-generated config to avoid CS0579 (duplicate attribute). 
+         The only downside to disabling this is that it breaks integration with the profiler agent in VS, however 
+         the benchmark itself will still function correctly and generate a diagsession at the end. -->
+    <DefineConstants>$(DefineConstants);DISABLE_PROFILER_AGENT_CONFIG</DefineConstants>
+  </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
