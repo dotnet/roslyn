@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -27,6 +28,7 @@ internal static class FileBasedProgramsProjectLoader
         CancellationToken cancellationToken)
     {
         var buildService = new FileBasedProgramsBuildService(buildHost, cancellationToken);
+        await using var _ = buildService.ConfigureAwait(false);
         var projectRootElement = fileBasedProgramService.LoadFileBasedAppProject(
             buildService,
             FileBasedProgramsBuildService.ProjectCollection,
@@ -42,22 +44,32 @@ internal static class FileBasedProgramsProjectLoader
     }
 }
 
-file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost, CancellationToken cancellationToken) : Microsoft.DotNet.FileBasedPrograms.IBuildService
+file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost, CancellationToken cancellationToken) : Microsoft.DotNet.FileBasedPrograms.IBuildService, IAsyncDisposable
 {
     public static IProjectCollection ProjectCollection => Microsoft.CodeAnalysis.MSBuild.ProjectCollection.Instance;
+
+    public ConcurrentBag<IAsyncDisposable> Disposables { get; } = [];
 
     public IProjectInstance CreateProjectInstanceFromProjectRootElement(
         IProjectRootElement projectRoot,
         IProjectCollection projectCollection,
         IDictionary<string, string> globalProperties)
     {
-        return ProjectInstance.FromProjectRootElement(buildHost, (ProjectRootElement)projectRoot, (ProjectCollection)projectCollection, globalProperties, cancellationToken);
+        return ProjectInstance.FromProjectRootElement(this, buildHost, (ProjectRootElement)projectRoot, (ProjectCollection)projectCollection, globalProperties, cancellationToken);
     }
 
     public IProjectRootElement CreateProjectRootElement(XmlReader xmlReader, IProjectCollection projectCollection)
     {
         xmlReader.MoveToContent();
         return new ProjectRootElement(xmlReader.ReadOuterXml());
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        while (Disposables.TryTake(out var disposable))
+        {
+            await disposable.DisposeAsync().ConfigureAwait(false);
+        }
     }
 }
 
@@ -73,6 +85,7 @@ file sealed class ProjectCollection : IProjectCollection
 file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, CancellationToken cancellationToken) : IProjectInstance
 {
     public static ProjectInstance FromProjectRootElement(
+        FileBasedProgramsBuildService service,
         RemoteBuildHost buildHost,
         ProjectRootElement projectRoot,
         ProjectCollection projectCollection,
@@ -81,6 +94,7 @@ file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, C
     {
         Debug.Assert(projectCollection == ProjectCollection.Instance);
         var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), globalProperties, cancellationToken).GetAwaiter().GetResult();
+        service.Disposables.Add(remoteProjectInstance);
         return new ProjectInstance(remoteProjectInstance, cancellationToken);
     }
 

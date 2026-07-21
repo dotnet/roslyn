@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -16,6 +17,8 @@ internal sealed class ProjectInstance(
 #endif
     IProjectInstance
 {
+    private readonly ConcurrentBag<ProjectItemInstance> _items = [];
+
     public DiagnosticLogItem[] GetDiagnosticLogItems()
         => [.. log];
 
@@ -31,7 +34,9 @@ internal sealed class ProjectInstance(
         var i = 0;
         foreach (var item in items)
         {
-            result[i++] = server.AddTarget(new ProjectItemInstance(item));
+            var rpcItem = new ProjectItemInstance(item);
+            _items.Add(rpcItem);
+            result[i++] = server.AddTarget(rpcItem);
         }
 
         return result;
@@ -55,5 +60,15 @@ internal sealed class ProjectInstance(
         }
 
         return projectInstance.ExpandString(value);
+    }
+
+    public void Dispose()
+    {
+        while (_items.TryTake(out var item))
+        {
+            server.RemoveTarget(item);
+        }
+
+        server.RemoveTarget(this);
     }
 }

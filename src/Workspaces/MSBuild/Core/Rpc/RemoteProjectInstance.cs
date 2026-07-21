@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal sealed class RemoteProjectInstance
+internal sealed class RemoteProjectInstance : IAsyncDisposable
 {
     private readonly RpcClient _client;
     private readonly int _remoteProjectInstanceTargetObject;
@@ -37,4 +38,7 @@ internal sealed class RemoteProjectInstance
 
     public Task<string> ExpandStringAsync(string value, CancellationToken cancellationToken)
         => _client.InvokeAsync<string>(_remoteProjectInstanceTargetObject, nameof(IProjectInstance.ExpandString), parameters: [value], cancellationToken);
+
+    public async ValueTask DisposeAsync()
+        => await _client.InvokeAsync(_remoteProjectInstanceTargetObject, nameof(IProjectInstance.Dispose), parameters: [], CancellationToken.None).ConfigureAwait(false);
 }
