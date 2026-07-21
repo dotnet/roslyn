@@ -9344,5 +9344,25 @@ _ = i is 42 or not 43;
             var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics();
         }
+
+        [Fact]
+        public void RedundantPattern_EasyOut_01()
+        {
+            var source = """
+                int i = 0;
+                _ = i is 42 or 42;
+                """;
+
+            var options = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.HDN_RedundantPattern), ReportDiagnostic.Hidden);
+            var compilation = CreateCompilation(source, options: options);
+            compilation.VerifyEmitDiagnostics(
+                // (2,16): hidden CS9335: The pattern is redundant.
+                // _ = i is 42 or 42;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "42").WithLocation(2, 16));
+
+            options = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions([]);
+            compilation = CreateCompilation(source, options: options);
+            compilation.VerifyEmitDiagnostics();
+        }
     }
 }

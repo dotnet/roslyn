@@ -89,20 +89,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             noPreviousCases.Free();
         }
 
-        private static bool EnableRedundantPatternsCheckForSpecificPattern(CSharpCompilation compilation, SyntaxNode patternSyntax)
-        {
-            if (compilation.AreRedundantPatternDiagnosticsElevated)
-                return true;
-
-            // Easy out to avoid work in cases when the diagnostics would never be visible to the user.
-            // See also 'ReportRedundant().shouldWarn()'.
-            var hasWarningSeveritySyntaxForm = patternSyntax.DescendantNodesAndSelf().Any(static node => node is BinaryPatternSyntax binary && binary.Left.IsKind(SyntaxKind.NotPattern));
-            return hasWarningSeveritySyntaxForm;
-        }
-
         internal static bool EnableRedundantPatternsCheck(CSharpCompilation compilation)
         {
             return compilation.LanguageVersion >= LanguageVersion.CSharp14;
+        }
+
+        private static bool EnableRedundantPatternsCheckForSpecificPattern(CSharpCompilation compilation, SyntaxNode patternSyntax)
+        {
+            if (compilation.AreHiddenRedundantPatternDiagnosticsEnabled)
+                return true;
+
+            // Easy out to avoid work in cases when the diagnostics would never be visible to the user.
+            // See also 'ReportRedundant().shouldWarn(SyntaxNode)'.
+            var hasWarningSeveritySyntaxForm = patternSyntax.DescendantNodesAndSelf().Any(static node => node is BinaryPatternSyntax binary && FindNotInBinary(binary.Left));
+            return hasWarningSeveritySyntaxForm;
         }
 
         /// <summary>
@@ -270,7 +270,7 @@ start:
 
                 if (syntax.Parent is BinaryPatternSyntax binary)
                 {
-                    if (binary.Right == syntax && findNotInBinary(binary.Left))
+                    if (binary.Right == syntax && FindNotInBinary(binary.Left))
                     {
                         return true;
                     }
@@ -305,23 +305,23 @@ start:
 
                 return false;
             }
+        }
 
-            // Detect a `not` at top-level or inside a tree of binary patterns
-            // Note: we don't dig into parenthesized patterns as the meaning of `not` is not problematic then
-            static bool findNotInBinary(SyntaxNode syntax)
+        // Detect a `not` at top-level or inside a tree of binary patterns
+        // Note: we don't dig into parenthesized patterns as the meaning of `not` is not problematic then
+        private static bool FindNotInBinary(SyntaxNode syntax)
+        {
+            while (syntax is BinaryPatternSyntax binarySyntax)
             {
-                while (syntax is BinaryPatternSyntax binarySyntax)
+                if (FindNotInBinary(binarySyntax.Right))
                 {
-                    if (findNotInBinary(binarySyntax.Right))
-                    {
-                        return true;
-                    }
-
-                    syntax = binarySyntax.Left;
+                    return true;
                 }
 
-                return syntax.Kind() == SyntaxKind.NotPattern;
+                syntax = binarySyntax.Left;
             }
+
+            return syntax.Kind() == SyntaxKind.NotPattern;
         }
 
         /// <summary>
