@@ -198,8 +198,10 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
                 async cancellationToken =>
                 {
                     // Only search for call sites when the user applies the refactoring, not while the lightbulb
-                    // is computed on every keystroke.  This whole-solution search can be slow on large solutions.
-                    var methodCallSites = await FindCallSitesAsync(document, methodSymbol, cancellationToken).ConfigureAwait(false);
+                    // is computed on every keystroke. This whole-solution search can be slow on large solutions.
+                    var methodCallSites = selectedCodeAction == IntroduceParameterCodeActionKind.Overload
+                        ? new Dictionary<Document, List<TExpressionSyntax>> { [document] = [] }
+                        : await FindCallSitesAsync(document, methodSymbol, cancellationToken).ConfigureAwait(false);
                     return await IntroduceParameterAsync(
                         document, expression, methodSymbol, containingMethod, methodCallSites, allOccurrences, selectedCodeAction, cancellationToken).ConfigureAwait(false);
                 },
