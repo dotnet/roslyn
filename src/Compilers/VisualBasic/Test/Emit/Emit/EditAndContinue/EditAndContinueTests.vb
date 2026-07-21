@@ -727,6 +727,67 @@ End Namespace
         End Sub
 
         ''' <summary>
+        ''' The emit baseline is not updated when a project has no changes to emit, but the solution snapshot might move
+        ''' forward, e.g. when a dependency is updated. The next edits then refer to symbols from a newer compilation
+        ''' than the baseline. Deleting the method added in generation 1 requires its handle to be found in the baseline.
+        ''' </summary>
+        <Fact>
+        Public Sub Method_DeleteAdded_OldSymbolFromCompilationNewerThanBaseline()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Sub N()
+        System.Console.WriteLine(0)
+    End Sub
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyMethodDefNames(".ctor", "N")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Sub N()
+        System.Console.WriteLine(0)
+    End Sub
+    Sub M()
+    End Sub
+End Class
+",
+                    edits:={
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.M"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyMethodDefNames("M")
+                        End Sub).
+                AddCompilationWithoutDelta().
+                AddGeneration(
+                    source:="
+Class C
+    Sub N()
+        System.Console.WriteLine(3)
+    End Sub
+End Class
+",
+                    edits:={
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.M"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.N"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("HotReloadException")
+                            g.VerifyMethodDefNames("N", "M", ".ctor")
+                        End Sub).
+                Verify()
+            End Using
+        End Sub
+
+        ''' <summary>
         ''' Avoid adding references from method bodies
         ''' other than the changed methods.
         ''' </summary>

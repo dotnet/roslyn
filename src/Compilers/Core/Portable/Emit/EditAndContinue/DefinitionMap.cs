@@ -12,6 +12,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -38,16 +39,20 @@ namespace Microsoft.CodeAnalysis.Emit
                 => ClosureTree.TryGetValue(closureId, out var node) ? node : default;
         }
 
+        public readonly EmitBaseline Baseline;
+
         private readonly ImmutableDictionary<IMethodSymbolInternal, MethodInstrumentation> _methodInstrumentations;
         protected readonly IReadOnlyDictionary<IMethodSymbolInternal, EncMappedMethod> mappedMethods;
 
         /// <summary>
         /// Caches <see cref="MetadataLambdasAndClosures"/> for named PE types.
         /// </summary>
-        private ImmutableDictionary<INamedTypeSymbolInternal, MetadataLambdasAndClosures> _metadataLambdasAndClosures
-            = ImmutableDictionary<INamedTypeSymbolInternal, MetadataLambdasAndClosures>.Empty;
+        private ImmutableDictionary<INamedTypeSymbolInternal, MetadataLambdasAndClosures> _metadataLambdasAndClosures = [];
 
-        public readonly EmitBaseline Baseline;
+        /// <summary>
+        /// Matchers from source assemblies of compilations other than <see cref="EmitBaseline.Compilation"/> to <see cref="BaselineSourceAssembly"/>.
+        /// </summary>
+        private ImmutableDictionary<IAssemblySymbolInternal, SymbolMatcher?> _lazySourceToBaselineSourceMatchers = [];
 
         protected DefinitionMap(IEnumerable<SemanticEdit> edits, EmitBaseline baseline)
         {
@@ -129,6 +134,49 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract SymbolMatcher SourceToPreviousSymbolMatcher { get; }
         public abstract SymbolMatcher PreviousSourceToMetadataSymbolMatcher { get; }
 
+        /// <summary>
+        /// Source assembly of <see cref="EmitBaseline.Compilation"/>.
+        /// </summary>
+        protected abstract IAssemblySymbolInternal BaselineSourceAssembly { get; }
+
+        /// <summary>
+        /// Creates a matcher that maps symbols of <paramref name="sourceAssembly"/> to <see cref="BaselineSourceAssembly"/>,
+        /// or returns null if <paramref name="sourceAssembly"/> is not a source assembly.
+        /// </summary>
+        protected abstract SymbolMatcher? CreateSymbolMatcherToBaselineSource(IAssemblySymbolInternal sourceAssembly);
+
+        /// <summary>
+        /// Maps a symbol from any previous generation (not necessarily the immediately preceding one)
+        /// back to the corresponding symbol of the baseline compilation (<see cref="EmitBaseline.Compilation"/>).
+        /// </summary>
+        /// <remarks>
+        /// The baseline does not advance when a project has no changes to emit, but the solution snapshot might,
+        /// e.g. when a dependency of the project is updated. Semantic edits capture changes between the preceding and the current compilation.
+        /// <see cref="SemanticEdit.OldSymbol"/> might thus belong to a compilation that is newer than <see cref="EmitBaseline.Compilation"/>.
+        /// 
+        /// There can't be any emitted changes between the two compilations (only semantically insignificant changes such as whitespace or comments),
+        /// so the symbol has a counterpart in <see cref="EmitBaseline.Compilation"/>. The mapped symbol is used to look up
+        /// metadata handles and definitions recorded in the baseline. Syntax-based calculations need to keep using the original symbol.
+        ///
+        /// Returns <paramref name="oldSymbol"/> if it already belongs to <see cref="EmitBaseline.Compilation"/> or it can't be mapped.
+        /// </remarks>
+        internal ISymbolInternal MapToBaselineSource(ISymbolInternal oldSymbol)
+        {
+            var oldAssembly = oldSymbol.ContainingAssembly;
+            if (oldAssembly is null || ReferenceEquals(oldAssembly, BaselineSourceAssembly))
+            {
+                return oldSymbol;
+            }
+
+            var matcher = ImmutableInterlocked.GetOrAdd(
+                ref _lazySourceToBaselineSourceMatchers,
+                oldAssembly,
+                valueFactory: static (assembly, map) => map.CreateSymbolMatcherToBaselineSource(assembly),
+                this);
+
+            return matcher?.MapDefinitionOrNamespace(oldSymbol) ?? oldSymbol;
+        }
+
         internal abstract CommonMessageProvider MessageProvider { get; }
 
         /// <summary>
@@ -166,15 +214,15 @@ namespace Microsoft.CodeAnalysis.Emit
             => GetPreviousEventHandle(oldEvent, out _);
 
         /// <summary>
-        /// Returns method handle of a method symbol from the immediately preceding generation.
+        /// Returns handle of a given method symbol that was defined in a previous generation.
         /// </summary>
         /// <remarks>
-        /// The method may have been defined in any preceding generation but <paramref name="oldProperty"/> symbol must be mapped to
-        /// the immediately preceding one.
+        /// The method may have been defined in the initial metadata or added in any previous source compilation.
+        /// Once the handle (metadata row id) is allocated it does not change between generations.
         /// </remarks>
-        private MethodDefinitionHandle GetPreviousMethodHandle(IMethodSymbolInternal oldProperty, out IMethodSymbolInternal? peMethod)
+        private MethodDefinitionHandle GetPreviousMethodHandle(IMethodSymbolInternal oldMethod, out IMethodSymbolInternal? peMethod)
         {
-            var oldMethodDef = (Cci.IMethodDefinition)oldProperty.GetCciAdapter();
+            var oldMethodDef = (Cci.IMethodDefinition)oldMethod.GetCciAdapter();
 
             if (Baseline.MethodsAdded.TryGetValue(oldMethodDef, out var methodRowId))
             {
@@ -185,18 +233,18 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 peMethod = (IMethodSymbolInternal?)PreviousSourceToMetadataSymbolMatcher.MapDefinition(oldMethodDef)?.GetInternalSymbol();
                 Debug.Assert(peMethod != null);
-                Debug.Assert(peMethod.MetadataName == oldProperty.MetadataName);
+                Debug.Assert(peMethod.MetadataName == oldMethod.MetadataName);
 
                 return (MethodDefinitionHandle)MetadataTokens.EntityHandle(peMethod.MetadataToken);
             }
         }
 
         /// <summary>
-        /// Returns property handle of a property symbol from the immediately preceding generation.
+        /// Returns handle of a given property symbol that was defined in a previous generation.
         /// </summary>
         /// <remarks>
-        /// The property may have been defined in any preceding generation but <paramref name="oldProperty"/> symbol must be mapped to
-        /// the immediately preceding one.
+        /// The property may have been defined in the initial metadata or added in any previous source compilation.
+        /// Once the handle (metadata row id) is allocated it does not change between generations.
         /// </remarks>
         private PropertyDefinitionHandle GetPreviousPropertyHandle(IPropertySymbolInternal oldProperty, out IPropertySymbolInternal? peProperty)
         {
@@ -218,11 +266,11 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Returns event handle of a event symbol from the immediately preceding generation.
+        /// Returns handle of a given event symbol that was defined in a previous generation.
         /// </summary>
         /// <remarks>
-        /// The event may have been defined in any preceding generation but <paramref name="oldEvent"/> symbol must be mapped to
-        /// the immediately preceding one.
+        /// The event may have been defined in the initial metadata or added in any previous source compilation.
+        /// Once the handle (metadata row id) is allocated it does not change between generations.
         /// </remarks>
         private EventDefinitionHandle GetPreviousEventHandle(IEventSymbolInternal oldEvent, out IEventSymbolInternal? peEvent)
         {

@@ -72,20 +72,20 @@ namespace Microsoft.CodeAnalysis.Emit
                 localSignatureProvider: baseline.LocalSignatureProvider);
         }
 
-        private IReadOnlyDictionary<K, V> MapDefinitions<K, V>(IReadOnlyDictionary<K, V> items)
+        private IReadOnlyDictionary<K, V> MapDefinitions<K, V>(IReadOnlyDictionary<K, V> oldDefinitions)
             where K : class, Cci.IDefinition
         {
             var result = new Dictionary<K, V>(Cci.SymbolEquivalentEqualityComparer.Instance);
-            foreach (var pair in items)
+            foreach (var (oldDefinition, rowId) in oldDefinitions)
             {
-                var key = (K?)MapDefinition(pair.Key);
+                var newDefinition = (K?)MapDefinition(oldDefinition);
 
                 // Result may be null if the definition was deleted, or if the definition
                 // was synthesized (e.g.: an iterator type) and the method that generated
                 // the synthesized definition was unchanged and not recompiled.
-                if (key != null)
+                if (newDefinition != null)
                 {
-                    result.Add(key, pair.Value);
+                    result.Add(newDefinition, rowId);
                 }
             }
 

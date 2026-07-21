@@ -3731,6 +3731,76 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79898")]
+    public async Task DeleteAddedMethodAfterDependencyUpdate()
+    {
+        var appSource1 = """
+            class App { public static string Get() => "app-v1 " + Lib.Get(); }
+            class C { }
+            """;
+        var appSource2 = """
+            class App { public static string Get() => "app-v2 " + Lib.Get(); }
+            class C { }
+            """;
+        var appSource3 = """
+            class App { public static string Get() => "app-v2 " + Lib.Get(); }
+            class C { public string Added() => "added"; }
+            """;
+        var libSource1 = """public class Lib { public static string Get() => "lib-v1"; }""";
+        var libSource2 = """public class Lib { public static string Get() => "lib-v2"; }""";
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        solution = solution
+            .AddTestProject("App", out var appProjectId)
+                .AddTestDocument(appSource1, "App.cs", out var appDocumentId).Project.Solution
+            .AddTestProject("Lib", out var libProjectId)
+                .AddTestDocument(libSource1, "Lib.cs", out var libDocumentId).Project.Solution
+            .AddProjectReference(appProjectId, new ProjectReference(libProjectId));
+
+        var appModuleId = LoadLibraryToDebuggee(EmitLibrary(appProjectId, await solution.GetRequiredProject(appProjectId).GetCompilationAsync()));
+        var libModuleId = LoadLibraryToDebuggee(EmitLibrary(libProjectId, await solution.GetRequiredProject(libProjectId).GetCompilationAsync()));
+
+        var debuggingSession = StartDebuggingSession(service, solution);
+
+        // Establish an App emit baseline with a method body update.
+        solution = solution.WithDocumentText(appDocumentId, CreateText(appSource2));
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(results.Diagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Equal(appModuleId, results.ModuleUpdates.Updates.Single().Module);
+        CommitSolutionUpdate(debuggingSession);
+
+        solution = solution.WithDocumentText(appDocumentId, CreateText(appSource3));
+        results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(results.Diagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Equal(appModuleId, results.ModuleUpdates.Updates.Single().Module);
+        CommitSolutionUpdate(debuggingSession);
+
+        // Fork the App compilation through its project reference without updating its emit baseline.
+        solution = solution.WithDocumentText(libDocumentId, CreateText(libSource2));
+        results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(results.Diagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Equal(libModuleId, results.ModuleUpdates.Updates.Single().Module);
+        CommitSolutionUpdate(debuggingSession);
+
+        // Delete the method added before the dependency update.
+        solution = solution.WithDocumentText(appDocumentId, CreateText(appSource2));
+        results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(results.Diagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        var delta = results.ModuleUpdates.Updates.Single();
+        Assert.Equal(appModuleId, delta.Module);
+        Assert.NotEmpty(delta.ILDelta);
+        Assert.NotEmpty(delta.MetadataDelta);
+        CommitSolutionUpdate(debuggingSession);
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78244")]
     public async Task MultiProjectUpdates_ValidSignificantChange_RudeEdit()
     {
