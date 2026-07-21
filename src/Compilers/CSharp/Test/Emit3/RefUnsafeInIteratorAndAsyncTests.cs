@@ -1366,6 +1366,113 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83564")]
+    public void RefAnalysis_Iterator_UnsafeBlock()
+    {
+        var source = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                int field;
+
+                void M1()
+                {
+                    ref int outside = ref field;
+                    unsafe {
+                        int local = 1;
+                        outside = ref local; // 1
+                    }
+                }
+
+                IEnumerable<int> M2()
+                {
+                    ref int outside = ref field;
+                    unsafe {
+                        int local = 1;
+                        outside = ref local; // 2
+                    }
+                    yield return 1;
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (12,13): warning CS9085: This ref-assigns 'local' to 'outside' but 'local' has a narrower escape scope than 'outside'.
+            //             outside = ref local; // 1
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "outside = ref local").WithArguments("outside", "local").WithLocation(12, 13),
+            // (18,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         ref int outside = ref field;
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "outside").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(18, 17),
+            // (19,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         unsafe {
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(19, 9),
+            // (21,13): warning CS9085: This ref-assigns 'local' to 'outside' but 'local' has a narrower escape scope than 'outside'.
+            //             outside = ref local; // 2
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "outside = ref local").WithArguments("outside", "local").WithLocation(21, 13));
+
+        var expectedDiagnostics = new[]
+        {
+            // (12,13): warning CS9085: This ref-assigns 'local' to 'outside' but 'local' has a narrower escape scope than 'outside'.
+            //             outside = ref local; // 1
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "outside = ref local").WithArguments("outside", "local").WithLocation(12, 13),
+            // (21,13): warning CS9085: This ref-assigns 'local' to 'outside' but 'local' has a narrower escape scope than 'outside'.
+            //             outside = ref local; // 2
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "outside = ref local").WithArguments("outside", "local").WithLocation(21, 13),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83564")]
+    public void RefAnalysis_Iterator_UnsafeBlockAndIterator()
+    {
+        var source = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                int field;
+
+                IEnumerable<int> M()
+                {
+                    ref int outside = ref field;
+                    unsafe
+                    {
+                        int local = 1;
+                        outside = ref local;
+                        yield return 1;
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (9,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         ref int outside = ref field;
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "outside").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(9, 17),
+            // (10,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         unsafe
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 9),
+            // (13,13): warning CS9085: This ref-assigns 'local' to 'outside' but 'local' has a narrower escape scope than 'outside'.
+            //             outside = ref local;
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "outside = ref local").WithArguments("outside", "local").WithLocation(13, 13));
+
+        var expectedDiagnostics = new[]
+        {
+            // (13,13): warning CS9085: This ref-assigns 'local' to 'outside' but 'local' has a narrower escape scope than 'outside'.
+            //             outside = ref local;
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "outside = ref local").WithArguments("outside", "local").WithLocation(13, 13),
+            // (14,13): error CS9238: Cannot use 'yield return' in an 'unsafe' block
+            //             yield return 1;
+            Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(14, 13),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83564")]
     public void RefAnalysis_Iterator_LocalFunction()
     {
         var source = """
@@ -1469,6 +1576,71 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             // (51,17): error CS8374: Cannot ref-assign 'local' to 'outside' because 'local' has a narrower escape scope than 'outside'.
             //                 outside = ref local; // 4
             Diagnostic(ErrorCode.ERR_RefAssignNarrower, "outside = ref local").WithArguments("outside", "local").WithLocation(51, 17),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83564")]
+    public void RefAnalysis_Iterator_LocalFunction_UnsafeBlock()
+    {
+        var source = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                int field;
+
+                void M1()
+                {
+                    unsafe
+                    {
+                        F1();
+                        F2();
+
+                        void F1()
+                        {
+                            ref int outside = ref field;
+                            {
+                                int local = 1;
+                                outside = ref local; // 1
+                            }
+                        }
+
+                        IEnumerable<int> F2()
+                        {
+                            ref int outside = ref field;
+                            {
+                                int local = 1;
+                                outside = ref local; // 2
+                            }
+                            yield return 1;
+                        }
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (19,21): warning CS9085: This ref-assigns 'local' to 'outside' but 'local' has a narrower escape scope than 'outside'.
+            //                     outside = ref local; // 1
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "outside = ref local").WithArguments("outside", "local").WithLocation(19, 21),
+            // (25,25): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //                 ref int outside = ref field;
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "outside").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(25, 25),
+            // (28,21): warning CS9085: This ref-assigns 'local' to 'outside' but 'local' has a narrower escape scope than 'outside'.
+            //                     outside = ref local; // 2
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "outside = ref local").WithArguments("outside", "local").WithLocation(28, 21));
+
+        var expectedDiagnostics = new[]
+        {
+            // (19,21): warning CS9085: This ref-assigns 'local' to 'outside' but 'local' has a narrower escape scope than 'outside'.
+            //                     outside = ref local; // 1
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "outside = ref local").WithArguments("outside", "local").WithLocation(19, 21),
+            // (28,21): error CS8374: Cannot ref-assign 'local' to 'outside' because 'local' has a narrower escape scope than 'outside'.
+            //                     outside = ref local; // 2
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "outside = ref local").WithArguments("outside", "local").WithLocation(28, 21),
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
