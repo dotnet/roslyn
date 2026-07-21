@@ -706,7 +706,7 @@ class Test
     }
 }";
 
-            CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8)
+            CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll)
                 .VerifyDiagnostics(
                 // (6,23): error CS0828: Cannot assign 'Span<int>' to anonymous type property
                 //         var a = new { P = stackalloc int[3] { 1, 2, 3 } };
