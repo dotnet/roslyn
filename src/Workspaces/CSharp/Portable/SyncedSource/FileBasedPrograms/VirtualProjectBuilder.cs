@@ -46,8 +46,6 @@ sealed class VirtualProjectBuilder
 
     private readonly string _targetFramework;
 
-    private readonly IEnumerable<(string name, string value)> _defaultProperties;
-
     private (ImmutableArray<CSharpDirective> Original, ImmutableArray<CSharpDirective> Evaluated)? _evaluatedDirectives;
 
     internal string EntryPointFileFullPath { get; }
@@ -85,7 +83,6 @@ sealed class VirtualProjectBuilder
         RequestedTargets = requestedTargets;
         ArtifactsPath = artifactsPath;
         _targetFramework = targetFramework;
-        _defaultProperties = GetDefaultProperties(targetFramework);
 
         if (sourceText != null)
         {
@@ -479,7 +476,7 @@ sealed class VirtualProjectBuilder
             WriteProjectFile(
                 projectFileWriter,
                 directives,
-                _defaultProperties,
+                GetDefaultProperties(_targetFramework),
                 isVirtualProject: true,
                 entryPointFilePath: EntryPointFileFullPath,
                 artifactsPath: ArtifactsPath,
@@ -684,15 +681,6 @@ sealed class VirtualProjectBuilder
                     """);
             }
 
-            // Write default properties before importing SDKs so they can be overridden by SDKs
-            // (and implicit build files which are imported by the default .NET SDK).
-            foreach (var (name, value) in defaultProperties)
-            {
-                writer.WriteLine($"""
-                        <{name}>{EscapeValue(value)}</{name}>
-                    """);
-            }
-
             writer.WriteLine($"""
                   </PropertyGroup>
 
@@ -760,28 +748,25 @@ sealed class VirtualProjectBuilder
                 """);
 
             // First write the default properties except those specified by the user.
-            if (!isVirtualProject)
+            var customPropertyNames = propertyDirectives
+                .Select(static d => d.Name)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var (name, value) in defaultProperties)
             {
-                var customPropertyNames = propertyDirectives
-                    .Select(static d => d.Name)
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                foreach (var (name, value) in defaultProperties)
-                {
-                    if (!customPropertyNames.Contains(name))
-                    {
-                        writer.WriteLine($"""
-                                <{name}>{EscapeValue(value)}</{name}>
-                            """);
-                    }
-                }
-
-                if (userSecretsId != null && !customPropertyNames.Contains("UserSecretsId"))
+                if (!customPropertyNames.Contains(name))
                 {
                     writer.WriteLine($"""
-                            <UserSecretsId>{EscapeValue(userSecretsId)}</UserSecretsId>
+                            <{name}>{EscapeValue(value)}</{name}>
                         """);
                 }
+            }
+
+            if (userSecretsId != null && !customPropertyNames.Contains("UserSecretsId"))
+            {
+                writer.WriteLine($"""
+                        <UserSecretsId>{EscapeValue(userSecretsId)}</UserSecretsId>
+                    """);
             }
 
             // Write custom properties.
