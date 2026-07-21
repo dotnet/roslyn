@@ -2812,11 +2812,6 @@
         <target state="translated">Für den als „unsafe“ markierten Konstruktor „{0}“ ist ein unsicherer Kontext erforderlich, um die „new()“-Einschränkung des Typparameters „{1}“ in „{2}“ zu erfüllen</target>
         <note>'unsafe' and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</source>
         <target state="translated">„{0}“ muss in einem unsicheren Kontext verwendet werden, da er als „unsicher“ gekennzeichnet ist</target>
@@ -6029,6 +6024,11 @@
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">Der Parameter wird nicht gelesen. Möglicherweise haben Sie ihn nicht zum Initialisieren der gleichnamigen Eigenschaft verwendet?</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMeaningless">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="translated">Der „unsafe“-Modifizierer hat hier unter den aktuellen Speichersicherheitsregeln keine Auswirkungen.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>

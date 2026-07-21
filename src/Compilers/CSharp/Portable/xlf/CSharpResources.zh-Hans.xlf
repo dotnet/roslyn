@@ -2812,11 +2812,6 @@
         <target state="translated">标记为 'unsafe' 的构造函数“{0}”需要不安全上下文，以满足“{2}”中类型参数“{1}”的 'new()' 约束</target>
         <note>'unsafe' and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</source>
         <target state="translated">必须在不安全的上下文中使用“{0}”，因为它被标记为 'unsafe'</target>
@@ -6029,6 +6024,11 @@
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">参数未读。是否忘记通过它来使用该名称初始化属性?</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMeaningless">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="translated">根据当前内存安全规则，"unsafe" 修饰符在此处没有任何效果。</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
