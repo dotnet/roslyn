@@ -171,20 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchSection> switchSections,
             BindingDiagnosticBag diagnostics)
         {
-            bool anyPatternMayHaveRedundantSubpatterns = false;
-            foreach (var switchSection in switchSections)
-            {
-                foreach (var switchLabel in switchSection.SwitchLabels)
-                {
-                    if (EnableRedundantPatternsCheckForSpecificPattern(compilation, switchLabel.Pattern.Syntax))
-                    {
-                        anyPatternMayHaveRedundantSubpatterns = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!anyPatternMayHaveRedundantSubpatterns)
+            if (!shouldCheck(compilation, switchSections))
             {
                 return;
             }
@@ -196,6 +183,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             existingCases.Free();
             redundantNodes.Free();
+
+            static bool shouldCheck(CSharpCompilation compilation, ImmutableArray<BoundSwitchSection> switchSections)
+            {
+                foreach (var switchSection in switchSections)
+                {
+                    foreach (var switchLabel in switchSection.SwitchLabels)
+                    {
+                        if (EnableRedundantPatternsCheckForSpecificPattern(compilation, switchLabel.Pattern.Syntax))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
 
             static void checkRedundantPatternsForSwitchStatement(
                 CSharpCompilation compilation,
