@@ -72,6 +72,11 @@
         <target state="translated">Filtrar</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
+      <trans-unit id="Generate_documentation">
+        <source>generate documentation</source>
+        <target state="new">generate documentation</target>
+        <note>Accept action shown on the documentation-comment chip, e.g. "Tab to generate documentation".</note>
+      </trans-unit>
       <trans-unit id="Generate_summary_with_Copilot">
         <source>Generate summary with Copilot (might be inaccurate)</source>
         <target state="translated">Generar resumen con Copilot (puede ser inexacto)</target>
