@@ -39,6 +39,7 @@ public class RazorProjectEngineTest
             phase => Assert.IsType<DefaultRazorSyntaxTreePhase>(phase),
             phase => Assert.IsType<DefaultRazorTagHelperContextDiscoveryPhase>(phase),
             phase => Assert.IsType<DefaultRazorIntermediateNodeLoweringPhase>(phase),
+            phase => Assert.IsType<DefaultRazorMarkupSplitPhase>(phase),
             phase => Assert.IsType<DefaultTagHelperResolutionPhase>(phase),
             phase => Assert.IsType<DefaultRazorTagHelperRewritePhase>(phase),
             phase => Assert.IsType<DefaultRazorDocumentClassifierPhase>(phase),

@@ -207,6 +207,29 @@ public class RazorIntegrationTestBase
             expectedCSharpDiagnostics: expectedCSharpDiagnostics);
     }
 
+    // Runs the engine's phases over a component built from <paramref name="content"/>, stopping
+    // immediately before the first phase of type <typeparamref name="TStopBefore"/>. Lets a test observe
+    // intermediate pipeline state -- e.g. that the decl document already exists before a later phase runs.
+    private protected RazorCodeDocument ProcessComponentUpToPhase<TStopBefore>(string content)
+        where TStopBefore : IRazorEnginePhase
+    {
+        var projectEngine = CreateProjectEngine(Configuration, Array.Empty<MetadataReference>(), supportLocalizedComponentNames: false, csharpParseOptions: null);
+        var projectItem = CreateProjectItem("TestComponent.razor", content, RazorFileKind.Component);
+        var codeDocument = projectEngine.CreateCodeDocument(projectItem);
+
+        foreach (var phase in projectEngine.Engine.Phases)
+        {
+            if (phase is TStopBefore)
+            {
+                break;
+            }
+
+            codeDocument = phase.Execute(codeDocument);
+        }
+
+        return codeDocument;
+    }
+
     protected CompileToCSharpResult CompileToCSharp(
         string cshtmlContent,
         string? cssScope = null,

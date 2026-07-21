@@ -260,6 +260,7 @@ public sealed class RazorProjectEngine
         phases.Add(new DefaultRazorSyntaxTreePhase());
         phases.Add(new DefaultRazorTagHelperContextDiscoveryPhase());
         phases.Add(new DefaultRazorIntermediateNodeLoweringPhase());
+        phases.Add(new DefaultRazorMarkupSplitPhase());
         phases.Add(new DefaultTagHelperResolutionPhase());
         phases.Add(new DefaultRazorTagHelperRewritePhase());
         phases.Add(new DefaultRazorDocumentClassifierPhase());

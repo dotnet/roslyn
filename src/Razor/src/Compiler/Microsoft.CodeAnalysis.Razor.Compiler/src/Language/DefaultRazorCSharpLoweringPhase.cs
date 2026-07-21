@@ -25,11 +25,20 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
             throw new InvalidOperationException(message);
         }
 
-        // Fork: when the decl phase produced its half, this phase produces the matching
-        // impl half -- a minimal partial class containing just the render method body and
-        // any compiler-synthesized plumbing. Otherwise (non-component, suppressed primary
-        // method body, malformed primary structure, or the decl phase didn't run for any
-        // other reason) fall through to the original single-file lowering path.
+        // When the split partitioned the component before resolution, the working node is already the
+        // impl half: write it directly rather than re-deriving an impl spine from a classified single tree.
+        if (documentNode.IsSplitImplDocument)
+        {
+            var implCSharpDocument = RazorCSharpDocumentWriter.Write(documentNode, codeDocument, cancellationToken: cancellationToken);
+            return codeDocument.WithImplCSharpDocument(implCSharpDocument);
+        }
+
+        // The decl phase produced its half from the classified tree (a markup-free component, or a markup
+        // component whose shape the split couldn't partition early). Produce the matching impl half -- a
+        // partial class with the render method body, any compiler-synthesized plumbing, and (for the
+        // fallback case) the markup-bearing methods lifted from the class body. Otherwise (non-component,
+        // suppressed primary method body, malformed primary structure, or the decl phase didn't run for
+        // any other reason) fall through to the original single-file lowering path.
         if (codeDocument.GetDeclCSharpDocument() is not null &&
             TryWriteImplDocument(documentNode, codeDocument, cancellationToken, out var implDocument))
         {
@@ -78,6 +87,20 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
             if (classChild.IsSynthesizedHelper)
             {
                 implClass.Children.Add(classChild);
+            }
+        }
+
+        // Fallback tier: a markup component the early split couldn't partition reaches here unsplit, so
+        // lift its markup-bearing methods into the impl half over the classified tree.
+        var plan = MarkupSplitter.GetRoutablePlan(primaryClass, renderMethod, codeDocument.ParserOptions);
+        if (plan is not null)
+        {
+            foreach (var member in plan.Members)
+            {
+                foreach (var piece in member.ImplPieces)
+                {
+                    implClass.Children.Add(piece);
+                }
             }
         }
 

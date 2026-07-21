@@ -14,6 +14,14 @@ public sealed class DocumentIntermediateNode : IntermediateNode
 
     public string DocumentKind { get; set; }
 
+    /// <summary>
+    /// Set by <see cref="DefaultRazorMarkupSplitPhase"/> once it has produced the decl C# document and
+    /// rewritten this node into the impl half (before tag-helper resolution). Signals the final C#
+    /// lowering phase to emit this node directly as the impl half instead of deriving an impl spine from
+    /// a single classified tree.
+    /// </summary>
+    public bool IsSplitImplDocument { get; set; }
+
     public RazorCodeGenerationOptions Options { get; set; }
 
     public CodeTarget Target { get; set; }
