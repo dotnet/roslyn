@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1316,7 +1316,7 @@ class Program
     }
 }
 ";
-            var comp = CreateNullableCompilation(source);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(TestOptions.ReleaseDllWithHiddenRedundantPatterns));
             comp.VerifyDiagnostics(
                 // 0.cs(10,20): hidden CS9271: The pattern is redundant.
                 //             (null, {}) => 2, // 1
@@ -2714,7 +2714,7 @@ public class C
             (_, (_, C)) => a.ToString() // 13
         };
 }
-");
+", options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             comp.VerifyDiagnostics(
                 // (9,18): warning CS8602: Dereference of a possibly null reference.

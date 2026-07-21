@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -2307,7 +2307,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { public int Value; }
             """;
 
-        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
         comp.VerifyDiagnostics(
             // (11,25): hidden CS9335: The pattern is redundant.
             //             D2 { Value: < 1 } => 4,
@@ -6830,14 +6830,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
         verify(comp);
 
         var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
         verify(comp);
 
-        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
         verify(comp);
 
         static void verify(CSharpCompilation comp)

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -4231,21 +4231,21 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 // (66,26): hidden CS9335: The pattern is redundant.
                 //         return u is not ({ } and int);
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(66, 26)
                 );
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns, parseOptions: TestOptions.RegularNext);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 // (66,26): hidden CS9335: The pattern is redundant.
                 //         return u is not ({ } and int);
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(66, 26)
                 );
 
-            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 // (46,25): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u is not 10;
@@ -4594,7 +4594,7 @@ struct S1
     public object Value => _value;
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             // There is an implicit null check for class union types and for Nullable<Union>.  
             comp.VerifyDiagnostics(
                 // (29,16): error CS0165: Use of unassigned local variable 'y'
@@ -8141,7 +8141,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (100,25): hidden CS9335: The pattern is redundant.
                 //         _ = u is C1 and C2;
@@ -8215,7 +8215,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (401,29): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
                 //         _ = u is string and int;
@@ -8416,7 +8416,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (200,18): hidden CS9335: The pattern is redundant.
                 //         _ = u is {} and C2 {};
@@ -8487,7 +8487,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (1000,28): hidden CS9335: The pattern is redundant.
                 //         _ = u is C1 {} and C2;
@@ -8599,7 +8599,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (300,18): hidden CS9335: The pattern is redundant.
                 //         _ = u is {} and C2 a;
@@ -8666,7 +8666,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (900,27): hidden CS9335: The pattern is redundant.
                 //         _ = u is C1 a and C2;
@@ -8776,7 +8776,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (700,18): hidden CS9335: The pattern is redundant.
                 //         _ = u is {} and not C5;
@@ -9125,7 +9125,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (100,18): hidden CS9335: The pattern is redundant.
                 //         _ = u is {} and "1";
@@ -9436,7 +9436,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (100,18): hidden CS9335: The pattern is redundant.
                 //         _ = u is {} and > 1;
@@ -10677,7 +10677,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
                 // (100,50): hidden CS9335: The pattern is redundant.
                 //         return u switch { int => 1, string => 2, null => 3 };
@@ -10826,7 +10826,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (100,50): hidden CS9335: The pattern is redundant.
                 //         return u switch { int => 1, string => 2, null => 3 };
@@ -10890,7 +10890,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (100,42): hidden CS9335: The pattern is redundant.
                 //         return u switch { not null => 2, null => 3 };
@@ -10951,7 +10951,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (100,63): hidden CS9335: The pattern is redundant.
                 //         return u switch { true => 1, false => 4, string => 2, null => 3 };
@@ -11036,7 +11036,7 @@ class C2
 }
 
 ";
-            var comp1 = CreateCompilation([src1, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var comp1 = CreateCompilation([src1, UnionAttributeSource], options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             CompileAndVerify(comp1, expectedOutput: "1323 -1-3-2-3").VerifyDiagnostics(
                 // (26,50): hidden CS9335: The pattern is redundant.
                 //         return u switch { int => 1, string => 2, null => 3 };
@@ -11181,7 +11181,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (17,46): hidden CS9335: The pattern is redundant.
                 //         return u switch { int => 1, C1 => 2, null => 3 };
@@ -11230,7 +11230,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (18,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C2' is not covered.
                 //         return u switch { int => 1, I1 => 2, null => 3 };
@@ -11447,7 +11447,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
                 // (100,40): hidden CS9335: The pattern is redundant.
                 //         return u switch { string => 2, null => 3 };
@@ -11501,7 +11501,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
                 // (100,37): hidden CS9335: The pattern is redundant.
                 //         return u switch { int => 1, null => 3 };
@@ -11630,7 +11630,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             var expected = new[]
             {
@@ -11909,7 +11909,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             var expected = new[]
             {
@@ -12204,7 +12204,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             var expected = new[]
             {
@@ -12543,7 +12543,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilationWithIL([src, UnionAttributeSource], ilSource);
+            var comp = CreateCompilationWithIL([src, UnionAttributeSource], ilSource, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (100,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
                 //         return u switch { int => 1, null => 3 };
@@ -19918,7 +19918,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullAttributeDefinition], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             comp.VerifyDiagnostics(
                 // (300,25): hidden CS9335: The pattern is redundant.
@@ -21119,7 +21119,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (26,23): hidden CS9335: The pattern is redundant.
                 //         if (s is { S: object }) return;
@@ -23868,7 +23868,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullAttributeDefinition], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             comp.VerifyDiagnostics(
                 // (200,33): warning CS8602: Dereference of a possibly null reference.
@@ -57694,7 +57694,7 @@ class Program
     }   
 }
 ";
-            comp = CreateCompilation([src3, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            comp = CreateCompilation([src3, src0, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             comp.VerifyDiagnostics(
                 // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1{ Value: int }' is not covered.
@@ -57745,7 +57745,7 @@ class Program
     }   
 }
 ";
-            comp = CreateCompilation([src5, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            comp = CreateCompilation([src5, src0, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is I1 ? [1] : [2]
@@ -57785,7 +57785,7 @@ class Program
     }   
 }
 ";
-            comp = CreateCompilation([src6, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            comp = CreateCompilation([src6, src0, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is C1 ? [1] : [10]
@@ -57826,7 +57826,7 @@ class Program
     }   
 }
 ";
-            comp = CreateCompilation([src7, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            comp = CreateCompilation([src7, src0, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is I1 ? [1] : [9]
@@ -57872,7 +57872,7 @@ class Program
     }   
 }
 ";
-            comp = CreateCompilation([src8, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            comp = CreateCompilation([src8, src0, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is I1 ? [1] : [2]
@@ -57914,7 +57914,7 @@ class Program
     }   
 }
 ";
-            comp = CreateCompilation([src9, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            comp = CreateCompilation([src9, src0, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is I1 ? [1] : [10]
@@ -59024,7 +59024,7 @@ class Program
 }
 ";
 
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [3] : [1]
@@ -59096,7 +59096,7 @@ class Program
 }
 ";
 
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [3] : [1]
@@ -59172,7 +59172,7 @@ class Program
 }
 ";
 
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [3] : [1]
@@ -59244,7 +59244,7 @@ class Program
 }
 ";
 
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [3] : [1]
@@ -59316,7 +59316,7 @@ class Program
 }
 ";
 
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [3] : [1]
@@ -59365,7 +59365,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation([source1 + source2, UnionAttributeSource]);
+            var comp = CreateCompilation([source1 + source2, UnionAttributeSource], options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [4] : [1]
