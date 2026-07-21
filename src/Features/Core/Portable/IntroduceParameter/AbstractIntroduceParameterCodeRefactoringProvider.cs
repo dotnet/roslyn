@@ -171,9 +171,9 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
 
         if (methodSymbol.MethodKind is not MethodKind.Constructor)
         {
-            // The trampoline is always valid for a (non-constructor) method or local function: their references
-            // are always calls, never 'new' expressions.  The call-site search is deferred to when an action is
-            // invoked (see CreateNewCodeAction), so offering these actions stays cheap while typing.
+            // The trampoline is always valid for a (non-constructor) method or local function: the call sites we rewrite
+            // are invocations (object creation call sites only apply to constructors). The call-site search is deferred
+            // to when an action is invoked (see CreateNewCodeAction), so offering these actions stays cheap while typing.
             actionsBuilder.Add(CreateNewCodeAction(
                 FeaturesResources.into_extracted_method_to_invoke_at_call_sites, allOccurrences: false, IntroduceParameterCodeActionKind.Trampoline));
             actionsBuilderAllOccurrences.Add(CreateNewCodeAction(
