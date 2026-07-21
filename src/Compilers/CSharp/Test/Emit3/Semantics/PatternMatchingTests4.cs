@@ -9350,17 +9350,18 @@ _ = i is 42 or not 43;
         {
             var source = """
                 int i = 0;
-                _ = i is 42 or 42;
+                _ = i is (not 42) or 43;
                 """;
 
-            var options = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.HDN_RedundantPattern), ReportDiagnostic.Hidden);
+            // Note: severity is hidden rather than warning because the '(not 42)' has parentheses.
+            var options = TestOptions.ReleaseExeWithHiddenRedundantPatterns;
             var compilation = CreateCompilation(source, options: options);
             compilation.VerifyEmitDiagnostics(
-                // (2,16): hidden CS9335: The pattern is redundant.
-                // _ = i is 42 or 42;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "42").WithLocation(2, 16));
+                // (2,22): hidden CS9335: The pattern is redundant.
+                // _ = i is (not 42) or 43;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 22));
 
-            options = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions([]);
+            options = TestOptions.ReleaseExe;
             compilation = CreateCompilation(source, options: options);
             compilation.VerifyEmitDiagnostics();
         }
