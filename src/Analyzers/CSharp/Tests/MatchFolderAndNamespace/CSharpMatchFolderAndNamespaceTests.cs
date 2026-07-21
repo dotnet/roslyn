@@ -268,7 +268,7 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             var project = solution.GetRequiredProject(projectId);
             var parseOptions = (CSharpParseOptions)project.ParseOptions!;
             return solution
-                .WithProjectParseOptions(projectId, parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "")]))
+                .WithProjectParseOptions(projectId, parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]))
                 .GetRequiredProject(projectId)
                 .WithDefaultNamespace(DefaultNamespace)
                 .Solution;

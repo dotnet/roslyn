@@ -90,7 +90,7 @@ public sealed class ConvertToProgramMainRefactoringTests
                     var project = solution.GetProject(projectId)!;
                     var parseOptions = (CSharpParseOptions)project.ParseOptions!;
                     return solution.WithProjectParseOptions(projectId,
-                        parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "")]));
+                        parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]));
                 },
             },
         }.RunAsync();
