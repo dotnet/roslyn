@@ -254,8 +254,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 hasError = true;
                 Error(diagnostics, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, errorSyntax, errorArg);
-                // NOTE: ERR_QueryRangeVariableAssignedBadValue is being generated 
-                //       by query binding code and never reach this point
             }
 
             return expressionType;
