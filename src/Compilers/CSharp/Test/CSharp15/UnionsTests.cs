@@ -58970,6 +58970,8 @@ class Program
         public void TypePattern_24_UnionInstance_And_Value()
         {
             var source1 = @"
+#nullable enable
+
 public union U<T>(T);
 
 class Program
@@ -58998,14 +59000,54 @@ class Program
 ",
 forLowering: false);
 
-            // https://github.com/dotnet/roslyn/issues/82636: A warning about non-exhaustive switch should be reported, but it is not.
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (10,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(10, 18)
+                );
+
+            var source2 = @"
+#nullable enable
+
+public union U<T>(T);
+
+class Program
+{
+    int M9<Y>(U<Y> y)
+    {
+        return y switch
+        {
+            Y => 1,
+            null => 2,
+        };
+    }
+}
+";
+
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [3] : [1]
+[1]: t1 = t0.Value; [2]
+[2]: t1 != null ? [3] : [4]
+[3]: leaf <arm> `Y => 1`
+[4]: leaf <arm> `null => 2`
+",
+forLowering: false);
+
+            comp.VerifyEmitDiagnostics(
+                // (13,13): hidden CS9335: The pattern is redundant.
+                //             null => 2,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(13, 13)
+                );
         }
 
         [Fact]
         public void TypePattern_25_UnionInstance_And_Value()
         {
             var source1 = @"
+#nullable enable
+
 public union U<T>(T);
 
 class Program
@@ -59034,8 +59076,350 @@ class Program
 ",
 forLowering: false);
 
-            // https://github.com/dotnet/roslyn/issues/82636: A warning about non-exhaustive switch should be reported, but it is not.
             comp.VerifyEmitDiagnostics();
+
+            var source2 = @"
+#nullable enable
+
+public union U<T>(T);
+
+class Program
+{
+    int M9<Y>(U<Y> y) where Y : struct
+    {
+        return y switch
+        {
+            Y => 1,
+            null => 2,
+        };
+    }
+}
+";
+
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [3] : [1]
+[1]: t1 = t0.Value; [2]
+[2]: t1 != null ? [3] : [4]
+[3]: leaf <arm> `Y => 1`
+[4]: leaf <arm> `null => 2`
+",
+forLowering: false);
+
+            comp.VerifyEmitDiagnostics(
+                // (13,13): hidden CS9335: The pattern is redundant.
+                //             null => 2,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void TypePattern_26_UnionInstance_And_Value()
+        {
+            var source1 = @"
+#nullable enable
+
+public union U<T>(T);
+
+class Program
+{
+    int M9<Y>(U<Y> y) where Y : class?
+    {
+        return y switch
+        {
+            Y => 1,
+        };
+    }
+}
+";
+
+            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [3] : [1]
+[1]: t1 = t0.Value; [2]
+[2]: t1 != null ? [3] : [4]
+[3]: leaf <arm> `Y => 1`
+[4]: leaf <default> `y switch
+        {
+            Y => 1,
+        }`
+",
+forLowering: false);
+
+            comp.VerifyEmitDiagnostics(
+                // (10,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(10, 18)
+                );
+
+            var source2 = @"
+#nullable enable
+
+public union U<T>(T);
+
+class Program
+{
+    int M9<Y>(U<Y> y) where Y : class?
+    {
+        return y switch
+        {
+            Y => 1,
+            null => 2,
+        };
+    }
+}
+";
+
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [3] : [1]
+[1]: t1 = t0.Value; [2]
+[2]: t1 != null ? [3] : [4]
+[3]: leaf <arm> `Y => 1`
+[4]: leaf <arm> `null => 2`
+",
+forLowering: false);
+
+            comp.VerifyEmitDiagnostics(
+                // (13,13): hidden CS9335: The pattern is redundant.
+                //             null => 2,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void TypePattern_27_UnionInstance_And_Value()
+        {
+            var source1 = @"
+#nullable enable
+
+public union U<T>(T);
+
+class Program
+{
+    int M9<Y>(U<Y> y) where Y : notnull
+    {
+        return y switch
+        {
+            Y => 1,
+        };
+    }
+}
+";
+
+            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [3] : [1]
+[1]: t1 = t0.Value; [2]
+[2]: t1 != null ? [3] : [4]
+[3]: leaf <arm> `Y => 1`
+[4]: leaf <default> `y switch
+        {
+            Y => 1,
+        }`
+",
+forLowering: false);
+
+            comp.VerifyEmitDiagnostics();
+
+            var source2 = @"
+#nullable enable
+
+public union U<T>(T);
+
+class Program
+{
+    int M9<Y>(U<Y> y) where Y : notnull
+    {
+        return y switch
+        {
+            Y => 1,
+            null => 2,
+        };
+    }
+}
+";
+
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [3] : [1]
+[1]: t1 = t0.Value; [2]
+[2]: t1 != null ? [3] : [4]
+[3]: leaf <arm> `Y => 1`
+[4]: leaf <arm> `null => 2`
+",
+forLowering: false);
+
+            comp.VerifyEmitDiagnostics(
+                // (13,13): hidden CS9335: The pattern is redundant.
+                //             null => 2,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void TypePattern_28_UnionInstance_And_Value()
+        {
+            var source1 = @"
+#nullable enable
+
+public union U<T>(T);
+
+class Program
+{
+    int M9<Y>(U<Y> y) where Y : class
+    {
+        return y switch
+        {
+            Y => 1,
+        };
+    }
+}
+";
+
+            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [3] : [1]
+[1]: t1 = t0.Value; [2]
+[2]: t1 != null ? [3] : [4]
+[3]: leaf <arm> `Y => 1`
+[4]: leaf <default> `y switch
+        {
+            Y => 1,
+        }`
+",
+forLowering: false);
+
+            comp.VerifyEmitDiagnostics();
+
+            var source2 = @"
+#nullable enable
+
+public union U<T>(T);
+
+class Program
+{
+    int M9<Y>(U<Y> y) where Y : class
+    {
+        return y switch
+        {
+            Y => 1,
+            null => 2,
+        };
+    }
+}
+";
+
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [3] : [1]
+[1]: t1 = t0.Value; [2]
+[2]: t1 != null ? [3] : [4]
+[3]: leaf <arm> `Y => 1`
+[4]: leaf <arm> `null => 2`
+",
+forLowering: false);
+
+            comp.VerifyEmitDiagnostics(
+                // (13,13): hidden CS9335: The pattern is redundant.
+                //             null => 2,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void TypePattern_29_UnionInstance_And_Value()
+        {
+            var source1 = @"
+[System.Runtime.CompilerServices.Union]
+class U<T>
+{
+    private readonly object _value;
+    public U(T x) { _value = x; }
+    public object Value => _value;
+}
+";
+
+            var source2 = @"
+#nullable enable
+
+class Program
+{
+    int M9<X, Y>(U<Y> y) where Y : X
+    {
+    #line 100
+        return y switch
+        {
+            Y => 1,
+    #line 400
+            X => 2,
+        };
+    }
+}
+";
+
+            var comp = CreateCompilation([source1 + source2, UnionAttributeSource]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [4] : [1]
+[1]: t0 != null ? [2] : [7]
+[2]: t1 = t0.Value; [3]
+[3]: t1 != null ? [4] : [5]
+[4]: leaf <arm> `Y => 1`
+[5]: t0 is X ? [6] : [7]
+[6]: leaf <arm> `X => 2`
+[7]: leaf <default> `y switch
+        {
+            Y => 1,
+    #line 400
+            X => 2,
+        }`
+",
+forLowering: false);
+
+            comp.VerifyEmitDiagnostics(
+                // (100,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 18),
+                // (400,13): hidden CS9335: The pattern is redundant.
+                //             X => 2,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "X").WithLocation(400, 13)
+                );
+
+            var source3 = @"
+class U<T>
+{
+}
+";
+
+            comp = CreateCompilation([source3 + source2]);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 is Y ? [1] : [2]
+[1]: leaf <arm> `Y => 1`
+[2]: t0 is X ? [3] : [4]
+[3]: leaf <arm> `X => 2`
+[4]: leaf <default> `y switch
+        {
+            Y => 1,
+    #line 400
+            X => 2,
+        }`
+",
+forLowering: false);
+
+            comp.VerifyEmitDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18)
+                );
         }
 
         [Fact]
