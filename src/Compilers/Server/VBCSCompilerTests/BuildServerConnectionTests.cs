@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
@@ -239,6 +241,70 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     Assert.Equal(string.Empty, envVars[testEnvVar]);
                 }
             }
+        }
+
+        [Fact]
+        public void GetServerEnvironmentVariables_UsesProvidedSnapshot()
+        {
+            string? processOnlyKey = null;
+            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
+            {
+                var key = (string)entry.Key;
+                if (!string.Equals(key, "TASK_ONLY_VARIABLE", StringComparison.OrdinalIgnoreCase))
+                {
+                    processOnlyKey = key;
+                    break;
+                }
+            }
+
+            Assert.NotNull(processOnlyKey);
+
+            var processStartInfo = new ProcessStartInfo();
+            processStartInfo.EnvironmentVariables.Clear();
+            processStartInfo.EnvironmentVariables["TASK_ONLY_VARIABLE"] = "task-value";
+
+            var result = BuildServerConnection.GetServerEnvironmentVariables(
+                processStartInfo,
+                name => processStartInfo.EnvironmentVariables.ContainsKey(name)
+                    ? processStartInfo.EnvironmentVariables[name]
+                    : null,
+                static path => path);
+
+            Assert.Equal("task-value", result["TASK_ONLY_VARIABLE"]);
+            Assert.False(result.ContainsKey(processOnlyKey));
+        }
+
+        [Fact]
+        public void GetServerProcessInfo_UsesProvidedDotNetPath()
+        {
+            var clientDirectory = TempRoot.CreateDirectory().Path;
+            var dotNetPath = Path.Combine(clientDirectory, "task-dotnet");
+
+            var result = BuildServerConnection.GetServerProcessInfo(
+                clientDirectory,
+                "pipe",
+                name => name == RuntimeHostInfo.DotNetHostPathEnvironmentName ? dotNetPath : null,
+                static path => path);
+
+            Assert.Equal(dotNetPath, result.processFilePath);
+        }
+
+        [Fact]
+        public void CompilerServerLogger_UsesInjectedEnvironmentAndPath()
+        {
+            var projectDirectory = TempRoot.CreateDirectory();
+            var logDirectory = projectDirectory.CreateDirectory("logs");
+
+            using (var logger = new CompilerServerLogger(
+                "test",
+                loggingFilePath: null,
+                name => name == CompilerServerLogger.EnvironmentVariableName ? "logs" : null,
+                path => Path.Combine(projectDirectory.Path, path)))
+            {
+                logger.Log("message");
+            }
+
+            Assert.Single(Directory.GetFiles(logDirectory.Path));
         }
     }
 }

@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -519,6 +521,25 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void BuiltInToolUsesTaskEnvironmentDotNetHostPath()
+        {
+            var projectDirectory = Temp.CreateDirectory();
+            var dotNetHost = projectDirectory.CreateFile("dotnet-host");
+            var csc = new Csc
+            {
+                UseAppHost_TestOnly = false,
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+                    projectDirectory.Path,
+                    new Dictionary<string, string>
+                    {
+                        [RuntimeHostInfo.DotNetHostPathEnvironmentName] = Path.GetFileName(dotNetHost.Path),
+                    }),
+            };
+
+            Assert.Equal(Path.GetFileName(dotNetHost.Path), csc.GeneratePathToTool());
+        }
+
+        [Fact]
         public void EditorConfig()
         {
             var csc = new Csc();
@@ -671,6 +692,76 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
                 Assert.Throws<ArgumentException>(() => csc.GenerateResponseFileContents());
             }
+        }
+
+        /// <summary>
+        /// The multithreaded task migration requires relative references to be resolved against the
+        /// task's <see cref="TaskEnvironment.ProjectDirectory"/> rather than the shared process
+        /// working directory. Two task instances pointed at different project directories must resolve
+        /// the same relative reference independently.
+        /// </summary>
+        [Fact]
+        public void ReferenceExistenceResolvesAgainstTaskProjectDirectory()
+        {
+            var directoryWithReference = Temp.CreateDirectory();
+            var directoryWithoutReference = Temp.CreateDirectory();
+            directoryWithReference.CreateFile("ref.dll");
+
+            var taskInDirectoryWithReference = new TestableCsc()
+            {
+                BuildEngine = new MockEngine(TestOutputHelper),
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(directoryWithReference.Path),
+                References = MSBuildUtil.CreateTaskItems("ref.dll"),
+            };
+            var taskInDirectoryWithoutReference = new TestableCsc()
+            {
+                BuildEngine = new MockEngine(TestOutputHelper),
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(directoryWithoutReference.Path),
+                References = MSBuildUtil.CreateTaskItems("ref.dll"),
+            };
+
+            Assert.True(taskInDirectoryWithReference.CheckReferences());
+            Assert.False(taskInDirectoryWithoutReference.CheckReferences());
+        }
+
+        private sealed class TestableCsc : Csc
+        {
+            public bool CheckReferences() => CheckAllReferencesExistOnDisk();
+        }
+
+        /// <summary>
+        /// An empty reference <see cref="ITaskItem.ItemSpec"/> must be reported as a missing reference
+        /// (matching the pre-migration <c>File.Exists</c> behavior) rather than throwing from
+        /// <see cref="TaskEnvironment.GetAbsolutePath"/>.
+        /// </summary>
+        [Fact]
+        public void EmptyReferenceItemSpecIsReportedAsMissingWithoutThrowing()
+        {
+            var engine = new MockEngine(TestOutputHelper);
+            var task = new TestableCsc()
+            {
+                BuildEngine = engine,
+                References = MSBuildUtil.CreateTaskItems(""),
+            };
+
+            Assert.False(task.CheckReferences());
+            Assert.Contains("MSB3104", engine.Log);
+        }
+
+        [Fact]
+        public void InvalidReferencePathIsReportedAsMissingWithoutThrowing()
+        {
+            var projectDirectory = Temp.CreateDirectory();
+            var engine = new MockEngine(TestOutputHelper);
+            var task = new TestableCsc()
+            {
+                BuildEngine = engine,
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory.Path),
+                References = MSBuildUtil.CreateTaskItems("bad|ref.dll"),
+            };
+
+            Assert.False(task.CheckReferences());
+            Assert.Contains("MSB3104", engine.Log);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]

@@ -119,6 +119,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return path;
         }
 
+        internal static string GetFullPathNoThrow(string path, TaskEnvironment taskEnvironment)
+        {
+            try
+            {
+                path = Path.GetFullPath(taskEnvironment.GetAbsolutePath(path).Value);
+            }
+            catch (Exception e) when (IsIoRelatedException(e)) { }
+            return path;
+        }
+
         internal static bool TryCombine(string path1, string path2, [NotNullWhen(returnValue: true)] out string? combined)
         {
             try

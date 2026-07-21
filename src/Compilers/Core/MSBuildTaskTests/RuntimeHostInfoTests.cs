@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -93,6 +95,28 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
 
         Assert.NotNull(result);
         AssertEx.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
+    }
+
+    [Fact]
+    public void DotNetInTaskEnvironmentPath()
+    {
+        var projectDirectory = Temp.CreateDirectory();
+        var binDirectory = projectDirectory.CreateDirectory("bin");
+        var dotNetPath = binDirectory.CreateFile($"dotnet{PlatformInformation.ExeExtension}").Path;
+        var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+            projectDirectory.Path,
+            new Dictionary<string, string>
+            {
+                ["PATH"] = "bin",
+                [RuntimeHostInfo.DotNetHostPathEnvironmentName] = "",
+                [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+            });
+
+        var result = RuntimeHostInfo.GetDotNetPathOrDefault(
+            taskEnvironment.GetEnvironmentVariable,
+            path => taskEnvironment.GetAbsolutePath(path).Value);
+
+        Assert.Equal(dotNetPath, result);
     }
 }
 

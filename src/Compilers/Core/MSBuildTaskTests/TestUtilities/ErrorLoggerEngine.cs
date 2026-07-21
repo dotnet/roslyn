@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public ErrorLoggingEngine()
         {
             // Use the formatting from Microsoft.Build.Shared.EventArgsFormatting.
-            var assembly = Assembly.LoadFrom("Microsoft.Build.dll");
+            // As of Microsoft.Build 18.6+, this type lives in Microsoft.Build.Framework.dll.
+            var assembly = Assembly.LoadFrom("Microsoft.Build.Framework.dll");
             var formattingClass = assembly.GetType("Microsoft.Build.Shared.EventArgsFormatting") ?? throw new Exception("Could not find EventArgsFormatting type");
             _formatErrorMethod = formattingClass.GetMethod("FormatEventMessage", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any,
                 new Type[] { typeof(BuildErrorEventArgs) }, null) ?? throw new Exception("Could not find FormatEventMessage(BuildErrorEventArgs).");

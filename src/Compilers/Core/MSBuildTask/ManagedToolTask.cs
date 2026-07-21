@@ -167,7 +167,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // which means `ToolExe` is not really overridden by user (yes, the user sets it but basically to its default value).
                 ToolExe = null;
 
-                return UseAppHost ? PathToBuiltInTool : RuntimeHostInfo.GetDotNetPathOrDefault();
+                return UseAppHost
+                    ? PathToBuiltInTool
+                    : RuntimeHostInfo.GetDotNetPathOrDefault(
+                        this.TaskEnvironment.GetEnvironmentVariable,
+                        path => this.TaskEnvironment.GetAbsolutePath(path).Value);
             }
 
             return Path.Combine(ToolPath ?? "", ToolExe);
@@ -319,20 +323,25 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             // Set DOTNET_ROOT so that the apphost executables launch properly.
             // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
-            if (IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Log.LogMessage) is { } dotNetRoot)
+            if (IsBuiltinToolRunningOnCoreClr &&
+                RuntimeHostInfo.GetToolDotNetRoot(
+                    this.TaskEnvironment.GetEnvironmentVariable,
+                    path => this.TaskEnvironment.GetAbsolutePath(path).Value,
+                    Log.LogMessage) is { } dotNetRoot)
             {
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 EnvironmentVariables =
                 [
                     .. EnvironmentVariables?.Where(static e => !e.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase)) ?? [],
-                    .. Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>()
-                        .Where(e => ((string)e.Key).StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                    .. this.TaskEnvironment.GetEnvironmentVariables()
+                        .Where(e => e.Key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
                         .Select(e => $"{e.Key}="),
                     $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}",
                 ];
             }
 
-            if (RuntimeHostInfo.ShouldDisableTieredCompilation && Environment.GetEnvironmentVariable(RuntimeHostInfo.DotNetTieredCompilationEnvironmentName) == null)
+            if (RuntimeHostInfo.ShouldDisableTieredCompilation &&
+                this.TaskEnvironment.GetEnvironmentVariable(RuntimeHostInfo.DotNetTieredCompilationEnvironmentName) == null)
             {
                 var value = "0";
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetTieredCompilationEnvironmentName, value);

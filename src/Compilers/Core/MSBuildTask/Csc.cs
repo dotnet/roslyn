@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// should be significantly faster with larger projects and have a smaller memory
     /// footprint.
     /// </summary>
+    [MSBuildMultiThreadableTask]
     public class Csc : ManagedCompiler
     {
         #region Properties

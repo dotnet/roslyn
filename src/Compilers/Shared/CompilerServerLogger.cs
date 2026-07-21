@@ -109,6 +109,25 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Static class initializer that initializes logging.
         /// </summary>
         public CompilerServerLogger(string identifier, string? loggingFilePath = null)
+            : this(identifier, loggingFilePath, Environment.GetEnvironmentVariable, static path => path)
+        {
+        }
+
+        /// <summary>
+        /// Overload that lets the caller supply the environment variable lookup and path absolutization.
+        /// This allows an MSBuild task to route both through its thread-safe execution environment
+        /// instead of process-global state
+        /// </summary>
+        /// <param name="getEnvironmentVariable">Reads the named environment variable.</param>
+        /// <param name="makeAbsolutePath">
+        /// Resolves a (possibly relative) path to an absolute one before it is used for file system
+        /// access.
+        /// </param>
+        public CompilerServerLogger(
+            string identifier,
+            string? loggingFilePath,
+            Func<string, string?> getEnvironmentVariable,
+            Func<string, string> makeAbsolutePath)
         {
             _identifier = identifier;
 
@@ -116,14 +135,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 if (loggingFilePath is null)
                 {
-                    loggingFilePath = Environment.GetEnvironmentVariable(EnvironmentVariableName);
-                    // If the environment variable contains the path of a currently existing directory,
-                    // then use a process-specific name for the log file and put it in that directory.
-                    // Otherwise, assume that the environment variable specifies the name of the log file.
-                    if (Directory.Exists(loggingFilePath))
+                    loggingFilePath = getEnvironmentVariable(EnvironmentVariableName);
+                    if (!string.IsNullOrEmpty(loggingFilePath))
                     {
-                        var processId = Process.GetCurrentProcess().Id;
-                        loggingFilePath = Path.Combine(loggingFilePath, $"server.{processId}.log");
+                        loggingFilePath = makeAbsolutePath(loggingFilePath);
+
+                        // If the environment variable contains the path of a currently existing directory,
+                        // then use a process-specific name for the log file and put it in that directory.
+                        // Otherwise, assume that the environment variable specifies the name of the log file.
+                        if (Directory.Exists(loggingFilePath))
+                        {
+                            var processId = Process.GetCurrentProcess().Id;
+                            loggingFilePath = Path.Combine(loggingFilePath, $"server.{processId}.log");
+                        }
                     }
                 }
 
