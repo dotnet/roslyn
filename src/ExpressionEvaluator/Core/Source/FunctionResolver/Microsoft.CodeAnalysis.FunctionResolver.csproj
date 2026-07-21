@@ -26,8 +26,8 @@
     <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
       <Link>Compiler\WellKnownMemberNames.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\CommonGeneratedNames.cs">
-      <Link>Compiler\CommonGeneratedNames.cs</Link>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownGeneratedNames.cs">
+      <Link>Compiler\WellKnownGeneratedNames.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs">
       <Link>Compiler\RoslynString.cs</Link>

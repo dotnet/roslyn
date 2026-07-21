@@ -35,16 +35,16 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Formatting;
 public class DocumentFormattingBenchmark
 {
     private const int FormatOperationCount = 100;
-    private const string BenchmarkRootPath = @"C:\Benchmark";
     private const string ProjectName = "DocumentFormattingBenchmark";
-    private const string ProjectFilePath = @"C:\Benchmark\FormattingBenchmark.csproj";
-    private const string GlobalConfigFilePath = @"C:\Benchmark\.globalconfig";
-    private const string GeneratedAssemblyPath = @"C:\Benchmark\obj\DocumentFormattingBenchmark.dll";
-    private const string DocumentFilePath = @"C:\Benchmark\DocumentFormattingBenchmark.cshtml";
     private const string DocumentRelativePath = "DocumentFormattingBenchmark.cshtml";
     private const string RootNamespace = "Benchmark";
 
-    private static readonly DocumentUri s_documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(DocumentFilePath);
+    private static readonly string s_benchmarkRootPath = Path.Combine(Path.GetTempPath(), "RazorBenchmark");
+    private static readonly string s_projectFilePath = Path.Combine(s_benchmarkRootPath, "FormattingBenchmark.csproj");
+    private static readonly string s_globalConfigFilePath = Path.Combine(s_benchmarkRootPath, ".globalconfig");
+    private static readonly string s_generatedAssemblyPath = Path.Combine(s_benchmarkRootPath, "obj", "DocumentFormattingBenchmark.dll");
+    private static readonly string s_documentFilePath = Path.Combine(s_benchmarkRootPath, DocumentRelativePath);
+    private static readonly DocumentUri s_documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(s_documentFilePath);
     private static readonly AnalyzerFileReference s_razorSourceGeneratorReference = new(
         typeof(RazorSourceGenerator).Assembly.Location,
         AnalyzerAssemblyLoader.Instance);
@@ -146,21 +146,21 @@ public class DocumentFormattingBenchmark
             name: ProjectName,
             assemblyName: ProjectName,
             language: LanguageNames.CSharp,
-            filePath: ProjectFilePath,
+            filePath: s_projectFilePath,
             parseOptions: CSharpParseOptions.Default.WithFeatures([new("use-roslyn-tokenizer", "true")]),
             compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
             metadataReferences: AspNet80.ReferenceInfos.All.Select(static referenceInfo => referenceInfo.Reference))
             .WithDefaultNamespace(RootNamespace)
             .WithAnalyzerReferences([s_razorSourceGeneratorReference])
-            .WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(GeneratedAssemblyPath));
+            .WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(s_generatedAssemblyPath));
 
         solution = solution.AddProject(projectInfo);
-        solution = solution.AddAdditionalDocument(documentId, Path.GetFileName(DocumentFilePath), sourceText, filePath: DocumentFilePath);
+        solution = solution.AddAdditionalDocument(documentId, Path.GetFileName(s_documentFilePath), sourceText, filePath: s_documentFilePath);
         solution = solution.AddAnalyzerConfigDocument(
             DocumentId.CreateNewId(projectId),
             name: ".globalconfig",
             text: SourceText.From(CreateGlobalConfigText()),
-            filePath: GlobalConfigFilePath);
+            filePath: s_globalConfigFilePath);
 
         return solution;
     }
@@ -178,9 +178,9 @@ public class DocumentFormattingBenchmark
 
             # This mirrors the Razor SDK setup used by the Roslyn-based test project shape.
             build_property.SuppressRazorSourceGenerator = true
-            build_property.MSBuildProjectDirectory = {{BenchmarkRootPath}}
+            build_property.MSBuildProjectDirectory = {{s_benchmarkRootPath}}
 
-            [{{DocumentFilePath.Replace('\\', '/')}}]
+            [{{s_documentFilePath.Replace('\\', '/')}}]
             build_metadata.AdditionalFiles.TargetPath = {{encodedTargetPath}}
             """;
     }

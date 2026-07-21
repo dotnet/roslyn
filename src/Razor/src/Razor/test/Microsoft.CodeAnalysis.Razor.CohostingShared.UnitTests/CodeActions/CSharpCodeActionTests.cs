@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -12,6 +13,38 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
+    [Fact]
+    public async Task ShowAllCSharpCodeActions_ControlsUnsupportedActions()
+    {
+        var input = """
+            @code
+            {
+                void M(bool value)
+                {
+                    [||]if (value)
+                    {
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """;
+
+        var document = CreateRazorDocument(input);
+
+        var hiddenActions = await GetCodeActionsAsync(document, input);
+        Assert.NotNull(hiddenActions);
+        Assert.DoesNotContain(hiddenActions, action => ((RazorVSInternalCodeAction)action.Value!).Name == PredefinedCodeRefactoringProviderNames.InvertIf);
+
+        var advancedSettings = ClientSettingsManager.GetClientSettings().AdvancedSettings;
+        ClientSettingsManager.Update(advancedSettings with { ShowAllCSharpCodeActions = true });
+
+        var shownActions = await GetCodeActionsAsync(document, input);
+        Assert.NotNull(shownActions);
+        var invertIfAction = Assert.Single(shownActions, action => ((RazorVSInternalCodeAction)action.Value!).Name == PredefinedCodeRefactoringProviderNames.InvertIf);
+    }
+
     [Fact]
     public async Task GenerateConstructor()
     {

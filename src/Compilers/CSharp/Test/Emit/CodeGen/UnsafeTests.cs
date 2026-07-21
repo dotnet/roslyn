@@ -802,15 +802,18 @@ unsafe struct S
                 """);
             CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
                 {
-                  // Code size       10 (0xa)
+                  // Code size       13 (0xd)
                   .maxstack  1
                   .locals init (byte& V_0) //b2
-                  IL_0000:  ldarg.2
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloc.0
-                  IL_0003:  call       "string byte.ToString()"
-                  IL_0008:  pop
-                  IL_0009:  ret
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldind.u1
+                  IL_0002:  pop
+                  IL_0003:  ldarg.2
+                  IL_0004:  stloc.0
+                  IL_0005:  ldloc.0
+                  IL_0006:  call       "string byte.ToString()"
+                  IL_000b:  pop
+                  IL_000c:  ret
                 }
                 """);
         }

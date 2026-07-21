@@ -723,8 +723,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="translated">Eine Variable darf nicht innerhalb eines not- oder or-Musters deklariert werden.</target>
+        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
+        <target state="needs-review-translation">Eine Variable darf nicht innerhalb eines not- oder or-Musters deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -6030,12 +6030,7 @@
         <target state="translated">Der Parameter wird nicht gelesen. Möglicherweise haben Sie ihn nicht zum Initialisieren der gleichnamigen Eigenschaft verwendet?</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">Der „unsafe“-Modifizierer hat hier unter den aktuellen Speichersicherheitsregeln keine Auswirkungen.</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
+      <trans-unit id="ERR_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
         <target state="translated">Der „unsafe“-Modifizierer hat hier unter den aktuellen Speichersicherheitsregeln keine Auswirkungen.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
