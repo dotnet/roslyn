@@ -741,7 +741,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), CreateErrorType());
                 }
                 var xExpressionType = GetAnonymousTypeFieldType(xExpression, let, d);
-                
                 var construction = MakePair(let, x.Name, xExpression, xExpressionType, let.Identifier.ValueText, yExpression, yExpressionType, state, d);
 
                 // The bound block represents a closure scope for transparent identifiers captured in the let clause.
