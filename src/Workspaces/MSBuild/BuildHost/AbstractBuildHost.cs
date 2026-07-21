@@ -209,7 +209,7 @@ internal abstract class AbstractBuildHost :
     private int AddProjectFileTarget(Build.Evaluation.Project? project, string? physicalFilePath, string languageName, DiagnosticLog log)
     {
         Contract.ThrowIfNull(_buildManager);
-        return _server.AddTarget(new ProjectFile(languageName, project, _buildManager, log) { PhysicalFilePath = physicalFilePath });
+        return _server.AddTarget(new ProjectFile(languageName, project, _buildManager, _server, log) { PhysicalFilePath = physicalFilePath });
     }
 
     public Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken)

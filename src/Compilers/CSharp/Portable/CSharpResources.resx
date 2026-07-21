@@ -6441,7 +6441,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</value>
   </data>
   <data name="ERR_DesignatorBeneathPatternCombinator" xml:space="preserve">
-    <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
+    <value>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</value>
   </data>
   <data name="ERR_DesignatorBeforePropertyPattern" xml:space="preserve">
     <value>A variable designator must come after a property pattern.</value>
@@ -8362,6 +8362,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ClosedExplicitlyAbstract" xml:space="preserve">
     <value>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</value>
+  </data>
+  <data name="ERR_ClosedBadDerivedTypesProperty" xml:space="preserve">
+    <value>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</value>
   </data>
   <data name="ERR_MissingUnionCaseTypes" xml:space="preserve">
     <value>A union type must have at least one union creation member.</value>

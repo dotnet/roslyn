@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // return MemoryMarshal.CreateSpan<TElement>(ref Unsafe.As<TBuffer, TElement>(ref buffer), length)
 
-                var body = f.Return(f.Call(null,
+                var returnStmt = f.Return(f.Call(null,
                                            f.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan).Construct(TypeParameters[1]),
                                            f.Call(null,
                                                   f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T).Construct(ImmutableArray<TypeSymbol>.CastUp(TypeParameters)),
@@ -35,13 +36,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                            f.Parameter(Parameters[1])));
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
-                f.CloseMethod(body);
+                f.CloseMethod(f.StatementList(ThrowIfInlineArrayIsNullRef(this, f), returnStmt));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
                 f.CloseMethod(f.ThrowNull());
             }
+        }
+
+        public static BoundStatement ThrowIfInlineArrayIsNullRef(MethodSymbol inlineArrayHelperMethod, SyntheticBoundNodeFactory f)
+        {
+            ParameterSymbol inlineArrayParameter = inlineArrayHelperMethod.Parameters[0];
+            Debug.Assert(inlineArrayParameter.RefKind is RefKind.Ref or RefKind.In);
+
+            // The following IL is generated for bound nodes below:
+            //
+            //      ldarg.0
+            //      ldind.u1
+            //      pop
+            //
+
+            // We assume that the ldind.u1 instruction throws for a null ref.
+            // Note that IL doesn't refer to 'byte' type, but we need it for the bound nodes. 
+            // We do not care if the type is bad or missing though.
+            // Note, we have to cheat with BoundParameter.Type below to force ldind.u1 instruction in IL.
+
+            return f.ExpressionStatement(new BoundParameter(f.Syntax, inlineArrayParameter, f.Compilation.GetSpecialType(SpecialType.System_Byte)) { WasCompilerGenerated = true });
         }
     }
 }

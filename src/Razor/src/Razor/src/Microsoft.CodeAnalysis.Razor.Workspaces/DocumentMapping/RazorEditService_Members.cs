@@ -186,7 +186,7 @@ internal partial class RazorEditService
         }
     }
 
-    private static ImmutableArray<CSharpMember> FindMembers(RoslynSyntaxNode syntaxRoot, SourceText sourceText)
+    private static ImmutableArray<CSharpMember> FindMembers(RoslynSyntaxNode syntaxRoot, SourceText sourceText, RazorFileKind fileKind)
     {
         if (!syntaxRoot.TryGetClassDeclaration(out var classDecl))
         {
@@ -196,7 +196,7 @@ internal partial class RazorEditService
         using var members = new PooledArrayBuilder<CSharpMember>();
         foreach (var member in classDecl.Members)
         {
-            if (CSharpMember.TryCreate(member, sourceText) is { } csharpMember)
+            if (CSharpMember.TryCreate(member, sourceText, fileKind) is { } csharpMember)
             {
                 members.Add(csharpMember);
             }

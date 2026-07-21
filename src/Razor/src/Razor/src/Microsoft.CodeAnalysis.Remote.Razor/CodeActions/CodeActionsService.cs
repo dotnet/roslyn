@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -31,14 +30,12 @@ internal sealed class CodeActionsService(
     IDocumentMappingService documentMappingService,
     [ImportMany] IEnumerable<IRazorCodeActionProvider> razorCodeActionProviders,
     [ImportMany] IEnumerable<ICSharpCodeActionProvider> csharpCodeActionProviders,
-    [ImportMany] IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
-    LanguageServerFeatureOptions languageServerFeatureOptions) : ICodeActionsService
+    [ImportMany] IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders) : ICodeActionsService
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IEnumerable<IRazorCodeActionProvider> _razorCodeActionProviders = razorCodeActionProviders;
     private readonly IEnumerable<ICSharpCodeActionProvider> _csharpCodeActionProviders = csharpCodeActionProviders;
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders = htmlCodeActionProviders;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, RemoteDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] delegatedCodeActions, Uri? delegatedDocumentUri, bool supportsCodeActionResolve, CancellationToken cancellationToken)
     {
@@ -126,7 +123,6 @@ internal sealed class CodeActionsService(
             endLocation,
             languageKind,
             sourceText,
-            _languageServerFeatureOptions.SupportsFileManipulation,
             supportsCodeActionResolve);
 
         return context;

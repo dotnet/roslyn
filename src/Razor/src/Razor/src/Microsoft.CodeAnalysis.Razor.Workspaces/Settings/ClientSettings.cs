@@ -62,6 +62,7 @@ internal sealed record ClientAdvancedSettings(
     [property: JsonPropertyName("snippetSetting")] SnippetSetting SnippetSetting,
     [property: JsonPropertyName("logLevel")] LogLevel LogLevel,
     [property: JsonPropertyName("formatOnPaste")] bool FormatOnPaste,
+    [property: JsonPropertyName("showAllCSharpCodeActions")] bool ShowAllCSharpCodeActions,
     [property: JsonPropertyName("taskListDescriptors")] ImmutableArray<string> TaskListDescriptors)
 {
     public static readonly ClientAdvancedSettings Default = new(FormatOnType: true,
@@ -74,6 +75,7 @@ internal sealed record ClientAdvancedSettings(
                                                                 SnippetSetting.All,
                                                                 LogLevel.Warning,
                                                                 FormatOnPaste: true,
+                                                                ShowAllCSharpCodeActions: false,
                                                                 TaskListDescriptors: []);
 
     public bool Equals(ClientAdvancedSettings? other)
@@ -89,6 +91,7 @@ internal sealed record ClientAdvancedSettings(
             SnippetSetting == other.SnippetSetting &&
             LogLevel == other.LogLevel &&
             FormatOnPaste == other.FormatOnPaste &&
+            ShowAllCSharpCodeActions == other.ShowAllCSharpCodeActions &&
             TaskListDescriptors.SequenceEqual(other.TaskListDescriptors);
     }
 
@@ -105,6 +108,7 @@ internal sealed record ClientAdvancedSettings(
         hash.Add(SnippetSetting);
         hash.Add(LogLevel);
         hash.Add(FormatOnPaste);
+        hash.Add(ShowAllCSharpCodeActions);
         hash.Add(TaskListDescriptors);
         return hash;
     }

@@ -1,0 +1,30 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::Test.SlotTagHelper - __Test_SlotTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (69:2,0 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (69:2,0 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (73:3,2 [47] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (73:3,2 [47] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    var content = new Test.SlotContent(42);\n
+                HtmlContent - (123:6,0 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (123:6,0 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                TagHelper - (125:7,0 [29] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - slot - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - Test.SlotTagHelper
+                    DefaultTagHelperProperty - (140:7,15 [5] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - content - Test.SlotContent Test.SlotTagHelper.Content - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (140:7,15 [5] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                            LazyIntermediateToken - (140:7,15 [5] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - hello
+                    DefaultTagHelperExecute - 
+                HtmlContent - (154:7,29 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (154:7,29 [2] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                TagHelper - (156:8,0 [32] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - slot - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - Test.SlotTagHelper
+                    DefaultTagHelperProperty - (171:8,15 [8] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - content - Test.SlotContent Test.SlotTagHelper.Content - HtmlAttributeValueStyle.DoubleQuotes
+                        CSharpExpression - (172:8,16 [7] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                            LazyIntermediateToken - (172:8,16 [7] TestFiles\IntegrationTests\CSharpPreviewLanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - content
+                    DefaultTagHelperExecute - 

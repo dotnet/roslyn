@@ -1,8 +1,11 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -31,6 +34,24 @@ public sealed class CSharpPreviewLanguageFeaturesIntegrationTest_Legacy : Integr
             protected void Write(object value)
             {
             }
+
+            protected TTagHelper CreateTagHelper<TTagHelper>()
+                where TTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.ITagHelper
+                => System.Activator.CreateInstance<TTagHelper>();
+
+            protected void StartTagHelperWritingScope(System.Text.Encodings.Web.HtmlEncoder encoder)
+            {
+            }
+
+            protected Microsoft.AspNetCore.Razor.TagHelpers.TagHelperContent EndTagHelperWritingScope()
+                => throw new System.NotImplementedException();
+
+            protected void BeginWriteTagHelperAttribute()
+            {
+            }
+
+            protected string EndWriteTagHelperAttribute()
+                => string.Empty;
         }
         """;
 
@@ -50,6 +71,74 @@ public sealed class CSharpPreviewLanguageFeaturesIntegrationTest_Legacy : Integr
         }
 
         return fileName;
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13188")]
+    public void StringLiteralAttributeOnUnionTagHelperProperty()
+    {
+        AddCSharpSyntaxTree("""
+            #nullable enable
+
+            namespace System.Runtime.CompilerServices
+            {
+                public interface IUnion
+                {
+                    object? Value { get; }
+                }
+
+                public class UnionAttribute : System.Attribute
+                {
+                }
+            }
+            """);
+
+        AddCSharpSyntaxTree("""
+            using Microsoft.AspNetCore.Razor.TagHelpers;
+
+            namespace Test
+            {
+                public union SlotContent(string, int);
+
+                public class SlotTagHelper : TagHelper
+                {
+                    public SlotContent Content { get; set; }
+                }
+            }
+            """);
+
+        var projectItem = AddProjectItemFromText("""
+            @inherits global::LegacyTemplateBase
+            @addTagHelper *, TestAssembly
+
+            @{
+                var content = new Test.SlotContent(42);
+            }
+
+            <slot content="hello"></slot>
+            <slot content="@content"></slot>
+            """,
+            filePath: DefaultLegacyFileName);
+
+        var compilation = BaseCompilation.AddSyntaxTrees(CSharpSyntaxTrees);
+        var projectEngine = CreateProjectEngine(static builder => builder.RegisterDefaultTagHelperProducer());
+        var tagHelpers = projectEngine.Engine.Features.OfType<ITagHelperDiscoveryService>().Single().GetTagHelpers(compilation);
+        Assert.Contains(tagHelpers, static tagHelper => tagHelper.TypeName == "Test.SlotTagHelper");
+
+        var imports = projectEngine.GetImports(projectItem, static i => i.Exists)
+            .Select(static import => RazorSourceDocument.ReadFrom(import))
+            .ToImmutableArray();
+        var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), RazorFileKind.Legacy, imports, tagHelpers);
+
+        var references = compilation.References.Concat([compilation.ToMetadataReference()]).ToArray();
+        var generated = new CompiledCSharpCode(
+            CSharpCompilation.Create(compilation.AssemblyName + ".Views", references: references, options: compilation.Options),
+            codeDocument);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
     }
 
     [Fact]
