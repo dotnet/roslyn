@@ -2,19 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.IO;
 using System.Text;
+using Basic.Reference.Assemblies;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Benchmarks;
 
 /// <seealso href="https://github.com/dotnet/roslyn/issues/84529"/>
 [MemoryDiagnoser]
 [EventPipeProfiler(EventPipeProfile.GcVerbose)]
+[WarmupCount(1)]
+[IterationCount(1)]
+[InvocationCount(1)]
 public class RedundantPatternsBenchmarks
 {
-    [Params(500)]
+    [Params(100, 500, 1000)]
     public int TupleConstantArmCount { get; set; }
+
+    [Params(true, false)]
+    public bool EnableHiddenRedundantPatterns { get; set; }
 
     private string? _tupleConstantSwitchSource;
 
@@ -25,7 +38,37 @@ public class RedundantPatternsBenchmarks
     }
 
     [Benchmark]
-    public object EmitWithTupleConstantSwitch() => DecisionDagBenchmarks.EmitCore(_tupleConstantSwitchSource!);
+    public object EmitWithTupleConstantSwitch() => EmitCore(_tupleConstantSwitchSource!);
+
+    public object EmitCore(string sourceCode)
+    {
+        var sourceText = SourceText.From(sourceCode);
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText);
+        var compilation = CSharpCompilation.Create(
+            "BenchmarkAssembly",
+            [syntaxTree],
+            Net90.References.All,
+            new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                specificDiagnosticOptions: EnableHiddenRedundantPatterns ? [new("CS9335", ReportDiagnostic.Hidden)] : []));
+
+        var assemblyStream = new MemoryStream();
+        var emitResult = compilation.Emit(
+            assemblyStream,
+            pdbStream: null,
+            xmlDocumentationStream: null,
+            win32Resources: null,
+            manifestResources: [],
+            options: new EmitOptions().WithDebugInformationFormat(DebugInformationFormat.Embedded),
+            cancellationToken: default);
+        if (!emitResult.Success)
+        {
+            throw new Exception("Compilation failed: " + string.Join(Environment.NewLine, emitResult.Diagnostics));
+        }
+
+        assemblyStream.Position = 0;
+        return assemblyStream;
+    }
 
     private string GenerateTupleConstantSwitchSource()
     {
