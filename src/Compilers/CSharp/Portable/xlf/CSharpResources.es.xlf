@@ -6030,9 +6030,14 @@
         <target state="translated">El parámetro no se ha leído ¿Olvidó usarlo para inicializar la propiedad con ese nombre?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnsafeMeaningless">
+      <trans-unit id="WRN_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
+        <target state="translated">El modificador "unsafe" no tiene ningún efecto aquí en las reglas de seguridad de memoria actuales.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless_Title">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="translated">El modificador "unsafe" no tiene ningún efecto aquí en las reglas de seguridad de memoria actuales.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
