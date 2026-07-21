@@ -6030,12 +6030,7 @@
         <target state="translated">参数未读。是否忘记通过它来使用该名称初始化属性?</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">根据当前内存安全规则，"unsafe" 修饰符在此处没有任何效果。</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
+      <trans-unit id="ERR_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
         <target state="translated">根据当前内存安全规则，"unsafe" 修饰符在此处没有任何效果。</target>
         <note>'unsafe' is a keyword, should not be localized.</note>

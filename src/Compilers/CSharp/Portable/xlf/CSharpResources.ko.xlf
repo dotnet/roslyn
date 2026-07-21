@@ -6030,12 +6030,7 @@
         <target state="translated">매개 변수를 읽을 수 없습니다. 이 매개 변수를 사용하여 해당 이름으로 속성을 초기화했는지 확인하세요.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">'안전하지 않은' 한정자는 현재 메모리 안전 규칙에서 아무런 영향을 주지 않습니다.</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
+      <trans-unit id="ERR_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
         <target state="translated">'안전하지 않은' 한정자는 현재 메모리 안전 규칙에서 아무런 영향을 주지 않습니다.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
