@@ -1033,13 +1033,13 @@ or E._{i}
         public void ManyTupleSwitchArms_01()
         {
             const int fieldsPerEntity = 25;
-            const int TupleConstantArmCount = 10_000;
+            const int tupleConstantArmCount = 10_000;
             var sb = new StringBuilder();
             sb.AppendLine("public static class P");
             sb.AppendLine("{");
             sb.AppendLine("    public static int Get(string entity, string field) => (entity, field) switch");
             sb.AppendLine("    {");
-            for (var i = 0; i < TupleConstantArmCount; i++)
+            for (var i = 0; i < tupleConstantArmCount; i++)
             {
                 var entityIndex = i / fieldsPerEntity;
                 sb.AppendLine($"        (\"Entity{entityIndex}\", \"Field{i}\") => {i},");
