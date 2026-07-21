@@ -239,6 +239,44 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             fixedCode: fixedCode);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9550")]
+    public async Task FileBasedProgram_NoDiagnostic()
+    {
+        // The namespace does not match the folder structure, but the document is part of a file-based
+        // program, so IDE0130 should not fire.
+        var folder = CreateFolderPath("B", "C");
+        var filePath = Path.Combine(folder, "Class1.cs");
+
+        var testState = new VerifyCS.Test
+        {
+            EditorConfig = EditorConfig,
+            CodeFixTestBehaviors = CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck,
+            LanguageVersion = LanguageVersion.CSharp10,
+        };
+
+        testState.TestState.Sources.Add((filePath, """
+            namespace A.B
+            {
+                class Class1
+                {
+                }
+            }
+            """));
+
+        testState.SolutionTransforms.Add((solution, projectId) =>
+        {
+            var project = solution.GetRequiredProject(projectId);
+            var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+            return solution
+                .WithProjectParseOptions(projectId, parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "")]))
+                .GetRequiredProject(projectId)
+                .WithDefaultNamespace(DefaultNamespace)
+                .Solution;
+        });
+
+        await testState.RunAsync();
+    }
+
     [Fact]
     public async Task SingleDocumentNoReference_NoDefaultNamespace()
     {
