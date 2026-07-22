@@ -407,8 +407,7 @@ extends:
               demands: ImageOverride -equals 1es-windows-2022
 
     - stage: insert
-      dependsOn:
-      - build
+      trigger: manual
       displayName: Insert to VS
 
       jobs:
