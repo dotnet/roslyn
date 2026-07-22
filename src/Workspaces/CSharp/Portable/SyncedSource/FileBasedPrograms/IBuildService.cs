@@ -32,7 +32,7 @@ interface IBuildService
     /// <summary>
     /// An abstraction over MSBuild's <c>ProjectRootElement.Create</c> method.
     /// </summary>
-    IProjectRootElement CreateProjectRootElement(XmlReader xmlReader, IProjectCollection projectCollection);
+    IProjectRootElement CreateProjectRootElement(XmlReader xmlReader, IProjectCollection projectCollection, string entryPointFilePath);
 }
 
 /// <summary>

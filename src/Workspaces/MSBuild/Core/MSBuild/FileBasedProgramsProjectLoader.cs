@@ -59,7 +59,7 @@ file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost, Cance
         return ProjectInstance.FromProjectRootElement(this, buildHost, (ProjectRootElement)projectRoot, (ProjectCollection)projectCollection, globalProperties, cancellationToken);
     }
 
-    public IProjectRootElement CreateProjectRootElement(XmlReader xmlReader, IProjectCollection projectCollection)
+    public IProjectRootElement CreateProjectRootElement(XmlReader xmlReader, IProjectCollection projectCollection, string entryPointFilePath)
     {
         xmlReader.MoveToContent();
         return new ProjectRootElement(xmlReader.ReadOuterXml());

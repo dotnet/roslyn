@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Xml;
@@ -31,16 +30,6 @@ sealed class VirtualProjectBuilder
     internal const string FromIncludeDirectiveMetadataName = "FileBasedProgramsFromIncludeDirective";
 
     internal const string FromRefDirectiveMetadataName = "FileBasedProgramsFromRefDirective";
-
-    /// <summary>
-    /// Keeps a strong reference to the latest virtual <see cref="IProjectRootElement"/> created for each entry point in a <see cref="IProjectCollection"/>,
-    /// preventing it from being garbage collected when MSBuild's <c>ProjectRootElementCache</c> demotes it to a weak reference.
-    /// Without this, nested <c>&lt;MSBuild&gt;</c> tasks that re-evaluate virtual projects with different properties
-    /// would fail to find the <see cref="IProjectRootElement"/> in the cache and try to load it from disk,
-    /// resulting in MSB4025 because the virtual project file does not exist on disk.
-    /// See <see href="https://github.com/dotnet/sdk/issues/52714"/>.
-    /// </summary>
-    private static readonly ConditionalWeakTable<IProjectCollection, Dictionary<string, IProjectRootElement>> s_projectRootsByProjectCollection = new();
 
     private readonly IBuildService _buildService;
 
@@ -336,7 +325,6 @@ sealed class VirtualProjectBuilder
 
             CheckDirectives(project, evaluatedDirectives, reportError);
             CreateReferencedVirtualProjects(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles);
-            StoreProjectRootElement(projectCollection, EntryPointFileFullPath, projectRootElement);
 
             return;
         }
@@ -415,7 +403,6 @@ sealed class VirtualProjectBuilder
 
         CheckDirectives(project, evaluatedDirectives, reportError);
         CreateReferencedVirtualProjects(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles);
-        StoreProjectRootElement(projectCollection, EntryPointFileFullPath, projectRootElement);
 
         bool TryGetNextFileToProcess()
         {
@@ -509,25 +496,10 @@ sealed class VirtualProjectBuilder
             {
                 using var reader = new StringReader(projectFileText);
                 using var xmlReader = XmlReader.Create(reader);
-                var projectRoot = _buildService.CreateProjectRootElement(xmlReader, projectCollection);
+                var projectRoot = _buildService.CreateProjectRootElement(xmlReader, projectCollection, EntryPointFileFullPath);
                 projectRoot.FullPath = GetVirtualProjectPath(EntryPointFileFullPath);
                 return projectRoot;
             }
-        }
-    }
-
-    private static void StoreProjectRootElement(
-        IProjectCollection projectCollection,
-        string entryPointFileFullPath,
-        IProjectRootElement projectRootElement)
-    {
-        var projectRoots = s_projectRootsByProjectCollection.GetValue(
-            projectCollection,
-            static _ => new Dictionary<string, IProjectRootElement>(StringComparer.OrdinalIgnoreCase));
-
-        lock (projectRoots)
-        {
-            projectRoots[entryPointFileFullPath] = projectRootElement;
         }
     }
 
