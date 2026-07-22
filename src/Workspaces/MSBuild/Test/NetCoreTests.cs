@@ -660,6 +660,15 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         // Assert that the document content matches.
         var text = await document.GetTextAsync();
         Assert.Equal(sourceText, text.ToString());
+
+        // Assert that there are references.
+        Assert.Empty(project.AllProjectReferences);
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
@@ -690,6 +699,15 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         // Assert that the document content matches.
         var text = await document.GetTextAsync();
         Assert.Equal(sourceText, text.ToString());
+
+        // Assert that there are references.
+        Assert.Empty(project.AllProjectReferences);
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
@@ -738,6 +756,15 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
                 Assert.Contains("Program.cs(1):", d.Message);
                 Assert.Contains("unknown-directive", d.Message);
             });
+
+        // Assert that there are references.
+        Assert.Empty(project.AllProjectReferences);
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
@@ -770,6 +797,15 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         var projRef = Assert.Single(project.ProjectReferences);
         Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
+
+        // Assert that there are references.
+        Assert.Same(projRef, Assert.Single(project.AllProjectReferences));
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
@@ -803,6 +839,15 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         var projRef = Assert.Single(project.ProjectReferences);
         Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
+
+        // Assert that there are references.
+        Assert.Same(projRef, Assert.Single(project.AllProjectReferences));
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
@@ -828,6 +873,15 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         var projRef = Assert.Single(project.ProjectReferences);
         Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single().Id);
+
+        // Assert that there are references.
+        Assert.Same(projRef, Assert.Single(project.AllProjectReferences));
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

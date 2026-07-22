@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -89,12 +90,13 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var dotnetCliHelper = testLspServer.GetRequiredLspService<DotnetCliHelper>();
         using (var process = dotnetCliHelper.Run(["build", sourceFile.Path], workingDirectory: tempDir.Path, shouldLocalizeOutput: true))
         {
-            process.OutputDataReceived += (sender, args) => TestOutputHelper.WriteLine($"> {args.Data}");
-            process.ErrorDataReceived += (sender, args) => TestOutputHelper.WriteLine($"! {args.Data}");
+            var sb = new StringBuilder();
+            process.OutputDataReceived += (sender, args) => sb.AppendLine($"> {args.Data}");
+            process.ErrorDataReceived += (sender, args) => sb.AppendLine($"! {args.Data}");
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
             await process.WaitForExitAsync();
-            Assert.Equal(0, process.ExitCode);
+            Assert.True(process.ExitCode == 0, sb.ToString());
         }
 
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);

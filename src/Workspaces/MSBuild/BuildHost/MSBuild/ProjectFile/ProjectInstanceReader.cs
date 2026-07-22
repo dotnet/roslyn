@@ -22,12 +22,15 @@ internal readonly struct ProjectInstanceReader
 
     public string Language { get; }
 
+    /// <param name="physicalFilePath">
+    /// The original C# file path if this corresponds to a virtual project.
+    /// </param>
     public ProjectInstanceReader(
         string language,
         ProjectCommandLineProvider? commandLineReader,
         MSB.Execution.ProjectInstance projectInstance,
         MSB.Evaluation.Project? project,
-        string? projectFullPath = null)
+        string? physicalFilePath = null)
     {
         Language = language;
         _commandLineProvider = commandLineReader;
@@ -37,7 +40,7 @@ internal readonly struct ProjectInstanceReader
         // The ProjectInstance we get from BuildResult.ProjectStateAfterBuild returns a limited ProjectInstance that
         // only has MSBuild properties and items available; in this case the ProjectInstance.FullPath will be an empty string.
         // Since in the out-of-process build case we will still have the project evaluation, we can get the full path from there.
-        _projectFullPath = projectFullPath ?? Project?.FullPath ?? _projectInstance.FullPath;
+        _projectFullPath = physicalFilePath ?? Project?.FullPath ?? _projectInstance.FullPath;
         Contract.ThrowIfTrue(string.IsNullOrEmpty(_projectFullPath));
         _projectDirectory = PathUtilities.EnsureTrailingSeparator(PathUtilities.GetDirectoryName(_projectFullPath));
     }

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.FileBasedPrograms;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
-internal static class VirtualProjectHelpers
+internal static class IFileBasedProgramServiceExtensions
 {
     internal static string GetDiscoveryCacheDirectory(this IFileBasedProgramService fileBasedProgramService, string workspaceFolder)
         => fileBasedProgramService.GetArtifactsPath(workspaceFolder, "runfile-discovery");

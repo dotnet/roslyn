@@ -321,7 +321,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             // For telemetry purposes, we will consider this file a file-based app, if we see that build artifacts exist for it in the default location.
             // This implies that the user used a command like `dotnet run app.cs` with it recently.
             var isFileBasedProgram = PathUtilities.IsAbsolute(documentPath)
-                && Directory.Exists(_workspaceFactory.HostWorkspace.Services.GetService<IFileBasedProgramService>()?.GetArtifactsPath(documentPath));
+                && _workspaceFactory.HostWorkspace.Services.GetService<IFileBasedProgramService>() is { } fileBasedProgramService
+                && Directory.Exists(fileBasedProgramService.GetArtifactsPath(documentPath));
 
             return new RemoteProjectLoadResult
             {
@@ -342,8 +343,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // Fall through to ordinary file-based app handling.
         Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
 
-        var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(documentPath);
-        var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, documentPath, cancellationToken);
+        const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, documentPath, dotnetPath: null, cancellationToken);
         var loadedFile = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
             buildHost,
             _workspaceFactory.HostWorkspace.Services.GetRequiredService<IFileBasedProgramService>(),
@@ -361,8 +362,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             HasFileBasedAppDirectives = true,
             IsMiscellaneousFile = false,
             HasAllInformation = true,
-            PreferredBuildHostKind = preferredBuildHostKind,
-            ActualBuildHostKind = actualBuildHostKind,
+            PreferredBuildHostKind = buildHostKind,
+            ActualBuildHostKind = buildHostKind,
         };
     }
 }

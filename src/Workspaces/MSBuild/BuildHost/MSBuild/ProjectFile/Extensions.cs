@@ -68,6 +68,7 @@ internal static class Extensions
     /// </summary>
     private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
     {
+        // If this comes from `#:ref` directive, we need to use the path of the `.cs` file, not the virtual `.csproj` file behind it.
         var path = reference.HasMetadata(MetadataNames.FileBasedProgramsFromRefDirective)
             ? reference.GetMetadataValue(MetadataNames.FileBasedProgramsFromRefDirective)
             : reference.EvaluatedInclude;

@@ -13,8 +13,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.DotNet.FileBasedPrograms;
-using IProjectInstance = Microsoft.DotNet.FileBasedPrograms.IProjectInstance;
-using IProjectItemInstance = Microsoft.DotNet.FileBasedPrograms.IProjectItemInstance;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -44,13 +42,16 @@ internal static class FileBasedProgramsProjectLoader
     }
 }
 
-file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost, CancellationToken cancellationToken) : Microsoft.DotNet.FileBasedPrograms.IBuildService, IAsyncDisposable
+/// <summary>
+/// An implementation of <see cref="IBuildService"/> which uses MSBuild over RPC (via <see cref="RemoteBuildHost"/>).
+/// </summary>
+file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost, CancellationToken cancellationToken) : IBuildService, IAsyncDisposable
 {
     public static IProjectCollection ProjectCollection => Microsoft.CodeAnalysis.MSBuild.ProjectCollection.Instance;
 
     public ConcurrentBag<IAsyncDisposable> Disposables { get; } = [];
 
-    public IProjectInstance CreateProjectInstanceFromProjectRootElement(
+    public Microsoft.DotNet.FileBasedPrograms.IProjectInstance CreateProjectInstanceFromProjectRootElement(
         IProjectRootElement projectRoot,
         IProjectCollection projectCollection,
         IDictionary<string, string> globalProperties)
@@ -73,6 +74,9 @@ file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost, Cance
     }
 }
 
+/// <summary>
+/// Our adapter for MSBuild's <c>ProjectCollection</c> in <see cref="FileBasedProgramsBuildService"/> abstraction.
+/// </summary>
 file sealed class ProjectCollection : IProjectCollection
 {
     public static ProjectCollection Instance { get; } = new();
@@ -82,7 +86,10 @@ file sealed class ProjectCollection : IProjectCollection
     public IDictionary<string, string> GlobalProperties => ImmutableDictionary<string, string>.Empty;
 }
 
-file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, CancellationToken cancellationToken) : IProjectInstance
+/// <summary>
+/// Our adapter for MSBuild's <c>ProjectInstance</c> in <see cref="FileBasedProgramsBuildService"/> abstraction.
+/// </summary>
+file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, CancellationToken cancellationToken) : Microsoft.DotNet.FileBasedPrograms.IProjectInstance
 {
     public static ProjectInstance FromProjectRootElement(
         FileBasedProgramsBuildService service,
@@ -98,17 +105,23 @@ file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, C
         return new ProjectInstance(remoteProjectInstance, cancellationToken);
     }
 
-    public IEnumerable<IProjectItemInstance> GetItems(string itemType) => remoteProjectInstance.GetItemsAsync(itemType, cancellationToken).GetAwaiter().GetResult().Select(i => new ProjectItemInstance(itemType, i, cancellationToken));
+    public IEnumerable<Microsoft.DotNet.FileBasedPrograms.IProjectItemInstance> GetItems(string itemType) => remoteProjectInstance.GetItemsAsync(itemType, cancellationToken).GetAwaiter().GetResult().Select(i => new ProjectItemInstance(itemType, i, cancellationToken));
     public string GetPropertyValue(string propertyName) => remoteProjectInstance.GetPropertyValueAsync(propertyName, cancellationToken).GetAwaiter().GetResult();
     public string ExpandString(string value) => remoteProjectInstance.ExpandStringAsync(value, cancellationToken).GetAwaiter().GetResult();
 }
 
-file sealed class ProjectItemInstance(string itemType, RemoteProjectItemInstance remoteProjectItemInstance, CancellationToken cancellationToken) : IProjectItemInstance
+/// <summary>
+/// Our adapter for MSBuild's <c>ProjectItemInstance</c> in <see cref="FileBasedProgramsBuildService"/> abstraction.
+/// </summary>
+file sealed class ProjectItemInstance(string itemType, RemoteProjectItemInstance remoteProjectItemInstance, CancellationToken cancellationToken) : Microsoft.DotNet.FileBasedPrograms.IProjectItemInstance
 {
     public string ItemType => itemType;
     public string GetMetadataValue(string name) => remoteProjectItemInstance.GetMetadataValueAsync(name, cancellationToken).GetAwaiter().GetResult();
 }
 
+/// <summary>
+/// Our adapter for MSBuild's <c>ProjectRootElement</c> in <see cref="FileBasedProgramsBuildService"/> abstraction.
+/// </summary>
 file sealed class ProjectRootElement(string content) : IProjectRootElement
 {
     public string? FullPath { get; set; }

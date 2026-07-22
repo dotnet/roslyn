@@ -7,7 +7,7 @@ using System;
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 /// <summary>
-/// RPC methods.
+/// RPC methods for MSBuild's <c>ProjectInstance</c> object.
 /// </summary>
 internal interface IProjectInstance : IDisposable
 {

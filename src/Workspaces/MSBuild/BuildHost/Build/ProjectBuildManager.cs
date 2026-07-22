@@ -202,25 +202,20 @@ internal sealed class ProjectBuildManager : IDisposable
         }
     }
 
-    private (MSB.Execution.ProjectInstance? projectInstance, DiagnosticLog log) LoadProjectInstanceCore(string path, TextReader content, IDictionary<string, string> globalProperties, DiagnosticLog log)
-    {
-        using var xmlReader = XmlReader.Create(content, s_xmlReaderSettings);
-        var projectRootElement = MSB.Construction.ProjectRootElement.Create(xmlReader, _projectCollection);
-        projectRootElement.FullPath = path;
-        var projectInstance = MSB.Execution.ProjectInstance.FromProjectRootElement(projectRootElement, new MSB.Definition.ProjectOptions
-        {
-            ProjectCollection = _projectCollection,
-            GlobalProperties = globalProperties,
-        });
-        return (projectInstance, log);
-    }
-
     public (MSB.Execution.ProjectInstance? projectInstance, DiagnosticLog log) LoadProjectInstance(string path, TextReader content, IDictionary<string, string> globalProperties)
     {
         var log = new DiagnosticLog();
         try
         {
-            return LoadProjectInstanceCore(path, content, globalProperties, log);
+            using var xmlReader = XmlReader.Create(content, s_xmlReaderSettings);
+            var projectRootElement = MSB.Construction.ProjectRootElement.Create(xmlReader, _projectCollection);
+            projectRootElement.FullPath = path;
+            var projectInstance = MSB.Execution.ProjectInstance.FromProjectRootElement(projectRootElement, new MSB.Definition.ProjectOptions
+            {
+                ProjectCollection = _projectCollection,
+                GlobalProperties = globalProperties,
+            });
+            return (projectInstance, log);
         }
         catch (Exception e)
         {

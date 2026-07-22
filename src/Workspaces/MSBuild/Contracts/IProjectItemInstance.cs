@@ -5,7 +5,7 @@
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 /// <summary>
-/// RPC methods.
+/// RPC methods for MSBuild's <c>ProjectItemInstance</c> object.
 /// </summary>
 internal interface IProjectItemInstance
 {
