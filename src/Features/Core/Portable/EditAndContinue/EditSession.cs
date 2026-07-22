@@ -1597,7 +1597,11 @@ internal sealed class EditSession
 
         bool LogException(Exception e)
         {
-            Log.Write($"Exception while emitting update: {e}", LogMessageSeverity.Error);
+            if (e is not OperationCanceledException)
+            {
+                Log.Write($"Exception while emitting update: {e}", LogMessageSeverity.Error);
+            }
+
             return true;
         }
     }
