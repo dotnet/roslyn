@@ -224,10 +224,8 @@ extends:
             azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
             feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json
 
-        # Authenticate to DevDiv dotnet-core-internal-tooling feed via WIF service connection
+        # Authenticate to DevDiv feeds
         - task: NuGetAuthenticate@1
-          inputs:
-            azureDevOpsServiceConnection: dnceng-devdiv-dotnet-core-internal-tooling-feed-rw-wif
 
         # Needed because the build fails the NuGet Tools restore without it
         - task: UseDotNet@2
