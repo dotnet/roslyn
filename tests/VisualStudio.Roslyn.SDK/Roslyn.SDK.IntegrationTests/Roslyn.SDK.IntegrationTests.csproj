@@ -28,12 +28,6 @@
     <ProjectReference Include="..\..\..\src\VisualStudio.Roslyn.SDK\Roslyn.SDK\Roslyn.SDK.csproj" CopyVsix="true" />
   </ItemGroup>
 
-  <ItemGroup>
-    <AssemblyAttribute Include="Xunit.Harness.RequireExtensionAttribute">
-      <_Parameter1>Roslyn.SDK.vsix</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
-
   <Target Name="PrepareVsixProjectReferences"
           BeforeTargets="ResolveProjectReferences"
           DependsOnTargets="PrepareProjectReferences">
