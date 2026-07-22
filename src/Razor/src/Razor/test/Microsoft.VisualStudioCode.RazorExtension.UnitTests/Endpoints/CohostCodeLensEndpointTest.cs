@@ -36,6 +36,28 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
     }
 
     [ConditionalFact(typeof(IsEnglishLocal))]
+    public Task OneProperty_WithMarkup()
+    {
+        return VerifyCodeLensAsync("""
+            @code {
+                public RenderFragment [|{|Position0:|}Property|] => @<div></div>;
+            }
+            """,
+            expectedTitles: ["0 references"]);
+    }
+
+    [ConditionalFact(typeof(IsEnglishLocal))]
+    public Task OneMethod_WithMarkup()
+    {
+        return VerifyCodeLensAsync("""
+            @code {
+                public RenderFragment [|{|Position0:|}Method|]() => @<div></div>;
+            }
+            """,
+            expectedTitles: ["0 references"]);
+    }
+
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task OneMethod_Legacy()
     {
         return VerifyCodeLensAsync("""
