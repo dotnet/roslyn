@@ -11677,10 +11677,10 @@ class Program
 
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular14);
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 [
                     ..expected,
@@ -11956,10 +11956,10 @@ class Program
 
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular14);
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 [
                     ..expected,
@@ -12263,10 +12263,10 @@ class Program
 
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             CompileAndVerify(comp).VerifyDiagnostics(expected);
 
-            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular14);
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 [
                     ..expected,

@@ -22429,7 +22429,7 @@ public static class E
     }
 }
 ";
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         comp.VerifyDiagnostics(
             // 0.cs(3,5): error CS8518: An expression of type 'object' can never match the provided pattern.
             // _ = o is { Length: -1 }; // 1
@@ -22500,7 +22500,7 @@ public static class E
     }
 }
 ";
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         comp.VerifyDiagnostics(
             // 0.cs(3,5): error CS8518: An expression of type 'int?' can never match the provided pattern.
             // _ = i is { Length: -1 }; // 1
