@@ -54,9 +54,9 @@ file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost, Cance
     public Microsoft.DotNet.FileBasedPrograms.IProjectInstance CreateProjectInstanceFromProjectRootElement(
         IProjectRootElement projectRoot,
         IProjectCollection projectCollection,
-        IDictionary<string, string> globalProperties)
+        IDictionary<string, string>? additionalGlobalProperties)
     {
-        return ProjectInstance.FromProjectRootElement(this, buildHost, (ProjectRootElement)projectRoot, (ProjectCollection)projectCollection, globalProperties, cancellationToken);
+        return ProjectInstance.FromProjectRootElement(this, buildHost, (ProjectRootElement)projectRoot, (ProjectCollection)projectCollection, additionalGlobalProperties, cancellationToken);
     }
 
     public IProjectRootElement CreateProjectRootElement(XmlReader xmlReader, IProjectCollection projectCollection, string entryPointFilePath)
@@ -82,8 +82,6 @@ file sealed class ProjectCollection : IProjectCollection
     public static ProjectCollection Instance { get; } = new();
 
     private ProjectCollection() { }
-
-    public IDictionary<string, string> GlobalProperties => ImmutableDictionary<string, string>.Empty;
 }
 
 /// <summary>
@@ -96,11 +94,11 @@ file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, C
         RemoteBuildHost buildHost,
         ProjectRootElement projectRoot,
         ProjectCollection projectCollection,
-        IDictionary<string, string> globalProperties,
+        IDictionary<string, string>? additionalGlobalProperties,
         CancellationToken cancellationToken)
     {
         Debug.Assert(projectCollection == ProjectCollection.Instance);
-        var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), globalProperties, cancellationToken).GetAwaiter().GetResult();
+        var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), additionalGlobalProperties, cancellationToken).GetAwaiter().GetResult();
         service.Disposables.Add(remoteProjectInstance);
         return new ProjectInstance(remoteProjectInstance, cancellationToken);
     }

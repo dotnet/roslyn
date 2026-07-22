@@ -149,10 +149,10 @@ internal abstract class AbstractBuildHost :
         return LoadProjectCore(projectFilePath, physicalFilePath, projectContent, languageName, globalProperties);
     }
 
-    public int LoadProjectInstance(string projectFilePath, string projectContent, IDictionary<string, string> globalProperties)
+    public int LoadProjectInstance(string projectFilePath, string projectContent, IDictionary<string, string>? additionalGlobalProperties)
     {
         EnsureMSBuildLoaded(projectFilePath);
-        return LoadProjectInstanceCore(projectFilePath, projectContent, globalProperties);
+        return LoadProjectInstanceCore(projectFilePath, projectContent, additionalGlobalProperties);
     }
 
     // When using the Mono runtime, the MSBuild types used in this method must be available
@@ -195,14 +195,14 @@ internal abstract class AbstractBuildHost :
     // to the JIT during compilation of the method, so they have to be loaded by the caller;
     // therefore this method must not be inlined.
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private int LoadProjectInstanceCore(string projectFilePath, string projectContent, IDictionary<string, string> globalProperties)
+    private int LoadProjectInstanceCore(string projectFilePath, string projectContent, IDictionary<string, string>? additionalGlobalProperties)
     {
         CreateBuildManager();
 
         Logger.LogInformation($"Loading an in-memory project instance with the path {projectFilePath}");
 
         using var reader = new StringReader(projectContent);
-        var (projectInstance, log) = _buildManager.LoadProjectInstance(projectFilePath, reader, globalProperties);
+        var (projectInstance, log) = _buildManager.LoadProjectInstance(projectFilePath, reader, additionalGlobalProperties);
         return _server.AddTarget(new ProjectInstance(_server, projectInstance, log));
     }
 

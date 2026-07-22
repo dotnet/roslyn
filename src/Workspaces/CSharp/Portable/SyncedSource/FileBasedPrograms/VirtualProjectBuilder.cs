@@ -298,7 +298,7 @@ sealed class VirtualProjectBuilder
         out IProjectRootElement projectRootElement,
         out ImmutableArray<CSharpDirective> evaluatedDirectives,
         ImmutableArray<CSharpDirective> directives = default,
-        Action<IDictionary<string, string>>? addGlobalProperties = null,
+        IDictionary<string, string>? additionalGlobalProperties = null,
         bool validateAllDirectives = false,
         HashSet<string>? processedRefFiles = null)
     {
@@ -321,7 +321,7 @@ sealed class VirtualProjectBuilder
             (project, projectRootElement) = CreateProjectInstanceNoEvaluation(
                 projectCollection,
                 evaluatedDirectives,
-                addGlobalProperties);
+                additionalGlobalProperties);
 
             CheckDirectives(project, evaluatedDirectives, reportError);
             CreateReferencedVirtualProjects(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles);
@@ -343,7 +343,7 @@ sealed class VirtualProjectBuilder
             (project, projectRootElement) = CreateProjectInstanceNoEvaluation(
                 projectCollection,
                 [.. evaluatedDirectiveBuilder, .. directivesForEvaluation],
-                addGlobalProperties);
+                additionalGlobalProperties);
 
             // Evaluate directives, e.g., determine item types for #:include/#:exclude from their file extension.
             var fileEvaluatedDirectives = EvaluateDirectives(project, directivesForEvaluation, reportError);
@@ -381,7 +381,7 @@ sealed class VirtualProjectBuilder
                 (project, projectRootElement) = CreateProjectInstanceNoEvaluation(
                     projectCollection,
                     evaluatedDirectiveBuilder.ToImmutable(),
-                    addGlobalProperties);
+                    additionalGlobalProperties);
             }
 
             var compileItems = project.GetItems("Compile");
@@ -456,7 +456,7 @@ sealed class VirtualProjectBuilder
         (IProjectInstance, IProjectRootElement) CreateProjectInstanceNoEvaluation(
             IProjectCollection projectCollection,
             ImmutableArray<CSharpDirective> directives,
-            Action<IDictionary<string, string>>? addGlobalProperties = null)
+            IDictionary<string, string>? additionalGlobalProperties = null)
         {
             var projectFileWriter = new StringWriter();
 
@@ -479,14 +479,7 @@ sealed class VirtualProjectBuilder
 
             var projectRoot = CreateProjectRootElement(projectFileText, projectCollection);
 
-            var globalProperties = projectCollection.GlobalProperties;
-            if (addGlobalProperties is not null)
-            {
-                globalProperties = new Dictionary<string, string>(projectCollection.GlobalProperties, StringComparer.OrdinalIgnoreCase);
-                addGlobalProperties(globalProperties);
-            }
-
-            var project = _buildService.CreateProjectInstanceFromProjectRootElement(projectRoot, projectCollection, globalProperties);
+            var project = _buildService.CreateProjectInstanceFromProjectRootElement(projectRoot, projectCollection, additionalGlobalProperties);
 
             lastProject = (projectFileText, project, projectRoot);
 

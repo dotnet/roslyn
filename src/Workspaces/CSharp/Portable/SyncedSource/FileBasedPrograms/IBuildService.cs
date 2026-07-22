@@ -24,10 +24,14 @@ interface IBuildService
     /// <summary>
     /// An abstraction over MSBuild's <c>ProjectInstance.FromProjectRootElement</c> method.
     /// </summary>
+    /// <param name="additionalGlobalProperties">
+    /// NOTE: Unlike the MSBuild API, these properties are automatically merged with <paramref name="projectCollection"/>'s global properties
+    /// (the latter come first, so the former can overwrite them).
+    /// </param>
     IProjectInstance CreateProjectInstanceFromProjectRootElement(
         IProjectRootElement projectRoot,
         IProjectCollection projectCollection,
-        IDictionary<string, string> globalProperties);
+        IDictionary<string, string>? additionalGlobalProperties);
 
     /// <summary>
     /// An abstraction over MSBuild's <c>ProjectRootElement.Create</c> method.
@@ -46,7 +50,6 @@ internal
 #endif
 interface IProjectCollection
 {
-    IDictionary<string, string> GlobalProperties { get; }
 }
 
 /// <summary>

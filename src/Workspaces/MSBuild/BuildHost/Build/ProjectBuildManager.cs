@@ -202,7 +202,7 @@ internal sealed class ProjectBuildManager : IDisposable
         }
     }
 
-    public (MSB.Execution.ProjectInstance? projectInstance, DiagnosticLog log) LoadProjectInstance(string path, TextReader content, IDictionary<string, string> globalProperties)
+    public (MSB.Execution.ProjectInstance? projectInstance, DiagnosticLog log) LoadProjectInstance(string path, TextReader content, IDictionary<string, string>? additionalGlobalProperties)
     {
         var log = new DiagnosticLog();
         try
@@ -210,11 +210,23 @@ internal sealed class ProjectBuildManager : IDisposable
             using var xmlReader = XmlReader.Create(content, s_xmlReaderSettings);
             var projectRootElement = MSB.Construction.ProjectRootElement.Create(xmlReader, _projectCollection);
             projectRootElement.FullPath = path;
+
+            var mergedGlobalProperties = new Dictionary<string, string>(_projectCollection.GlobalProperties, StringComparer.OrdinalIgnoreCase);
+
+            if (additionalGlobalProperties != null)
+            {
+                foreach (var pair in additionalGlobalProperties)
+                {
+                    mergedGlobalProperties[pair.Key] = pair.Value;
+                }
+            }
+
             var projectInstance = MSB.Execution.ProjectInstance.FromProjectRootElement(projectRootElement, new MSB.Definition.ProjectOptions
             {
                 ProjectCollection = _projectCollection,
-                GlobalProperties = globalProperties,
+                GlobalProperties = mergedGlobalProperties,
             });
+
             return (projectInstance, log);
         }
         catch (Exception e)

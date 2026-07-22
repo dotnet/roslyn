@@ -53,9 +53,8 @@ internal interface IBuildHost
     /// </summary>
     /// <param name="projectFilePath">A path to a project file which may or may not exist on disk.</param>
     /// <param name="projectContent">The project file XML content.</param>
-    /// <param name="globalProperties">The global properties to use when loading the project instance.</param>
     /// <returns>A handle to the loaded project instance (<see cref="IProjectInstance"/>).</returns>
-    int LoadProjectInstance(string projectFilePath, string projectContent, IDictionary<string, string> globalProperties);
+    int LoadProjectInstance(string projectFilePath, string projectContent, IDictionary<string, string>? additionalGlobalProperties);
 
     Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken);
     Task ShutdownAsync();

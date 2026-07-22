@@ -669,6 +669,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         // Assert that there are no compilation errors.
         var compilation = await project.GetCompilationAsync();
         compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+        Assert.Contains("DEBUG", compilation.SyntaxTrees.First().Options.PreprocessorSymbolNames);
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
@@ -883,6 +884,47 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         // See https://github.com/dotnet/roslyn/issues/84587.
         using var cts = new CancellationTokenSource(100);
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => project.GetCompilationAsync(cts.Token));
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_RefDirective_GlobalProperty()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref $(MyReferencedFileName).cs
+                Console.WriteLine($"Hello {Util.M()}!");
+                """),
+            ("Util.cs", """
+                #:property OutputType=Library
+                public static class Util
+                {
+                    public static string M() => "Util";
+                }
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace(("MyReferencedFileName", "Util"));
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        var projRef = Assert.Single(project.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
+
+        // Assert that there are references.
+        Assert.Same(projRef, Assert.Single(project.AllProjectReferences));
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
