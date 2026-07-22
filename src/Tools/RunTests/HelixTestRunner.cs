@@ -332,7 +332,8 @@ internal sealed partial class HelixTestRunner
             options.HelixQueueName,
             options.ArtifactsDirectory,
             payloadsDir,
-            timeout);
+            timeout,
+            options.ProcDumpFilePath);
 
         var helixFilePath = Path.Combine(options.ArtifactsDirectory, "helix.proj");
         File.WriteAllText(helixFilePath, helixProjectFileContent);
@@ -412,6 +413,15 @@ internal sealed partial class HelixTestRunner
     }
 
     /// <summary>
+    /// The name of the Helix correlation payload directory that ProcDump is placed into (relative to
+    /// %HELIX_CORRELATION_PAYLOAD%), when <see cref="Options.ProcDumpFilePath"/> is set. Used so that
+    /// VSTest's Blame data collector (which can otherwise fail to find procdump.exe on Windows and
+    /// silently skip crash dump collection) can be pointed at it via the PROCDUMP_PATH environment
+    /// variable. See https://github.com/microsoft/vstest/blob/main/docs/extensions/blame-datacollector.md.
+    /// </summary>
+    private const string ProcDumpCorrelationPayloadDestination = "ProcDump";
+
+    /// <summary>
     /// Build up the contents of the helix project file. All paths should be relative to <paramref name="artifactsDir"/>.
     /// </summary>
     private static string GetHelixProjectFileContent(
@@ -422,7 +432,8 @@ internal sealed partial class HelixTestRunner
         string helixQueueName,
         string artifactsDir,
         string payloadsDir,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        string? procDumpDirectory)
     {
         // Setup the environment variables that are required for the helix project.
         //
@@ -465,9 +476,22 @@ internal sealed partial class HelixTestRunner
                 <HelixCorrelationPayload Include="{duplicateDir}" />
             """);
 
+        // VSTest's Blame data collector (used to capture dumps of crashed/hung test hosts) needs procdump on
+        // Windows. It isn't guaranteed to be present on every Helix queue image, so ship it as a correlation
+        // payload and point VSTest at it via PROCDUMP_PATH (set in the generated command file below).
+        var includeProcDump = testOS == TestOS.Windows && !string.IsNullOrEmpty(procDumpDirectory) && Directory.Exists(procDumpDirectory);
+        if (includeProcDump)
+        {
+            builder.AppendLine($"""
+                    <HelixCorrelationPayload Include="{procDumpDirectory}">
+                      <Destination>{ProcDumpCorrelationPayloadDestination}</Destination>
+                    </HelixCorrelationPayload>
+                """);
+        }
+
         foreach (var helixWorkItem in helixWorkItems)
         {
-            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS, timeout);
+            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS, timeout, includeProcDump);
         }
 
         builder.AppendLine("""
@@ -494,7 +518,8 @@ internal sealed partial class HelixTestRunner
             string artifactsDir,
             string payloadsDir,
             TestOS testOS,
-            TimeSpan timeout)
+            TimeSpan timeout,
+            bool includeProcDump)
         {
             var isUnix = testOS != TestOS.Windows;
 
@@ -530,7 +555,7 @@ internal sealed partial class HelixTestRunner
                 path: Path.Combine(workItemPayloadDir, "global.json"),
                 pathToTarget: Path.Combine(artifactsDir, "..", "global.json"));
 
-            var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS);
+            var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS, includeProcDump);
             File.WriteAllText(Path.Combine(workItemPayloadDir, commandFileName), commandContent);
 
             var (postCommandFileName, postCommandContent) = GetHelixPostCommandContent(testOS);
@@ -551,7 +576,8 @@ internal sealed partial class HelixTestRunner
         static (string FileName, string Content) GetHelixCommandContent(
             IEnumerable<string> assemblyRelativeFilePaths,
             string vstestRspFileName,
-            TestOS testOS)
+            TestOS testOS,
+            bool includeProcDump)
         {
             var isUnix = testOS != TestOS.Windows;
             var isMac = testOS == TestOS.Mac;
@@ -595,6 +621,17 @@ internal sealed partial class HelixTestRunner
                 ? @"$HELIX_DUMP_FOLDER/crash.%d.%e.dmp"
                 : @"%HELIX_DUMP_FOLDER%\crash.%d.%e.dmp";
             command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgMiniDumpName=\"{helixDumpFolder}\"");
+
+            // VSTest's Blame data collector (/Blame:CollectDump, set below) needs procdump.exe to be on PATH or
+            // pointed to via PROCDUMP_PATH in order to actually capture a dump when the test host crashes; some
+            // Helix queue images don't have it preinstalled. When available we ship it as a correlation payload
+            // (see GetHelixProjectFileContent) and point VSTest at it here.
+            // https://github.com/microsoft/vstest/blob/main/docs/extensions/blame-datacollector.md
+            if (includeProcDump)
+            {
+                Contract.ThrowIfTrue(isUnix);
+                command.AppendLine($@"set PROCDUMP_PATH=%HELIX_CORRELATION_PAYLOAD%\{ProcDumpCorrelationPayloadDestination}");
+            }
 
             command.AppendLine(isUnix ? "env | sort" : "set");
 
