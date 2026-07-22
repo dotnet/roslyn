@@ -1843,7 +1843,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC36754: 'Program.C2()' cannot be converted to 'IEnumerable(Of Program.C1)' because 'Program.C2' is not derived from 'Program.C1', as required for the 'Out' generic parameter 'T' in 'Interface IEnumerable(Of Out T)'.
+BC36754: 'Program.C2()' cannot be converted to 'IEnumerable(Of Program.C1)' because 'Program.C2' is not derived from 'Program.C1', as required for the 'Out' generic parameter 'T' in 'Interface IEnumerable(Of T)'.
         Dim c1List As IEnumerable(Of C1) = c2List'BIND:"Dim c1List As IEnumerable(Of C1) = c2List"
                                            ~~~~~~
 ]]>.Value
@@ -2997,7 +2997,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC36755: 'Action(Of Object)' cannot be converted to 'Action(Of Integer)' because 'Integer' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of In T)(obj As T)'.
+BC36755: 'Action(Of Object)' cannot be converted to 'Action(Of Integer)' because 'Integer' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of T)(obj As T)'.
         Dim integerAction As Action(Of Integer) = objectAction'BIND:"Dim integerAction As Action(Of Integer) = objectAction"
                                                   ~~~~~~~~~~~~
 ]]>.Value
