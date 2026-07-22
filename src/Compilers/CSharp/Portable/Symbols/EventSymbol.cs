@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var containingType = base.ContainingType;
-                Debug.Assert(containingType is not null);
+                Debug.Assert(containingType is not null, $"'{this}': Unexpected null ContainingType");
                 return containingType;
             }
         }

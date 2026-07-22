@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var containingType = base.ContainingType;
-                Debug.Assert(containingType is not null || this is CrefTypeParameterSymbol);
+                Debug.Assert(containingType is not null || this is CrefTypeParameterSymbol, $"'{this}': Unexpected null ContainingType");
                 return containingType!;
             }
         }

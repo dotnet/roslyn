@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
         internal static INamedTypeSymbolInternal GetRequiredContainingType(this ISymbolInternal symbol)
         {
             var containingType = symbol.ContainingType;
-            Debug.Assert(containingType is not null);
+            Debug.Assert(containingType is not null, $"'{symbol}': Unexpected null ContainingType");
             return containingType;
         }
 

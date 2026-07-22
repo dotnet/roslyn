@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var containingType = base.ContainingType;
-                Debug.Assert(containingType is not null || this is SignatureOnlyPropertySymbol);
+                Debug.Assert(containingType is not null || this is SignatureOnlyPropertySymbol, $"'{this}': Unexpected null ContainingType");
                 return containingType!;
             }
         }
