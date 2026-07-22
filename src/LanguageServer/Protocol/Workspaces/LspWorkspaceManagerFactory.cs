@@ -19,9 +19,10 @@ internal class LspWorkspaceManagerFactory() : ILspServiceFactory
     {
         var logger = lspServices.GetRequiredService<ILspLogger>();
         var miscFilesWorkspace = lspServices.GetService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var onDemandProjectLoader = lspServices.GetService<IOnDemandProjectLoader>();
         var lspWorkspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
         var languageInfoProvider = lspServices.GetRequiredService<ILanguageInfoProvider>();
         var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
-        return new LspWorkspaceManager(logger, miscFilesWorkspace, lspWorkspaceRegistrationService, languageInfoProvider, telemetryLogger);
+        return new LspWorkspaceManager(logger, miscFilesWorkspace, onDemandProjectLoader, lspWorkspaceRegistrationService, languageInfoProvider, telemetryLogger);
     }
 }
