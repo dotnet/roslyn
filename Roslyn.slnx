@@ -312,6 +312,7 @@
     <Project Path="src/Tools/BuildValidator/BuildValidator.csproj" />
     <Project Path="src/Tools/GenerateRulesMissingDocumentation/GenerateRulesMissingDocumentation.csproj" />
     <Project Path="src/Tools/IdeBenchmarks/IdeBenchmarks.csproj" />
+    <Project Path="src/Tools/Benchmarks/Benchmarks.csproj" />
     <Project Path="src/Tools/IdeCoreBenchmarks/IdeCoreBenchmarks.csproj" />
     <Project Path="src/Tools/PrepareTests/PrepareTests.csproj" />
     <Project Path="src/Tools/Replay/Replay.csproj" />

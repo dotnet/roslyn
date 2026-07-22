@@ -6441,7 +6441,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</value>
   </data>
   <data name="ERR_DesignatorBeneathPatternCombinator" xml:space="preserve">
-    <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
+    <value>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</value>
   </data>
   <data name="ERR_DesignatorBeforePropertyPattern" xml:space="preserve">
     <value>A variable designator must come after a property pattern.</value>
@@ -8306,11 +8306,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</value>
     <comment>'unsafe' and 'new()' should not be localized. {2} is the generic method or type.</comment>
   </data>
-  <data name="WRN_UnsafeMeaningless" xml:space="preserve">
-    <value>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</value>
-    <comment>'unsafe' is a keyword, should not be localized.</comment>
-  </data>
-  <data name="WRN_UnsafeMeaningless_Title" xml:space="preserve">
+  <data name="ERR_UnsafeMeaningless" xml:space="preserve">
     <value>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</value>
     <comment>'unsafe' is a keyword, should not be localized.</comment>
   </data>
