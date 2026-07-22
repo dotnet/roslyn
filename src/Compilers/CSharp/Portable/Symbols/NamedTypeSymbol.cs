@@ -2233,6 +2233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             UnionData? lazyUnionData = lazyUncommonProperties._lazyUnionData;
             if (lazyUnionData is null)
             {
+                Debug.Assert(IsUnionType);
                 Interlocked.CompareExchange(ref lazyUncommonProperties._lazyUnionData, IsDefinition ? new UnionDataForDefinition() : new UnionData(), null);
                 Debug.Assert(lazyUncommonProperties._lazyUnionData is not null);
                 return lazyUncommonProperties._lazyUnionData;
@@ -2254,10 +2255,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (lazyValueProperty != (object)ErrorTypeSymbol.UnknownResultType)
             {
-                addUseSiteInfoForCachedResult(ref useSiteInfo);
+                var valueProperty = (PropertySymbol?)lazyValueProperty;
+                addUseSiteInfoForCachedResult(valueProperty, ref useSiteInfo);
                 return reportDiagnosticAndReturnProperty(
                     this.OriginalDefinition,
-                    (PropertySymbol?)lazyValueProperty,
+                    valueProperty,
                     ref useSiteInfo);
             }
 
@@ -2333,23 +2335,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 };
             }
 
-            void addUseSiteInfoForCachedResult(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            void addUseSiteInfoForCachedResult(PropertySymbol? valueProperty, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 if (useSiteInfo.AccumulatesDependencies || useSiteInfo.AccumulatesDiagnostics)
                 {
                     if (GetMemberProviderInterfaceForDefinition() is { } memberProviderInterface)
                     {
-                        if (lazyValueProperty?.OriginalDefinition.ContainingType != (object)memberProviderInterface)
+                        if (valueProperty?.ContainingType.OriginalDefinition != (object)memberProviderInterface)
                         {
                             memberProviderInterface.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
                         }
                     }
                     else
                     {
+                        NamedTypeSymbol? containingTypeOriginalDefinition = valueProperty?.ContainingType.OriginalDefinition;
+
                         for (NamedTypeSymbol declaringType = this.OriginalDefinition;
                              declaringType is not null;
                              declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
                         {
+                            if (containingTypeOriginalDefinition is not null &&
+                                containingTypeOriginalDefinition == (object)declaringType.OriginalDefinition)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -2358,9 +2367,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private delegate bool IsSuitableUnionProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? member);
 
-        private PropertySymbol? TryGetOwnOrInheritedUnionProperty(string memberName, IsSuitableUnionProperty isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> membersProviderForDefinitionBasessUseSiteInfo)
+        private PropertySymbol? TryGetOwnOrInheritedUnionProperty(string memberName, IsSuitableUnionProperty isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> membersProviderForDefinitionBasesUseSiteInfo)
         {
-            // Any change in collection of 'membersProviderForDefinitionBasessUseSiteInfo'
+            // Any change in collection of 'membersProviderForDefinitionBasesUseSiteInfo'
             // should be reflected in implementation of 'UnionValueProperty.addUseSiteInfoForCachedResult'.
             Debug.Assert(this.IsUnionType);
             Debug.Assert(this.IsDefinition);
@@ -2377,7 +2386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 PropertySymbol? match = null;
 
-                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref membersProviderForDefinitionBasessUseSiteInfo))
+                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref membersProviderForDefinitionBasesUseSiteInfo))
                 {
                     if (getMemberDeclaredInType(baseInterfaceForDefinition, memberName, isSuitableUnionMember, out member))
                     {
@@ -2403,7 +2412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 for (NamedTypeSymbol declaringType = this;
                      declaringType is not null;
-                     declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref membersProviderForDefinitionBasessUseSiteInfo))
+                     declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref membersProviderForDefinitionBasesUseSiteInfo))
                 {
                     if (getMemberDeclaredInType(declaringType, memberName, isSuitableUnionMember, out member))
                     {
