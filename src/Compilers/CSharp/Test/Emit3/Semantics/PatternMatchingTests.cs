@@ -6802,7 +6802,7 @@ public class C
         [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
         public void CasePatternMatchingDoesNotCopyEscapeScopes_03()
         {
-            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns, text: @"
 using System;
 public class C
 {
@@ -8874,7 +8874,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (13,55): hidden CS9335: The pattern is redundant.
                     //         Console.WriteLine("1." + (chars is "" and not " "));
@@ -10489,7 +10489,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (15,55): hidden CS9335: The pattern is redundant.
                     //         Console.WriteLine("1." + (chars is "" and not " "));

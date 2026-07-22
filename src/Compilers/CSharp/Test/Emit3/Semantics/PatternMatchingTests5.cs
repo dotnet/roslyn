@@ -1912,7 +1912,7 @@ class C
     public bool True { get => throw null!; }
 }
 ";
-            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Prop: { True: false } }' is not covered.
                 // _ = new C() switch // 1
@@ -4821,7 +4821,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]

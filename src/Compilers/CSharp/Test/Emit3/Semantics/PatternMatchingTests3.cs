@@ -7409,7 +7409,7 @@ class C
     bool b => true;
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             compilation.VerifyDiagnostics(
                 // (4,47): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //     int M((object?, bool, bool, bool) t) => t switch

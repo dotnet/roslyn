@@ -2675,7 +2675,7 @@ class X
     } 
 }
 ";
-        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
         compilation.VerifyEmitDiagnostics(
             // 0.cs(7,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
             //         _ = a is [] and [1];          // 1
@@ -2963,7 +2963,7 @@ class X
     } 
 }
 ";
-        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
         compilation.VerifyEmitDiagnostics(
             // 0.cs(7,25): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
             //         const int bad = a;
@@ -3738,7 +3738,7 @@ class X
         _ = integers is [..{}];
     }
 }";
-        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
         compilation.VerifyDiagnostics(
             // 0.cs(8,26): hidden CS9335: The pattern is redundant.
             //         _ = integers is [{}];
@@ -5097,7 +5097,7 @@ _ = o switch // didn't test for [null] // 15
     [..var x, not null] => 0,
 };
 ";
-        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         compilation.VerifyEmitDiagnostics(
             // 0.cs(9,10): hidden CS9335: The pattern is redundant.
             //     [not null] => 0, // 1
@@ -5209,7 +5209,7 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range }, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
         compilation.VerifyEmitDiagnostics(
             // 0.cs(17,21): hidden CS9335: The pattern is redundant.
             //             [.. not null] => 0, // 1
@@ -5348,7 +5348,7 @@ class C
 }
 ";
         // Note: we don't try to explain nested slice patterns right now so all these just produce a fallback example
-        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range }, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
         compilation.VerifyEmitDiagnostics(
             // 0.cs(17,18): hidden CS9335: The pattern is redundant.
             //             [not null] => 0, // 1
@@ -5932,7 +5932,7 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        var comp = CreateCompilation(new[] { src, TestSources.Index });
+        var comp = CreateCompilation(new[] { src, TestSources.Index }, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         comp.VerifyEmitDiagnostics(
             // 0.cs(2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 2 }' is not covered.
             // _ = new C() switch // 1
@@ -5948,7 +5948,7 @@ class C
             Diagnostic(ErrorCode.HDN_RedundantPattern, "> 2").WithLocation(29, 14)
             );
 
-        comp = CreateCompilation(src);
+        comp = CreateCompilation(src, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         comp.VerifyEmitDiagnostics(
             // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 2 }' is not covered.
             // _ = new C() switch // 1
@@ -6025,7 +6025,7 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        var comp = CreateCompilation(new[] { src, TestSources.Index });
+        var comp = CreateCompilation(new[] { src, TestSources.Index }, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         comp.VerifyEmitDiagnostics(
             // 0.cs(2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 0 }' is not covered.
             // _ = new C() switch // 1
@@ -6077,7 +6077,7 @@ class C
     public int Count => throw null!;
     public string? this[int i] => throw null!;
 }";
-        var comp = CreateCompilation(new[] { src, TestSources.Index });
+        var comp = CreateCompilation(new[] { src, TestSources.Index }, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         comp.VerifyEmitDiagnostics(
             // 0.cs(3,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
             // _ = new C() switch // 1
@@ -6233,7 +6233,7 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-        var comp = CreateCompilation(new[] { src, TestSources.Index });
+        var comp = CreateCompilation(new[] { src, TestSources.Index }, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         comp.VerifyEmitDiagnostics(
             // 0.cs(5,6): hidden CS9335: The pattern is redundant.
             //     [< 0] => 2,
@@ -6260,7 +6260,7 @@ class C
     public int this[int i] => throw null;
     public C Slice(int i, int j) => throw null;
 }";
-        var comp = CreateCompilation(new[] { src, TestSources.Index, TestSources.Range });
+        var comp = CreateCompilation(new[] { src, TestSources.Index, TestSources.Range }, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         comp.VerifyEmitDiagnostics(
             // 0.cs(5,9): hidden CS9335: The pattern is redundant.
             //     [..[< 0]] => 2,
@@ -7031,7 +7031,7 @@ class C
 1
 2
 ";
-        var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics(
             // (11,20): hidden CS9335: The pattern is redundant.
             //             case [[>=0]]:
@@ -7211,7 +7211,7 @@ class Derived : Base, I2
 {
 }
 ";
-        var compilation = CreateCompilation(new[] { source, TestSources.Index, _iTupleSource }, options: TestOptions.DebugExe);
+        var compilation = CreateCompilation(new[] { source, TestSources.Index, _iTupleSource }, options: TestOptions.DebugExeWithHiddenRedundantPatterns);
         compilation.VerifyDiagnostics(
                 // 0.cs(11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [Derived s]: // 1
@@ -7517,7 +7517,7 @@ class C
         };
     }
 }";
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
         comp.VerifyEmitDiagnostics(
             // (10,27): hidden CS9335: The pattern is redundant.
             //             [.., >=0] or [<0] or { Length: 0 or >1 } => 0
@@ -7580,7 +7580,7 @@ class C
         };
     }
 }";
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
         comp.VerifyEmitDiagnostics(
             // (20,23): hidden CS9335: The pattern is redundant.
             //             { Length: >=1 } => 3,
@@ -7658,7 +7658,7 @@ _ = a switch // 8
     { Length: 1 } => 0,
 };
 ";
-        var comp = CreateCompilation(new[] { src, TestSources.Index });
+        var comp = CreateCompilation(new[] { src, TestSources.Index }, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         comp.VerifyDiagnostics(
             // 0.cs(3,5): error CS8518: An expression of type 'int[]' can never match the provided pattern.
             // _ = a is { Length: -1 }; // 1
@@ -7703,7 +7703,7 @@ _ = a switch // 2
     { Length: -1 } => 0, // 3
 };
 ";
-        var comp = CreateCompilation(new[] { src, TestSources.Index });
+        var comp = CreateCompilation(new[] { src, TestSources.Index }, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         comp.VerifyDiagnostics(
             // 0.cs(3,18): hidden CS9335: The pattern is redundant.
             // _ = a is null or { Length: -1 }; // 1
@@ -9738,7 +9738,7 @@ class C : System.Collections.ICollection
             }
             """ + TestSources.GetSubArray;
 
-        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
         compilation.VerifyDiagnostics(
             // (5,69): hidden CS9335: The pattern is redundant.
             //     static bool Test(int[] input) => input is [_, .. { Length: 1 or 2147483647 }];

@@ -4544,7 +4544,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns).VerifyDiagnostics(
                 // (13,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(13, 15),
@@ -4875,7 +4875,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns).VerifyDiagnostics(
                 // (13,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(13, 15),

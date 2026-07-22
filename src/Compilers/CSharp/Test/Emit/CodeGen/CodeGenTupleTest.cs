@@ -28529,7 +28529,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
             comp.VerifyDiagnostics(
                 // (10,40): hidden CS9335: The pattern is redundant.
                 //             (message: null, isColInit: false) => 43,

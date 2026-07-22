@@ -4890,7 +4890,7 @@ _ = o switch
 class A { }
 class B { }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,19): warning CS9336: The pattern is redundant.
                 // _ = o is not A or B; // 1
@@ -4997,7 +4997,7 @@ _ = o switch
 class A { }
 class Derived : A { }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (3,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 // _ = o is not Derived or A; // 1
@@ -5125,7 +5125,7 @@ _ = o switch
     _ => 44
 };
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (3,22): warning CS9336: The pattern is redundant.
                 // _ = o is not null or string; // 1
@@ -5167,7 +5167,7 @@ _ = s switch
     _ => 44
 };
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (3,22): warning CS9336: The pattern is redundant.
                 // _ = s is not null or { Length: >0 }; // 1, 2
@@ -5519,7 +5519,7 @@ switch (s)
     default: break;
 };
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,21): warning CS9336: The pattern is redundant.
                 // _ = s is (not 42 or 43, not 44 or 45); // 1, 2
@@ -5640,7 +5640,7 @@ _ = i switch
     _ => 44
 };
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (3,22): warning CS9336: The pattern is redundant.
                 // _ = i is not null or 0; // 1
@@ -5679,7 +5679,7 @@ _ = b switch
     _ => 44
 };
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (3,22): warning CS9336: The pattern is redundant.
                 // _ = b is not null or false; // 1
@@ -5747,7 +5747,7 @@ _ = i switch
     _ => 44
 };
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (3,22): warning CS9336: The pattern is redundant.
                 // _ = i is not null or []; // 1
@@ -5965,7 +5965,7 @@ _ = o switch
     _ => 43
 };
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,20): hidden CS9335: The pattern is redundant.
                 // _ = o is object or string; // 1
@@ -6272,7 +6272,7 @@ public class S
     public void Deconstruct(out int x, out int y) => throw null;
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,28): hidden CS9335: The pattern is redundant.
                 // _ = o is not S (42 and not 43, 44 and not 45); // 1, 2
@@ -6302,7 +6302,7 @@ public class S
     public int Prop2 { get; set; }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,36): hidden CS9335: The pattern is redundant.
                 // _ = o is not S { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
@@ -6332,7 +6332,7 @@ public class S
     public int Prop2 { get; set; }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,34): hidden CS9335: The pattern is redundant.
                 // _ = s is not { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
@@ -6398,7 +6398,7 @@ public class S
     public int Prop2 { get; set; }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,21): warning CS9336: The pattern is redundant.
                 // _ = s is not { } or null; // 1
@@ -6471,7 +6471,7 @@ public class C
     public int P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyDiagnostics(
                 // (3,18): hidden CS9335: The pattern is redundant.
                 // _ = s is { Prop: { } and { P: 42 or 43 } }; // 1
@@ -6518,7 +6518,7 @@ struct S
     public C P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (18,27): hidden CS9335: The pattern is redundant.
                 // _ = s is S { P: C { Prop: int and var s12 } }; // 1
@@ -6558,7 +6558,7 @@ struct S
     public C P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (3,26): hidden CS9335: The pattern is redundant.
                 // _ = ss is S { P: { } and { } }; // 1
@@ -6613,7 +6613,7 @@ struct S
     public C P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (3,25): hidden CS9335: The pattern is redundant.
                 // _ = sss is S { P: C and { } }; // 1
@@ -6669,7 +6669,7 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (2,17): hidden CS9335: The pattern is redundant.
                 // _ = s is S { P: { } }; // 1
@@ -6727,7 +6727,7 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (3,18): hidden CS9335: The pattern is redundant.
                 // _ = ss is S { P: { } and { } }; // 1, 2
@@ -6824,7 +6824,7 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (3,19): hidden CS9335: The pattern is redundant.
                 // _ = sss is S { P: S2 and { } }; // 1, 2
@@ -6980,7 +6980,7 @@ struct S
     public C P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (2,24): hidden CS9335: The pattern is redundant.
                 // _ = s is S { P: [] and [..] }; // 1
@@ -7028,7 +7028,7 @@ struct S
     public C P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (2,25): hidden CS9335: The pattern is redundant.
                 // _ = s is S { P: [_] and [..] }; // 1
@@ -7070,7 +7070,7 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (2,17): hidden CS9335: The pattern is redundant.
                 // _ = s is S { P: [..] }; // 1
@@ -7106,7 +7106,7 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (2,24): hidden CS9335: The pattern is redundant.
                 // _ = s is S { P: [] and [..] }; // 1
@@ -7154,7 +7154,7 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (2,25): hidden CS9335: The pattern is redundant.
                 // _ = s is S { P: [_] and [..] }; // 1
@@ -7204,7 +7204,7 @@ _ = s is (_, _, _) and (_, _); // 4
 _ = s is (_, _, _) and (_, var s7); // 5
 _ = s is { Length: 3 } and (_, _); // 6
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (10,21): hidden CS9335: The pattern is redundant.
                 // _ = s is (_, _) and (_, _); // 1
@@ -7290,7 +7290,7 @@ public struct S
     public void Deconstruct(out object x, out object y) => throw null;
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (4,28): hidden CS9335: The pattern is redundant.
                 // _ = o is not S (42 and not 43, int x2); // 1
@@ -7333,7 +7333,7 @@ public class C
     public void Deconstruct(out int x, out int y) => throw null;
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,17): hidden CS9335: The pattern is redundant.
                 // _ = o is C and (int, int); // 1, 2
@@ -7377,7 +7377,7 @@ _ = o is [not 42 or 43, not 44 or 45]; // 3, 4
 _ = o is not [_, _];
 _ = o is not [.._]; // 5
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,26): hidden CS9335: The pattern is redundant.
                 // _ = o is not [42 and not 43, 44 and not 45]; // 1, 2
@@ -7406,7 +7406,7 @@ public class C
     public object Prop { get; set; }
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,34): hidden CS9335: The pattern is redundant.
                 // _ = o is not [{ Prop: 42 and not 43 }, { Prop: 44 and not 45 }]; // 1, 2
@@ -7505,7 +7505,7 @@ switch (o)
         break;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,22): hidden CS9335: The pattern is redundant.
                 // _ = o is [42 and not 43, 44 and not 45]; // 1, 2
@@ -7547,7 +7547,7 @@ switch (t)
         break;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,22): hidden CS9335: The pattern is redundant.
                 // _ = t is (42 and not 43, 44 and not 45); // 1, 2
@@ -7595,7 +7595,7 @@ class C
     public void Deconstruct(out int x, out int y) => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (3,22): hidden CS9335: The pattern is redundant.
                 // _ = c is (42 and not 43, 44 and not 45); // 1, 2
@@ -7644,7 +7644,7 @@ class C
     public int Prop2 { get; set; }
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (3,30): hidden CS9335: The pattern is redundant.
                 // _ = c is { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
@@ -7686,7 +7686,7 @@ public struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,26): hidden CS9335: The pattern is redundant.
                 // _ = o is not [42 and not 43, 44 and not 45, ..]; // 1, 2
@@ -7742,7 +7742,7 @@ public struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,26): hidden CS9335: The pattern is redundant.
                 // _ = o is not [42 and not 43, .._]; // 1, 2
@@ -7812,7 +7812,7 @@ public struct S
     public S this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (3,29): hidden CS9335: The pattern is redundant.
                 // _ = s is not [..[42 and not 43]]; // 1
@@ -7873,7 +7873,7 @@ public struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,26): hidden CS9335: The pattern is redundant.
                 // _ = o is not [42 and not 43, _]; // 1
@@ -7940,7 +7940,7 @@ public struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,26): hidden CS9335: The pattern is redundant.
                 // _ = o is not [42 and not 43, _, ..44 and not 45]; // 1, 2
@@ -7998,7 +7998,7 @@ struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,27): warning CS9336: The pattern is redundant.
                 // _ = o is C and [not 42 or 43, ..(not 44 or 45)]; // 1, 2
@@ -8056,7 +8056,7 @@ public struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0029: Cannot implicitly convert type 'int' to 'S'
                 // _ = o is not (42 and not 43 and var x1); // 1, 2
@@ -8155,7 +8155,7 @@ switch (i)
     default: break; // 11
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,20): hidden CS9335: The pattern is redundant.
                 // _ = i is 1 or 2 or 1; // 1
@@ -8611,7 +8611,7 @@ _ = i is (string or not 42) or 0;
 _ = i is 42 or (42 or not 0);
 _ = i is (not 42) or 43;
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,34): warning CS9336: The pattern is redundant.
                 // _ = i is not (42 or 43) or 43 or 0; // warn
@@ -8680,7 +8680,7 @@ class C
 }
 class Derived : C { }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (3,31): hidden CS9335: The pattern is redundant.
                 // _ = s is { Prop1: not 42 } or { Prop1: 43 }; // 1
@@ -8942,7 +8942,7 @@ public class C
     public string P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyDiagnostics(
                 // (2,15): hidden CS9335: The pattern is redundant.
                 // _ = s is { P: string or null }; // 1
@@ -8984,7 +8984,7 @@ public class C
     public object O;
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (3,12): hidden CS9335: The pattern is redundant.
                 // _ =  c is ({F: 1 and not 1} and {O: not A or B}) or {F: 2}; // 1
@@ -9099,7 +9099,7 @@ _ = o is Base x17 and Derived;
 class Base { }
 class Derived : Base { }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             comp.VerifyEmitDiagnostics(
                 // (2,17): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is string x1 or string; // 1, 2
@@ -9254,7 +9254,7 @@ class C
     public int Prop2 { get; set; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
             compilation.VerifyEmitDiagnostics(
                 // (3,30): hidden CS9335: The pattern is redundant.
                 // _ = o is C { Prop1: 0 } and (not null or (C and ({ Prop1: 0 } or { Prop2: 1 })));

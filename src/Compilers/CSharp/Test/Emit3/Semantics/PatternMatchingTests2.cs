@@ -150,7 +150,7 @@ class Program
         return true;
     }
 }";
-            var compilation = CreatePatternCompilation(source);
+            var compilation = CreatePatternCompilation(source, TestOptions.DebugExeWithHiddenRedundantPatterns);
             compilation.VerifyDiagnostics(
                 // 0.cs(9,22): error CS8518: An expression of type '(int x, int y)' can never match the provided pattern.
                 //         Check(false, p is (1, 4) { x: 3 });
@@ -197,7 +197,7 @@ class Program
         return true;
     }
 }";
-            var compilation = CreatePatternCompilation(source);
+            var compilation = CreatePatternCompilation(source, TestOptions.DebugExeWithHiddenRedundantPatterns);
             compilation.VerifyDiagnostics(
                 // 0.cs(9,38): hidden CS9335: The pattern is redundant.
                 //         Check(true, p is (3, 4) { x: 3 } q2 && Check(p, q2));
@@ -274,7 +274,7 @@ class Program
             void testErrorCase(string s1, string s2, string s3)
             {
                 var source = string.Format(sourceTemplate, s1, s2, s3);
-                var compilation = CreatePatternCompilation(source);
+                var compilation = CreatePatternCompilation(source, TestOptions.DebugExeWithHiddenRedundantPatterns);
                 compilation.VerifyDiagnostics(
                     // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                     //             case (_, _): // error - subsumed
@@ -284,7 +284,7 @@ class Program
             void testGoodCase(string s1, string s2, params DiagnosticDescription[] expected)
             {
                 var source = string.Format(sourceTemplate, s1, s2, string.Empty);
-                var compilation = CreatePatternCompilation(source);
+                var compilation = CreatePatternCompilation(source, TestOptions.DebugExeWithHiddenRedundantPatterns);
                 compilation.VerifyDiagnostics(expected);
             }
             var c1 = "case (true, _):";

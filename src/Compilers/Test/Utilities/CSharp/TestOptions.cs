@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpCompilationOptions DebugDll = CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, OptimizationLevel.Debug);
         public static readonly CSharpCompilationOptions DebugExe = CreateTestOptions(OutputKind.ConsoleApplication, OptimizationLevel.Debug);
 
+        public static readonly CSharpCompilationOptions DebugExeWithHiddenRedundantPatterns = DebugExe.WithSpecificDiagnosticOptions(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.HDN_RedundantPattern), ReportDiagnostic.Hidden);
+
         public static readonly CSharpCompilationOptions DebugDllThrowing = DebugDll.WithMetadataReferenceResolver(new ThrowingMetadataReferenceResolver());
         public static readonly CSharpCompilationOptions DebugExeThrowing = DebugExe.WithMetadataReferenceResolver(new ThrowingMetadataReferenceResolver());
 
