@@ -278,7 +278,7 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
             return "file";
         }
 
-        return scheme.ToLower();
+        return scheme.ToLowerInvariant();
     }
 
     /// <summary>

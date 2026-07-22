@@ -19,7 +19,7 @@ internal sealed record class DocumentUri(string UriString)
 {
     private Optional<ParsedUri?> _parsedUri;
 
-    [Obsolete("Use the constructor taking ParsedDocumentUri instead.")]
+    [Obsolete("Use the constructor taking ParsedUri instead.")]
     public DocumentUri(Uri parsedUri) : this(parsedUri.AbsoluteUri)
     {
     }

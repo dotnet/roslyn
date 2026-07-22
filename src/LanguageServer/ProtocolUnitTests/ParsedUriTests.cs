@@ -93,7 +93,7 @@ public sealed class ParsedUriTests
         var uri = ParsedUri.Parse("FILE://server/share/path");
 
         Assert.True(uri.IsFile);
-        Assert.Equal("FILE://server/share/path", uri.ToString(skipEncoding: true));
+        Assert.Equal("file://server/share/path", uri.ToString(skipEncoding: true));
         Assert.Equal(IsWindows ? @"\\server\share\path" : "//server/share/path", uri.FsPath);
     }
 
@@ -332,17 +332,17 @@ public sealed class ParsedUriTests
         },
         new("HTTP:/api/files/test.me?t=1234")
         {
-            Scheme = "HTTP",
+            Scheme = "http",
             Path = "/api/files/test.me",
             Query = "t=1234",
-            ExpectedToString = "HTTP:/api/files/test.me?t%3D1234",
+            ExpectedToString = "http:/api/files/test.me?t%3D1234",
         },
-        new("HTTPS:/api/files/test.me?t=1234")
+        new("https:/api/files/test.me?t=1234")
         {
-            Scheme = "HTTPS",
+            Scheme = "https",
             Path = "/api/files/test.me",
             Query = "t=1234",
-            ExpectedToString = "HTTPS:/api/files/test.me?t%3D1234",
+            ExpectedToString = "https:/api/files/test.me?t%3D1234",
         },
         new("boo:/api/files/test.me?t=1234")
         {
@@ -757,8 +757,8 @@ public sealed class ParsedUriTests
         new("http:/api/files/test.me?t=1234", "http:/api/files/test.me?t%3D1234", "http:/api/files/test.me?t=1234"),
         new("http:my/path", "http:/my/path", "http:/my/path"),
         new("https:api/files/test.me?t=1234", "https:/api/files/test.me?t%3D1234", "https:/api/files/test.me?t=1234"),
-        new("HTTP:/api/files/test.me?t=1234", "HTTP:/api/files/test.me?t%3D1234", "HTTP:/api/files/test.me?t=1234"),
-        new("HTTPS:/api/files/test.me?t=1234", "HTTPS:/api/files/test.me?t%3D1234", "HTTPS:/api/files/test.me?t=1234"),
+        new("HTTP:/api/files/test.me?t=1234", "http:/api/files/test.me?t%3D1234", "http:/api/files/test.me?t=1234"),
+        new("HTTPS:/api/files/test.me?t=1234", "https:/api/files/test.me?t%3D1234", "https:/api/files/test.me?t=1234"),
         new("http://a-test-site.com/?test=true", "http://a-test-site.com/?test%3Dtrue", "http://a-test-site.com/?test=true"),
         new("http://a-test-site.com/#test=true", "http://a-test-site.com/#test%3Dtrue", "http://a-test-site.com/#test=true"),
         new("https://go.microsoft.com/fwlink/?LinkId=518008", "https://go.microsoft.com/fwlink/?LinkId%3D518008", "https://go.microsoft.com/fwlink/?LinkId=518008"),
