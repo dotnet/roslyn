@@ -31,6 +31,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private UncommonProperties _lazyUncommonProperties;
 
+#nullable enable
+        private class UnionData
+        {
+            public ImmutableArray<MethodSymbol> _lazyFactoryMethods;
+            public ImmutableArray<TypeSymbol> _lazyCaseTypes;
+            public Symbol? _lazyValueProperty = ErrorTypeSymbol.UnknownResultType;
+            public StrongBox<NullableFlowState>? _lazyValueDeclaredNullableFlowState;
+            public Symbol? _lazyHasValueProperty = ErrorTypeSymbol.UnknownResultType;
+        }
+
+        private sealed class UnionDataForDefinition : UnionData
+        {
+            public NamedTypeSymbol? _lazyMemberProviderInterface = ErrorTypeSymbol.UnknownResultType;
+        }
+#nullable disable
+
         private sealed partial class UncommonProperties
         {
             /// <summary>
@@ -38,6 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// there are no required members. Otherwise, the required members.
             /// </summary>
             public ImmutableSegmentedDictionary<string, Symbol> _lazyRequiredMembers = default;
+
+#nullable enable
+            public UnionData? _lazyUnionData;
+#nullable disable
         }
 
         // Only the compiler can create NamedTypeSymbols.
@@ -815,6 +835,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private UncommonProperties GetUncommonProperties()
+        {
+            UncommonProperties? lazyUncommonProperties = _lazyUncommonProperties;
+            if (lazyUncommonProperties is null)
+            {
+                Interlocked.CompareExchange(ref _lazyUncommonProperties, new UncommonProperties(), null);
+                return _lazyUncommonProperties;
+            }
+
+            return lazyUncommonProperties;
+        }
+
         private void EnsureRequiredMembersCalculated()
         {
             if (_lazyUncommonProperties?._lazyRequiredMembers.IsDefault == false)
@@ -828,12 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? builder?.ToImmutable() ?? BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty
                 : RequiredMembersErrorSentinel;
 
-            if (_lazyUncommonProperties is null)
-            {
-                Interlocked.CompareExchange(ref _lazyUncommonProperties, new UncommonProperties(), null);
-            }
-
-            RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyUncommonProperties._lazyRequiredMembers, requiredMembers);
+            RoslynImmutableInterlocked.InterlockedInitialize(ref GetUncommonProperties()._lazyRequiredMembers, requiredMembers);
 
             bool tryCalculateRequiredMembers(out ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
             {
@@ -1900,127 +1927,198 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<TypeSymbol> UnionCaseTypes(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) // https://github.com/dotnet/roslyn/issues/82636: Cache result?
+        internal ImmutableArray<TypeSymbol> UnionCaseTypes(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (!IsUnionType)
             {
                 return [];
             }
 
+            UnionData lazyUnionData = GetUnionData();
+            ImmutableArray<TypeSymbol> lazyCaseTypes = lazyUnionData._lazyCaseTypes;
+
+            if (!lazyCaseTypes.IsDefault)
+            {
+                addUseSiteInfoForCachedResult(ref useSiteInfo);
+                return lazyCaseTypes;
+            }
+
+            // Any change in collection of 'useSiteInfo' below this point
+            // should be reflected in implementation of 'addUseSiteInfoForCachedResult'.
+
             var builder = ArrayBuilder<TypeSymbol>.GetInstance();
             var set = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
-            ForEachUnionFactoryMethod(addCaseType, (builder, set), ref useSiteInfo);
-            set.Free();
-            return builder.ToImmutableAndFree();
 
-            static bool addCaseType(MethodSymbol factory, (ArrayBuilder<TypeSymbol> builder, PooledHashSet<TypeSymbol> set) arg)
+            if (!this.IsDefinition)
             {
-                (ArrayBuilder<TypeSymbol> builder, HashSet<TypeSymbol> set) = arg;
-                var candidate = factory.Parameters[0].Type;
-                if (set.Add(candidate))
+                ImmutableArray<TypeSymbol> definitionCaseTypes = this.OriginalDefinition.UnionCaseTypes(ref useSiteInfo);
+                TypeMap typeSubstitution = this.TypeSubstitution;
+
+                foreach (var definitionCaseType in definitionCaseTypes)
                 {
-                    builder.Add(candidate);
-                }
-
-                return false;
-            }
-        }
-
-        /// <param name="action">If the action returns true, the iteration stops.</param>
-        /// <returns>MethodSymbol for factory method for which action returned true; otherwise, null.</returns>
-        internal MethodSymbol? ForEachUnionFactoryMethod<TArg>(Func<MethodSymbol, TArg, bool> action, TArg arg, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            Debug.Assert(IsUnionType);
-
-            NamedTypeSymbol? membersInterfaceForDefinition = GetMemberProviderInterfaceForDefinition();
-
-            if (membersInterfaceForDefinition is not null)
-            {
-                var definition = this.OriginalDefinition;
-                NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(this);
-
-                ArrayBuilder<MethodSymbol>? shadowingMethods = membersInterfaceForDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty ? null : ArrayBuilder<MethodSymbol>.GetInstance();
-
-                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
-                {
-                    if (member is MethodSymbol method && isSuitableUnionFactory(definition, method))
+                    TypeSymbol substitutedCaseType = typeSubstitution.SubstituteType(definitionCaseType).Type;
+                    if (set.Add(substitutedCaseType))
                     {
-                        method = method.AsMember(membersInterface);
-
-                        if (action(method, arg))
-                        {
-                            shadowingMethods?.Free();
-                            return method;
-                        }
-
-                        shadowingMethods?.Add(method);
+                        builder.Add(substitutedCaseType);
                     }
                 }
-
-                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
-                {
-                    Debug.Assert(shadowingMethods is not null);
-                    NamedTypeSymbol? constructedOrSubstitutedBaseInterface = null;
-                    bool canShadow = !baseInterfaceForDefinition.OriginalDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty;
-
-                    foreach (var member in baseInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
-                    {
-                        if (member is MethodSymbol method && isSuitableUnionFactory(definition, method))
-                        {
-                            if (!this.IsDefinition)
-                            {
-                                if (constructedOrSubstitutedBaseInterface is null)
-                                {
-                                    constructedOrSubstitutedBaseInterface = this.TypeSubstitution.SubstituteNamedType(baseInterfaceForDefinition);
-                                }
-
-                                method = method.OriginalDefinition.AsMember(constructedOrSubstitutedBaseInterface);
-                            }
-
-                            foreach (MethodSymbol shadowingMethod in shadowingMethods)
-                            {
-                                if (MemberSignatureComparer.CSharpOverrideComparer.Equals(shadowingMethod, method) &&
-                                    shadowingMethod.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(method.ContainingType, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
-                                {
-                                    // Shadowed
-                                    goto nextMember;
-                                }
-                            }
-
-                            if (action(method, arg))
-                            {
-                                shadowingMethods.Free();
-                                return method;
-                            }
-
-                            if (canShadow)
-                            {
-                                shadowingMethods.Add(method);
-                            }
-                        }
-
-nextMember:
-                        ;
-                    }
-                }
-
-                shadowingMethods?.Free();
             }
             else
             {
-                foreach (var ctor in this.InstanceConstructors)
+                foreach (var factory in this.UnionFactoryMethods(ref useSiteInfo))
                 {
-                    if (IsSuitableUnionConstructor(ctor))
+                    var candidate = factory.Parameters[0].Type;
+                    if (set.Add(candidate))
                     {
-                        if (action(ctor, arg))
+                        builder.Add(candidate);
+                    }
+                }
+            }
+
+            set.Free();
+
+            ImmutableInterlocked.InterlockedInitialize(ref lazyUnionData._lazyCaseTypes, builder.ToImmutableAndFree());
+            return lazyUnionData._lazyCaseTypes;
+
+            void addUseSiteInfoForCachedResult(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                AddUseSiteInfoForCachedUnionFactoryMethodsResult(ref useSiteInfo);
+            }
+        }
+
+        internal ImmutableArray<MethodSymbol> UnionFactoryMethods(ref CompoundUseSiteInfo<AssemblySymbol> membersInterfaceForDefinitionInterfacesUseSiteInfo)
+        {
+            Debug.Assert(IsUnionType);
+
+            UnionData lazyUnionData = GetUnionData();
+            ImmutableArray<MethodSymbol> lazyFactoryMethods = lazyUnionData._lazyFactoryMethods;
+
+            if (!lazyFactoryMethods.IsDefault)
+            {
+                AddUseSiteInfoForCachedUnionFactoryMethodsResult(ref membersInterfaceForDefinitionInterfacesUseSiteInfo);
+                return lazyFactoryMethods;
+            }
+
+            // Any change in collection of 'membersInterfaceForDefinitionInterfacesUseSiteInfo' below this point
+            // should be reflected in implementation of 'AddUseSiteInfoForCachedUnionFactoryMethodsResult'.
+            var result = ArrayBuilder<MethodSymbol>.GetInstance();
+
+            if (!this.IsDefinition)
+            {
+                ImmutableArray<MethodSymbol> definitionFactoryMethods = this.OriginalDefinition.UnionFactoryMethods(ref membersInterfaceForDefinitionInterfacesUseSiteInfo);
+
+                if (!definitionFactoryMethods.IsEmpty)
+                {
+                    if (definitionFactoryMethods[0].MethodKind != MethodKind.Constructor)
+                    {
+                        TypeMap typeSubstitution = this.TypeSubstitution;
+                        ArrayBuilder<MethodSymbol>? shadowingMethods = null;
+
+                        for (int i = 0; i < definitionFactoryMethods.Length; i++)
                         {
-                            return ctor;
+                            NamedTypeSymbol interfaceForDefinition = definitionFactoryMethods[i].ContainingType;
+                            Debug.Assert(interfaceForDefinition.IsInterface);
+                            NamedTypeSymbol? constructedOrSubstitutedInterface = typeSubstitution.SubstituteNamedType(interfaceForDefinition);
+                            bool canShadow = !interfaceForDefinition.OriginalDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty;
+
+                            // Process methods in groups of methods with the same containing type, so that we can deal with shadowing.
+                            for (int j = i; j < definitionFactoryMethods.Length; j++)
+                            {
+                                if (definitionFactoryMethods[j].ContainingType != (object)interfaceForDefinition)
+                                {
+                                    Debug.Assert(!interfaceForDefinition.Equals(definitionFactoryMethods[j].ContainingType, TypeCompareKind.AllIgnoreOptions));
+                                    break;
+                                }
+
+                                i = j;
+                                MethodSymbol factoryMethod = definitionFactoryMethods[i].OriginalDefinition.AsMember(constructedOrSubstitutedInterface);
+
+                                if (shadowingMethods is not null &&
+                                    isShadowed(factoryMethod, shadowingMethods, constructedOrSubstitutedInterface))
+                                {
+                                    // Shadowed
+                                    continue;
+                                }
+
+                                result.Add(factoryMethod);
+
+                                if (canShadow)
+                                {
+                                    shadowingMethods ??= ArrayBuilder<MethodSymbol>.GetInstance();
+                                    shadowingMethods.Add(factoryMethod);
+                                }
+                            }
+                        }
+
+                        shadowingMethods?.Free();
+                    }
+                    else
+                    {
+                        foreach (var definitionFactoryMethod in definitionFactoryMethods)
+                        {
+                            Debug.Assert(definitionFactoryMethod.IsDefinition);
+                            Debug.Assert(definitionFactoryMethod.MethodKind == MethodKind.Constructor);
+                            result.Add(definitionFactoryMethod.AsMember(this));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                NamedTypeSymbol? membersInterfaceForDefinition = GetMemberProviderInterfaceForDefinition();
+
+                if (membersInterfaceForDefinition is not null)
+                {
+                    ArrayBuilder<MethodSymbol>? shadowingMethods = membersInterfaceForDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty ? null : ArrayBuilder<MethodSymbol>.GetInstance();
+
+                    foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
+                    {
+                        if (member is MethodSymbol method && isSuitableUnionFactory(this, method))
+                        {
+                            result.Add(method);
+                            shadowingMethods?.Add(method);
+                        }
+                    }
+
+                    foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref membersInterfaceForDefinitionInterfacesUseSiteInfo))
+                    {
+                        Debug.Assert(shadowingMethods is not null);
+                        bool canShadow = !baseInterfaceForDefinition.OriginalDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty;
+
+                        foreach (var member in baseInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
+                        {
+                            if (member is MethodSymbol method && isSuitableUnionFactory(this, method) &&
+                                !isShadowed(method, shadowingMethods, baseInterfaceForDefinition))
+                            {
+                                Debug.Assert(result.Count == 0 ||
+                                             !method.ContainingType.Equals(result[result.Count - 1].ContainingType, TypeCompareKind.AllIgnoreOptions) ||
+                                             method.ContainingType == (object)result[result.Count - 1].ContainingType);
+                                result.Add(method);
+
+                                if (canShadow)
+                                {
+                                    shadowingMethods.Add(method);
+                                }
+                            }
+                        }
+                    }
+
+                    shadowingMethods?.Free();
+                }
+                else
+                {
+                    foreach (var ctor in this.InstanceConstructors)
+                    {
+                        if (IsSuitableUnionConstructor(ctor))
+                        {
+                            result.Add(ctor);
                         }
                     }
                 }
             }
 
-            return null;
+            ImmutableInterlocked.InterlockedInitialize(ref lazyUnionData._lazyFactoryMethods, result.ToImmutableAndFree());
+            return lazyUnionData._lazyFactoryMethods;
 
             static bool isSuitableUnionFactory(NamedTypeSymbol unionType, MethodSymbol factory)
             {
@@ -2041,31 +2139,106 @@ nextMember:
                 } &&
                 unionType.Equals(factory.ReturnType, TypeCompareKind.AllIgnoreOptions);
             }
+
+            static bool isShadowed(MethodSymbol method, ArrayBuilder<MethodSymbol> shadowingMethods, NamedTypeSymbol methodContainingType)
+            {
+                for (int i = 0; i < shadowingMethods.Count; i++)
+                {
+                    MethodSymbol shadowingMethod = shadowingMethods[i];
+                    if (shadowingMethod.ContainingType == (object)methodContainingType)
+                    {
+#if DEBUG
+                        for (i++; i < shadowingMethods.Count; i++)
+                        {
+                            Debug.Assert(shadowingMethods[i].ContainingType == (object)methodContainingType);
+                        }
+#endif
+                        break;
+                    }
+
+                    if (MemberSignatureComparer.CSharpOverrideComparer.Equals(shadowingMethod, method) &&
+                        shadowingMethod.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(methodContainingType, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                    {
+                        // Shadowed
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Add use site info that would be added during calculation of non-cached result of
+        /// <see cref="UnionFactoryMethods"/>.
+        /// </summary>
+        private void AddUseSiteInfoForCachedUnionFactoryMethodsResult(ref CompoundUseSiteInfo<AssemblySymbol> membersInterfaceForDefinitionInterfacesUseSiteInfo)
+        {
+            if (membersInterfaceForDefinitionInterfacesUseSiteInfo.AccumulatesDependencies || membersInterfaceForDefinitionInterfacesUseSiteInfo.AccumulatesDiagnostics)
+            {
+                GetMemberProviderInterfaceForDefinition()?.AllInterfacesWithDefinitionUseSiteDiagnostics(ref membersInterfaceForDefinitionInterfacesUseSiteInfo);
+            }
         }
 
         internal NamedTypeSymbol? GetMemberProviderInterfaceForDefinition()
         {
             Debug.Assert(IsUnionType);
 
-            foreach (var type in this.OriginalDefinition.GetTypeMembers(WellKnownMemberNames.UnionMembersInterfaceName))
+            if (!this.IsDefinition)
             {
-                if (type.Arity != 0)
-                {
-                    continue;
-                }
-
-                if (type.DeclaredAccessibility != Accessibility.Public ||
-                    !type.IsInterface ||
-                    !this.OriginalDefinition.AllInterfacesNoUseSiteDiagnostics.Contains(type, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
-                {
-                    return null;
-                }
-
-                Debug.Assert(type.IsDefinition);
-                return type;
+                return this.OriginalDefinition.GetMemberProviderInterfaceForDefinition();
             }
 
-            return null;
+            Debug.Assert(this.IsDefinition);
+
+            var lazyUnionData = (UnionDataForDefinition)GetUnionData();
+            NamedTypeSymbol? lazyMemberProviderInterface = lazyUnionData._lazyMemberProviderInterface;
+
+            if (lazyMemberProviderInterface != (object)ErrorTypeSymbol.UnknownResultType)
+            {
+                return lazyMemberProviderInterface;
+            }
+
+            Interlocked.CompareExchange(ref lazyUnionData._lazyMemberProviderInterface, calculateMemberProviderInterface(), ErrorTypeSymbol.UnknownResultType);
+            return lazyUnionData._lazyMemberProviderInterface;
+
+            NamedTypeSymbol? calculateMemberProviderInterface()
+            {
+                foreach (var type in this.GetTypeMembers(WellKnownMemberNames.UnionMembersInterfaceName))
+                {
+                    if (type.Arity != 0)
+                    {
+                        continue;
+                    }
+
+                    if (type.DeclaredAccessibility != Accessibility.Public ||
+                        !type.IsInterface ||
+                        !this.OriginalDefinition.AllInterfacesNoUseSiteDiagnostics.Contains(type, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                    {
+                        return null;
+                    }
+
+                    Debug.Assert(type.IsDefinition);
+                    return type;
+                }
+
+                return null;
+            }
+        }
+
+        private UnionData GetUnionData()
+        {
+            UncommonProperties lazyUncommonProperties = GetUncommonProperties();
+
+            UnionData? lazyUnionData = lazyUncommonProperties._lazyUnionData;
+            if (lazyUnionData is null)
+            {
+                Interlocked.CompareExchange(ref lazyUncommonProperties._lazyUnionData, IsDefinition ? new UnionDataForDefinition() : new UnionData(), null);
+                Debug.Assert(lazyUncommonProperties._lazyUnionData is not null);
+                return lazyUncommonProperties._lazyUnionData;
+            }
+
+            return lazyUnionData;
         }
 
         internal static bool IsSuitableUnionConstructor(MethodSymbol ctor)
@@ -2074,24 +2247,63 @@ nextMember:
             return ctor is { DeclaredAccessibility: Accessibility.Public, ParameterCount: 1, Parameters: [{ RefKind: RefKind.In or RefKind.None }] };
         }
 
-        internal static PropertySymbol? GetUnionTypeValueProperty(NamedTypeSymbol inputUnionType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal PropertySymbol? UnionValueProperty(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            (NamedTypeSymbol container, PropertySymbol? valueProperty) = TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.ValuePropertyName, isSuitableProperty, ref useSiteInfo);
-            return reportDiagnosticAndReturnProperty(
-                container,
-                valueProperty,
-                ref useSiteInfo);
+            UnionData lazyUnionData = GetUnionData();
+            Symbol? lazyValueProperty = lazyUnionData._lazyValueProperty;
 
-            static PropertySymbol? reportDiagnosticAndReturnProperty(NamedTypeSymbol memberProvider, PropertySymbol? valueProperty, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            if (lazyValueProperty != (object)ErrorTypeSymbol.UnknownResultType)
             {
-                if (valueProperty is not null)
+                addUseSiteInfoForCachedResult(ref useSiteInfo);
+                return reportDiagnosticAndReturnProperty(
+                    this.OriginalDefinition,
+                    (PropertySymbol?)lazyValueProperty,
+                    ref useSiteInfo);
+            }
+
+            PropertySymbol? result;
+
+            if (!this.IsDefinition)
+            {
+                result = this.OriginalDefinition.UnionValueProperty(ref useSiteInfo);
+                if (result is not null)
                 {
-                    Debug.Assert(valueProperty.Type.IsObjectType());
-                    useSiteInfo.Add(valueProperty.GetUseSiteInfo());
+                    NamedTypeSymbol containingType = result.ContainingType;
+                    result = result.OriginalDefinition.AsMember(
+                        containingType == (object)this.OriginalDefinition ? this : this.TypeSubstitution.SubstituteNamedType(containingType));
                 }
-                else
+            }
+            else
+            {
+                PropertySymbol? valueProperty = TryGetOwnOrInheritedUnionProperty(WellKnownMemberNames.ValuePropertyName, isSuitableProperty, ref useSiteInfo);
+                result = reportDiagnosticAndReturnProperty(
+                    this,
+                    valueProperty,
+                    ref useSiteInfo);
+            }
+
+            Interlocked.CompareExchange(ref lazyUnionData._lazyValueProperty, result, ErrorTypeSymbol.UnknownResultType);
+
+            return (PropertySymbol?)lazyUnionData._lazyValueProperty;
+
+            static PropertySymbol? reportDiagnosticAndReturnProperty(NamedTypeSymbol unionTypeDefinition, PropertySymbol? valueProperty, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(unionTypeDefinition.IsDefinition);
+
+                if (useSiteInfo.AccumulatesDependencies || useSiteInfo.AccumulatesDiagnostics)
                 {
-                    useSiteInfo.AddDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberProvider.OriginalDefinition, WellKnownMemberNames.ValuePropertyName));
+                    if (valueProperty is not null)
+                    {
+                        Debug.Assert(valueProperty.Type.IsObjectType());
+                        useSiteInfo.Add(valueProperty.OriginalDefinition.GetUseSiteInfo());
+                    }
+                    else
+                    {
+                        useSiteInfo.AddDiagnosticInfo(
+                            new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember,
+                            unionTypeDefinition.GetMemberProviderInterfaceForDefinition() ?? unionTypeDefinition,
+                            WellKnownMemberNames.ValuePropertyName));
+                    }
                 }
 
                 return valueProperty;
@@ -2120,29 +2332,52 @@ nextMember:
                     Type.SpecialType: SpecialType.System_Object
                 };
             }
+
+            void addUseSiteInfoForCachedResult(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                if (useSiteInfo.AccumulatesDependencies || useSiteInfo.AccumulatesDiagnostics)
+                {
+                    if (GetMemberProviderInterfaceForDefinition() is { } memberProviderInterface)
+                    {
+                        if (lazyValueProperty?.OriginalDefinition.ContainingType != (object)memberProviderInterface)
+                        {
+                            memberProviderInterface.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                        }
+                    }
+                    else
+                    {
+                        for (NamedTypeSymbol declaringType = this.OriginalDefinition;
+                             declaringType is not null;
+                             declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                        {
+                        }
+                    }
+                }
+            }
         }
 
         private delegate bool IsSuitableUnionProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? member);
 
-        private static (NamedTypeSymbol, PropertySymbol?) TryGetOwnOrInheritedUnionProperty(NamedTypeSymbol inputUnionType, string memberName, IsSuitableUnionProperty isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private PropertySymbol? TryGetOwnOrInheritedUnionProperty(string memberName, IsSuitableUnionProperty isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> membersProviderForDefinitionBasessUseSiteInfo)
         {
-            Debug.Assert(inputUnionType.IsUnionType);
+            // Any change in collection of 'membersProviderForDefinitionBasessUseSiteInfo'
+            // should be reflected in implementation of 'UnionValueProperty.addUseSiteInfoForCachedResult'.
+            Debug.Assert(this.IsUnionType);
+            Debug.Assert(this.IsDefinition);
 
-            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
+            NamedTypeSymbol? membersInterfaceForDefinition = this.GetMemberProviderInterfaceForDefinition();
             PropertySymbol? member;
 
             if (membersInterfaceForDefinition is not null)
             {
-                NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(inputUnionType);
-
                 if (getMemberDeclaredInType(membersInterfaceForDefinition, memberName, isSuitableUnionMember, out member))
                 {
-                    return (membersInterface, member.AsMember(membersInterface));
+                    return member;
                 }
 
                 PropertySymbol? match = null;
 
-                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref membersProviderForDefinitionBasessUseSiteInfo))
                 {
                     if (getMemberDeclaredInType(baseInterfaceForDefinition, memberName, isSuitableUnionMember, out member))
                     {
@@ -2153,7 +2388,7 @@ nextMember:
                         else if (!match.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(baseInterfaceForDefinition, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
                         {
                             // Ambiguity
-                            return (membersInterface, null);
+                            return null;
                         }
                         else
                         {
@@ -2162,47 +2397,21 @@ nextMember:
                     }
                 }
 
-                if (match is not null)
-                {
-                    if (!inputUnionType.IsDefinition)
-                    {
-                        match = match.OriginalDefinition.AsMember(inputUnionType.TypeSubstitution.SubstituteNamedType(match.ContainingType));
-                    }
-
-                    return (membersInterface, match);
-                }
-
-                return (membersInterface, null);
+                return match;
             }
             else
             {
-                for (NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
+                for (NamedTypeSymbol declaringType = this;
                      declaringType is not null;
-                     declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                     declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref membersProviderForDefinitionBasessUseSiteInfo))
                 {
                     if (getMemberDeclaredInType(declaringType, memberName, isSuitableUnionMember, out member))
                     {
-                        if (!inputUnionType.IsDefinition)
-                        {
-                            NamedTypeSymbol possiblyConstructedOrSubstitutedType;
-
-                            if (declaringType == (object)inputUnionType.OriginalDefinition)
-                            {
-                                possiblyConstructedOrSubstitutedType = inputUnionType;
-                            }
-                            else
-                            {
-                                possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
-                            }
-
-                            member = member.OriginalDefinition.AsMember(possiblyConstructedOrSubstitutedType);
-                        }
-
-                        return (inputUnionType, member);
+                        return member;
                     }
                 }
 
-                return (inputUnionType, null);
+                return null;
             }
 
             static bool getMemberDeclaredInType(NamedTypeSymbol declaringType, string memberName, IsSuitableUnionProperty isSuitableUnionMember, [NotNullWhen(true)] out PropertySymbol? member)
@@ -2220,11 +2429,38 @@ nextMember:
             }
         }
 
-        internal static PropertySymbol? GetUnionTypeHasValueProperty(NamedTypeSymbol inputUnionType)
+        internal PropertySymbol? UnionHasValueProperty()
         {
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            (_, PropertySymbol? hasValueProperty) = TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo);
-            return checkAndReturnProperty(hasValueProperty);
+            UnionData lazyUnionData = GetUnionData();
+            Symbol? lazyHasValueProperty = lazyUnionData._lazyHasValueProperty;
+
+            if (lazyHasValueProperty != (object)ErrorTypeSymbol.UnknownResultType)
+            {
+                return (PropertySymbol?)lazyHasValueProperty;
+            }
+
+            PropertySymbol? result;
+
+            if (!this.IsDefinition)
+            {
+                result = this.OriginalDefinition.UnionHasValueProperty();
+                if (result is not null)
+                {
+                    NamedTypeSymbol containingType = result.ContainingType;
+                    result = result.OriginalDefinition.AsMember(
+                        containingType == (object)this.OriginalDefinition ? this : this.TypeSubstitution.SubstituteNamedType(containingType));
+                }
+            }
+            else
+            {
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                PropertySymbol? hasValueProperty = TryGetOwnOrInheritedUnionProperty(WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo);
+                result = checkAndReturnProperty(hasValueProperty);
+            }
+
+            Interlocked.CompareExchange(ref lazyUnionData._lazyHasValueProperty, result, ErrorTypeSymbol.UnknownResultType);
+
+            return (PropertySymbol?)lazyUnionData._lazyHasValueProperty;
 
             static PropertySymbol? checkAndReturnProperty(PropertySymbol? hasValueProperty)
             {
@@ -2258,6 +2494,33 @@ nextMember:
                     ParameterCount: 0,
                     Type.SpecialType: SpecialType.System_Boolean
                 };
+            }
+        }
+
+        internal NullableFlowState UnionValueDeclaredNullableFlowState
+        {
+            get
+            {
+                UnionData lazyUnionData = GetUnionData();
+                StrongBox<NullableFlowState>? lazyNullableFlowState = lazyUnionData._lazyValueDeclaredNullableFlowState;
+
+                if (lazyNullableFlowState is not null)
+                {
+                    return lazyNullableFlowState.Value;
+                }
+
+                // For union types where none of the case types are nullable, the default state for Value is "not null" rather than "maybe null".
+                var result = NullableFlowState.NotNull;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+                foreach (var factory in this.UnionFactoryMethods(ref discardedUseSiteInfo))
+                {
+                    var parameter = factory.Parameters[0];
+                    result = result.Join(NullableWalker.GetParameterState(parameter.TypeWithAnnotations, parameter.FlowAnalysisAnnotations).State);
+                }
+
+                lazyUnionData._lazyValueDeclaredNullableFlowState = new StrongBox<NullableFlowState>(result);
+                return result;
             }
         }
 

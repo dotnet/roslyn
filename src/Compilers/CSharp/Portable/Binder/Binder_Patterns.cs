@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static PropertySymbol? GetUnionTypeValueProperty(NamedTypeSymbol inputUnionType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return NamedTypeSymbol.GetUnionTypeValueProperty(inputUnionType, ref useSiteInfo);
+            return inputUnionType.UnionValueProperty(ref useSiteInfo);
         }
 
         internal static PropertySymbol? GetUnionTypeValuePropertyNoUseSiteDiagnostics(NamedTypeSymbol inputUnionType)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static PropertySymbol? GetUnionTypeHasValueProperty(NamedTypeSymbol inputUnionType)
         {
-            return NamedTypeSymbol.GetUnionTypeHasValueProperty(inputUnionType);
+            return inputUnionType.UnionHasValueProperty();
         }
 
         internal static MethodSymbol? GetUnionTypeTryGetValueMethod(ConversionsBase conversions, NamedTypeSymbol inputUnionType, TypeSymbol type)

@@ -2109,7 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsUnionType)
             {
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null, ref discardedUseSiteInfo) is null)
+                if (UnionFactoryMethods(ref discardedUseSiteInfo).IsEmpty)
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
                 }

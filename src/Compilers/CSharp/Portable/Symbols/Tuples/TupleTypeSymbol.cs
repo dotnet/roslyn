@@ -540,17 +540,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                if (_lazyUncommonProperties is null)
+                UncommonProperties lazyUncommonProperties = GetUncommonProperties();
+                TupleExtraData? lazyTupleData = lazyUncommonProperties._lazyTupleData;
+
+                if (lazyTupleData is null)
                 {
-                    Interlocked.CompareExchange(ref _lazyUncommonProperties, new UncommonProperties(), null);
+                    Interlocked.CompareExchange(ref lazyUncommonProperties._lazyTupleData, new TupleExtraData(this), null);
+                    return lazyUncommonProperties._lazyTupleData;
                 }
 
-                if (_lazyUncommonProperties._lazyTupleData is null)
-                {
-                    Interlocked.CompareExchange(ref _lazyUncommonProperties._lazyTupleData, new TupleExtraData(this), null);
-                }
-
-                return _lazyUncommonProperties._lazyTupleData;
+                return lazyTupleData;
             }
         }
 
