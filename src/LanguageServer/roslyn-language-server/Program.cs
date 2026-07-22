@@ -15,7 +15,7 @@ internal static class Program
         // exit - we are not an editor's client, so skip normal client argument parsing and process monitoring.
         if (DaemonBootstrap.IsBootstrapRequested(args))
         {
-            return await DaemonBootstrap.RunAsync(args).ConfigureAwait(false);
+            return await DaemonBootstrap.RunAsync(args);
         }
 
         ThinClientArguments thinClientArguments;
@@ -39,16 +39,16 @@ internal static class Program
             {
                 using var daemonResult = await DaemonClient.ConnectAsync(
                     executable,
-                    thinClientArguments.ServerArguments).ConfigureAwait(false);
+                    thinClientArguments.ServerArguments);
 
                 if (daemonResult.DaemonConnected)
                 {
                     // The daemon hosts the server for every client, so the thin client must bridge the editor's
                     // transport to the daemon's pipe (it connects to both and relays between them).
-                    using var editorConnection = await EditorConnection.CreateAsync(thinClientArguments).ConfigureAwait(false);
+                    using var editorConnection = await EditorConnection.CreateAsync(thinClientArguments);
                     return await RelayDaemonAsync(
                         daemonResult.NamedPipeStream,
-                        editorConnection).ConfigureAwait(false);
+                        editorConnection);
                 }
 
                 Console.Error.WriteLine("Running language server in non-daemon fallback mode.");
@@ -58,7 +58,7 @@ internal static class Program
             // connects to the editor's pipe directly, so the thin client stays out of the LSP message path.
             return await ChildServerHost.RunAsync(
                 executable,
-                thinClientArguments).ConfigureAwait(false);
+                thinClientArguments);
         }
         catch (Exception ex) when (ex is FileNotFoundException or IOException or InvalidOperationException or TimeoutException)
         {
@@ -75,7 +75,7 @@ internal static class Program
             editorConnection.Input,
             editorConnection.Output,
             daemonStream,
-            daemonStream).ConfigureAwait(false);
+            daemonStream);
 
         // A clean LSP shutdown closes both sides; report success so the editor doesn't treat it as a crash.
         if (relayResult.BothSidesClosed)
@@ -104,7 +104,7 @@ internal static class Program
             try
             {
                 using var process = Process.GetProcessById(processId.Value);
-                await process.WaitForExitAsync().ConfigureAwait(false);
+                await process.WaitForExitAsync();
                 Console.Error.WriteLine("Monitored editor process exited.");
             }
             catch (Exception ex)

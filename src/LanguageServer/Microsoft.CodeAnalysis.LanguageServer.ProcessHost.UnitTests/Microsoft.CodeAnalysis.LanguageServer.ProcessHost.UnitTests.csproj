@@ -36,6 +36,7 @@
     -->
     <Compile Include="..\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Utilities\TestPaths.cs" Link="Utilities\TestPaths.cs" />
     <Compile Include="..\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Utilities\NamedPipeTestUtilities.cs" Link="Utilities\NamedPipeTestUtilities.cs" />
+    <Compile Include="..\roslyn-language-server\ExitCodes.cs" Link="Utilities\ExitCodes.cs" />
   </ItemGroup>
 
   <!--

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServer.Client;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Roslyn.LanguageServer.Protocol;
@@ -14,7 +15,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests;
 public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
     private const string DaemonBootstrapArgument = "--daemon-launch";
-    private const int ThinClientBadArgumentsExitCode = 4;
 
     [Theory, CombinatorialData]
     public async Task MultipleClients_ShareOneDaemon_AndEachShutsDownCleanly(bool useNamedPipe)
@@ -213,7 +213,7 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
 
         await bootstrapProcess.WaitForExitAsync();
 
-        Assert.Equal(ThinClientBadArgumentsExitCode, bootstrapProcess.ExitCode);
+        Assert.Equal(ExitCodes.BadArguments, bootstrapProcess.ExitCode);
         Assert.Contains("--pipe", await standardErrorTask);
     }
 
@@ -382,7 +382,7 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
 
         var process = Process.Start(processStartInfo);
         Assert.NotNull(process);
-        return process!;
+        return process;
     }
 
     /// <summary>

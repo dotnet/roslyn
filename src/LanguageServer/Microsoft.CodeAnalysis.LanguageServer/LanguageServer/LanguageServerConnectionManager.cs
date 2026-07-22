@@ -50,41 +50,22 @@ internal sealed class LanguageServerConnectionManager
         // keepalive helper; tracking them here eliminates that race.
         var supervisors = new List<Task>();
 
-        // Counts connections that have been accepted but whose LanguageServerHost is not yet registered in
-        // _servers (i.e. TryStartServer has not yet run for them). Protected by _gate. The keepalive monitor
-        // treats the daemon as busy while this is non-zero, preventing a spurious keepalive fire during
-        // the window between accepting a client and starting its server.
-        var pendingConnections = 0;
-
-        // A newly started daemon is idle before its launching client can connect. Until the first connection is
-        // accepted, use s_initialConnectionTimeout rather than the configured keepalive.
-        var hasAcceptedConnection = false;
-
         // acceptCts stops the accept enumeration. Cancelled by:
-        //   (a) the idle monitor (the initial-connection timeout or keepalive elapsed), or
+        //   (a) the connection idle timeout (the initial-connection timeout or keepalive elapsed), or
         //   (b) the external cancellationToken (process shutdown).
-        using var acceptCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-        // Explicit lifecycle: true while the accept loop should run. Set to false under _gate before
-        // RunAsync returns so no keepalive state changes can be signaled after the monitor is drained.
-        var accepting = true;
-
-        // A single serialized monitor owns the keepalive timeout. State changes wake it so it can restart
-        // the timeout or wait while the daemon is busy; this avoids races with queued Timer callbacks.
-        using var idleStateChanged = new SemaphoreSlim(initialCount: 0);
-        var keepAliveTask = MonitorKeepAliveAsync();
+        using var idleTimeout = new ConnectionIdleTimeout(s_initialConnectionTimeout, keepAlive, logger);
+        using var acceptCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, idleTimeout.TimeoutToken);
 
         try
         {
             await foreach (var connection in connectionSource.AcceptConnectionsAsync(acceptCts.Token).ConfigureAwait(false))
             {
-                // Reserve a pending slot before doing any work. This prevents the idle timer from treating
-                // the daemon as idle during the window between accept and TryStartServer completing.
-                lock (_gate)
+                // Record the accepted connection before doing any startup work so the idle timeout treats the
+                // daemon as busy during server construction. A timeout may have won just before this yield.
+                if (!idleTimeout.TryOpenConnection())
                 {
-                    hasAcceptedConnection = true;
-                    pendingConnections++;
-                    NotifyIdleStateChanged_NoLock();
+                    connection.Resource?.Dispose();
+                    continue;
                 }
 
                 if (isolateFaults)
@@ -106,33 +87,25 @@ internal sealed class LanguageServerConnectionManager
                 }
                 else
                 {
-                    // Single-server mode: synchronous startup (exactly one connection; no parallelism needed).
-                    if (await TryStartServerAsync(connection).ConfigureAwait(false) is not { } entry)
-                        continue;
-
-                    supervisors.Add(SuperviseAsync(entry));
+                    // Single-server mode: StartAndSuperviseAsync starts synchronously until it begins waiting for
+                    // server exit, so no Task.Run or parallel startup is needed.
+                    supervisors.Add(StartAndSuperviseAsync(connection));
                 }
             }
         }
         catch (OperationCanceledException) when (acceptCts.IsCancellationRequested)
         {
-            // The accept loop was cancelled: either the keepalive elapsed (already logged by the monitor) or
+            // The accept loop was cancelled: either the keepalive elapsed (already logged by the idle timeout) or
             // we received an external shutdown request. Both are expected; swallow and proceed.
         }
         finally
         {
-            // Ensure the accept loop is stopped and wake the keepalive monitor so it can observe the lifecycle
-            // transition and exit before its semaphore and acceptCts are disposed.
-            lock (_gate)
-            {
-                accepting = false;
-                idleStateChanged.Release();
-            }
-
+            // Stop any idle delay and ensure the accept enumeration cannot continue after RunAsync starts draining.
+            idleTimeout.Stop();
             acceptCts.Cancel();
         }
 
-        await keepAliveTask.ConfigureAwait(false);
+        await idleTimeout.Completion.ConfigureAwait(false);
 
         if (cancellationToken.IsCancellationRequested && isolateFaults)
         {
@@ -164,73 +137,6 @@ internal sealed class LanguageServerConnectionManager
                 supervisors.Remove(supervisor);
         }
 
-        // Signals that a value used to determine whether the daemon is idle has changed. Must be called under
-        // _gate. Once accepting is false, RunAsync may return without waiting for a single-server supervisor,
-        // so do not touch the semaphore after that point.
-        void NotifyIdleStateChanged_NoLock()
-        {
-            if (accepting)
-                idleStateChanged.Release();
-        }
-
-        // Serially monitors idle state. When idle, a semaphore signal means activity changed and the timeout
-        // must be reconsidered; a timeout causes shutdown only after authoritative state is rechecked under
-        // _gate. Since this is the only timeout observer, there are no stale callbacks to distinguish.
-        async Task MonitorKeepAliveAsync()
-        {
-            while (true)
-            {
-                // Discard notifications already represented by the state snapshot below.
-                while (idleStateChanged.Wait(0, CancellationToken.None))
-                {
-                }
-
-                bool isIdle;
-                TimeSpan idleTimeout;
-                lock (_gate)
-                {
-                    if (!accepting)
-                        return;
-
-                    isIdle = _servers.IsEmpty && pendingConnections == 0;
-                    idleTimeout = hasAcceptedConnection ? keepAlive : s_initialConnectionTimeout;
-                }
-
-                if (!isIdle)
-                {
-                    await idleStateChanged.WaitAsync(CancellationToken.None).ConfigureAwait(false);
-                    continue;
-                }
-
-                if (await idleStateChanged.WaitAsync(idleTimeout, CancellationToken.None).ConfigureAwait(false))
-                    continue;
-
-                // A state change can race with the timeout. Check for a queued notification and recheck state
-                // under the lock before committing to shutdown. The notification is necessary even when the
-                // current state is idle: the daemon may have become busy and then idle again, starting a new
-                // idle interval, between the timeout and acquiring this lock.
-                bool timedOutWaitingForInitialConnection;
-                lock (_gate)
-                {
-                    if (!accepting)
-                        return;
-
-                    if (idleStateChanged.Wait(0, CancellationToken.None) || !_servers.IsEmpty || pendingConnections > 0)
-                        continue;
-
-                    timedOutWaitingForInitialConnection = !hasAcceptedConnection;
-                    accepting = false;
-                }
-
-                acceptCts.Cancel();
-                logger.LogInformation(
-                    timedOutWaitingForInitialConnection
-                        ? "Initial connection timeout elapsed; shutting down."
-                        : "Keepalive elapsed with no active connections; shutting down.");
-                return;
-            }
-        }
-
         async Task StartAndSuperviseAsync(LanguageServerConnection connection)
         {
             try
@@ -239,68 +145,43 @@ internal sealed class LanguageServerConnectionManager
                 if (entry is not null)
                     await SuperviseAsync(entry).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (isolateFaults)
             {
-                // This is the daemon supervisor's fault boundary. TryStartServerAsync and SuperviseAsync handle
-                // their expected failures; catch anything else here so the task can be safely removed on completion.
+                // This is the daemon supervisor's startup fault boundary. TryStartServerAsync cleans up before
+                // propagating failures here so one connection cannot tear down the daemon.
                 logger.LogError(ex, "Language server connection supervisor faulted.");
+            }
+            finally
+            {
+                idleTimeout.CloseConnection();
             }
         }
 
-        // Creates, registers, and starts a language server for the connection. Returns its entry, or null
-        // if the server failed to start and that failure was isolated (daemon mode).
-        // Always decrements pendingConnections (the caller incremented it on accept).
+        // Creates, registers, and starts a language server for the connection. Returns null if shutdown won the
+        // race with startup; construction and startup failures are cleaned up and propagated to the caller.
         async Task<ServerEntry?> TryStartServerAsync(LanguageServerConnection connection)
         {
-            var rejectConnection = false;
-            lock (_gate)
-            {
-                if (!accepting)
-                {
-                    pendingConnections--;
-                    rejectConnection = true;
-                }
-            }
-
-            if (rejectConnection)
-            {
-                connection.Resource?.Dispose();
-                return null;
-            }
-
             // --- Phase 1: construct the LanguageServerHost (MEF composition happens here) ---
             LanguageServerHost server;
             try
             {
                 server = new LanguageServerHost(connection.InputStream, connection.OutputStream, exportProvider, typeRefResolver);
             }
-            catch (Exception ex)
+            catch
             {
-                lock (_gate)
-                {
-                    pendingConnections--;
-                    NotifyIdleStateChanged_NoLock();
-                }
-
                 connection.Resource?.Dispose();
-
-                if (!isolateFaults)
-                    throw;
-
-                logger.LogError(ex, "Failed to create a language server for the accepted connection.");
-                return null;
+                throw;
             }
 
             var entry = new ServerEntry(server, connection.Resource);
             var abortStartup = false;
 
             // --- Phase 2: register and start ---
-            // Register before starting so the keepalive monitor observes the server while it runs and
-            // GetStartedServers reflects the server before its JSON-RPC listen loop is active.
+            // Register before starting so GetStartedServers reflects the server before its JSON-RPC listen loop
+            // is active.
             lock (_gate)
             {
-                pendingConnections--;
-                if (accepting)
+                if (!acceptCts.IsCancellationRequested)
                 {
                     _servers = _servers.Add(entry);
                 }
@@ -308,8 +189,6 @@ internal sealed class LanguageServerConnectionManager
                 {
                     abortStartup = true;
                 }
-
-                NotifyIdleStateChanged_NoLock();
             }
 
             if (abortStartup)
@@ -324,22 +203,14 @@ internal sealed class LanguageServerConnectionManager
                 _onBeforeStartServer?.Invoke();
                 server.Start();
             }
-            catch (Exception ex)
+            catch
             {
                 lock (_gate)
-                {
                     _servers = _servers.Remove(entry);
-                    NotifyIdleStateChanged_NoLock();
-                }
 
                 await AbortServerAsync(server).ConfigureAwait(false);
                 connection.Resource?.Dispose();
-
-                if (!isolateFaults)
-                    throw;
-
-                logger.LogError(ex, "Failed to start a language server for the accepted connection.");
-                return null;
+                throw;
             }
 
             return entry;
@@ -374,10 +245,7 @@ internal sealed class LanguageServerConnectionManager
             finally
             {
                 lock (_gate)
-                {
                     _servers = _servers.Remove(entry);
-                    NotifyIdleStateChanged_NoLock();
-                }
 
                 // Dispose this connection's transport (e.g. the daemon's NamedPipeServerStream) now that its
                 // server has fully exited. Disposal is idempotent, so it is safe even if transport already closed.

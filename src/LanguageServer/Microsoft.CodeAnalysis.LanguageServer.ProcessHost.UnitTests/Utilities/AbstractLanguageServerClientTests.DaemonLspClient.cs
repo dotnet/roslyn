@@ -60,7 +60,8 @@ public partial class AbstractLanguageServerClientTests
 
             // The daemon-mode thin client establishes its daemon connection before connecting to the editor pipe.
             // Race the editor-pipe connection against thin-client exit so daemon startup/connect failures fail
-            // immediately instead of waiting for the pipe timeout.
+            // immediately instead of waiting for the pipe timeout.  This ensures that the test fails fast if startup fails,
+            // instead of having requests weirdly fail later on.
             var pipeWaitTask = WaitForPipeServerConnectionAsync(pipeServer);
             var thinClientExitTask = thinClientProcess.WaitForExitAsync();
             var completedTask = await Task.WhenAny(pipeWaitTask, thinClientExitTask);
