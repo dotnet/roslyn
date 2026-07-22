@@ -93,7 +93,11 @@ internal static partial class MarkupSplitter
             {
                 atLineStart = true;
             }
-            else if (atLineStart && c == '#')
+            else if (!atLineStart)
+            {
+                continue;
+            }
+            else if (c == '#')
             {
                 return true;
             }

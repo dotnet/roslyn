@@ -20,7 +20,7 @@ public sealed class DocumentIntermediateNode : IntermediateNode
     /// lowering phase to emit this node directly as the impl half instead of deriving an impl spine from
     /// a single classified tree.
     /// </summary>
-    public bool IsSplitImplDocument { get; set; }
+    internal bool IsSplitImplDocument { get; set; }
 
     public RazorCodeGenerationOptions Options { get; set; }
 

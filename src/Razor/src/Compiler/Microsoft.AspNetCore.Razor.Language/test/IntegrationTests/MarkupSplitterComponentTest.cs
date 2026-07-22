@@ -241,10 +241,10 @@ public class MarkupSplitterComponentTest : RazorIntegrationTestBase
     }
 
     [Fact]
-    public void MarkupMethod_WithInject_CompilesUnderNewFlow()
+    public void MarkupMethod_WithInject_Compiles()
     {
-        // Under the early split, @inject is a document-level directive (not part of the @code analysis),
-        // so the component still splits on its markup method. Verify the split halves recombine and
+        // @inject is a document-level directive, not part of the @code class body, so it doesn't prevent
+        // the markup method from being routed to the impl half. Verify the split halves recombine and
         // compile with the injected member present.
         var generated = CompileToCSharp("""
             @inject System.IServiceProvider Services
@@ -252,6 +252,63 @@ public class MarkupSplitterComponentTest : RazorIntegrationTestBase
                 private Microsoft.AspNetCore.Components.RenderFragment Make() => @<p>Hi</p>;
             }
             """);
+
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void MarkupMethod_InNestedClass_FallsBackAndCompiles()
+    {
+        // A type declared inside @code is a single class-body member; when it carries markup (here in a
+        // method) it can't be lifted -- a nested type may be referenced from the decl half or itself hold
+        // markup members -- so the component falls back to the single-document path. Verify it compiles.
+        var generated = CompileToCSharp("""
+            @code {
+                class Nested
+                {
+                    public Microsoft.AspNetCore.Components.RenderFragment Make() => @<p>Hi</p>;
+                }
+            }
+            """);
+
+        var documentNode = generated.CodeDocument.GetDocumentNode();
+        Assert.NotNull(documentNode);
+        var primaryClass = documentNode.FindPrimaryClass();
+        var renderMethod = documentNode.FindPrimaryMethod();
+        Assert.NotNull(primaryClass);
+        Assert.NotNull(renderMethod);
+
+        var decision = MarkupSplitter.Split(primaryClass, renderMethod, generated.CodeDocument.ParserOptions);
+        var fallback = Assert.IsType<SplitDecision.SplitFallback>(decision);
+        Assert.Equal(FallbackReason.UnsupportedMarkupMember, fallback.Reason);
+
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void MarkupProperty_InNestedClass_FallsBackAndCompiles()
+    {
+        // Same as the nested-class method case, but the markup lives in a property of the nested type. The
+        // nested type still can't be lifted, so the component falls back and compiles.
+        var generated = CompileToCSharp("""
+            @code {
+                class Nested
+                {
+                    public Microsoft.AspNetCore.Components.RenderFragment Header => @<div>Hi</div>;
+                }
+            }
+            """);
+
+        var documentNode = generated.CodeDocument.GetDocumentNode();
+        Assert.NotNull(documentNode);
+        var primaryClass = documentNode.FindPrimaryClass();
+        var renderMethod = documentNode.FindPrimaryMethod();
+        Assert.NotNull(primaryClass);
+        Assert.NotNull(renderMethod);
+
+        var decision = MarkupSplitter.Split(primaryClass, renderMethod, generated.CodeDocument.ParserOptions);
+        var fallback = Assert.IsType<SplitDecision.SplitFallback>(decision);
+        Assert.Equal(FallbackReason.UnsupportedMarkupMember, fallback.Reason);
 
         CompileToAssembly(generated);
     }

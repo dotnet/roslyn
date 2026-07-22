@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -187,8 +188,9 @@ public class MarkupSplitterTest
         var sliced = analysis.Text.Substring(markupChild.Start, markupChild.Length);
         Assert.Equal(MarkupSplitter.MarkerMethodName + "()", sliced);
 
-        // The whole document parses as valid C# (a get-only expression-bodied property).
-        var tree = CSharpSyntaxTree.ParseText(analysis.Text);
+        // The whole document parses as valid C# (a get-only expression-bodied property). Parse from a
+        // SourceText to match the product code, which avoids the banned string-based ParseText overload.
+        var tree = CSharpSyntaxTree.ParseText(SourceText.From(analysis.Text));
         Assert.Empty(tree.GetDiagnostics());
     }
 

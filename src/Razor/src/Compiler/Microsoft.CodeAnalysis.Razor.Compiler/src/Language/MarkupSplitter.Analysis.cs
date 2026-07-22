@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -30,10 +31,10 @@ internal static partial class MarkupSplitter
     /// </summary>
     internal static AnalysisDocument BuildAnalysisDocument(ImmutableArray<IntermediateNode> children)
     {
-        var builder = new StringBuilder();
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
         builder.Append(AnalysisClassHeader);
 
-        var spans = ImmutableArray.CreateBuilder<ChildSpan>(children.Length);
+        using var spans = new PooledArrayBuilder<ChildSpan>(capacity: children.Length);
 
         foreach (var child in children)
         {
@@ -61,7 +62,7 @@ internal static partial class MarkupSplitter
 
         builder.Append(AnalysisClassFooter);
 
-        return new AnalysisDocument(builder.ToString(), spans.ToImmutable());
+        return new AnalysisDocument(builder.ToString(), spans.ToImmutableAndClear());
     }
 
     /// <summary>

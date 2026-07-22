@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -78,7 +79,7 @@ internal static partial class MarkupSplitter
             tokenStart = tokenEnd;
         }
 
-        return ImmutableArray.Create(pieces);
+        return ImmutableCollectionsMarshal.AsImmutableArray(pieces);
     }
 
     // The index of the piece that content at the given node-text offset belongs to: the number of cut

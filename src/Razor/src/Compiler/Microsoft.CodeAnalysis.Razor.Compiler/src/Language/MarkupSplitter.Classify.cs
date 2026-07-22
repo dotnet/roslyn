@@ -243,11 +243,28 @@ internal static partial class MarkupSplitter
         return true;
     }
 
+    // Binary search the source-ordered, contiguous member spans for the one containing the offset. Called
+    // per character by AllCSharpContentCovered, so an O(log memberCount) probe keeps that scan near-linear
+    // in the text length instead of O(textLength * memberCount).
     private static bool IsCoveredByMember(TextSpan[] memberSpans, int index)
     {
-        foreach (var span in memberSpans)
+        var lo = 0;
+        var hi = memberSpans.Length - 1;
+
+        while (lo <= hi)
         {
-            if (span.Contains(index))
+            var mid = lo + (hi - lo) / 2;
+            var span = memberSpans[mid];
+
+            if (index < span.Start)
+            {
+                hi = mid - 1;
+            }
+            else if (index >= span.End)
+            {
+                lo = mid + 1;
+            }
+            else
             {
                 return true;
             }
