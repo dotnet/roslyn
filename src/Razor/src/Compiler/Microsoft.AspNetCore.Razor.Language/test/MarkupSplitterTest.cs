@@ -412,11 +412,37 @@ public class MarkupSplitterTest
         Assert.Null(sliced.Source);
     }
 
+    [Fact]
+    public void SliceToken_AtCarriageReturnNewlineBoundary_DoesNotOverAdvance()
+    {
+        // Slicing exactly between the \r and \n of a \r\n pair must not pull the \n into the preceding
+        // slice: the second slice's content begins with the \n, so its absolute/line/character must point
+        // at the \n, not one past it. (Advancing across the prefix used to consume the paired \n even when
+        // the slice ended on the \r, corrupting the boundary-aligned slice's source mapping.)
+        var source = new SourceSpan(filePath: "C.razor", absoluteIndex: 100, lineIndex: 3, characterIndex: 4, length: 6);
+        var token = new CSharpIntermediateToken("ab\r\ncd", source);
+
+        var before = MarkupSplitter.SliceToken(token, localStart: 0, localLength: 3); // "ab\r"
+        var after = MarkupSplitter.SliceToken(token, localStart: 3, localLength: 3);  // "\ncd"
+
+        Assert.Equal("ab\r", before.Content);
+        Assert.Equal("\ncd", after.Content);
+
+        // The second slice starts at the \n (absolute 103), on the line the \r opened, at character 0 --
+        // not skipped past the \n to 104/'c'.
+        var s = after.Source!.Value;
+        Assert.Equal(103, s.AbsoluteIndex);
+        Assert.Equal(4, s.LineIndex);
+        Assert.Equal(0, s.CharacterIndex);
+    }
+
     [Theory]
     [InlineData("abc", 0, 3, 3, 0, 3)]        // no newline: char advances by 3
     [InlineData("a\nb", 0, 3, 3, 1, 1)]       // one \n: line +1, char 1
     [InlineData("a\r\nb", 0, 4, 4, 1, 1)]     // \r\n counts once: line +1, char 1
     [InlineData("a\rb", 0, 3, 3, 1, 1)]       // lone \r counts as a break
+    [InlineData("a\r\nb", 0, 2, 2, 1, 0)]     // range ends on the \r: lone break, the \n is left for the next slice (not over-advanced)
+    [InlineData("a\r\nb", 2, 2, 2, 1, 1)]     // the matching next slice starts on that \n: it counts as the break for this range
     public void AdvanceLocation_CountsLineBreaks(string text, int start, int count, int expectedAbs, int expectedLine, int expectedChar)
     {
         var (abs, line, ch) = MarkupSplitter.AdvanceLocation(absolute: 0, line: 0, character: 0, text, start, count);

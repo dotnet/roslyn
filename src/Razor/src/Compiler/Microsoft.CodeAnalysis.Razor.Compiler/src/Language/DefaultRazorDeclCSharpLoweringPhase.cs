@@ -20,11 +20,22 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The decl document carries the user's component API surface: the partial class declaration with
-/// base type / interfaces / type parameters / user-authored class-level attributes (route,
-/// layout), all properties / fields / parameters / inject members and sibling methods, and any
-/// document-level metadata (source-checksum attributes, etc.). It omits the render method body and
-/// compiler-synthesized plumbing (marked with <see cref="IntermediateNode.IsSynthesizedHelper"/>).
+/// When this phase produces the decl from the full classified tree (a markup-free component, or a
+/// markup component that fell back), the decl document carries the user's component API surface: the
+/// partial class declaration with base type / interfaces / type parameters / user-authored class-level
+/// attributes (route, layout), all properties / fields / parameters / inject members and sibling
+/// methods, and any document-level metadata (source-checksum attributes, etc.). It omits the render
+/// method body and compiler-synthesized plumbing (marked with
+/// <see cref="IntermediateNode.IsSynthesizedHelper"/>).
+/// </para>
+/// <para>
+/// For a component the early split partitioned, the decl is instead produced by
+/// <c>DefaultRazorMarkupSplitPhase.LowerDeclDocument</c> from just the using directives and the
+/// markup-free <c>@code</c> pieces, before directive classification. Directive-authored members that
+/// live outside <c>@code</c> -- an <c>@inject</c> property, for instance -- are not part of that decl
+/// input, so they ride along in the impl half. That is invisible to tag-helper discovery (an injected
+/// member shapes no bound attribute) and both halves are emitted as <c>partial</c>, so the recombined
+/// class is unchanged.
 /// </para>
 /// <para>
 /// The split affects only the generated C# (<c>GetDeclCSharpDocument()</c> gives the decl half;

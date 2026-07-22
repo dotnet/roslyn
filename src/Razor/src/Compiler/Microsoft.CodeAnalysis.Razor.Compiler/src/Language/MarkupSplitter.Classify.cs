@@ -46,7 +46,9 @@ internal static partial class MarkupSplitter
             return SplitDecision.Fallback(FallbackReason.ClassBodyHasDirectives);
         }
 
-        var tree = CSharpSyntaxTree.ParseText(analysis.Text, parseOptions, cancellationToken: cancellationToken);
+        // Parse from a SourceText (the string-based ParseText overload is banned in this project). The
+        // analysis document is throwaway and never emitted, so its encoding is irrelevant.
+        var tree = CSharpSyntaxTree.ParseText(SourceText.From(analysis.Text), parseOptions, cancellationToken: cancellationToken);
         var root = tree.GetCompilationUnitRoot(cancellationToken);
 
         var markerClass = root.Members.OfType<ClassDeclarationSyntax>().FirstOrDefault();

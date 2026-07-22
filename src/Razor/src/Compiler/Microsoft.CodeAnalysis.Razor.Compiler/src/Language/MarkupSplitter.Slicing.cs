@@ -140,6 +140,9 @@ internal static partial class MarkupSplitter
     /// Advances a source location across <paramref name="count"/> characters of <paramref name="text"/>
     /// starting at <paramref name="start"/>. Matches the writer's line-break accounting: <c>\r\n</c>, a
     /// lone <c>\r</c>, and a lone <c>\n</c> each count as one line break that resets the character index.
+    /// The <c>\n</c> of a <c>\r\n</c> pair is only consumed when it falls inside the requested range: a
+    /// range that ends exactly on the <c>\r</c> treats it as a lone break and leaves the <c>\n</c> for the
+    /// next slice, so a slice boundary that lands between the two characters can't over-advance past it.
     /// </summary>
     internal static (int Absolute, int Line, int Character) AdvanceLocation(
         int absolute, int line, int character, string text, int start, int count)
@@ -154,7 +157,7 @@ internal static partial class MarkupSplitter
 
             if (c == '\r')
             {
-                if (i + 1 < text.Length && text[i + 1] == '\n')
+                if (i + 1 < end && text[i + 1] == '\n')
                 {
                     // Consume the paired newline as a single line break.
                     absolute++;
