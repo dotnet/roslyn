@@ -879,9 +879,10 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.NotEmpty(project.AnalyzerReferences);
         Assert.NotEmpty(project.MetadataReferences);
 
-        // Assert that there are no compilation errors.
-        var compilation = await project.GetCompilationAsync();
-        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+        // Can't assert that there are no compilation errors because self-referencing projects currently hang when calling GetCompilationAsync.
+        // See https://github.com/dotnet/roslyn/issues/84587.
+        using var cts = new CancellationTokenSource(100);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => project.GetCompilationAsync(cts.Token));
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
