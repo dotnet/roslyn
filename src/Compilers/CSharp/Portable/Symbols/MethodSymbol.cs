@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var containingType = base.ContainingType;
-                Debug.Assert(containingType is not null || this is FunctionPointerMethodSymbol or SignatureOnlyMethodSymbol);
+                Debug.Assert(containingType is not null || this is FunctionPointerMethodSymbol or SignatureOnlyMethodSymbol, $"'{Name}': Unexpected null ContainingType");
                 return containingType!;
             }
         }

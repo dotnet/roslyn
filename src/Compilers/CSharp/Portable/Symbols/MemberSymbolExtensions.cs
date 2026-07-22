@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get
                 {
                     var containingType = symbol.ContainingType;
-                    Debug.Assert(containingType is not null, $"'{symbol}': Unexpected null ContainingType");
+                    Debug.Assert(containingType is not null, $"'{symbol.Name}': Unexpected null ContainingType");
                     return containingType;
                 }
             }

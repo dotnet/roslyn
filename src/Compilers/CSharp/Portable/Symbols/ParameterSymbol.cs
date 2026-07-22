@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var containingType = base.ContainingType;
-                Debug.Assert(containingType is not null || this is FunctionPointerParameterSymbol, $"'{this}': Unexpected null ContainingType");
+                Debug.Assert(containingType is not null || this is FunctionPointerParameterSymbol, $"'{Name}': Unexpected null ContainingType");
                 return containingType!;
             }
         }
