@@ -9,22 +9,33 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 /// <summary>
-/// For Razor components whose primary method body is not being suppressed, this phase produces
-/// the "decl" C# document and stashes it on <see cref="RazorCodeDocument"/> via
-/// <c>WithDeclCSharpDocument</c>. The matching "impl" half is produced later by
-/// <see cref="DefaultRazorCSharpLoweringPhase"/>; both halves are emitted as <c>partial</c>
-/// so they rejoin at compile time.
+/// Produces the "decl" C# document -- the component's public API surface -- for a Razor component and
+/// stashes it on <see cref="RazorCodeDocument"/> via <c>WithDeclCSharpDocument</c>. The matching "impl"
+/// half is produced by <see cref="DefaultRazorCSharpLoweringPhase"/>; both are emitted as <c>partial</c>
+/// so they rejoin at compile time. This is the late tier of the decl/impl split: most markup components
+/// are partitioned earlier (before tag-helper resolution), and for them this phase is a no-op (it skips
+/// when a decl document already exists). It handles markup-free components and, as a fallback, markup
+/// components whose raw shape the early analysis could not partition -- routing their markup over the
+/// already-classified tree.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The decl document carries the user's component API surface: the partial class declaration with
-/// base type / interfaces / type parameters / user-authored class-level attributes (route,
-/// layout), all properties / fields / parameters / inject members / sibling methods, and any
-/// document-level metadata (source-checksum attributes, etc.). It deliberately omits the render
-/// method body and any compiler-synthesized plumbing (marked with
-/// <see cref="IntermediateNode.IsSynthesizedHelper"/>) so it depends only on user source -- not
-/// on tag helper resolution -- and can therefore run earlier in the pipeline than the final
-/// C# lowering phase.
+/// When this phase produces the decl from the full classified tree (a markup-free component, or a
+/// markup component that fell back), the decl document carries the user's component API surface: the
+/// partial class declaration with base type / interfaces / type parameters / user-authored class-level
+/// attributes (route, layout), all properties / fields / parameters / inject members and sibling
+/// methods, and any document-level metadata (source-checksum attributes, etc.). It omits the render
+/// method body and compiler-synthesized plumbing (marked with
+/// <see cref="IntermediateNode.IsSynthesizedHelper"/>).
+/// </para>
+/// <para>
+/// For a component the early split partitioned, the decl is instead produced by
+/// <c>DefaultRazorMarkupSplitPhase.LowerDeclDocument</c> from just the using directives and the
+/// markup-free <c>@code</c> pieces, before directive classification. Directive-authored members that
+/// live outside <c>@code</c> -- an <c>@inject</c> property, for instance -- are not part of that decl
+/// input, so they ride along in the impl half. That is invisible to tag-helper discovery (an injected
+/// member shapes no bound attribute) and both halves are emitted as <c>partial</c>, so the recombined
+/// class is unchanged.
 /// </para>
 /// <para>
 /// The split affects only the generated C# (<c>GetDeclCSharpDocument()</c> gives the decl half;
@@ -40,6 +51,13 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// document missing the primary structure) this phase is a no-op; <c>GetDeclCSharpDocument()</c>
 /// stays null and <see cref="DefaultRazorCSharpLoweringPhase"/> falls through to the prior
 /// single-file behavior.
+/// </para>
+/// <para>
+/// This two-tier arrangement is interim. The target is a single decision made entirely by the early
+/// markup-split phase: a component either splits -- its decl half feeding the pre-compilation output and
+/// its impl half the implementation output -- or stays a single document. Reaching it requires the early
+/// phase to partition the shapes this tier handles as a fallback and to produce the decl for markup-free
+/// components too, after which this late decl/impl production can be removed.
 /// </para>
 /// </remarks>
 internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSharpLoweringPhase
@@ -57,6 +75,13 @@ internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase
                 nameof(CodeTarget),
                 nameof(DocumentIntermediateNode.Target));
             throw new InvalidOperationException(message);
+        }
+
+        // If the early decl/impl split already produced the decl document (a component with class-body
+        // markup), don't produce it again from the impl-shaped working tree.
+        if (codeDocument.GetCSharpDocument(declarationDocument: true) is not null)
+        {
+            return codeDocument;
         }
 
         // Skip the split for any document that shouldn't be split:
@@ -92,14 +117,33 @@ internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase
         var declNamespace = RazorCSharpDocumentWriter.CloneContainer(primaryNamespace);
         var declClass = RazorCSharpDocumentWriter.CloneContainer(primaryClass);
 
-        foreach (var classChild in primaryClass.Children)
+        // Route the class body into the decl half. Most markup components are partitioned by the early
+        // split phases before resolution; a component whose raw @code the early analysis couldn't
+        // partition reaches here unsplit, so route its markup now over the classified tree (markup-free
+        // members stay in decl, markup-bearing methods lift to impl). Without a plan the class body is
+        // markup-free, so every non-render/non-synth child stays in decl.
+        var plan = MarkupSplitter.GetRoutablePlan(primaryClass, renderMethod, codeDocument.ParserOptions);
+        if (plan is not null)
         {
-            if (classChild == renderMethod || classChild.IsSynthesizedHelper)
+            foreach (var member in plan.Members)
             {
-                continue;
+                foreach (var piece in member.DeclPieces)
+                {
+                    declClass.Children.Add(piece);
+                }
             }
+        }
+        else
+        {
+            foreach (var classChild in primaryClass.Children)
+            {
+                if (classChild == renderMethod || classChild.IsSynthesizedHelper)
+                {
+                    continue;
+                }
 
-            declClass.Children.Add(classChild);
+                declClass.Children.Add(classChild);
+            }
         }
 
         foreach (var nsChild in primaryNamespace.Children)

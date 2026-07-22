@@ -27,50 +27,25 @@ using Microsoft.AspNetCore.Components.Rendering
     #nullable disable
     {
 #nullable restore
-#line (17,8)-(26,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (17,8)-(19,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 
     ElementReference myElementReference;
+
+#line default
+#line hidden
+#nullable disable
+
+#nullable restore
+#line (19,1)-(20,1) "x:\dir\subdir\Test\TestComponent.cshtml"
     TemplatedComponent myComponentReference;
+
+#line default
+#line hidden
+#nullable disable
+
+#nullable restore
+#line (20,1)-(21,1) "x:\dir\subdir\Test\TestComponent.cshtml"
     string myVariable;
-
-    void MethodRenderingMarkup(RenderTreeBuilder __builder)
-    {
-        for (var i = 0; i < 10; i++)
-        {
-
-#line default
-#line hidden
-#nullable disable
-
-        __builder.OpenElement(0, "li");
-        __builder.AddAttribute(1, "data-index", 
-#nullable restore
-#line (26,29)-(26,30) "x:\dir\subdir\Test\TestComponent.cshtml"
-i
-
-#line default
-#line hidden
-#nullable disable
-        );
-        __builder.AddAttribute(2, "TestCssScope");
-        __builder.AddContent(3, "Something ");
-#nullable restore
-#line (26,42)-(26,43) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
-__builder.AddContent(4, i
-
-#line default
-#line hidden
-#nullable disable
-        );
-        __builder.CloseElement();
-#nullable restore
-#line (27,1)-(33,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-        }
-
-        System.GC.KeepAlive(myElementReference);
-        System.GC.KeepAlive(myComponentReference);
-        System.GC.KeepAlive(myVariable);
-    }
 
 #line default
 #line hidden
