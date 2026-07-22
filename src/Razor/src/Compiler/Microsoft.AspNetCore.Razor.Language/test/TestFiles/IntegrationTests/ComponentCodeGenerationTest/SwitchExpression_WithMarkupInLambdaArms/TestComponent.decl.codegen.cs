@@ -20,51 +20,9 @@ using Microsoft.AspNetCore.Components
     #nullable disable
     {
 #nullable restore
-#line (3,8)-(9,10) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (3,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 
     public enum SampleType { Alpha, Beta, Gamma }
-
-    private static RenderFragment RenderBadge(SampleType type) => type switch
-    {
-        SampleType.Alpha => (__builder) =>
-        {
-
-#line default
-#line hidden
-#nullable disable
-
-#nullable restore
-#line (9,10)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-
-#line default
-#line hidden
-#nullable disable
-
-        __builder.AddMarkupContent(0, "<span>Alpha</span>");
-#nullable restore
-#line (11,1)-(13,10) "x:\dir\subdir\Test\TestComponent.cshtml"
-        },
-        _ => (__builder) =>
-        {
-
-#line default
-#line hidden
-#nullable disable
-
-#nullable restore
-#line (13,10)-(14,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-
-#line default
-#line hidden
-#nullable disable
-
-        __builder.AddMarkupContent(1, "<span>Unknown</span>");
-#nullable restore
-#line (15,1)-(17,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-        }
-    };
 
 #line default
 #line hidden
