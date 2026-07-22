@@ -40,40 +40,44 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
         TextDocumentIdentifier textDocumentIdentifier,
         CancellationToken cancellationToken)
     {
-        var csharpDocument = await GetCSharpDocumentAsync(snapshot, cancellationToken).ConfigureAwait(false);
-        var generatedDocument = await snapshot.GetGeneratedDocumentAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
-        var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        var csharpCodeLens = await CodeLensHandler.GetCodeLensAsync(textDocumentIdentifier, generatedDocument, globalOptions, cancellationToken).ConfigureAwait(false);
-        if (csharpCodeLens is null)
+        using var results = new PooledArrayBuilder<LspCodeLens>();
+        using var _ = HashSetPool<(LspRange Range, string? CommandIdentifier, string? Title)>.GetPooledObject(out var seenCodeLenses);
+
+        if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declarationDocument)
         {
-            return null;
+            await AddCodeLensAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
         }
 
-        using var results = new PooledArrayBuilder<LspCodeLens>(csharpCodeLens.Length);
-
-        foreach (var codeLens in csharpCodeLens)
-        {
-            if (_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, codeLens.Range, out var razorRange))
-            {
-                codeLens.Range = razorRange;
-                results.Add(codeLens);
-            }
-        }
+        await AddCodeLensAsync(codeDocument.GetRequiredCSharpDocument(declarationDocument: false), cancellationToken).ConfigureAwait(false);
 
         return results.ToArrayAndClear();
 
-        static async ValueTask<RazorCSharpDocument> GetCSharpDocumentAsync(RemoteDocumentSnapshot snapshot, CancellationToken cancellationToken)
+        async ValueTask AddCodeLensAsync(RazorCSharpDocument csharpDocument, CancellationToken cancellationToken)
         {
-            var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-            // CodeLens items are only produced for the class members in a generated C# file, so they will always be in the
-            // decl document if it exists.
-            if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declCSharpDocument)
-            {
-                return declCSharpDocument;
-            }
+            var inDeclDocument = csharpDocument.IsDeclarationDocument;
+            var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+            var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
 
-            return codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+            var csharpCodeLens = await CodeLensHandler.GetCodeLensAsync(textDocumentIdentifier, generatedDocument, globalOptions, cancellationToken).ConfigureAwait(false);
+
+            foreach (var codeLens in csharpCodeLens)
+            {
+                if (!_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, codeLens.Range, out var razorRange))
+                {
+                    continue;
+                }
+
+                codeLens.Range = razorRange;
+                if (!seenCodeLenses.Add((codeLens.Range, codeLens.Command?.CommandIdentifier, codeLens.Command?.Title)))
+                {
+                    continue;
+                }
+
+                RazorCodeLensResolveData.Wrap(codeLens, textDocumentIdentifier, inDeclDocument);
+                results.Add(codeLens);
+            }
         }
     }
 
@@ -96,14 +100,7 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
             codeLens.Data = originalData;
         }
 
-        // CodeLens shows information about fields, properties, methods etc. which, for components, all appear in a declaration document. For legacy documents
-        // there is no declaration document, so those things appear in the implementation document. For simplicity, we'll just attempt to resolve from the declaration
-        // document and fallback to the implementation document when it's null.
-        var generatedDocument = await snapshot.TryGetGeneratedDocumentAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false);
-        if (generatedDocument is null)
-        {
-            generatedDocument = await snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
-        }
+        var generatedDocument = await snapshot.GetGeneratedDocumentAsync(razorData.InDeclDocument, cancellationToken).ConfigureAwait(false);
 
         return await CodeLensResolveHandler.ResolveCodeLensAsync(codeLens, generatedDocument, cancellationToken).ConfigureAwait(false);
     }
