@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -243,6 +243,14 @@ internal partial class CSharpFormattingPass
                                 break;
                             }
                         }
+                    }
+                    else if (_documentMappingService.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, line.Start, multilineOnly: false))
+                    {
+                        // Whitespace in a multiline string is content, so preserve it in the formatting document.
+                        _currentLine = line;
+                        _currentFirstNonWhitespacePosition = line.Start;
+                        _builder.AppendLine(line.ToString());
+                        _lineInfoBuilder.Add(CreateLineInfo(processIndentation: false, processFormatting: true, checkForNewLines: true));
                     }
                     else
                     {
@@ -601,17 +609,10 @@ internal partial class CSharpFormattingPass
                 // If we're here, it means this is a "normal" line of C#, so we can just emit it as is. The exception to this is
                 // when we're inside a string literal. We still want to emit it as is, but we need to make sure we tell the formatter
                 // to ignore any existing indentation too.
-                if (_documentMappingService.TryMapToCSharpDocumentLinePosition(_codeDocument, _currentToken.SpanStart, out _, out var csharpIndex, out var inDeclDocument))
+                if (_documentMappingService.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, _currentToken.SpanStart, multilineOnly: true))
                 {
-                    var csharpSyntaxRoot = inDeclDocument
-                        ? _declSyntaxRoot.AssumeNotNull()
-                        : _csharpSyntaxRoot;
-                    if (csharpSyntaxRoot.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
-                        csharpNode.IsStringLiteral(multilineOnly: true))
-                    {
-                        _builder.AppendLine(_currentLine.ToString());
-                        return CreateLineInfo(processIndentation: false, processFormatting: true, checkForNewLines: true);
-                    }
+                    _builder.AppendLine(_currentLine.ToString());
+                    return CreateLineInfo(processIndentation: false, processFormatting: true, checkForNewLines: true);
                 }
 
                 return EmitCurrentLineAsCSharp();

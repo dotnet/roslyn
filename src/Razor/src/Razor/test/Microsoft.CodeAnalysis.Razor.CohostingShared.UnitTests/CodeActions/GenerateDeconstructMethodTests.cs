@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public class GenerateDeconstructMethodTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateDeconstructMethod_FromCodeBlock_ExistingCodeBlock()
     {
         var input = """
@@ -46,7 +46,7 @@ public class GenerateDeconstructMethodTests(ITestOutputHelper testOutputHelper) 
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateDeconstructMethod_WithoutCodeBlock()
     {
         var input = """
@@ -75,7 +75,7 @@ public class GenerateDeconstructMethodTests(ITestOutputHelper testOutputHelper) 
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateDeconstructMethod_FromRazor_InOtherFile()
     {
         await VerifyCodeActionAsync(

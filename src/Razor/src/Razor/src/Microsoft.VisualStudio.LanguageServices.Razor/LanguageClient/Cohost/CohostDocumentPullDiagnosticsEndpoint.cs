@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -35,14 +35,17 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     IHtmlRequestInvoker requestInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
     ITelemetryReporter telemetryReporter,
-    ILoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory,
+    IEditAndContinueSessionTracker encSessionTracker)
     : CohostDocumentPullDiagnosticsEndpointBase<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
         incompatibleProjectService,
         remoteServiceInvoker,
         requestInvoker,
         clientCapabilitiesService,
         telemetryReporter,
-        loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpoint>()), IDynamicRegistrationProvider
+        loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpoint>(),
+        encSessionTracker),
+      IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
@@ -124,11 +127,11 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         return results;
     }
 
-    protected override VSInternalDocumentDiagnosticsParams CreateHtmlParams(Uri uri)
+    protected override VSInternalDocumentDiagnosticsParams CreateHtmlParams(DocumentUri uri)
     {
         return new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri.CreateDocumentUriFromSystemUri() }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri }
         };
     }
 

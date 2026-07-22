@@ -12,10 +12,9 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
@@ -89,6 +88,7 @@ internal sealed partial class HtmlFormattingPass(
     {
         var codeDocument = context.CodeDocument;
         var originalText = codeDocument.Source.Text;
+        var (scriptAndStyleSpans, razorCommentSpans) = BuildSpans(codeDocument, originalText);
 
         var csharpSyntaxTree = await context.OriginalSnapshot.GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var csharpSyntaxRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -103,7 +103,7 @@ internal sealed partial class HtmlFormattingPass(
         var formattedText = originalText.WithChanges(changes);
         context.Logger?.LogSourceText("UnfilteredFormattedHtmlSourceText", formattedText);
 
-        // Filter out any change that happens in a C# literal. We can't do this based on text easily, as there could
+        // Filter out any change that happens in a C# literal or Razor comment. We can't do this based on text easily, as there could
         // be any number of C# literals on a line, so we have to do it at the edit level, after computing character
         // level edits.
         //
@@ -113,7 +113,7 @@ internal sealed partial class HtmlFormattingPass(
         // we'd have to work very hard to detect that, and if we just process edits we could miss it because
         // there could be one edit to replace the whole line.
         changes = SourceTextDiffer.GetMinimalTextChanges(originalText, formattedText, DiffKind.Char);
-        changes = FilterChangesInStringLiterals(changes);
+        changes = FilterChangesInUnsupportedSpans(changes, razorCommentSpans);
 
         // Re-apply the changes to get the new formatted text
         formattedText = originalText.WithChanges(changes);
@@ -121,7 +121,7 @@ internal sealed partial class HtmlFormattingPass(
         context.Logger?.LogSourceText("FormattedHtmlSourceText", formattedText);
 
         // Compute the line metadata, to tell the formatting helper how to deal with each line
-        var lineInfo = GenerateLineInfo(codeDocument, originalText);
+        var lineInfo = GenerateLineInfo(originalText, scriptAndStyleSpans, razorCommentSpans);
 
         context.Logger?.LogObject("HtmlFormattingLineInfo", lineInfo);
 
@@ -168,7 +168,7 @@ internal sealed partial class HtmlFormattingPass(
             // since we're at the point where we know for sure a newline was added, and there shouldn't
             // be too many of those scenarios, its worth being extra safe, because the pre-filtering is
             // at the mercy of the exact shape of the edits the Html formatter made.
-            if (IsInStringLiteral(originalPosition))
+            if (_documentMappingService.IsInStringLiteral(codeDocument, csharpSyntaxRoot, declSyntaxRoot, originalPosition, multilineOnly: false))
             {
                 return false;
             }
@@ -176,12 +176,18 @@ internal sealed partial class HtmlFormattingPass(
             return true;
         }
 
-        ImmutableArray<TextChange> FilterChangesInStringLiterals(ImmutableArray<TextChange> changes)
+        ImmutableArray<TextChange> FilterChangesInUnsupportedSpans(ImmutableArray<TextChange> changes, ImmutableArray<TextSpan> razorCommentSpans)
         {
             using var validChanges = new PooledArrayBuilder<TextChange>();
             foreach (var change in changes)
             {
-                if (IsInStringLiteral(change.Span.Start))
+                if (_documentMappingService.IsInStringLiteral(codeDocument, csharpSyntaxRoot, declSyntaxRoot, change.Span.Start, multilineOnly: false))
+                {
+                    continue;
+                }
+
+                if (TryGetContainingSpan(change.Span.Start, razorCommentSpans, out var razorCommentSpan) &&
+                    change.Span.End <= razorCommentSpan.End)
                 {
                     continue;
                 }
@@ -196,30 +202,10 @@ internal sealed partial class HtmlFormattingPass(
 
             return validChanges.ToImmutableAndClear();
         }
-
-        bool IsInStringLiteral(int position)
-        {
-
-            if (_documentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, position, out _, out var csharpIndex, out var inDeclDocument))
-            {
-                var syntaxRoot = inDeclDocument
-                    ? declSyntaxRoot.AssumeNotNull()
-                    : csharpSyntaxRoot;
-                if (syntaxRoot.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
-                    csharpNode.IsStringLiteral())
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
     }
 
-    private static ImmutableArray<LineInfo> GenerateLineInfo(RazorCodeDocument codeDocument, SourceText originalText)
+    private static ImmutableArray<LineInfo> GenerateLineInfo(SourceText originalText, ImmutableArray<TextSpan> scriptAndStyleSpans, ImmutableArray<TextSpan> razorCommentSpans)
     {
-        var (scriptAndStyleSpans, razorCommentSpans) = BuildSpans(codeDocument, originalText);
-
         using var lineInfoBuilder = new PooledArrayBuilder<LineInfo>(capacity: originalText.Lines.Count);
 
         // Build LineInfo for each line in the original document.
@@ -301,8 +287,7 @@ internal sealed partial class HtmlFormattingPass(
                     : firstNonWhitespace.GetValueOrDefault() + 1;
                 scriptStyleBuilder.Add(TextSpan.FromBounds(startTag.EndPosition, end));
             }
-            else if (node is RazorCommentBlockSyntax comment &&
-                comment.GetLinePositionSpan(codeDocument.Source).SpansMultipleLines())
+            else if (node is RazorCommentBlockSyntax comment)
             {
                 // Razor comment
                 commentBuilder.Add(comment.Span);

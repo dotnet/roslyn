@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -84,7 +85,7 @@ internal sealed class CohostInlineCompletionEndpoint(
             return null;
         }
 
-        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(generatedDocumentUri.CreateDocumentUriFromSystemUri(), cancellationToken).ConfigureAwait(false);
         if (generatedDocument is null)
         {
             return null;

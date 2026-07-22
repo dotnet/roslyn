@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentHighlight;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -38,21 +38,21 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetHighlightsAsync(context, position, cancellationToken),
+            snapshot => GetHighlightsAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<Response> GetHighlightsAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         LinePosition position,
         CancellationToken cancellationToken)
     {
-        var sourceText = await context.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         if (!sourceText.TryGetAbsoluteIndex(position, out var index))
         {
             return Response.NoFurtherHandling;
         }
 
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var languageKind = codeDocument.GetLanguageKind(index, rightAssociative: true);
         if (languageKind is RazorLanguageKind.Html)
@@ -73,7 +73,7 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
         // document, because we would need to know a highlight location in the other document in order to know a position to ask for.
         // Fortunately none of the (at time of writing) keyword highlighters are for scenarios that would be valid across impl and decl
         // documents anyway.
-        var document = await context.Snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+        var document = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
 
@@ -86,7 +86,7 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
         // For reference highlights, we want to make sure to get references from both documents, as the user thinks they're just one, and
         // the results are much more useful. Fortunately Roslyn supports this, we just have to jump through a few little hoops when mapping
         // back to Razor positions.
-        var otherDocument = await context.Snapshot.TryGetGeneratedDocumentAsync(!inDeclDocument, cancellationToken).ConfigureAwait(false);
+        var otherDocument = await snapshot.TryGetGeneratedDocumentAsync(!inDeclDocument, cancellationToken).ConfigureAwait(false);
         var otherCSharpDocument = codeDocument.GetCSharpDocument(!inDeclDocument);
 
         var referenceHighlights = await GetReferenceHighlightsAsync(document, otherDocument, csharpDocument, otherCSharpDocument, csharpPosition, cancellationToken).ConfigureAwait(false);

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -34,7 +34,6 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
 
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
     private readonly IWorkspaceProvider _workspaceProvider = args.WorkspaceProvider;
-    private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
@@ -46,15 +45,15 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => FindAllReferencesAsync(context, position, cancellationToken),
+            snapshot => FindAllReferencesAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<SumType<VSInternalReferenceItem, LspLocation>[]?>> FindAllReferencesAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
         {
@@ -72,7 +71,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
         }
 
         // Finally, call into C#.
-        var generatedDocument = await context.Snapshot
+        var generatedDocument = await snapshot
             .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
             .ConfigureAwait(false);
         var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
@@ -113,16 +112,16 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 continue;
             }
 
-            var generatedDocumentUri = UriExtensions.GetRequiredSystemUri(location.DocumentUri);
+            var generatedDocumentUri = location.DocumentUri;
             var (mappedUri, mappedRange) = await DocumentMappingService
                 .MapToHostDocumentUriAndRangeAsync(
-                    context.Snapshot,
+                    snapshot,
                     generatedDocumentUri,
                     location.Range.ToLinePositionSpan(),
                     cancellationToken)
                 .ConfigureAwait(false);
 
-            if (_filePathService.IsVirtualCSharpFile(mappedUri))
+            if (mappedUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
             {
                 // Couldn't map, so probably a hidden part of the code-gen, let's skip it.
                 continue;
@@ -134,23 +133,24 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 referenceItem.Origin = VSInternalItemOrigin.Exact;
 
                 // If we're going to change the Uri, then also override the file paths
-                if (mappedUri != UriExtensions.GetRequiredSystemUri(location.DocumentUri))
+                if (mappedUri != location.DocumentUri)
                 {
-                    referenceItem.DisplayPath = mappedUri.AbsolutePath;
-                    referenceItem.DocumentName = mappedUri.AbsolutePath;
+                    var path = mappedUri.GetDocumentFilePathFromUri();
+                    referenceItem.DisplayPath = path;
+                    referenceItem.DocumentName = path;
 
                     var fixedResultText = await GetResultTextAsync(
-                        context,
+                        snapshot,
                         generatedDocumentUri,
                         mappedRange.Start.Line,
-                        mappedUri.GetDocumentFilePathFromUri(),
+                        path,
                         cancellationToken)
                         .ConfigureAwait(false);
                     referenceItem.Text = fixedResultText ?? referenceItem.Text;
                 }
             }
 
-            location.DocumentUri = mappedUri.CreateDocumentUriFromSystemUri();
+            location.DocumentUri = mappedUri;
             location.Range = mappedRange.ToRange();
 
             mappedResults.Add(result);
@@ -160,8 +160,8 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
     }
 
     private async Task<string?> GetResultTextAsync(
-        RemoteDocumentContext context,
-        Uri generatedDocumentUri,
+        RemoteDocumentSnapshot snapshot,
+        DocumentUri generatedDocumentUri,
         int lineNumber,
         string filePath,
         CancellationToken cancellationToken)
@@ -183,26 +183,69 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
         // A FAR for the Title property here will return the full line of code, classified by Roslyn, so we don't want to
         // do anything for those.
         //
-        // To identify which situation we're in, we try to map the start and the end of the line to C#, as an indicator. If
-        // either start or end fail to map, it means the entire line is not C#
+        // To identify which situation we're in, we check whether both ends of the line fall within the same source
+        // mapping. If they do, the entire line is within a single C# block and the C# text is appropriate. If either
+        // end is outside any mapping, or the two ends belong to different mappings (which happens for lines that mix
+        // Razor transitions with C# — e.g. "@if (condition)" where "@" is outside any mapping and "if (condition)"
+        // is in its own mapping), we return the Razor source text instead.
 
-        // TODO: Note the call to ISolutionQueryOperations.GetProjectsContainingDocument(...) will be removed with the introduction of solution snapshots.
-        if (context.GetSolutionQueryOperations().GetProjectsContainingDocument(filePath).FirstOrDefault() is { } project &&
+        if (snapshot.ProjectSnapshot.SolutionSnapshot.GetProjectsContainingDocument(filePath).FirstOrDefault() is { } project &&
             project.TryGetDocument(filePath, out var document))
         {
             var codeDoc = await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
             var line = codeDoc.Source.Text.Lines[lineNumber];
-            if (!context.Snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity))
+            if (!snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity))
             {
                 return null;
             }
 
             var csharpDocument = codeDoc.GetCSharpDocumentForHintName(identity.HintName);
-            if (!DocumentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, line.Start, out _, out _) ||
-                !DocumentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, line.End, out _, out _))
+            var startMapping = FindContainingSourceMapping(csharpDocument, line.Start);
+            // Use line.End - 1 (last content character) rather than the exclusive line.End boundary
+            // to avoid false positives when line.End lands exactly on a mapping edge.
+            var endMapping = line.End > line.Start
+                ? FindContainingSourceMapping(csharpDocument, line.End - 1)
+                : startMapping;
+
+            // Only skip overriding the text (i.e. only use C# text) if both ends of the line are
+            // within the same source mapping, meaning the entire line is pure C# code.
+            if (startMapping is not null && endMapping is not null && ReferenceEquals(startMapping, endMapping))
             {
-                var start = line.GetFirstNonWhitespacePosition() ?? line.Start;
-                return codeDoc.Source.Text.ToString(TextSpan.FromBounds(start, line.End));
+                return null;
+            }
+
+            var start = line.GetFirstNonWhitespacePosition() ?? line.Start;
+            return codeDoc.Source.Text.ToString(TextSpan.FromBounds(start, line.End));
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Finds the <see cref="SourceMapping"/> in <paramref name="csharpDocument"/> that contains
+    /// <paramref name="razorIndex"/>, or <see langword="null"/> if no mapping covers that position.
+    /// Mirrors the containment logic used by <c>TryMapToCSharpDocumentPositionInternal</c>.
+    /// </summary>
+    private static SourceMapping? FindContainingSourceMapping(RazorCSharpDocument csharpDocument, int razorIndex)
+    {
+        foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
+        {
+            var originalSpan = mapping.OriginalSpan;
+            var originalAbsoluteIndex = originalSpan.AbsoluteIndex;
+            if (originalAbsoluteIndex <= razorIndex)
+            {
+                // Treat the mapping as owning the edge at its end (hence <=), mirroring
+                // TryMapToCSharpDocumentPositionInternal's inclusive-end semantics.
+                var distanceIntoOriginalSpan = razorIndex - originalAbsoluteIndex;
+                if (distanceIntoOriginalSpan <= originalSpan.Length)
+                {
+                    return mapping;
+                }
+            }
+            else
+            {
+                // Mappings are sorted by original position; once we've passed razorIndex we can stop.
+                break;
             }
         }
 

@@ -2,25 +2,33 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
+internal sealed class RemoteDocumentSnapshot
 {
-    public TextDocument TextDocument { get; }
-    public RemoteProjectSnapshot ProjectSnapshot { get; }
-
     private RazorCodeDocument? _codeDocument;
     private SourceGeneratedDocument? _generatedDocument;
     private SourceGeneratedDocument? _declGeneratedDocument;
     private bool _declGeneratedDocumentInitialized;
+
+    public TextDocument TextDocument { get; }
+    public RemoteProjectSnapshot ProjectSnapshot { get; }
+
+    public DocumentUri Uri
+    {
+        get
+        {
+            field ??= TextDocument.GetURI();
+            return field;
+        }
+    }
 
     public RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot)
     {
@@ -35,34 +43,13 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 
     public RazorFileKind FileKind => FileKinds.GetFileKindFromPath(FilePath);
     public string FilePath => TextDocument.FilePath.AssumeNotNull();
-    public string TargetPath => TextDocument.FilePath.AssumeNotNull();
-
-    public IProjectSnapshot Project => ProjectSnapshot;
-
-    public int Version => -999; // We don't expect to use this in cohosting, but plenty of existing code logs it's value
 
     public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {
-        return TryGetText(out var result)
+        return TextDocument.TryGetText(out var result)
             ? new(result)
             : new(TextDocument.GetTextAsync(cancellationToken));
     }
-
-    public ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
-    {
-        return TryGetTextVersion(out var result)
-            ? new(result)
-            : new(TextDocument.GetTextVersionAsync(cancellationToken));
-    }
-
-    public bool TryGetText([NotNullWhen(true)] out SourceText? result)
-        => TextDocument.TryGetText(out result);
-
-    public bool TryGetTextVersion(out VersionStamp result)
-        => TextDocument.TryGetTextVersion(out result);
-
-    public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
-        => (result = _codeDocument) is not null;
 
     public async ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(CancellationToken cancellationToken)
     {
@@ -75,7 +62,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         return InterlockedOperations.Initialize(ref _codeDocument, document);
     }
 
-    public IDocumentSnapshot WithText(SourceText text)
+    public RemoteDocumentSnapshot WithText(SourceText text)
     {
         var id = TextDocument.Id;
         var newDocument = TextDocument.Project.Solution
@@ -101,14 +88,6 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
             : await GetGeneratedDocumentInternalAsync(cancellationToken).ConfigureAwait(false);
     }
 
-#if SONICDEV
-    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
-#endif
-    public ValueTask<SourceGeneratedDocument> GetGeneratedDocumentAsync(CancellationToken cancellationToken)
-    {
-        return GetGeneratedDocumentInternalAsync(cancellationToken);
-    }
-
     private async ValueTask<SourceGeneratedDocument> GetGeneratedDocumentInternalAsync(CancellationToken cancellationToken)
     {
         if (_generatedDocument is not null)
@@ -118,18 +97,6 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 
         var generatedDocument = await ProjectSnapshot.GetRequiredGeneratedDocumentAsync(this, cancellationToken).ConfigureAwait(false);
         return InterlockedOperations.Initialize(ref _generatedDocument, generatedDocument);
-    }
-
-    /// <summary>
-    /// Returns the decl-half generated document for this Razor document, or <see langword="null"/> when the
-    /// source generator did not emit a decl-half for it. Caches the (possibly null) result.
-    /// </summary>
-#if SONICDEV
-    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
-#endif
-    public ValueTask<SourceGeneratedDocument?> TryGetDeclGeneratedDocumentAsync(CancellationToken cancellationToken)
-    {
-        return TryGetDeclGeneratedDocumentInternalAsync(cancellationToken);
     }
 
     private async ValueTask<SourceGeneratedDocument?> TryGetDeclGeneratedDocumentInternalAsync(CancellationToken cancellationToken)
@@ -144,14 +111,6 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         _declGeneratedDocument = declDocument;
         Volatile.Write(ref _declGeneratedDocumentInitialized, true);
         return declDocument;
-    }
-
-#if SONICDEV
-    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
-#endif
-    public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
-    {
-        return GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken);
     }
 
     public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(bool declarationDocument, CancellationToken cancellationToken)

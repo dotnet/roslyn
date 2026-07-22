@@ -397,6 +397,11 @@
         <target state="translated">Usar a verificação “é objeto”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_labeled_jump_statement">
+        <source>Use labeled jump statement</source>
+        <target state="translated">Usar instrução jump rotulada</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">Usar função local</target>

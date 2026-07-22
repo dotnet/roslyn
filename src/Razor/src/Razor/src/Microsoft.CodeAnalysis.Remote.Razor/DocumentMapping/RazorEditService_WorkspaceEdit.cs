@@ -10,20 +10,15 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 internal partial class RazorEditService
 {
-    public async Task MapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
+    public async Task MapWorkspaceEditAsync(Solution solution, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
     {
-        if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
-        {
-            throw new InvalidOperationException("RemoteRazorEditService can only be used with RemoteDocumentSnapshot instances.");
-        }
-
         // Collect both workspace edit shapes into TextDocumentEdits so URI coalescing and duplicate
         // edit handling run once across the whole edit.
         using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
@@ -34,7 +29,7 @@ internal partial class RazorEditService
             {
                 if (edit.TryGetFirst(out var textDocumentEdit))
                 {
-                    await MapTextDocumentEditAsync(originSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
+                    await MapTextDocumentEditAsync(solution, textDocumentEdit, cancellationToken).ConfigureAwait(false);
                 }
 
                 builder.Add(edit);
@@ -43,7 +38,7 @@ internal partial class RazorEditService
 
         if (workspaceEdit.Changes is { } changeMap)
         {
-            builder.AddRange(await MapDocumentEditsAsync(originSnapshot, changeMap, cancellationToken).ConfigureAwait(false));
+            builder.AddRange(await MapDocumentEditsAsync(solution, changeMap, cancellationToken).ConfigureAwait(false));
         }
 
         var normalizedDocumentChanges = NormalizeDocumentChanges(builder.ToArrayAndClear());
@@ -103,29 +98,27 @@ internal partial class RazorEditService
         return normalizedDocumentChanges;
     }
 
-    private async Task MapTextDocumentEditAsync(RemoteDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit entry, CancellationToken cancellationToken)
+    private async Task MapTextDocumentEditAsync(Solution solution, TextDocumentEdit entry, CancellationToken cancellationToken)
     {
-        var generatedDocumentUri = entry.TextDocument.DocumentUri.GetRequiredSystemUri();
 
         // For Html we just map the Uri, the range will be the same
-        if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
+        if (entry.TextDocument.DocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
         {
-            var razorUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
             entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
             {
-                DocumentUri = razorUri.CreateDocumentUriFromSystemUri(),
+                DocumentUri = razorDocumentUri,
             };
             return;
         }
 
         // Check if the edit is actually for a generated document, because if not we don't need to do anything
-        if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
+        if (!entry.TextDocument.DocumentUri.IsRazorCSharpDocumentUri(solution))
         {
             // This location doesn't point to a background razor file. No need to map.
             return;
         }
 
-        var solution = contextDocumentSnapshot.TextDocument.Project.Solution;
+        var generatedDocumentUri = entry.TextDocument.DocumentUri;
         var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
         if (razorDocument is null)
         {
@@ -156,28 +149,26 @@ internal partial class RazorEditService
         entry.Edits = mappedEdits.SelectAsPlainArray(static e => new SumType<TextEdit, AnnotatedTextEdit>(e));
     }
 
-    private async Task<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> MapDocumentEditsAsync(RemoteDocumentSnapshot contextDocumentSnapshot, Dictionary<string, TextEdit[]> changes, CancellationToken cancellationToken)
+    private async Task<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> MapDocumentEditsAsync(Solution solution, Dictionary<string, TextEdit[]> changes, CancellationToken cancellationToken)
     {
         // Map legacy Changes into TextDocumentEdits so MapWorkspaceEditAsync can normalize both shapes together.
         using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(changes.Count);
-        var solution = contextDocumentSnapshot.TextDocument.Project.Solution;
 
         foreach (var (uriString, edits) in changes)
         {
-            var generatedDocumentUri = new Uri(uriString);
+            var generatedDocumentUri = new DocumentUri(uriString);
 
             // For Html we just map the Uri, the range will be the same
-            if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
+            if (generatedDocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
             {
-                var razorUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
-                builder.Add(CreateTextDocumentEdit(razorUri.CreateDocumentUriFromSystemUri(), edits.AsSpan()));
+                builder.Add(CreateTextDocumentEdit(razorDocumentUri, edits.AsSpan()));
                 continue;
             }
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
-            if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
+            if (!generatedDocumentUri.IsRazorCSharpDocumentUri(solution))
             {
-                builder.Add(CreateTextDocumentEdit(new(uriString), edits.AsSpan()));
+                builder.Add(CreateTextDocumentEdit(generatedDocumentUri, edits.AsSpan()));
                 continue;
             }
 

@@ -1,11 +1,9 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -15,21 +13,6 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 
 internal static class RazorDiagnosticHelper
 {
-    public static async Task<LspDiagnostic[]?> GetRazorDiagnosticsAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
-    {
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var sourceText = codeDocument.Source.Text;
-        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
-        var diagnostics = csharpDocument.Diagnostics;
-
-        if (diagnostics.Length == 0)
-        {
-            return null;
-        }
-
-        return Convert(diagnostics, sourceText, documentSnapshot);
-    }
-
     public static VSDiagnosticProjectInformation[] GetProjectInformation(RemoteDocumentSnapshot? documentSnapshot)
     {
         if (documentSnapshot is null)
@@ -40,8 +23,8 @@ internal static class RazorDiagnosticHelper
         return [new VSDiagnosticProjectInformation()
                 {
                     Context = null,
-                    ProjectIdentifier = documentSnapshot.Project.IntermediateOutputPath,
-                    ProjectName = documentSnapshot.Project.DisplayName
+                    ProjectIdentifier = documentSnapshot.ProjectSnapshot.IntermediateOutputPath,
+                    ProjectName = documentSnapshot.ProjectSnapshot.DisplayName
                 }];
     }
 

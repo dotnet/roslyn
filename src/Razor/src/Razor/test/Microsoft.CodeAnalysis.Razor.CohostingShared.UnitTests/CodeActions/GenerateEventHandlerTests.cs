@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public class GenerateEventHandlerTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task NoCodeBlock()
     {
         var input = """
@@ -30,7 +30,7 @@ public class GenerateEventHandlerTests(ITestOutputHelper testOutputHelper) : Coh
         await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.GenerateEventHandler);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CodeBlock()
     {
         var input = """
@@ -56,7 +56,7 @@ public class GenerateEventHandlerTests(ITestOutputHelper testOutputHelper) : Coh
         await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.GenerateEventHandler);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CodeBlock_WithExistingCode()
     {
         var input = """
@@ -89,7 +89,7 @@ public class GenerateEventHandlerTests(ITestOutputHelper testOutputHelper) : Coh
         await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.GenerateEventHandler);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CodeBlock_Indented()
     {
         var input = """
@@ -169,7 +169,7 @@ public class GenerateEventHandlerTests(ITestOutputHelper testOutputHelper) : Coh
         await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.GenerateEventHandler);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task Callback()
     {
         var input = """
@@ -195,7 +195,7 @@ public class GenerateEventHandlerTests(ITestOutputHelper testOutputHelper) : Coh
         await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.GenerateEventHandler);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task AsyncCallback()
     {
         var input = """
@@ -221,7 +221,7 @@ public class GenerateEventHandlerTests(ITestOutputHelper testOutputHelper) : Coh
         await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.GenerateAsyncEventHandler);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task BadCodeBehind()
     {
         await VerifyCodeActionAsync(
@@ -362,7 +362,7 @@ public class GenerateEventHandlerTests(ITestOutputHelper testOutputHelper) : Coh
             codeActionName: LanguageServerConstants.CodeActions.GenerateEventHandler);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateAsyncEventHandler_NoCodeBlock()
     {
         var input = """
@@ -382,7 +382,7 @@ public class GenerateEventHandlerTests(ITestOutputHelper testOutputHelper) : Coh
         await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.GenerateAsyncEventHandler);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateAsyncEventHandler_CodeBlock()
     {
         var input = """

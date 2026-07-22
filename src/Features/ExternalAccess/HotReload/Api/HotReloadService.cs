@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
@@ -14,7 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api;
 
-internal sealed class HotReloadService(SolutionServices services, Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider)
+internal sealed class HotReloadService
 {
     private sealed class DebuggerService(Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider) : IManagedHotReloadService
     {
@@ -131,14 +129,16 @@ internal sealed class HotReloadService(SolutionServices services, Func<ValueTask
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
         (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-    private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
-
+    private readonly IEditAndContinueService _encService;
+    private readonly Func<ValueTask<ImmutableArray<string>>> _capabilitiesProvider;
     private DebuggingSessionId _sessionId;
 
-    public HotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
-        : this(services.SolutionServices, () => ValueTask.FromResult(capabilities))
+    public HotReloadService(SolutionServices services, Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider)
     {
         AbstractEditAndContinueAnalyzer.EnableProjectLevelAnalysis = true;
+
+        _capabilitiesProvider = capabilitiesProvider;
+        _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
     }
 
     private DebuggingSessionId GetDebuggingSession()
@@ -160,7 +160,7 @@ internal sealed class HotReloadService(SolutionServices services, Func<ValueTask
 
         var newSessionId = _encService.StartDebuggingSession(
             solution,
-            new DebuggerService(capabilitiesProvider),
+            new DebuggerService(_capabilitiesProvider),
             NullPdbMatchingSourceTextProvider.Instance,
             reportDiagnostics: false);
 

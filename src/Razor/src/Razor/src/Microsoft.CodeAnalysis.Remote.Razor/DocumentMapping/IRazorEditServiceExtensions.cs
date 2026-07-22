@@ -4,9 +4,8 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
@@ -19,7 +18,7 @@ internal static class IRazorEditServiceExtensions
     public static async Task<ImmutableArray<TextChange>> MapCSharpEditsAsync(
         this IRazorEditService service,
         ImmutableArray<TextChange> textChanges,
-        IDocumentSnapshot snapshot,
+        RemoteDocumentSnapshot snapshot,
         CancellationToken cancellationToken)
     {
         var mappedChanges = await service.MapCSharpEditsAsync(
@@ -37,7 +36,7 @@ internal static class IRazorEditServiceExtensions
         this IRazorEditService service,
         ImmutableArray<TextChange> textChanges,
         bool declarationDocument,
-        IDocumentSnapshot snapshot,
+        RemoteDocumentSnapshot snapshot,
         CancellationToken cancellationToken)
     {
         var mappedChanges = await service.MapCSharpEditsAsync(

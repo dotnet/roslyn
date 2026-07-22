@@ -13,9 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -31,26 +29,44 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 internal sealed partial class RazorEditService(
     IDocumentMappingService documentMappingService,
     IClientSettingsManager clientSettingsManager,
-    IFilePathService filePathService,
     RemoteSnapshotManager snapshotManager,
     ITelemetryReporter telemetryReporter) : IRazorEditService
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
-    private readonly IFilePathService _filePathService = filePathService;
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     public async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
-        IDocumentSnapshot snapshot,
+        RemoteDocumentSnapshot snapshot,
         bool declarationDocument,
         bool includeCSharpLanguageFeatureEdits,
         Func<RazorTextChange, bool>? directlyMappedEditFilter,
         CancellationToken cancellationToken)
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var originalCSharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
 
+        return await MapCSharpEditsAsync(
+            textChanges,
+            codeDocument,
+            originalCSharpSyntaxTree,
+            declarationDocument,
+            includeCSharpLanguageFeatureEdits,
+            directlyMappedEditFilter,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
+        ImmutableArray<RazorTextChange> textChanges,
+        RazorCodeDocument codeDocument,
+        SyntaxTree originalCSharpSyntaxTree,
+        bool declarationDocument,
+        bool includeCSharpLanguageFeatureEdits,
+        Func<RazorTextChange, bool>? directlyMappedEditFilter,
+        CancellationToken cancellationToken)
+    {
         using var edits = new PooledArrayBuilder<RazorTextChange>();
         AddDirectlyMappedEdits(ref edits.AsRef(), declarationDocument, textChanges, codeDocument, directlyMappedEditFilter, cancellationToken, out var skippedEdits);
 
@@ -58,7 +74,6 @@ internal sealed partial class RazorEditService(
         {
             // If there was something that didn't map, and the caller wants us to, we need to process the generated C# document
             // that Roslyn wanted to produce, and look for changes that we can translate into their Razor equivalents.
-            var originalCSharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
             var originalCSharpSourceText = await originalCSharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var originalCSharpSyntaxRoot = await originalCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -94,8 +109,8 @@ internal sealed partial class RazorEditService(
 
         AddUsingsChanges(ref edits, codeDocument, addedUsings, removedUsings, cancellationToken);
 
-        var oldMembers = FindMembers(originalCSharpSyntaxRoot, originalCSharpSourceText);
-        var newMembers = FindMembers(newCSharpSyntaxRoot, newCSharpSourceText);
+        var oldMembers = FindMembers(originalCSharpSyntaxRoot, originalCSharpSourceText, codeDocument.FileKind);
+        var newMembers = FindMembers(newCSharpSyntaxRoot, newCSharpSourceText, codeDocument.FileKind);
         var addedMembers = Delta.Compute(oldMembers, newMembers);
 
         AddMemberChanges(ref edits, codeDocument, addedMembers, options);
@@ -364,5 +379,29 @@ internal sealed partial class RazorEditService(
 
     private sealed class DroppedEditsException : Exception
     {
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(RazorEditService instance)
+    {
+        public Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
+            ImmutableArray<RazorTextChange> textChanges,
+            RazorCodeDocument codeDocument,
+            SyntaxTree originalCSharpSyntaxTree,
+            bool declarationDocument,
+            bool includeCSharpLanguageFeatureEdits,
+            Func<RazorTextChange, bool>? directlyMappedEditFilter,
+            CancellationToken cancellationToken)
+        {
+            return instance.MapCSharpEditsAsync(
+                textChanges,
+                codeDocument,
+                originalCSharpSyntaxTree,
+                declarationDocument,
+                includeCSharpLanguageFeatureEdits,
+                directlyMappedEditFilter,
+                cancellationToken);
+        }
     }
 }

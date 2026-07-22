@@ -1,11 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,24 +16,157 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 internal static class IDocumentMappingServiceExtensions
 {
-    /// <summary>
-    /// Maps a range in the specified generated document uri to a range in the Razor document that owns the
-    /// generated document. If the uri passed in is not for a generated document, or the range cannot be mapped
-    /// for some other reason, the original passed in range is returned unchanged.
-    /// </summary>
-    public static Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
+    public static bool TryMapToRazorDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LinePositionSpan csharpRange, out LinePositionSpan razorRange)
+        => service.TryMapToRazorDocumentRange(csharpDocument, csharpRange, MappingBehavior.Strict, out razorRange);
+
+    public static bool TryMapToRazorDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LspRange csharpRange, [NotNullWhen(true)] out LspRange? razorRange)
+        => service.TryMapToRazorDocumentRange(csharpDocument, csharpRange, MappingBehavior.Strict, out razorRange);
+
+    public static DocumentPositionInfo GetPositionInfo(
         this IDocumentMappingService service,
-        RemoteDocumentSnapshot originSnapshot,
-        Uri generatedDocumentUri,
-        LinePositionSpan generatedDocumentRange,
-        CancellationToken cancellationToken)
+        RazorCodeDocument codeDocument,
+        int razorIndex)
     {
-        if (service is DocumentMappingService remoteService)
+        var sourceText = codeDocument.Source.Text;
+
+        if (sourceText.Length == 0)
         {
-            return remoteService.MapToHostDocumentUriAndRangeAsync(originSnapshot, generatedDocumentUri, generatedDocumentRange, cancellationToken);
+            Debug.Assert(razorIndex == 0);
+
+            // Special case for empty documents, to just force Html. When there is no content, then there are no source mappings,
+            // so the map call below fails, and we would default to Razor. This is fine for most cases, but empty documents are a
+            // special case where Html provides much better results when users first start typing.
+            return new DocumentPositionInfo(RazorLanguageKind.Html, new Position(0, 0), razorIndex);
         }
 
-        return Assumed.Unreachable<Task<(Uri, LinePositionSpan)>>();
+        var position = sourceText.GetPosition(razorIndex);
+
+        var inDeclDocument = false;
+        var languageKind = codeDocument.GetLanguageKind(razorIndex, rightAssociative: false);
+        if (languageKind is RazorLanguageKind.CSharp)
+        {
+            if (service.TryMapToCSharpDocumentLinePosition(codeDocument, razorIndex, out var mappedPosition, out _, out var isInDeclDocument))
+            {
+                inDeclDocument = isInDeclDocument;
+                // For C# locations, we attempt to return the corresponding position
+                // within the projected document
+                position = mappedPosition.ToPosition();
+            }
+            else
+            {
+                // Some locations are classified as C# but do not correspond to a position in the
+                // projected document. This currently happens for some Razor directive content,
+                // like the assembly name in @addTagHelper, so fall back to Razor.
+                languageKind = RazorLanguageKind.Razor;
+            }
+        }
+
+        return new DocumentPositionInfo(languageKind, position, razorIndex, inDeclDocument);
+    }
+
+    public static bool TryMapToRazorDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LspRange csharpRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out LspRange? razorRange)
+    {
+        var result = service.TryMapToRazorDocumentRange(csharpDocument, csharpRange.ToLinePositionSpan(), mappingBehavior, out var razorLinePositionSpan);
+        razorRange = result ? razorLinePositionSpan.ToRange() : null;
+        return result;
+    }
+
+    public static bool TryMapToCSharpDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LspRange razorRange, [NotNullWhen(true)] out LspRange? csharpRange)
+    {
+        var result = service.TryMapToCSharpDocumentRange(csharpDocument, razorRange.ToLinePositionSpan(), out var csharpLinePositionSpan);
+        csharpRange = result ? csharpLinePositionSpan.ToRange() : null;
+        return result;
+    }
+
+    public static bool TryMapToRazorDocumentPosition(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, int csharpIndex, [NotNullWhen(true)] out Position? razorPosition, out int razorIndex)
+    {
+        var result = service.TryMapToRazorDocumentPosition(csharpDocument, csharpIndex, out var razorLinePosition, out razorIndex);
+        razorPosition = result ? razorLinePosition.ToPosition() : null;
+        return result;
+    }
+
+    public static bool TryMapToCSharpDocumentPosition(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, int razorIndex, [NotNullWhen(true)] out Position? csharpPosition, out int csharpIndex)
+    {
+        var result = service.TryMapToCSharpDocumentPosition(csharpDocument, razorIndex, out var csharpLinePosition, out csharpIndex);
+        csharpPosition = result ? csharpLinePosition.ToPosition() : null;
+        return result;
+    }
+
+    /// <summary>
+    /// Convenience method to map from Razor to C#, which checks both impl and decl documents
+    /// </summary>
+    /// <remarks>
+    /// A position in a Razor document could map to one of two different C# documents, but the only situation
+    /// where it would map to both is when the resulting position in the C# document is semantically equivalent.
+    /// i.e., a Razor using or namespace directive would map to both the decl and impl documents, but in either case
+    /// it ends up at a C# using or namespace directive, so it doesn't matter which one we get back.
+    ///
+    /// For all other positions in the Razor document, only one document will be mappable.
+    ///
+    /// Note that the same is NOT true in reverse: A mappable position in a C# document might be unique to either
+    /// the decl or impl document, but that would only be a coincidence. Part of the reason we emit inDeclDocument
+    /// as an out parameter is because in order to map back to Razor later, we must know which document the C# position
+    /// came from.
+    /// </remarks>
+    public static bool TryMapToCSharpDocumentLinePosition(this IDocumentMappingService service, RazorCodeDocument codeDocument, int razorIndex, out LinePosition csharpPosition, out int csharpIndex, out bool inDeclDocument)
+    {
+        inDeclDocument = false;
+        if (service.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredCSharpDocument(declarationDocument: false), razorIndex, out csharpPosition, out csharpIndex))
+        {
+            return true;
+        }
+
+        inDeclDocument = true;
+        if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declDocument &&
+            service.TryMapToCSharpDocumentPosition(declDocument, razorIndex, out csharpPosition, out csharpIndex))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool IsInStringLiteral(
+        this IDocumentMappingService service,
+        RazorCodeDocument codeDocument,
+        SyntaxNode csharpSyntaxRoot,
+        SyntaxNode? declSyntaxRoot,
+        int razorIndex,
+        bool multilineOnly)
+    {
+        if (!service.TryMapToCSharpDocumentLinePosition(codeDocument, razorIndex, out _, out var csharpIndex, out var inDeclDocument))
+        {
+            return false;
+        }
+
+        var syntaxRoot = inDeclDocument
+            ? declSyntaxRoot
+            : csharpSyntaxRoot;
+
+        return syntaxRoot?.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
+            csharpNode.IsStringLiteral(multilineOnly);
+    }
+
+    /// <summary>
+    /// Convenience method to map from Razor to C#, which checks both impl and decl documents
+    /// </summary>
+    public static bool TryMapToCSharpDocumentLinePositionSpan(this IDocumentMappingService service, RazorCodeDocument codeDocument, LinePositionSpan razorRange, out LinePositionSpan csharpRange, out bool inDeclDocument)
+    {
+        inDeclDocument = false;
+        if (service.TryMapToCSharpDocumentRange(codeDocument.GetRequiredCSharpDocument(declarationDocument: false), razorRange, out csharpRange))
+        {
+            return true;
+        }
+
+        if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declDocument &&
+            service.TryMapToCSharpDocumentRange(declDocument, razorRange, out csharpRange))
+        {
+            inDeclDocument = true;
+            return true;
+        }
+
+        csharpRange = default;
+        return false;
     }
 
     /// <summary>
@@ -38,10 +174,10 @@ internal static class IDocumentMappingServiceExtensions
     /// generated document. If the uri passed in is not for a generated document, or the range cannot be mapped
     /// for some other reason, the original passed in range is returned unchanged.
     /// </summary>
-    public static async Task<(Uri MappedDocumentUri, LspRange MappedRange)> MapToHostDocumentUriAndRangeAsync(
+    public static async Task<(DocumentUri MappedDocumentUri, LspRange MappedRange)> MapToHostDocumentUriAndRangeAsync(
         this IDocumentMappingService service,
         RemoteDocumentSnapshot originSnapshot,
-        Uri generatedDocumentUri,
+        DocumentUri generatedDocumentUri,
         LspRange generatedDocumentRange,
         CancellationToken cancellationToken)
     {

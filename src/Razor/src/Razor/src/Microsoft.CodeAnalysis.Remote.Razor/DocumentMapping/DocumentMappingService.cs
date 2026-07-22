@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,11 +22,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 [Export(typeof(IDocumentMappingService)), Shared]
 [method: ImportingConstructor]
 internal sealed class DocumentMappingService(
-    IFilePathService filePathService,
     RemoteSnapshotManager snapshotManager,
     ILoggerFactory loggerFactory) : IDocumentMappingService
 {
-    private readonly IFilePathService _filePathService = filePathService;
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
     private readonly ILogger Logger = loggerFactory.GetOrCreateLogger<DocumentMappingService>();
 
@@ -167,18 +165,11 @@ internal sealed class DocumentMappingService(
         return false;
     }
 
-    public bool TryMapToCSharpPositionOrNext(RazorCSharpDocument csharpDocument, int hostDocumentIndex, out LinePosition generatedPosition, out int generatedIndex)
-        => TryMapToCSharpDocumentPositionInternal(csharpDocument, hostDocumentIndex, nextCSharpPositionOnFailure: true, out generatedPosition, out generatedIndex);
-
     public bool TryMapToCSharpDocumentPosition(RazorCSharpDocument csharpDocument, int hostDocumentIndex, out LinePosition generatedPosition, out int generatedIndex)
-        => TryMapToCSharpDocumentPositionInternal(csharpDocument, hostDocumentIndex, nextCSharpPositionOnFailure: false, out generatedPosition, out generatedIndex);
+        => TryMapToCSharpDocumentPositionInternal(csharpDocument, hostDocumentIndex, out generatedPosition, out generatedIndex);
 
-    private static bool TryMapToCSharpDocumentPositionInternal(RazorCSharpDocument csharpDocument, int razorIndex, bool nextCSharpPositionOnFailure, out LinePosition csharpPosition, out int csharpIndex)
+    private static bool TryMapToCSharpDocumentPositionInternal(RazorCSharpDocument csharpDocument, int razorIndex, out LinePosition csharpPosition, out int csharpIndex)
     {
-        SourceMapping? nextCSharpMapping = null;
-
-        var hostDocumentLine = csharpDocument.CodeDocument.Source.Text.GetLinePosition(razorIndex).Line;
-
         foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
         {
             var originalSpan = mapping.OriginalSpan;
@@ -195,29 +186,11 @@ internal sealed class DocumentMappingService(
                     return true;
                 }
             }
-            else if (nextCSharpPositionOnFailure &&
-                mapping.OriginalSpan.LineIndex == hostDocumentLine &&
-                mapping.OriginalSpan.AbsoluteIndex >= razorIndex &&
-                (nextCSharpMapping is null || mapping.OriginalSpan.AbsoluteIndex < nextCSharpMapping.OriginalSpan.AbsoluteIndex))
-            {
-                // The "next" C# location is only valid if it is on the same line in the source document
-                // as the requested position, and before than any previous "next" C# position we have found,
-                // comparing their original positions.  Due to source mappings being ordered by generated span,
-                // not original span, its possible for things to be out of order.
-                nextCSharpMapping = mapping;
-            }
             else
             {
                 // This span (and all following) are after the area we're interested in
                 break;
             }
-        }
-
-        if (nextCSharpPositionOnFailure && nextCSharpMapping is not null)
-        {
-            csharpIndex = nextCSharpMapping.GeneratedSpan.AbsoluteIndex;
-            csharpPosition = csharpDocument.Text.GetLinePosition(csharpIndex);
-            return true;
         }
 
         csharpPosition = default;
@@ -435,20 +408,20 @@ internal sealed class DocumentMappingService(
         }
     }
 
-    public async Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
+    public async Task<(DocumentUri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
         RemoteDocumentSnapshot originSnapshot,
-        Uri generatedDocumentUri,
+        DocumentUri generatedDocumentUri,
         LinePositionSpan generatedDocumentRange,
         CancellationToken cancellationToken)
     {
         // For Html we just map the Uri, the range will be the same
-        if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
+        if (generatedDocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
         {
-            return (_filePathService.GetRazorDocumentUri(generatedDocumentUri), generatedDocumentRange);
+            return (razorDocumentUri, generatedDocumentRange);
         }
 
         // We only map from C# files
-        if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
+        if (!generatedDocumentUri.IsRazorCSharpDocumentUri(originSnapshot.TextDocument.Project.Solution))
         {
             return (generatedDocumentUri, generatedDocumentRange);
         }
@@ -466,10 +439,10 @@ internal sealed class DocumentMappingService(
             return (generatedDocumentUri, generatedDocumentRange);
         }
 
-        var razorDocumentUri = project.Solution.GetRazorDocumentUri(razorCodeDocument);
+        var razorUri = project.Solution.GetRazorDocumentUri(razorCodeDocument);
         if (TryMapToRazorDocumentRange(razorCodeDocument.GetCSharpDocumentForHintName(identity.HintName), generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
         {
-            return (razorDocumentUri, mappedRange);
+            return (razorUri, mappedRange);
         }
 
         // If the position is unmappable, but was in a generated Razor, we have one last check to see if Roslyn wants to navigate
@@ -479,7 +452,7 @@ internal sealed class DocumentMappingService(
                 (generatedDocumentRange.End == generatedDocumentRange.Start ||
                 generatedDocumentRange.End == classDeclSpan.End))
         {
-            return (razorDocumentUri, new(LinePosition.Zero, LinePosition.Zero));
+            return (razorUri, new(LinePosition.Zero, LinePosition.Zero));
         }
 
         return (generatedDocumentUri, generatedDocumentRange);

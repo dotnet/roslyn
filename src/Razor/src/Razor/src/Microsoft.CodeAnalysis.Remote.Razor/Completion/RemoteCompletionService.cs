@@ -16,15 +16,17 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
-using Microsoft.CodeAnalysis.Razor.Completion.Html;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.Completion;
+using Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.Hover;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -60,16 +62,16 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetPositionInfoAsync(context, completionContext, position, cancellationToken),
+            snapshot => GetPositionInfoAsync(snapshot, completionContext, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
-        RemoteDocumentContext remoteDocumentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         VSInternalCompletionContext completionContext,
         Position position,
         CancellationToken cancellationToken)
     {
-        var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         if (!sourceText.TryGetAbsoluteIndex(position, out var index))
         {
             return null;
@@ -80,12 +82,12 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return null;
         }
 
-        var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var positionInfo = GetPositionInfo(codeDocument, index);
 
         if (positionInfo.LanguageKind != RazorLanguageKind.Razor
-            && DelegatedCompletionHelper.TryGetProvisionalCompletionInfo(
+            && TryGetProvisionalCompletionInfo(
                 codeDocument, completionContext, positionInfo, DocumentMappingService, out var provisionalCompletionInfo))
         {
             return provisionalCompletionInfo with { ShouldIncludeDelegationSnippets = false };
@@ -106,6 +108,66 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             && !DelegatedCompletionHelper.IsInDirectiveAttributeParameterContext(codeDocument, index);
 
         return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets, shouldIncludeHtmlCompletions, isStartTagContext);
+    }
+
+    /// <summary>
+    /// Returns possibly update document position info and provisional edit (if any)
+    /// </summary>
+    /// <remarks>
+    /// Provisional completion happens when typing something like @DateTime. in a document.
+    /// In this case the '.' initially is parsed as belonging to HTML. However, we want to
+    /// show C# member completion in this case, so we want to make a temporary change to the
+    /// generated C# code so that '.' ends up in C#. This method will check for such case,
+    /// and provisional completion case is detected, will update position language from HTML
+    /// to C# and will return a temporary edit that should be made to the generated document
+    /// in order to add the '.' to the generated C# contents.
+    /// </remarks>
+    private static bool TryGetProvisionalCompletionInfo(
+        RazorCodeDocument codeDocument,
+        VSInternalCompletionContext completionContext,
+        DocumentPositionInfo originalPositionInfo,
+        IDocumentMappingService documentMappingService,
+        out CompletionPositionInfo result)
+    {
+        result = default;
+
+        if (originalPositionInfo.LanguageKind != RazorLanguageKind.Html ||
+            completionContext.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
+            completionContext.TriggerCharacter != ".")
+        {
+            // Invalid provisional completion context
+            return false;
+        }
+
+        if (originalPositionInfo.Position.Character == 0)
+        {
+            // We're at the start of line. Can't have provisional completions here.
+            return false;
+        }
+
+        var previousCharacterPositionInfo = documentMappingService.GetPositionInfo(codeDocument, originalPositionInfo.HostDocumentIndex - 1);
+
+        if (previousCharacterPositionInfo.LanguageKind != RazorLanguageKind.CSharp)
+        {
+            return false;
+        }
+
+        var previousPosition = previousCharacterPositionInfo.Position;
+
+        // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
+        // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
+        var addProvisionalDot = LspFactory.CreateTextEdit(previousPosition, ".");
+
+        var provisionalPositionInfo = new DocumentPositionInfo(
+            RazorLanguageKind.CSharp,
+            LspFactory.CreatePosition(
+                previousPosition.Line,
+                previousPosition.Character + 1),
+            previousCharacterPositionInfo.HostDocumentIndex + 1,
+            previousCharacterPositionInfo.InDeclDocument);
+
+        result = new CompletionPositionInfo(addProvisionalDot, provisionalPositionInfo, ShouldIncludeDelegationSnippets: false);
+        return true;
     }
 
     /// <summary>
@@ -145,8 +207,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetCompletionAsync(
-                context,
+            snapshot => GetCompletionAsync(
+                snapshot,
                 positionInfo,
                 completionContext,
                 razorCompletionOptions,
@@ -155,7 +217,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             cancellationToken);
 
     private async ValueTask<CompletionResponse> GetCompletionAsync(
-        RemoteDocumentContext remoteDocumentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
@@ -178,7 +240,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return CompletionResults.CallHtml;
         }
 
-        var documentSnapshot = remoteDocumentContext.Snapshot;
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         GetRazorCompletionContextAndLocalHtmlCompletionList(
@@ -205,12 +266,13 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             var mappedPosition = documentPositionInfo.Position;
 
             var csharpGeneratedDocument = await GetCSharpGeneratedDocumentAsync(
-                documentSnapshot, positionInfo.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
+                documentSnapshot, documentPositionInfo.InDeclDocument, positionInfo.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
 
             csharpCompletionList = await GetCSharpCompletionAsync(
                 csharpGeneratedDocument,
                 codeDocument,
                 documentPositionInfo.HostDocumentIndex,
+                documentPositionInfo.InDeclDocument,
                 mappedPosition,
                 completionContext,
                 razorCompletionOptions,
@@ -305,6 +367,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         SourceGeneratedDocument generatedDocument,
         RazorCodeDocument codeDocument,
         int documentIndex,
+        bool inDeclDocument,
         Position mappedPosition,
         CompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
@@ -347,7 +410,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             mappedPosition,
             razorCompletionOptions);
 
-        var resolutionContext = new DelegatedCompletionResolutionContext(RazorLanguageKind.CSharp, rewrittenResponse.Data ?? rewrittenResponse.ItemDefaults?.Data, provisionalTextEdit);
+        var resolutionContext = new DelegatedCompletionResolutionContext(RazorLanguageKind.CSharp, rewrittenResponse.Data ?? rewrittenResponse.ItemDefaults?.Data, provisionalTextEdit, inDeclDocument);
         var resultId = _completionListCache.Add(rewrittenResponse, resolutionContext);
         rewrittenResponse.SetResultId(resultId, clientCapabilities);
 
@@ -384,9 +447,9 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<SourceGeneratedDocument> GetCSharpGeneratedDocumentAsync(RemoteDocumentSnapshot documentSnapshot, TextEdit? provisionalTextEdit, CancellationToken cancellationToken)
+    private static async Task<SourceGeneratedDocument> GetCSharpGeneratedDocumentAsync(RemoteDocumentSnapshot documentSnapshot, bool declarationDocument, TextEdit? provisionalTextEdit, CancellationToken cancellationToken)
     {
-        var generatedDocument = await documentSnapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await documentSnapshot.GetGeneratedDocumentAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
 
         if (provisionalTextEdit is not null)
         {
@@ -407,11 +470,11 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => ResolveCompletionItemAsync(context, request, cancellationToken),
+            snapshot => ResolveCompletionItemAsync(snapshot, request, cancellationToken),
             cancellationToken);
 
     private ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         VSInternalCompletionItem request,
         CancellationToken cancellationToken)
     {
@@ -423,8 +486,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         return originalRequestContext switch
         {
-            DelegatedCompletionResolutionContext resolutionContext => ResolveCSharpCompletionItemAsync(context, request, containingCompletionList, resolutionContext, cancellationToken),
-            RazorCompletionResolveContext razorResolutionContext => ResolveRazorCompletionItemAsync(context, request, razorResolutionContext, cancellationToken),
+            DelegatedCompletionResolutionContext resolutionContext => ResolveCSharpCompletionItemAsync(snapshot, request, containingCompletionList, resolutionContext, cancellationToken),
+            RazorCompletionResolveContext razorResolutionContext => ResolveRazorCompletionItemAsync(snapshot, request, razorResolutionContext, cancellationToken),
             LocalHtmlCompletionResolveContext localHtmlResolveContext => new(ResolveLocalHtmlCompletionItem(request, localHtmlResolveContext)),
             _ => LogAndReturnUnresolvedAsync(request),
         };
@@ -436,9 +499,9 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         }
     }
 
-    private async ValueTask<VSInternalCompletionItem> ResolveRazorCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, RazorCompletionResolveContext razorResolutionContext, CancellationToken cancellationToken)
+    private async ValueTask<VSInternalCompletionItem> ResolveRazorCompletionItemAsync(RemoteDocumentSnapshot snapshot, VSInternalCompletionItem request, RazorCompletionResolveContext razorResolutionContext, CancellationToken cancellationToken)
     {
-        var componentAvailabilityService = new ComponentAvailabilityService(context.Snapshot.ProjectSnapshot.SolutionSnapshot);
+        var componentAvailabilityService = new ComponentAvailabilityService(snapshot.ProjectSnapshot.SolutionSnapshot);
 
         var result = await RazorCompletionItemResolver.ResolveAsync(
             request,
@@ -470,7 +533,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return request;
     }
 
-    private async ValueTask<VSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, CancellationToken cancellationToken)
+    private async ValueTask<VSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentSnapshot documentSnapshot, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, CancellationToken cancellationToken)
     {
         var oldData = request.Data;
         try
@@ -484,8 +547,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 request.Data = JsonSerializer.SerializeToElement(request.Data, JsonHelpers.JsonSerializerOptions);
             }
 
-            var documentSnapshot = context.Snapshot;
-            var generatedDocument = await GetCSharpGeneratedDocumentAsync(documentSnapshot, resolutionContext.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
+            var generatedDocument = await GetCSharpGeneratedDocumentAsync(documentSnapshot, resolutionContext.InDeclDocument, resolutionContext.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
 
             var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
             var result = await ResolveDelegatedCompletionItemAsync(
@@ -498,9 +560,11 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
             var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
 
-            item = await DelegatedCompletionHelper.FormatCSharpCompletionItemAsync(
+            item = await CSharpCompletionItemFormatter.FormatAsync(
                 item,
-                context,
+                documentSnapshot,
+                generatedDocument.Project.Solution,
+                resolutionContext.InDeclDocument,
                 formattingOptions,
                 _formattingService,
                 _documentMappingService,

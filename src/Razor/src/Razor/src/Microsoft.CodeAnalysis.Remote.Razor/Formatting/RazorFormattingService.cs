@@ -13,12 +13,12 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
@@ -61,13 +61,13 @@ internal sealed class RazorFormattingService : IRazorFormattingService
     }
 
     public async Task<ImmutableArray<TextChange>> GetDocumentFormattingChangesAsync(
-        DocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         ImmutableArray<TextChange> htmlChanges,
         LinePositionSpan? range,
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
         // that can make some very bad results. eg, given:
@@ -81,8 +81,8 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         //
         // To defeat that, we simply don't do range formatting if there are diagnostics.
 
-        // Despite what it looks like, codeDocument.GetImplCSharpDocument().Diagnostics is actually the
-        // Razor diagnostics, not the C# diagnostics 🤦‍
+        // Despite what it looks like, getting diagnostics from a CSharpDocument is actually the
+        // Razor diagnostics, not the Roslyn C# diagnostics 🤦‍
         var sourceText = codeDocument.Source.Text;
         if (range is { } span)
         {
@@ -92,17 +92,15 @@ internal sealed class RazorFormattingService : IRazorFormattingService
             }
         }
 
-        var logger = _formattingLoggerFactory.CreateLogger(documentContext.Snapshot.FilePath, range is null ? "Full" : "Range");
-        logger?.LogObject("FileKind", documentContext.Snapshot.FileKind);
+        var logger = _formattingLoggerFactory.CreateLogger(documentSnapshot.FilePath, range is null ? "Full" : "Range");
+        logger?.LogObject("FileKind", documentSnapshot.FileKind);
         logger?.LogObject("Options", options);
         logger?.LogObject("HtmlChanges", htmlChanges.SelectAsArray(e => e.ToRazorTextChange()));
         logger?.LogObject("Range", range);
         logger?.LogSourceText("InitialDocument", sourceText);
         LogSyntaxTree(logger, codeDocument);
 
-        var uri = documentContext.Uri;
-        var documentSnapshot = documentContext.Snapshot;
-        var hostDocumentVersion = documentContext.Snapshot.Version;
+        var uri = documentSnapshot.Uri;
         var context = FormattingContext.Create(
             documentSnapshot,
             codeDocument,
@@ -135,11 +133,10 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         return originalText.MinimizeTextChanges(normalizedChanges);
     }
 
-    public async Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, bool declarationDocument, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(RemoteDocumentSnapshot documentSnapshot, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, bool declarationDocument, CancellationToken cancellationToken)
     {
-        var documentSnapshot = documentContext.Snapshot;
 
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         return await ApplyFormattedChangesAsync(
                 documentSnapshot,
@@ -157,12 +154,11 @@ internal sealed class RazorFormattingService : IRazorFormattingService
                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ImmutableArray<TextChange>> GetHtmlOnTypeFormattingChangesAsync(DocumentContext documentContext, ImmutableArray<TextChange> htmlChanges, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<TextChange>> GetHtmlOnTypeFormattingChangesAsync(RemoteDocumentSnapshot documentSnapshot, ImmutableArray<TextChange> htmlChanges, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
     {
-        var documentSnapshot = documentContext.Snapshot;
 
         // Html formatting doesn't use the C# design time document
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         return await ApplyFormattedChangesAsync(
                 documentSnapshot,
@@ -180,11 +176,10 @@ internal sealed class RazorFormattingService : IRazorFormattingService
                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<TextChange?> TryGetSingleCSharpEditAsync(DocumentContext documentContext, TextChange csharpEdit, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetSingleCSharpEditAsync(RemoteDocumentSnapshot documentSnapshot, TextChange csharpEdit, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var documentSnapshot = documentContext.Snapshot;
         // Since we've been provided with an edit from the C# generated doc, forcing design time would make things not line up
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var razorChanges = await ApplyFormattedChangesAsync(
             documentSnapshot,
@@ -206,11 +201,10 @@ internal sealed class RazorFormattingService : IRazorFormattingService
             : null;
     }
 
-    public async Task<TextChange?> TryGetCSharpCodeActionEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetCSharpCodeActionEditAsync(RemoteDocumentSnapshot documentSnapshot, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var documentSnapshot = documentContext.Snapshot;
         // Since we've been provided with edits from the C# generated doc, forcing design time would make things not line up
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var razorChanges = await ApplyFormattedChangesAsync(
             documentSnapshot,
@@ -232,13 +226,11 @@ internal sealed class RazorFormattingService : IRazorFormattingService
             : null;
     }
 
-    public async Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(RemoteDocumentSnapshot documentSnapshot, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         csharpChanges = WrapCSharpSnippets(csharpChanges);
-
-        var documentSnapshot = documentContext.Snapshot;
         // Since we've been provided with edits from the C# generated doc, forcing design time would make things not line up
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var razorChanges = await ApplyFormattedChangesAsync(
             documentSnapshot,
@@ -275,7 +267,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
     }
 
     private async Task<ImmutableArray<TextChange>> ApplyFormattedChangesAsync(
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument,
         bool? declarationDocument,
         ImmutableArray<TextChange> generatedDocumentChanges,

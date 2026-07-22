@@ -14,7 +14,7 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
     private const int FieldActionIndex = 0;
     private const int ReadonlyFieldActionIndex = 1;
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateField_FromCodeBlock_ExistingCodeBlock()
     {
         var input = """
@@ -47,7 +47,7 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateReadonlyField_FromCodeBlock_ExistingCodeBlock()
     {
         var input = """
@@ -102,7 +102,7 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateField_FromRazor_InOtherFile()
     {
         await VerifyCodeActionAsync(
@@ -150,7 +150,7 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateConstField_FromCodeBlock_ExistingCodeBlock()
     {
         var input = """

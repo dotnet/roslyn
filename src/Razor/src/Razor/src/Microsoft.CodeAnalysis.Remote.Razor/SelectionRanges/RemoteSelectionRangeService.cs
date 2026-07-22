@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -30,15 +31,15 @@ internal sealed class RemoteSelectionRangeService(in ServiceArgs args) : RazorDo
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetSelectionRangesAsync(context, positions, cancellationToken),
+            snapshot => GetSelectionRangesAsync(snapshot, positions, cancellationToken),
             cancellationToken);
 
     private async ValueTask<SelectionRange[]?> GetSelectionRangesAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         Position[] positions,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         // Each position can map to either the implementation or declaration C# document. Keep the
         // position info in request order so we can query each generated document separately and still
@@ -95,7 +96,7 @@ internal sealed class RemoteSelectionRangeService(in ServiceArgs args) : RazorDo
                 return true;
             }
 
-            var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+            var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
 
             var csharpSelectionRanges = await SelectionRangeHandler.GetSelectionRangesAsync(generatedDocument, linePositions.ToImmutable(), cancellationToken).ConfigureAwait(false);
             if (csharpSelectionRanges is null)

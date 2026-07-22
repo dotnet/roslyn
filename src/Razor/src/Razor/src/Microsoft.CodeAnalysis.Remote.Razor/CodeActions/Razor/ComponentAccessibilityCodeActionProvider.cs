@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -220,7 +220,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider(IFileSystem fileS
         // Find all matching tag helpers
         using var _ = DictionaryPool<string, TagHelperPair>.GetPooledObject(out var matching);
 
-        var tagHelpers = await context.DocumentSnapshot.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+        var tagHelpers = await context.DocumentSnapshot.ProjectSnapshot.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var tagHelper in tagHelpers)
         {
@@ -319,7 +319,8 @@ internal sealed class ComponentAccessibilityCodeActionProvider(IFileSystem fileS
 
     private static bool IsTagUnknown(BaseMarkupStartTagSyntax startTag, RazorCodeActionContext context)
     {
-        foreach (var diagnostic in context.CodeDocument.GetRequiredImplCSharpDocument().Diagnostics)
+        // Doesn't matter which document we use to get Razor diagnostics
+        foreach (var diagnostic in context.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics)
         {
             // Check that the diagnostic is to do with our start tag
             if (!(diagnostic.Span.AbsoluteIndex > startTag.Span.End

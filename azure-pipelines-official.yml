@@ -81,7 +81,6 @@ variables:
   # DevDiv drop access token is acquired via WIF service connection (dnceng-devdiv-drop-rw-code-rw-wif)
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
   - group: DotNet-Versions-Publish
-  - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
   - name: _DevDivDropAccessToken
@@ -198,16 +197,6 @@ extends:
             accessToken: $(_DevDivDropAccessToken)
             dropRetentionDays: 90
 
-          # Publish insertion packages to CoreXT store.
-          - output: nuget
-            displayName: 'Publish CoreXT Packages'
-            condition: succeeded()
-            packageParentPath: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages'
-            packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
-            allowPackageConflicts: true
-            nuGetFeedType: external
-            publishFeedCredentials: 'DevDiv - VS package feed'
-
           # Publish an artifact that the RoslynInsertionTool is able to find by its name.
           - output: pipelineArtifact
             displayName: 'Publish Artifact VSSetup'
@@ -289,16 +278,35 @@ extends:
           inputs:
             versionSpec: '4.9.2'
 
-        # Authenticate with service connections to be able to publish packages to external nuget feeds.
+        # Authenticate to azure-public/vs-impl feed via WIF service connection
         - task: NuGetAuthenticate@1
           inputs:
-            nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/dotnet-core-internal-tooling
+            azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+            feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json
+
+        # Authenticate to azure-public/vssdk feed via WIF service connection
+        - task: NuGetAuthenticate@1
+          inputs:
+            azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+            feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json
 
         # Authenticate to DevDiv engineering feed via WIF service connection
         - task: NuGetAuthenticate@1
           inputs:
             azureDevOpsServiceConnection: devdiv-engineering-feed-r-wif
             feedUrl: https://devdiv.pkgs.visualstudio.com/_packaging/Engineering/nuget/v3/index.json
+
+        # Authenticate to DevDiv dotnet-core-internal-tooling feed via WIF service connection
+        - task: NuGetAuthenticate@1
+          inputs:
+            azureDevOpsServiceConnection: dnceng-devdiv-dotnet-core-internal-tooling-feed-rw-wif
+            feedUrl: https://pkgs.dev.azure.com/devdiv/_packaging/dotnet-core-internal-tooling/nuget/v3/index.json
+
+        # Authenticate to DevDiv VS (CoreXT) feed via WIF service connection
+        - task: NuGetAuthenticate@1
+          inputs:
+            azureDevOpsServiceConnection: dnceng-devdiv-vs-feed-push
+            feedUrl: https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json
 
         # Needed for SBOM tool
         - task: UseDotNet@2
@@ -366,6 +374,27 @@ extends:
             filePath: 'eng\publish-assets.ps1'
             arguments: '-configuration $(BuildConfiguration)'
           condition: succeeded()
+
+        # Publish insertion packages to CoreXT store (DevDiv/VS feed)
+        # Uses ambient credentials from NuGetAuthenticate@1 above
+        - task: PowerShell@2
+          displayName: 'Publish CoreXT Packages'
+          condition: succeeded()
+          inputs:
+            targetType: inline
+            script: |
+              $feedUrl = "https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json"
+              $packages = Get-ChildItem -Path "$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages" -Recurse -Filter "*.nupkg"
+              Write-Host "Found $($packages.Count) packages to push"
+              foreach ($pkg in $packages) {
+                Write-Host "Pushing $($pkg.Name)..."
+                & dotnet nuget push $pkg.FullName --source $feedUrl --api-key AzureDevOps --skip-duplicate
+                if ($LASTEXITCODE -ne 0) {
+                  Write-Error "Failed to push $($pkg.Name)"
+                  exit 1
+                }
+              }
+              Write-Host "Successfully pushed $($packages.Count) packages"
 
         # Publish OptProf configuration files to the artifact service
         # ArtifactServices.Drop.PAT is set via WIF service connection for cross account access (dnceng -> devdiv)

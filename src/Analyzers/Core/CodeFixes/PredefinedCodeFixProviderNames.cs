@@ -183,6 +183,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseRangeOperator = nameof(UseRangeOperator);
     public const string UseSimpleUsingStatement = nameof(UseSimpleUsingStatement);
     public const string UseSystemHashCode = nameof(UseSystemHashCode);
+    public const string UseLabeledJumpStatements = nameof(UseLabeledJumpStatements);
     public const string UseSystemThreadingLock = nameof(UseSystemThreadingLock);
     public const string UseThrowExpression = nameof(UseThrowExpression);
     public const string UseTupleSwap = nameof(UseTupleSwap);

@@ -9,5 +9,5 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 internal interface IHtmlCodeActionResolver : ICodeActionResolver
 {
-    Task<CodeAction> ResolveAsync(RemoteDocumentContext documentContext, CodeAction codeAction, CancellationToken cancellationToken);
+    Task<CodeAction> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, CodeAction codeAction, CancellationToken cancellationToken);
 }

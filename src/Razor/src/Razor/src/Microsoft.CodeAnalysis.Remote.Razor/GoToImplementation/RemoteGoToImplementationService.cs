@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
@@ -39,15 +38,15 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetImplementationAsync(context, position, cancellationToken),
+            snapshot => GetImplementationAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<LspLocation[]?>> GetImplementationAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
         {
@@ -67,7 +66,7 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
         }
 
         // Finally, call into C#.
-        var generatedDocument = await context.Snapshot
+        var generatedDocument = await snapshot
             .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
             .ConfigureAwait(false);
 
@@ -89,14 +88,14 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
 
         // Map the C# locations back to the Razor file.
         using var mappedLocations = new PooledArrayBuilder<LspLocation>(locations.Length);
-        var seenLocations = new HashSet<(Uri DocumentUri, LinePositionSpan Range)>();
+        var seenLocations = new HashSet<(DocumentUri DocumentUri, LinePositionSpan Range)>();
 
         foreach (var location in locations)
         {
             var (uri, range) = location;
 
             var (mappedDocumentUri, mappedRange) = await DocumentMappingService
-                .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
+                .MapToHostDocumentUriAndRangeAsync(snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
                 .ConfigureAwait(false);
 
             // Impl and decl generated documents can both contain a generated class declaration that maps to the same Razor location.
@@ -105,7 +104,7 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
                 continue;
             }
 
-            var mappedLocation = LspFactory.CreateLocation(mappedDocumentUri.CreateDocumentUriFromSystemUri(), mappedRange);
+            var mappedLocation = LspFactory.CreateLocation(mappedDocumentUri, mappedRange);
 
             mappedLocations.Add(mappedLocation);
         }

@@ -3,10 +3,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -27,12 +27,12 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetInlineCompletionInfoAsync(context, linePosition, cancellationToken),
+            snapshot => GetInlineCompletionInfoAsync(snapshot, linePosition, cancellationToken),
             cancellationToken);
 
-    public async ValueTask<InlineCompletionRequestInfo?> GetInlineCompletionInfoAsync(RemoteDocumentContext context, LinePosition linePosition, CancellationToken cancellationToken)
+    public async ValueTask<InlineCompletionRequestInfo?> GetInlineCompletionInfoAsync(RemoteDocumentSnapshot snapshot, LinePosition linePosition, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(linePosition, out var hostDocumentPosition))
         {
@@ -46,9 +46,11 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
             return null;
         }
 
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+        // DocumentUri doesn't serialize through MessagePack nicely, and since we know generated documents always have parsable Uris, since they're
+        // created by Roslyn, it's easiest to just use Uri.
         return new InlineCompletionRequestInfo(
-            GeneratedDocumentUri: generatedDocument.CreateSystemUri(),
+            GeneratedDocumentUri: generatedDocument.GetURI().GetRequiredParsedUri(),
             Position: mappedPosition,
             InDeclDocument: inDeclDocument);
     }
@@ -57,12 +59,12 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => FormatInlineCompletionAsync(context, inDeclDocument, options, span, text, cancellationToken),
+            snapshot => FormatInlineCompletionAsync(snapshot, inDeclDocument, options, span, text, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<FormattedInlineCompletionInfo?> FormatInlineCompletionAsync(RemoteDocumentContext context, bool inDeclDocument, RazorFormattingOptions options, LinePositionSpan span, string text, CancellationToken cancellationToken)
+    private async ValueTask<FormattedInlineCompletionInfo?> FormatInlineCompletionAsync(RemoteDocumentSnapshot snapshot, bool inDeclDocument, RazorFormattingOptions options, LinePositionSpan span, string text, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
 
         if (!_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, span, out var razorRange))
@@ -72,7 +74,7 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
 
         var hostDocumentIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(razorRange.End);
 
-        var formattingContext = FormattingContext.Create(context.Snapshot, codeDocument, options, logger: null);
+        var formattingContext = FormattingContext.Create(snapshot, codeDocument, options, logger: null);
         if (!SnippetFormatter.TryGetSnippetWithAdjustedIndentation(formattingContext, text, hostDocumentIndex, out var newSnippetText))
         {
             return null;

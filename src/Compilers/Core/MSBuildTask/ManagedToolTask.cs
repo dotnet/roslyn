@@ -15,6 +15,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
+    /// <summary>
+    /// Base class for the MSBuild tasks that run the built-in managed compilers (<c>Csc</c>, <c>Vbc</c>,
+    /// <c>Csi</c>).
+    /// </summary>
     public abstract class ManagedToolTask : ToolTask
     {
         private bool? _useAppHost;
@@ -62,6 +66,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </remarks>
         internal static bool IsBuiltinToolRunningOnCoreClr => RuntimeHostInfo.IsCoreClrRuntime || IsSdkFrameworkToCoreBridgeTask;
 
+        /// <summary>
+        /// The full path to the built-in compiler managed assembly (<c>csc.dll</c>) or, when an apphost is
+        /// present, the apphost executable (<c>csc.exe</c>) - the file named by <see cref="ToolName"/> inside
+        /// <see cref="GetToolDirectory"/>.
+        /// </summary>
         internal string PathToBuiltInTool => Path.Combine(GetToolDirectory(), ToolName);
 
         /// <summary>
@@ -89,11 +98,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Generate the arguments to pass directly to the buitin tool. These do not include
+        /// Generate the arguments to pass directly to the built-in tool. These do not include
         /// arguments in the response file.
         /// </summary>
         /// <remarks>
-        /// This will be the same value whether the build occurs on .NET Core or .NET Framework. 
+        /// This will be the same value whether the build occurs on .NET Core or .NET Framework.
         /// </remarks>
         internal string GenerateToolArguments()
         {
@@ -128,7 +137,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Generate the arguments to pass directly to the buitin tool. These do not include
+        /// Generate the arguments to pass directly to the built-in tool. These do not include
         /// arguments in the response file.
         /// </summary>
         /// <remarks>
@@ -164,6 +173,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return Path.Combine(ToolPath ?? "", ToolExe);
         }
 
+        /// <summary>
+        /// Gets the base name used to derive the built-in tool's managed assembly and apphost names.
+        /// </summary>
         protected abstract string ToolNameWithoutExtension { get; }
 
         protected abstract void AddCommandLineCommands(CommandLineBuilderExtension commandLine);
@@ -224,6 +236,25 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return items;
         }
 
+        // On-disk layout in the partially-AOT .NET SDK CLI: the runtime muxer (dotnet.exe) lives at the
+        // install root and loads <sdk_dir>\dotnet-aot.dll as a native library, so it is not a managed entry
+        // point running from the SDK directory - AppContext.BaseDirectory is the install root, not the
+        // SDK directory (see GetBuildTaskDirectory for how the SDK directory is recovered):
+        //
+        // C:\Program Files\dotnet\                     <- install root; the muxer process runs from here
+        // ├─ dotnet.exe                                <- the muxer (the process / host)
+        // ├─ host\fxr\<ver>\hostfxr.dll
+        // └─ sdk\10.0.300\                             <- sdk_dir (passed to dotnet_execute)
+        //    ├─ dotnet.dll                             <- managed CLI fallback: Path.Join(sdk_dir, "dotnet.dll")
+        //    ├─ dotnet-aot.dll                         <- loaded by the muxer as a native lib; build tasks linked in
+        //    ├─ MSBuild.dll
+        //    └─ Roslyn\bincore\csc.dll                 <- the compiler the task launches (at <sdk_dir>\Roslyn\bincore)
+
+        /// <summary>
+        /// Returns the folder that holds the built-in compiler: on .NET Core the <c>bincore</c> subfolder of
+        /// the build task directory; on .NET Framework the build task directory itself, except the SDK
+        /// framework-to-core bridge task which reaches the sibling <c>..\bincore</c>.
+        /// </summary>
         internal static string GetToolDirectory()
         {
             var buildTaskDirectory = GetBuildTaskDirectory();
@@ -236,19 +267,52 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 #endif
         }
 
+        /// <summary>
+        /// Answers a single question - "where, on disk, is this build task assembly?" - and is the anchor
+        /// from which <see cref="GetToolDirectory"/> locates the sibling compiler.
+        /// <para>
+        /// In the common loose-file MSBuild deployment this is the directory of
+        /// <see cref="System.Reflection.Assembly.Location"/>. In the partially-AOT .NET SDK CLI that path is
+        /// empty, so the versioned SDK directory the AOT host publishes as the <c>Microsoft.DotNet.Sdk.Root</c>
+        /// <see cref="AppContext"/> value is read first and this task's <c>Roslyn</c> subfolder is appended.
+        /// See <see href="https://github.com/dotnet/sdk/pull/55110"/>.
+        /// </para>
+        /// </summary>
+#if NET
+        // Assembly.Location is a loose-file-only API flagged by the single-file analyzer (IL3000): it
+        // returns an empty string under single-file / AOT. It cannot be annotated with
+        // [RequiresAssemblyFiles] because that attribute would have to flow onto the sealed ToolTask
+        // overrides (GenerateFullPathToTool, GenerateCommandLineCommands, ToolName, ExecuteTool), whose base
+        // declarations are not annotated - and that mismatch is itself an error (IL3003). Under single-file /
+        // AOT the Microsoft.DotNet.Sdk.Root AppContext value (checked first) supplies the directory, so the
+        // empty Assembly.Location is never used there and the IL3000 is suppressed.
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("SingleFile", "IL3000:Avoid accessing Assembly file path when publishing as a single file", Justification = "Assembly.Location is the loose-file path; single-file/AOT hosts have no on-disk location and instead read the Microsoft.DotNet.Sdk.Root AppContext value (checked first). [RequiresAssemblyFiles] cannot be used because it would flow onto the unannotated ToolTask overrides (IL3003).")]
+#endif
         internal static string GetBuildTaskDirectory()
         {
-            var buildTask = typeof(ManagedToolTask).Assembly;
-            var buildTaskDirectory = Path.GetDirectoryName(buildTask.Location);
-            if (buildTaskDirectory is null)
+#if NET
+            // Partially-AOT .NET SDK CLI host (the SDK's dotnet-aot.dll, loaded directly by the runtime
+            // muxer): Assembly.Location is empty and AppContext.BaseDirectory is the muxer's install root
+            // rather than the versioned SDK directory. The AOT bridge publishes the resolved SDK directory as
+            // the Microsoft.DotNet.Sdk.Root AppContext value for the assemblies compiled into it; out-of-repo
+            // code such as this build task reads it first. The build task ships in the "Roslyn" subfolder
+            // beneath the SDK directory. This name must match the constant published by the SDK's
+            // Microsoft.DotNet.Cli.Utils.SdkPaths.
+            if (AppContext.GetData("Microsoft.DotNet.Sdk.Root") is string { Length: > 0 } sdkDirectory)
             {
-                // This should not happen in supported product scenarios but could happen if 
-                // a non-supported scenario tried to load our task (like AOT) and call
-                // through these members.
-                throw new InvalidOperationException("Unable to determine the location of the build task assembly.");
+                return Path.Combine(sdkDirectory, "Roslyn");
+            }
+#endif
+
+            // Loose-file MSBuild deployment (the common scenario on both .NET Framework and .NET Core, and
+            // the compiler toolset NuGet package): this assembly is on disk, so its own directory is the
+            // build task directory (for example <sdk>\Roslyn).
+            if (Path.GetDirectoryName(typeof(ManagedToolTask).Assembly.Location) is { Length: > 0 } buildTaskDirectory)
+            {
+                return buildTaskDirectory;
             }
 
-            return buildTaskDirectory;
+            throw new InvalidOperationException("Unable to determine the location of the build task assembly.");
         }
 
         protected override bool ValidateParameters()

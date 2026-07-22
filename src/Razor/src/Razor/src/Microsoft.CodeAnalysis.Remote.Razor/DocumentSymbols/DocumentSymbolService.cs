@@ -6,7 +6,7 @@ using System.Composition;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentSymbols;
 

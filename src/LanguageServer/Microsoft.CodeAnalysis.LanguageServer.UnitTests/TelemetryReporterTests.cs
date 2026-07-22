@@ -44,14 +44,6 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
-    public async Task TestFault()
-    {
-        await using var testServer = await CreateLanguageServerAsync();
-        var service = await CreateReporterAsync(testServer);
-        service.ReportFault(GetEventName(nameof(TestFault)), "test description", logLevel: 2, forceDump: false, processId: 0, new Exception());
-    }
-
-    [Fact]
     public async Task TestBlockLogging()
     {
         await using var testServer = await CreateLanguageServerAsync();

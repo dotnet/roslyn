@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -24,11 +24,10 @@
     <InternalsVisibleTo Include="VisualFSharp.UnitTests" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.Editor.Tests" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.Editor.IntegrationTests" Key="$(FSharpKey)" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,21 +39,6 @@
 
   <ItemGroup>
     <Reference Include="System.ComponentModel.Composition" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="ExternalAccessFSharpResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ExternalAccessFSharpResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="ExternalAccessFSharpResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ExternalAccessFSharpResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

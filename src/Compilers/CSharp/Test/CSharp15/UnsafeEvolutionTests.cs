@@ -345,7 +345,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             var symbol = getSymbol(symbolGetter);
 
             var symbolExpectedUnsafeMode = shouldBeUnsafe ? expectedUnsafeMode : CallerUnsafeMode.None;
-            Assert.True(symbolExpectedUnsafeMode == symbol.CallerUnsafeMode, $"Expected {symbol.GetType().Name} '{symbol.ToTestDisplayString()}' to have {nameof(CallerUnsafeMode)}.{symbolExpectedUnsafeMode} (got {symbol.CallerUnsafeMode}).");
+            Assert.True(symbolExpectedUnsafeMode == symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty), $"Expected {symbol.GetType().Name} '{symbol.ToTestDisplayString()}' to have {nameof(CallerUnsafeMode)}.{symbolExpectedUnsafeMode} (got {symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty)}).");
 
             var hasAttributeInGetAttributes = symbol.GetAttributes().Any(a => a.AttributeClass?.Name == Name);
             Assert.False(hasAttributeInGetAttributes,
@@ -356,7 +356,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 verifyAttributeInMetadata(symbol, shouldBeUnsafe && expectedUnsafeMode == CallerUnsafeMode.Explicit);
                 if (symbol is PEMethodSymbol { AssociatedSymbol: Symbol associatedSymbol })
-                    verifyAttributeInMetadata(associatedSymbol, associatedSymbol.CallerUnsafeMode == CallerUnsafeMode.Explicit);
+                    verifyAttributeInMetadata(associatedSymbol, associatedSymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit);
 
                 void verifyAttributeInMetadata(Symbol s, bool shouldHave)
                 {
@@ -3435,6 +3435,141 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 26));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84034")]
+    public void StackAlloc_SafeContext_WrappedExpressions()
+    {
+        var source = """
+            [module: System.Runtime.CompilerServices.SkipLocalsInit]
+
+            class C
+            {
+                void M(bool b)
+                {
+                    System.Span<int> a = (stackalloc int[5]);
+                    System.Span<int> c = b ? stackalloc int[5] : default;
+                    System.Span<int> d = (System.Span<int>)stackalloc int[5];
+                    Consume(stackalloc int[5]);
+                    ConsumeRo(stackalloc int[5]);
+                }
+
+                void Consume(System.Span<int> span) { }
+                void ConsumeRo(System.ReadOnlySpan<int> span) { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class SkipLocalsInitAttribute : Attribute;
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics();
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (7,31): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         System.Span<int> a = (stackalloc int[5]);
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(7, 31),
+            // (8,34): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         System.Span<int> c = b ? stackalloc int[5] : default;
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(8, 34),
+            // (9,48): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         System.Span<int> d = (System.Span<int>)stackalloc int[5];
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(9, 48),
+            // (10,17): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         Consume(stackalloc int[5]);
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(10, 17),
+            // (11,19): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         ConsumeRo(stackalloc int[5]);
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(11, 19));
+    }
+
+    [Fact]
+    public void StackAlloc_SafeContext_WrappedExpressions_WithInitializer()
+    {
+        var source = """
+            [module: System.Runtime.CompilerServices.SkipLocalsInit]
+
+            class C
+            {
+                void M(bool b)
+                {
+                    System.Span<int> a = (stackalloc int[] { 1 });
+                    System.Span<int> c = b ? stackalloc int[] { 1 } : default;
+                    System.Span<int> d = (System.Span<int>)stackalloc int[] { 1 };
+                    Consume(stackalloc int[] { 1 });
+                    ConsumeRo(stackalloc int[] { 1 });
+                }
+
+                void Consume(System.Span<int> span) { }
+                void ConsumeRo(System.ReadOnlySpan<int> span) { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class SkipLocalsInitAttribute : Attribute;
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics();
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void StackAlloc_SafeContext_TargetTyped_AttributeEffect_ImplicitAndExplicit()
+    {
+        var sourceWithoutAttribute = """
+            class C
+            {
+                void M()
+                {
+                    System.Span<int> a = stackalloc int[5];
+                    System.Span<int> b = stackalloc[] { 1 };
+                    Consume(stackalloc int[5]);
+                    Consume(stackalloc[] { 1 });
+                }
+
+                void Consume(System.Span<int> span) { }
+            }
+            """;
+
+        CreateCompilationWithSpan(sourceWithoutAttribute, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics();
+
+        var sourceWithAttribute = """
+            [module: System.Runtime.CompilerServices.SkipLocalsInit]
+            class C
+            {
+                void M()
+                {
+                    System.Span<int> a = stackalloc int[5];
+                    System.Span<int> b = stackalloc[] { 1 };
+                    Consume(stackalloc int[5]);
+                    Consume(stackalloc[] { 1 });
+                }
+
+                void Consume(System.Span<int> span) { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class SkipLocalsInitAttribute : Attribute;
+            }
+            """;
+
+        CreateCompilationWithSpan(sourceWithAttribute, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (6,30): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         System.Span<int> a = stackalloc int[5];
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(6, 30),
+            // (8,17): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         Consume(stackalloc int[5]);
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(8, 17));
+    }
+
     [Fact]
     public void StackAlloc_UnsafeContext()
     {
@@ -4580,6 +4715,105 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (12,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe delegate void D();
             Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(12, 22));
+    }
+
+    [Fact]
+    public void UnsafeDeclarations_NameOf()
+    {
+        var source = """
+            #pragma warning disable CS0649, CS8019, CS8321 // unused field, using, local function
+            using unsafe U = int*;
+
+            _ = nameof(U);
+            _ = nameof(F);
+            _ = nameof(C);
+            _ = nameof(S);
+            _ = nameof(I);
+            _ = nameof(R);
+            _ = nameof(D);
+            _ = nameof(X.F);
+            _ = nameof(X.M);
+            _ = nameof(X.P);
+            _ = nameof(X.Pg);
+            _ = nameof(X.Ps);
+            _ = nameof(X.E);
+
+            unsafe void F() { }
+            unsafe class C;
+            unsafe struct S;
+            unsafe interface I;
+            unsafe record R;
+            unsafe delegate void D();
+            class X
+            {
+                public unsafe int F;
+                public unsafe void M() { }
+                public unsafe int P { get; set; }
+                public int Pg { unsafe get; set; }
+                public int Ps { get; unsafe set; }
+                public unsafe event System.Action E { add { } remove { } }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics(
+            // (29,21): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public int Pg { unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(29, 21),
+            // (30,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public int Ps { get; unsafe set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(30, 26));
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+            // (19,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe class C;
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C").WithLocation(19, 14),
+            // (20,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe struct S;
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "S").WithLocation(20, 15),
+            // (21,18): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe interface I;
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "I").WithLocation(21, 18),
+            // (22,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe record R;
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "R").WithLocation(22, 15),
+            // (23,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe delegate void D();
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(23, 22));
+    }
+
+    [Fact]
+    public void UnsafeDeclarations_NameOf_CompatMode()
+    {
+        var source = """
+            #pragma warning disable CS0649, CS8321 // unused field, local function
+
+            _ = nameof(F);
+            _ = nameof(D);
+            _ = nameof(X.F);
+            _ = nameof(X.M);
+            _ = nameof(X.P);
+            _ = nameof(X.E);
+
+            unsafe void F(int* p) { }
+            unsafe delegate int* D();
+            class X
+            {
+                public unsafe int* F;
+                public unsafe void M(int* p) { }
+                public unsafe int* P { get; set; }
+                public unsafe event System.Action<int*[]> E { add { } remove { } }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+            // (11,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe delegate int* D();
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(11, 22));
     }
 
     [Fact]
@@ -9738,13 +9972,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
+        var expectedDiagnostics = new[]
+        {
+            // (2,12): error CS9363: 'C.F' must be used in an unsafe context because it has pointers in its signature
+            // string s = c.F();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.F").WithArguments("C.F").WithLocation(2, 12),
+            // (2,12): error CS9360: This operation may only be used in an unsafe context
+            // string s = c.F();
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "c.F()").WithLocation(2, 12),
+        };
+
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics(
-            // (2,12): error CS9360: This operation may only be used in an unsafe context
-            // string s = c.F();
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "c.F()").WithLocation(2, 12));
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
@@ -9759,10 +10000,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics(
-            // (2,12): error CS9360: This operation may only be used in an unsafe context
-            // string s = c.F();
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "c.F()").WithLocation(2, 12));
+            .VerifyDiagnostics(expectedDiagnostics);
 
         static Symbol getFunctionPointerType(ModuleSymbol module)
         {
@@ -10448,10 +10686,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source,
-            [libRef],
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (3,5): error CS9363: 'C.F2' must be used in an unsafe context because it has pointers in its signature
             // _ = c.F2;
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.F2").WithArguments("C.F2").WithLocation(3, 5),
@@ -10460,7 +10696,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.F2").WithArguments("C.F2").WithLocation(4, 1),
             // (5,13): error CS9363: 'C.F2' must be used in an unsafe context because it has pointers in its signature
             // _ = new C { F2 = default };
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "F2").WithArguments("C.F2").WithLocation(5, 13));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "F2").WithArguments("C.F2").WithLocation(5, 13),
+        };
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             var c = new C();
@@ -10504,13 +10746,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -10540,13 +10782,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { c.M2(null); }
             """;
 
+        var expectedDiagnostics = new[]
+        {
+            // (3,1): error CS9363: 'C.M2(int*)' must be used in an unsafe context because it has pointers in its signature
+            // c.M2(null);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.M2(null)").WithArguments($"C.M2({parameterType})").WithLocation(3, 1),
+        };
+
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (3,1): error CS9363: 'C.M2(int*)' must be used in an unsafe context because it has pointers in its signature
-            // c.M2(null);
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.M2(null)").WithArguments($"C.M2({parameterType})").WithLocation(3, 1));
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             var c = new C();
@@ -10579,13 +10825,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -10612,13 +10858,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { c.M2(null); }
             """;
 
+        var expectedDiagnostics = new[]
+        {
+            // (3,1): error CS9363: 'C.M2(string)' must be used in an unsafe context because it has pointers in its signature
+            // c.M2(null);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.M2(null)").WithArguments("C.M2(string)").WithLocation(3, 1),
+        };
+
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (3,1): error CS9363: 'C.M2(string)' must be used in an unsafe context because it has pointers in its signature
-            // c.M2(null);
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.M2(null)").WithArguments("C.M2(string)").WithLocation(3, 1));
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             var c = new C();
@@ -10647,13 +10897,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -10766,16 +11016,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { E.M2(null); }
             """;
 
-        CreateCompilation(source,
-            [libRef],
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (2,1): error CS9363: 'E.M2(int*[])' must be used in an unsafe context because it has pointers in its signature
             // new int*[0].M2();
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new int*[0].M2()").WithArguments("E.M2(int*[])").WithLocation(2, 1),
             // (4,1): error CS9363: 'E.M2(int*[])' must be used in an unsafe context because it has pointers in its signature
             // E.M2(null);
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.M2(null)").WithArguments("E.M2(int*[])").WithLocation(4, 1));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.M2(null)").WithArguments("E.M2(int*[])").WithLocation(4, 1),
+        };
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             123.M1();
@@ -10818,13 +11072,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -10858,16 +11112,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { E.M2(null); }
             """;
 
-        CreateCompilation(source,
-            [libRef],
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (2,1): error CS9363: 'E.extension(int*[]).M2()' must be used in an unsafe context because it has pointers in its signature
             // new int*[0].M2();
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new int*[0].M2()").WithArguments("E.extension(int*[]).M2()").WithLocation(2, 1),
             // (4,1): error CS9363: 'E.M2(int*[])' must be used in an unsafe context because it has pointers in its signature
             // E.M2(null);
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.M2(null)").WithArguments("E.M2(int*[])").WithLocation(4, 1));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.M2(null)").WithArguments("E.M2(int*[])").WithLocation(4, 1),
+        };
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             123.M1();
@@ -10910,13 +11168,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -11109,13 +11367,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(
+            // (2,1): error CS9363: 'I.M1()' must be used in an unsafe context because it has pointers in its signature
+            // i.M1();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "i.M1()").WithArguments("I.M1()").WithLocation(2, 1));
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(
+            // (2,1): error CS9363: 'I.M1()' must be used in an unsafe context because it has pointers in its signature
+            // i.M1();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "i.M1()").WithArguments("I.M1()").WithLocation(2, 1));
     }
 
     [Theory, CombinatorialData]
@@ -11251,16 +11515,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { c.P2 = c.P2; }
             """;
 
-        CreateCompilation(source,
-            [libRef],
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (3,1): error CS9363: 'C.P2.set' must be used in an unsafe context because it has pointers in its signature
             // c.P2 = c.P2;
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
             // (3,8): error CS9363: 'C.P2.get' must be used in an unsafe context because it has pointers in its signature
             // c.P2 = c.P2;
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.P2").WithArguments("C.P2.get").WithLocation(3, 8));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.P2").WithArguments("C.P2.get").WithLocation(3, 8),
+        };
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             var c = new C();
@@ -11296,13 +11564,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -11337,10 +11605,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { E.get_P2(null); E.set_P2(null, 0); }
             """;
 
-        CreateCompilation(source,
-            [libRef],
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (3,1): error CS9363: 'E.extension(int*[]).P2.set' must be used in an unsafe context because it has pointers in its signature
             // new int*[0].P2 = new int*[0].P2;
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new int*[0].P2").WithArguments("E.extension(int*[]).P2.set").WithLocation(3, 1),
@@ -11352,7 +11618,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.get_P2(null)").WithArguments("E.get_P2(int*[])").WithLocation(5, 1),
             // (5,17): error CS9363: 'E.set_P2(int*[], int)' must be used in an unsafe context because it has pointers in its signature
             // E.get_P2(null); E.set_P2(null, 0);
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.set_P2(null, 0)").WithArguments("E.set_P2(int*[], int)").WithLocation(5, 17));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.set_P2(null, 0)").WithArguments("E.set_P2(int*[], int)").WithLocation(5, 17),
+        };
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             var x = 123;
@@ -11405,13 +11677,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -11442,16 +11714,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { c2[0] = c2[0]; }
             """;
 
-        CreateCompilation(source,
-            [libRef],
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (4,1): error CS9363: 'C2.this[int].set' must be used in an unsafe context because it has pointers in its signature
             // c2[0] = c2[0];
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c2[0]").WithArguments("C2.this[int].set").WithLocation(4, 1),
             // (4,9): error CS9363: 'C2.this[int].get' must be used in an unsafe context because it has pointers in its signature
             // c2[0] = c2[0];
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c2[0]").WithArguments("C2.this[int].get").WithLocation(4, 9));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c2[0]").WithArguments("C2.this[int].get").WithLocation(4, 9),
+        };
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             var c1 = new C1();
@@ -11488,13 +11764,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -11520,13 +11796,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe { c.E2 += null; }
             """;
 
+        var expectedDiagnostics = new[]
+        {
+            // (3,6): error CS9363: 'C.E2.add' must be used in an unsafe context because it has pointers in its signature
+            // c.E2 += null;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "+=").WithArguments("C.E2.add").WithLocation(3, 6),
+        };
+
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (3,6): error CS9363: 'C.E2.add' must be used in an unsafe context because it has pointers in its signature
-            // c.E2 += null;
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "+=").WithArguments("C.E2.add").WithLocation(3, 6));
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             var c = new C();
@@ -11556,13 +11836,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -11585,13 +11865,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             _ = new C(null);
             """;
 
+        var expectedDiagnostics = new[]
+        {
+            // (2,5): error CS9363: 'C.C(int*)' must be used in an unsafe context because it has pointers in its signature
+            // _ = new C(null);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new C(null)").WithArguments("C.C(int*)").WithLocation(2, 5),
+        };
+
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (2,5): error CS9363: 'C.C(int*)' must be used in an unsafe context because it has pointers in its signature
-            // _ = new C(null);
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new C(null)").WithArguments("C.C(int*)").WithLocation(2, 5));
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             _ = new C();
@@ -11623,13 +11907,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -11657,13 +11941,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             c -= null;
             """;
 
+        var expectedDiagnostics = new[]
+        {
+            // (3,1): error CS9363: 'C.operator -=(int*)' must be used in an unsafe context because it has pointers in its signature
+            // c -= null;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c -= null").WithArguments("C.operator -=(int*)").WithLocation(3, 1),
+        };
+
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (3,1): error CS9363: 'C.operator -=(int*)' must be used in an unsafe context because it has pointers in its signature
-            // c -= null;
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c -= null").WithArguments("C.operator -=(int*)").WithLocation(3, 1));
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             var c = new C();
@@ -11681,11 +11969,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
-        // https://github.com/dotnet/roslyn/issues/81967: operator invocations involving pointers are allowed outside unsafe context
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyEmitDiagnostics();
+            .VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -14159,7 +14446,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var refA = CompileIL(sourceA, prependDefaultHeader: false);
 
         var a = CreateCompilation("", [refA]).VerifyDiagnostics().GetReferencedAssemblySymbol(refA);
-        Assert.Equal(CallerUnsafeMode.None, a.GlobalNamespace.GetMember("A.M").CallerUnsafeMode);
+        Assert.Equal(CallerUnsafeMode.None, a.GlobalNamespace.GetMember("A.M").GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty));
 
         var sourceB = """
             A.M();
@@ -14205,7 +14492,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var refA = CompileIL(sourceA, prependDefaultHeader: false);
 
         var a = CreateCompilation("", [refA]).VerifyDiagnostics().GetReferencedAssemblySymbol(refA);
-        Assert.Equal(CallerUnsafeMode.Explicit, a.GlobalNamespace.GetMember("A.M").CallerUnsafeMode);
+        Assert.Equal(CallerUnsafeMode.Explicit, a.GlobalNamespace.GetMember("A.M").GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty));
 
         var sourceB = """
             A.M();
@@ -14253,7 +14540,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var refA = CompileIL(sourceA, prependDefaultHeader: false);
 
         var a = CreateCompilation("", [refA]).VerifyDiagnostics().GetReferencedAssemblySymbol(refA);
-        Assert.Equal(CallerUnsafeMode.Explicit, a.GlobalNamespace.GetMember("A.M").CallerUnsafeMode);
+        Assert.Equal(CallerUnsafeMode.Explicit, a.GlobalNamespace.GetMember("A.M").GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty));
 
         var sourceB = """
             A.M();

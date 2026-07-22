@@ -2,16 +2,56 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Tooltip;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Hover;
 
-internal sealed class ComponentAvailabilityService(RemoteSolutionSnapshot solutionSnapshot) : AbstractComponentAvailabilityService
+internal sealed class ComponentAvailabilityService(RemoteSolutionSnapshot solutionSnapshot) : IComponentAvailabilityService
 {
     private readonly RemoteSolutionSnapshot _solutionSnapshot = solutionSnapshot;
 
-    protected override ImmutableArray<IProjectSnapshot> GetProjectsContainingDocument(string documentFilePath)
-        => _solutionSnapshot.GetProjectsContainingDocument(documentFilePath);
+    public async Task<ImmutableArray<(RemoteProjectSnapshot Project, bool IsAvailable)>> GetComponentAvailabilityAsync(
+        string documentFilePath,
+        string typeName,
+        CancellationToken cancellationToken)
+    {
+        var projects = _solutionSnapshot.GetProjectsContainingDocument(documentFilePath);
+        if (projects.IsEmpty)
+        {
+            return [];
+        }
+
+        using var result = new PooledArrayBuilder<(RemoteProjectSnapshot, bool IsAvailable)>(capacity: projects.Length);
+
+        foreach (var project in projects)
+        {
+            var containsTagHelper = await ContainsTagHelperAsync(project, typeName, cancellationToken).ConfigureAwait(false);
+
+            result.Add((project, IsAvailable: containsTagHelper));
+        }
+
+        return result.ToImmutableAndClear();
+    }
+
+    private static async Task<bool> ContainsTagHelperAsync(
+        RemoteProjectSnapshot projectSnapshot,
+        string typeName,
+        CancellationToken cancellationToken)
+    {
+        var tagHelpers = await projectSnapshot.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var tagHelper in tagHelpers)
+        {
+            if (tagHelper.TypeName == typeName)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

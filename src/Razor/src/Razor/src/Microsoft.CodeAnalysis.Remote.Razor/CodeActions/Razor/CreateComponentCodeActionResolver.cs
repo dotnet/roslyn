@@ -26,7 +26,7 @@ internal sealed class CreateComponentCodeActionResolver(LanguageServerFeatureOpt
 
     public string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<CreateComponentCodeActionParams>();
         if (actionParams is null)
@@ -34,12 +34,12 @@ internal sealed class CreateComponentCodeActionResolver(LanguageServerFeatureOpt
             return null;
         }
 
-        if (!documentContext.Snapshot.FileKind.IsComponent())
+        if (!documentSnapshot.FileKind.IsComponent())
         {
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var newComponentUri = LspFactory.CreateFilePathUri(actionParams.Path, _languageServerFeatureOptions);
 
         using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();

@@ -13,9 +13,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Text;
@@ -43,7 +42,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
     ///  An array of <see cref="Diagnostic"/> objects to translate.
     /// </param>
     /// <param name="documentSnapshot">
-    ///  The <see cref="IDocumentSnapshot"/> for the code document associated with the diagnostics.
+    ///  The <see cref="RemoteDocumentSnapshot"/> for the code document associated with the diagnostics.
     /// </param>
     /// <param name="cancellationToken">A token that can be checked to cancel work.</param>
     /// <returns>An array of translated diagnostics</returns>
@@ -329,9 +328,10 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
             CSSErrorCodes.MissingOpeningBrace or
             CSSErrorCodes.MissingClassNameAfterDot or
             CSSErrorCodes.MissingSelectorAfterCombinator or
-            CSSErrorCodes.MissingPropertyName or
             CSSErrorCodes.MissingPropertyValue or
             CSSErrorCodes.MissingSelectorBeforeCombinatorCode => IsAtCSharpTransitionInStyleBlock(diagnostic, sourceText, syntaxTree),
+            CSSErrorCodes.MissingPropertyName => IsAtCSharpTransitionInStyleBlock(diagnostic, sourceText, syntaxTree) ||
+                IsOutsideAttributeAndStyleBlock(diagnostic, sourceText, syntaxTree),
             HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree),
             HtmlErrorCodes.InvalidNestingErrorCode => IsAnyFilteredInvalidNestingError(diagnostic, sourceText, syntaxTree),
             HtmlErrorCodes.MissingEndTagErrorCode => syntaxTree.Options.FileKind.IsComponent(), // Redundant with RZ9980 in Components
@@ -393,6 +393,20 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
             }
 
             return owner.FirstAncestorOrSelf<BaseMarkupElementSyntax>(static n => n.StartTag?.Name.Content == "style") is not null;
+        }
+
+        static bool IsOutsideAttributeAndStyleBlock(LspDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
+        {
+            if (!sourceText.TryGetAbsoluteIndex(diagnostic.Range.Start, out var absoluteIndex))
+            {
+                return false;
+            }
+
+            var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex);
+            return owner is not null &&
+                owner.FirstAncestorOrSelf<SyntaxNode>(static n =>
+                    n.IsAnyAttributeSyntax() ||
+                    n is BaseMarkupElementSyntax { StartTag.Name.Content: "style" }) is null;
         }
 
         // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,

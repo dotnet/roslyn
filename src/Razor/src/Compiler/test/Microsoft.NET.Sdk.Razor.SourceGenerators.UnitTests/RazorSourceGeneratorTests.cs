@@ -161,6 +161,44 @@ namespace MyApp.Pages
             Assert.Equal(4, result.GeneratedSources.Length);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/7421")]
+        public async Task SourceGenerator_RazorComment_AdjacentCommentsInCodeBlock()
+        {
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Views/Home/Index.cshtml"] = """
+                    @if (true)
+                    {
+                        using (Html.BeginForm("Action", "Controller", new
+                        {
+                        },
+                                FormMethod.Post,
+                                false,
+                                new
+                                {
+                                    @class = ""
+                    @*                @class = ""
+                    *@@*                @class = ""
+                    *@            }))
+                        {
+                        }
+                    }
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
+
+            // Act
+            var result = RunGenerator(compilation!, ref driver);
+
+            // Assert
+            Assert.Empty(result.Diagnostics);
+            var generatedSource = Assert.Single(result.GeneratedSources).SourceText.ToString();
+            Assert.DoesNotContain("@*", generatedSource);
+            Assert.DoesNotContain("*@", generatedSource);
+        }
+
         [Fact]
         public async Task SourceGeneratorEvents_RazorFiles_Works()
         {
@@ -3954,6 +3992,36 @@ __builder.AddContent(1, """"""
             // Confirm that the tag helpers from metadata refs _didn't_ re-run
             // TagHelpersFromCompilation re-runs when compilation changes but output is unchanged
             mainRun.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged);
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3016708")]
+        public async Task SourceGenerator_MisplacedPreprocessorDirectiveInDisabledText_DoesNotCrash()
+        {
+            // A misplaced '#endif' inside a false '#if' block's disabled text reports RZ1044. The
+            // diagnostic must carry a file path so the source generator can map it to a Location.
+            var parseOptions = CSharpParseOptions.Default.WithFeatures([new("use-roslyn-tokenizer", "true")]);
+
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = """
+                    @code {
+                    #if DEBUG
+                    x #endif
+                    #endif
+                    }
+                    """,
+            }, cSharpParseOptions: parseOptions);
+
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
+
+            var result = RunGenerator(compilation!, ref driver);
+
+            var diagnostic = Assert.Single(result.Diagnostics);
+            Assert.Equal("RZ1044", diagnostic.Id);
+            Assert.NotEqual(Location.None, diagnostic.Location);
+            Assert.Equal("Pages/Index.razor", diagnostic.Location.GetLineSpan().Path);
+            Assert.Equal(2, result.GeneratedSources.Length);
         }
     }
 }

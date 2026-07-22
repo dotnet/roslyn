@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Symbols;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -664,6 +665,255 @@ class C
             Verify(GetChildren(children[0]),
                 EvalResult("A", "1", "int?", "(new C()).r.A", flags: DkmEvaluationResultFlags.CanFavorite, category: DkmEvaluationResultCategory.Property),
                 EvalResult("B", "null", "int?", "(new C()).r.B", flags: DkmEvaluationResultFlags.CanFavorite, category: DkmEvaluationResultCategory.Property));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72544"), WorkItem("https://github.com/dotnet/roslyn/issues/81763")]
+        public void RefReturnProperty()
+        {
+            var source =
+@"namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            Item1 = item1;
+            Item2 = item2;
+        }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class TupleElementNamesAttribute : System.Attribute
+    {
+        public TupleElementNamesAttribute(string[] transformNames) { }
+    }
+}
+
+struct S
+{
+    public int F;
+}
+
+class C1
+{
+    public int A = 1;
+}
+
+class C2
+{
+    public int A = 1;
+    public ref int B => ref A;
+}
+
+class C3
+{
+    public int? A = 1;
+}
+
+class C4
+{
+    public int? A = 1;
+    public ref int? B => ref A;
+}
+
+class C5
+{
+    public int? A = null;
+    public ref int? B => ref A;
+}
+
+class C6
+{
+    public S A = new S { F = 1 };
+    public ref S B => ref A;
+}
+
+class C7
+{
+    public S? A = new S { F = 1 };
+    public ref S? B => ref A;
+}
+
+class C8
+{
+    public (int x, int y) A = (1, 2);
+    public ref (int x, int y) B => ref A;
+}
+
+class C9
+{
+    public (dynamic x, int y) A = (1, 2);
+    public ref (dynamic x, int y) B => ref A;
+}";
+            var assembly = GetAssembly(source);
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assembly), getMemberValue: GetRefReturnPropertyValue);
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C1");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("c1", value);
+                Verify(GetChildren(evalResult),
+                    EvalResult("A", "1", "int", "c1.A", flags: DkmEvaluationResultFlags.CanFavorite));
+
+                type = runtime.GetType("C2");
+                value = type.Instantiate();
+                evalResult = FormatResult("c2", value);
+                Verify(GetChildren(evalResult),
+                    EvalResult("A", "1", "int", "c2.A", flags: DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("B", "1", "int", "c2.B", category: DkmEvaluationResultCategory.Property));
+
+                type = runtime.GetType("C3");
+                value = type.Instantiate();
+                evalResult = FormatResult("c3", value);
+                Verify(GetChildren(evalResult),
+                    EvalResult("A", "1", "int?", "c3.A", flags: DkmEvaluationResultFlags.CanFavorite));
+
+                type = runtime.GetType("C4");
+                value = type.Instantiate();
+                evalResult = FormatResult("c4", value);
+                Verify(GetChildren(evalResult),
+                    EvalResult("A", "1", "int?", "c4.A", flags: DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("B", "1", "int?", "c4.B", category: DkmEvaluationResultCategory.Property));
+
+                type = runtime.GetType("C5");
+                value = type.Instantiate();
+                evalResult = FormatResult("c5", value);
+                Verify(GetChildren(evalResult),
+                    EvalResult("A", "null", "int?", "c5.A", flags: DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("B", "null", "int?", "c5.B", category: DkmEvaluationResultCategory.Property));
+
+                type = runtime.GetType("C6");
+                value = type.Instantiate();
+                evalResult = FormatResult("c6", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("A", "{S}", "S", "c6.A", flags: DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("B", "{S}", "S", "c6.B", flags: DkmEvaluationResultFlags.Expandable, category: DkmEvaluationResultCategory.Property));
+                Verify(GetChildren(children[1]),
+                    EvalResult("F", "1", "int", "c6.B.F", flags: DkmEvaluationResultFlags.CanFavorite));
+
+                type = runtime.GetType("C7");
+                value = type.Instantiate();
+                evalResult = FormatResult("c7", value);
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("A", "{S}", "S?", "c7.A", flags: DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("B", "{S}", "S?", "c7.B", flags: DkmEvaluationResultFlags.Expandable, category: DkmEvaluationResultCategory.Property));
+                Verify(GetChildren(children[1]),
+                    EvalResult("F", "1", "int", "c7.B.F", flags: DkmEvaluationResultFlags.CanFavorite));
+
+                type = runtime.GetType("C8");
+                value = type.Instantiate();
+                evalResult = FormatResult("c8", value);
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("A", "(1, 2)", "(int x, int y)", "c8.A", flags: DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("B", "(1, 2)", "(int x, int y)", "c8.B", flags: DkmEvaluationResultFlags.Expandable, category: DkmEvaluationResultCategory.Property));
+                var tupleChildren = GetChildren(children[1]);
+                Verify(tupleChildren,
+                    EvalResult("x", "1", "int", "c8.B.Item1"),
+                    EvalResult("y", "2", "int", "c8.B.Item2"),
+                    EvalResult("Raw View", "(1, 2)", "(int x, int y)", "c8.B, raw", flags: DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, category: DkmEvaluationResultCategory.Data));
+
+                type = runtime.GetType("C9");
+                value = type.Instantiate();
+                evalResult = FormatResult("c9", value);
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("A", "(1, 2)", "(dynamic x, int y) {(object, int)}", "c9.A", flags: DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("B", "(1, 2)", "(dynamic x, int y) {(object, int)}", "c9.B", flags: DkmEvaluationResultFlags.Expandable, category: DkmEvaluationResultCategory.Property));
+                tupleChildren = GetChildren(children[1]);
+                Verify(tupleChildren,
+                    EvalResult("x", "1", "dynamic {int}", "c9.B.Item1"),
+                    EvalResult("y", "2", "int", "c9.B.Item2"),
+                    EvalResult("Raw View", "(1, 2)", "(dynamic x, int y) {(object, int)}", "c9.B, raw", flags: DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, category: DkmEvaluationResultCategory.Data));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72544")]
+        public void RefReturnProperty_ReferenceTypeAndGeneric()
+        {
+            var source =
+@"class R
+{
+    public int F = 1;
+}
+
+class C
+{
+    public R A = new R();
+    public ref R B => ref A;
+}
+
+class G<T>
+{
+    public T A;
+
+    public G(T value)
+    {
+        A = value;
+    }
+
+    public ref T B => ref A;
+}";
+            var assembly = GetAssembly(source);
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assembly), getMemberValue: GetRefReturnPropertyValue);
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+                var evalResult = FormatResult("c", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("A", "{R}", "R", "c.A", flags: DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("B", "{R}", "R", "c.B", flags: DkmEvaluationResultFlags.Expandable, category: DkmEvaluationResultCategory.Property));
+                Verify(GetChildren(children[1]),
+                    EvalResult("F", "1", "int", "c.B.F", flags: DkmEvaluationResultFlags.CanFavorite));
+
+                var typeR = assembly.GetType("R");
+                type = runtime.GetType("G`1", typeR);
+                value = type.Instantiate(typeR.Instantiate());
+                evalResult = FormatResult("gRef", value);
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("A", "{R}", "R", "gRef.A", flags: DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("B", "{R}", "R", "gRef.B", flags: DkmEvaluationResultFlags.Expandable, category: DkmEvaluationResultCategory.Property));
+                Verify(GetChildren(children[1]),
+                    EvalResult("F", "1", "int", "gRef.B.F", flags: DkmEvaluationResultFlags.CanFavorite));
+
+                type = runtime.GetType("G`1", typeof(int));
+                value = type.Instantiate(2);
+                evalResult = FormatResult("gValue", value);
+                Verify(GetChildren(evalResult),
+                    EvalResult("A", "2", "int", "gValue.A", flags: DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("B", "2", "int", "gValue.B", category: DkmEvaluationResultCategory.Property));
+            }
+        }
+
+        private DkmClrValue GetRefReturnPropertyValue(DkmClrValue value, string memberName)
+        {
+            if (memberName != "B")
+            {
+                return null;
+            }
+
+            var instanceType = value.Type.GetLmrType();
+            var property = ((TypeImpl)instanceType).Type.GetProperty(memberName);
+            var fieldValue = value.GetMemberValue("A", (int)System.Reflection.MemberTypes.Field, instanceType.FullName, DefaultInspectionContext);
+            var byRefType = DkmClrType.Create(value.Type.AppDomain, (TypeImpl)property.PropertyType);
+            return new DkmClrValue(
+                fieldValue.HostObjectValue,
+                fieldValue.HostObjectValue,
+                byRefType,
+                alias: null,
+                evalFlags: fieldValue.EvalFlags,
+                valueFlags: DkmClrValueFlags.None,
+                category: DkmEvaluationResultCategory.Property,
+                access: DkmEvaluationResultAccessType.Public);
         }
 
         [Fact]

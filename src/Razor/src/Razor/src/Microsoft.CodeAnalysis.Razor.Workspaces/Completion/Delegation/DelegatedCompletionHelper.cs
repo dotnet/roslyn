@@ -6,18 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
@@ -142,66 +133,6 @@ internal static class DelegatedCompletionHelper
             completionOptions);
 
         return rewrittenResponse;
-    }
-
-    /// <summary>
-    /// Returns possibly update document position info and provisional edit (if any)
-    /// </summary>
-    /// <remarks>
-    /// Provisional completion happens when typing something like @DateTime. in a document.
-    /// In this case the '.' initially is parsed as belonging to HTML. However, we want to
-    /// show C# member completion in this case, so we want to make a temporary change to the
-    /// generated C# code so that '.' ends up in C#. This method will check for such case,
-    /// and provisional completion case is detected, will update position language from HTML
-    /// to C# and will return a temporary edit that should be made to the generated document
-    /// in order to add the '.' to the generated C# contents.
-    /// </remarks>
-    public static bool TryGetProvisionalCompletionInfo(
-        RazorCodeDocument codeDocument,
-        VSInternalCompletionContext completionContext,
-        DocumentPositionInfo originalPositionInfo,
-        IDocumentMappingService documentMappingService,
-        out CompletionPositionInfo result)
-    {
-        result = default;
-
-        if (originalPositionInfo.LanguageKind != RazorLanguageKind.Html ||
-            completionContext.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
-            completionContext.TriggerCharacter != ".")
-        {
-            // Invalid provisional completion context
-            return false;
-        }
-
-        if (originalPositionInfo.Position.Character == 0)
-        {
-            // We're at the start of line. Can't have provisional completions here.
-            return false;
-        }
-
-        var previousCharacterPositionInfo = documentMappingService.GetPositionInfo(codeDocument, originalPositionInfo.HostDocumentIndex - 1);
-
-        if (previousCharacterPositionInfo.LanguageKind != RazorLanguageKind.CSharp)
-        {
-            return false;
-        }
-
-        var previousPosition = previousCharacterPositionInfo.Position;
-
-        // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
-        // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
-        var addProvisionalDot = LspFactory.CreateTextEdit(previousPosition, ".");
-
-        var provisionalPositionInfo = new DocumentPositionInfo(
-            RazorLanguageKind.CSharp,
-            LspFactory.CreatePosition(
-                previousPosition.Line,
-                previousPosition.Character + 1),
-            previousCharacterPositionInfo.HostDocumentIndex + 1,
-            previousCharacterPositionInfo.InDeclDocument);
-
-        result = new CompletionPositionInfo(addProvisionalDot, provisionalPositionInfo, ShouldIncludeDelegationSnippets: false);
-        return true;
     }
 
     public static bool ShouldIncludeSnippets(RazorCodeDocument razorCodeDocument, int absoluteIndex, out bool isStartTagContext)
@@ -339,118 +270,5 @@ internal static class DelegatedCompletionHelper
         }
 
         return originalData;
-    }
-
-    public static async Task<VSInternalCompletionItem> FormatCSharpCompletionItemAsync(
-        VSInternalCompletionItem resolvedCompletionItem,
-        DocumentContext documentContext,
-        RazorFormattingOptions options,
-        IRazorFormattingService formattingService,
-        IDocumentMappingService documentMappingService,
-        bool supportsVisualStudioExtensions,
-        ILogger logger,
-        CancellationToken cancellationToken)
-    {
-        // In VS Code, Roslyn does resolve via a custom command. Thats fine, but we have to modify the text edit sitting within it,
-        // rather than the one LSP knows about.
-        if (resolvedCompletionItem.Command is { CommandIdentifier: CompletionResultFactory.CompleteComplexEditCommand, Arguments: var args })
-        {
-            // In LSP case, command parameters will be JsonElement objects and will need to be deserialized first
-            if (args is [JsonElement textDocumentIdentifierData, JsonElement complexEditData, _, _])
-            {
-                args[0] = textDocumentIdentifierData.Deserialize<TextDocumentIdentifier>() ?? args[0];
-                args[1] = complexEditData.Deserialize<TextEdit>() ?? args[1];
-            }
-
-            // In cohosting case, command parameters will be of the correct types (or deserialized by now in LSP case)
-            if (args is [TextDocumentIdentifier, TextEdit complexEdit, _, int nextCursorPosition])
-            {
-                var formattedTextEdit = await FormatTextEditsAsync([complexEdit], documentContext, options, formattingService, cancellationToken).ConfigureAwait(false);
-                if (formattedTextEdit is null)
-                {
-                    resolvedCompletionItem.Command = null;
-                }
-                else
-                {
-                    args[0] = new TextDocumentIdentifier()
-                    {
-                        DocumentUri = documentContext.Uri,
-                    };
-                    args[1] = formattedTextEdit;
-                    if (nextCursorPosition >= 0)
-                    {
-                        // nextCursorPosition is where VS Code will navigate to, so we translate it to our document, or set to 0 to do nothing.
-                        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-                        args[3] = documentMappingService.TryMapToRazorDocumentPosition(codeDocument.GetRequiredImplCSharpDocument(), nextCursorPosition, out _, out nextCursorPosition)
-                            ? nextCursorPosition
-                            : 0;
-                    }
-                }
-            }
-            else
-            {
-                logger.LogError($"Unexpected arguments for command '{CompletionResultFactory.CompleteComplexEditCommand}': Expected: [TextDocumentIdentifier, TextEdit, _, int], Actual: {GetArgumentTypesLogString(resolvedCompletionItem)}");
-                Debug.Fail("Unexpected arguments for Roslyn complex edit command. Have they changed things?");
-            }
-        }
-        else if (resolvedCompletionItem.Command is not null)
-        {
-            logger.LogError($"Unsupported command for Razor document: {resolvedCompletionItem.Command.CommandIdentifier}.");
-            Debug.Fail("Unexpected command. Do we need to add something to support a new feature?");
-        }
-
-        if (resolvedCompletionItem.TextEdit is not null &&
-            supportsVisualStudioExtensions &&
-            resolvedCompletionItem.VsResolveTextEditOnCommit)
-        {
-            if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
-            {
-                var formattedTextChange = await FormatTextEditsAsync([textEdit], documentContext, options, formattingService, cancellationToken).ConfigureAwait(false);
-                if (formattedTextChange is not null)
-                {
-                    resolvedCompletionItem.TextEdit = formattedTextChange;
-                }
-            }
-            else
-            {
-                // TODO: Handle InsertReplaceEdit type
-                // https://github.com/dotnet/razor/issues/8829
-                Debug.Fail("Unsupported edit type.");
-            }
-        }
-
-        if (resolvedCompletionItem.AdditionalTextEdits is not null)
-        {
-            var formattedTextChange = await FormatTextEditsAsync(resolvedCompletionItem.AdditionalTextEdits, documentContext, options, formattingService, cancellationToken).ConfigureAwait(false);
-            resolvedCompletionItem.AdditionalTextEdits = formattedTextChange is { } change ? [change] : null;
-        }
-
-        return resolvedCompletionItem;
-
-        static string GetArgumentTypesLogString(VSInternalCompletionItem resolvedCompletionItem)
-        {
-            if (resolvedCompletionItem.Command?.Arguments is { } args)
-            {
-                return "[" + string.Join(", ", args.Select(a => a.GetType().Name)) + "]";
-            }
-
-            return "null";
-        }
-    }
-
-    private static async Task<TextEdit?> FormatTextEditsAsync(TextEdit[] textEdits, DocumentContext documentContext, RazorFormattingOptions options, IRazorFormattingService formattingService, CancellationToken cancellationToken)
-    {
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        var csharpSourceText = await documentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
-
-        var changes = textEdits.SelectAsArray(csharpSourceText.GetTextChange);
-        var formattedTextChange = await formattingService.TryGetCSharpSnippetFormattingEditAsync(
-            documentContext,
-            changes,
-            declarationDocument: false, // PROTOTYPE(sonic): Pass in the right value to this
-            options,
-            cancellationToken).ConfigureAwait(false);
-
-        return formattedTextChange is { } change ? sourceText.GetTextEdit(change) : null;
     }
 }

@@ -247,7 +247,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
 
         var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.TextDocumentUriPresentationName, htmlResponse)]);
 
-        var endpoint = new CohostUriPresentationEndpoint(IncompatibleProjectService, RemoteServiceInvoker, FilePathService, requestInvoker);
+        var endpoint = new CohostUriPresentationEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker);
 
         var request = new VSInternalUriPresentationParams()
         {

@@ -12,6 +12,31 @@
         <target state="translated">dyrektywa @addTagHelper jest niepotrzebna.</target>
         <note>@addTagHelper is a keyword</note>
       </trans-unit>
+      <trans-unit id="Baseline_Newly_Available">
+        <source>🆕 Newly available across major browsers{0}</source>
+        <target state="new">🆕 Newly available across major browsers{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Since">
+        <source> (Baseline since {0})</source>
+        <target state="new"> (Baseline since {0})</target>
+        <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Widely_Available">
+        <source>✅ Widely available across major browsers{0}</source>
+        <target state="new">✅ Widely available across major browsers{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
+      <trans-unit id="Blazor_directive_attributes">
+        <source>Blazor directive attributes</source>
+        <target state="new">Blazor directive attributes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
+        <source>{0} (and req'd attributes...)</source>
+        <target state="new">{0} (and req'd attributes...)</target>
+        <note>The term "req'd" is an abbreviation for "required"</note>
+      </trans-unit>
       <trans-unit id="Couldnt_get_a_source_generator_run_result">
         <source>Couldn't get a source generator run result for project '{0}'.</source>
         <target state="translated">Nie można pobrać wyniku działania generatora źródła dla projektu „{0}”.</target>
@@ -35,6 +60,18 @@
       <trans-unit id="Diagnostics_before">
         <source>Diagnostics before:</source>
         <target state="new">Diagnostics before:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Directive">
+        <source>directive</source>
+        <target state="new">directive</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DirectiveSnippetDescription">
+        <source>Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</source>
+        <target state="new">Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_does_not_belong_to_this_project">
@@ -102,6 +139,16 @@
         <target state="translated">Wynik działania generatora nie zawierał dokumentu kodu dla „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="KeywordDescription">
+        <source>{0} Keyword</source>
+        <target state="new">{0} Keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MDN_Reference">
+        <source>MDN Reference</source>
+        <target state="new">MDN Reference</target>
+        <note>Link text for MDN documentation URL in HTML completion tooltips</note>
+      </trans-unit>
       <trans-unit id="Project_does_not_belong_to_this_solution">
         <source>Project does not belong to this solution.</source>
         <target state="translated">Projekt nie należy do tego rozwiązania.</target>
@@ -135,6 +182,11 @@
       <trans-unit id="Razor_source_generator_reference_incorrect">
         <source>Razor source generator is referenced from '{0}' but we are expecting '{1}', for project '{2}'.</source>
         <target state="translated">Generator źródła Razor jest odwoływany z „{0}”, ale oczekujemy „{1}” dla projektu „{2}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReTrigger_Completions_Title">
+        <source>"Re-trigger completions..."</source>
+        <target state="new">"Re-trigger completions..."</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_directives">

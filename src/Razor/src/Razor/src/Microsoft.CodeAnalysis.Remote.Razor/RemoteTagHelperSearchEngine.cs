@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 [Export(typeof(ITagHelperSearchEngine)), Shared]
 internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
 {
-    public async Task<LspLocation[]?> TryLocateTagHelperDefinitionsAsync(ImmutableArray<BoundTagHelperResult> boundTagHelperResults, IDocumentSnapshot documentSnapshot, ISolutionQueryOperations solutionQueryOperations, CancellationToken cancellationToken)
+    public async Task<LspLocation[]?> TryLocateTagHelperDefinitionsAsync(ImmutableArray<BoundTagHelperResult> boundTagHelperResults, RemoteDocumentSnapshot documentSnapshot, RemoteSolutionSnapshot solutionSnapshot, CancellationToken cancellationToken)
     {
         Debug.Assert(documentSnapshot is RemoteDocumentSnapshot);
 

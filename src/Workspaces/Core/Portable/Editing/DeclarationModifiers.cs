@@ -34,7 +34,8 @@ public readonly record struct DeclarationModifiers
         bool isExtern = false,
         bool isRequired = false,
         bool isFile = false,
-        bool isFixed = false)
+        bool isFixed = false,
+        bool isClosed = false)
         : this(
               (isStatic ? Modifiers.Static : Modifiers.None) |
               (isAbstract ? Modifiers.Abstract : Modifiers.None) |
@@ -54,7 +55,8 @@ public readonly record struct DeclarationModifiers
               (isExtern ? Modifiers.Extern : Modifiers.None) |
               (isRequired ? Modifiers.Required : Modifiers.None) |
               (isFile ? Modifiers.File : Modifiers.None) |
-              (isFixed ? Modifiers.Fixed : Modifiers.None))
+              (isFixed ? Modifiers.Fixed : Modifiers.None) |
+              (isClosed ? Modifiers.Closed : Modifiers.None))
     {
     }
 
@@ -72,10 +74,11 @@ public readonly record struct DeclarationModifiers
             var method = symbol as IMethodSymbol;
             var type = symbol as INamedTypeSymbol;
             var isConst = field?.IsConst == true;
+            var isClosed = type?.IsClosed == true;
 
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic && !isConst,
-                isAbstract: symbol.IsAbstract,
+                isAbstract: symbol.IsAbstract && !isClosed,
                 isReadOnly: field?.IsReadOnly == true || property?.IsReadOnly == true || type?.IsReadOnly == true || method?.IsReadOnly == true,
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
@@ -89,7 +92,8 @@ public readonly record struct DeclarationModifiers
                 isRequired: symbol.IsRequired(),
                 isFile: type?.IsFileLocal == true,
                 isFixed: field?.IsFixedSizeBuffer == true,
-                isPartial: symbol.IsPartial());
+                isPartial: symbol.IsPartial(),
+                isClosed: isClosed);
         }
 
         // Only named types, members of named types, and local functions have modifiers.
@@ -134,6 +138,9 @@ public readonly record struct DeclarationModifiers
     public bool IsFile => (Modifiers & Modifiers.File) != 0;
 
     internal bool IsFixed => (Modifiers & Modifiers.Fixed) != 0;
+
+    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
+    public bool IsClosed => (Modifiers & Modifiers.Closed) != 0;
 
     public DeclarationModifiers WithIsStatic(bool isStatic)
         => new(SetFlag(Modifiers, Modifiers.Static, isStatic));
@@ -190,6 +197,10 @@ public readonly record struct DeclarationModifiers
     public DeclarationModifiers WithIsFile(bool isFile)
         => new(SetFlag(Modifiers, Modifiers.File, isFile));
 
+    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
+    public DeclarationModifiers WithIsClosed(bool isClosed)
+        => new(SetFlag(Modifiers, Modifiers.Closed, isClosed));
+
     private static Modifiers SetFlag(Modifiers existing, Modifiers modifier, bool isSet)
         => isSet ? (existing | modifier) : (existing & ~modifier);
 
@@ -213,7 +224,11 @@ public readonly record struct DeclarationModifiers
     public static DeclarationModifiers Extern => new(Modifiers.Extern);
     public static DeclarationModifiers Required => new(Modifiers.Required);
     public static DeclarationModifiers File => new(Modifiers.File);
+
     internal static DeclarationModifiers Fixed => new(Modifiers.Fixed);
+
+    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
+    public static DeclarationModifiers Closed => new(Modifiers.Closed);
 
     public static DeclarationModifiers operator |(DeclarationModifiers left, DeclarationModifiers right)
         => new(left.Modifiers | right.Modifiers);
