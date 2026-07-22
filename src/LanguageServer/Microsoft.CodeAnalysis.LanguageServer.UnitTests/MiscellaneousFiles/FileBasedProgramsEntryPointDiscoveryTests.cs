@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Reflection;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
@@ -1011,10 +1012,24 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
             """;
 
         var tree = CSharp.CSharpSyntaxTree.ParseText(SourceText.From(source));
-        var references = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location) && File.Exists(a.Location))
-            .Select(a => MetadataReference.CreateFromFile(a.Location))
-            .ToArray();
+
+        IEnumerable<Assembly> assemblies =
+        [
+            typeof(Assert).Assembly,
+            typeof(FactAttribute).Assembly,
+            typeof(AssertEx).Assembly,
+            typeof(AbstractLanguageServerProtocolTests).Assembly,
+            typeof(Workspace).Assembly,
+            typeof(IHostWorkspaceProvider).Assembly,
+            typeof(FileBasedProgramsEntryPointDiscovery).Assembly,
+            GetType().Assembly,
+        ];
+        List<MetadataReference> references =
+        [
+            .. TargetFrameworkUtil.GetReferences(TargetFramework.Net100),
+            .. assemblies.Select(a => MetadataReference.CreateFromFile(a.Location)),
+        ];
+
         var compilation = CSharp.CSharpCompilation.Create(
             GetType().Assembly.GetName().Name!,
             [tree],
