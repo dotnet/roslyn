@@ -304,6 +304,42 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
     }
 
     [Fact]
+    public async Task DocumentSymbols_CSharpPropertyWithMarkup()
+    {
+        TestCode input = """
+            @code {
+                public RenderFragment {|Property:Property|} => @<div></div>;
+            }
+            """;
+
+        var documentSymbols = await GetDocumentSymbolsAsync(input);
+        var sourceText = SourceText.From(input.Text);
+
+        var property = Assert.Single(documentSymbols);
+        Assert.Equal("Property : RenderFragment", property.Name);
+        Assert.Equal(SymbolKind.Property, property.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["Property"])), property.SelectionRange);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_CSharpMethodWithMarkup()
+    {
+        TestCode input = """
+            @code {
+                public RenderFragment {|Method:Method|}() => @<div></div>;
+            }
+            """;
+
+        var documentSymbols = await GetDocumentSymbolsAsync(input);
+        var sourceText = SourceText.From(input.Text);
+
+        var method = Assert.Single(documentSymbols);
+        Assert.Equal("Method() : RenderFragment", method.Name);
+        Assert.Equal(SymbolKind.Method, method.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["Method"])), method.SelectionRange);
+    }
+
+    [Fact]
     public Task DocumentSymbols_CSharpClassWithMethods_Legacy()
         => VerifySymbolInformationsAsync(
             """
