@@ -209,7 +209,7 @@ internal static partial class ProtocolConversions
         {
             // The standard URI format exception does not include the failing path, however
             // in pretty much all cases we need to know the URI string (and original string) in order to fix the issue.
-            throw new UriFormatException($"Failed create URI from '{uriString}'; original string: '{absolutePath}'", e);
+            throw new UriFormatException($"Failed to create URI from '{uriString}'; original string: '{absolutePath}'", e);
         }
 
         // Implements workaround for https://github.com/dotnet/runtime/issues/89538:

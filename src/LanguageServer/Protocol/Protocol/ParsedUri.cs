@@ -209,21 +209,21 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
 
     public override int GetHashCode()
     {
-        if (IsUncOrDosPath)
-        {
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(ToString());
-        }
-
-        // Scheme is always case-insensitive, so hash it that way. Other components are case-sensitive.
+        // Scheme is always case-insensitive. Other components are case-insensitive only for UNC/DOS paths.
+        var componentComparer = IsUncOrDosPath ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
         var schemeHash = StringComparer.OrdinalIgnoreCase.GetHashCode(Scheme ?? string.Empty);
+        var authorityHash = componentComparer.GetHashCode(Authority ?? string.Empty);
+        var pathHash = componentComparer.GetHashCode(Path ?? string.Empty);
+        var queryHash = componentComparer.GetHashCode(Query ?? string.Empty);
+        var fragmentHash = componentComparer.GetHashCode(Fragment ?? string.Empty);
 
 #if NET
-        return HashCode.Combine(schemeHash, Authority, Path, Query, Fragment);
+        return HashCode.Combine(schemeHash, authorityHash, pathHash, queryHash, fragmentHash);
 #else
         return Hash.Combine(schemeHash,
-        Hash.Combine(Authority?.GetHashCode() ?? 0,
-        Hash.Combine(Path?.GetHashCode() ?? 0,
-        Hash.Combine(Query?.GetHashCode() ?? 0, Fragment?.GetHashCode() ?? 0))));
+        Hash.Combine(authorityHash,
+        Hash.Combine(pathHash,
+        Hash.Combine(queryHash, fragmentHash))));
 #endif
     }
 
@@ -278,7 +278,7 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
             return "file";
         }
 
-        return scheme;
+        return scheme.ToLower();
     }
 
     /// <summary>
