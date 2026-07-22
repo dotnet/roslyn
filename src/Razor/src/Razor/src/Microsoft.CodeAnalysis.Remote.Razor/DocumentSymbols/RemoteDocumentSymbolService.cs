@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -33,36 +34,47 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        // We only care about fields, properties, methods etc. in document symbols, and for components those will exist in the declaration document.
-        // For legacy documents, there is no declaration document, so we use the implementation document. An edge case is components that have no
-        // declarations, and therefore no declaration document, where we want to use the implementation document so we at least get the class name
-        // and have something to base our render method symbol off of. Therefore, for simplicity, we'll just attempt to get the declaration document,
-        // and fallback to impl if it doesn't exist.
-        var csharpDocument = codeDocument.GetCSharpDocument(declarationDocument: true);
-        if (csharpDocument is null)
+        var implementationDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+        var implementationSymbols = await GetCSharpSymbolsAsync(implementationDocument, cancellationToken).ConfigureAwait(false);
+
+        var declarationDocument = codeDocument.GetCSharpDocument(declarationDocument: true);
+        SumType<DocumentSymbol[], SymbolInformation[]>? declarationSymbols = null;
+        if (declarationDocument is not null)
         {
-            csharpDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+            declarationSymbols = await GetCSharpSymbolsAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
         }
 
-        var generatedDocument = await snapshot
-            .GetGeneratedDocumentAsync(csharpDocument.IsDeclarationDocument, cancellationToken)
-            .ConfigureAwait(false);
+        return _documentSymbolService.GetDocumentSymbols(
+            snapshot.FileKind,
+            snapshot.Uri,
+            implementationDocument,
+            implementationSymbols,
+            declarationDocument,
+            declarationSymbols);
 
-        var csharpSymbols = await DocumentSymbolsHandler.GetDocumentSymbolsAsync(
-            generatedDocument,
-            useHierarchicalSymbols,
-            supportsVSExtensions: _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,
-            cancellationToken).ConfigureAwait(false);
-
-        // Roslyn uses an internal "RoslynDocumentSymbol" type, which throws when serialized after we've mapped it, so we have to
-        // convert things back to DocumentSymbol. We only need to do the first level though, as our remapping will take care of
-        // the children.
-        if (csharpSymbols.TryGetFirst(out var roslynDocumentSymbols))
+        async ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>> GetCSharpSymbolsAsync(
+            RazorCSharpDocument csharpDocument,
+            CancellationToken cancellationToken)
         {
-            csharpSymbols = ConvertDocumentSymbols(roslynDocumentSymbols);
-        }
+            var generatedDocument = await snapshot
+                .GetGeneratedDocumentAsync(csharpDocument.IsDeclarationDocument, cancellationToken)
+                .ConfigureAwait(false);
 
-        return _documentSymbolService.GetDocumentSymbols(snapshot.FileKind, snapshot.Uri, csharpDocument, csharpSymbols);
+            var csharpSymbols = await DocumentSymbolsHandler.GetDocumentSymbolsAsync(
+                generatedDocument,
+                useHierarchicalSymbols,
+                supportsVSExtensions: _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,
+                cancellationToken).ConfigureAwait(false);
+
+            // Roslyn uses an internal "RoslynDocumentSymbol" type, which throws when serialized after we've mapped it, so we have to
+            // convert things back to DocumentSymbol before remapping it.
+            if (csharpSymbols.TryGetFirst(out var roslynDocumentSymbols))
+            {
+                csharpSymbols = ConvertDocumentSymbols(roslynDocumentSymbols);
+            }
+
+            return csharpSymbols;
+        }
     }
 
     private static DocumentSymbol[] ConvertDocumentSymbols(DocumentSymbol[] roslynDocumentSymbols)
