@@ -44,7 +44,7 @@ sealed class VirtualProjectBuilder
 
     private readonly IBuildService _buildService;
 
-    private readonly string _targetFramework;
+    private readonly string? _targetFramework;
 
     private (ImmutableArray<CSharpDirective> Original, ImmutableArray<CSharpDirective> Evaluated)? _evaluatedDirectives;
 
@@ -71,7 +71,7 @@ sealed class VirtualProjectBuilder
     internal VirtualProjectBuilder(
         IBuildService buildService,
         string entryPointFileFullPath,
-        string targetFramework,
+        string? targetFramework,
         string[]? requestedTargets = null,
         string? artifactsPath = null,
         SourceText? sourceText = null)
@@ -93,15 +93,15 @@ sealed class VirtualProjectBuilder
     /// <remarks>
     /// Kept in sync with the default <c>dotnet new console</c> project file (enforced by <c>DotnetProjectConvertTests.SameAsTemplate</c>).
     /// </remarks>
-    internal static IEnumerable<(string name, string value)> GetDefaultProperties(string targetFramework) =>
-    [
-        ("OutputType", "Exe"),
-        ("TargetFramework", targetFramework),
-        ("ImplicitUsings", "enable"),
-        ("Nullable", "enable"),
-        ("PublishAot", "true"),
-        ("PackAsTool", "true"),
-    ];
+    internal static IEnumerable<(string name, string value)> GetDefaultProperties(string? targetFramework)
+    {
+        yield return ("OutputType", "Exe");
+        if (targetFramework != null) yield return ("TargetFramework", targetFramework);
+        yield return ("ImplicitUsings", "enable");
+        yield return ("Nullable", "enable");
+        yield return ("PublishAot", "true");
+        yield return ("PackAsTool", "true");
+    }
 
     internal static IEnumerable<KeyValuePair<string, string>> GetGlobalBuildProperties() =>
     [
@@ -681,6 +681,15 @@ sealed class VirtualProjectBuilder
                     """);
             }
 
+            // Write default properties before importing SDKs so they can be overridden by SDKs
+            // (and implicit build files which are imported by the default .NET SDK).
+            foreach (var (name, value) in defaultProperties)
+            {
+                writer.WriteLine($"""
+                        <{name}>{EscapeValue(value)}</{name}>
+                    """);
+            }
+
             writer.WriteLine($"""
                   </PropertyGroup>
 
@@ -748,24 +757,35 @@ sealed class VirtualProjectBuilder
                 """);
 
             // First write the default properties except those specified by the user.
-            var customPropertyNames = propertyDirectives
-                .Select(static d => d.Name)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var (name, value) in defaultProperties)
+            if (!isVirtualProject)
             {
-                if (!customPropertyNames.Contains(name))
+                var customPropertyNames = propertyDirectives
+                    .Select(static d => d.Name)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var (name, value) in defaultProperties)
+                {
+                    if (!customPropertyNames.Contains(name))
+                    {
+                        writer.WriteLine($"""
+                                <{name}>{EscapeValue(value)}</{name}>
+                            """);
+                    }
+                }
+
+                if (userSecretsId != null && !customPropertyNames.Contains("UserSecretsId"))
                 {
                     writer.WriteLine($"""
-                            <{name}>{EscapeValue(value)}</{name}>
+                            <UserSecretsId>{EscapeValue(userSecretsId)}</UserSecretsId>
                         """);
                 }
             }
-
-            if (userSecretsId != null && !customPropertyNames.Contains("UserSecretsId"))
+            // Some hosts (like MSBuildWorkspace) don't provide a default TargetFramework
+            // and instead want to use the TargetFramework that's default corresponding to the imported SDK props.
+            else if (!defaultProperties.Any(p => p.name == "TargetFramework"))
             {
-                writer.WriteLine($"""
-                        <UserSecretsId>{EscapeValue(userSecretsId)}</UserSecretsId>
+                writer.WriteLine("""
+                        <TargetFramework>net$(BundledNETCoreAppTargetFrameworkVersion)</TargetFramework>
                     """);
             }
 
