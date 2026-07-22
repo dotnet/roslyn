@@ -245,7 +245,7 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
     private static InvalidOperationException CreateUnsupportedResponseTypeException()
     {
         Debug.Fail("Unsupported response type");
-        return new InvalidOperationException();
+        return new InvalidOperationException("Unsupported document symbol response type returned from Roslyn LSP.");
     }
 
     private static string RenderMethodSignature(RazorFileKind fileKind)
