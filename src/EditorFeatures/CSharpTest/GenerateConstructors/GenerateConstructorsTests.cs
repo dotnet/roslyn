@@ -2075,4 +2075,84 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestMissingOnPositionalRecord()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            public record CopilotProcessInfo(
+                [||]uint Pid,
+                string FileName,
+                string FullPath,
+                string Title,
+                bool IsBeingDebugged,
+                bool IsSystemProcess);
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestMissingOnPositionalRecord_CaretOnHeader()
+        => TestActionDoesNotIncludeAsync(
+            """
+            public record [||]CopilotProcessInfo(
+                uint Pid,
+                string FileName,
+                string FullPath,
+                string Title,
+                bool IsBeingDebugged,
+                bool IsSystemProcess);
+            """,
+            FeaturesResources.Generate_constructor_from_members);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestMissingOnPositionalRecordStruct()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            public record struct [||]Point(int X, int Y);
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestMissingOnPositionalRecordWithExtraMembers()
+        => TestActionDoesNotIncludeAsync(
+            """
+            public record Foo(int X, int Y)
+            {
+                public int Z { get; init; }
+                [||]
+            }
+            """,
+            FeaturesResources.Generate_constructor_from_members);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public Task TestOnRecordWithoutPrimaryConstructor()
+        => TestWithPickMembersDialogAsync(
+            """
+            public record Foo
+            {
+                public int X { get; init; }
+                public int Y { get; init; }
+                [||]
+            }
+            """,
+            """
+            public record Foo
+            {
+                public int X { get; init; }
+                public int Y { get; init; }
+
+                public Foo(int x, int y{|Navigation:)|}
+                {
+                    X = x;
+                    Y = y;
+                }
+            }
+            """,
+            chosenSymbols: ["X", "Y"]);
+
+    private async Task TestActionDoesNotIncludeAsync(string initialMarkup, string disallowedTitle)
+    {
+        var ps = TestParameters.Default;
+        using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
+        var (actions, _) = await GetCodeActionsAsync(workspace, ps);
+        Assert.DoesNotContain(actions, a => a.Title == disallowedTitle);
+    }
 }
