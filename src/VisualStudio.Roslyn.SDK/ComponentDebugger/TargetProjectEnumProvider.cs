@@ -21,13 +21,11 @@ namespace Roslyn.ComponentDebugger
     public class TargetProjectEnumProvider : IDynamicEnumValuesProvider
     {
         private readonly UnconfiguredProject _unconfiguredProject;
-        private readonly LaunchSettingsManager _launchSettingsManager;
 
         [ImportingConstructor]
-        public TargetProjectEnumProvider(UnconfiguredProject unconfiguredProject, LaunchSettingsManager launchSettingsManager)
+        public TargetProjectEnumProvider(UnconfiguredProject unconfiguredProject)
         {
             _unconfiguredProject = unconfiguredProject;
-            _launchSettingsManager = launchSettingsManager;
         }
 
         public async Task<IDynamicEnumValuesGenerator> GetProviderAsync(IList<NameValuePair>? options)

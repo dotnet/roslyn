@@ -232,7 +232,6 @@ namespace Roslyn.SyntaxVisualizer.Control
 
                 colorPickerButton.Background = new SolidColorBrush(popup.Color);
             }
-
         }
 
         public void SetPropertyGridColors(IVsUIShell5 shell)

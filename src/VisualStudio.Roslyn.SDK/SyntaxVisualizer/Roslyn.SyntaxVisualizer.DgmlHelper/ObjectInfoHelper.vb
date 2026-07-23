@@ -12,7 +12,7 @@ Namespace Roslyn.SyntaxVisualizer.DgmlHelper
 
 #Region "GetObjectInfo"
         Friend Function GetObjectInfo(nodeOrToken As SyntaxNodeOrToken) As ObjectInfo
-            Dim info As ObjectInfo = Nothing
+            Dim info As ObjectInfo
 
             If nodeOrToken.IsNode Then
                 info = GetObjectInfo(nodeOrToken.AsNode)

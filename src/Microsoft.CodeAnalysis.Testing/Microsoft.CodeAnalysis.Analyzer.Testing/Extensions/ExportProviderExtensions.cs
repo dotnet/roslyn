@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 return true;
             }
 
-            private (Type exportType, Type? metadataType) GetContractType(Type contractType, bool importMany)
+            private static (Type exportType, Type? metadataType) GetContractType(Type contractType, bool importMany)
             {
                 if (importMany && contractType.IsConstructedGenericType)
                 {

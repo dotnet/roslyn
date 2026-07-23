@@ -8,7 +8,7 @@ public partial class RoslynSDKChildTemplateWizard
 {
     public virtual void OnProjectFinishedGenerating(Project project) { }
 
-    private void OnRunStarted(DTE dTE, Dictionary<string, string> replacementsDictionary, WizardRunKind runKind, object[] customParams)
+    private void OnRunStarted(Dictionary<string, string> replacementsDictionary)
     {
         // Add the root project name to the projects replacement dictionary
         if (RoslynSDKRootTemplateWizard.GlobalDictionary.TryGetValue("$saferootprojectname$", out var safeRootProjectName))

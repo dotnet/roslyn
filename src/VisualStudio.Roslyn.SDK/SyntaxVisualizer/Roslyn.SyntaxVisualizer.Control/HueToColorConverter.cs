@@ -21,7 +21,5 @@ namespace Roslyn.SyntaxVisualizer.Control
             var color = (Color)value;
             return System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B).GetHue();
         }
-
-
     }
 }

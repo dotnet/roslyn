@@ -342,7 +342,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
             {
-                return OnActiveProjectCfgChange(pIVsHierarchy);
+                return OnActiveProjectCfgChange();
             }
 
             int IVsUpdateSolutionEvents2.UpdateSolution_Begin(ref int pfCancelUpdate)
@@ -376,7 +376,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             int IVsUpdateSolutionEvents2.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
             {
-                return OnActiveProjectCfgChange(pIVsHierarchy);
+                return OnActiveProjectCfgChange();
             }
 
             int IVsUpdateSolutionEvents2.UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
@@ -403,7 +403,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 return 0;
             }
 
-            private int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            private int OnActiveProjectCfgChange()
             {
                 OnActiveProjectConfigurationChange?.Invoke();
                 return 0;

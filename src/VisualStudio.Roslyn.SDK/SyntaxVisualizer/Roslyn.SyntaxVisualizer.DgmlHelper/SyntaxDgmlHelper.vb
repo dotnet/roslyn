@@ -1,8 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-Imports System
 Imports System.Resources
 Imports System.Runtime.CompilerServices
 Imports System.Xml.Linq
@@ -30,7 +30,7 @@ Namespace Roslyn.SyntaxVisualizer.DgmlHelper
         <Extension()>
         Public Function ToDgml(nodeOrToken As SyntaxNodeOrToken,
                            Optional options As SyntaxDgmlOptions = Nothing) As XElement
-            Dim dgml As XElement = Nothing
+            Dim dgml As XElement
 
             If nodeOrToken.IsNode Then
                 dgml = ToDgml(nodeOrToken.AsNode, options)

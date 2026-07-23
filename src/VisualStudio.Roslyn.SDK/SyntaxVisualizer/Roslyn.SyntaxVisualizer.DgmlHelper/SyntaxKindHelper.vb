@@ -10,7 +10,7 @@ Namespace Roslyn.SyntaxVisualizer.DgmlHelper
 
         <Extension()>
         Friend Function GetKind(nodeOrToken As SyntaxNodeOrToken) As String
-            Dim kind = String.Empty
+            Dim kind As String
 
             If nodeOrToken.IsNode Then
                 kind = nodeOrToken.AsNode().GetKind()
@@ -23,7 +23,7 @@ Namespace Roslyn.SyntaxVisualizer.DgmlHelper
 
         <Extension()>
         Friend Function GetKind(node As SyntaxNode) As String
-            Dim kind = String.Empty
+            Dim kind As String
 
             If node.Language = LanguageNames.CSharp Then
                 kind = CSharp.CSharpExtensions.Kind(node).ToString()
@@ -36,7 +36,7 @@ Namespace Roslyn.SyntaxVisualizer.DgmlHelper
 
         <Extension()>
         Friend Function GetKind(token As SyntaxToken) As String
-            Dim kind = String.Empty
+            Dim kind As String
 
             If token.Language = LanguageNames.CSharp Then
                 kind = CSharp.CSharpExtensions.Kind(token).ToString()
@@ -49,7 +49,7 @@ Namespace Roslyn.SyntaxVisualizer.DgmlHelper
 
         <Extension()>
         Friend Function GetKind(trivia As SyntaxTrivia) As String
-            Dim kind = String.Empty
+            Dim kind As String
 
             If trivia.Language = LanguageNames.CSharp Then
                 kind = CSharp.CSharpExtensions.Kind(trivia).ToString()

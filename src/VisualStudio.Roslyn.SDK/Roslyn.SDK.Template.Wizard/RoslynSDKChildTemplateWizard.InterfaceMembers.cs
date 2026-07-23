@@ -18,9 +18,9 @@ public partial class RoslynSDKChildTemplateWizard : IWizard
     public void RunStarted(object automationObject, Dictionary<string, string> replacementsDictionary, WizardRunKind runKind, object[] customParams)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
-        if (automationObject is DTE dte)
+        if (automationObject is DTE)
         {
-            OnRunStarted(dte, replacementsDictionary, runKind, customParams);
+            OnRunStarted(replacementsDictionary);
         }
     }
 }

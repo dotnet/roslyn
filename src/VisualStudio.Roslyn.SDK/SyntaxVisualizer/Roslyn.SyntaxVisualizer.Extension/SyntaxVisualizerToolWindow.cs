@@ -26,8 +26,8 @@ namespace Roslyn.SyntaxVisualizer.Extension
         /// <summary>
         /// Standard constructor for the tool window.
         /// </summary>
-        public SyntaxVisualizerToolWindow() :
-            base(null)
+        public SyntaxVisualizerToolWindow()
+            : base(null)
         {
             // Set the window title reading it from the resources.
             Caption = Resources.ToolWindowTitle;

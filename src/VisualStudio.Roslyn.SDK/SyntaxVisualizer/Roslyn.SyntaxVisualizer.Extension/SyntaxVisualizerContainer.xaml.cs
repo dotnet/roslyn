@@ -162,9 +162,9 @@ namespace Roslyn.SyntaxVisualizer.Extension
             Microsoft.VisualStudio.OLE.Interop.IServiceProvider serviceProvider, Guid guidService, bool unique)
         {
             var guidInterface = VSConstants.IID_IUnknown;
-            var ptr = IntPtr.Zero;
             object? service = null;
 
+            IntPtr ptr;
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
             if (serviceProvider.QueryService(ref guidService, ref guidInterface, out ptr) == 0 &&
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
@@ -204,7 +204,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
         {
             var componentModel = GetRequiredMefService<IComponentModel, SComponentModel>(GlobalServiceProvider);
             Assumes.Present(componentModel);
-            return componentModel.GetService<TServiceInterface>(); ;
+            return componentModel.GetService<TServiceInterface>();
         }
         #endregion
 
@@ -467,7 +467,6 @@ namespace Roslyn.SyntaxVisualizer.Extension
 
         private void DisplayDgml(XElement? dgml)
         {
-            uint cookie;
             const int TRUE = -1;
 
             if (string.IsNullOrWhiteSpace(dgmlFilePath))
@@ -486,15 +485,15 @@ namespace Roslyn.SyntaxVisualizer.Extension
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                 ServiceProvider.GlobalProvider, dgmlFilePath, GuidList.GuidVsDesignerViewKind,
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
-                out var docUIHierarchy, out var docItemId, out var docWindowFrame) && docWindowFrame != null)
+                out _, out _, out var docWindowFrame) && docWindowFrame != null)
             {
                 if (RunningDocumentTable is not null &&
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                     RunningDocumentTable.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, dgmlFilePath,
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
-                                                             out var docHierarchy, out docItemId,
+                                                             out _, out _,
                                                              out var docDataIUnknownPointer,
-                                                             out cookie) == VSConstants.S_OK)
+                                                             out _) == VSConstants.S_OK)
                 {
                     var persistDocDataServiceGuid = typeof(IVsPersistDocData).GUID;
 
@@ -549,13 +548,13 @@ namespace Roslyn.SyntaxVisualizer.Extension
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                     ServiceProvider.GlobalProvider, dgmlFilePath, GuidList.GuidVsDesignerViewKind,
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
-                    out docUIHierarchy, out docItemId, out docWindowFrame);
+                    out _, out _, out _);
 
                 // Register event handler to ensure that directed syntax graph file is deleted when the solution is closed.
                 // This ensures that the file won't be persisted in the .suo file and that it therefore won't get re-opened
                 // when the solution is re-opened.
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-                SolutionService?.AdviseSolutionEvents(this, out cookie);
+                SolutionService?.AdviseSolutionEvents(this, out _);
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
             }
         }

@@ -11,7 +11,7 @@ public partial class RoslynSDKRootTemplateWizard
 {
     public static Dictionary<string, string> GlobalDictionary = new Dictionary<string, string>();
 
-    private void OnRunStarted(DTE dte, Dictionary<string, string> replacementsDictionary, WizardRunKind runKind, object[] customParams)
+    private void OnRunStarted(Dictionary<string, string> replacementsDictionary)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 

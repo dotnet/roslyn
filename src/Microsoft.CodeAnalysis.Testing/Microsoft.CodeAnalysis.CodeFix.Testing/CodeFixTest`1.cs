@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
 
-            var t1 = VerifyFixAsync(Language, GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, fixedState, numberOfIncrementalIterations, FixEachAnalyzerDiagnosticAsync, verifier.PushContext("Iterative code fix application"), cancellationToken).ConfigureAwait(false);
+            var t1 = VerifyFixAsync(GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, fixedState, numberOfIncrementalIterations, FixEachAnalyzerDiagnosticAsync, verifier.PushContext("Iterative code fix application"), cancellationToken).ConfigureAwait(false);
 
             var fixAllProvider = GetCodeFixProviders().Select(codeFixProvider => codeFixProvider.GetFixAllProvider()).Where(codeFixProvider => codeFixProvider != null).ToImmutableArray();
 
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 var t2 = CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.SkipFixAllInDocumentCheck)
                     ? ((Task)Task.FromResult(true)).ConfigureAwait(false)
-                    : VerifyFixAsync(Language, GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllInDocumentIterations, FixAllAnalyzerDiagnosticsInDocumentAsync, verifier.PushContext("Fix all in document"), cancellationToken).ConfigureAwait(false);
+                    : VerifyFixAsync(GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllInDocumentIterations, FixAllAnalyzerDiagnosticsInDocumentAsync, verifier.PushContext("Fix all in document"), cancellationToken).ConfigureAwait(false);
                 if (Debugger.IsAttached)
                 {
                     await t2;
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 var t3 = CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.SkipFixAllInProjectCheck)
                     ? ((Task)Task.FromResult(true)).ConfigureAwait(false)
-                    : VerifyFixAsync(Language, GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllInProjectIterations, FixAllAnalyzerDiagnosticsInProjectAsync, verifier.PushContext("Fix all in project"), cancellationToken).ConfigureAwait(false);
+                    : VerifyFixAsync(GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllInProjectIterations, FixAllAnalyzerDiagnosticsInProjectAsync, verifier.PushContext("Fix all in project"), cancellationToken).ConfigureAwait(false);
                 if (Debugger.IsAttached)
                 {
                     await t3;
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 var t4 = CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.SkipFixAllInSolutionCheck)
                     ? ((Task)Task.FromResult(true)).ConfigureAwait(false)
-                    : VerifyFixAsync(Language, GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllIterations, FixAllAnalyzerDiagnosticsInSolutionAsync, verifier.PushContext("Fix all in solution"), cancellationToken).ConfigureAwait(false);
+                    : VerifyFixAsync(GetDiagnosticAnalyzers().ToImmutableArray(), GetCodeFixProviders().ToImmutableArray(), testState, batchFixedState, numberOfFixAllIterations, FixAllAnalyzerDiagnosticsInSolutionAsync, verifier.PushContext("Fix all in solution"), cancellationToken).ConfigureAwait(false);
                 if (Debugger.IsAttached)
                 {
                     await t4;
@@ -493,7 +493,6 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         private async Task VerifyFixAsync(
-            string language,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<CodeFixProvider> codeFixProviders,
             SolutionState oldState,

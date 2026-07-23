@@ -352,7 +352,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 return Task.CompletedTask;
             }
 
+#pragma warning disable IDE0060 // Preserve the pre-migration implementation; see https://github.com/dotnet/roslyn/issues/84573.
             private static Task<Solution> CreateChangedSolution(Document document, bool remove, CancellationToken cancellationToken)
+#pragma warning restore IDE0060
             {
                 var solution = document.Project.Solution;
                 if (remove)

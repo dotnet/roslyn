@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Testing.Lightup
                 var analysisResultParameter = Expression.Parameter(typeof(object), "analysisResult");
                 Expression instance = Expression.Convert(analysisResultParameter, WrappedType);
 
-                Expression<Func<object, ImmutableArray<Diagnostic>>> expression =
+                var expression =
                     Expression.Lambda<Func<object, ImmutableArray<Diagnostic>>>(
                         Expression.Call(instance, methodInfo),
                         analysisResultParameter);

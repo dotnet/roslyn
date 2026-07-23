@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis.Testing.Lightup
             }
 
             var parameter = Expression.Parameter(typeof(T), GenerateParameterName(typeof(T)));
-            Expression instance =
+            var instance =
                 type.GetTypeInfo().IsAssignableFrom(typeof(T).GetTypeInfo())
                 ? (Expression)parameter
                 : Expression.Convert(parameter, type);
 
-            Expression<Func<T, TResult>> expression =
+            var expression =
                 Expression.Lambda<Func<T, TResult>>(
                     Expression.Convert(Expression.Call(instance, property.GetMethod), typeof(TResult)),
                     parameter);

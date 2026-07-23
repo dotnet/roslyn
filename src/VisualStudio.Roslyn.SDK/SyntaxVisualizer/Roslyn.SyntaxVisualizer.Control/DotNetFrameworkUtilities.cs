@@ -19,7 +19,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                     net471OrAboveInstalled = false;
                     using (var key = Registry.LocalMachine.OpenSubKey(frameworkReleaseRegKey))
                     {
-                        int version = key != null ? (int)(key.GetValue("Release") ?? int.MinValue) : int.MinValue;
+                        var version = key != null ? (int)(key.GetValue("Release") ?? int.MinValue) : int.MinValue;
                         net471OrAboveInstalled = version > net47Version ? true : false;
                     }
 

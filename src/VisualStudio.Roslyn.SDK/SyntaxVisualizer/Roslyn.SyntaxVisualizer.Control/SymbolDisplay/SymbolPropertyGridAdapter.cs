@@ -99,10 +99,10 @@ namespace Roslyn.SyntaxVisualizer.Control.SymbolDisplay
             return new PropertyDescriptorCollection(properties.ToArray());
         }
 
-        class DictionaryPropertyDescriptor : PropertyDescriptor
+        private class DictionaryPropertyDescriptor : PropertyDescriptor
         {
-            Dictionary<string, string> _dictionary;
-            string _key;
+            private Dictionary<string, string> _dictionary;
+            private string _key;
 
             internal DictionaryPropertyDescriptor(Dictionary<string, string> d, string key)
                 : base(key.ToString(), null)
