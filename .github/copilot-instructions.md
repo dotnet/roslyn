@@ -104,7 +104,7 @@ For any **non-trivial** change, start with a short plan **before** writing the i
 
 Write the plan to `plan.md` in your session folder (see the session context) and keep it updated at milestones. A plan is a working artifact, not a deliverable: keep it lean.
 
-**Plan template** (drop the fields that genuinely don't apply):
+**Plan template** (drop unneeded fields):
 
 ```markdown
 ## Plan: <short title>
