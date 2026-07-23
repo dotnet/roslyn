@@ -8,7 +8,8 @@ namespace Roslyn.SyntaxVisualizer.Control
 {
     internal static class ControlExtensions
     {
-        // preserve pre-migration implementation
+        // for now, keep unused parameter to ease migration into dotnet/roslyn
+        // post-migration, we can fixup this unused param
         // https://github.com/dotnet/roslyn/issues/84573
         internal static Point Clamp(this Point _, FrameworkElement element)
         {
