@@ -1064,7 +1064,7 @@ or E._{i}
             }, timeout: TimeSpan.FromSeconds(10));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
         public void ManyBinaryPatterns_05_RedundantPatternCheckRespectsSpecificDiagnosticOption()
         {
             // Same as ManyBinaryPatterns_04, but disables the warning via WithSpecificDiagnosticOptions
@@ -1101,7 +1101,7 @@ or E._{i}
             }, timeout: TimeSpan.FromSeconds(10));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
         public void ManyTupleSwitchArms_01()
         {
             const int fieldsPerEntity = 25;
