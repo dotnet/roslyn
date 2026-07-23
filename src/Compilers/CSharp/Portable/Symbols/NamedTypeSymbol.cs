@@ -2026,7 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if (definitionFactoryMethods[j].ContainingType != (object)interfaceForDefinition)
                                 {
-                                    Debug.Assert(!interfaceForDefinition.Equals(definitionFactoryMethods[j].ContainingType, TypeCompareKind.AllIgnoreOptions));
+                                    Debug.Assert(!interfaceForDefinition.Equals(definitionFactoryMethods[j].ContainingType, TypeCompareKind.ConsiderEverything));
                                     break;
                                 }
 
@@ -2091,7 +2091,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 !isShadowed(method, shadowingMethods, baseInterfaceForDefinition))
                             {
                                 Debug.Assert(result.Count == 0 ||
-                                             !method.ContainingType.Equals(result[result.Count - 1].ContainingType, TypeCompareKind.AllIgnoreOptions) ||
+                                             !method.ContainingType.Equals(result[result.Count - 1].ContainingType, TypeCompareKind.ConsiderEverything) ||
                                              method.ContainingType == (object)result[result.Count - 1].ContainingType);
                                 result.Add(method);
 
@@ -2147,13 +2147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     MethodSymbol shadowingMethod = shadowingMethods[i];
                     if (shadowingMethod.ContainingType == (object)methodContainingType)
                     {
-#if DEBUG
-                        for (i++; i < shadowingMethods.Count; i++)
-                        {
-                            Debug.Assert(shadowingMethods[i].ContainingType == (object)methodContainingType);
-                        }
-#endif
-                        break;
+                        continue;
                     }
 
                     if (MemberSignatureComparer.CSharpOverrideComparer.Equals(shadowingMethod, method) &&
