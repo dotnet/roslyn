@@ -2016,7 +2016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             NamedTypeSymbol interfaceForDefinition = definitionFactoryMethods[i].ContainingType;
                             Debug.Assert(interfaceForDefinition.IsInterface);
-                            NamedTypeSymbol? constructedOrSubstitutedInterface = typeSubstitution.SubstituteNamedType(interfaceForDefinition);
+                            NamedTypeSymbol constructedOrSubstitutedInterface = typeSubstitution.SubstituteNamedType(interfaceForDefinition);
                             bool canShadow = !interfaceForDefinition.OriginalDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty;
 
                             // Process methods in groups of methods with the same containing type, so that we can deal with shadowing.
