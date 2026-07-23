@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryUnsafeModifier;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -215,7 +216,7 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
 
     [Theory, CombinatorialData]
     public Task RemoveWhenNotNeededDueToSafePointers(
-        [CombinatorialValues(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        [CombinatorialValues(LanguageVersionExtensions.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
         => new VerifyCS.Test
         {
             TestCode = """
