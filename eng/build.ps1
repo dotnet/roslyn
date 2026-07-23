@@ -674,6 +674,7 @@ function Deploy-VsixViaTool() {
 
     # Disable background download UI to avoid toasts
     &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
+    &$vsRegEdit set "$vsDir" $hive HKCU "ExtensionManager\AutomaticallyCheckForUpdates2" Value dword 0
 
     # Disable text spell checker to avoid spurious warnings in the error list
     &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Editor\EnableSpellChecker" Value dword 0
