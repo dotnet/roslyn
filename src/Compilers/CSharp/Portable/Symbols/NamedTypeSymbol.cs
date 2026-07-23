@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private ImmutableSegmentedDictionary<string, Symbol> _lazyRequiredMembers = default;
 
-        private UncommonProperties _lazyUncommonProperties;
-
 #nullable enable
+        private UncommonProperties? _lazyUncommonProperties;
+
         private class UnionData
         {
             public ImmutableArray<MethodSymbol> _lazyFactoryMethods;
@@ -831,18 +831,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return _lazyRequiredMembers;
             }
-        }
-
-        private UncommonProperties GetUncommonProperties()
-        {
-            UncommonProperties? lazyUncommonProperties = _lazyUncommonProperties;
-            if (lazyUncommonProperties is null)
-            {
-                Interlocked.CompareExchange(ref _lazyUncommonProperties, new UncommonProperties(), null);
-                return _lazyUncommonProperties;
-            }
-
-            return lazyUncommonProperties;
         }
 
         private void EnsureRequiredMembersCalculated()
@@ -2216,6 +2204,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return null;
             }
+        }
+
+        private UncommonProperties GetUncommonProperties()
+        {
+            UncommonProperties? lazyUncommonProperties = _lazyUncommonProperties;
+            if (lazyUncommonProperties is null)
+            {
+                Interlocked.CompareExchange(ref _lazyUncommonProperties, new UncommonProperties(), null);
+                return _lazyUncommonProperties;
+            }
+
+            return lazyUncommonProperties;
         }
 
         private UnionData GetUnionData()
