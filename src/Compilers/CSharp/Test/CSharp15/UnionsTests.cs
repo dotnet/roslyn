@@ -4585,7 +4585,7 @@ struct S1
     public object Value => _value;
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             // There is an implicit null check for class union types and for Nullable<Union>.  
             comp.VerifyDiagnostics(
                 // (29,16): error CS0165: Use of unassigned local variable 'y'
@@ -8129,7 +8129,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (101,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and C3;
@@ -8197,7 +8197,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (401,29): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
                 //         _ = u is string and int;
@@ -8395,7 +8395,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (202,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is {} and C4 {};
@@ -8460,7 +8460,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (1001,28): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 {} and C3;
@@ -8566,7 +8566,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (302,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is {} and C4 c;
@@ -8627,7 +8627,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (901,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 b and C3;
@@ -8731,7 +8731,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (702,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is {} and not C4;
@@ -9074,7 +9074,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,25): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and "1";
@@ -9379,7 +9379,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,27): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and > 1;
@@ -10617,7 +10617,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
                 // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         return u switch { int => 1, string => 2 };
@@ -10754,7 +10754,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         return u switch { int => 1, string => 2 };
@@ -10809,7 +10809,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 );
         }
@@ -10864,7 +10864,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (300,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         return u switch { true => 1, false => 4, string => 2 };
@@ -10946,7 +10946,7 @@ class C2
 }
 
 ";
-            var comp1 = CreateCompilation([src1, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var comp1 = CreateCompilation([src1, UnionAttributeSource]);
             CompileAndVerify(comp1, expectedOutput: "1323 -1-3-2-3").VerifyDiagnostics(
                 // (46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ Value: null }' is not covered.
                 //         return u switch { null => -4, { Value: int } => -1, { Value: string } => -2, { Value: object } => -3 };
@@ -11088,7 +11088,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 );
         }
@@ -11134,7 +11134,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (18,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C2' is not covered.
                 //         return u switch { int => 1, I1 => 2, null => 3 };
@@ -11345,7 +11345,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
                 );
         }
@@ -11393,7 +11393,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
                 );
         }
@@ -11516,7 +11516,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
 
             var expected = new[]
             {
@@ -11777,7 +11777,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
 
             var expected = new[]
             {
@@ -12054,7 +12054,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
 
             var expected = new[]
             {
@@ -12369,7 +12369,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilationWithIL([src, UnionAttributeSource], ilSource, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithIL([src, UnionAttributeSource], ilSource);
             comp.VerifyDiagnostics(
                 // (100,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
                 //         return u switch { int => 1, null => 3 };
@@ -19741,7 +19741,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullAttributeDefinition], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullAttributeDefinition]);
 
             comp.VerifyDiagnostics(
                 // (300,51): warning CS8602: Dereference of a possibly null reference.
@@ -20939,7 +20939,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.ToString();
@@ -23685,7 +23685,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullAttributeDefinition], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullAttributeDefinition]);
 
             comp.VerifyDiagnostics(
                 // (200,33): warning CS8602: Dereference of a possibly null reference.
@@ -58808,7 +58808,7 @@ class Program
 }
 ";
 
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], options: TestOptions.ReleaseDll);
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [3] : [1]
@@ -58877,7 +58877,7 @@ class Program
 }
 ";
 
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], options: TestOptions.ReleaseDll);
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [3] : [1]
@@ -58950,7 +58950,7 @@ class Program
 }
 ";
 
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], options: TestOptions.ReleaseDll);
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [3] : [1]
@@ -59019,7 +59019,7 @@ class Program
 }
 ";
 
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], options: TestOptions.ReleaseDll);
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [3] : [1]
@@ -59088,7 +59088,7 @@ class Program
 }
 ";
 
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], options: TestOptions.ReleaseDll);
+            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [3] : [1]
@@ -59134,7 +59134,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation([source1 + source2, UnionAttributeSource], options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation([source1 + source2, UnionAttributeSource]);
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 is Y ? [4] : [1]

@@ -2307,7 +2307,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { public int Value; }
             """;
 
-        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics();
     }
 
@@ -6827,14 +6827,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
         var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll);
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
         static void verify(CSharpCompilation comp)
