@@ -31,7 +31,6 @@ parameters:
 
 variables:
   - group: DotNet-Roslyn-SDLValidation-Params
-  - group: DotNet-Roslyn-Insertion-Variables
   - name: Codeql.Enabled
     value: false
   - name: Codeql.SkipTaskAutoInjection
@@ -214,9 +213,19 @@ extends:
             versionSpec: '4.9.2'
 
         # Authenticate with service connections to be able to publish packages to external nuget feeds.
+        # Authenticate to azure-public/vs-impl feed via WIF service connection
         - task: NuGetAuthenticate@1
           inputs:
-            nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
+            azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+            feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json
+        # Authenticate to azure-public/vssdk feed via WIF service connection
+        - task: NuGetAuthenticate@1
+          inputs:
+            azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+            feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json
+
+        # Authenticate to DevDiv feeds
+        - task: NuGetAuthenticate@1
 
         # Needed because the build fails the NuGet Tools restore without it
         - task: UseDotNet@2
@@ -354,8 +363,7 @@ extends:
             createDraftPR: true
             autoComplete: false
             insertToolset: ${{ parameters.InsertToolset }}
-            devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
-            dncEngAzdoToken: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+            dncEngAzureSubscription: 'DncEng Insertion: Roslyn and Razor'
             vsBranchName: ${{ parameters.VisualStudioBranchName }}
             titlePrefix: $(PRTitlePrefix)
             sourceBranch: $(ComponentBranchName)

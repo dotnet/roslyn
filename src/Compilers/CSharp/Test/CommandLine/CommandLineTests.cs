@@ -43,6 +43,7 @@ using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
+    [ValidatePooledObjects(WaitForOutstandingObjectsToBeFreed = true)]
     public class CommandLineTests : CommandLineTestBase
     {
 #if NET
@@ -1720,6 +1721,7 @@ class C
             // - [ ] update the feature status page
             // - [ ] update all the tests that call this canary
             // - [ ] replace all references to C# "Next" (such as `TestOptions.RegularNext` or `LanguageVersionFacts.CSharpNext`) with the new version and fix failing tests
+            // - [ ] replace references to C# "preview" in breaking change docs
             // - [ ] update _MaxAvailableLangVersion cap (a relevant test should break when new version is introduced)
             // - [ ] update the "UpgradeProject" codefixer
             // - [ ] Remove the `ExperimentalUrl` section from any entries for language features being shipped in Syntax.xml and OperationInterfaces.xml, and rerun the generator
@@ -6353,6 +6355,7 @@ public class CS1698_a {}
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
+        [ValidatePooledObjects(LeakReason = "Binary file detection exception path")]
         public void BinaryFileErrorTest()
         {
             var binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path;
@@ -12104,7 +12107,7 @@ class C
             result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
             AssertEx.Equal(
-                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
+                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".8", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
         }
 

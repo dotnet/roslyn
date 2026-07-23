@@ -51,6 +51,18 @@ public sealed class TestOutputLoggerProvider(ITestOutputHelper testOutputHelper)
         }
     }
 
+    /// <summary>
+    /// Validates that this provider has not already been disposed, and then disposes it. This is useful in
+    /// test teardown to catch bugs where the provider was disposed too early and we might lose messages.
+    /// </summary>
+    public void ValidateNotAlreadyDisposedAndDispose()
+    {
+        if (_testOutputHelper is null)
+            throw new ObjectDisposedException(nameof(TestOutputLoggerProvider));
+
+        Dispose();
+    }
+
     public void Dispose()
     {
         _testOutputHelper = null;

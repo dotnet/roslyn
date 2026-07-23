@@ -1,0 +1,81 @@
+﻿RazorDocument - [0..152)::152 - [@{LF#line 1 "file.cs"LF#error This is an errorLF#line defaultLF#warning This is a warningLF#line hiddenLF#line (1, 1) - (5, 60) 10 "partial-class.cs"LF}]
+    MarkupBlock - [0..152)::152
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..152)::152
+            CSharpStatement - [0..152)::152
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                CSharpStatementBody - [1..152)::151
+                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..151)::149
+                        CSharpStatementLiteral - [2..151)::149 - [LF#line 1 "file.cs"LF#error This is an errorLF#line defaultLF#warning This is a warningLF#line hiddenLF#line (1, 1) - (5, 60) 10 "partial-class.cs"LF] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[line];
+                            Whitespace;[ ];
+                            IntegerLiteral;[1];
+                            Whitespace;[ ];
+                            StringLiteral;["file.cs"];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[error];
+                            Whitespace;[ ];
+                            Identifier;[This];
+                            Whitespace;[ ];
+                            Keyword;[is];
+                            Whitespace;[ ];
+                            Identifier;[an];
+                            Whitespace;[ ];
+                            Identifier;[error];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[line];
+                            Whitespace;[ ];
+                            Keyword;[default];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[warning];
+                            Whitespace;[ ];
+                            Identifier;[This];
+                            Whitespace;[ ];
+                            Keyword;[is];
+                            Whitespace;[ ];
+                            Identifier;[a];
+                            Whitespace;[ ];
+                            Identifier;[warning];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[line];
+                            Whitespace;[ ];
+                            Identifier;[hidden];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[line];
+                            Whitespace;[ ];
+                            LeftParenthesis;[(];
+                            IntegerLiteral;[1];
+                            Comma;[,];
+                            Whitespace;[ ];
+                            IntegerLiteral;[1];
+                            RightParenthesis;[)];
+                            Whitespace;[ ];
+                            Minus;[-];
+                            Whitespace;[ ];
+                            LeftParenthesis;[(];
+                            IntegerLiteral;[5];
+                            Comma;[,];
+                            Whitespace;[ ];
+                            IntegerLiteral;[60];
+                            RightParenthesis;[)];
+                            Whitespace;[ ];
+                            IntegerLiteral;[10];
+                            Whitespace;[ ];
+                            StringLiteral;["partial-class.cs"];
+                            NewLine;[LF];
+                    RazorMetaCode - [151..152)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        RightBrace;[}];
+        MarkupTextLiteral - [152..152)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+    EndOfFile;[];

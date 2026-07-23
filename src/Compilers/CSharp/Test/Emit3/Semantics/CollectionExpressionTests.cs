@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14039,13 +14040,10 @@ static class Program
 
             comp = CreateCompilation(sourceC, references: new[] { refB });
             comp.VerifyEmitDiagnostics(
-                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '421e2b62-28da-4a54-9838-ca85a8922250, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '05867d3a-d497-48ef-b11e-9567f6786f5a, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     static object[] F(B b) => [..b];
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "b").WithArguments("A", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 34),
-                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '421e2b62-28da-4a54-9838-ca85a8922250, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //     static object[] F(B b) => [..b];
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "b").WithArguments("A", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 34),
-                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '421e2b62-28da-4a54-9838-ca85a8922250, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (3,34): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly '05867d3a-d497-48ef-b11e-9567f6786f5a, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     static object[] F(B b) => [..b];
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "b").WithArguments("A", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 34));
         }
@@ -15764,7 +15762,7 @@ namespace System
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/72539")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/74676")]
-        public void SynthesizedCollections_EnsureCompilerGenerated()
+        public void SynthesizedCollections_EnsureAttributes()
         {
             string source = """
                 using System;
@@ -15804,15 +15802,20 @@ namespace System
                     verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlyList"));
                 },
                 expectedOutput: """
-                    <>z__ReadOnlySingleElementList`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
-                    <>z__ReadOnlyArray`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
-                    <>z__ReadOnlyList`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlySingleElementList`1: System.Diagnostics.DebuggerDisplayAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlyArray`1: System.Diagnostics.DebuggerDisplayAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlyList`1: System.Diagnostics.DebuggerDisplayAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
 
                     """);
 
             static void verifyCompilerGeneratedType(NamedTypeSymbol type)
             {
                 Assert.Collection(type.GetAttributes(),
+                    a =>
+                    {
+                        Assert.Equal("System.Diagnostics.DebuggerDisplayAttribute", a.AttributeClass?.ToTestDisplayString());
+                        Assert.Equal("Count = {System.Collections.ICollection.Count}", a.CommonConstructorArguments.Single().Value);
+                    },
                     a => Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", a.AttributeClass?.ToTestDisplayString()));
                 Assert.DoesNotContain(type.GetMembers(),
                     m => m.GetAttributes().Any(a => a.AttributeClass?.ToTestDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute"));
@@ -16545,7 +16548,7 @@ partial class Program
             comp.VerifyDiagnostics();
 
             // ILVerify failure:
-            //[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }
+            //[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }
             var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[1], [2]],"), verify: Verification.Fails);
             verifier.VerifyIL("Program.M", """
 {
@@ -33680,10 +33683,7 @@ partial class Program
                 // (4,28): error CS0611: Array elements cannot be of type 'S'
                 //     public void Add(params S[] x) => throw null;
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(4, 28),
-                // (15,21): error CS9203: A collection expression of type 'S' cannot be used in this context because it may be exposed outside of the current scope.
-                //     static S F() => [[]];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(15, 21),
-                // (15,22): error CS9404: Element type of this collection may not be a ref struct or a type parameter allowing ref structs
+                // (15,22): error CS9358: Element type of this collection may not be a ref struct or a type parameter allowing ref structs
                 //     static S F() => [[]];
                 Diagnostic(ErrorCode.ERR_CollectionRefLikeElementType, "[]").WithLocation(15, 22));
         }
@@ -33707,10 +33707,7 @@ partial class Program
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (11,26): error CS9203: A collection expression of type 'S<int>' cannot be used in this context because it may be exposed outside of the current scope.
-                //     static S<int> F() => [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1, 2, 3]").WithArguments("S<int>").WithLocation(11, 26));
+            comp.VerifyEmitDiagnostics();
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
@@ -45738,13 +45735,25 @@ partial class Program
                             }
                             """;
 
-            var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
 
             comp3.VerifyDiagnostics(
                 // (5,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Overloads.Test([2, 3]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "[2, 3]").WithLocation(5, 24)
                 );
+
+            DiagnosticDescription[] expectedPreviewDiagnostics =
+            [
+                // (5,24): error CS9363: 'MyCollectionOfInt.MyCollectionOfInt(void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Overloads.Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "[2, 3]").WithArguments("MyCollectionOfInt.MyCollectionOfInt(void*)").WithLocation(5, 24),
+            ];
+
+            comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -45818,7 +45827,7 @@ partial class Program
                             }
                             """;
 
-            var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
 
             comp3.VerifyDiagnostics(
                 // (5,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -45828,6 +45837,21 @@ partial class Program
                 //         Overloads.Test([2, 3]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "3").WithLocation(5, 28)
                 );
+
+            DiagnosticDescription[] expectedPreviewDiagnostics =
+            [
+                // (5,25): error CS9363: 'MyCollectionOfInt.Add(int, void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Overloads.Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "2").WithArguments("MyCollectionOfInt.Add(int, void*)").WithLocation(5, 25),
+                // (5,28): error CS9363: 'MyCollectionOfInt.Add(int, void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Overloads.Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "3").WithArguments("MyCollectionOfInt.Add(int, void*)").WithLocation(5, 28),
+            ];
+
+            comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe);
+            comp3.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -47123,10 +47147,7 @@ class Program
             // The spec implies the safe-context of 'spans' should be 'caller-context'.
             // We should go back and spec the safe-context of collections with ref struct element type, and adjust ref safety analysis accordingly.
             var comp = CreateCompilation([source, s_collectionWithRefStructElementType], targetFramework: TargetFramework.Net90);
-            comp.VerifyDiagnostics(
-                // (9,16): error CS8352: Cannot use variable 'spans' in this context because it may expose referenced variables outside of their declaration scope
-                //         return spans;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "spans").WithArguments("spans").WithLocation(9, 16));
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77827")]
@@ -47211,7 +47232,7 @@ class Program
                 ? Verification.FailsPEVerify
                 : Verification.Fails with
                 {
-                    ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }"
+                    ILVerifyMessage = InlineArrayTests.InlineArrayAsReadOnlySpanILVerifyMessage + '\n' + InlineArrayTests.InlineArrayElementRefILVerifyMessage
                 };
             var verifier = CompileAndVerify([sourceA, sourceB, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput(expectedOutput), targetFramework: TargetFramework.Net100, verify: ilVerifyFailure, symbolValidator: verifyResult(shouldHaveSynthesizedArrayType: arrayLength == 17, arrayLength));
             verifier.VerifyDiagnostics();
@@ -47361,7 +47382,7 @@ class Program
             var consumerComp = CreateCompilation([consumerSource, s_collectionExtensionsWithSpan], options: TestOptions.ReleaseExe, references: [libraryRef], targetFramework: TargetFramework.Net80);
             var verifier = CompileAndVerify(consumerComp, expectedOutput: IncludeExpectedOutput("[1, 2],"), verify: Verification.Fails with
             {
-                ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }"
+                ILVerifyMessage = InlineArrayTests.InlineArrayAsReadOnlySpanILVerifyMessage + '\n' + InlineArrayTests.InlineArrayElementRefILVerifyMessage
             }).VerifyDiagnostics();
             verifier.VerifyIL("Program.Main()", """
                 {
@@ -47655,6 +47676,79 @@ class Program
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void MissingMember_ArrayLength()
+        {
+            var source = """
+int[] i = [1, 2];
+int[] j = [0, .. i];
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            string minCorlibSource = """
+namespace System
+{
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class Enum { }
+    public class Attribute { }
+    public class Array { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+}
+namespace System.Collections
+{
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+    public interface IEnumerator
+    {
+        object Current { get; }
+        bool MoveNext();
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IEnumerable<T> : IEnumerable
+    {
+        new IEnumerator<T> GetEnumerator();
+    }
+    public interface IEnumerator<T> : IEnumerator
+    {
+        new T Current { get; }
+    }
+    public class List<T> : IEnumerable<T>
+    {
+        public List() { }
+        public List(int i) { }
+        public void Add(T item) { }
+        public T[] ToArray() { return null; }
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() { return null; }
+        IEnumerator IEnumerable.GetEnumerator() { return null; }
+    }
+}
+""";
+            var corlib = CreateEmptyCompilation(minCorlibSource);
+            corlib.VerifyDiagnostics();
+            Assert.Null(corlib.GetSpecialTypeMember(SpecialMember.System_Array__Length));
+            var corlibRef = corlib.EmitToImageReference();
+
+            comp = CreateEmptyCompilation(source, references: [corlibRef]);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

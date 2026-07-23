@@ -42,6 +42,11 @@ internal sealed class CSharpFullyQualifyCodeFixProvider() : AbstractFullyQualify
     /// </summary>
     private const string CS0308 = nameof(CS0308);
 
+    /// <summary>
+    /// XML comment has cref attribute that could not be resolved
+    /// </summary>
+    private const string CS1574 = nameof(CS1574);
+
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        [CS0103, CS0104, CS0246, CS0305, CS0308, IDEDiagnosticIds.UnboundIdentifierId];
+        [CS0103, CS0104, CS0246, CS0305, CS0308, CS1574, IDEDiagnosticIds.UnboundIdentifierId];
 }

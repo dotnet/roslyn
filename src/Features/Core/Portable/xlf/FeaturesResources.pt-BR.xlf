@@ -471,8 +471,8 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <note />
       </trans-unit>
       <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
-        <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</source>
-        <target state="translated">Alterar o arquivo de origem '{0}' em um projeto obsoleto '{1}' não tem efeito até que o projeto seja reconstruído; {2}</target>
+        <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuilt; {2}</source>
+        <target state="translated">Alterar o arquivo de origem "{0}" em um projeto obsoleto "{1}" não tem efeito até que o projeto seja reconstruído; {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_the_application">
@@ -1009,6 +1009,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <source>Insufficient or invalid hexadecimal digits</source>
         <target state="translated">Dígitos hexadecimais insuficientes ou inválidos</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
+      </trans-unit>
+      <trans-unit id="Intercepted_by_0">
+        <source>Intercepted by '{0}'.</source>
+        <target state="translated">Interceptado por "{0}".</target>
+        <note />
       </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
@@ -2593,6 +2598,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="Replace_conditional_expression_with_statements">
         <source>Replace conditional expression with statements</source>
         <target state="translated">Substituir expressão condicional por instruções</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
+        <source>Represents the character '{0}' as a UTF-16 code unit.</source>
+        <target state="translated">Representa o caractere ''{0}'' como uma unidade de código UTF-16.</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

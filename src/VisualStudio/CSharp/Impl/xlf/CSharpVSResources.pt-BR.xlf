@@ -32,6 +32,11 @@
         <target state="translated">Permitir instruções inseridas na mesma linha</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_add_using">
+        <source>Always add using</source>
+        <target state="translated">Sempre adicionar usando</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
         <target state="translated">Concluir a instrução automaticamente no ponto e vírgula</target>
@@ -122,6 +127,16 @@
         <target state="translated">Namespace interno</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Never_add_using">
+        <source>Never add using</source>
+        <target state="translated">Nunca adicionar usando</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_using_if_explicitly_completed">
+        <source>Only add using if explicitly completed (via TAB or double-click)</source>
+        <target state="translated">Adicionar usando somente se explicitamente concluído (via TAB ou clicar duas vezes)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Preferências de correspondência de padrões:</target>
@@ -132,19 +147,9 @@
         <target state="translated">Colocar uma chave de abertura em uma nova linha para inicializadores de objeto, coleção, matriz e with</target>
         <note>{Locked="with"}</note>
       </trans-unit>
-      <trans-unit id="Prefer_extended_property_pattern">
-        <source>Prefer extended property pattern</source>
-        <target state="translated">Prefere o padrão de propriedade estendida</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">Preferir a criação de objeto implícito quando o tipo for aparente</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
-        <source>Prefer implicitly typed lambda expression</source>
-        <target state="translated">Preferir expressão lambda com tipo implícito</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">

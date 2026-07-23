@@ -52,16 +52,18 @@
     "Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.Debugger": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator": "vs-impl",
+    "Microsoft.CodeAnalysis.EditorFeatures.ExternalAccess": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.Extensions": "vs-impl",
+    "Microsoft.CodeAnalysis.Features.ExternalAccess": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.FSharp": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.HotReload": "arcade",
+    "Microsoft.CodeAnalysis.LanguageServer.ExternalAccess": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore": "vs-impl",
-    "Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures": "vs-impl",
-    "Microsoft.CodeAnalysis.ExternalAccess.Razor.Features": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics": "vs-impl",
+    "Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.Xaml": "vs-impl",
     "Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot": "vs-impl",
     "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
@@ -69,6 +71,7 @@
     "Microsoft.CodeAnalysis.SemanticSearch.Extensions": "vs-impl",
     "Microsoft.CodeAnalysis.SemanticSearch.ReferenceAssemblies": "vs-impl",
     "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
+    "Microsoft.VisualStudio.LanguageServices.ExternalAccess": "vs-impl",
     "Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot": "vs-impl",
     "Microsoft.VisualStudio.LanguageServices.Xaml": "vs-impl",
     "Microsoft.CommonLanguageServerProtocol.Framework": "vs-impl",
@@ -92,7 +95,23 @@
     "roslyn-language-server.osx-x64": "vs-impl",
     "roslyn-language-server.win-arm64": "vs-impl",
     "roslyn-language-server.win-x64": "vs-impl",
-    "Text.Analyzers": "arcade"
+    "Text.Analyzers": "arcade",
+    "Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal": "arcade",
+    "Microsoft.AspNetCore.Razor.Test.Common": "arcade",
+    "Microsoft.AspNetCore.Razor.Utilities.Shared": "arcade",
+    "Microsoft.AspNetCore.Razor.Utilities.Shared.Test": "arcade",
+    "Microsoft.CodeAnalysis.Razor.Compiler": "arcade",
+    "Microsoft.CodeAnalysis.Razor.Tooling.Internal": "arcade",
+    "Microsoft.CodeAnalysis.Razor.Workspaces": "arcade",
+    "Microsoft.CodeAnalysis.Remote.Razor": "arcade",
+    "Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.arm64": "arcade",
+    "Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.x64": "arcade",
+    "Microsoft.Net.Compilers.Razor.Toolset": "arcade",
+    "Microsoft.NET.Sdk.Razor.SourceGenerators.Transport": "arcade",
+    "Microsoft.VisualStudio.LanguageServer.ContainedLanguage": "arcade",
+    "Microsoft.VisualStudio.LanguageServices.Razor": "arcade",
+    "Microsoft.VisualStudio.RazorExtension": "arcade",
+    "RazorDeployment": "arcade"
   },
   "branchInfo": {
     "nugetKind": [
@@ -101,6 +120,6 @@
     ],
     "vsBranch": "main",
     "insertionCreateDraftPR": false,
-    "insertionTitlePrefix": "[InsidersVNext]"
+    "insertionTitlePrefix": "[Main 18.10]"
   }
 }

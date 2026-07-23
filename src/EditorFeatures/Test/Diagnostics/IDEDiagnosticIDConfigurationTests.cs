@@ -69,15 +69,16 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
     private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
     {
-        if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
-                or "IDE1007"
-                or "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
-                or "IDE0005_gen" // this diagnostic is hidden and not configurable.
-                or "RE0001"
-                or "JSON001"
-                or "JSON002") // Tracked by https://github.com/dotnet/roslyn/issues/48530
+        if (diagnosticId is "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
+                or "IDE0005_gen") // this diagnostic is hidden and not configurable.
         {
             Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
+            return;
+        }
+
+        if (diagnosticId is "RE0001" or "JSON001" or "JSON002")
+        {
+            Assert.Equal($"https://learn.microsoft.com/visualstudio/ide/reference/{diagnosticId.ToLowerInvariant()}", helpLinkUri);
             return;
         }
 
@@ -95,7 +96,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
         if (helpLinkUri != $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
         {
-            Assert.True(false, $"Invalid help link for {diagnosticId}");
+            Assert.Fail($"Invalid help link for {diagnosticId}");
         }
     }
 
@@ -138,7 +139,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
             if (!expectedMap.TryGetValue(diagnosticIdString, out var expectedValue))
             {
-                Assert.False(true, $"""
+                Assert.Fail($"""
                     Missing entry:
 
                     {diagnosticIdString}
@@ -149,7 +150,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             // Verify entries match for diagnosticId
             if (expectedValue != editorConfigString)
             {
-                Assert.False(true, $"""
+                Assert.Fail($"""
                     Mismatch for '{diagnosticId}'
                     Expected: {expectedValue}
                     Actual: {editorConfigString}
@@ -161,7 +162,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
         if (expectedLines.Length == 0)
         {
-            Assert.False(true, $"Test Baseline:{baseline}");
+            Assert.Fail($"Test Baseline:{baseline}");
         }
 
         if (expectedMap.Count > 0)
@@ -174,7 +175,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
                 extraEntitiesBuilder.AppendLine(kvp.Value);
             }
 
-            Assert.False(true, $@"Unexpected entries:{extraEntitiesBuilder.ToString()}");
+            Assert.Fail($@"Unexpected entries:{extraEntitiesBuilder.ToString()}");
         }
     }
 
@@ -523,6 +524,9 @@ public sealed class IDEDiagnosticIDConfigurationTests
             # IDE0391
             dotnet_diagnostic.IDE0391.severity = %value%
 
+            # IDE0410
+            dotnet_diagnostic.IDE0410.severity = %value%
+
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -792,13 +796,13 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
             if (!expectedMap.TryGetValue((diagnosticId, optionName), out var expectedValue))
             {
-                Assert.False(true, $@"Missing entry: {diagnosticId}, {optionName}, {optionValue}");
+                Assert.Fail($@"Missing entry: {diagnosticId}, {optionName}, {optionValue}");
             }
 
             // Verify entries match for diagnosticId
             if (expectedValue != optionValue)
             {
-                Assert.False(true, $@"Mismatch for: {diagnosticId}, {optionName}, {optionValue}");
+                Assert.Fail($@"Mismatch for: {diagnosticId}, {optionName}, {optionValue}");
             }
 
             expectedMap.Remove((diagnosticId, optionName));
@@ -850,7 +854,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0033", "dotnet_style_explicit_tuple_names", "true"),
             ("IDE0034", "csharp_prefer_simple_default_expression", "true"),
             ("IDE0035", null, null),
-            ("IDE0036", "csharp_preferred_modifier_order", "public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async"),
+            ("IDE0036", "csharp_preferred_modifier_order", "public,private,protected,internal,file,static,extern,new,virtual,abstract,closed,sealed,override,readonly,unsafe,required,volatile,async"),
             ("IDE0037", "dotnet_style_prefer_inferred_tuple_names", "true"),
             ("IDE0037", "dotnet_style_prefer_inferred_anonymous_type_member_names", "true"),
             ("IDE0038", "csharp_style_pattern_matching_over_is_with_cast_check", "true"),
@@ -942,6 +946,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0380", null, null),
             ("IDE0390", null, null),
             ("IDE0391", null, null),
+            ("IDE0410", "csharp_style_prefer_labeled_jump_statements", "true"),
             ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),

@@ -21,9 +21,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Remote;
 
-#if NET
-[SupportedOSPlatform("windows")]
-#endif
 [method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
 internal sealed class TestSerializerService(
     ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences,

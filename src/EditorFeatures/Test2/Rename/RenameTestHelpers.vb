@@ -2,8 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System
+Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.IO
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -98,9 +103,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Sub
 
 #Disable Warning IDE0060 ' Remove unused parameter - https://github.com/dotnet/roslyn/issues/45890
-        Public Function CreateWorkspaceWithWaiter(element As XElement, host As RenameTestHost) As EditorTestWorkspace
+        Public Function CreateWorkspaceWithWaiter(element As XElement, host As RenameTestHost, ParamArray additionalParts As Type()) As EditorTestWorkspace
 #Enable Warning IDE0060 ' Remove unused parameter
-            Dim workspace = EditorTestWorkspace.CreateWorkspace(element, composition:=s_composition)
+            Dim composition = If(additionalParts.Length = 0, s_composition, s_composition.AddParts(additionalParts))
+            Dim workspace = EditorTestWorkspace.CreateWorkspace(element, composition:=composition)
             workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
             Return workspace
         End Function
@@ -135,5 +141,48 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim view = document.GetTextView()
             Return tagger.GetTags(view.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection())
         End Function
+
+        <ExportWorkspaceService(GetType(ISourceGeneratedDocumentSpanMappingService)), [Shared]>
+        <PartNotDiscoverable>
+        Friend NotInheritable Class TestRazorSourceGeneratedDocumentSpanMappingService
+            Implements ISourceGeneratedDocumentSpanMappingService
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function CanMapSpans(sourceGeneratedDocument As SourceGeneratedDocument) As Boolean Implements ISourceGeneratedDocumentSpanMappingService.CanMapSpans
+                Return String.Equals(Path.GetFileName(sourceGeneratedDocument.FilePath), "generated_file.cs", StringComparison.OrdinalIgnoreCase)
+            End Function
+
+            Public Async Function GetMappedTextChangesAsync(oldDocument As SourceGeneratedDocument, newDocument As SourceGeneratedDocument, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of MappedTextChange)) Implements ISourceGeneratedDocumentSpanMappingService.GetMappedTextChangesAsync
+                If Not CanMapSpans(newDocument) Then
+                    Return ImmutableArray(Of MappedTextChange).Empty
+                End If
+
+                Dim changes = Await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(False)
+                Dim builder = ImmutableArray.CreateBuilder(Of MappedTextChange)(changes.Count)
+                For Each change In changes
+                    builder.Add(New MappedTextChange(newDocument.FilePath, change))
+                Next
+
+                Return builder.MoveToImmutable()
+            End Function
+
+            Public Async Function MapSpansAsync(document As SourceGeneratedDocument, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of MappedSpanResult)) Implements ISourceGeneratedDocumentSpanMappingService.MapSpansAsync
+                If Not CanMapSpans(document) Then
+                    Return ImmutableArray(Of MappedSpanResult).Empty
+                End If
+
+                Dim sourceText = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+                Dim builder = ImmutableArray.CreateBuilder(Of MappedSpanResult)(spans.Length)
+                For Each span In spans
+                    builder.Add(New MappedSpanResult(document.FilePath, sourceText.Lines.GetLinePositionSpan(span), span))
+                Next
+
+                Return builder.MoveToImmutable()
+            End Function
+        End Class
     End Module
 End Namespace

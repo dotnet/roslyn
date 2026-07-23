@@ -77,7 +77,7 @@ public abstract class RecommenderTests : TestBase
 
         if (tree.IsInNonUserCode(position, CancellationToken.None) && !absent)
         {
-            Assert.False(true, "Wanted keyword, but in non-user code position: " + KeywordText);
+            Assert.Fail("Wanted keyword, but in non-user code position: " + KeywordText);
         }
 
         var semanticModel = compilation.GetSemanticModel(tree);
@@ -99,12 +99,12 @@ public abstract class RecommenderTests : TestBase
         {
             if (RecommendKeywordsAsync == null)
             {
-                Assert.False(true, "No recommender for: " + KeywordText);
+                Assert.Fail("No recommender for: " + KeywordText);
             }
             else
             {
                 var result = (await RecommendKeywordsAsync(position, context)).SingleOrDefault();
-                AssertEx.NotNull(result);
+                Assert.NotNull(result);
                 Assert.Equal(KeywordText, result.Keyword);
                 if (matchPriority != null)
                 {

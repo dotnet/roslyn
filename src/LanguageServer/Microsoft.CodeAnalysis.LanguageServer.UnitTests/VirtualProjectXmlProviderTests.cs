@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// Uncomment this to test run-api locally.
-// Eventually when a new enough SDK is adopted in-repo we can remove this
-//#define RoslynTestRunApi
-
 using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.Extensions.Logging;
@@ -22,31 +18,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 /// - Thorough behavioral testing.
 /// - Testing of more intricate behaviors which are subject to change.
 /// </summary>
-public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostTests
+public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
 {
-    public VirtualProjectXmlProviderTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
-    private class EnableRunApiTests : ExecutionCondition
-    {
-        // https://github.com/dotnet/roslyn/issues/78879: Enable these tests unconditionally
-        public override bool ShouldSkip =>
-#if RoslynTestRunApi
-            false;
-#else
-            true;
-#endif
-
-        public override string SkipReason => $"Compilation symbol 'RoslynTestRunApi' is not defined.";
-    }
-
     private async Task<VirtualProjectXmlProvider> GetProjectXmlProviderAsync()
     {
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, extensionPaths: null);
+        var exportProvider = LanguageServerTestComposition.GetSharedExportProvider(DefaultServerConfiguration, LoggerFactory);
         return exportProvider.GetExportedValue<VirtualProjectXmlProvider>();
     }
+
+    private DotnetCliHelper GetDotnetCliHelper()
+      => new(LoggerFactory);
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/79464")]
     public async Task GetProjectXml_FileBasedProgram_SdkTooOld_01()
@@ -68,11 +49,11 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """));
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.Null(contentNullable);
     }
 
-    [ConditionalFact(typeof(EnableRunApiTests))]
+    [Fact]
     public async Task GetProjectXml_FileBasedProgram_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -87,13 +68,13 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
+                "version": "10.0.301"
               }
             }
             """);
 
         var logger = LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>();
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, logger, CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), logger, localizeOutput: false, CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         var virtualProjectXml = content.VirtualProjectXml;
@@ -104,7 +85,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         Assert.Empty(content.Diagnostics);
     }
 
-    [ConditionalFact(typeof(EnableRunApiTests))]
+    [Fact]
     public async Task GetProjectXml_NonFileBasedProgram_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -121,12 +102,12 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
+                "version": "10.0.301"
               }
             }
             """);
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(content.VirtualProjectXml);
@@ -136,7 +117,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         Assert.Empty(content.Diagnostics);
     }
 
-    [ConditionalFact(typeof(EnableRunApiTests))]
+    [Fact]
     public async Task GetProjectXml_BadPath_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -147,16 +128,16 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
+                "version": "10.0.301"
               }
             }
             """);
 
-        var content = await projectProvider.GetVirtualProjectContentAsync(Path.Combine(tempDir.Path, "BAD"), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var content = await projectProvider.GetVirtualProjectContentAsync(Path.Combine(tempDir.Path, "BAD"), GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.Null(content);
     }
 
-    [ConditionalFact(typeof(EnableRunApiTests))]
+    [Fact]
     public async Task GetProjectXml_BadDirective_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -172,21 +153,19 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         var globalJsonFile = tempDir.CreateFile("global.json");
         await globalJsonFile.WriteAllTextAsync("""
             {
-              "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
-              }
+                "sdk": {
+                "version": "10.0.301"
+                }
             }
             """);
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         var diagnostic = content.Diagnostics.Single();
         Assert.Contains("Unrecognized directive 'BAD'", diagnostic.Message);
         Assert.Equal(appFile.Path, diagnostic.Location.Path);
 
-        // LinePositionSpan is not deserializing properly.
-        // Address when implementing editor squiggles. https://github.com/dotnet/roslyn/issues/78688
-        Assert.Equal("(0,0)-(0,0)", diagnostic.Location.Span.ToString());
+        Assert.Equal("(1,0)-(2,0)", diagnostic.Location.Span.ToLinePositionSpan().ToString());
     }
 }

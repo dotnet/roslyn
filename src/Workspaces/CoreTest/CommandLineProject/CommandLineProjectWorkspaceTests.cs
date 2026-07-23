@@ -4,9 +4,11 @@
 
 #nullable disable
 
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
@@ -51,8 +53,9 @@ public sealed class CommandLineProjectWorkspaceTests
     [Fact]
     public void TestLoadProjectFromCommandLine()
     {
-        var commandLine = @"goo.cs subdir\bar.cs /out:goo.dll /target:library";
-        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
+        var commandLine = $"goo.cs {Path.Combine("subdir", "bar.cs")} /out:goo.dll /target:library";
+        var baseDir = TestHelpers.GetRootedPath("ProjectDirectory");
+        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDir);
         var ws = new AdhocWorkspace();
         ws.AddProject(info);
         var project = ws.CurrentSolution.GetProject(info.Id);
@@ -65,11 +68,11 @@ public sealed class CommandLineProjectWorkspaceTests
 
         var gooDoc = project.Documents.First(d => d.Name == "goo.cs");
         Assert.Equal(0, gooDoc.Folders.Count);
-        Assert.Equal(@"C:\ProjectDirectory\goo.cs", gooDoc.FilePath);
+        Assert.Equal(Path.Combine(baseDir, "goo.cs"), gooDoc.FilePath);
 
         var barDoc = project.Documents.First(d => d.Name == "bar.cs");
         Assert.Equal(1, barDoc.Folders.Count);
         Assert.Equal("subdir", barDoc.Folders[0]);
-        Assert.Equal(@"C:\ProjectDirectory\subdir\bar.cs", barDoc.FilePath);
+        Assert.Equal(Path.Combine(baseDir, "subdir", "bar.cs"), barDoc.FilePath);
     }
 }

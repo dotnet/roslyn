@@ -1724,6 +1724,38 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/84439")>
+        Public Sub VerifyFileRenameAllowedForPartialTypeWithAllButOneLocationInSourceGeneratedDocuments(host As RenameTestHost)
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                partial class [|$$Test1|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+                            </Document>
+                            <DocumentFromSourceGenerator>
+                                partial class Test1
+                                {
+                                    void BlahBlah()
+                                    {
+                                    }
+                                }
+                            </DocumentFromSourceGenerator>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.Allowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VerifyFileRenameAllowedWithMultipleTypesOnMatchingName(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -2445,7 +2477,7 @@ public class GeneratedClass
                                 }
                             </Document>
                         </Project>
-                    </Workspace>, host)
+                    </Workspace>, host, GetType(TestRazorSourceGeneratedDocumentSpanMappingService))
 
                 Dim project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(New TestGeneratorReference(razorGenerator))
                 workspace.TryApplyChanges(project.Solution)

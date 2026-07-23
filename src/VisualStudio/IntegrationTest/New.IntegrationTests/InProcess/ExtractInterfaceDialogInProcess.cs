@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
@@ -35,7 +36,7 @@ internal sealed partial class ExtractInterfaceDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await buttonAccessor(dialog).SimulateClickAsync(JoinableTaskFactory));
     }
@@ -96,7 +97,7 @@ internal sealed partial class ExtractInterfaceDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         return dialog.DestinationControl.fileNameTextBox.Text;
     }
@@ -106,7 +107,7 @@ internal sealed partial class ExtractInterfaceDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         var memberSelectionList = dialog.GetTestAccessor().Members;
         var comListItems = memberSelectionList.Items;
@@ -130,7 +131,7 @@ internal sealed partial class ExtractInterfaceDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         var memberSelectionList = dialog.GetTestAccessor().Members;
         var items = memberSelectionList.Items.Cast<MemberSymbolViewModel>().ToArray();

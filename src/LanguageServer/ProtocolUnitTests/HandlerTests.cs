@@ -46,6 +46,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         {
             DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
+
         var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
         Assert.Equal(typeof(TestDocumentHandler).Name, response);
     }
@@ -307,6 +308,22 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         {
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await testLspServer.DisposeAsync());
         }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task DoesNotCrashOnRequestForMissingHandler(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var request = new TestRequestTypeOne(new TextDocumentIdentifier
+        {
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
+
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await server.ExecuteRequestAsync<TestRequestTypeOne, string>("nonExistentMethod", request, CancellationToken.None));
+        Assert.False(server.GetServerAccessor().HasShutdownStarted());
+        Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
     }
 
     internal sealed record TestRequestTypeOne([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);

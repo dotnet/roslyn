@@ -68,9 +68,12 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// Copies the handler in this instance to the linked copy of this type in this other assembly.
         /// </summary>
         /// <remarks>
-        /// This file is in linked into multiple layers, but we want to ensure that all layers have the same copy.
+        /// This file is linked into multiple layers, but we want to ensure that all layers have the same copy.
         /// This lets us copy the handler in this instance into the same in another instance.
         /// </remarks>
+#if NET
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Reflects over the FatalError type in the target assembly to copy error handlers, which cannot be statically analyzed for trimming.")]
+#endif
         public static void CopyHandlersTo(Assembly assembly)
         {
             copyHandlerTo(assembly, s_handler, nameof(s_handler));

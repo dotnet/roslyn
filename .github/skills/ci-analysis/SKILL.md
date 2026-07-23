@@ -33,20 +33,26 @@ However, the analysis patterns in this skill (interpreting failures, correlating
 
 ## Quick Start
 
+```sh
+# Ensure powershell tool is restored
+dotnet tool restore
+```
+
 ```powershell
 # Analyze PR failures (most common) - defaults to dotnet/runtime
-./scripts/Get-CIStatus.ps1 -PRNumber 123445 -ShowLogs
+# NOTE: file paths are relative to the containing folder of the SKILL.md file
+dotnet pwsh ./scripts/Get-CIStatus.ps1 -PRNumber 123445 -ShowLogs
 
 # Analyze by build ID
-./scripts/Get-CIStatus.ps1 -BuildId 1276327 -ShowLogs
+dotnet pwsh ./scripts/Get-CIStatus.ps1 -BuildId 1276327 -ShowLogs
 
 # Query specific Helix work item
-./scripts/Get-CIStatus.ps1 -HelixJob "4b24b2c2-..." -WorkItem "System.Net.Http.Tests"
+dotnet pwsh ./scripts/Get-CIStatus.ps1 -HelixJob "4b24b2c2-..." -WorkItem "System.Net.Http.Tests"
 
 # Other dotnet repositories
-./scripts/Get-CIStatus.ps1 -PRNumber 12345 -Repository "dotnet/aspnetcore"
-./scripts/Get-CIStatus.ps1 -PRNumber 67890 -Repository "dotnet/sdk"
-./scripts/Get-CIStatus.ps1 -PRNumber 11111 -Repository "dotnet/roslyn"
+dotnet pwsh ./scripts/Get-CIStatus.ps1 -PRNumber 12345 -Repository "dotnet/aspnetcore"
+dotnet pwsh ./scripts/Get-CIStatus.ps1 -PRNumber 67890 -Repository "dotnet/sdk"
+dotnet pwsh ./scripts/Get-CIStatus.ps1 -PRNumber 11111 -Repository "dotnet/roslyn"
 ```
 
 ## Key Parameters

@@ -65,6 +65,11 @@ internal static partial class Extensions
         return documentUri.ParsedUri;
     }
 
+    public static string GetDocumentFilePathFromUri(this DocumentUri uri)
+    {
+        return uri.ParsedUri?.IsFile == true ? uri.ParsedUri.LocalPath : uri.UriString;
+    }
+
     /// <summary>
     /// Get all regular and additional <see cref="TextDocument"/>s for the given <paramref name="documentUri"/>.
     /// This will not return source generated documents.
@@ -98,7 +103,7 @@ internal static partial class Extensions
 
         // If this is not our special scheme for generated documents, then we can just look for documents with that file path.
         if (documentUri.ParsedUri.Scheme != SourceGeneratedDocumentUri.Scheme)
-            return solution.GetDocumentIdsWithFilePath(ProtocolConversions.GetDocumentFilePathFromUri(documentUri.ParsedUri));
+            return solution.GetDocumentIdsWithFilePath(documentUri.GetDocumentFilePathFromUri());
 
         // We can get a null documentId if we were unable to find the project associated with the
         // generated document - this can happen if say a project is unloaded.  There may be LSP requests

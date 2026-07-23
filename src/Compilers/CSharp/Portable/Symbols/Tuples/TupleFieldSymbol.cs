@@ -124,6 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override RefKind RefKind => _underlyingField.RefKind;
 
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingField.GetCallerUnsafeMode(fieldsBeingBound);
+
         public sealed override ImmutableArray<CustomModifier> RefCustomModifiers => _underlyingField.RefCustomModifiers;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)

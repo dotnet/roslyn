@@ -52,6 +52,7 @@ internal abstract class UnboundIdentifiersDiagnosticAnalyzerBase<TLanguageKindEn
             DiagnosticCategory.Compiler,
             DiagnosticSeverity.Error,
             isEnabledByDefault: true,
+            helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
             customTags: DiagnosticCustomTags.Microsoft.Append(WellKnownDiagnosticTags.NotConfigurable));
     }
 

@@ -363,6 +363,29 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
 
+    [Theory, CombinatorialData]
+    public Task ClosedClass(TestHost testHost)
+        => TestAsync(
+            """
+            closed class C
+            {
+            }
+            """,
+            testHost,
+            Keyword("closed"),
+            Keyword("class"),
+            Class("C"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
+    public Task ClosedAsIdentifierInClass(TestHost testHost)
+        => TestInClassAsync("closed Goo;",
+            testHost,
+            Identifier("closed"),
+            Field("Goo"),
+            Punctuation.Semicolon);
+
     private static readonly string[] s_contextualKeywordsOnlyValidInMethods = ["where", "from", "group", "join", "select", "into", "let", "by", "orderby", "on", "equals", "ascending", "descending"];
 
     /// <summary>
@@ -1428,77 +1451,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
 
         await TestAsync(code, code, testHost, Options.Script, expected);
     }
-
-    [Theory, CombinatorialData]
-    public Task IgnoredDirective_01(TestHost testHost)
-        => TestAsync("""
-            #:unknown // comment
-            Console.Write();
-            """,
-            testHost,
-            PPKeyword("#"),
-            PPKeyword(":"),
-            PPKeyword("unknown"),
-            String(" // comment"),
-            Identifier("Console"),
-            Operators.Dot,
-            Identifier("Write"),
-            Punctuation.OpenParen,
-            Punctuation.CloseParen,
-            Punctuation.Semicolon);
-
-    [Theory, CombinatorialData]
-    public Task IgnoredDirective_02(TestHost testHost)
-        => TestAsync("""
-            #:sdk Test 2.1.0
-            Console.Write();
-            """,
-            testHost,
-            PPKeyword("#"),
-            PPKeyword(":"),
-            PPKeyword("sdk"),
-            String(" Test 2.1.0"),
-            Identifier("Console"),
-            Operators.Dot,
-            Identifier("Write"),
-            Punctuation.OpenParen,
-            Punctuation.CloseParen,
-            Punctuation.Semicolon);
-
-    [Theory, CombinatorialData]
-    public Task IgnoredDirective_03(TestHost testHost)
-        => TestAsync("""
-            #:no-space
-            Console.Write();
-            """,
-            testHost,
-            PPKeyword("#"),
-            PPKeyword(":"),
-            PPKeyword("no-space"),
-            Identifier("Console"),
-            Operators.Dot,
-            Identifier("Write"),
-            Punctuation.OpenParen,
-            Punctuation.CloseParen,
-            Punctuation.Semicolon);
-
-    [Theory, CombinatorialData]
-    public Task IgnoredDirective_04(TestHost testHost)
-        => TestAsync($"""
-            #:sdk{'\t'}Test 2.1.0
-            Console.Write();
-            """,
-            testHost,
-            PPKeyword("#"),
-            PPKeyword(":"),
-            PPKeyword("sdk"),
-            String("\tTest 2.1.0"),
-            Identifier("Console"),
-            Operators.Dot,
-            Identifier("Write"),
-            Punctuation.OpenParen,
-            Punctuation.CloseParen,
-            Punctuation.Semicolon);
 
     [Theory, CombinatorialData]
     public Task CommentAsMethodBodyContent(TestHost testHost)
@@ -2784,6 +2736,52 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseBracket,
             Keyword("set"),
             Punctuation.OpenCurly,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
+    public Task ExtensionBlockIndexer_01(TestHost testHost)
+        => TestAsync(
+            """
+            static class E
+            {
+                extension(int i)
+                {
+                    public int this[int j] { get => i + j; set { } }
+                }
+            }
+            """,
+            testHost,
+            [new CSharpParseOptions(LanguageVersion.Preview)],
+            Keyword("static"),
+            Keyword("class"),
+            Class("E"),
+            Static("E"),
+            Punctuation.OpenCurly,
+            Keyword("extension"),
+            Punctuation.OpenParen,
+            Keyword("int"),
+            Parameter("i"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Keyword("public"),
+            Keyword("int"),
+            Keyword("this"),
+            Punctuation.OpenBracket,
+            Keyword("int"),
+            Parameter("j"),
+            Punctuation.CloseBracket,
+            Punctuation.OpenCurly,
+            Keyword("get"),
+            Operators.EqualsGreaterThan,
+            Identifier("i"),
+            Operators.Plus,
+            Identifier("j"),
+            Punctuation.Semicolon,
+            Keyword("set"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
 

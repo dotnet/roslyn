@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // In C# 12 and below, we keep the (spec violating) behavior that iterator bodies inherit the safe/unsafe context
             // from their containing scope. Since there are errors for unsafe constructs directly in iterators,
             // this inherited unsafe context can be observed only in nested non-iterator local functions.
-            var withoutUnsafe = isIteratorBody && this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync);
+            var withoutUnsafe = IsIteratorBodyWithSafeContext(this.Compilation, isIteratorBody);
 
             if (this.Flags.Includes(BinderFlags.UnsafeRegion))
             {
@@ -106,9 +106,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : this;
             }
 
-            return !withoutUnsafe && modifiers.Any(SyntaxKind.UnsafeKeyword)
+            // Under the updated memory safety rules, the `unsafe` modifier on a type or member declaration
+            // does not introduce an unsafe context (no interior meaning).
+            // `unsafe { }` blocks also introduce an unsafe context.
+            return !withoutUnsafe && modifiers.Any(SyntaxKind.UnsafeKeyword) && !this.Compilation.SourceModule.UseUpdatedMemorySafetyRules
                 ? new Binder(this, this.Flags | BinderFlags.UnsafeRegion)
                 : this;
+        }
+
+        internal static bool IsIteratorBodyWithSafeContext(CSharpCompilation compilation, bool isIteratorBody)
+        {
+            return isIteratorBody && compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync);
         }
 
         internal Binder WithCheckedOrUncheckedRegion(bool @checked)

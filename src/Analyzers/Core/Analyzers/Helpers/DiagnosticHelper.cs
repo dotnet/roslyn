@@ -6,11 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Json;
-using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -219,16 +217,23 @@ internal static class DiagnosticHelper
 
         static string EncodeIndices(IEnumerable<int> indices, int additionalLocationsLength)
         {
-            // Ensure that the provided tag index is a valid index into additional locations.
-            Contract.ThrowIfFalse(indices.All(idx => idx >= 0 && idx < additionalLocationsLength));
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
 
-            using var stream = new MemoryStream();
-            var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
-            serializer.WriteObject(stream, indices);
+            sb.Append('[');
+            var first = true;
+            foreach (var index in indices)
+            {
+                Contract.ThrowIfFalse(index >= 0 && index < additionalLocationsLength);
+                if (first)
+                    first = false;
+                else
+                    sb.Append(',');
 
-            var jsonBytes = stream.ToArray();
-            stream.Close();
-            return Encoding.UTF8.GetString(jsonBytes, 0, jsonBytes.Length);
+                sb.Append(index);
+            }
+            sb.Append(']');
+
+            return sb.ToString();
         }
     }
 
@@ -319,13 +324,8 @@ internal static class DiagnosticHelper
 
     public static string? GetHelpLinkForDiagnosticId(string id)
     {
-        // TODO: Add documentation for Regex and Json analyzer
-        // Tracked with https://github.com/dotnet/roslyn/issues/48530
-        if (id == "RE0001")
-            return null;
-
-        if (id.StartsWith("JSON", StringComparison.Ordinal))
-            return null;
+        if (id == "RE0001" || id.StartsWith("JSON", StringComparison.Ordinal))
+            return $"https://learn.microsoft.com/visualstudio/ide/reference/{id.ToLowerInvariant()}";
 
         // These diagnostics are hidden and not configurable, so help link can never be shown and is not applicable.
         if (id == RemoveUnnecessaryImports.RemoveUnnecessaryImportsConstants.DiagnosticFixableId ||

@@ -2076,19 +2076,19 @@ Main: Returned
             // IL_007d:  pop
 
             verifier.VerifyMethodBody("C.G", @"
- {
-  // Code size      297 (0x129)
+{
+  // Code size      303 (0x12f)
   .maxstack  5
   .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
-                int V_1, //a
-                int V_2, //b
-                int& V_3, //r1
-                int& V_4, //r2
-                int& V_5, //r3
-                int& V_6, //r4
-                int& V_7, //r5
-                int V_8,
-                bool V_9)
+            int V_1, //a
+            int V_2, //b
+            int& V_3, //r1
+            int& V_4, //r2
+            int& V_5, //r3
+            int& V_6, //r4
+            int& V_7, //r5
+            int V_8,
+            bool V_9)
   // sequence point: <hidden>
   IL_0000:  ldtoken    ""void C.G(int, ref int, out int, ref int)""
   IL_0005:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
@@ -2140,142 +2140,148 @@ Main: Returned
     IL_004d:  ldc.i4.2
     IL_004e:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
     IL_0053:  nop
+    IL_0054:  ldarg.2
+    IL_0055:  ldind.i4
+    IL_0056:  pop
     // sequence point: p4 = ref p2;
-    IL_0054:  ldloca.s   V_0
-    IL_0056:  ldarg.1
-    IL_0057:  starg.s    V_3
-    IL_0059:  ldc.i4.1
-    IL_005a:  ldc.i4.3
-    IL_005b:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStoreParameterAlias(int, int)""
-    IL_0060:  nop
+    IL_0057:  ldloca.s   V_0
+    IL_0059:  ldarg.1
+    IL_005a:  starg.s    V_3
+    IL_005c:  ldc.i4.1
+    IL_005d:  ldc.i4.3
+    IL_005e:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStoreParameterAlias(int, int)""
+    IL_0063:  nop
+    IL_0064:  ldarg.3
+    IL_0065:  ldind.i4
+    IL_0066:  pop
     // sequence point: ref int r1 = ref a;
-    IL_0061:  ldloca.s   V_0
-    IL_0063:  ldloca.s   V_1
-    IL_0065:  stloc.3
-    IL_0066:  ldc.i4.1
-    IL_0067:  ldc.i4.3
-    IL_0068:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreLocalAlias(int, int)""
-    IL_006d:  nop
-    IL_006e:  ldloc.3
-    IL_006f:  ldind.i4
-    IL_0070:  pop
+    IL_0067:  ldloca.s   V_0
+    IL_0069:  ldloca.s   V_1
+    IL_006b:  stloc.3
+    IL_006c:  ldc.i4.1
+    IL_006d:  ldc.i4.3
+    IL_006e:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreLocalAlias(int, int)""
+    IL_0073:  nop
+    IL_0074:  ldloc.3
+    IL_0075:  ldind.i4
+    IL_0076:  pop
     // sequence point: ref int r2 = ref p1;
-    IL_0071:  ldloca.s   V_0
-    IL_0073:  ldarga.s   V_0
-    IL_0075:  stloc.s    V_4
-    IL_0077:  ldc.i4.0
-    IL_0078:  ldc.i4.4
-    IL_0079:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreParameterAlias(int, int)""
-    IL_007e:  nop
-    IL_007f:  ldloc.s    V_4
-    IL_0081:  ldind.i4
-    IL_0082:  pop
+    IL_0077:  ldloca.s   V_0
+    IL_0079:  ldarga.s   V_0
+    IL_007b:  stloc.s    V_4
+    IL_007d:  ldc.i4.0
+    IL_007e:  ldc.i4.4
+    IL_007f:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreParameterAlias(int, int)""
+    IL_0084:  nop
+    IL_0085:  ldloc.s    V_4
+    IL_0087:  ldind.i4
+    IL_0088:  pop
     // sequence point: ref int r3 = ref p2;
-    IL_0083:  ldloca.s   V_0
-    IL_0085:  ldarg.1
-    IL_0086:  stloc.s    V_5
-    IL_0088:  ldc.i4.1
-    IL_0089:  ldc.i4.5
-    IL_008a:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreParameterAlias(int, int)""
-    IL_008f:  nop
-    IL_0090:  ldloc.s    V_5
-    IL_0092:  ldind.i4
-    IL_0093:  pop
+    IL_0089:  ldloca.s   V_0
+    IL_008b:  ldarg.1
+    IL_008c:  stloc.s    V_5
+    IL_008e:  ldc.i4.1
+    IL_008f:  ldc.i4.5
+    IL_0090:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreParameterAlias(int, int)""
+    IL_0095:  nop
+    IL_0096:  ldloc.s    V_5
+    IL_0098:  ldind.i4
+    IL_0099:  pop
     // sequence point: ref int r4 = ref p3;
-    IL_0094:  ldloca.s   V_0
-    IL_0096:  ldarg.2
-    IL_0097:  stloc.s    V_6
-    IL_0099:  ldc.i4.2
-    IL_009a:  ldc.i4.6
-    IL_009b:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreParameterAlias(int, int)""
-    IL_00a0:  nop
-    IL_00a1:  ldloc.s    V_6
-    IL_00a3:  ldind.i4
-    IL_00a4:  pop
+    IL_009a:  ldloca.s   V_0
+    IL_009c:  ldarg.2
+    IL_009d:  stloc.s    V_6
+    IL_009f:  ldc.i4.2
+    IL_00a0:  ldc.i4.6
+    IL_00a1:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreParameterAlias(int, int)""
+    IL_00a6:  nop
+    IL_00a7:  ldloc.s    V_6
+    IL_00a9:  ldind.i4
+    IL_00aa:  pop
     // sequence point: ref int r5 = ref r1;
-    IL_00a5:  ldloca.s   V_0
-    IL_00a7:  ldloc.3
-    IL_00a8:  stloc.s    V_7
-    IL_00aa:  ldc.i4.3
-    IL_00ab:  ldc.i4.7
-    IL_00ac:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreLocalAlias(int, int)""
-    IL_00b1:  nop
-    IL_00b2:  ldloc.s    V_7
-    IL_00b4:  ldind.i4
-    IL_00b5:  pop
+    IL_00ab:  ldloca.s   V_0
+    IL_00ad:  ldloc.3
+    IL_00ae:  stloc.s    V_7
+    IL_00b0:  ldc.i4.3
+    IL_00b1:  ldc.i4.7
+    IL_00b2:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStoreLocalAlias(int, int)""
+    IL_00b7:  nop
+    IL_00b8:  ldloc.s    V_7
+    IL_00ba:  ldind.i4
+    IL_00bb:  pop
     // sequence point: if (F(ref r1, ref r2, ref r3, ref r4, out r5))
-    IL_00b6:  ldloc.3
-    IL_00b7:  ldloc.s    V_4
-    IL_00b9:  ldloc.s    V_5
-    IL_00bb:  ldloc.s    V_6
-    IL_00bd:  ldloc.s    V_7
-    IL_00bf:  call       ""bool C.F(ref int, ref int, ref int, ref int, out int)""
-    IL_00c4:  ldloca.s   V_0
-    IL_00c6:  ldloc.3
-    IL_00c7:  ldind.i4
-    IL_00c8:  ldc.i4.3
-    IL_00c9:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-    IL_00ce:  nop
-    IL_00cf:  ldloca.s   V_0
-    IL_00d1:  ldloc.s    V_4
-    IL_00d3:  ldind.i4
-    IL_00d4:  ldc.i4.4
-    IL_00d5:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-    IL_00da:  nop
-    IL_00db:  ldloca.s   V_0
-    IL_00dd:  ldloc.s    V_5
-    IL_00df:  ldind.i4
-    IL_00e0:  ldc.i4.5
-    IL_00e1:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-    IL_00e6:  nop
-    IL_00e7:  ldloca.s   V_0
-    IL_00e9:  ldloc.s    V_6
-    IL_00eb:  ldind.i4
-    IL_00ec:  ldc.i4.6
-    IL_00ed:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-    IL_00f2:  nop
-    IL_00f3:  ldloca.s   V_0
-    IL_00f5:  ldloc.s    V_7
-    IL_00f7:  ldind.i4
-    IL_00f8:  ldc.i4.7
-    IL_00f9:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-    IL_00fe:  nop
-    IL_00ff:  stloc.s    V_9
+    IL_00bc:  ldloc.3
+    IL_00bd:  ldloc.s    V_4
+    IL_00bf:  ldloc.s    V_5
+    IL_00c1:  ldloc.s    V_6
+    IL_00c3:  ldloc.s    V_7
+    IL_00c5:  call       ""bool C.F(ref int, ref int, ref int, ref int, out int)""
+    IL_00ca:  ldloca.s   V_0
+    IL_00cc:  ldloc.3
+    IL_00cd:  ldind.i4
+    IL_00ce:  ldc.i4.3
+    IL_00cf:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_00d4:  nop
+    IL_00d5:  ldloca.s   V_0
+    IL_00d7:  ldloc.s    V_4
+    IL_00d9:  ldind.i4
+    IL_00da:  ldc.i4.4
+    IL_00db:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_00e0:  nop
+    IL_00e1:  ldloca.s   V_0
+    IL_00e3:  ldloc.s    V_5
+    IL_00e5:  ldind.i4
+    IL_00e6:  ldc.i4.5
+    IL_00e7:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_00ec:  nop
+    IL_00ed:  ldloca.s   V_0
+    IL_00ef:  ldloc.s    V_6
+    IL_00f1:  ldind.i4
+    IL_00f2:  ldc.i4.6
+    IL_00f3:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_00f8:  nop
+    IL_00f9:  ldloca.s   V_0
+    IL_00fb:  ldloc.s    V_7
+    IL_00fd:  ldind.i4
+    IL_00fe:  ldc.i4.7
+    IL_00ff:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_0104:  nop
+    IL_0105:  stloc.s    V_9
     // sequence point: <hidden>
-    IL_0101:  ldloc.s    V_9
-    IL_0103:  brfalse.s  IL_011d
+    IL_0107:  ldloc.s    V_9
+    IL_0109:  brfalse.s  IL_0123
     // sequence point: {
-    IL_0105:  nop
+    IL_010b:  nop
     // sequence point: r1 = r2;
-    IL_0106:  ldloca.s   V_0
-    IL_0108:  ldloc.3
-    IL_0109:  ldloc.s    V_4
-    IL_010b:  ldind.i4
-    IL_010c:  dup
-    IL_010d:  stloc.s    V_8
-    IL_010f:  stind.i4
-    IL_0110:  ldloc.s    V_8
-    IL_0112:  ldc.i4.3
-    IL_0113:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
-    IL_0118:  nop
-    IL_0119:  ldloc.3
-    IL_011a:  ldind.i4
-    IL_011b:  pop
+    IL_010c:  ldloca.s   V_0
+    IL_010e:  ldloc.3
+    IL_010f:  ldloc.s    V_4
+    IL_0111:  ldind.i4
+    IL_0112:  dup
+    IL_0113:  stloc.s    V_8
+    IL_0115:  stind.i4
+    IL_0116:  ldloc.s    V_8
+    IL_0118:  ldc.i4.3
+    IL_0119:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_011e:  nop
+    IL_011f:  ldloc.3
+    IL_0120:  ldind.i4
+    IL_0121:  pop
     // sequence point: }
-    IL_011c:  nop
+    IL_0122:  nop
     // sequence point: }
-    IL_011d:  leave.s    IL_0128
+    IL_0123:  leave.s    IL_012e
   }
   finally
   {
     // sequence point: <hidden>
-    IL_011f:  ldloca.s   V_0
-    IL_0121:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
-    IL_0126:  nop
-    IL_0127:  endfinally
+    IL_0125:  ldloca.s   V_0
+    IL_0127:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_012c:  nop
+    IL_012d:  endfinally
   }
   // sequence point: }
-  IL_0128:  ret
+  IL_012e:  ret
 }");
         }
 

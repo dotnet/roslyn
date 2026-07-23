@@ -22,6 +22,11 @@
         <target state="translated">無法從另一個非泛型型別建立建構的泛型型別。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractBaseRecordImplementation">
+        <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
+        <target state="translated">記錄成員 '{0}' 必須明確宣告，因為 '{1}' 是抽象的。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
         <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
         <target state="translated">介面中的使用者定義轉換必須轉換成類型參數，或從被限制為封閉類型的封閉類型上的型別參數轉換</target>
@@ -527,6 +532,31 @@
         <target state="translated">'{0}' 未實作介面成員 '{1}'。'{2}' 無法實作 '{1}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="translated">'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' 必須是具有公開 get 和 set 存取子的執行個體屬性，沒有參數，且類型為 'System.Type[]'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
+        <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
+        <target state="translated">'{0}': 無法使用來自另一個組件的封閉型別 '{1}' 作為基底型別。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedExplicitlyAbstract">
+        <source>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</source>
+        <target state="translated">'{0}': 封閉型別不可標示為抽象，因為其一律隱含為抽象。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedSealedStatic">
+        <source>'{0}': a closed type cannot be sealed or static</source>
+        <target state="translated">'{0}': 封閉型別不可為密封或靜態</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'closed'.</source>
+        <target state="translated">型別與別名不可命名為 'closed'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
         <source>'with(...)' element arguments cannot be dynamic</source>
         <target state="translated">'with(...)' 元素引數不能是動態的</target>
@@ -693,8 +723,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="translated">不得在 'not' 或 'or' 模式中宣告變數。</target>
+        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
+        <target state="translated">不可在 'not' 或 'or' 模式中宣告變數，也不可在涉及比對執行個體或其基礎值的聯集比對中宣告變數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -812,6 +842,11 @@
         <target state="translated">不允許明確應用 'System.Runtime.CompilerServices.NullableAttribute'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
+        <target state="translated">明確或延伸配置類型中的欄位必須標示為 'unsafe' 或 'safe'。</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">請勿使用 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'。請改用 'params' 關鍵字。</target>
@@ -863,8 +898,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">運算樹中不得包含擴充屬性的存取</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="translated">運算式樹狀結構可能不包含擴充屬性或索引子存取</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -956,6 +991,11 @@
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': 外部事件不可有初始設定式</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExternMemberRequiresUnsafeOrSafe">
+        <source>'extern' member must be marked 'unsafe' or 'safe'.</source>
+        <target state="translated">'extern' 成員必須標示為 'unsafe' 或 'safe'。</target>
+        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
@@ -1482,20 +1522,55 @@
         <target state="translated">'Experimental' 屬性的 diagnosticId 引數必須是有效的識別碼</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MemberProviderInUnionDeclaration">
+        <source>A 'union' declaration cannot use a union member provider interface.</source>
+        <target state="translated">'union' 宣告無法使用聯集成員提供者介面。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingUnionCaseTypes">
+        <source>A union type must have at least one union creation member.</source>
+        <target state="translated">聯集類型必須至少有一個聯集建立成員。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingUnionValueProperty">
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="translated">聯集成員提供者類型必須有類型為 'object？' 或 'object' 的執行個體 'Value' 屬性。此屬性必須有公用 Get 存取子。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">'{0}' 不包含 '{1}' 的定義，而且找不到接受類型 '{0}' 的第一個引數的可存取方法 '{1}' (您是否要改為使用 'await foreach' 來逐一查看非同步集合?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="translated">沒有具有標籤 '{0}' 的封閉式迴圈或 switch 陳述式可中斷</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="translated">沒有具有標籤 '{0}' 的封閉式迴圈可繼續</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
         <target state="translated">無法透過隱含參考或 Boxing 轉換，將類型 '{0}' 轉換為 'object'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
-        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="translated">RequiresUnsafeAttribute 無法套用至此符號。</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      <trans-unit id="ERR_PPShebangNotOnFirstLine">
+        <source>'#!' must be the first characters on the first line of the file</source>
+        <target state="translated">'#!' 必須是檔案第一行的第一個字元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberSafeDifference">
+        <source>Both partial member declarations must be marked 'safe' or neither may be marked 'safe'</source>
+        <target state="translated">這兩個部分成員宣告都必須標示為 'safe'，或兩者都不得標示為 'safe'</target>
+        <note>'safe' is a keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
+        <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
+        <target state="translated">請勿在來源中使用 'RequiresUnsafeAttribute': 請改用 'unsafe' 修飾詞。</target>
+        <note>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2442,6 +2517,11 @@
         <target state="translated">目標執行階段不支援可延伸或執行階段環境的預設呼叫慣例。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
+        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
+        <target state="translated">'safe' 修飾元只能用於未標記為 'unsafe' 的成員，且為 'extern'，或是在具有明確或延伸配置的類型中類似欄位的成員。</target>
+        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
         <target state="translated">'scoped' 修飾元不可位於 'in'、'out'、'ref' 或 'readonly' 修飾元之後。</target>
@@ -2682,6 +2762,11 @@
         <target state="translated">在控制項傳回呼叫者之前，必須先完全指派欄位 '{0}'。請考慮更新至語言版本 '{1}' 以自動預設欄位。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedClosedSubtype">
+        <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
+        <target state="translated">'{0}': 型別參數 '{1}' 必須在基底型別 '{2}' 中參考，因為基底型別是封閉的。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
         <target state="translated">型別參數 '{0}' 不被擴充參數也不被此成員的任何參數所參考</target>
@@ -2728,14 +2813,14 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
-        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="translated">建構函式 '{0}' 標記為 'RequiresUnsafe' 或 'extern'，需要不安全的上下文，以符合 '{1}' 中類型參數 '{2}' 的 'new()' 限制</target>
-        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
+        <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="translated">標示為 'unsafe' 的建構函式 '{0}' 需要不安全的內容，才能符合 '{2}' 中類型參數 '{1}' 的 'new()' 限制</target>
+        <note>'unsafe' and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
-        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="translated">'{0}' 必須在不安全的內容中使用，因為它被標示為 'RequiresUnsafe' 或 'extern'</target>
-        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+        <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</source>
+        <target state="translated">'{0}' 必須在不安全的內容中使用，因為它被標示為 'unsafe'</target>
+        <note>'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
@@ -2778,8 +2863,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="translated">方法 '{0}' 使用了目前執行階段 async 尚不支援的功能。請在方法上加入 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)' 屬性以停用執行階段 async。</target>
+        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="translated">方法 '{0}' 使用了執行階段非同步尚不支援的功能。在方法上加入 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)' 屬性以停用執行階段非同步。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2842,6 +2927,11 @@
         <target state="translated">應存在類似泛型工作的傳回型別，但在 'AsyncMethodBuilder' 屬性中找到的類型 '{0}' 不適用。它必須是 arity one 的未綁定泛型型別，並且其包含類型 (如果有) 必須是非泛型。</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
+        <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
+        <target state="translated">只有當 'IsClosed' 為 'true' 時，才能叫用 'GetClosedDerivedTypeInfo()'。</target>
+        <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
+      </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
         <target state="translated">'{0}' 的 using 指示詞先前顯示為全域 using</target>
@@ -2902,6 +2992,11 @@
         <target state="translated">已檢查使用者定義的運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureClosedClasses">
+        <source>closed classes</source>
+        <target state="translated">封閉類別</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
         <source>collection expression arguments</source>
         <target state="translated">集合運算式引數</target>
@@ -2930,6 +3025,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">擴充屬性模式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="translated">擴充索引子</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
@@ -2995,6 +3095,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">'nameof' 中的執行個體成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="translated">已標示為中斷並繼續</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -3115,6 +3220,11 @@
       <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
         <source>simple lambda parameter modifiers</source>
         <target state="translated">簡單的 lambda 參數修飾元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStaticMembersInInterfaces">
+        <source>static members in interfaces</source>
+        <target state="translated">介面中的靜態成員</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
@@ -3926,16 +4036,6 @@
         <source>Struct member returns 'this' or other instance members by reference</source>
         <target state="translated">結構成員藉傳址方式傳回 'this' 或其他執行個體成員</target>
         <note />
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">RequiresUnsafeAttribute 只有在更新的記憶體安全規則下才有效。</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">RequiresUnsafeAttribute 只有在更新的記憶體安全規則下才有效。</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
@@ -5930,12 +6030,7 @@ strument:TestCoverage      產生檢測要收集
         <target state="translated">參數未讀取。是否忘記使用該參數來初始化該名稱的屬性?</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">根據目前的記憶體安全規則，'unsafe' 修飾元在此不會產生任何效果。</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
+      <trans-unit id="ERR_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
         <target state="translated">根據目前的記憶體安全規則，'unsafe' 修飾元在此不會產生任何效果。</target>
         <note>'unsafe' is a keyword, should not be localized.</note>

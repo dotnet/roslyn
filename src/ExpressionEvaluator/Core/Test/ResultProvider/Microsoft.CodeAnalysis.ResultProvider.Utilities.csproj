@@ -50,14 +50,17 @@
     <Compile Include="..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\Dependencies\PooledObjects\PoolTracker.cs">
+      <Link>Compiler\InternalUtilities\PoolTracker.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\SymbolDisplay\ObjectDisplayExtensions.cs">
       <Link>Compiler\SymbolDisplay\ObjectDisplayExtensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\SymbolDisplay\ObjectDisplayOptions.cs">
       <Link>Compiler\SymbolDisplay\ObjectDisplayOptions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\CommonGeneratedNames.cs">
-      <Link>Compiler\Symbols\CommonGeneratedNames.cs</Link>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownGeneratedNames.cs">
+      <Link>Compiler\Symbols\WellKnownGeneratedNames.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
       <Link>Compiler\Symbols\WellKnownMemberNames.cs</Link>

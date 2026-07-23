@@ -91,7 +91,7 @@ class Program
             CompileAndVerify(
                 comp,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xc }" }
+                            Verification.FailsILVerify with { ILVerifyMessage = InlineArrayTests.InlineArrayAsSpanILVerifyMessage + '\n' + InlineArrayTests.InlineArrayElementRefILVerifyMessage }
                             : Verification.Skipped,
                 sourceSymbolValidator: static (m) =>
                 {
@@ -3004,7 +3004,7 @@ void M(params System.ReadOnlySpan<CustomHandler> handlers)
 
             var verifier = CompileAndVerify(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false, includeOneTimeHelpers: false) }, targetFramework: TargetFramework.Net80,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }" }
+                            Verification.FailsILVerify with { ILVerifyMessage = InlineArrayTests.InlineArrayAsReadOnlySpanILVerifyMessage + '\n' + InlineArrayTests.InlineArrayElementRefILVerifyMessage }
                             : Verification.Skipped,
                 expectedOutput: ExpectedOutput(@"
 literal:Literal
@@ -5659,7 +5659,7 @@ class C1 : IEnumerable<char>
             CompileAndVerify(
                 comp,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xc }" }
+                            Verification.FailsILVerify with { ILVerifyMessage = InlineArrayTests.InlineArrayAsSpanILVerifyMessage + '\n' + InlineArrayTests.InlineArrayElementRefILVerifyMessage }
                             : Verification.Skipped,
                 expectedOutput: ExpectedOutput(@"
 int
@@ -13535,7 +13535,7 @@ class Program
 }
 """;
 
-            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseExe);
             comp4.VerifyEmitDiagnostics(
                 // (5,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Params.Test();
@@ -13547,6 +13547,24 @@ class Program
                 //         Params.Test(2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Params.Test(2, 3)").WithLocation(7, 9)
                 );
+
+            DiagnosticDescription[] expectedPreviewDiagnostics =
+            [
+                // (5,9): error CS9363: 'MyCollectionOfInt.MyCollectionOfInt(void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "Params.Test()").WithArguments("MyCollectionOfInt.MyCollectionOfInt(void*)").WithLocation(5, 9),
+                // (6,9): error CS9363: 'MyCollectionOfInt.MyCollectionOfInt(void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test(1);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "Params.Test(1)").WithArguments("MyCollectionOfInt.MyCollectionOfInt(void*)").WithLocation(6, 9),
+                // (7,9): error CS9363: 'MyCollectionOfInt.MyCollectionOfInt(void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test(2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "Params.Test(2, 3)").WithArguments("MyCollectionOfInt.MyCollectionOfInt(void*)").WithLocation(7, 9),
+            ];
+
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
 
             string source5 = """
 class Program
@@ -13636,7 +13654,7 @@ class Program
 }
 """;
 
-            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseExe);
             comp4.VerifyEmitDiagnostics(
                 // (6,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Params.Test(1);
@@ -13648,6 +13666,24 @@ class Program
                 //         Params.Test(2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "3").WithLocation(7, 24)
                 );
+
+            DiagnosticDescription[] expectedPreviewDiagnostics =
+            [
+                // (6,21): error CS9363: 'MyCollectionOfInt.Add(int, void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test(1);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "1").WithArguments("MyCollectionOfInt.Add(int, void*)").WithLocation(6, 21),
+                // (7,21): error CS9363: 'MyCollectionOfInt.Add(int, void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test(2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "2").WithArguments("MyCollectionOfInt.Add(int, void*)").WithLocation(7, 21),
+                // (7,24): error CS9363: 'MyCollectionOfInt.Add(int, void*)' must be used in an unsafe context because it has pointers in its signature
+                //         Params.Test(2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "3").WithArguments("MyCollectionOfInt.Add(int, void*)").WithLocation(7, 24),
+            ];
+
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
 
             string source5 = """
 class Program

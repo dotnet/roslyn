@@ -9,21 +9,19 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper)
-    : AbstractLanguageServerHostTests(testOutputHelper)
+/// <summary>
+/// Test using <see cref="AbstractLanguageServerMefHost"/> to ensure telemetry MEF initialization
+/// works correctly with the real MEF export provider and composition logic. 
+/// </summary>
+public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerMefHost(testOutputHelper)
 {
-    private async Task<ITelemetryReporter> CreateReporterAsync()
+    private async Task<ITelemetryReporter> CreateReporterAsync(TestLspServer testServer)
     {
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            LoggerFactory,
-            includeDevKitComponents: true,
-            MefCacheDirectory.Path,
-            []);
-
         // VS Telemetry requires this environment variable to be set.
         Environment.SetEnvironmentVariable("CommonPropertyBagPath", Path.GetTempFileName());
 
-        var reporter = exportProvider.GetExport<ITelemetryReporter>().Value;
+        var reporter = testServer.ExportProvider.GetExport<ITelemetryReporter>().Value;
+
         Assert.NotNull(reporter);
 
         // Do not set default session in tests to enable test isolation:
@@ -37,23 +35,19 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper)
     [Fact]
     public async Task TestVSTelemetryLoadedIntoDefaultAlc()
     {
-        var service = await CreateReporterAsync();
+        await using var testServer = await CreateLanguageServerAsync();
+
+        var service = await CreateReporterAsync(testServer);
         var assembly = Assembly.GetAssembly(service.GetType());
         Assert.Contains(AssemblyLoadContext.Default.Assemblies, a => a == assembly);
         Assert.Contains(AssemblyLoadContext.Default.Assemblies, a => a.GetName().Name == "Microsoft.VisualStudio.Telemetry");
     }
 
     [Fact]
-    public async Task TestFault()
-    {
-        var service = await CreateReporterAsync();
-        service.ReportFault(GetEventName(nameof(TestFault)), "test description", logLevel: 2, forceDump: false, processId: 0, new Exception());
-    }
-
-    [Fact]
     public async Task TestBlockLogging()
     {
-        var service = await CreateReporterAsync();
+        await using var testServer = await CreateLanguageServerAsync();
+        var service = await CreateReporterAsync(testServer);
         service.LogBlockStart(GetEventName(nameof(TestBlockLogging)), kind: 0, blockId: 0);
         service.LogBlockEnd(blockId: 0, [], CancellationToken.None);
     }
@@ -61,7 +55,8 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper)
     [Fact]
     public async Task TestLog()
     {
-        var service = await CreateReporterAsync();
+        await using var testServer = await CreateLanguageServerAsync();
+        var service = await CreateReporterAsync(testServer);
         service.Log(GetEventName(nameof(TestLog)), []);
     }
 }

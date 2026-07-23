@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,18 +15,25 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-internal abstract class LanguageServerProjectLoader
+internal abstract class LanguageServerProjectLoader : IDisposable
 {
+    private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
+
     private readonly AsyncBatchingWorkQueue<ProjectToLoad> _projectsToReload;
+    private bool _isDisposed;
 
     protected readonly LanguageServerWorkspaceFactory _workspaceFactory;
+    private readonly ProjectTargetFrameworkManager _projectTargetFrameworkManager;
     private readonly IFileChangeWatcher _fileChangeWatcher;
+    private readonly IClientLanguageServerManager _clientLanguageServerManager;
+    private readonly WorkDoneProgressManager _workDoneProgressManager;
     protected readonly IGlobalOptionService GlobalOptionService;
     protected readonly ILoggerFactory LoggerFactory;
     protected readonly IAsynchronousOperationListener Listener;
@@ -86,24 +94,42 @@ internal abstract class LanguageServerProjectLoader
     /// </summary>
     protected virtual bool EnableProgressReporting => true;
 
+    /// <summary>
+    /// The max MSBuild node count to use for design-time builds.
+    /// </summary>
+    protected virtual int MaxNodeCount
+        // Don't overload the machine, so leave some CPU cores open. This was chosen without much supporting evidence, other than that it's still pretty close to max.
+        => Math.Max(Environment.ProcessorCount / 2, 1);
+
+    /// <summary>
+    /// Maps the set of project file paths that were determined to need a NuGet restore to the set of paths that restore
+    /// should actually be invoked on. The base implementation restores each project individually. Derived loaders may
+    /// override this to coalesce the work, e.g. restoring an entire solution at once instead of restoring each contained
+    /// project one at a time. This is invoked at restore time (rather than cached) so overrides can consult current,
+    /// possibly-changed state such as the on-disk contents of the open solution.
+    /// </summary>
+    protected virtual ValueTask<ImmutableArray<string>> GetPathsToRestoreAsync(ImmutableArray<string> projectsThatNeedRestore, CancellationToken cancellationToken)
+        => new(projectsThatNeedRestore);
+
     protected LanguageServerProjectLoader(
-        LanguageServerWorkspaceFactory workspaceFactory,
-        IFileChangeWatcher fileChangeWatcher,
+        ILspServices lspServices,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
-        ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
         IBinLogPathProvider binLogPathProvider,
         DotnetCliHelper dotnetCliHelper)
     {
-        _workspaceFactory = workspaceFactory;
-        _fileChangeWatcher = fileChangeWatcher;
+        _workspaceFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
+        _projectTargetFrameworkManager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
+        _fileChangeWatcher = lspServices.GetRequiredService<IFileChangeWatcher>();
+        _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        _workDoneProgressManager = lspServices.GetRequiredService<WorkDoneProgressManager>();
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
         Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-        _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
-        _projectLoadTelemetryReporter = projectLoadTelemetry;
+        _logger = loggerFactory.CreateLogger(this.GetTypeDisplayName());
+        _projectLoadTelemetryReporter = lspServices.GetRequiredService<ProjectLoadTelemetryReporter>();
         _binLogPathProvider = binLogPathProvider;
         _dotnetCliHelper = dotnetCliHelper;
 
@@ -126,10 +152,7 @@ internal abstract class LanguageServerProjectLoader
             return properties;
         }
 
-        if (serverConfiguration.RazorDesignTimePath is { } razorDesignTimePath)
-        {
-            properties = properties.Add("RazorDesignTimeTargets", razorDesignTimePath);
-        }
+        properties = properties.Add("RazorDesignTimeTargets", s_razorDesignTimePath);
 
         if (serverConfiguration.CSharpDesignTimePath is { } csharpDesignTimePath)
         {
@@ -139,7 +162,7 @@ internal abstract class LanguageServerProjectLoader
         return properties;
     }
 
-    private sealed class ToastErrorReporter
+    private sealed class ToastErrorReporter(IClientLanguageServerManager clientLanguageServerManager)
     {
         private int _displayedToast = 0;
 
@@ -149,7 +172,7 @@ internal abstract class LanguageServerProjectLoader
             var shouldShowToast = Interlocked.CompareExchange(ref _displayedToast, value: 1, comparand: 0) == 0;
             if (shouldShowToast)
             {
-                await ShowToastNotification.ShowToastNotificationAsync(errorKind, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
+                await clientLanguageServerManager.ShowToastNotificationAsync(errorKind, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
             }
         }
     }
@@ -160,34 +183,49 @@ internal abstract class LanguageServerProjectLoader
 
         // TODO: support configuration switching
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(
-            knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
-            globalMSBuildProperties: AdditionalProperties,
-            binaryLogPathProvider: _binLogPathProvider,
-            loggerFactory: LoggerFactory);
-
-        var toastErrorReporter = new ToastErrorReporter();
-
         try
         {
-            var projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
-                source: projectsToLoadOrReload,
-                produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
-                {
-                    var (@this, toastErrorReporter, buildHostProcessManager) = args;
-                    var projectNeedsRestore = await @this.ReloadProjectAsync(
-                        projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
+            ImmutableArray<string> projectsThatNeedRestore;
 
-                    if (projectNeedsRestore)
-                        produceItem(projectToLoad.Path);
-                },
-                args: (@this: this, toastErrorReporter, buildHostProcessManager),
-                cancellationToken).ConfigureAwait(false);
+            // Disposing of this BuildHostProcessManager will shut down any processes; so be explicit about the scope so we don't hold onto it longer than
+            // needed.
+            await using (var buildHostProcessManager = new BuildHostProcessManager(
+                knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
+                globalMSBuildProperties: AdditionalProperties,
+                binaryLogPathProvider: _binLogPathProvider,
+                maxNodeCount: MaxNodeCount,
+                loggerFactory: LoggerFactory))
+            {
+                var toastErrorReporter = new ToastErrorReporter(_clientLanguageServerManager);
+
+                projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
+                    source: projectsToLoadOrReload,
+                    produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
+                    {
+                        var (@this, toastErrorReporter, buildHostProcessManager) = args;
+                        try
+                        {
+                            var projectRestorePath = await @this.ReloadProjectAsync(
+                                projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
+
+                            if (projectRestorePath is not null)
+                                produceItem(projectRestorePath);
+                        }
+                        finally
+                        {
+                            projectToLoad.ProgressTracker?.OnItemProcessed();
+                        }
+                    },
+                    args: (@this: this, toastErrorReporter, buildHostProcessManager),
+                    cancellationToken).ConfigureAwait(false);
+            }
 
             if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
+                var pathsToRestore = await GetPathsToRestoreAsync(projectsThatNeedRestore, cancellationToken);
+
                 // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
+                await ProjectDependencyHelper.RestoreProjectsAsync(_workDoneProgressManager, pathsToRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
             }
         }
         finally
@@ -200,9 +238,11 @@ internal abstract class LanguageServerProjectLoader
     {
         public required ImmutableArray<ProjectFileInfo> ProjectFileInfos { get; init; }
         public required ImmutableArray<DiagnosticLogItem> DiagnosticLogItems { get; init; }
+        public required string? ProjectRestorePath { get; init; }
         public required ProjectSystemProjectFactory ProjectFactory { get; init; }
         public required bool IsFileBasedProgram { get; init; }
         public required bool IsMiscellaneousFile { get; init; }
+        public required bool HasFileBasedAppDirectives { get; init; }
         public required bool HasAllInformation { get; init; }
         public required BuildHostProcessKind PreferredBuildHostKind { get; init; }
         public required BuildHostProcessKind ActualBuildHostKind { get; init; }
@@ -213,18 +253,19 @@ internal abstract class LanguageServerProjectLoader
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
-    /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
-    private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
+    /// <returns>The project file path that needs a NuGet restore, if any.</returns>
+    private async Task<string?> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
         BuildHostProcessKind? preferredBuildHostKindThatWeDidNotGet = null;
         var projectPath = projectToLoad.Path;
 
-        // Before doing any work, check if the project has already been unloaded.
+        // Before doing any work, check if the project has already been unloaded
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!_loadedProjects.ContainsKey(projectPath))
             {
-                return false;
+                return null;
             }
         }
 
@@ -238,7 +279,7 @@ internal abstract class LanguageServerProjectLoader
                 // - Reloading file-based app projects, where edits were performed to e.g. delete all `#:` directives,
                 //   making the file no longer a file-based app entry point.
                 _logger.LogDebug("Reload of '{projectPath}' was canceled.", projectPath);
-                return false;
+                return null;
             }
 
             var projectFactory = remoteProjectLoadResult.ProjectFactory;
@@ -252,7 +293,7 @@ internal abstract class LanguageServerProjectLoader
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
                 // We have total failures in evaluation, no point in continuing.
-                return false;
+                return null;
             }
 
             var loadedProjectInfos = remoteProjectLoadResult.ProjectFileInfos;
@@ -262,18 +303,19 @@ internal abstract class LanguageServerProjectLoader
             var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
             if (projectLanguage != null && projectFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
             {
-                return false;
+                return null;
             }
 
             Dictionary<ProjectFileInfo, ProjectLoadTelemetryReporter.TelemetryInfo> telemetryInfos = [];
-            var needsRestore = false;
+            string? projectRestorePath = null;
 
             using (await _gate.DisposableWaitAsync(cancellationToken))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!_loadedProjects.TryGetValue(projectPath, out var currentLoadState))
                 {
                     // Project was unloaded. Do not proceed with reloading it.
-                    return false;
+                    return null;
                 }
 
                 var previousProjectTargets = currentLoadState is ProjectLoadState.LoadedTargets loaded ? loaded.LoadedProjectTargets : [];
@@ -284,7 +326,11 @@ internal abstract class LanguageServerProjectLoader
                     newProjectTargetsBuilder.Add(target);
 
                     var (outputKind, metadataReferences, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, remoteProjectLoadResult.HasAllInformation, _logger);
-                    needsRestore |= targetNeedsRestore;
+                    if (targetNeedsRestore)
+                    {
+                        projectRestorePath = remoteProjectLoadResult.ProjectRestorePath;
+                    }
+
                     if (!targetAlreadyExists)
                     {
                         telemetryInfos[loadedProjectInfo] = new ProjectLoadTelemetryReporter.TelemetryInfo
@@ -295,6 +341,7 @@ internal abstract class LanguageServerProjectLoader
                             HasSolutionFile = _workspaceFactory.HostProjectFactory.SolutionPath is not null,
                             IsMiscellaneousFile = isMiscellaneousFile,
                             IsFileBasedProgram = remoteProjectLoadResult.IsFileBasedProgram,
+                            HasFileBasedAppDirectives = remoteProjectLoadResult.HasFileBasedAppDirectives,
                         };
                     }
                 }
@@ -338,7 +385,7 @@ internal abstract class LanguageServerProjectLoader
                 _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
             }
 
-            return needsRestore;
+            return projectRestorePath;
         }
         catch (Exception e)
         {
@@ -347,7 +394,7 @@ internal abstract class LanguageServerProjectLoader
             var diagnosticLogItem = new DiagnosticLogItem(DiagnosticLogItemKind.Error, message, projectPath);
             await LogDiagnosticsAsync([diagnosticLogItem]);
 
-            return false;
+            return null;
         }
 
         async Task<(LoadedProject, bool alreadyExists)> GetOrCreateProjectTargetAsync(ImmutableArray<LoadedProject> previousProjectTargets, ProjectSystemProjectFactory projectFactory, ProjectFileInfo loadedProjectInfo)
@@ -374,11 +421,12 @@ internal abstract class LanguageServerProjectLoader
                 projectSystemName,
                 loadedProjectInfo.Language,
                 projectCreationInfo,
-                _workspaceFactory.ProjectSystemHostInfo);
+                _workspaceFactory.ProjectSystemHostInfo,
+                cancellationToken).ConfigureAwait(false);
 
-            var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
+            var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _projectTargetFrameworkManager);
             loadedProject.NeedsReload += (_, _) =>
-                _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false });
+                _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false, ProgressTracker = null });
             return (loadedProject, alreadyExists: false);
         }
 
@@ -405,34 +453,61 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    /// <summary>
-    /// Begins loading a project with an associated primordial project. Must not be called for a project which has already begun loading.
-    /// </summary>
-    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
+    protected async ValueTask<Project?> GetOrLoadProjectAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, ProjectInfo> createPrimordialProjectInfo, bool doDesignTimeBuild)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            // If this project has already begun loading, we need to throw.
-            // This is because we can't ensure that the workspace and project system will remain in a consistent state after this call.
-            // For example, there could be a need for the project system to track both a primordial project and list of loaded targets, which we don't support.
-            if (_loadedProjects.ContainsKey(projectPath))
+            Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
+
+            if (_loadedProjects.TryGetValue(projectPath, out var existingState))
             {
-                Contract.Fail($"Cannot begin loading project '{projectPath}' because it has already begun loading.");
+                // Note: this generally only happens if we fall through to the "add to misc workspace" path,
+                // and we lose a race to begin loading the miscellaneous file project.
+                return LookupExistingProject(existingState);
             }
 
-            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectId));
+            var primordialProjectInfo = createPrimordialProjectInfo(primordialProjectFactory);
+            primordialProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(primordialProjectInfo));
+            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectInfo.Id));
             if (doDesignTimeBuild)
                 _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
+
+            return primordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordialProjectInfo.Id);
+        }
+
+        Project? LookupExistingProject(ProjectLoadState loadState)
+        {
+            if (loadState is ProjectLoadState.Primordial primordial)
+            {
+                return primordial.PrimordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordial.PrimordialProjectId);
+            }
+            else if (loadState is ProjectLoadState.LoadedTargets loadedTargets)
+            {
+                var target = loadedTargets.LoadedProjectTargets.FirstOrDefault();
+                if (target is null)
+                {
+                    _logger.LogWarning("Could not get a project for '{projectPath}' because it loaded with no targets", projectPath);
+                    return null;
+                }
+
+                return target.ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(target.ProjectId);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(loadState);
+            }
         }
     }
 
     /// <summary>
     /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
     /// </summary>
-    protected async Task BeginLoadingProjectAsync(string projectPath, string? projectGuid)
+    protected async Task BeginLoadingProjectAsync(string projectPath, string? projectGuid, WorkDoneProgressTracker? progressTracker = null)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
+            Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
+
             // If project has already begun loading, no need to do any further work.
             if (_loadedProjects.ContainsKey(projectPath))
             {
@@ -440,7 +515,7 @@ internal abstract class LanguageServerProjectLoader
             }
 
             _loadedProjects.Add(projectPath, new ProjectLoadState.LoadedTargets(LoadedProjectTargets: []));
-            _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, ProjectGuid: projectGuid, ReportTelemetry: true));
+            _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, ProjectGuid: projectGuid, ReportTelemetry: true, ProgressTracker: progressTracker));
         }
     }
 
@@ -457,6 +532,32 @@ internal abstract class LanguageServerProjectLoader
                 var removed = await TryUnloadProject_NoLockAsync(key);
                 Contract.ThrowIfFalse(removed); // We obtained lock before enumerating, how was this already removed?
             }
+        }
+    }
+
+    public virtual void Dispose()
+    {
+        using (_gate.DisposableWait(CancellationToken.None))
+        {
+            if (_isDisposed)
+                return;
+
+            _isDisposed = true;
+            _projectsToReload.Dispose();
+
+            foreach (var (_, loadState) in _loadedProjects)
+            {
+                // Disposing a LoadedProject unloads it, releasing its file watches and removing it from the workspace.
+                // Primordial projects don't own any file watches; their placeholder projects are torn down along with
+                // the workspace, so there's nothing to release for them here.
+                if (loadState is ProjectLoadState.LoadedTargets(var loadedProjectTargets))
+                {
+                    foreach (var loadedProject in loadedProjectTargets)
+                        loadedProject.Dispose();
+                }
+            }
+
+            _loadedProjects.Clear();
         }
     }
 
@@ -527,6 +628,67 @@ internal abstract class LanguageServerProjectLoader
             }
 
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Reports percentage progress via <see cref="LSP.WorkDoneProgress"/> as items are processed,
+    /// coalescing updates from parallel callers. Disposing sends the final 100% notification.
+    /// </summary>
+    internal sealed class WorkDoneProgressTracker : IAsyncDisposable
+    {
+        private readonly IProgress<LSP.WorkDoneProgress> _reporter;
+        private readonly int _totalItems;
+        private readonly AsyncBatchingWorkQueue _progressQueue;
+        private int _itemsProcessed;
+        private int _lastReportedPercentage = -1;
+
+        public WorkDoneProgressTracker(IProgress<LSP.WorkDoneProgress> reporter, int totalItems, IAsynchronousOperationListener? listener = null)
+        {
+            _reporter = reporter;
+            _totalItems = totalItems;
+            _progressQueue = new AsyncBatchingWorkQueue(
+                TimeSpan.Zero,
+                ReportProgressAsync,
+                listener ?? AsynchronousOperationListenerProvider.NullListener,
+                CancellationToken.None);
+        }
+
+        public void OnItemProcessed()
+        {
+            Interlocked.Increment(ref _itemsProcessed);
+            _progressQueue.AddWork();
+        }
+
+        private ValueTask ReportProgressAsync(CancellationToken cancellationToken)
+        {
+            var processed = Volatile.Read(ref _itemsProcessed);
+            var percentage = processed * 100 / _totalItems;
+            percentage = Math.Min(percentage, 99);
+
+            if (percentage > _lastReportedPercentage)
+            {
+                _lastReportedPercentage = percentage;
+                _reporter.Report(new LSP.WorkDoneProgressReport
+                {
+                    Percentage = percentage,
+                });
+            }
+
+            return ValueTask.CompletedTask;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            try
+            {
+                await _progressQueue.WaitUntilCurrentBatchCompletesAsync();
+                _reporter.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
+            }
+            finally
+            {
+                _progressQueue.Dispose();
+            }
         }
     }
 }

@@ -81,10 +81,28 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException(nameof(inspectionContext));
             }
 
+            var lmrType = this.Type.GetLmrType();
+            if (lmrType.IsByRef)
+            {
+                var byRefElementType = lmrType.GetElementType();
+                var byRefValueType = (RawValue == null || byRefElementType.IsNullable()) ? byRefElementType : (TypeImpl)RawValue.GetType();
+                var type = DkmClrType.Create(this.Type.AppDomain, byRefValueType);
+                return new DkmClrValue(
+                    RawValue,
+                    DkmClrValue.GetHostObjectValue(byRefValueType, RawValue),
+                    type,
+                    alias: null,
+                    evalFlags: EvalFlags,
+                    valueFlags: DkmClrValueFlags.None,
+                    category: Category,
+                    access: Access);
+            }
+
             if (RawValue == null)
             {
                 throw new InvalidOperationException("Cannot dereference invalid value");
             }
+
             var elementType = this.Type.GetLmrType().GetElementType();
             var evalFlags = DkmEvaluationResultFlags.None;
             var valueFlags = DkmClrValueFlags.None;

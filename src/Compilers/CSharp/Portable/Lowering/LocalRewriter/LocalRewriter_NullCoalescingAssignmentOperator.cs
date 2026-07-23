@@ -41,17 +41,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.LeftOperand.Type, TypeCompareKind.AllIgnoreOptions));
                 BoundExpression assignment;
 
+                // Note: the receiver is known to be captured because of TransformCompoundAssignmentLHS
                 if (IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the right hand side value
                     BoundLocal rightResult = _factory.StoreToTemp(loweredRight, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
-                    assignment = MakeAssignmentOperator(syntax, transformedLHS, rightResult, used: true, isChecked: false, AssignmentKind.NullCoalescingAssignment);
+                    assignment = MakeAssignmentOperator(syntax, transformedLHS, rightResult, used: true, isChecked: false, AssignmentKind.NullCoalescingAssignment, receiverIsKnownToBeCaptured: true);
                     Debug.Assert(assignment.Type is { });
                     assignment = new BoundSequence(syntax, [rightResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
                 }
                 else
                 {
-                    assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, used: true, isChecked: false, AssignmentKind.NullCoalescingAssignment);
+                    assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, used: true, isChecked: false, AssignmentKind.NullCoalescingAssignment, receiverIsKnownToBeCaptured: true);
                 }
 
                 // lhsRead ?? (transformedLHS = loweredRight)
@@ -59,9 +60,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, leftPlaceholder: leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftType, node.LeftOperand.Type);
                 Debug.Assert(conditionalExpression.Type is { });
 
-                return (temps.Count == 0 && stores.Count == 0) ?
-                    conditionalExpression :
-                    new BoundSequence(
+                if (temps.Count == 0 && stores.Count == 0)
+                {
+                    temps.Free();
+                    stores.Free();
+                    return conditionalExpression;
+                }
+
+                return new BoundSequence(
                         syntax,
                         temps.ToImmutableAndFree(),
                         stores.ToImmutableAndFree(),
@@ -86,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                           SpecialMember.System_Nullable_T_GetValueOrDefault,
                                           out var getValueOrDefault))
                 {
+                    temps.Free();
+                    stores.Free();
                     return BadExpression(node);
                 }
 
@@ -94,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                           SpecialMember.System_Nullable_T_get_HasValue,
                                           out var hasValue))
                 {
+                    temps.Free();
+                    stores.Free();
                     return BadExpression(node);
                 }
 
@@ -120,11 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 temps.Add(tmp.LocalSymbol);
 
                 // tmp = loweredRight;
-                var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, used: true, isChecked: false, AssignmentKind.SimpleAssignment);
+                // Note: tmp is a fresh local, so receiverIsKnownToBeCaptured is irrelevant here.
+                var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, used: true, isChecked: false, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: false);
 
                 Debug.Assert(transformedLHS.Type.GetNullableUnderlyingType().Equals(tmp.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions));
 
                 // transformedLhs = tmp;
+                // Note: the receiver is known to be captured because of TransformCompoundAssignmentLHS
                 Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.LeftOperand.Type, TypeCompareKind.AllIgnoreOptions));
                 var transformedLhsAssignment =
                     MakeAssignmentOperator(
@@ -133,7 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MakeConversionNode(tmp, transformedLHS.Type, @checked: false, markAsChecked: true),
                         used: true,
                         isChecked: false,
-                        AssignmentKind.NullCoalescingAssignment);
+                        AssignmentKind.NullCoalescingAssignment,
+                        receiverIsKnownToBeCaptured: true);
 
                 // lhsRead.HasValue
                 var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, hasValue);

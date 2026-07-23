@@ -23,7 +23,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The set of types defining a union of types, instances of which could be in the value set.
         /// </summary>
-        private readonly ImmutableArray<TypeSymbol> _typesInUnion;
+        private readonly ImmutableArray<CaseInfo> _typesInUnion;
+
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+        internal readonly struct CaseInfo(TypeSymbol caseType, TypeSymbol? originalClosedBase)
+        {
+            internal readonly TypeSymbol CaseType = caseType;
+
+            /// <summary>If <see cref="CaseType"/> was included in the set due to being a subtype of a closed type, this is the original closed type it was expanded from.</summary>
+            internal readonly TypeSymbol? OriginalClosedBase = originalClosedBase;
+
+            private string GetDebuggerDisplay()
+            {
+                return $"(CaseType: {CaseType}, OriginalClosedBase: {OriginalClosedBase})";
+            }
+        }
 
         /// <summary>
         /// Root of a logical tree defining values contained in this value set.
@@ -45,24 +59,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool? _lazyIncludesNull;
 
         private TypeUnionValueSet(
-            ImmutableArray<TypeSymbol> typesInUnion,
+            ImmutableArray<CaseInfo> typesInUnion,
             Node root,
             ConversionsBase conversions)
         {
             Debug.Assert(!typesInUnion.IsEmpty);
-            Debug.Assert(!typesInUnion.Any(t => t.IsNullableType()));
-            Debug.Assert(typesInUnion.Distinct().Length == typesInUnion.Length);
+            Debug.Assert(!typesInUnion.Any(t => t.CaseType.IsNullableType()));
+            Debug.Assert(!typesInUnion.Any(t => t.CaseType is NamedTypeSymbol { IsClosed: true } closedType && closedType.TryGetClosedSubtypes(out var subtypes) && subtypes is not []));
+
             _typesInUnion = typesInUnion;
             _root = root;
             _conversions = conversions;
         }
 
-        internal static TypeUnionValueSet AllValues(ImmutableArray<TypeSymbol> typesInUnion, ConversionsBase conversions)
+        internal static TypeUnionValueSet AllValues(ImmutableArray<CaseInfo> typesInUnion, ConversionsBase conversions)
         {
             return new TypeUnionValueSet(typesInUnion, IsTrueNode.Instance, conversions);
         }
 
-        internal static TypeUnionValueSet FromTypeMatch(ImmutableArray<TypeSymbol> typesInUnion, TypeSymbol type, ConversionsBase conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static TypeUnionValueSet FromTypeMatch(ImmutableArray<CaseInfo> typesInUnion, TypeSymbol type, ConversionsBase conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (AnyTypeFromUnionMightMatch(typesInUnion, type, conversions, ref useSiteInfo))
             {
@@ -73,15 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TypeUnionValueSet(typesInUnion, IsFalseNode.Instance, conversions);
         }
 
-        private static bool AnyTypeFromUnionMightMatch(ImmutableArray<TypeSymbol> typesInUnion, TypeSymbol type, ConversionsBase conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static bool AnyTypeFromUnionMightMatch(ImmutableArray<CaseInfo> typesInUnion, TypeSymbol type, ConversionsBase conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!typesInUnion.IsEmpty);
-            Debug.Assert(!typesInUnion.Any(TypeSymbolExtensions.IsNullableType));
-            Debug.Assert(typesInUnion.Distinct().Length == typesInUnion.Length);
+            Debug.Assert(!typesInUnion.Any(t => t.CaseType.IsNullableType()));
 
             foreach (var t in typesInUnion)
             {
-                ConstantValue? matches = DecisionDagBuilder.ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(conversions, type, t, ref useSiteInfo);
+                ConstantValue? matches = DecisionDagBuilder.ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(conversions, type, t.CaseType, ref useSiteInfo);
                 if (matches == ConstantValue.False)
                 {
                     // If 'type' could never be 't'
@@ -95,12 +109,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static TypeUnionValueSet FromNullMatch(ImmutableArray<TypeSymbol> typesInUnion, ConversionsBase conversions)
+        internal static TypeUnionValueSet FromNullMatch(ImmutableArray<CaseInfo> typesInUnion, ConversionsBase conversions)
         {
             return new TypeUnionValueSet(typesInUnion, IsNullNode.Instance, conversions);
         }
 
-        internal static TypeUnionValueSet FromNonNullMatch(ImmutableArray<TypeSymbol> typesInUnion, ConversionsBase conversions)
+        internal static TypeUnionValueSet FromNonNullMatch(ImmutableArray<CaseInfo> typesInUnion, ConversionsBase conversions)
         {
             return new TypeUnionValueSet(typesInUnion, new NotNode(IsNullNode.Instance), conversions);
         }
@@ -165,68 +179,90 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <param name="inputValue">Type symbol, or 'null' when we want to perform a check for null value.</param>
+        /// <seealso cref="_root"/>
         private bool? EvaluateNodeForInputValue(Node node, TypeSymbol? inputValue, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            switch (node)
+            var result = evaluateCore(node, inputValue, ref useSiteInfo);
+            if (result == null
+                && inputValue is TypeParameterSymbol { EffectiveBaseClassNoUseSiteDiagnostics: { IsClosed: true } effectiveClosedBase }
+                && effectiveClosedBase.TryGetClosedSubtypes(out var derivedTypes)
+                && derivedTypes is not [])
             {
-                case IsTrueNode:
-                    return true;
-                case IsFalseNode:
-                    return false;
-                case IsTypeNode { Type: var t2 }:
-                    {
-                        switch (inputValue)
+                foreach (var derivedType in derivedTypes)
+                {
+                    if (closedDerivedTypeMayBePresent(node, derivedType, ref useSiteInfo))
+                        return null;
+                }
+
+                // All possible substitutions of the type parameter are definitely absent
+                return false;
+            }
+
+            return result;
+
+            bool? evaluateCore(Node node, TypeSymbol? inputValue, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                switch (node)
+                {
+                    case IsTrueNode:
+                        return true;
+                    case IsFalseNode:
+                        return false;
+                    case IsTypeNode { Type: var t2 }:
                         {
-                            case null:
-                                return false;
-                            case TypeSymbol t1:
-                                return evaluateTypeMatch(t1, t2, ref useSiteInfo);
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(inputValue);
+                            switch (inputValue)
+                            {
+                                case null:
+                                    return false;
+                                case TypeSymbol t1:
+                                    return evaluateTypeMatch(t1, t2, ref useSiteInfo);
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(inputValue);
+                            }
                         }
-                    }
-                case NotNode not:
-                    {
-                        return !EvaluateNodeForInputValue(not.Negated, inputValue, ref useSiteInfo);
-                    }
-                case IsNullNode:
-                    {
-                        switch (inputValue)
+                    case NotNode not:
                         {
-                            case null:
+                            return !evaluateCore(not.Negated, inputValue, ref useSiteInfo);
+                        }
+                    case IsNullNode:
+                        {
+                            switch (inputValue)
+                            {
+                                case null:
+                                    return true;
+                                case TypeSymbol:
+                                    return false;
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(inputValue);
+                            }
+                        }
+                    case AndNode andNode:
+                        {
+                            var leftResult = evaluateCore(andNode.Left, inputValue, ref useSiteInfo);
+                            var rightResult = evaluateCore(andNode.Right, inputValue, ref useSiteInfo);
+                            if (leftResult == false || rightResult == false)
+                                return false;
+                            if (leftResult == true && rightResult == true)
                                 return true;
-                            case TypeSymbol:
-                                return false;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(inputValue);
+
+                            // Propagate unknown
+                            return null;
                         }
-                    }
-                case AndNode andNode:
-                    {
-                        var leftResult = EvaluateNodeForInputValue(andNode.Left, inputValue, ref useSiteInfo);
-                        var rightResult = EvaluateNodeForInputValue(andNode.Right, inputValue, ref useSiteInfo);
-                        if (leftResult == false || rightResult == false)
-                            return false;
-                        if (leftResult == true && rightResult == true)
-                            return true;
+                    case OrNode orNode:
+                        {
+                            var leftResult = evaluateCore(orNode.Left, inputValue, ref useSiteInfo);
+                            var rightResult = evaluateCore(orNode.Right, inputValue, ref useSiteInfo);
+                            if (leftResult == true || rightResult == true)
+                                return true;
+                            if (leftResult == false && rightResult == false)
+                                return false;
 
-                        // Propagate unknown
-                        return null;
-                    }
-                case OrNode orNode:
-                    {
-                        var leftResult = EvaluateNodeForInputValue(orNode.Left, inputValue, ref useSiteInfo);
-                        var rightResult = EvaluateNodeForInputValue(orNode.Right, inputValue, ref useSiteInfo);
-                        if (leftResult == true || rightResult == true)
-                            return true;
-                        if (leftResult == false && rightResult == false)
-                            return false;
-
-                        // Propagate unknown
-                        return null;
-                    }
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node);
+                            // Propagate unknown
+                            return null;
+                        }
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(node);
+                }
             }
 
             bool? evaluateTypeMatch(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -247,26 +283,75 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return null;
             }
+
+            bool closedDerivedTypeMayBePresent(Node root, NamedTypeSymbol derivedType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(derivedType.BaseTypeNoUseSiteDiagnostics.IsClosed);
+                if (derivedType.TryGetClosedSubtypes(out var nestedDerivedTypes) && nestedDerivedTypes is not [])
+                {
+                    foreach (var nestedDerivedType in nestedDerivedTypes)
+                    {
+                        if (closedDerivedTypeMayBePresent(root, nestedDerivedType, ref useSiteInfo))
+                            return true;
+                    }
+                }
+                else if (evaluateCore(root, derivedType, ref useSiteInfo) != false)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
-        public TypeSymbol? SampleType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public TypeSymbol? SampleType(Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (IsEmpty(ref useSiteInfo))
                 throw new ArgumentException();
 
             if (_lazyMightIncludeNonNull != false)
             {
-                return TryGetSampleType(_root, ref useSiteInfo);
+                var sample = TryGetSampleType(_root, ref useSiteInfo);
+                return walkUpInvalidClosedSubtypesIfNeeded(sample?.CaseType, sample?.OriginalClosedBase, binder, ref useSiteInfo);
             }
 
             return null;
+
+            static TypeSymbol? walkUpInvalidClosedSubtypesIfNeeded(TypeSymbol? sampleType, TypeSymbol? originalClosedBase, Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                if (originalClosedBase is null || sampleType is not NamedTypeSymbol namedType)
+                {
+                    return sampleType;
+                }
+
+                Debug.Assert(originalClosedBase is NamedTypeSymbol { IsClosed: true });
+                while (isInvalidClosedSubtype(namedType, originalClosedBase, binder, ref useSiteInfo))
+                    namedType = namedType.BaseTypeNoUseSiteDiagnostics;
+
+                return namedType;
+
+                static bool isInvalidClosedSubtype(NamedTypeSymbol possibleClosedSubtype, TypeSymbol originalClosedBase, Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+                {
+                    // Do not suggest matching a type which is "more base" than original base type it was expanded from.
+                    if (originalClosedBase.OriginalDefinition.Equals(possibleClosedSubtype.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                        return false;
+
+                    if (!possibleClosedSubtype.CheckAllConstraints(binder.Compilation, binder.Conversions))
+                        return true;
+
+                    if (!binder.IsAccessible(possibleClosedSubtype, ref useSiteInfo))
+                        return true;
+
+                    return false;
+                }
+            }
         }
 
-        private TypeSymbol? TryGetSampleType(Node root, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private CaseInfo? TryGetSampleType(Node root, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             foreach (var t in _typesInUnion)
             {
-                if (EvaluateNodeForInputValue(root, t, ref useSiteInfo) != false)
+                if (EvaluateNodeForInputValue(root, t.CaseType, ref useSiteInfo) != false)
                     return t;
             }
 

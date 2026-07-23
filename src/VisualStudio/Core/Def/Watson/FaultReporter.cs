@@ -38,6 +38,8 @@ internal static class FaultReporter
         FatalError.CopyHandlersTo(typeof(Compilation).Assembly);
     }
 
+    public static bool IncludeServiceHubLogFiles = true;
+
     private static FaultSeverity ConvertSeverity(ErrorSeverity severity)
     {
         return severity switch
@@ -94,10 +96,28 @@ internal static class FaultReporter
 
     private static readonly ImmutableArray<string> UnblameableMethodPrefixes =
     [
-        "Microsoft.CodeAnalysis.Shared.Extensions.ISolutionExtensions.GetRequired",
-        "Microsoft.CodeAnalysis.Host.HostLanguageServices.GetRequiredService",
-        "Roslyn.Utilities.Contract.",
+        // If GetRequiredDocument or similar throw, the real fault is the caller which is expecting the document but won't get it
+        typeof(Shared.Extensions.ISolutionExtensions).FullName + ".GetRequired",
+
+        // If GetRequiredService throws, the real fault is the caller which is expecting the service but won't get it
+        typeof(Host.HostLanguageServices).FullName + "." + nameof(Host.HostLanguageServices.GetRequiredService),
+
+        // Most of the members on RequestContext throw if the LSP request didn't carry a document or solution like the handler expected;
+        // this should be blamed on the caller since that way we can distinguish the different handlers
+        typeof(LanguageServer.Handler.RequestContext).FullName + ".",
+
+        // Ignore everything from our Contract.Throw* helpers
+        typeof(Contract).FullName + ".",
+
+        // Ignore common framework helpers
+        "System.Collections.Immutable.",
         "System.Linq.",
+        "System.Runtime.CompilerServices.",
+        "System.ThrowHelper.",
+
+        // Ignore anything from our text span helpers, since any mixup of positions would be the caller's mistake
+        typeof(Text.LinePosition).FullName + ".",
+        typeof(Text.TextSpan).FullName + ".",
     ];
 
     /// <summary>
@@ -153,15 +173,17 @@ internal static class FaultReporter
 
                     if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
                     {
-                        // add ServiceHub log files:
-                        foreach (var path in CollectServiceHubLogFilePaths())
+                        if (IncludeServiceHubLogFiles)
                         {
-                            faultUtility.AddFile(path);
-                        }
+                            foreach (var path in CollectServiceHubLogFilePaths())
+                            {
+                                faultUtility.AddFile(path);
+                            }
 
-                        foreach (var loghubPath in CollectLogHubFilePaths())
-                        {
-                            faultUtility.AddFile(loghubPath);
+                            foreach (var loghubPath in CollectLogHubFilePaths())
+                            {
+                                faultUtility.AddFile(loghubPath);
+                            }
                         }
                     }
 

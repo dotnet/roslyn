@@ -397,6 +397,11 @@
         <target state="translated">Usa il controllo 'is object'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_labeled_jump_statement">
+        <source>Use labeled jump statement</source>
+        <target state="translated">Usare l'istruzione di salto con etichetta</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">Usa la funzione locale</target>

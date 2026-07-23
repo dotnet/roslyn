@@ -1,64 +1,75 @@
 ---
-applyTo: "src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures,VisualStudio}/**/*.{cs,vb}"
+applyTo: "src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures,VisualStudio,LanguageServer}/**/*.{cs,vb}"
 ---
 
 # Roslyn IDE Development Guide
-
-This guide provides essential knowledge for working effectively with Roslyn's IDE-focused codebase.
 
 ## Architecture Overview
 
 Roslyn uses a **layered service architecture** built on MEF (Managed Extensibility Framework):
 
-- **Workspaces** (`src/Workspaces/`): Core abstractions - `Workspace`, `Solution`, `Project`, `Document`
+- **Workspaces** (`src/Workspaces/`): Core abstractions — `Workspace`, `Solution`, `Project`, `Document`
 - **Features** (`src/Features/`): Language-agnostic IDE features (refactoring, navigation, completion)
-- **LanguageServer** (`src/LanguageServer/`): Shared LSP protocol implementation and Roslyn LSP executable
+- **Analyzers** (`src/Analyzers/`): IDE diagnostic analyzers and code fixes (IDE0xxx diagnostics)
+- **CodeStyle** (`src/CodeStyle/`): Code-style analyzer packaging shared with the command-line
+- **LanguageServer** (`src/LanguageServer/`): Shared LSP protocol implementation and Roslyn LSP executable (`roslyn-language-server`)
 - **EditorFeatures** (`src/EditorFeatures/`): VS Editor integration and text manipulation
 - **VisualStudio** (`src/VisualStudio/`): Visual Studio-specific implementations
 
-### Service Resolution Pattern
-
+### Service Resolution
 ```csharp
-// Get workspace services
+// Workspace services
 var service = workspace.Services.GetRequiredService<IMyWorkspaceService>();
 
-// Get language-specific services  
+// Language-specific services
 var csharpService = workspace.Services.GetLanguageServices(LanguageNames.CSharp)
     .GetRequiredService<IMyCSharpService>();
-
-// In tests, use ExportProvider directly
-var service = ExportProvider.GetExportedValue<IMyService>();
 ```
 
 ### MEF Export Patterns
-
 ```csharp
-// Workspace service
+// Workspace service (language-agnostic)
 [ExportWorkspaceService(typeof(IMyService)), Shared]
 internal class MyService : IMyService { }
 
-// Language service
+// Language service (per-language — never share across C#/VB)
 [ExportLanguageService(typeof(IMyService), LanguageNames.CSharp), Shared]
 internal class CSharpMyService : IMyService { }
 
-// Always use ImportingConstructor with obsolete warning
+// Constructor — always include both attributes
 [ImportingConstructor]
 [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 public MyService(IDependency dependency) { }
 ```
 
+## Resource & Localization
+
+- UI strings live in `.resx` files (e.g., `AnalyzersResources.resx`, `FeaturesResources.resx`, `WorkspacesResources.resx`)
+- Reference via generated designer class: `FeaturesResources.Some_string`
+- For localizable strings: `new LocalizableResourceString(nameof(FeaturesResources.Some_string), FeaturesResources.ResourceManager, typeof(FeaturesResources))`
+- After modifying `.resx` files, run `dotnet msbuild <path to csproj> /t:UpdateXlf` to update `.xlf` localization files
+
+## Analyzers & Code Fixes (IDE0xxx)
+
+- IDE code-style analyzers inherit from `AbstractBuiltInCodeStyleDiagnosticAnalyzer` — not raw `DiagnosticAnalyzer`
+- Always provide a `FixAllProvider` for code fixes (typically `WellKnownFixAllProviders.BatchFixer`)
+- Diagnostic ID constants live in `src/Analyzers/Core/Analyzers/IDEDiagnosticIds.cs`
+
+## Out-of-Process (OOP) Services
+
+- ServiceHub components live under `src/Workspaces/Remote/` and have special deployment considerations for .NET Core vs .NET Framework — keep both targets in mind when changing remote services
+
 ## Key Development Patterns
 
 ### TestAccessor Pattern
-For exposing internal state to tests without making it public:
-
+Expose internal state to tests without making it public:
 ```csharp
 internal class ProductionClass
 {
     private int _privateField;
-    
+
     internal TestAccessor GetTestAccessor() => new(this);
-    
+
     internal readonly struct TestAccessor
     {
         private readonly ProductionClass _instance;
@@ -67,88 +78,26 @@ internal class ProductionClass
     }
 }
 ```
+**TestAccessor calls are forbidden in production code** — enforced by analyzer RS0043.
 
-### Diagnostic Analyzer Structure
+### SyntaxGenerator (Language-Agnostic Code Generation)
+Use `SyntaxGenerator` to generate code without language-specific knowledge:
 ```csharp
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-public sealed class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor s_rule = new(
-        "MyAnalyzer001", "Title", "Message format", "Category",
-        DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics 
-        => ImmutableArray.Create(s_rule);
-
-    public override void Initialize(AnalysisContext context)
-    {
-        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
-    }
-}
+var generator = SyntaxGenerator.GetGenerator(document);
+var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 ```
-
-## Essential Build & Test Commands
-
-```bash
-# Full build
-.build.sh
-
-# Run specific test project
-dotnet test src/EditorFeatures/Test/
-
-# Build with analyzers
-.build.sh -testUsedAssemblies
-
-# Generate compiler code (if changing syntax)
-dotnet run --file eng/generate-compiler-code.cs
-```
-
-## Working with Tests
-
-### Test Workspace Creation
-```csharp
-[UseExportProvider]
-public class MyTests
-{
-    [Fact]
-    public async Task TestSomething()
-    {
-        var workspace = EditorTestWorkspace.CreateCSharp("class C { }");
-        var document = workspace.Documents.Single();
-        // Test logic here
-    }
-}
-```
-
-### Common Test Utilities
-- `DescriptorFactory.CreateSimpleDescriptor()` - Create test diagnostic descriptors
-- `VerifyCS.VerifyAnalyzerAsync()` - Verify C# analyzer behavior
-- `TestWorkspace.CreateCSharp()` - Create test workspaces
-- `UseExportProviderAttribute` - Required for MEF-dependent tests
 
 ## Coding Conventions
 
-### Performance Rules
-- **Avoid LINQ in hot paths** - Use manual loops in compiler/analyzer code
-- **Avoid `foreach` over non-struct enumerators** - Use `for` loops or `.AsSpan()`
-- **Use object pooling** - See `ObjectPool<T>` usage patterns
-- **Prefer `ReadOnlySpan<T>`** over `IEnumerable<T>` for performance-critical APIs
-
-### Naming Conventions
-- Private fields: `_camelCase` 
-- Internal test accessors: `GetTestAccessor()` returning `TestAccessor` struct
-- Diagnostic IDs: Consistent prefixes (RS, CA, IDE followed by numbers)
-- MEF exports: Match interface names without "I" prefix
-
-### Resource Management
-- MEF services are automatically disposed by the container
-- Use `TestAccessor` pattern instead of `internal` accessibility for test-only APIs
-- Always implement `IDisposable` for stateful services
+- **Private fields**: `_camelCase`
+- **Naming**: MEF exports match interface names without "I" prefix
+- **Null checks**: Use `Contract.ThrowIfNull()` instead of manual null checks
+- **Immutability**: All `Document`, `Solution`, `Project` instances are immutable — use `With*` methods
+- **Cancellation**: Always thread `CancellationToken` through async operations
+- **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
 
 ## Common Gotchas
 
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`
-- **Use `Contract.ThrowIfNull()`** instead of manual null checks in public APIs
-- **TestAccessor calls are forbidden in production code** - enforced by analyzer RS0043
-- **Language services must be exported with specific language name** - don't use generic exports
-- **Workspace changes must use immutable updates** - call `Workspace.SetCurrentSolution()` appropriately
+- **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
+- **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`

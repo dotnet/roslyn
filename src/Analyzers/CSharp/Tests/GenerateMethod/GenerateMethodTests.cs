@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMethod;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
+public sealed partial class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new GenerateMethodCodeFixProvider());
@@ -9504,7 +9504,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                             </Workspace>
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIfGeneratingInPartialClassWithFileFromSourceGenerator()
         => TestInRegularAndScriptAsync(
             """
@@ -10650,7 +10650,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
             """);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public async Task GenerateInCollection3()
     {
         await TestInRegularAndScriptAsync(
@@ -10724,7 +10724,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
             """);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public async Task GenerateInCollection5()
     {
         await TestInRegularAndScriptAsync(

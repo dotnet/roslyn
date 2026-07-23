@@ -471,7 +471,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <note />
       </trans-unit>
       <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
-        <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</source>
+        <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuilt; {2}</source>
         <target state="translated">La modification du fichier source « {0} » dans un projet obsolète « {1} » n’a aucun effet tant que le projet n’est pas reconstruit, {2}</target>
         <note />
       </trans-unit>
@@ -1009,6 +1009,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <source>Insufficient or invalid hexadecimal digits</source>
         <target state="translated">Chiffres hexadécimaux insuffisants ou non valides</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
+      </trans-unit>
+      <trans-unit id="Intercepted_by_0">
+        <source>Intercepted by '{0}'.</source>
+        <target state="translated">Intercepté par « {0} ».</target>
+        <note />
       </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
@@ -2593,6 +2598,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Replace_conditional_expression_with_statements">
         <source>Replace conditional expression with statements</source>
         <target state="translated">Remplacer l’expression conditionnelle par des instructions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
+        <source>Represents the character '{0}' as a UTF-16 code unit.</source>
+        <target state="translated">Représente le caractère « {0} » sous la forme d’une unité de code UTF-16.</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

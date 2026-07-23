@@ -140,10 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.Parameter:
-                    if (used)  // unused parameter has no side-effects
-                    {
-                        EmitParameterLoad((BoundParameter)expression);
-                    }
+                    EmitParameterLoad((BoundParameter)expression, used);
                     break;
 
                 case BoundKind.FieldAccess:
@@ -1427,15 +1424,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitParameterLoad(BoundParameter parameter)
+        private void EmitParameterLoad(BoundParameter parameter, bool used)
         {
-            int slot = ParameterSlot(parameter);
-            _builder.EmitLoadArgumentOpcode(slot);
+            Debug.Assert(parameter.Type.Equals(parameter.ParameterSymbol.Type, TypeCompareKind.AllIgnoreOptions) ||
+                         (!used && parameter.Type.SpecialType == SpecialType.System_Byte &&
+                          parameter.ParameterSymbol is
+                          {
+                              Ordinal: 0,
+                              ContainingSymbol:
+                                   SynthesizedInlineArrayAsReadOnlySpanMethod or SynthesizedInlineArrayAsSpanMethod or SynthesizedInlineArrayElementRefMethod or
+                                   SynthesizedInlineArrayElementRefReadOnlyMethod or SynthesizedInlineArrayFirstElementRefMethod or SynthesizedInlineArrayFirstElementRefReadOnlyMethod
+                          })); // See a comment in SynthesizedInlineArrayAsSpanMethod.ThrowIfInlineArrayIsNullRef about the 'byte' type relaxation for some parameters.
 
-            if (parameter.ParameterSymbol.RefKind != RefKind.None)
+            if (used || parameter.ParameterSymbol.RefKind != RefKind.None)  // unused value parameter has no side-effects
             {
-                var parameterType = parameter.ParameterSymbol.Type;
-                EmitLoadIndirect(parameterType, parameter.Syntax);
+                int slot = ParameterSlot(parameter);
+                _builder.EmitLoadArgumentOpcode(slot);
+
+                if (parameter.ParameterSymbol.RefKind != RefKind.None)
+                {
+                    EmitLoadIndirect(parameter.Type, parameter.Syntax);
+                }
+
+                EmitPopIfUnused(used);
             }
         }
 
@@ -1682,7 +1693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (method.IsAbstract || method.IsVirtual)
             {
-                if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
+                if (receiver is not BoundTypeExpression { Type: TypeParameterSymbol or NamedTypeSymbol { IsUnionType: true } })
                 {
                     throw ExceptionUtilities.Unreachable();
                 }
@@ -1865,7 +1876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // In some cases CanUseCallOnRefTypeReceiver returns true which means that 
                     // null check is unnecessary and we can use "call"
                     if (receiver.SuppressVirtualCalls ||
-                        (!method.IsMetadataVirtual() && CanUseCallOnRefTypeReceiver(receiver)))
+                        (!method.IsMetadataVirtual(this._module.SourceModule) && CanUseCallOnRefTypeReceiver(receiver)))
                     {
                         callKind = CallKind.Call;
                     }
@@ -1884,7 +1895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         addressKind = IsReadOnlyCall(method, methodContainingType) ?
                                                                         AddressKind.ReadOnly :
                                                                         AddressKind.Writeable;
-                        if (MayUseCallForStructMethod(method))
+                        if (MayUseCallForStructMethod(this._module.SourceModule, method))
                         {
                             // NOTE: this should be either a method which overrides some abstract method or 
                             //       does not override anything (with few exceptions, see MayUseCallForStructMethod); 
@@ -1905,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                         // When calling a method that is virtual in metadata on a struct receiver,
                         // we use a constrained virtual call. If possible, it will skip boxing.
-                        if (method.IsMetadataVirtual())
+                        if (method.IsMetadataVirtual(this._module.SourceModule))
                         {
                             // For readonly value type receivers, we only need readonly access since
                             // readonly structs guarantee non-mutation for all their methods, and the
@@ -2027,6 +2038,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 switch (callKind)
                 {
                     case CallKind.Call:
+                        if (actualMethodTargetedByTheCall.IsAbstract)
+                        {
+                            Debug.Assert(false, "Taking this code path is likely unexpected.");
+                            _diagnostics.Add(ErrorCode.ERR_AbstractBaseCall, call.Syntax, actualMethodTargetedByTheCall);
+                        }
+
                         _builder.EmitOpCode(ILOpCode.Call, stackBehavior);
                         break;
 
@@ -2326,11 +2343,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// It basically checks if the method overrides any other and method's defining type
         /// is not a 'special' or 'special-by-ref' type. 
         /// </summary>
-        internal static bool MayUseCallForStructMethod(MethodSymbol method)
+        internal static bool MayUseCallForStructMethod(ModuleSymbol context, MethodSymbol method)
         {
             Debug.Assert(method.ContainingType.IsVerifierValue(), "this is not a value type");
 
-            if (!method.IsMetadataVirtual() || method.IsStatic)
+            if (method.IsStatic || !method.IsMetadataVirtual(context))
             {
                 return true;
             }

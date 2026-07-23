@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -988,27 +988,76 @@ class X
     [Fact]
     public void ListPattern_MissingMembers_ArrayLength()
     {
-        var source = @"
+        // Array without Length property
+        var corlibSource = """
+namespace System
+{
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class Attribute { }
+    public class Array { }
+    public class Enum { }
+    public class Exception { }
+    public class Type { }
+    public struct RuntimeTypeHandle { }
+    public struct Nullable<T> where T : struct { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Collections
+{
+    public interface IEnumerable { }
+}
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static T[] GetSubArray<T>(T[] array, Range range) => throw null;
+    }
+}
+""";
+        var corlib = CreateEmptyCompilation(corlibSource);
+        corlib.VerifyDiagnostics();
+        Assert.Null(corlib.GetSpecialTypeMember(SpecialMember.System_Array__get_Length));
+        var corlibRef = corlib.EmitToImageReference();
+
+        var source = """
 class X
 {
     public void M(int[] a)
     {
         _ = a is [0];
-        _ = a is [.._];
-        _ = a[^1];
-        _ = a[..];
-    } 
+    }
 }
-" + TestSources.GetSubArray;
-        var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
-        compilation.MakeMemberMissing(SpecialMember.System_Array__Length);
-        compilation.VerifyEmitDiagnostics(
-            // (6,18): error CS0656: Missing compiler required member 'System.Array.Length'
+""";
+        var compilation = CreateEmptyCompilation(source, references: [corlibRef], parseOptions: TestOptions.RegularWithListPatterns);
+        compilation.VerifyDiagnostics(
+            // (5,18): error CS8985: List patterns may not be used for a value of type 'int[]'. No suitable 'Length' or 'Count' property was found.
             //         _ = a is [0];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Array", "Length").WithLocation(6, 18),
-            // (7,18): error CS0656: Missing compiler required member 'System.Array.Length'
-            //         _ = a is [.._];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.._]").WithArguments("System.Array", "Length").WithLocation(7, 18));
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[0]").WithArguments("int[]").WithLocation(5, 18));
     }
 
     [Fact]
@@ -1125,15 +1174,9 @@ class X
         var compilation = CreateCompilationWithIndexAndRange(source);
         compilation.MakeMemberMissing(SpecialMember.System_String__SubstringIntInt);
         compilation.VerifyEmitDiagnostics(
-            // (6,19): error CS0656: Missing compiler required member 'System.String.Substring'
-            //         _ = s is [.. var slice];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var slice").WithArguments("System.String", "Substring").WithLocation(6, 19),
             // (6,19): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
             //         _ = s is [.. var slice];
             Diagnostic(ErrorCode.ERR_BadArgType, ".. var slice").WithArguments("1", "System.Range", "int").WithLocation(6, 19),
-            // (7,13): error CS0656: Missing compiler required member 'System.String.Substring'
-            //         _ = s[..];
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s[..]").WithArguments("System.String", "Substring").WithLocation(7, 13),
             // (7,15): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
             //         _ = s[..];
             Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(7, 15)
@@ -3053,13 +3096,13 @@ class X
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
-            // (8,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (8,26): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //             case not [{} y, .. {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y").WithLocation(8, 26),
-            // (8,35): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (8,35): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //             case not [{} y, .. {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(8, 35),
-            // (8,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (8,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //             case not [{} y, .. {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(8, 38),
             // (8,46): error CS0165: Use of unassigned local variable 'x'
@@ -3074,10 +3117,10 @@ class X
             // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
             //             case [not {} y, .. not {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[not {} y, .. not {} z] x").WithLocation(9, 18),
-            // (9,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (9,26): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //             case [not {} y, .. not {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y").WithLocation(9, 26),
-            // (9,39): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (9,39): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //             case [not {} y, .. not {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(9, 39),
             // (9,53): error CS0165: Use of unassigned local variable 'y'
@@ -3125,10 +3168,10 @@ class X
             // (13,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
             //         if (a is [not {} y, .. not {} z] x)
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [not {} y, .. not {} z] x").WithArguments("int[]").WithLocation(13, 13),
-            // (13,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (13,26): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //         if (a is [not {} y, .. not {} z] x)
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y").WithLocation(13, 26),
-            // (13,39): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (13,39): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //         if (a is [not {} y, .. not {} z] x)
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(13, 39),
             // (16,19): error CS0165: Use of unassigned local variable 'x'
@@ -3337,34 +3380,19 @@ class D
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range },
             references: new[] { lib2Ref }, parseOptions: TestOptions.RegularWithListPatterns);
         compilation.VerifyEmitDiagnostics(
-            // (6,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // 0.cs(6,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         _ = c is [var item];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "[var item]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18),
-            // (6,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            //         _ = c is [var item];
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var item]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18),
-            // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // 0.cs(7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         _ = c is [..var rest];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "[..var rest]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
-            // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            //         _ = c is [..var rest];
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "[..var rest]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
-            // (7,19): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // 0.cs(7,19): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         _ = c is [..var rest];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "..var rest").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 19),
-            // (7,19): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            //         _ = c is [..var rest];
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "..var rest").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 19),
-            // (8,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // 0.cs(8,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         var index = c[^1];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "c[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 21),
-            // (8,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            //         var index = c[^1];
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "c[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 21),
-            // (9,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            //         var range = c[1..^1];
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "c[1..^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 21),
-            // (9,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // 0.cs(9,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         var range = c[1..^1];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "c[1..^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 21)
             );
@@ -3596,11 +3624,11 @@ public class C
 ";
 
         var source = @"
-_ = new C() is [var x]; // 1, 2
-_ = new C() is [.. var y]; // 3, 4, 5, 6
-new C().Slice(0, 0); // 7
-_ = new C()[^1]; // 8, 9
-_ = new C()[..]; // 10, 11
+_ = new C() is [var x]; // 1
+_ = new C() is [.. var y]; // 2, 3
+new C().Slice(0, 0); // 4
+_ = new C()[^1]; // 5
+_ = new C()[..]; // 6
 ";
         var missingComp = CreateCompilation(missing_cs, assemblyName: "missing");
         missingComp.VerifyDiagnostics();
@@ -3610,39 +3638,24 @@ _ = new C()[..]; // 10, 11
 
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range }, references: new[] { libComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (2,16): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // _ = new C() is [var x]; // 1, 2
+            // 0.cs(2,16): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C() is [var x]; // 1
             Diagnostic(ErrorCode.ERR_NoTypeDef, "[var x]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 16),
-            // (2,16): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // _ = new C() is [var x]; // 1, 2
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "[var x]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 16),
-            // (3,16): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // _ = new C() is [.. var y]; // 3, 4, 5, 6
+            // 0.cs(3,16): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C() is [.. var y]; // 2, 3
             Diagnostic(ErrorCode.ERR_NoTypeDef, "[.. var y]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 16),
-            // (3,16): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // _ = new C() is [.. var y]; // 3, 4, 5, 6
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "[.. var y]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 16),
-            // (3,17): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // _ = new C() is [.. var y]; // 3, 4, 5, 6
+            // 0.cs(3,17): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C() is [.. var y]; // 2, 3
             Diagnostic(ErrorCode.ERR_NoTypeDef, ".. var y").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 17),
-            // (3,17): error CS0012: The type 'Missing2' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // _ = new C() is [.. var y]; // 3, 4, 5, 6
-            Diagnostic(ErrorCode.ERR_NoTypeDef, ".. var y").WithArguments("Missing2", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 17),
-            // (4,1): error CS0012: The type 'Missing2' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // new C().Slice(0, 0); // 7
+            // 0.cs(4,1): error CS0012: The type 'Missing2' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // new C().Slice(0, 0); // 4
             Diagnostic(ErrorCode.ERR_NoTypeDef, "new C().Slice").WithArguments("Missing2", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 1),
-            // (5,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // _ = new C()[^1]; // 8, 9
+            // 0.cs(5,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C()[^1]; // 5
             Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 5),
-            // (5,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // _ = new C()[^1]; // 8, 9
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 5),
-            // (6,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // _ = new C()[..]; // 10, 11
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()[..]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 5),
-            // (6,5): error CS0012: The type 'Missing2' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // _ = new C()[..]; // 10, 11
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()[..]").WithArguments("Missing2", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 5)
+            // 0.cs(6,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = new C()[..]; // 6
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()[..]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 5)
             );
     }
 
@@ -5809,30 +5822,63 @@ class C
     }
 
     [Fact]
-    public void SlicePattern_ExtensionIgnored()
+    public void SlicePattern_Extension()
     {
         var src = @"
-_ = new C() is [..var y];
-_ = new C()[..];
+using System;
+
+if (new C() is [..var y])
+    Console.Write(y);
+
+Console.Write("" "");
+Console.Write(new C()[..]);
 
 static class Extensions
 {
-    public static int Slice(this C c, int i, int j) => throw null;
+    public static int Slice(this C c, int i, int j) => i + j;
 }
 class C
 {
-    public int Count => throw null;
-    public int this[int i] => throw null;
+    public int Count => 3;
+    public int this[int i] => i;
 }";
-        var comp = CreateCompilation(new[] { src, TestSources.Index, TestSources.Range });
-        comp.VerifyEmitDiagnostics(
-            // (2,17): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
-            // _ = new C() is [..var y];
-            Diagnostic(ErrorCode.ERR_BadArgType, "..var y").WithArguments("1", "System.Range", "int").WithLocation(2, 17),
-            // (3,13): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
-            // _ = new C()[..];
-            Diagnostic(ErrorCode.ERR_BadArgType, "..").WithArguments("1", "System.Range", "int").WithLocation(3, 13)
-            );
+        var comp = CreateCompilation(new[] { src, TestSources.Index, TestSources.Range }, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "3 3");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       66 (0x42)
+  .maxstack  3
+  .locals init (int V_0, //y
+                C V_1,
+                int V_2)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  brfalse.s  IL_001f
+  IL_0009:  ldloc.1
+  IL_000a:  callvirt   ""int C.Count.get""
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldloc.2
+  IL_0013:  call       ""int Extensions.Slice(C, int, int)""
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  call       ""void System.Console.Write(int)""
+  IL_001f:  ldstr      "" ""
+  IL_0024:  call       ""void System.Console.Write(string)""
+  IL_0029:  newobj     ""C..ctor()""
+  IL_002e:  stloc.1
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldloc.1
+  IL_0032:  callvirt   ""int C.Count.get""
+  IL_0037:  call       ""int Extensions.Slice(C, int, int)""
+  IL_003c:  call       ""void System.Console.Write(int)""
+  IL_0041:  ret
+}
+");
     }
 
     [Fact]
@@ -6042,9 +6088,9 @@ class C
             // 0.cs(15,14): hidden CS9335: The pattern is redundant.
             //     { Count: 0 or > 1 } => 3, // 3
             Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or > 1").WithLocation(15, 14),
-            // 0.cs(18,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-            // _ = new C() switch // 4
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(18, 13),
+            // 0.cs(18,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
+            // _ = new C() switch // 6
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(18, 13),
             // 0.cs(27,6): hidden CS9335: The pattern is redundant.
             //     [null] => 2, // 5
             Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(27, 6),
@@ -9021,7 +9067,7 @@ if ((b is [var z] and z and z) is [true])
 ";
         var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
         comp.VerifyEmitDiagnostics(
-            // 0.cs(4,16): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // 0.cs(4,16): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             // if ((b is [var x] and x or x) is [true])
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(4, 16),
             // 0.cs(4,23): error CS0029: Cannot implicitly convert type 'bool' to 'bool[]'
@@ -9633,6 +9679,157 @@ class C : System.Collections.ICollection
                   IListPatternOperation (OperationKind.ListPattern, Type: null, IsInvalid) (Syntax: '[]') (InputType: delegate*<System.Void>, NarrowedType: delegate*<System.Void>, DeclaredSymbol: null, LengthSymbol: null, IndexerSymbol: null)
                     Patterns (0)
             """);
+    }
+
+    [Fact]
+    public void SlicePattern_NestedLengthOrPattern()
+    {
+        var source = """
+            using System;
+
+            class Program
+            {
+                static bool Test(int[] input) => input is [_, .. { Length: 1 or 2 }];
+
+                static void Main()
+                {
+                    Console.Write(Test([]));
+                    Console.Write(Test([0]));
+                    Console.Write(Test([0, 1]));
+                    Console.Write(Test([0, 1, 2]));
+                    Console.Write(Test([0, 1, 2, 3]));
+                }
+            }
+            """ + TestSources.GetSubArray;
+
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        compilation.VerifyDiagnostics();
+
+        VerifyDecisionDagDump<IsPatternExpressionSyntax>(compilation,
+@"[0]: t0 != null ? [1] : [6]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [6]
+[3]: t1 == 2 ? [5] : [4]
+[4]: t1 == 3 ? [5] : [6]
+[5]: leaf <isPatternSuccess> `[_, .. { Length: 1 or 2 }]`
+[6]: leaf <isPatternFailure> `[_, .. { Length: 1 or 2 }]`
+");
+
+        CompileAndVerify(compilation, expectedOutput: "FalseFalseTrueTrueFalse");
+    }
+
+    [Fact]
+    public void SlicePattern_NestedLengthOrPattern_Overflow()
+    {
+        var source = """
+            using System;
+
+            class Program
+            {
+                static bool Test(int[] input) => input is [_, .. { Length: 1 or 2147483647 }];
+
+                static void Main()
+                {
+                    Console.Write(Test([]));
+                    Console.Write(Test([0]));
+                    Console.Write(Test([0, 1]));
+                    Console.Write(Test([0, 1, 2]));
+                }
+            }
+            """ + TestSources.GetSubArray;
+
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        compilation.VerifyDiagnostics(
+            // (5,69): hidden CS9335: The pattern is redundant.
+            //     static bool Test(int[] input) => input is [_, .. { Length: 1 or 2147483647 }];
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "2147483647").WithLocation(5, 69));
+
+        VerifyDecisionDagDump<IsPatternExpressionSyntax>(compilation,
+@"[0]: t0 != null ? [1] : [5]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [5]
+[3]: t1 == 2 ? [4] : [5]
+[4]: leaf <isPatternSuccess> `[_, .. { Length: 1 or 2147483647 }]`
+[5]: leaf <isPatternFailure> `[_, .. { Length: 1 or 2147483647 }]`
+");
+
+        CompileAndVerify(compilation, expectedOutput: "FalseFalseTrueFalse");
+    }
+
+    [Fact]
+    public void SlicePattern_NestedLengthOrPattern_Negated()
+    {
+        var source = """
+            using System;
+
+            class Program
+            {
+                static bool Test(int[] input) => input is [_, .. { Length: not (1 or 2) }];
+
+                static void Main()
+                {
+                    Console.Write(Test([]));
+                    Console.Write(Test([0]));
+                    Console.Write(Test([0, 1]));
+                    Console.Write(Test([0, 1, 2]));
+                    Console.Write(Test([0, 1, 2, 3]));
+                }
+            }
+            """ + TestSources.GetSubArray;
+
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        compilation.VerifyDiagnostics();
+
+        VerifyDecisionDagDump<IsPatternExpressionSyntax>(compilation,
+@"[0]: t0 != null ? [1] : [5]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [5]
+[3]: t1 == 2 ? [5] : [4]
+[4]: t1 == 3 ? [5] : [6]
+[5]: leaf <isPatternFailure> `[_, .. { Length: not (1 or 2) }]`
+[6]: leaf <isPatternSuccess> `[_, .. { Length: not (1 or 2) }]`
+");
+
+        CompileAndVerify(compilation, expectedOutput: "FalseTrueFalseFalseTrue");
+    }
+
+    [Fact]
+    public void SlicePattern_NestedLengthOrPattern_MultipleSlices()
+    {
+        var source = """
+            using System;
+
+            class Program
+            {
+                static bool Test(int[] input) => input is [_, .. [_, .. { Length: 1 or 2 }]];
+
+                static void Main()
+                {
+                    Console.Write(Test([]));
+                    Console.Write(Test([0]));
+                    Console.Write(Test([0, 1]));
+                    Console.Write(Test([0, 1, 2]));
+                    Console.Write(Test([0, 1, 2, 3]));
+                    Console.Write(Test([0, 1, 2, 3, 4]));
+                }
+            }
+            """ + TestSources.GetSubArray;
+
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        compilation.VerifyDiagnostics();
+
+        VerifyDecisionDagDump<IsPatternExpressionSyntax>(compilation,
+@"[0]: t0 != null ? [1] : [7]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [7]
+[3]: t1 >= 2 ? [4] : [7]
+[4]: t1 == 3 ? [6] : [5]
+[5]: t1 == 4 ? [6] : [7]
+[6]: leaf <isPatternSuccess> `[_, .. [_, .. { Length: 1 or 2 }]]`
+[7]: leaf <isPatternFailure> `[_, .. [_, .. { Length: 1 or 2 }]]`
+");
+
+        CompileAndVerify(compilation, expectedOutput: "FalseFalseFalseTrueTrueFalse");
     }
 
     [Fact]

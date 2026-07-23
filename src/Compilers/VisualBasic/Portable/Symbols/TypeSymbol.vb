@@ -611,6 +611,23 @@ Done:
             End Get
         End Property
 
+        Private ReadOnly Property ITypeSymbol_IsUnion As Boolean Implements ITypeSymbol.IsUnion
+            Get
+                ' VB does not have Unions
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeSymbol_IsClosed As Boolean Implements ITypeSymbol.IsClosed
+            Get
+                Return False
+            End Get
+        End Property
+
+        Private Function ITypeSymbol_GetClosedDerivedTypeInfo(cancellationToken As CancellationToken) As ClosedDerivedTypeInfo Implements ITypeSymbol.GetClosedDerivedTypeInfo
+            Throw New InvalidOperationException()
+        End Function
+
         Private Function ITypeSymbol_ToDisplayString(topLevelNullability As NullableFlowState, Optional format As SymbolDisplayFormat = Nothing) As String Implements ITypeSymbol.ToDisplayString
             Return ToDisplayString(format)
         End Function

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -25,12 +24,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [Export(typeof(VirtualProjectXmlProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
+internal class VirtualProjectXmlProvider()
 {
-    internal async Task<(string VirtualProjectXml, ImmutableArray<SimpleDiagnostic> Diagnostics)?> GetVirtualProjectContentAsync(string documentFilePath, ILogger logger, CancellationToken cancellationToken)
+    internal async Task<(string VirtualProjectXml, string? VirtualProjectPath, ImmutableArray<SimpleDiagnostic> Diagnostics)?> GetVirtualProjectContentAsync(
+        string documentFilePath,
+        DotnetCliHelper dotnetCliHelper,
+        ILogger logger,
+        bool localizeOutput,
+        CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(documentFilePath);
-        var process = dotnetCliHelper.Run(["run-api"], workingDirectory, shouldLocalizeOutput: true, keepStandardInputOpen: true);
+        var process = dotnetCliHelper.Run(["run-api"], workingDirectory, localizeOutput, keepStandardInputOpen: true);
 
         cancellationToken.Register(() =>
         {
@@ -74,7 +78,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
 
             if (response is RunApiOutput.Project project)
             {
-                return (project.Content, project.Diagnostics);
+                return (project.Content, project.ProjectPath, project.Diagnostics);
             }
 
             throw ExceptionUtilities.UnexpectedValue(response);
@@ -92,28 +96,14 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
     }
 
     /// <summary>
-    /// Adjusts a path to a file-based program for use in passing the virtual project to msbuild.
-    /// (msbuild needs the path to end in .csproj to recognize as a C# project and apply all the standard props/targets to it.)
+    /// From a C# document path, get the virtual project path to pass to MSBuild. Used only for the scenario where run-api doesn't give us a VirtualProjectPath.
+    /// Note: "Older" logic is used here, because, it's presumed that if run-api isn't giving us a path, it is using the older version of the logic.
+    /// See also https://github.com/dotnet/sdk/pull/53182
     /// </summary>
-    [return: NotNullIfNotNull(nameof(documentFilePath))]
-    internal static string? GetVirtualProjectPath(string? documentFilePath)
+    internal static string GetFallbackVirtualProjectPath(string documentFilePath)
         => Path.ChangeExtension(documentFilePath, ".csproj");
 
-    internal static bool HasFileBasedAppDirectives(SourceText text)
-    {
-        var tokenizer = SyntaxFactory.CreateTokenParser(text, CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
-        var result = tokenizer.ParseLeadingTrivia();
-        var triviaList = result.Token.LeadingTrivia;
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.Kind() is SyntaxKind.ShebangDirectiveTrivia or SyntaxKind.IgnoredDirectiveTrivia)
-                return true;
-        }
-
-        return false;
-    }
-
-    #region Temporary copy of subset of dotnet run-api behavior for fallback: https://github.com/dotnet/roslyn/issues/78618
+    #region Temporary copy of subset of dotnet run-api behavior
     // See https://github.com/dotnet/sdk/blob/b5dbc69cc28676ac6ea615654c8016a11b75e747/src/Cli/Microsoft.DotNet.Cli.Utils/Sha256Hasher.cs#L10
     private static class Sha256Hasher
     {
@@ -134,84 +124,34 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         }
     }
 
+    internal static string GetDiscoveryCacheDirectory(string workspaceFolder)
+        => GetTempPathCore("runfile-discovery", workspaceFolder);
+
+    internal static string GetDiscoveryCacheRootDirectory()
+        => GetTempDotnetSubdirectory("runfile-discovery");
+
     // See https://github.com/dotnet/sdk/blob/5a4292947487a9d34f4256c1d17fb3dc26859174/src/Cli/dotnet/Commands/Run/VirtualProjectBuildingCommand.cs#L449
     internal static string GetArtifactsPath(string entryPointFileFullPath)
+        => GetTempPathCore("runfile", entryPointFileFullPath);
+
+    private static string GetTempDotnetSubdirectory(string dotnetSubdirectory)
     {
         // We want a location where permissions are expected to be restricted to the current user.
-        string directory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        string tempDirectory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? Path.GetTempPath()
             : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Join(tempDirectory, "dotnet", dotnetSubdirectory);
+    }
 
-        // Include entry point file name so the directory name is not completely opaque.
-        string fileName = Path.GetFileNameWithoutExtension(entryPointFileFullPath);
-        string hash = Sha256Hasher.HashWithNormalizedCasing(entryPointFileFullPath);
+    private static string GetTempPathCore(string dotnetSubdirectory, string originalFilePath)
+    {
+        // Include original file name so the directory name is not completely opaque.
+        string fileName = Path.GetFileNameWithoutExtension(originalFilePath);
+        string hash = Sha256Hasher.HashWithNormalizedCasing(originalFilePath);
         string directoryName = $"{fileName}-{hash}";
 
-        return Path.Join(directory, "dotnet", "runfile", directoryName);
+        return Path.Join(GetTempDotnetSubdirectory(dotnetSubdirectory), directoryName);
     }
+
     #endregion
-
-    // https://github.com/dotnet/roslyn/issues/78618: falling back to this until dotnet run-api is more widely available
-    internal static string MakeVirtualProjectContent_DirectFallback(string documentFilePath)
-    {
-        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(documentFilePath));
-        var artifactsPath = GetArtifactsPath(documentFilePath);
-
-        var targetFramework = Environment.GetEnvironmentVariable("DOTNET_RUN_FILE_TFM") ?? "net$(BundledNETCoreAppTargetFrameworkVersion)";
-
-        var virtualProjectXml = $"""
-            <Project>
-              <PropertyGroup>
-                <BaseIntermediateOutputPath>{SecurityElement.Escape(artifactsPath)}\obj\</BaseIntermediateOutputPath>
-                <BaseOutputPath>{SecurityElement.Escape(artifactsPath)}\bin\</BaseOutputPath>
-              </PropertyGroup>
-              <!-- We need to explicitly import Sdk props/targets so we can override the targets below. -->
-              <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-              <PropertyGroup>
-                <OutputType>Exe</OutputType>
-                <TargetFramework>{SecurityElement.Escape(targetFramework)}</TargetFramework>
-                <ImplicitUsings>enable</ImplicitUsings>
-                <Nullable>enable</Nullable>
-              </PropertyGroup>
-              <PropertyGroup>
-                <EnableDefaultItems>false</EnableDefaultItems>
-              </PropertyGroup>
-              <PropertyGroup>
-                <LangVersion>preview</LangVersion>
-              </PropertyGroup>
-              <PropertyGroup>
-                <Features>$(Features);FileBasedProgram</Features>
-              </PropertyGroup>
-              <ItemGroup>
-                <Compile Include="{SecurityElement.Escape(documentFilePath)}" />
-              </ItemGroup>
-              <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
-              <!--
-                Override targets which don't work with project files that are not present on disk.
-                See https://github.com/NuGet/Home/issues/14148.
-              -->
-              <Target Name="_FilterRestoreGraphProjectInputItems"
-                      DependsOnTargets="_LoadRestoreGraphEntryPoints"
-                      Returns="@(FilteredRestoreGraphProjectInputItems)">
-                <ItemGroup>
-                  <FilteredRestoreGraphProjectInputItems Include="@(RestoreGraphProjectInputItems)" />
-                </ItemGroup>
-              </Target>
-              <Target Name="_GetAllRestoreProjectPathItems"
-                      DependsOnTargets="_FilterRestoreGraphProjectInputItems"
-                      Returns="@(_RestoreProjectPathItems)">
-                <ItemGroup>
-                  <_RestoreProjectPathItems Include="@(FilteredRestoreGraphProjectInputItems)" />
-                </ItemGroup>
-              </Target>
-              <Target Name="_GenerateRestoreGraph"
-                      DependsOnTargets="_FilterRestoreGraphProjectInputItems;_GetAllRestoreProjectPathItems;_GenerateRestoreGraphProjectEntry;_GenerateProjectRestoreGraph"
-                      Returns="@(_RestoreGraphEntry)">
-                <!-- Output from dependency _GenerateRestoreGraphProjectEntry and _GenerateProjectRestoreGraph -->
-              </Target>
-            </Project>
-            """;
-
-        return virtualProjectXml;
-    }
 }

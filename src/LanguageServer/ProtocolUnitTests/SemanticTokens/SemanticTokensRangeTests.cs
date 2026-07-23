@@ -109,7 +109,6 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
             #line hidden
             #nullable disable
                     }
-                    #pragma warning restore 1998
                 }
             }
             #pragma warning restore 1591
@@ -493,6 +492,8 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
 
         var expectedResults = new LSP.SemanticTokens();
 
+        // "#comment" is 8 chars; on Windows the \r before \n is included in the token
+        var regexCommentLength = 7 + System.Environment.NewLine.Length;
         var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
         if (isVS)
         {
@@ -526,7 +527,7 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
                    0,     3,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // ')'
                    0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.RegexQuantifier],       0, // '*'
                    0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // ' '
-                   0,     1,     9,    tokenTypeToIndex[ClassificationTypeNames.RegexComment],          0, // '#comment'
+                   0,     1,     regexCommentLength, tokenTypeToIndex[ClassificationTypeNames.RegexComment],          0, // '#comment'
                    1,     0,     27,   tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral], 0, // '"'
                    0,     27,    1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ','
                    0,     2,     12,   tokenTypeToIndex[ClassificationTypeNames.EnumName],              0, // 'RegexOptions'
@@ -570,7 +571,7 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
                    0,     3,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.RegexGrouping],         0, // ')'
                    0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.RegexQuantifier],       0, // '*'
                    0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.StringVerbatim], 0, // ' '
-                   0,     1,     9,    tokenTypeToIndex[CustomLspSemanticTokenNames.RegexComment],          0, // '#comment'
+                   0,     1,     regexCommentLength, tokenTypeToIndex[CustomLspSemanticTokenNames.RegexComment],          0, // '#comment'
                    1,     0,     27,   tokenTypeToIndex[CustomLspSemanticTokenNames.StringVerbatim], 0, // '"'
                    0,     27,    1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],           0, // ','
                    0,     2,     12,   tokenTypeToIndex[SemanticTokenTypes.Enum],              0, // 'RegexOptions'

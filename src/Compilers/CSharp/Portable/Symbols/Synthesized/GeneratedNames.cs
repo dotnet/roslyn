@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // the native compiler adds numeric digits at the end.  Roslyn does not.
             Debug.Assert((char)GeneratedNameKind.FixedBufferField == 'e');
-            return "<" + fieldName + CommonGeneratedNames.FixedBufferFieldSuffix;
+            return "<" + fieldName + WellKnownGeneratedNames.FixedBufferFieldSuffix;
         }
 
         internal static string MakeStateMachineStateFieldName()
@@ -352,11 +352,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>3__" + parameterName;
         }
 
-        internal static string MakeDynamicCallSiteContainerName(int methodOrdinal, int localFunctionOrdinal, int generation)
+        internal static string MakeDynamicCallSiteContainerName(int methodOrdinal, string? localFunctionOrdinalOrSuffix, int generation)
         {
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.DynamicCallSiteContainerType, methodOrdinal, generation,
-                                                   suffix: localFunctionOrdinal != -1 ? localFunctionOrdinal.ToString() : null,
-                                                   suffixTerminator: localFunctionOrdinal != -1 ? '|' : default);
+                                                   suffix: localFunctionOrdinalOrSuffix,
+                                                   suffixTerminator: localFunctionOrdinalOrSuffix != null ? '|' : default);
         }
 
         internal static string MakeDynamicCallSiteFieldName(int uniqueId)
@@ -476,14 +476,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((char)GeneratedNameKind.ReadOnlyListType == 'z');
             string name = kind switch
             {
-                SynthesizedReadOnlyListKind.Array => "<>z__ReadOnlyArray",
-                SynthesizedReadOnlyListKind.List => "<>z__ReadOnlyList",
-                SynthesizedReadOnlyListKind.SingleElement => "<>z__ReadOnlySingleElementList",
+                SynthesizedReadOnlyListKind.Array => WellKnownGeneratedNames.SynthesizedReadOnlyList_ReadOnlyArrayPrefix,
+                SynthesizedReadOnlyListKind.List => WellKnownGeneratedNames.SynthesizedReadOnlyList_ReadOnlyListPrefix,
+                SynthesizedReadOnlyListKind.SingleElement => WellKnownGeneratedNames.SynthesizedReadOnlyList_SingleElementPrefix,
                 var v => throw ExceptionUtilities.UnexpectedValue(v)
             };
 
             // Synthesized list types need to have unique name across generations because they are not reused.
-            return (generation > 0) ? name + CommonGeneratedNames.GenerationSeparator + generation : name;
+            return (generation > 0) ? name + WellKnownGeneratedNames.GenerationSeparator + generation : name;
         }
 
         internal static string AsyncBuilderFieldName()

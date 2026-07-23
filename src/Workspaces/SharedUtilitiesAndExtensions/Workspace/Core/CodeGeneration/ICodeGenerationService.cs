@@ -180,7 +180,17 @@ internal interface ICodeGenerationService : ILanguageService
     /// <summary>
     /// <c>true</c> if destination is a location where other symbols can be added to.
     /// </summary>
+    bool CanAddTo(ISymbol destination, Solution solution, CodeGenerationContext context, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// <c>true</c> if destination is a location where other symbols can be added to.
+    /// </summary>
     bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// <c>true</c> if destination is a location where other symbols can be added to.
+    /// </summary>
+    bool CanAddTo(SyntaxNode destination, Solution solution, CodeGenerationContext context, CancellationToken cancellationToken);
 
     /// <summary>
     /// Return the most relevant declaration to namespaceOrType,

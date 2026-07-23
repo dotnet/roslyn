@@ -69,11 +69,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ForType(input.Type);
         }
 
-        public static ITypeUnionValueSetFactory? TypeUnionValueSetFactoryForInput(BoundDagTemp input)
+        public static ITypeUnionValueSetFactory? TypeUnionValueSetFactoryForInput(CSharpCompilation compilation, BoundDagTemp input)
         {
-            if (DecisionDagBuilder.IsUnionValue(input, out BoundDagTemp? unionInstance) && ((NamedTypeSymbol)unionInstance.Type).UnionCaseTypes is not [])
+            if (DecisionDagBuilder.IsUnionValue(input, out BoundDagTemp? unionInstance))
             {
-                return new UnionTypeTypeUnionValueSetFactory((NamedTypeSymbol)unionInstance.Type);
+                var unionType = (NamedTypeSymbol)unionInstance.Type;
+                if (unionType.UnionCaseTypesNoUseSiteDiagnostics is not [])
+                {
+                    return new UnionTypeTypeUnionValueSetFactory(unionType);
+                }
+
+                return null;
+            }
+
+            if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureClosedClasses)
+                && input.Type is (NamedTypeSymbol { IsClosed: true } or TypeParameterSymbol { EffectiveBaseClassNoUseSiteDiagnostics.IsClosed: true }) and var closedClassOrTypeParameter)
+            {
+                return new ClosedClassTypeUnionValueSetFactory(closedClassOrTypeParameter);
             }
 
             return null;

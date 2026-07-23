@@ -12,14 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 [Shared]
 [Export(typeof(IHostWorkspaceProvider))]
-internal sealed class VisualStudioIHostWorkspaceProvider : IHostWorkspaceProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioIHostWorkspaceProvider(VisualStudioWorkspace workspace) : IHostWorkspaceProvider
 {
-    public Workspace Workspace { get; }
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioIHostWorkspaceProvider(VisualStudioWorkspace workspace)
-    {
-        Workspace = workspace;
-    }
+    public Workspace Workspace { get; } = workspace;
 }

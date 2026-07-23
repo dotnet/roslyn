@@ -6,6 +6,8 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
 
+
+    <RepositoryUrl Condition="'$(RepositoryUrl)' == ''">$(PackageProjectUrl)</RepositoryUrl>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
 
@@ -151,6 +153,8 @@
     Bootstrapping compilers
   -->
   <Import Project="Bootstrap.props" Condition="'$(BootstrapBuildPath)' != ''" />
+
+  <Import Project="CachingCompiler.props" Condition="'$(ROSLYN_USE_CACHING_COMPILER)' != 'false' and ('$(ROSLYN_USE_CACHING_COMPILER)' == 'true' or '$(ROSLYN_CACHE_PATH)' != '') and '$(DotNetBuildSourceOnly)' != 'true' and '$(OfficialBuild)' != 'true'" />
 
   <!--
     Analyzers

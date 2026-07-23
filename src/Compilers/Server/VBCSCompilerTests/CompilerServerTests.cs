@@ -202,13 +202,13 @@ End Module")
                         currentDirectory: tempDir);
                     if (result.ExitCode != 0)
                     {
-                        AssertEx.Fail($"Deterministic compile failed \n stdout:  {result.Output}");
+                        Assert.Fail($"Deterministic compile failed \n stdout:  {result.Output}");
                     }
                     var listener = await serverData.Complete();
                     Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
                 }
                 var bytes = File.ReadAllBytes(outFile);
-                AssertEx.NotNull(bytes);
+                Assert.NotNull(bytes);
 
                 return (bytes, finalFlags);
             }
@@ -1421,24 +1421,6 @@ static void Main(string[] args)
         }
 
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
-        [ConditionalFact(typeof(DesktopOnly))]
-        public void MissingCompilerAssembly_CompilerServer()
-        {
-            var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
-            var compilerServerExecutable = Path.Combine(basePath, "VBCSCompiler.exe");
-            var dir = Temp.CreateDirectory();
-            var workingDirectory = dir.Path;
-            var serverExe = dir.CopyFile(compilerServerExecutable).Path;
-            dir.CopyFile(typeof(System.Collections.Immutable.ImmutableArray).Assembly.Location);
-
-            // Missing Microsoft.CodeAnalysis.dll launching server.
-            var result = ProcessUtilities.Run(serverExe, arguments: $"-pipename:{GetUniqueName()}", workingDirectory: workingDirectory);
-            Assert.Equal(1, result.ExitCode);
-            // Exception is logged rather than written to output/error streams.
-            Assert.Equal("", result.Output.Trim());
-        }
-
-        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
         [WorkItem(19213, "https://github.com/dotnet/roslyn/issues/19213")]
         [Fact(Skip = "19213")]
         public async Task MissingCompilerAssembly_CompilerServerHost()
@@ -1473,7 +1455,7 @@ static void Main(string[] args)
             {
                 if (first[i] != second[i])
                 {
-                    AssertEx.Fail($"Bytes were different at position {i} ({first[i]} vs {second[i]}).  Flags used were (\"{finalFlags1}\" vs \"{finalFlags2}\")");
+                    Assert.Fail($"Bytes were different at position {i} ({first[i]} vs {second[i]}).  Flags used were (\"{finalFlags1}\" vs \"{finalFlags2}\")");
                 }
             }
         }

@@ -13793,6 +13793,7 @@ public class C
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "PDB error exception path leaks pooled objects")]
         public void PdbReadingErrors_PassThruExceptions()
         {
             var source0 = MarkedSource(@"
@@ -21604,7 +21605,11 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69398")]
         public void PrivateImplDetails_InlineArray()
         {
-            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80)
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80,
+                verification: Verification.Fails with
+                {
+                    ILVerifyMessage = "[InlineArrayFirstElementRef]: Unexpected type on the stack. { Offset = 0x1, Found = value 'TBuffer', Expected = Byte }"
+                })
                 .AddBaseline(
                     source: $$"""
                         using System.Runtime.CompilerServices;

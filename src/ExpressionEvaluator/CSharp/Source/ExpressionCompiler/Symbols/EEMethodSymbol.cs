@@ -216,12 +216,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return SynthesizedParameterSymbol.Create(this, sourceParameter.TypeWithAnnotations, ordinal, sourceParameter.RefKind, name, ScopedKind.None, refCustomModifiers: sourceParameter.RefCustomModifiers);
         }
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
 
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        internal override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override RefKind RefKind
         {
-            get { return this.SubstitutedSourceMethod.RefKind; }
+            get { return RefKind.None; }
         }
 
         public override bool ReturnsVoid
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool UseUpdatedEscapeRules => false;
 
-        internal override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
 
         internal ResultProperties ResultProperties
         {

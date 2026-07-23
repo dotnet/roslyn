@@ -55,6 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasDeclaredRequiredMembers => false;
 
+        internal override bool IsClosed => false;
+
+        internal override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => [];
+
         /// <summary>
         /// Certain members from the underlying types are not exposed from the native integer types:
         ///   constructors other than the default parameterless constructor are not supported;
@@ -410,6 +414,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => UnderlyingMethod.GetCallerUnsafeMode(fieldsBeingBound);
+
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol.UnderlyingMethod);
 
         public override int GetHashCode() => UnderlyingMethod.GetHashCode();
@@ -523,6 +529,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
 
         internal override bool MustCallMethodsDirectly => _underlyingProperty.MustCallMethodsDirectly;
+
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingProperty.GetCallerUnsafeMode(fieldsBeingBound);
 
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingProperty);
 

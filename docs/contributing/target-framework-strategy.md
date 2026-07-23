@@ -8,7 +8,7 @@ The roslyn repository produces components for a number of different products tha
 - .NET SDK: requires us to ship compilers on current servicing target framework (presently `net10.0`)
 - Repository Source build: requires us to ship `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net10.0` and `net9.0` respectively). This is because the output of repository source build is an input to other repository source build and those could be targeting either `$(NetCurrent)` or `$(NetPrevious)`.
 - Full Source build: requires us to ship `$(NetCurrent)`
-- Visual Studio: requires us to ship `net472` for base IDE components and `$(NetVisualStudio)` (presently `net8.0`) for private runtime components.
+- Visual Studio: requires us to ship `net472` for base IDE components and `$(NetVisualStudio)` (presently `net10.0`) for private runtime components.
 - Visual Studio Code: expects us to ship against the same runtime as DevKit (presently `net10.0`) to avoid two runtime downloads.
 - MSBuildWorkspace: requires us to ship a process that must be usable on the lowest supported SDK (presently `net8.0`)
 
@@ -25,9 +25,10 @@ Projects in our repository should include the following values in `<TargetFramew
 3. `$(NetVSCode)`: code that needs to execute in DevKit host
 4. `$(NetVSShared)`: code that needs to execute in both Visual Studio and VS Code but does not need to be source built.
 5. `$(NetRoslyn)`: code that needs to execute on .NET but does not have any specific product deployment requirements. For example utilities that are used by our infra, compiler unit tests, etc ... This property also controls which of the frameworks the compiler builds against are shipped in the toolset packages. This value will potentially change in source builds.
-6. `$(NetRoslynAll)`: code, generally test utilities, that need to build for all .NET runtimes that we support.
-7. `$(NetRoslynBuildHostNetCoreVersion)`: the target used for the .NET Core BuildHost process used by MSBuildWorkspace.
-8. `$(NetRoslynNext)`: code that needs to run on the next .NET Core version. This is used during the transition to a new .NET Core version where we need to move forward but don't want to hard code a .NET Core TFM into the build files.
+6. `$(NetRoslynAll)`: code, generally test utilities, that need to build for all .NET runtimes that we support. Note: `$(NetRoslynBuildHostNetCoreVersion)` is excluded from this set because the BuildHost is an isolated executable.
+7. `$(NetRoslynWindowsTests)`: test projects that use `$(NetRoslyn)` but can only run on Windows. These tests will be automatically excluded when running on Unix/Linux because the `-windows` OS-specific TFM suffix tells the .NET SDK and the test runner to skip them on non-Windows platforms.
+8. `$(NetRoslynBuildHostNetCoreVersion)`: the target used for the .NET Core BuildHost process used by MSBuildWorkspace. This may lag behind other properties as it must target the lowest supported .NET SDK (presently `net8.0` until .NET 8 EOL in November 2026).
+9. `$(NetRoslynNext)`: code that needs to run on the next .NET Core version. This is used during the transition to a new .NET Core version where we need to move forward but don't want to hard code a .NET Core TFM into the build files.
 
 This properties `$(NetCurrent)`, `$(NetPrevious)` and `$(NetMinimum)` are not used in our project files because they change in ways that make it hard for us to maintain correct product deployments. Our product ships on VS and VS Code which are not captured by arcade `$(Net...)` macros. Further as the arcade properties change it's very easy for us to end up with duplicate entries in a `<TargetFrameworks>` setting. Instead our repo uses the above values and when inside source build or VMR our properties are initialized with arcade properties.
 

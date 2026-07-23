@@ -12,24 +12,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(ServiceBrokerConnectHandler)), Shared]
 [Method("serviceBroker/connect")]
-internal sealed class ServiceBrokerConnectHandler : ILspServiceNotificationHandler<ServiceBrokerConnectHandler.NotificationParams>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ServiceBrokerConnectHandler() : ILspServiceNotificationHandler<ServiceBrokerConnectHandler.NotificationParams>
 {
-    private readonly ServiceBrokerFactory _serviceBrokerFactory;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ServiceBrokerConnectHandler(ServiceBrokerFactory serviceBrokerFactory)
-    {
-        _serviceBrokerFactory = serviceBrokerFactory;
-    }
-
     public bool MutatesSolutionState => false;
 
-    public bool RequiresLSPSolution => false;
+    public bool RequiresLSPSolution => true;
 
     Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        return _serviceBrokerFactory.CreateAndConnectAsync(request.PipeName);
+        var workspace = requestContext.Workspace;
+        Contract.ThrowIfNull(workspace, "We should always have a workspace since this is a solution-level handler.");
+
+        var serviceBrokerFactory = requestContext.GetRequiredService<ServiceBrokerFactory>();
+        // Suppress logger async local context from flowing to the service broker connection.
+        // This prevents all service broker requests from inheriting the LSP 'serviceBroker/connect' logging scope.
+        using (ExecutionContext.SuppressFlow())
+        {
+            return serviceBrokerFactory.CreateAndConnectAsync(request.PipeName, workspace);
+        }
     }
 
     private sealed class NotificationParams

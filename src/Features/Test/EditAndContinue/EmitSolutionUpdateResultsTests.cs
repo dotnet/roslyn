@@ -106,7 +106,7 @@ public sealed class EmitSolutionUpdateResultsTests
                 customTags: ["Test2"],
                 properties: ImmutableDictionary<string, string?>.Empty,
                 document.Project.Id,
-                DiagnosticDataLocation.TestAccessor.Create(new(sourcePath, new(0, 0), new(0, 5)), document.Id, new(@"..\a.razor", new(10, 10), new(10, 15)), forceMappedPath: true),
+                DiagnosticDataLocation.TestAccessor.Create(new(sourcePath, new(0, 0), new(0, 5)), document.Id, new(Path.Combine("..", "a.razor"), new(10, 10), new(10, 15)), forceMappedPath: true),
                 language: "C#",
                 title: "title",
                 description: "description",
@@ -155,6 +155,27 @@ public sealed class EmitSolutionUpdateResultsTests
             $@"RestartRequired ENC0021: {sourcePath} (0,1)-(0,10): {string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, "a")}",
             $@"RestartRequired ENC0033: {sourcePath} (0,1)-(0,10): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "b")}",
         ], actual.Select(d => $"{d.Severity} {d.Id}: {d.FilePath} {d.Span.GetDebuggerDisplay()}: {d.Message}"));
+    }
+
+    [Fact]
+    public void CreateFromInternalError_UsesErrorMessage()
+    {
+        using var _ = CreateWorkspace(out var solution);
+
+        solution = solution.AddTestProject("A", out var a).Solution;
+
+        var errorMessage = "Unexpected RPC failure";
+        var runningProjects = CreateRunningProjects([(a, noEffectRestarts: false)]);
+
+        var data = EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, errorMessage, runningProjects);
+
+        var diagnostics = data.GetAllDiagnostics();
+        var diagnostic = Assert.Single(diagnostics);
+
+        Assert.Equal(string.Format(FeaturesResources.CannotApplyChangesUnexpectedError, errorMessage), diagnostic.Message);
+        Assert.Equal(ManagedHotReloadDiagnosticSeverity.RestartRequired, diagnostic.Severity);
+        Assert.Equal(a.DebugName, Assert.Single(data.ProjectsToRestart.Keys).DebugName);
+        Assert.Equal(a.DebugName, Assert.Single(data.ProjectsToRebuild).DebugName);
     }
 
     [Fact]

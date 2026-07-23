@@ -22,6 +22,11 @@
         <target state="translated">Не удается создать сконструированный универсальный тип из неуниверсального типа.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractBaseRecordImplementation">
+        <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
+        <target state="translated">Элемент записи "{0}" должен быть объявлен явно, так как "{1}" является абстрактным.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
         <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
         <target state="translated">Определяемое пользователем преобразование в интерфейсе должно выполнять преобразование в параметр типа или из параметра типа для включающего типа, ограниченного включающим типом</target>
@@ -527,6 +532,31 @@
         <target state="translated">"{0}" не реализует элемент интерфейса "{1}". "{2}" не может реализовывать "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="translated">"System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes" должно быть свойством экземпляра с общедоступными методами доступа get и set, без параметров и с типом "System.Type[]".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
+        <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
+        <target state="translated">"{0}": невозможно использовать закрытый тип "{1}" из другой сборки в качестве базового типа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedExplicitlyAbstract">
+        <source>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</source>
+        <target state="translated">"{0}": закрытый тип не может быть помечен как абстрактный, так как он всегда неявно является абстрактным.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedSealedStatic">
+        <source>'{0}': a closed type cannot be sealed or static</source>
+        <target state="translated">"{0}": абстрактный тип не может быть запечатанным или статическим</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'closed'.</source>
+        <target state="translated">У типов и псевдонимов не может быть имя "closed".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
         <source>'with(...)' element arguments cannot be dynamic</source>
         <target state="translated">Аргументы элемента "with(...)" не могут быть динамическими</target>
@@ -693,8 +723,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="translated">Переменная не может быть объявлена в шаблоне "not" или "or".</target>
+        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
+        <target state="translated">Переменная не может быть объявлена в шаблоне "not" или "or", а также при сопоставлении с объединением, которое выполняется либо для экземпляра, либо для его базового значения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -812,6 +842,11 @@
         <target state="translated">Явное применение атрибута "System.Runtime.CompilerServices.NullableAttribute" не допускается.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
+        <target state="translated">Поле в типе с явной или расширенной структурой должно быть помечено как "unsafe" или "safe".</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">Не используйте System.ParamArrayAttribute/System.Runtime.CompilerServices.ParamCollectionAttribute. Используйте ключевое слово "params".</target>
@@ -863,8 +898,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">Дерево выражений не может содержать доступ к свойству расширения</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="translated">Дерево выражений не может содержать доступ к индексатору или свойству расширения</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -956,6 +991,11 @@
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">"{0}": внешнее событие не может иметь инициализатор</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExternMemberRequiresUnsafeOrSafe">
+        <source>'extern' member must be marked 'unsafe' or 'safe'.</source>
+        <target state="translated">Элемент "extern" должен быть помечен как "unsafe" или "safe".</target>
+        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
@@ -1482,20 +1522,55 @@
         <target state="translated">Аргумент diagnosticId атрибута "Experimental" должен быть допустимым идентификатором</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MemberProviderInUnionDeclaration">
+        <source>A 'union' declaration cannot use a union member provider interface.</source>
+        <target state="translated">Объявление "union" не может использовать интерфейс поставщика элемента объединения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingUnionCaseTypes">
+        <source>A union type must have at least one union creation member.</source>
+        <target state="translated">Тип объединения должен содержать как минимум один элемент создания объединения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingUnionValueProperty">
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="translated">Тип поставщика участника объединения должен иметь свойство экземпляра "Value" типа "object?" или "object". Свойство должно иметь открытый метод доступа get.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">"{0}" не содержит определение для "{1}", не найден доступный метод расширения "{1}", принимающий первый аргумент типа "{0}" (возможно, нужно было выполнить итерацию для синхронной коллекции с помощью "await foreach"?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="translated">Нет охватывающего цикла или оператора переключения с меткой "{0}", из которого можно выполнить останов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="translated">Нет охватывающего цикла с меткой "{0}", из которого можно продолжить</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
         <target state="translated">Невозможно преобразовать тип "{0}" в "object" с помощью преобразования неявной ссылки или преобразования-упаковки</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
-        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="translated">RequiresUnsafeAttribute невозможно применить к этому символу.</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      <trans-unit id="ERR_PPShebangNotOnFirstLine">
+        <source>'#!' must be the first characters on the first line of the file</source>
+        <target state="translated">"#!" должны быть первыми символами в первой строке файла</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberSafeDifference">
+        <source>Both partial member declarations must be marked 'safe' or neither may be marked 'safe'</source>
+        <target state="translated">Оба объявления частичного элемента должны быть помечены как "safe" или ни один из них не должен помечаться как "safe"</target>
+        <note>'safe' is a keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
+        <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
+        <target state="translated">Не используйте "RequiresUnsafeAttribute" в источнике; вместо этого используйте модификатор "unsafe".</target>
+        <note>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2442,6 +2517,11 @@
         <target state="translated">Целевая среда выполнения не поддерживает расширяемые или принадлежащие среде выполнения соглашения о вызовах по умолчанию.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
+        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
+        <target state="translated">Модификатор "safe" можно использовать только для членов, которые не помечены как "unsafe" и либо являются "extern", либо являются полями в типах с явной или расширенной структурой.</target>
+        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
         <target state="translated">Модификатор "scoped" не может следовать за модификаторами "in", "out", "ref" или "readonly".</target>
@@ -2682,6 +2762,11 @@
         <target state="translated">Поле '{0}' должно быть полностью назначенным перед возвратом контроля вызывающему элементу. Попробуйте обновить поле до языковой версии "{1}", чтобы автоматически применить значение по умолчанию.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedClosedSubtype">
+        <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
+        <target state="translated">"{0}": параметр типа "{1}" должен быть указан в базовом типе "{2}", так как базовый тип является закрытый.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
         <target state="translated">На параметр типа "{0}" не ссылается ни параметр расширения, ни параметр этого члена</target>
@@ -2728,14 +2813,14 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
-        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="translated">Для конструктора "{0}", помеченного как "RequiresUnsafe" или "extern", требуется небезопасный контекст, чтобы удовлетворить ограничение "new()" параметра типа "{1}" в "{2}"</target>
-        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
+        <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="translated">Для конструктора "{0}", помеченного как "unsafe", требуется небезопасный контекст, чтобы удовлетворить ограничение "new()" параметра типа "{1}" в "{2}"</target>
+        <note>'unsafe' and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
-        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="translated">"{0}" должен использоваться в небезопасном контексте, так как он помечен как RequiresUnsafe или extern</target>
-        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+        <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</source>
+        <target state="translated">"{0}" должен использоваться в небезопасном контексте, так как он помечен как "unsafe"</target>
+        <note>'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
@@ -2778,8 +2863,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="translated">Метод "{0}" использует функцию, для которой в настоящее время не поддерживается асинхронное выполнение в среде выполнения. Отключите асинхронное выполнение этого метода в среде выполнения, добавив атрибут "System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)".</target>
+        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="translated">Метод "{0}" использует функцию, для которой не поддерживается асинхронный запуск в среде выполнения. Отключите асинхронный запуск этого метода в среде выполнения, добавив атрибут "System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2842,6 +2927,11 @@
         <target state="translated">Ожидался универсальный возвращаемый тип, схожий с задачей, но тип "{0}", обнаруженный в атрибуте "AsyncMethodBuilder", не подходит. Требуется неограниченный универсальный тип c арностью 1, а его содержащий тип (если есть) не должен быть универсальным</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
+        <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
+        <target state="translated">"GetClosedDerivedTypeInfo()" можно вызвать, только если "IsClosed" имеет значение "true".</target>
+        <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
+      </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
         <target state="translated">Директива using "{0}" ранее использовалась в качестве глобальной</target>
@@ -2902,6 +2992,11 @@
         <target state="translated">проверенные операторы, определяемые пользователем</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureClosedClasses">
+        <source>closed classes</source>
+        <target state="translated">закрытые классы</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
         <source>collection expression arguments</source>
         <target state="translated">аргументы выражения коллекции</target>
@@ -2930,6 +3025,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">шаблоны расширенных свойств</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="translated">индексаторы расширений</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
@@ -2995,6 +3095,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">элемент экземпляра в "nameof"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="translated">помеченный останов и продолжение</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -3115,6 +3220,11 @@
       <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
         <source>simple lambda parameter modifiers</source>
         <target state="translated">модификаторы параметров простых лямбда-выражений</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStaticMembersInInterfaces">
+        <source>static members in interfaces</source>
+        <target state="translated">статические элементы в интерфейсах</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
@@ -3926,16 +4036,6 @@
         <source>Struct member returns 'this' or other instance members by reference</source>
         <target state="translated">Элемент структуры возвращает "этот" или другие элементы экземпляра по ссылке</target>
         <note />
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">RequiresUnsafeAttribute допустим только в рамках обновленных правил обеспечения безопасности памяти.</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">RequiresUnsafeAttribute допустим только в рамках обновленных правил обеспечения безопасности памяти.</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
@@ -5930,12 +6030,7 @@
         <target state="translated">Параметр не читается. Возможно, вы забыли использовать его для инициализации свойства с таким же именем?</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">Модификатор "unsafe" в данном случае не оказывает влияния в соответствии с действующими правилами безопасности памяти.</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
+      <trans-unit id="ERR_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
         <target state="translated">Модификатор "unsafe" в данном случае не оказывает влияния в соответствии с действующими правилами безопасности памяти.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
