@@ -80,7 +80,6 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         StripClassAttributesFromImpl(documentNode, primaryNamespace);
 
         documentNode.DeclDocumentNode = declDocNode;
-        documentNode.IsSplitImplDocument = true;
 
         return codeDocument.WithDocumentNode(documentNode);
     }

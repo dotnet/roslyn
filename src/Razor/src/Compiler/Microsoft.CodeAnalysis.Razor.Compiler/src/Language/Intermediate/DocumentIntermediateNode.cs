@@ -15,14 +15,6 @@ public sealed class DocumentIntermediateNode : IntermediateNode
     public string DocumentKind { get; set; }
 
     /// <summary>
-    /// Set by <see cref="DefaultRazorMarkupSplitPhase"/> once it has produced the decl C# document and
-    /// rewritten this node into the impl half (before tag-helper resolution). Signals the final C#
-    /// lowering phase to emit this node directly as the impl half instead of deriving an impl spine from
-    /// a single classified tree.
-    /// </summary>
-    internal bool IsSplitImplDocument { get; set; }
-
-    /// <summary>
     /// The markup-free decl subtree captured by <see cref="DefaultRazorMarkupSplitPhase"/> when it split
     /// this component, for <see cref="DefaultRazorDeclCSharpLoweringPhase"/> to lower into the decl C#
     /// document before tag-helper discovery. Null when the document wasn't split.
