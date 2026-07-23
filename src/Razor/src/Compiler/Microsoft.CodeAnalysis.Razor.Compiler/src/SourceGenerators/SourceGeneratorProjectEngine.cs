@@ -14,6 +14,7 @@ internal sealed class SourceGeneratorProjectEngine
     private readonly RazorProjectEngine _projectEngine;
 
     private readonly IRazorEnginePhase _discoveryPhase;
+    private readonly int _loweringPhaseIndex = -1;
     private readonly int _discoveryPhaseIndex = -1;
     private readonly int _rewritePhaseIndex = -1;
 
@@ -27,13 +28,17 @@ internal sealed class SourceGeneratorProjectEngine
 
         foreach (var phase in Phases)
         {
-            if (_discoveryPhaseIndex >= 0 && _rewritePhaseIndex >= 0)
+            if (_loweringPhaseIndex >= 0 && _discoveryPhaseIndex >= 0 && _rewritePhaseIndex >= 0)
             {
                 break;
             }
 
             switch (phase)
             {
+                case DefaultRazorIntermediateNodeLoweringPhase:
+                    _loweringPhaseIndex = index;
+                    break;
+
                 case DefaultRazorTagHelperContextDiscoveryPhase:
                     _discoveryPhase = phase;
                     _discoveryPhaseIndex = index;
@@ -48,8 +53,10 @@ internal sealed class SourceGeneratorProjectEngine
         }
 
         Debug.Assert(_discoveryPhase is not null);
+        Debug.Assert(_loweringPhaseIndex >= 0);
         Debug.Assert(_discoveryPhaseIndex >= 0);
         Debug.Assert(_rewritePhaseIndex >= 0);
+        Debug.Assert(_loweringPhaseIndex < _discoveryPhaseIndex);
         Debug.Assert(_discoveryPhaseIndex < _rewritePhaseIndex);
     }
 
@@ -101,10 +108,12 @@ internal sealed class SourceGeneratorProjectEngine
                 return sgDocument;
             }
 
-            // We need to re-process the document with the updated tag helpers, but can skip discovery
-            // as we just performed it. We must re-run lowering (not just rewrite) because the resolution
-            // phase resolves unresolved nodes based on tag helpers and mutates the IR in place.
-            startIndex = _discoveryPhaseIndex + 1;
+            // Re-process the document with the updated tag helpers, starting from IR lowering. Resolution
+            // binds unresolved nodes to their tag helpers by mutating the IR in place, so replaying from
+            // resolution over an already-resolved tree finds nothing left to bind. Re-lowering rebuilds
+            // fresh unresolved IR from the syntax tree; classification, the split, discovery, and
+            // resolution then re-run over it against the new tag helpers.
+            startIndex = _loweringPhaseIndex;
         }
         else
         {

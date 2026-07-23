@@ -22,7 +22,12 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
 
     protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.ExecutePhasesThrough<DefaultTagHelperResolutionPhase>();
+        // Inspect the lowered + resolved IR without the classification wrapping or decl lowering, which
+        // would reshape the tree the baselines assert on.
+        processor.ExecutePhasesThroughExcept<DefaultTagHelperResolutionPhase>(
+            typeof(DefaultRazorDocumentClassifierPhase),
+            typeof(DefaultRazorDirectiveClassifierPhase),
+            typeof(DefaultRazorDeclCSharpLoweringPhase));
     }
 
     [Fact]

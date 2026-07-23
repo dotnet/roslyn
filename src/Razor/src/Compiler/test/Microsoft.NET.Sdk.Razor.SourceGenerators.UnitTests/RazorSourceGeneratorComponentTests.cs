@@ -144,8 +144,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        // Index.cshtml (no decl), Component1.razor (decl + impl), Component2.razor (decl + impl) = 5
-        Assert.Equal(5, result.GeneratedSources.Length);
+        // Index.cshtml (no decl), Component1.razor (decl + impl), Component2.razor (@inherits -> fallback, impl only) = 4
+        Assert.Equal(4, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -192,8 +192,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        // Index.cshtml (no decl), Component1.razor (decl + impl), Component2.razor (decl + impl) = 5
-        Assert.Equal(5, result.GeneratedSources.Length);
+        // Index.cshtml (no decl), Component1.razor (decl + impl), Component2.razor (@inherits -> fallback, impl only) = 4
+        Assert.Equal(4, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -215,7 +215,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Equal(2, result.GeneratedSources.Length);
+        Assert.Equal(1, result.GeneratedSources.Length);
         result.VerifyOutputsMatchBaseline();
     }
 
@@ -251,8 +251,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        // Index.cshtml (no decl) + 3 components (decl + impl each) = 7
-        Assert.Equal(7, result.GeneratedSources.Length);
+        // Index.cshtml (no decl), Component1 + BaseComponent (decl + impl each), DerivedComponent (@inherits -> fallback, impl only) = 6
+        Assert.Equal(6, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -447,7 +447,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             // Shared/Component1.razor(3,1): error RZ10001: The type of component 'Component1' cannot be inferred based on the values provided. Consider specifying the type arguments directly using the following attributes: 'T'.
             // <Component1 />
             Diagnostic("RZ10001").WithLocation(3, 1));
-        Assert.Equal(2, result.GeneratedSources.Length);
+        Assert.Equal(1, result.GeneratedSources.Length);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8545")]

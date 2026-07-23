@@ -155,15 +155,19 @@ internal static partial class MarkupSplitter
     /// <summary>
     /// The precise allow-list of markup intermediate node kinds the splitter knows how to route to the
     /// impl half: an expression-position <see cref="TemplateIntermediateNode"/> (from <c>@&lt;...&gt;</c>)
-    /// and the statement-position markup nodes. Unlike the fail-safe <see cref="IsClassBodyMarkup"/> gate,
-    /// this is positive: a class-body node that is neither raw C# nor one of these kinds -- e.g. an
-    /// <c>@inject</c> (<c>ComponentInjectIntermediateNode</c>, itself an
-    /// <see cref="ExtensionIntermediateNode"/> just like <see cref="TemplateIntermediateNode"/>) or a
-    /// structured member declaration -- is not treated as routable markup.
+    /// and the statement-position markup nodes. The split runs before tag-helper resolution, so a
+    /// statement-position element is still an <see cref="UnresolvedElementIntermediateNode"/> (it may bind
+    /// to a component/tag helper or to plain HTML); either way it is markup and lifts to the impl half,
+    /// where resolution runs. Unlike the fail-safe <see cref="IsClassBodyMarkup"/> gate, this is positive:
+    /// a class-body node that is neither raw C# nor one of these kinds -- e.g. an <c>@inject</c>
+    /// (<c>ComponentInjectIntermediateNode</c>, itself an <see cref="ExtensionIntermediateNode"/> just like
+    /// <see cref="TemplateIntermediateNode"/>) or a structured member declaration -- is not treated as
+    /// routable markup.
     /// </summary>
     internal static bool IsMarkupNode(IntermediateNode node)
         => node is TemplateIntermediateNode or
                    MarkupElementIntermediateNode or
+                   UnresolvedElementIntermediateNode or
                    MarkupBlockIntermediateNode or
                    HtmlContentIntermediateNode;
 
