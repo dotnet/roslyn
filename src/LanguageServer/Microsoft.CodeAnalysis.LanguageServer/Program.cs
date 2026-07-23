@@ -132,15 +132,15 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
     RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
 
-    // Build the connection source and keepalive for the configured mode. Single-server mode (stdio /
-    // connect-out pipe) is modeled as a source that yields exactly one connection with no keepalive; daemon
-    // mode is a named-pipe listener that accepts many. Both run through the same connection manager loop.
+    // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
+    // exactly one connection; daemon mode accepts many and manages its own idle timeout. Both run through the same
+    // connection manager loop.
     ILanguageServerConnectionSource connectionSource;
-    var keepAlive = Timeout.InfiniteTimeSpan;
 
     if (serverConfiguration.IsDaemon)
     {
-        if (!NamedPipeDaemonConnectionSource.TryCreate(serverConfiguration.ServerPipeName!, logger, out var daemonSource))
+        if (!NamedPipeDaemonConnectionSource.TryCreate(
+                serverConfiguration.ServerPipeName!, serverConfiguration.DaemonKeepAlive, logger, out var daemonSource))
         {
             // Another daemon already owns this pipe. With the thin client holding its startup mutex through
             // the connect, this generally only happens when a '--daemon' process is started outside that
@@ -151,7 +151,6 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         }
 
         connectionSource = daemonSource;
-        keepAlive = serverConfiguration.DaemonKeepAlive;
     }
     else if (serverConfiguration.UseStdIo)
     {
@@ -192,7 +191,7 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     {
         using (connectionSource as IDisposable)
         {
-            await connectionManager.RunAsync(connectionSource, keepAlive, exportProvider, typeRefResolver, logger, cancellationToken);
+            await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, cancellationToken);
         }
     }
     finally

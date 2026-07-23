@@ -13,12 +13,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class LanguageServerConnectionManager
 {
-    /// <summary>
-    /// Time a newly started daemon waits for its first client. This prevents a short configured keepalive
-    /// from shutting down the daemon between signaling readiness and accepting the client that launched it.
-    /// </summary>
-    private static readonly TimeSpan s_initialConnectionTimeout = TimeSpan.FromMinutes(1);
-
     private readonly object _gate = new();
     private ImmutableArray<ServerEntry> _servers = [];
 
@@ -28,14 +22,11 @@ internal sealed class LanguageServerConnectionManager
     /// <summary>
     /// Runs an independent language server for each connection yielded by <paramref name="connectionSource"/>.
     /// A <see cref="SingleLanguageServerConnectionSource"/> yields exactly one connection and then completes, so
-    /// this returns once that server exits. The daemon listener yields connections indefinitely; it shuts down when
-    /// <paramref name="keepAlive"/> elapses with no active servers, or when <paramref name="cancellationToken"/>
-    /// is signaled. Before the daemon accepts its first connection, it uses a separate initial-connection timeout
-    /// so a short keepalive cannot race initial connection.
+    /// this returns once that server exits. The daemon listener yields connections until its internally managed idle
+    /// timeout elapses or <paramref name="cancellationToken"/> is signaled.
     /// </summary>
     public async Task RunAsync(
         ILanguageServerConnectionSource connectionSource,
-        TimeSpan keepAlive,
         ExportProvider exportProvider,
         AbstractTypeRefResolver typeRefResolver,
         ILogger logger,
@@ -50,24 +41,10 @@ internal sealed class LanguageServerConnectionManager
         // keepalive helper; tracking them here eliminates that race.
         var supervisors = new List<Task>();
 
-        // acceptCts stops the accept enumeration. Cancelled by:
-        //   (a) the connection idle timeout (the initial-connection timeout or keepalive elapsed), or
-        //   (b) the external cancellationToken (process shutdown).
-        using var idleTimeout = new ConnectionIdleTimeout(s_initialConnectionTimeout, keepAlive, logger);
-        using var acceptCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, idleTimeout.TimeoutToken);
-
         try
         {
-            await foreach (var connection in connectionSource.AcceptConnectionsAsync(acceptCts.Token).ConfigureAwait(false))
+            await foreach (var connection in connectionSource.AcceptConnectionsAsync(cancellationToken).ConfigureAwait(false))
             {
-                // Record the accepted connection before doing any startup work so the idle timeout treats the
-                // daemon as busy during server construction. A timeout may have won just before this yield.
-                if (!idleTimeout.TryOpenConnection())
-                {
-                    connection.Resource?.Dispose();
-                    continue;
-                }
-
                 if (isolateFaults)
                 {
                     // Daemon mode: start server construction and supervision in a background task so this
@@ -93,19 +70,10 @@ internal sealed class LanguageServerConnectionManager
                 }
             }
         }
-        catch (OperationCanceledException) when (acceptCts.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // The accept loop was cancelled: either the keepalive elapsed (already logged by the idle timeout) or
-            // we received an external shutdown request. Both are expected; swallow and proceed.
+            // External process shutdown is expected; swallow and proceed.
         }
-        finally
-        {
-            // Stop any idle delay and ensure the accept enumeration cannot continue after RunAsync starts draining.
-            idleTimeout.Stop();
-            acceptCts.Cancel();
-        }
-
-        await idleTimeout.Completion.ConfigureAwait(false);
 
         if (cancellationToken.IsCancellationRequested && isolateFaults)
         {
@@ -151,10 +119,6 @@ internal sealed class LanguageServerConnectionManager
                 // propagating failures here so one connection cannot tear down the daemon.
                 logger.LogError(ex, "Language server connection supervisor faulted.");
             }
-            finally
-            {
-                idleTimeout.CloseConnection();
-            }
         }
 
         // Creates, registers, and starts a language server for the connection. Returns null if shutdown won the
@@ -181,7 +145,7 @@ internal sealed class LanguageServerConnectionManager
             // is active.
             lock (_gate)
             {
-                if (!acceptCts.IsCancellationRequested)
+                if (!cancellationToken.IsCancellationRequested)
                 {
                     _servers = _servers.Add(entry);
                 }

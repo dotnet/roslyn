@@ -9,19 +9,18 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 /// <summary>
-/// Tracks accepted connections and cancels <see cref="TimeoutToken"/> when the initial-connection timeout or
-/// keepalive elapses with no active connections.
+/// Tracks accepted connections and cancels the current <see cref="TimeoutToken"/> when the initial-connection
+/// timeout or keepalive elapses with no active connections. Timeout cancellation is tentative until
+/// <see cref="CommitTimeout"/> is called: a concurrently accepted connection can still open and advance to a fresh
+/// timeout generation.
 /// </summary>
 internal sealed class ConnectionIdleTimeout : IDisposable
 {
     private readonly object _gate = new();
     private readonly TimeSpan _keepAlive;
     private readonly ILogger _logger;
-    private readonly CancellationTokenSource _timeoutCancellationSource = new();
-    private readonly TaskCompletionSource _completionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private TimeoutGeneration? _currentGeneration;
 
-    // The token is used only by Task.Delay, so cancelling under _gate cannot invoke external callbacks.
-    private CancellationTokenSource? _currentDelayCancellationSource;
     private int _activeConnections;
     private bool _stopped;
 
@@ -29,36 +28,70 @@ internal sealed class ConnectionIdleTimeout : IDisposable
     {
         _keepAlive = keepAlive;
         _logger = logger;
-        StartTimeout_NoLock(initialConnectionTimeout, isInitialConnectionTimeout: true);
+        _currentGeneration = new TimeoutGeneration(initialConnectionTimeout, isInitialConnectionTimeout: true);
+        StartTimeout_NoLock();
     }
 
     /// <summary>
-    /// Cancelled only when an idle timeout elapses. Normal shutdown through <see cref="Stop"/> does not cancel it.
+    /// Cancelled when the current idle timeout elapses. A successfully accepted connection advances this to a fresh
+    /// token, even if the previous token was cancelled concurrently.
     /// </summary>
-    public CancellationToken TimeoutToken => _timeoutCancellationSource.Token;
-
-    /// <summary>
-    /// Completes after an idle timeout has been handled or <see cref="Stop"/> has stopped the current delay.
-    /// </summary>
-    public Task Completion => _completionSource.Task;
-
-    /// <summary>
-    /// Records an accepted connection and cancels the current idle delay. Returns false if an idle timeout or
-    /// normal shutdown has already stopped the helper.
-    /// </summary>
-    public bool TryOpenConnection()
+    public CancellationToken TimeoutToken
     {
+        get
+        {
+            lock (_gate)
+            {
+                Debug.Assert(_currentGeneration is not null);
+                return _currentGeneration.Token;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Records an accepted connection, cancels the current idle delay, and advances to a fresh timeout generation.
+    /// An accepted connection wins even if the previous generation's timeout elapsed concurrently.
+    /// </summary>
+    public void OpenConnection()
+    {
+        TimeoutGeneration previousGeneration;
         lock (_gate)
         {
-            if (_stopped)
-                return false;
+            Debug.Assert(!_stopped);
+            Debug.Assert(_currentGeneration is not null);
 
+            previousGeneration = _currentGeneration;
+            _currentGeneration = new TimeoutGeneration(_keepAlive, isInitialConnectionTimeout: false);
             _activeConnections++;
-            _currentDelayCancellationSource?.Cancel();
-            _currentDelayCancellationSource = null;
         }
 
-        return true;
+        previousGeneration.Dispose();
+    }
+
+    /// <summary>
+    /// Commits shutdown after the current pipe wait observes timeout cancellation.
+    /// </summary>
+    public void CommitTimeout()
+    {
+        TimeoutGeneration generation;
+        bool isInitialConnectionTimeout;
+        lock (_gate)
+        {
+            Debug.Assert(!_stopped);
+            Debug.Assert(_activeConnections == 0);
+            Debug.Assert(_currentGeneration is not null && _currentGeneration.Token.IsCancellationRequested);
+
+            _stopped = true;
+            generation = _currentGeneration;
+            _currentGeneration = null;
+            isInitialConnectionTimeout = generation.IsInitialConnectionTimeout;
+        }
+
+        generation.Dispose();
+        _logger.LogInformation(
+            isInitialConnectionTimeout
+                ? "Initial connection timeout elapsed; shutting down."
+                : "Keepalive elapsed with no active connections; shutting down.");
     }
 
     /// <summary>
@@ -72,76 +105,80 @@ internal sealed class ConnectionIdleTimeout : IDisposable
             _activeConnections--;
 
             if (_activeConnections == 0 && !_stopped)
-                StartTimeout_NoLock(_keepAlive, isInitialConnectionTimeout: false);
+                StartTimeout_NoLock();
         }
     }
 
-    public void Stop()
+    public void Dispose()
     {
+        TimeoutGeneration? generation;
         lock (_gate)
         {
             if (_stopped)
                 return;
 
             _stopped = true;
-            _currentDelayCancellationSource?.Cancel();
-            _currentDelayCancellationSource = null;
+            generation = _currentGeneration;
+            _currentGeneration = null;
         }
 
-        _completionSource.TrySetResult();
+        generation?.Dispose();
     }
 
-    private void StartTimeout_NoLock(TimeSpan timeout, bool isInitialConnectionTimeout)
+    private void StartTimeout_NoLock()
     {
-        Debug.Assert(_currentDelayCancellationSource is null);
         Debug.Assert(_activeConnections == 0);
         Debug.Assert(!_stopped);
+        var generation = _currentGeneration;
+        Debug.Assert(generation is not null);
 
-        var delayCancellationSource = new CancellationTokenSource();
-        _currentDelayCancellationSource = delayCancellationSource;
-        _ = WaitForTimeoutAsync(timeout, delayCancellationSource, isInitialConnectionTimeout);
+        generation.StartTimeout();
     }
 
-    private async Task WaitForTimeoutAsync(
-        TimeSpan timeout,
-        CancellationTokenSource delayCancellationSource,
-        bool isInitialConnectionTimeout)
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    private sealed class TimeoutGeneration : IDisposable
     {
-        try
+        private readonly CancellationTokenSource _cancellationSource = new();
+        private readonly TimeSpan _timeout;
+
+        public TimeoutGeneration(TimeSpan timeout, bool isInitialConnectionTimeout)
         {
-            await Task.Delay(timeout, delayCancellationSource.Token).ConfigureAwait(false);
+            _timeout = timeout;
+            Token = _cancellationSource.Token;
+            IsInitialConnectionTimeout = isInitialConnectionTimeout;
+        }
 
-            lock (_gate)
+        public CancellationToken Token { get; }
+        public bool IsInitialConnectionTimeout { get; }
+
+        public void StartTimeout()
+            => _cancellationSource.CancelAfter(_timeout);
+
+        public void Cancel()
+            => _cancellationSource.Cancel();
+
+        public void Dispose()
+            => _cancellationSource.Dispose();
+    }
+
+    internal readonly struct TestAccessor
+    {
+        private readonly ConnectionIdleTimeout _instance;
+
+        internal TestAccessor(ConnectionIdleTimeout instance)
+            => _instance = instance;
+
+        internal void TriggerTimeout()
+        {
+            TimeoutGeneration generation;
+            lock (_instance._gate)
             {
-                if (!ReferenceEquals(_currentDelayCancellationSource, delayCancellationSource))
-                    return;
-
-                Debug.Assert(_activeConnections == 0);
-                Debug.Assert(!_stopped);
-
-                _currentDelayCancellationSource = null;
-                _stopped = true;
+                Debug.Assert(_instance._currentGeneration is not null);
+                generation = _instance._currentGeneration;
             }
 
-            _timeoutCancellationSource.Cancel();
-            _logger.LogInformation(
-                isInitialConnectionTimeout
-                    ? "Initial connection timeout elapsed; shutting down."
-                    : "Keepalive elapsed with no active connections; shutting down.");
-            _completionSource.TrySetResult();
+            generation.Cancel();
         }
-        catch (OperationCanceledException) when (delayCancellationSource.IsCancellationRequested)
-        {
-        }
-        finally
-        {
-            delayCancellationSource.Dispose();
-        }
-    }
-
-    public void Dispose()
-    {
-        Stop();
-        _timeoutCancellationSource.Dispose();
     }
 }

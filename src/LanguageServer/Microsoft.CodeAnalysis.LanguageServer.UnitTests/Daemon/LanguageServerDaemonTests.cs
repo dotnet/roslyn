@@ -22,7 +22,8 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         Assert.True(daemon.IsRunning);
 
         // ...so a second daemon on the same pipe must observe it and fail to become the daemon.
-        Assert.False(NamedPipeDaemonConnectionSource.TryCreate(daemon.PipeName, LoggerFactory.CreateLogger("Daemon2"), out var secondSource));
+        Assert.False(NamedPipeDaemonConnectionSource.TryCreate(
+            daemon.PipeName, Timeout.InfiniteTimeSpan, LoggerFactory.CreateLogger("Daemon2"), out var secondSource));
         Assert.Null(secondSource);
     }
 
@@ -165,6 +166,46 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
 
         await daemon.DaemonExitTask.WaitAsync(TimeSpan.FromSeconds(10));
         Assert.False(daemon.IsRunning);
+    }
+
+    [Fact]
+    public async Task Daemon_AcceptedConnection_WinsRaceWithInitialTimeout()
+    {
+        await using var daemon = await CreateDaemonServerAsync(
+            keepAlive: TimeSpan.Zero,
+            initialConnectionTimeout: Timeout.InfiniteTimeSpan);
+        using var connectionAccepted = new ManualResetEventSlim();
+        using var releaseConnection = new ManualResetEventSlim();
+        var sourceAccessor = daemon.GetConnectionSourceTestAccessor();
+        sourceAccessor.OnConnectionAccepted = () =>
+        {
+            connectionAccepted.Set();
+            releaseConnection.Wait();
+        };
+
+        try
+        {
+            var clientTask = daemon.CreateClientAsync();
+            connectionAccepted.Wait();
+            sourceAccessor.TriggerTimeout();
+            Assert.True(sourceAccessor.HasTimedOut);
+
+            releaseConnection.Set();
+            await using (var client = await clientTask)
+            {
+                Assert.NotNull(client.ServerCapabilities);
+                Assert.False(sourceAccessor.HasTimedOut);
+                Assert.False(daemon.DaemonExitTask.IsCompleted);
+            }
+
+            await daemon.DaemonExitTask;
+            Assert.False(daemon.IsRunning);
+        }
+        finally
+        {
+            sourceAccessor.OnConnectionAccepted = null;
+            releaseConnection.Set();
+        }
     }
 
     [Fact]

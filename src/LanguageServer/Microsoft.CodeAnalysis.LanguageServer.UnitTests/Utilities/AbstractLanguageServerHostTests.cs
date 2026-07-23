@@ -83,7 +83,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
     /// </summary>
     private protected async Task<TestDaemon> CreateDaemonServerAsync(
         TimeSpan? keepAlive = null,
-        ServerConfiguration? serverConfiguration = null)
+        ServerConfiguration? serverConfiguration = null,
+        TimeSpan? initialConnectionTimeout = null)
     {
         var configuration = serverConfiguration ?? (ServerConfigurationWithoutDevKit with { IsDaemon = true });
         Contract.ThrowIfFalse(configuration.IsDaemon);
@@ -96,7 +97,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             typeRefResolver,
             keepAlive ?? Timeout.InfiniteTimeSpan,
             LoggerFactory,
-            TestOutputHelper);
+            TestOutputHelper,
+            initialConnectionTimeout);
     }
 
     internal static async Task WaitForConditionAsync(Func<bool> condition)
@@ -290,11 +292,11 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
             // Use the same RunAsync entry point that Program.cs uses, so tests exercise the real startup,
             // connection, and exit handling. Single-server mode is a source that yields this one in-memory
-            // connection with no keepalive.
+            // connection.
             var connectionSource = new SingleLanguageServerConnectionSource(new LanguageServerConnection(serverInputStream, serverOutputStream));
             var logger = loggerFactory.CreateLogger<LanguageServerConnectionManager>();
             _serverTask = _connectionManager.RunAsync(
-                connectionSource, Timeout.InfiniteTimeSpan, exportProvider, typeRefResolver, logger, CancellationToken.None);
+                connectionSource, exportProvider, typeRefResolver, logger, CancellationToken.None);
         }
 
         /// <summary>The host task; completes once the single in-memory server exits.</summary>
@@ -388,6 +390,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
     protected sealed class TestDaemon : IAsyncDisposable
     {
         private readonly string _pipeName;
+        private readonly NamedPipeDaemonConnectionSource _connectionSource;
         private readonly LanguageServerConnectionManager _connectionManager;
         private readonly Task _daemonTask;
         private readonly CancellationTokenSource _cts;
@@ -399,13 +402,17 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             ExtensionTypeRefResolver typeRefResolver,
             TimeSpan keepAlive,
             ILoggerFactory loggerFactory,
-            ITestOutputHelper testOutputHelper)
+            ITestOutputHelper testOutputHelper,
+            TimeSpan? initialConnectionTimeout)
         {
             var pipeName = "roslyn-daemon-test." + Guid.NewGuid().ToString("N");
             var logger = loggerFactory.CreateLogger<LanguageServerConnectionManager>();
+            var created = NamedPipeDaemonConnectionSource.TryCreate(
+                pipeName, keepAlive, logger, out var source, initialConnectionTimeout);
             Contract.ThrowIfFalse(
-                NamedPipeDaemonConnectionSource.TryCreate(pipeName, logger, out var source),
+                created,
                 "Unexpectedly failed to become the daemon for a fresh pipe name.");
+            Contract.ThrowIfNull(source);
 
             var connectionManager = new LanguageServerConnectionManager();
             var cts = new CancellationTokenSource();
@@ -415,7 +422,6 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                 {
                     await connectionManager.RunAsync(
                         source,
-                        keepAlive,
                         exportProvider,
                         typeRefResolver,
                         logger,
@@ -427,11 +433,12 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                 }
             });
 
-            return new TestDaemon(pipeName, connectionManager, daemonTask, cts, exportProvider, testOutputHelper);
+            return new TestDaemon(pipeName, source, connectionManager, daemonTask, cts, exportProvider, testOutputHelper);
         }
 
         private TestDaemon(
             string pipeName,
+            NamedPipeDaemonConnectionSource connectionSource,
             LanguageServerConnectionManager connectionManager,
             Task daemonTask,
             CancellationTokenSource cts,
@@ -439,6 +446,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             ITestOutputHelper testOutputHelper)
         {
             _pipeName = pipeName;
+            _connectionSource = connectionSource;
             _connectionManager = connectionManager;
             _daemonTask = daemonTask;
             _cts = cts;
@@ -461,6 +469,9 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         /// <summary>Exposes the connection manager's test-only API for injecting startup failures.</summary>
         internal LanguageServerConnectionManager.TestAccessor GetConnectionManagerTestAccessor()
             => _connectionManager.GetTestAccessor();
+
+        internal NamedPipeDaemonConnectionSource.TestAccessor GetConnectionSourceTestAccessor()
+            => _connectionSource.GetTestAccessor();
 
         /// <summary>
         /// Connects a new client to the daemon, initializes it, and associates it with the server the daemon spun up

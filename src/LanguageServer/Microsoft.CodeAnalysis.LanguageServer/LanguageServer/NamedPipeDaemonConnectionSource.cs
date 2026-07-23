@@ -26,14 +26,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </summary>
 internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectionSource, IDisposable
 {
+    private static readonly TimeSpan s_initialConnectionTimeout = TimeSpan.FromMinutes(1);
+
     private readonly string _pipeName;
     private readonly ILogger _logger;
     private readonly Mutex _serverMutex;
+    private readonly ConnectionIdleTimeout _idleTimeout;
 
-    private NamedPipeDaemonConnectionSource(string pipeName, Mutex serverMutex, ILogger logger)
+    private Action? _onConnectionAccepted;
+
+    private NamedPipeDaemonConnectionSource(
+        string pipeName,
+        Mutex serverMutex,
+        TimeSpan initialConnectionTimeout,
+        TimeSpan keepAlive,
+        ILogger logger)
     {
         _pipeName = pipeName;
         _serverMutex = serverMutex;
+        _idleTimeout = new ConnectionIdleTimeout(initialConnectionTimeout, keepAlive, logger);
         _logger = logger;
     }
 
@@ -43,7 +54,12 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
     /// Attempts to become the daemon for <paramref name="pipeName"/> by acquiring the server mutex.
     /// Returns <see langword="false"/> (without creating a source) if another daemon already owns it.
     /// </summary>
-    public static bool TryCreate(string pipeName, ILogger logger, [NotNullWhen(true)] out NamedPipeDaemonConnectionSource? source)
+    public static bool TryCreate(
+        string pipeName,
+        TimeSpan keepAlive,
+        ILogger logger,
+        [NotNullWhen(true)] out NamedPipeDaemonConnectionSource? source,
+        TimeSpan? initialConnectionTimeout = null)
     {
         if (!DaemonServerMutex.TryAcquire(pipeName, out var serverMutex))
         {
@@ -54,7 +70,8 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
             return false;
         }
 
-        source = new NamedPipeDaemonConnectionSource(pipeName, serverMutex, logger);
+        source = new NamedPipeDaemonConnectionSource(
+            pipeName, serverMutex, initialConnectionTimeout ?? s_initialConnectionTimeout, keepAlive, logger);
         return true;
     }
 
@@ -64,37 +81,85 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var timeoutToken = _idleTimeout.TimeoutToken;
             var pipeStream = NamedPipeUtil.CreateServer(_pipeName);
 
             // Wait for a client (outside any 'yield return', which C# disallows inside a try/catch). On success
             // the stream's ownership passes to the yielded connection; on failure we dispose it here.
-            var connected = false;
             try
             {
-                await pipeStream.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
-                _logger.LogInformation("Daemon accepted a new client connection.");
-                connected = true;
+                using var acceptCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutToken);
+                await pipeStream.WaitForConnectionAsync(acceptCancellationSource.Token).ConfigureAwait(false);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 await pipeStream.DisposeAsync().ConfigureAwait(false);
                 throw;
+            }
+            catch (OperationCanceledException) when (timeoutToken.IsCancellationRequested)
+            {
+                await pipeStream.DisposeAsync().ConfigureAwait(false);
+                _idleTimeout.CommitTimeout();
+                yield break;
             }
             catch (Exception ex)
             {
                 // Failing to accept one connection shouldn't take down the daemon; log and try again.
                 _logger.LogError(ex, "Daemon encountered an error while waiting for a client connection.");
                 await pipeStream.DisposeAsync().ConfigureAwait(false);
+                continue;
             }
 
-            if (connected)
+            _onConnectionAccepted?.Invoke();
+            _idleTimeout.OpenConnection();
+            _logger.LogInformation("Daemon accepted a new client connection.");
+
+            // The accepted stream is both input and output, and is disposed when its language server exits.
+            yield return new LanguageServerConnection(pipeStream, pipeStream, new ConnectionResource(pipeStream, this));
+        }
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor
+    {
+        private readonly NamedPipeDaemonConnectionSource _instance;
+
+        internal TestAccessor(NamedPipeDaemonConnectionSource instance) => _instance = instance;
+
+        internal bool HasTimedOut => _instance._idleTimeout.TimeoutToken.IsCancellationRequested;
+
+        internal void TriggerTimeout() => _instance._idleTimeout.GetTestAccessor().TriggerTimeout();
+
+        internal Action? OnConnectionAccepted
+        {
+            set => _instance._onConnectionAccepted = value;
+        }
+    }
+
+    private sealed class ConnectionResource(IDisposable resource, NamedPipeDaemonConnectionSource source) : IDisposable
+    {
+        private int _disposed;
+
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                return;
+
+            try
             {
-                // The accepted stream is both input and output, and is disposed when its language server exits.
-                yield return new LanguageServerConnection(pipeStream, pipeStream, pipeStream);
+                resource.Dispose();
+            }
+            finally
+            {
+                source._idleTimeout.CloseConnection();
             }
         }
     }
 
     public void Dispose()
-        => _serverMutex.Dispose();
+    {
+        _idleTimeout.Dispose();
+        _serverMutex.Dispose();
+    }
 }
