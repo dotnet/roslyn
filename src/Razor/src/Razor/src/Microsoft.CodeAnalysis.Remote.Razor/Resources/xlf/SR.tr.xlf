@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Untested">
         <source>Untested</source>
-        <target state="new">Untested</target>
+        <target state="translated">Test edilmedi</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_attributes">
