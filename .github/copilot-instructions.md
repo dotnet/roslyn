@@ -98,6 +98,31 @@ Every task that changes code must end with a doc pass:
 
 Skills live in `.github/skills/<skill-name>/SKILL.md` and are auto-discovered by their YAML `description`. Useful ones here include `code-review`, `ci-analysis`, `analyzer-codefix`, `merge-into-branch`, `snap`, and `update-agent-docs`.
 
+## Working Loop (plan first)
+
+For any **non-trivial** change, start with a short plan **before** writing the implementing diff — and surface it so it can be reviewed before a large diff appears. "Non-trivial" means anything that is cross-file or cross-area, touches a public API / diagnostic ID / analyzer, changes behavior (not just a typo/comment/formatting fix), or where the approach isn't obvious. When in doubt, write the plan — it's cheap.
+
+Write the plan to `plan.md` in your session folder (see the session context) and keep it updated at milestones. A plan is a working artifact, not a deliverable: keep it lean.
+
+**Plan template** (drop unneeded fields):
+
+```markdown
+## Plan: <short title>
+
+- **Scope:** what this change will do.
+- **Non-goals:** what this change explicitly will NOT do.
+- **Affected areas:** projects/files/layers touched (e.g. `src/Compilers/CSharp`, matching `.instructions.md`).
+- **Approach:** the intended implementation, and any alternatives considered/rejected.
+- **Acceptance:** observable done-state — the behavior/tests that prove it works.
+- **Validation:** exact build + targeted test commands you'll run (see Build & Test).
+```
+
+**Post the plan and wait for approval before writing the implementing diff** — the plan is meant to be reviewed now, not after a large diff already exists.
+
+Then implement, keeping the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. If the plan changes materially while implementing, update it rather than silently diverging. Only after the plan's **Acceptance** and **Validation** are satisfied (and the Validation Checklist below passes) is the work "done."
+
+Trivial changes don't need a written plan — go straight to the Validation Checklist.
+
 ## Validation Checklist
 
 When making changes:
