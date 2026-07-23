@@ -2112,8 +2112,10 @@ next:;
 
             if (IsExtension && ContainingType?.IsExtension != true)
             {
-                // If the containing type is an extension, we'll have already reported an error
-                if (ContainingType is null || !ContainingType.IsStatic || ContainingType.Arity != 0 || ContainingType.ContainingType is not null)
+                // If the containing type is an extension, we'll have already reported an error.
+                // A script/submission class is a valid extension container even though it is not static. It is always non-generic and top-level.
+                if ((ContainingType is null || !ContainingType.IsStatic || ContainingType.Arity != 0 || ContainingType.ContainingType is not null)
+                    && ContainingType?.IsScriptClass != true)
                 {
                     var syntax = (ExtensionBlockDeclarationSyntax)this.GetNonNullSyntaxNode();
                     diagnostics.Add(ErrorCode.ERR_BadExtensionContainingType, syntax.Keyword);

@@ -1895,6 +1895,41 @@ extension(object) { }
     }
 
     [Fact]
+    public void TopLevel_Script()
+    {
+        // At script top level, `extension(...)` parses as an extension block (a type declaration),
+        // not as an expression statement invoking a method named `extension`.
+        var src = """
+extension(object) { }
+""";
+        UsingTree(src, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp14));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ExtensionBlockDeclaration);
+            {
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
     public void InNestedType()
     {
         var src = """
