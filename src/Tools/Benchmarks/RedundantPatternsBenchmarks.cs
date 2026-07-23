@@ -37,7 +37,7 @@ public class RedundantPatternsBenchmarks
     [Benchmark]
     public object EmitWithTupleConstantSwitch() => EmitCore(_tupleConstantSwitchSource!);
 
-    public object EmitCore(string sourceCode)
+    internal static object EmitCore(string sourceCode)
     {
         var sourceText = SourceText.From(sourceCode);
         var syntaxTree = CSharpSyntaxTree.ParseText(sourceText);
@@ -83,6 +83,70 @@ public class RedundantPatternsBenchmarks
         sb.AppendLine("        _ => -1");
         sb.AppendLine("    };");
         sb.AppendLine("}");
+        return sb.ToString();
+    }
+}
+
+/// <summary>
+/// Compares the cost of the redundant-pattern reachability analysis (used to detect
+/// <see cref="Microsoft.CodeAnalysis.CSharp.ErrorCode.WRN_RedundantPattern"/>) when the warning is enabled
+/// versus when it is suppressed at the location of every candidate pattern via '#pragma warning disable'.
+/// Each switch arm below has the syntactic shape 'not A or B', which makes it a candidate for the analysis;
+/// disjoint numeric ranges are used per arm so that no arm makes another arm unreachable.
+/// </summary>
+/// <seealso href="https://github.com/dotnet/roslyn/issues/75506"/>
+[MemoryDiagnoser]
+[EventPipeProfiler(EventPipeProfile.GcVerbose)]
+[WarmupCount(1)]
+[IterationCount(1)]
+[InvocationCount(1)]
+public class RedundantPatternsPragmaSuppressionBenchmarks
+{
+    [Params(25, 50, 100)]
+    public int RedundantPatternArmCount { get; set; }
+
+    [Params(false, true)]
+    public bool PragmaDisabled { get; set; }
+
+    private string? _redundantPatternSwitchSource;
+
+    [GlobalSetup]
+    public void Setup()
+    {
+        _redundantPatternSwitchSource = GenerateRedundantPatternSwitchSource();
+    }
+
+    [Benchmark]
+    public object EmitWithRedundantPatternSwitch() => RedundantPatternsBenchmarks.EmitCore(_redundantPatternSwitchSource!);
+
+    private string GenerateRedundantPatternSwitchSource()
+    {
+        var sb = new StringBuilder();
+        if (PragmaDisabled)
+        {
+            sb.AppendLine("#pragma warning disable CS9336");
+        }
+
+        sb.AppendLine("public static class R");
+        sb.AppendLine("{");
+        sb.AppendLine("    public static int Get(int x) => x switch");
+        sb.AppendLine("    {");
+        for (var i = 0; i < RedundantPatternArmCount; i++)
+        {
+            var lo = i * 10;
+            var hi = lo + 9;
+            var redundant = lo + 1;
+            sb.AppendLine($"        >= {lo} and <= {hi} and not {lo} or {redundant} => {i},");
+        }
+
+        sb.AppendLine("        _ => -1");
+        sb.AppendLine("    };");
+        sb.AppendLine("}");
+        if (PragmaDisabled)
+        {
+            sb.AppendLine("#pragma warning restore CS9336");
+        }
+
         return sb.ToString();
     }
 }
