@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <see langword="default"/> if uninitialized. <see cref="RequiredMembersErrorSentinel"/> if there are errors. <see cref="ImmutableSegmentedDictionary{TKey, TValue}.Empty"/> if
         /// there are no required members. Otherwise, the required members.
         /// </summary>
-        public ImmutableSegmentedDictionary<string, Symbol> _lazyRequiredMembers = default;
+        private ImmutableSegmentedDictionary<string, Symbol> _lazyRequiredMembers = default;
 
         private UncommonProperties _lazyUncommonProperties;
 
