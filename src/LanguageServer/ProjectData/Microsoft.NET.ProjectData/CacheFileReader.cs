@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 
@@ -96,7 +98,7 @@ public static class CacheFileReader
 		StringPool? stringPool = null,
 		CancellationToken cancellationToken = default)
 	{
-		ImmutableArray<CachedSliceData> slices = await ReadProjectCacheAsync(projectFilePath, cacheInProject, resolver, stringPool, cancellationToken);
+		ImmutableArray<CachedSliceData> slices = await ReadProjectCacheAsync(projectFilePath, cacheInProject, resolver, stringPool, cancellationToken).ConfigureAwait(false);
 		return ProjectDataSnapshotFactory.CreateSnapshots(slices, solutionPath);
 	}
 
@@ -121,7 +123,7 @@ public static class CacheFileReader
 
 			if (File.Exists(projectFolderPath))
 			{
-				return await ReadCacheFileAsync(projectFolderPath, projectFilePath, expectedProjectFilePath: null, resolver, stringPool, cancellationToken);
+				return await ReadCacheFileAsync(projectFolderPath, projectFilePath, expectedProjectFilePath: null, resolver, stringPool, cancellationToken).ConfigureAwait(false);
 			}
 
 			if (!cacheInProject)
@@ -130,7 +132,7 @@ public static class CacheFileReader
 
 				if (File.Exists(userFolderPath))
 				{
-					return await ReadCacheFileAsync(userFolderPath, projectFilePath, expectedProjectFilePath: projectFilePath, resolver, stringPool, cancellationToken);
+					return await ReadCacheFileAsync(userFolderPath, projectFilePath, expectedProjectFilePath: projectFilePath, resolver, stringPool, cancellationToken).ConfigureAwait(false);
 				}
 			}
 
@@ -174,7 +176,9 @@ public static class CacheFileReader
 		string? expectedProjectFilePath,
 		CachePathResolver resolver,
 		StringPool? stringPool,
+#pragma warning disable IDE0060 // Remove unused parameter
 		CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
 	{
 		// DIAG: record the on-disk file size at the moment we open it so we can detect
 		// "DTB succeeded but cache is empty/partially-written when reader opens it".
@@ -187,18 +191,20 @@ public static class CacheFileReader
 			projectFilePath,
 			expectedProjectFilePath ?? "<null>");
 
-		await using FileStream stream = new(cacheFilePath, new FileStreamOptions
+		FileStream stream = new(cacheFilePath, new FileStreamOptions
 		{
 			Mode = FileMode.Open,
 			Access = FileAccess.Read,
 			Share = FileShare.Read,
 			Options = FileOptions.Asynchronous,
 		});
+		await using var _ = stream.ConfigureAwait(false);
+
 		using StreamReader reader = new(stream);
 
 		string projectDirectory = Path.GetDirectoryName(projectFilePath)!;
 
-		return await ReadFromAsync(reader, resolver, projectDirectory, projectFilePath, expectedProjectFilePath, stringPool);
+		return await ReadFromAsync(reader, resolver, projectDirectory, projectFilePath, expectedProjectFilePath, stringPool).ConfigureAwait(false);
 	}
 
 	private static int ParseMajorVersionOrThrow(string versionHeader)
@@ -245,14 +251,14 @@ public static class CacheFileReader
 		ArgumentNullException.ThrowIfNull(projectDirectory);
 		ArgumentNullException.ThrowIfNull(projectFilePath);
 
-		string? firstLineRaw = await reader.ReadLineAsync();
+		string? firstLineRaw = await reader.ReadLineAsync().ConfigureAwait(false);
 		string? firstLine = firstLineRaw;
 
 		bool hadHashHeader = false;
 		if (firstLine is not null && firstLine.StartsWith(CacheFormat.HashHeaderPrefix, StringComparison.Ordinal))
 		{
 			hadHashHeader = true;
-			firstLine = await reader.ReadLineAsync();
+			firstLine = await reader.ReadLineAsync().ConfigureAwait(false);
 		}
 
 		if (!TryParseMajorVersion(firstLine, out int fileMajorVersion) || fileMajorVersion != CurrentMajorVersion)
@@ -293,7 +299,7 @@ public static class CacheFileReader
 		string? declaredProjectFilePath = null;
 
 		string? line;
-		while ((line = await reader.ReadLineAsync()) is not null)
+		while ((line = await reader.ReadLineAsync().ConfigureAwait(false)) is not null)
 		{
 			if (line.Length == 0 || line[0] == CacheFormat.CommentChar)
 			{

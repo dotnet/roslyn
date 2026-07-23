@@ -1,4 +1,5 @@
-# Banned MessagePack APIs.
+
+# Banned MessagePack APIs.
 # Use [DataContract] with [DataMember] for serialization contracts instead.
 T:MessagePack.MessagePackObjectAttribute;Use [DataContract] with [DataMember] instead
 T:MessagePack.Resolvers.StandardResolverAllowPrivate;Uses Reflection.Emit — not AOT-compatible

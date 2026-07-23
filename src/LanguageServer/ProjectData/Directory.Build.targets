@@ -5,9 +5,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
-  </ItemGroup>
-  <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" Condition="!Exists('BannedSymbols.txt')" />
     <AdditionalFiles Include="BannedSymbols.txt" Condition="Exists('BannedSymbols.txt')" />
   </ItemGroup>
