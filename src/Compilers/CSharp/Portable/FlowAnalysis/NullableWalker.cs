@@ -2769,7 +2769,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsSlotMember(int slot, Symbol possibleMember)
         {
-            TypeSymbol? possibleBase = possibleMember.ContainingType;
+            TypeSymbol? possibleBase = possibleMember.TryGetInstanceExtensionParameter(out ParameterSymbol? extensionParameter)
+                ? extensionParameter.Type
+                : possibleMember.ContainingType;
 
             if (possibleBase is null)
             {
@@ -2916,7 +2918,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variables.GetMembers(members, targetSlot);
             foreach (var (variable, slot) in members)
             {
-                var symbol = AsMemberOfType(targetType, variable.Symbol);
+                Symbol symbol = variable.Symbol;
+                symbol = symbol.IsExtensionBlockMember()
+                    ? symbol
+                    : AsMemberOfType(targetType, symbol);
+
                 SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(symbol));
                 InheritDefaultState(GetTypeOrReturnType(symbol), slot);
             }
@@ -9250,6 +9256,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Re-infers an extension member's containing extension type arguments from an updated receiver type, so that
+        /// the returned member carries the correct nested nullability (for instance, mapping
+        /// <c>extension&lt;string&gt;(List&lt;string&gt;).First</c> to <c>extension&lt;string?&gt;(List&lt;string?&gt;).First</c>).
+        /// This mirrors the pure inference performed in <see cref="ReInferBinaryOperator"/> for extension operators, and
+        /// unlike <see cref="ReInferAndVisitExtensionPropertyAccess"/> it does not visit arguments, check constraints, or
+        /// record snapshots, so it is safe to call from the pattern learning pre-pass.
+        /// </summary>
+        private Symbol AsExtensionMemberOfReceiverType(Symbol extensionMember, TypeSymbol receiverType, SyntaxNode syntax)
+        {
+            Debug.Assert(extensionMember.IsExtensionBlockMember());
+
+            NamedTypeSymbol extension = extensionMember.OriginalDefinition.ContainingType;
+            if (extension.Arity == 0 || extension.ExtensionParameter is not { } extensionParameter)
+            {
+                return extensionMember;
+            }
+
+            var receiver = new BoundExpressionWithNullability(syntax, new BoundValuePlaceholder(syntax, receiverType), NullableAnnotation.NotAnnotated, receiverType);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            var inferenceResult = MethodTypeInferrer.Infer(
+                _binder,
+                _conversions,
+                extension.TypeParameters,
+                extension,
+                [extensionParameter.TypeWithAnnotations],
+                [extensionParameter.RefKind],
+                [receiver],
+                ref discardedUseSiteInfo,
+                new MethodInferenceExtensions(this),
+                ordinals: null);
+
+            if (!inferenceResult.Success)
+            {
+                return extensionMember;
+            }
+
+            extension = extension.Construct(inferenceResult.InferredTypeArguments);
+            return extensionMember.OriginalDefinition.SymbolAsMember(extension);
+        }
+
         public override BoundNode? VisitConversion(BoundConversion node)
         {
             // https://github.com/dotnet/roslyn/issues/35732: Assert VisitConversion is only used for explicit conversions.
@@ -12187,7 +12235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var property = node.PropertySymbol;
             Symbol? updatedProperty;
 
-            if (property.IsExtensionBlockMember())
+            if (property.IsExtensionBlockMember()) // TODO2
             {
                 Debug.Assert(node.ReceiverOpt is not null);
                 ReinferenceResult<PropertySymbol> reinferenceResult = ReInferAndVisitExtensionPropertyAccess(node, property, node.ReceiverOpt);
@@ -12197,6 +12245,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithAnnotations typeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(updatedProperty);
                 FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(updatedProperty);
                 TypeWithState typeWithState = ApplyUnconditionalAnnotations(typeWithAnnotations.ToTypeWithState(), memberAnnotations);
+
+                if (PossiblyNullableType(typeWithState.Type))
+                {
+                    int slot = MakeMemberSlot(node.ReceiverOpt, updatedProperty);
+                    if (slot > 0)
+                    {
+                        var state = GetState(ref this.State, slot);
+                        typeWithState = TypeWithState.Create(typeWithState.Type, state);
+                    }
+                }
 
                 SetResult(node, typeWithState, typeWithAnnotations);
             }
