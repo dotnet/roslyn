@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int patternIndex = 0; patternIndex < switchArms.Length; patternIndex++)
                 {
                     BoundSwitchExpressionArm switchArm = switchArms[patternIndex];
-                    if (ShouldAnalyze(switchArm.Syntax))
+                    if (ShouldAnalyze(switchArm.Pattern.Syntax))
                     {
                         CheckOrAndAndReachability(existingCases, patternIndex, switchArm.Pattern, switchArm.HasUnionMatching, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
                     }
