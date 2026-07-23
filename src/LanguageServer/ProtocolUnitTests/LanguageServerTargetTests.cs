@@ -73,6 +73,19 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
     }
 
     [Theory, CombinatorialData]
+    public async Task LanguageServerDisposeAwaitsJsonRpcCompletion(bool mutatingLspWorkspace)
+    {
+        var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+        var serverCompletion = server.GetServerAccessor().GetServerRpc().Completion;
+        var clientCompletion = server.GetClientRpcCompletionTask();
+
+        await server.DisposeAsync();
+
+        Assert.True(serverCompletion.IsCompleted);
+        Assert.True(clientCompletion.IsCompleted);
+    }
+
+    [Theory, CombinatorialData]
     public async Task LanguageServerHasSeparateServiceInstances(bool mutatingLspWorkspace)
     {
         await using var serverOne = await CreateTestLspServerAsync("", mutatingLspWorkspace);
