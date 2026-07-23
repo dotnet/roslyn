@@ -61,6 +61,19 @@ __builder2.AddContent(5, context.I2.MyStructId
             );
         }
         #pragma warning restore 1998
+#nullable restore
+#line (4,8)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
+    [Parameter]
+    public TParam InferParam { get; set; }
+
+    [Parameter]
+    public RenderFragment<(MyClass I1, MyStruct I2, TParam P)> Template { get; set; }
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 namespace __Blazor.Test.TestComponent

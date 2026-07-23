@@ -9,5 +9,3 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpExpression - (109:5,2 [15] x:\dir\subdir\Test\TestComponent.razor)
                     LazyIntermediateToken - (109:5,2 [15] x:\dir\subdir\Test\TestComponent.razor) - CSharp - $"{Name} Tests"
-            CSharpCode - (7:0,7 [95] x:\dir\subdir\Test\TestComponent.razor)
-                LazyIntermediateToken - (7:0,7 [95] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    private const string Name = "Razor";\n    private const string Value = $"{Name} Tests";\n

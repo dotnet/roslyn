@@ -15,5 +15,3 @@
                             LazyIntermediateToken - (44:2,16 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Foo
                     MarkupBlock -  - \n        <child></child>\n    
                 MarkupBlock -  - \n\n\n
-            CSharpCode - (95:6,11 [29] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (95:6,11 [29] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n        int Foo = 18;\n    

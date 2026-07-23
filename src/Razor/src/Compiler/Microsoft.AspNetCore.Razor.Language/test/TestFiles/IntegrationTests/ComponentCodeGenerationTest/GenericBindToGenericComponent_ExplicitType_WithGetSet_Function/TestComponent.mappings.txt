@@ -33,3 +33,16 @@ Source Location: (84:1,65 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (2288:65,0 [5] )
 |Value|
 
+Source Location: (119:2,7 [155] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public TParam ParentValue { get; set; } = default;
+
+    public Task UpdateValue(TParam value) { ParentValue = value; return Task.CompletedTask; }
+|
+Generated Location: (2535:76,0 [155] )
+|
+    public TParam ParentValue { get; set; } = default;
+
+    public Task UpdateValue(TParam value) { ParentValue = value; return Task.CompletedTask; }
+|
+

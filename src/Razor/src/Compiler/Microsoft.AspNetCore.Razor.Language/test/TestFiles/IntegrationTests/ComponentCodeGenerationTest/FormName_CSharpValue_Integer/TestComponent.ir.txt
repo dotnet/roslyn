@@ -20,5 +20,3 @@
                     FormName - (97:1,53 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                         CSharpExpression - (98:1,54 [1] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (98:1,54 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x
-            CSharpCode - (117:2,7 [18] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (117:2,7 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    int x = 1;\n

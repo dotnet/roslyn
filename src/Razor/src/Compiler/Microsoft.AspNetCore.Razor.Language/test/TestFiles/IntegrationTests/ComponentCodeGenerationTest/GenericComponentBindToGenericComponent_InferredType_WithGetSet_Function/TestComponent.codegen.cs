@@ -44,6 +44,17 @@ UpdateValue
             , ParentValue)));
         }
         #pragma warning restore 1998
+#nullable restore
+#line (3,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
+    public TParam ParentValue { get; set; } = default;
+
+    public Task UpdateValue(TParam value) { ParentValue = value; return Task.CompletedTask; }
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 namespace __Blazor.Test.TestComponent

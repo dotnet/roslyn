@@ -19,5 +19,3 @@
                 CSharpCode - (127:7,2 [56] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (127:7,2 [56] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - System.Console.WriteLine(1);System.Console.WriteLine(2);
                 MarkupBlock -  - <h1>Full-on code block</h1>
-            CSharpCode - (224:10,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (224:10,7 [65] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public int IncrementAmount { get; set; }\n

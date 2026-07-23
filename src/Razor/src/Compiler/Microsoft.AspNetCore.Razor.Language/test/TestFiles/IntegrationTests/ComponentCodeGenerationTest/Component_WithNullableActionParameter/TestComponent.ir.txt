@@ -10,5 +10,3 @@
                 Component - (0:0,0 [64] x:\dir\subdir\Test\TestComponent.cshtml) - ComponentWithNullableAction
                     ComponentAttribute - (45:0,45 [15] x:\dir\subdir\Test\TestComponent.cshtml) - NullableAction - NullableAction - AttributeStructure.DoubleQuotes
                         LazyIntermediateToken - (46:0,46 [14] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - NullableAction
-            CSharpCode - (73:1,7 [61] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (73:1,7 [61] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n	[Parameter]\n	public Action NullableAction { get; set; }\n
