@@ -2518,9 +2518,9 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="translated">Modyfikator „safe” można stosować tylko do składowych, które nie są oznaczone jako „unsafe” i są albo „extern”, albo przypominają pole w typach z układem jawnym lub rozszerzonym.</target>
-        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+        <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
+        <target state="needs-review-translation">Modyfikator „safe” można stosować tylko do składowych, które nie są oznaczone jako „unsafe” i są albo „extern”, albo przypominają pole w typach z układem jawnym lub rozszerzonym.</target>
+        <note>'safe' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>

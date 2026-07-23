@@ -1092,21 +1092,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void AfterTypeMembersCompletedChecks(BindingDiagnosticBag diagnostics)
-        {
-            base.AfterTypeMembersCompletedChecks(diagnostics);
-
-            if (HasSafeModifier && (!(IsExtern || hasExplicitOrExtendedLayoutField()) || HasUnsafeModifier))
-            {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, GetFirstLocation()));
-            }
-
-            return;
-
-            bool hasExplicitOrExtendedLayoutField() => BackingField != null && !IsStatic && (ContainingType.Layout.Kind == LayoutKind.Explicit || ContainingType.Layout.Kind == LayoutKind.Extended);
-        }
-
         private void CheckAccessibility(Location location, BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
         {
             ModifierUtils.CheckAccessibility(_modifiers, this, isExplicitInterfaceImplementation, diagnostics, location);

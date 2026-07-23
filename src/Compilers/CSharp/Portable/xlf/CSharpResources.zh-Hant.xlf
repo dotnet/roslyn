@@ -2518,9 +2518,9 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="translated">'safe' 修飾元只能用於未標記為 'unsafe' 的成員，且為 'extern'，或是在具有明確或延伸配置的類型中類似欄位的成員。</target>
-        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+        <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
+        <target state="needs-review-translation">'safe' 修飾元只能用於未標記為 'unsafe' 的成員，且為 'extern'，或是在具有明確或延伸配置的類型中類似欄位的成員。</target>
+        <note>'safe' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
