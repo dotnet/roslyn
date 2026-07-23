@@ -17010,9 +17010,9 @@ Console.WriteLine(""Hello World"");
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
 
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "Program");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "<Main>$", ".ctor");
-            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*Console.*/"WriteLine", /*Program.*/".ctor");
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "EmbeddedAttribute", "NullableContextAttribute", "Program");
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", ".ctor", "<Main>$", ".ctor");
+            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*NullableContextAttribute*/".ctor", /*NullableAttribute*/".ctor", /*Console.*/"WriteLine", /*Program.*/".ctor");
 
             var generation0 = CreateInitialBaseline(compilation0,
                 md0,
@@ -17035,22 +17035,24 @@ Console.WriteLine(""Hello World"");
 
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default), // Synthesized Main method
-                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
+                Row(9, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default), // Synthesized Main method
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
-                Handle(8, TableIndex.TypeRef),
-                Handle(9, TableIndex.TypeRef),
-                Handle(10, TableIndex.TypeRef),
-                Handle(1, TableIndex.MethodDef),
+                Handle(11, TableIndex.TypeRef),
+                Handle(12, TableIndex.TypeRef),
+                Handle(13, TableIndex.TypeRef),
+                Handle(3, TableIndex.MethodDef),
                 Handle(1, TableIndex.Param),
-                Handle(7, TableIndex.MemberRef),
-                Handle(8, TableIndex.MemberRef),
+                Handle(9, TableIndex.MemberRef),
+                Handle(10, TableIndex.MemberRef),
+                Handle(6, TableIndex.CustomAttribute),
                 Handle(2, TableIndex.AssemblyRef));
         }
 

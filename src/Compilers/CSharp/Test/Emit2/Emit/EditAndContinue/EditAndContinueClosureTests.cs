@@ -4640,8 +4640,10 @@ Console.WriteLine(x());
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
+                "Microsoft.CodeAnalysis.EmbeddedAttribute",
                 "Program.<>c__DisplayClass0_0: {args, <<Main>$>b__0}",
-                "Program: {<>c__DisplayClass0_0}");
+                "Program: {<>c__DisplayClass0_0}",
+                "System.Runtime.CompilerServices.NullableContextAttribute");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -4649,9 +4651,10 @@ Console.WriteLine(x());
             // Method updates
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -5755,7 +5758,9 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "Microsoft.CodeAnalysis.EmbeddedAttribute",
                             "System.Runtime.CompilerServices.HotReloadException",
+                            "System.Runtime.CompilerServices.NullableContextAttribute",
                             "Program: {<>c__DisplayClass0_0#1}",
                             "Program.<>c__DisplayClass0_0#1: {args, <<Main>$>b__0#1}");
 
@@ -5768,14 +5773,14 @@ class C
                         {
                           // Code size       27 (0x1b)
                           .maxstack  2
-                          IL_0000:  newobj     0x06000007
+                          IL_0000:  newobj     0x06000009
                           IL_0005:  stloc.1
                           IL_0006:  ldloc.1
                           IL_0007:  ldarg.0
-                          IL_0008:  stfld      0x04000005
+                          IL_0008:  stfld      0x04000006
                           IL_000d:  ldloc.1
-                          IL_000e:  ldftn      0x06000008
-                          IL_0014:  newobj     0x0A000008
+                          IL_000e:  ldftn      0x0600000A
+                          IL_0014:  newobj     0x0A00000A
                           IL_0019:  stloc.2
                           IL_001a:  ret
                         }
@@ -5785,7 +5790,7 @@ class C
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
                           IL_0005:  ldc.i4.s   -5
-                          IL_0007:  newobj     0x06000006
+                          IL_0007:  newobj     0x06000008
                           IL_000c:  throw
                         }
                         .ctor
@@ -5794,18 +5799,18 @@ class C
                           .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
-                          IL_0002:  call       0x0A000009
+                          IL_0002:  call       0x0A00000B
                           IL_0007:  nop
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
-                          IL_000a:  stfld      0x04000003
-                          IL_000f:  ldsfld     0x04000004
+                          IL_000a:  stfld      0x04000004
+                          IL_000f:  ldsfld     0x04000005
                           IL_0014:  dup
                           IL_0015:  stloc.0
                           IL_0016:  brfalse.s  IL_0020
                           IL_0018:  ldloc.0
                           IL_0019:  ldarg.0
-                          IL_001a:  callvirt   0x0A00000A
+                          IL_001a:  callvirt   0x0A00000C
                           IL_001f:  nop
                           IL_0020:  ret
                         }
@@ -5814,7 +5819,7 @@ class C
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000B
+                          IL_0001:  call       0x0A00000D
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -5823,7 +5828,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000005
+                          IL_0001:  ldfld      0x04000006
                           IL_0006:  ret
                         }
                         """);
