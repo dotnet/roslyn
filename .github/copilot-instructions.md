@@ -109,8 +109,8 @@ Write the plan to `plan.md` in your session folder (see the session context) and
 ```markdown
 ## Plan: <short title>
 
-- **Scope:** what this change will do (the intended outcome).
-- **Non-goals:** what this change explicitly will NOT do (out of scope now).
+- **Scope:** what this change will do.
+- **Non-goals:** what this change explicitly will NOT do.
 - **Affected areas:** projects/files/layers touched (e.g. `src/Compilers/CSharp`, matching `.instructions.md`).
 - **Approach:** the intended implementation, and any alternatives considered/rejected.
 - **Acceptance:** observable done-state — the behavior/tests that prove it works.
