@@ -65,12 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasUnionMatching,
             BindingDiagnosticBag diagnostics)
         {
-            if (pattern.HasErrors)
-            {
-                return;
-            }
-
-            if (!EnableRedundantPatternsCheckForSpecificPattern(syntax))
+            if (pattern.HasErrors || !ShouldAnalyze(syntax))
             {
                 return;
             }
@@ -94,10 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return compilation.LanguageVersion >= LanguageVersion.CSharp14;
         }
 
+        /// <summary>Detect if 'patternSyntax' contains a 'not A or B'/'not A and B' syntactic form which we could possibly report a redundancy warning on.</summary>
         /// <seealso cref="ShouldWarn"/>
-        private static bool EnableRedundantPatternsCheckForSpecificPattern(SyntaxNode patternSyntax)
+        private static bool ShouldAnalyze(SyntaxNode patternSyntax)
         {
-            // Easy out to avoid work in cases when the diagnostics would never be visible to the user.
             var hasWarningSeveritySyntaxForm = patternSyntax.DescendantNodesAndSelf().Any(static node => node is BinaryPatternSyntax binary && FindNotInBinary(binary.Left));
             return hasWarningSeveritySyntaxForm;
         }
@@ -112,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             BindingDiagnosticBag diagnostics)
         {
-            if (!switchArms.Any(static (switchArm) => EnableRedundantPatternsCheckForSpecificPattern(switchArm.Pattern.Syntax)))
+            if (!switchArms.Any(static (switchArm) => ShouldAnalyze(switchArm.Pattern.Syntax)))
             {
                 return;
             }
@@ -151,7 +146,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int patternIndex = 0; patternIndex < switchArms.Length; patternIndex++)
                 {
                     BoundSwitchExpressionArm switchArm = switchArms[patternIndex];
-                    CheckOrAndAndReachability(existingCases, patternIndex, switchArm.Pattern, switchArm.HasUnionMatching, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                    if (ShouldAnalyze(switchArm.Syntax))
+                    {
+                        CheckOrAndAndReachability(existingCases, patternIndex, switchArm.Pattern, switchArm.HasUnionMatching, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                    }
                 }
 
                 ReportRedundant(redundantNodes, diagnostics);
@@ -168,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchSection> switchSections,
             BindingDiagnosticBag diagnostics)
         {
-            if (!shouldCheck(switchSections))
+            if (!shouldAnalyzeAny(switchSections))
             {
                 return;
             }
@@ -181,13 +179,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             existingCases.Free();
             redundantNodes.Free();
 
-            static bool shouldCheck(ImmutableArray<BoundSwitchSection> switchSections)
+            static bool shouldAnalyzeAny(ImmutableArray<BoundSwitchSection> switchSections)
             {
                 foreach (var switchSection in switchSections)
                 {
                     foreach (var switchLabel in switchSection.SwitchLabels)
                     {
-                        if (EnableRedundantPatternsCheckForSpecificPattern(switchLabel.Pattern.Syntax))
+                        if (ShouldAnalyze(switchLabel.Pattern.Syntax))
                         {
                             return true;
                         }
@@ -233,7 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                         {
-                            CheckOrAndAndReachability(existingCases, patternIndex, label.Pattern, label.HasUnionMatching, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                            if (ShouldAnalyze(label.Pattern.Syntax))
+                            {
+                                CheckOrAndAndReachability(existingCases, patternIndex, label.Pattern, label.HasUnionMatching, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                            }
+
                             patternIndex++;
                         }
                     }
@@ -247,6 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var node in redundantNodes)
             {
+                Debug.Assert(ShouldWarn(node));
                 diagnostics.Add(ErrorCode.WRN_RedundantPattern, node);
             }
         }
