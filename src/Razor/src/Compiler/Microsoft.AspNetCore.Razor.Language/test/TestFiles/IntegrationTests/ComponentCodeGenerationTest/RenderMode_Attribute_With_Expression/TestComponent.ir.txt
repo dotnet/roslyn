@@ -10,5 +10,3 @@
                 Component - (0:0,0 [73] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                     RenderMode - (28:0,28 [41] x:\dir\subdir\Test\TestComponent.cshtml)
                         LazyIntermediateToken - (30:0,30 [38] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - new MyRenderMode() { Extra = "Hello" }
-            CSharpCode - (83:2,1 [135] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (83:2,1 [135] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode\n    {\n        public string Extra {get;set;}\n    }\n

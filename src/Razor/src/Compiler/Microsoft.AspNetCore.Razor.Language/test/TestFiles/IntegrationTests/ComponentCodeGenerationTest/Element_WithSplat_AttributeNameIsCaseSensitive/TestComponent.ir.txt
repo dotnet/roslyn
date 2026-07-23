@@ -8,5 +8,3 @@
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupBlock -  - <elem attributebefore="before" @ATTributes="someAttributes" attributeafter="after">Hello</elem>
-            CSharpCode - (106:2,7 [93] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (106:2,7 [93] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private Dictionary<string, object> someAttributes = new Dictionary<string, object>();\n

@@ -33,23 +33,32 @@ Source Location: (256:3,98 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (2190:70,0 [1] )
 |2|
 
+Source Location: (270:4,7 [52] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter] public T Parameter { get; set; }
+|
+Generated Location: (2388:80,0 [52] )
+|
+    [Parameter] public T Parameter { get; set; }
+|
+
 Source Location: (59:2,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestComponent|
-Generated Location: (2771:87,45 [13] )
+Generated Location: (2955:96,45 [13] )
 |TestComponent|
 
 Source Location: (140:2,82 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |Parameter|
-Generated Location: (3162:94,0 [9] )
+Generated Location: (3346:103,0 [9] )
 |Parameter|
 
 Source Location: (159:3,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestComponent|
-Generated Location: (3645:104,45 [13] )
+Generated Location: (3829:113,45 [13] )
 |TestComponent|
 
 Source Location: (245:3,87 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |Parameter|
-Generated Location: (4036:111,0 [9] )
+Generated Location: (4220:120,0 [9] )
 |Parameter|
 

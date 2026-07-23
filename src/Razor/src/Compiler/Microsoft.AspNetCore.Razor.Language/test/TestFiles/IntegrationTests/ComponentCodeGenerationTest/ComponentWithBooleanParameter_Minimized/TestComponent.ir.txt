@@ -14,5 +14,3 @@
                     LazyIntermediateToken - (26:0,26 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
                 Component - (30:2,0 [26] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                     ComponentAttribute -  - TestBool - TestBool - AttributeStructure.Minimized
-            CSharpCode - (67:4,7 [59] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (67:4,7 [59] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public bool TestBool { get; set; }\n

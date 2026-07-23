@@ -48,6 +48,15 @@ __builder.AddContent(3, string.Format("{0}", "Hello")
             __builder.CloseElement();
         }
         #pragma warning restore 1998
+#nullable restore
+#line (7,13)-(9,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicComponent.cshtml"
+
+    void IDisposable.Dispose(){ }
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591

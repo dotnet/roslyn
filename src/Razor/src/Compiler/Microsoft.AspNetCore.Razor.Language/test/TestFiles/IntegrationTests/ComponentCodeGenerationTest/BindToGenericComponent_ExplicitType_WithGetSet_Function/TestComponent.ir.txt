@@ -21,5 +21,3 @@
                     ComponentAttribute - (81:0,81 [11] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
                         CSharpExpression - (81:0,81 [11] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (81:0,81 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - UpdateValue
-            CSharpCode - (105:1,7 [179] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (105:1,7 [179] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public CustomValue ParentValue { get; set; } = new CustomValue();\n\n        public Task UpdateValue(CustomValue value) { ParentValue = value; return Task.CompletedTask; }\n

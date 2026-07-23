@@ -77,6 +77,17 @@ __builder.AddContent(4, ChildContent(item)
 
         }
         #pragma warning restore 1998
+#nullable restore
+#line (14,8)-(18,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
+    [Parameter] public (TItem1, TItem2) Item1 { get; set; }
+    [Parameter] public List<(TItem1, TItem2)> Items2 { get; set; }
+    [Parameter] public RenderFragment<(TItem1, TItem2)> ChildContent { get; set; }
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591
