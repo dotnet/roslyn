@@ -2583,8 +2583,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramMultipleUnitsWithTopLevelStatements">
-        <source>Only one compilation unit can have top-level statements.</source>
-        <target state="translated">只能有一個編譯單位包含最上層陳述式。</target>
+        <source>Only one compilation unit can have top-level statements. '{0}' also has top-level statements.</source>
+        <target state="new">Only one compilation unit can have top-level statements. '{0}' also has top-level statements.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramNotAnExecutable">

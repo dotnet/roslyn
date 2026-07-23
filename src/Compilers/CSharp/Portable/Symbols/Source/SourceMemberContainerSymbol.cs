@@ -3827,6 +3827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>? builder = null;
+                string? firstFilePath = null;
 
                 foreach (var singleDecl in declaration.Declarations)
                 {
@@ -3835,10 +3836,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (builder is null)
                         {
                             builder = ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
+                            firstFilePath = singleDecl.NameLocation.SourceTree?.FilePath ?? "";
                         }
                         else
                         {
-                            Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, singleDecl.NameLocation);
+                            Debug.Assert(firstFilePath is not null);
+                            Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements,
+                                singleDecl.NameLocation, firstFilePath);
                         }
 
                         builder.Add(new SynthesizedSimpleProgramEntryPointSymbol(this, singleDecl, diagnostics));
