@@ -2124,6 +2124,59 @@ public sealed partial class UseNullPropagationTests
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82281")]
+    public Task TestNotWithColorColorStaticCase_Ternary()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class D
+            {
+                public static string Method(D d) => "static";
+                public string Method(params D[] d) => "instance";
+            }
+
+            public class C
+            {
+                string M(D D)
+                    => D is null ? null : D.Method(D);
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82281")]
+    public Task TestWithColorColorInstanceCase_Ternary()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class D
+            {
+                public static string Method(D d) => "static";
+                public string InstanceMethod(D d) => "instance";
+            }
+
+            public class C
+            {
+                string M(D D)
+                    => [|D is null ? null : D.InstanceMethod(D)|];
+            }
+            """,
+            """
+            using System;
+
+            class D
+            {
+                public static string Method(D d) => "static";
+                public string InstanceMethod(D d) => "instance";
+            }
+
+            public class C
+            {
+                string M(D D)
+                    => D?.InstanceMethod(D);
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53860")]
     public Task TestWithMethodGroupReference()
         => TestMissingInRegularAndScriptAsync(

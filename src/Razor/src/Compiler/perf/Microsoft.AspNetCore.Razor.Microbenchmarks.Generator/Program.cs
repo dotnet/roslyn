@@ -7,7 +7,14 @@ using BenchmarkDotNet.Exporters.Csv;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Diagnostics.Windows;
+using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using Microsoft.Diagnostics.Tracing.Session;
+
+var validate = args.Contains("--validate", StringComparer.Ordinal);
+if (validate)
+{
+    args = [.. args.Where(static arg => arg != "--validate")];
+}
 
 Job baseJob = Job.Default;
 #if DEBUG
@@ -18,18 +25,38 @@ baseJob = baseJob
 #endif
 
 var config = ManualConfig.CreateMinimumViable()
-            .AddJob(baseJob.WithCustomBuildConfiguration("Release").WithId("Current"))
-            .AddJob(baseJob.WithCustomBuildConfiguration("Release_Nuget").WithId("Baseline").WithBaseline(true))
             .StopOnFirstError(true)
             .AddExporter(CsvExporter.Default)
             .AddDiagnoser(MemoryDiagnoser.Default);
 
-if (TraceEventSession.IsElevated() == true)
+config = validate
+    ? config.AddJob(Job.Dry
+        .WithId("Validation")
+        .WithToolchain(InProcessNoEmitToolchain.Instance))
+    : config
+        .AddJob(baseJob.WithCustomBuildConfiguration("Release").WithId("Current"))
+        .AddJob(baseJob.WithCustomBuildConfiguration("Release_Nuget").WithId("Baseline").WithBaseline(true));
+
+if (!validate && TraceEventSession.IsElevated() == true)
 {
     config = config.AddDiagnoser(new EtwProfiler());
 }
 
 var results = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, config);
+
+if (validate)
+{
+    return results.Any() &&
+        results.All(summary =>
+            !summary.HasCriticalValidationErrors &&
+            summary.Reports.Any() &&
+            summary.Reports.All(report =>
+                report.BuildResult.IsGenerateSuccess &&
+                report.BuildResult.IsBuildSuccess &&
+                report.AllMeasurements.Any()))
+        ? 0
+        : 1;
+}
 
 var reports =
     from summary in results

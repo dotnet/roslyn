@@ -132,6 +132,11 @@
         <target state="translated">Type non pris en charge : '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Untested">
+        <source>Untested</source>
+        <target state="translated">Non testé</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_attributes">
         <source>Wrap attributes</source>
         <target state="translated">Retour à la ligne des attributs</target>

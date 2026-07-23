@@ -48,7 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var conversion = BoundNode.GetConversion(operandConversion, operandPlaceholder);
 
-                ConstantValue constantValue = Binder.GetAsOperatorConstantResult(rewrittenOperand.Type, rewrittenType, conversion.Kind, rewrittenOperand.ConstantValueOpt);
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
+                ConstantValue constantValue = Binder.GetAsOperatorConstantResult(rewrittenOperand.Type, rewrittenType, conversion.Kind, rewrittenOperand.ConstantValueOpt, ref useSiteInfo);
+                _diagnostics.Add(syntax, useSiteInfo);
 
                 if (constantValue != null)
                 {

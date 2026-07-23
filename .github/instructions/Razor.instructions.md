@@ -37,6 +37,10 @@ their original sub-tree layout
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
+- **Visual Studio options**: Register Razor Advanced settings in
+  `Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json`, localize
+  their UI text in `VSPackage.resx`, read them through `OptionsStorage`, and add remotely consumed
+  values to `ClientAdvancedSettings` so `IClientSettingsManager` synchronizes changes live.
 
 ## Adding OOP Remote Services
 
