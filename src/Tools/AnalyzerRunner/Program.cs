@@ -230,6 +230,9 @@ namespace AnalyzerRunner
             Console.WriteLine("/all                 Run all analyzers, including ones that are disabled by default");
             Console.WriteLine("/stats               Display statistics of the solution");
             Console.WriteLine("/a <analyzer name>   Enable analyzer with <analyzer name> (when this is specified, only analyzers specificed are enabled. Use: /a <name1> /a <name2>, etc.");
+            Console.WriteLine("/refactor <kind>     Apply refactorings to all syntax nodes with the specified syntax <kind>. This flag may be used multiple times.");
+            Console.WriteLine("/fixall[:<key>]      Run a Fix All operation for the reported diagnostics. If <key> is specified, the code fix with the given equivalence key is used.");
+            Console.WriteLine("/apply               Apply the changes from a code fix and/or refactoring to disk.");
             Console.WriteLine("/concurrent          Executes analyzers in concurrent mode");
             Console.WriteLine("/suppressed          Reports suppressed diagnostics");
             Console.WriteLine("/log <logFile>       Write logs into the log file specified");
