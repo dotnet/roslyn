@@ -2450,7 +2450,7 @@ public partial class DecisionDagBenchmarks
                 ERR_ExplicitInterfaceMemberTypeMismatch = 9333,
                 ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9334,
 
-                HDN_RedundantPattern = 9335,
+                // HDN_RedundantPattern = 9335,  // no longer reported
                 WRN_RedundantPattern = 9336,
                 HDN_RedundantPatternStackGuard = 9337,
 
@@ -4509,7 +4509,6 @@ public partial class DecisionDagBenchmarks
                         or ErrorCode.ERR_BadSpreadInCatchFilter
                         or ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch
                         or ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
-                        or ErrorCode.HDN_RedundantPattern
                         or ErrorCode.WRN_RedundantPattern
                         or ErrorCode.HDN_RedundantPatternStackGuard
                         or ErrorCode.ERR_BadVisBaseType

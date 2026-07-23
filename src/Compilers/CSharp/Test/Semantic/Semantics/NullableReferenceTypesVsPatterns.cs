@@ -1316,20 +1316,8 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(TestOptions.ReleaseDllWithHiddenRedundantPatterns));
+            var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // 0.cs(10,20): hidden CS9271: The pattern is redundant.
-                //             (null, {}) => 2, // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(10, 20),
-                // 0.cs(11,14): hidden CS9271: The pattern is redundant.
-                //             ({}, null) => 3, // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(11, 14),
-                // 0.cs(12,14): hidden CS9271: The pattern is redundant.
-                //             ({}, {}) => 4, // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(12, 14),
-                // 0.cs(12,18): hidden CS9271: The pattern is redundant.
-                //             ({}, {}) => 4, // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(12, 18),
                 // 0.cs(18,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
                 //         _ = t switch // 1 not exhaustive
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, _)").WithLocation(18, 15),
@@ -2714,7 +2702,7 @@ public class C
             (_, (_, C)) => a.ToString() // 13
         };
 }
-", options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+");
 
             comp.VerifyDiagnostics(
                 // (9,18): warning CS8602: Dereference of a possibly null reference.
@@ -2729,9 +2717,6 @@ public class C
                 // (29,23): warning CS8602: Dereference of a possibly null reference.
                 //             (_, C) => a.ToString() // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(29, 23),
-                // (36,17): hidden CS9271: The pattern is redundant.
-                //             (_, C) => a.ToString() // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C").WithLocation(36, 17),
                 // (36,23): warning CS8602: Dereference of a possibly null reference.
                 //             (_, C) => a.ToString() // 5, 6
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(36, 23),

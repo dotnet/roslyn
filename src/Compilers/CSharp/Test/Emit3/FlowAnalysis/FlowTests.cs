@@ -4557,21 +4557,12 @@ class C
                 // (30,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 4
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(30, 15),
-                // (36,45): hidden CS9335: The pattern is redundant.
-                //         _ = (b && M0(x = y = 0)) is true or true // 5
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(36, 45),
                 // (38,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 6
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(38, 15),
-                // (44,46): hidden CS9335: The pattern is redundant.
-                //         _ = (b && M0(x = y = 0)) is true and true // 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(44, 46),
                 // (46,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 8
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(46, 15),
-                // (52,46): hidden CS9335: The pattern is redundant.
-                //         _ = (b && M0(x = y = 0)) is false or false // 9
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(52, 46),
                 // (53,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 10
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(53, 15),
@@ -4584,9 +4575,6 @@ class C
                 // (69,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 13
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(69, 15),
-                // (76,52): hidden CS9335: The pattern is redundant.
-                //         _ = (b && M0(x = y = 0)) is not (false and false) // 14
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(76, 52),
                 // (78,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 15
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(78, 15)
@@ -4891,9 +4879,6 @@ class C
                 // (37,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 5
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(37, 15),
-                // (44,43): hidden CS9335: The pattern is redundant.
-                //         _ = c?.M0(x = y = 0) is not (C or { }) // 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(44, 43),
                 // (45,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 7
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(45, 15),

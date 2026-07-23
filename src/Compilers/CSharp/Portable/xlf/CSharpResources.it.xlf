@@ -2942,11 +2942,6 @@
         <target state="translated">La direttiva using è già presente come using globale</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="translated">Il modello è ridondante.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">Il modello è troppo complesso per l'analisi della ridondanza.</target>
@@ -2955,11 +2950,6 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">Il modello è troppo complesso per l'analisi della ridondanza.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="translated">Il modello è ridondante.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">

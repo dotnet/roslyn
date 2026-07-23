@@ -26,9 +26,6 @@ public class RedundantPatternsBenchmarks
     [Params(100, 500, 1000)]
     public int TupleConstantArmCount { get; set; }
 
-    [Params(true, false)]
-    public bool EnableHiddenRedundantPatterns { get; set; }
-
     private string? _tupleConstantSwitchSource;
 
     [GlobalSetup]
@@ -49,8 +46,7 @@ public class RedundantPatternsBenchmarks
             [syntaxTree],
             Net90.References.All,
             new CSharpCompilationOptions(
-                OutputKind.DynamicallyLinkedLibrary,
-                specificDiagnosticOptions: EnableHiddenRedundantPatterns ? [new("CS9335", ReportDiagnostic.Hidden)] : []));
+                OutputKind.DynamicallyLinkedLibrary));
 
         var assemblyStream = new MemoryStream();
         var emitResult = compilation.Emit(

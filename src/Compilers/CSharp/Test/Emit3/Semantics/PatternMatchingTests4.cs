@@ -4481,14 +4481,8 @@ public class C
     }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
-            comp.VerifyDiagnostics(
-                // (10,22): hidden CS9335: The pattern is redundant.
-                //             >= 0 and < 10.0 => "Acceptable",
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "< 10.0").WithLocation(10, 22),
-                // (11,26): hidden CS9335: The pattern is redundant.
-                //             >= -40.0 and < 0 => "Low",
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "< 0").WithLocation(11, 26));
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput: "NaN");
 
@@ -4570,14 +4564,8 @@ public class C
     }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExeWithHiddenRedundantPatterns);
-            comp.VerifyDiagnostics(
-                // (11,13): hidden CS9335: The pattern is redundant.
-                //             >= -40.0 and < 0 => "Low",
-                Diagnostic(ErrorCode.HDN_RedundantPattern, ">= -40.0").WithLocation(11, 13),
-                // (12,13): hidden CS9335: The pattern is redundant.
-                //             >= 0 and < 10.0 => "Acceptable",
-                Diagnostic(ErrorCode.HDN_RedundantPattern, ">= 0").WithLocation(12, 13));
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput: "NaN");
 
@@ -4890,7 +4878,7 @@ _ = o switch
 class A { }
 class B { }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (2,19): warning CS9336: The pattern is redundant.
                 // _ = o is not A or B; // 1
@@ -4898,9 +4886,6 @@ class B { }
                 // (3,25): error CS8121: An expression of type 'A' cannot be handled by a pattern of type 'B'.
                 // _ = o is not (A and not B); // 2
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "B").WithArguments("A", "B").WithLocation(3, 25),
-                // (5,21): hidden CS9335: The pattern is redundant.
-                // _ = o is (not A) or B; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "B").WithLocation(5, 21),
                 // (6,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 // _ = o is (not A) or (not B); // 4
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is (not A) or (not B)").WithArguments("object").WithLocation(6, 5),
@@ -4997,17 +4982,11 @@ _ = o switch
 class A { }
 class Derived : A { }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 // _ = o is not Derived or A; // 1
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is not Derived or A").WithArguments("object").WithLocation(3, 5),
-                // (4,20): hidden CS9335: The pattern is redundant.
-                // _ = o is not (A or Derived); // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived").WithLocation(4, 20),
-                // (7,15): hidden CS9335: The pattern is redundant.
-                // _ = o is A or Derived; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived").WithLocation(7, 15),
                 // (9,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 // _ = o is A or not Derived; // 4
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is A or not Derived").WithArguments("object").WithLocation(9, 5),
@@ -5125,17 +5104,11 @@ _ = o switch
     _ => 44
 };
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,22): warning CS9336: The pattern is redundant.
                 // _ = o is not null or string; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(3, 22),
-                // (4,24): hidden CS9335: The pattern is redundant.
-                // _ = o is (not null) or string; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(4, 24),
-                // (5,31): hidden CS9335: The pattern is redundant.
-                // _ = o is not null or (not not string); // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(5, 31),
                 // (11,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     string => 43, // 4
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(11, 5));
@@ -5167,7 +5140,7 @@ _ = s switch
     _ => 44
 };
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,22): warning CS9336: The pattern is redundant.
                 // _ = s is not null or { Length: >0 }; // 1, 2
@@ -5175,24 +5148,6 @@ _ = s switch
                 // (3,32): warning CS9336: The pattern is redundant.
                 // _ = s is not null or { Length: >0 }; // 1, 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, ">0").WithLocation(3, 32),
-                // (4,23): hidden CS9335: The pattern is redundant.
-                // _ = s is null and not { Length: >0 }; // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Length: >0 }").WithLocation(4, 23),
-                // (4,33): hidden CS9335: The pattern is redundant.
-                // _ = s is null and not { Length: >0 }; // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, ">0").WithLocation(4, 33),
-                // (5,24): hidden CS9335: The pattern is redundant.
-                // _ = s is (not null) or { Length: >0 }; // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Length: >0 }").WithLocation(5, 24),
-                // (5,34): hidden CS9335: The pattern is redundant.
-                // _ = s is (not null) or { Length: >0 }; // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, ">0").WithLocation(5, 34),
-                // (7,23): hidden CS9335: The pattern is redundant.
-                // _ = s is null and not { Length: >0 }; // 7, 8
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Length: >0 }").WithLocation(7, 23),
-                // (7,33): hidden CS9335: The pattern is redundant.
-                // _ = s is null and not { Length: >0 }; // 7, 8
-                Diagnostic(ErrorCode.HDN_RedundantPattern, ">0").WithLocation(7, 33),
                 // (12,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     "" => 43, // 9
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(12, 5),
@@ -5519,7 +5474,7 @@ switch (s)
     default: break;
 };
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (2,21): warning CS9336: The pattern is redundant.
                 // _ = s is (not 42 or 43, not 44 or 45); // 1, 2
@@ -5527,18 +5482,6 @@ switch (s)
                 // (2,35): warning CS9336: The pattern is redundant.
                 // _ = s is (not 42 or 43, not 44 or 45); // 1, 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(2, 35),
-                // (3,26): hidden CS9335: The pattern is redundant.
-                // _ = s is not (42 and not 43, 44 and not 45); // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(3, 26),
-                // (3,41): hidden CS9335: The pattern is redundant.
-                // _ = s is not (42 and not 43, 44 and not 45); // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(3, 41),
-                // (4,26): hidden CS9335: The pattern is redundant.
-                // _ = s is not (42 and not 43, _ and var x); // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(4, 26),
-                // (5,40): hidden CS9335: The pattern is redundant.
-                // _ = s is not (_ and var x2, 42 and not 43); // 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 40),
                 // (11,16): warning CS9336: The pattern is redundant.
                 //     (not 42 or 43, not 44 or 45) => 42, // 8, 9
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(11, 16),
@@ -5640,14 +5583,11 @@ _ = i switch
     _ => 44
 };
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,22): warning CS9336: The pattern is redundant.
                 // _ = i is not null or 0; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "0").WithLocation(3, 22),
-                // (4,24): hidden CS9335: The pattern is redundant.
-                // _ = i is (not null) or 0; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "0").WithLocation(4, 24),
                 // (10,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     0 => 43, // 3
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "0").WithLocation(10, 5));
@@ -5679,20 +5619,14 @@ _ = b switch
     _ => 44
 };
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,22): warning CS9336: The pattern is redundant.
                 // _ = b is not null or false; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "false").WithLocation(3, 22),
-                // (4,24): hidden CS9335: The pattern is redundant.
-                // _ = b is (not null) or false; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(4, 24),
                 // (5,22): warning CS9336: The pattern is redundant.
                 // _ = b is not null or true; // 3
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "true").WithLocation(5, 22),
-                // (6,24): hidden CS9335: The pattern is redundant.
-                // _ = b is (not null) or true; // 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(6, 24),
                 // (13,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     false => 43, // 5
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "false").WithLocation(13, 5),
@@ -5747,14 +5681,11 @@ _ = i switch
     _ => 44
 };
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (3,22): warning CS9336: The pattern is redundant.
                 // _ = i is not null or []; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "[]").WithLocation(3, 22),
-                // (4,24): hidden CS9335: The pattern is redundant.
-                // _ = i is (not null) or []; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[]").WithLocation(4, 24),
                 // (10,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     [] => 43, // 3
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[]").WithLocation(10, 5));
@@ -5965,11 +5896,8 @@ _ = o switch
     _ => 43
 };
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,20): hidden CS9335: The pattern is redundant.
-                // _ = o is object or string; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(2, 20),
                 // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     string => 42, // 2
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(7, 5));
@@ -6038,14 +5966,8 @@ class C
 }
 class Derived : C { }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (5,29): hidden CS9335: The pattern is redundant.
-                //         if (o is not (1 and int)) { } // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(5, 29),
-                // (6,34): hidden CS9335: The pattern is redundant.
-                //         if (o is (not 1) or (not int)) { } // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(6, 34),
                 // (8,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 //         if (o is not (1 and not int x2)) { } // 3, 4
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is not (1 and not int x2)").WithArguments("object").WithLocation(8, 13),
@@ -6055,9 +5977,6 @@ class Derived : C { }
                 // (9,41): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (o is not (1 and not not int x3)) { } // 5
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x3").WithLocation(9, 41),
-                // (11,24): hidden CS9335: The pattern is redundant.
-                //         if (o is (C or Derived) and var x5) { } // 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived").WithLocation(11, 24),
                 // (15,13): warning CS8794: An expression of type 'C' always matches the provided pattern.
                 //         if (c is not (Derived and null)) { } else { y1.ToString(); } // 7
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "c is not (Derived and null)").WithArguments("C").WithLocation(15, 13),
@@ -6128,7 +6047,7 @@ public struct S
     public int Prop3 { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,37): warning CS9336: The pattern is redundant.
                 //         if (s is { Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) { } // 1, 2
@@ -6142,15 +6061,9 @@ public struct S
                 // (8,45): warning CS9336: The pattern is redundant.
                 //         if (s is { Prop1: (42 or (not 43 or 44)) or 45 } or { Prop2: (46 or (not 44 or 45)) or 46 }) { } // 4, 5, 6, 7
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "44").WithLocation(8, 45),
-                // (8,53): hidden CS9335: The pattern is redundant.
-                //         if (s is { Prop1: (42 or (not 43 or 44)) or 45 } or { Prop2: (46 or (not 44 or 45)) or 46 }) { } // 4, 5, 6, 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(8, 53),
                 // (8,88): warning CS9336: The pattern is redundant.
                 //         if (s is { Prop1: (42 or (not 43 or 44)) or 45 } or { Prop2: (46 or (not 44 or 45)) or 46 }) { } // 4, 5, 6, 7
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(8, 88),
-                // (8,96): hidden CS9335: The pattern is redundant.
-                //         if (s is { Prop1: (42 or (not 43 or 44)) or 45 } or { Prop2: (46 or (not 44 or 45)) or 46 }) { } // 4, 5, 6, 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "46").WithLocation(8, 96),
                 // (10,38): warning CS9336: The pattern is redundant.
                 //         if (s is ({ Prop1: not 42 or 43 } or { Prop2: not 44 or 45 }) or { Prop3: not 46 or 47 }) { } // 8, 9, 10
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(10, 38),
@@ -6272,14 +6185,8 @@ public class S
     public void Deconstruct(out int x, out int y) => throw null;
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,28): hidden CS9335: The pattern is redundant.
-                // _ = o is not S (42 and not 43, 44 and not 45); // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 28),
-                // (2,43): hidden CS9335: The pattern is redundant.
-                // _ = o is not S (42 and not 43, 44 and not 45); // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 43),
                 // (3,23): warning CS9336: The pattern is redundant.
                 // _ = o is S (not 42 or 43, not 44 or 45); // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 23),
@@ -6302,14 +6209,8 @@ public class S
     public int Prop2 { get; set; }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,36): hidden CS9335: The pattern is redundant.
-                // _ = o is not S { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 36),
-                // (2,58): hidden CS9335: The pattern is redundant.
-                // _ = o is not S { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 58),
                 // (3,31): warning CS9336: The pattern is redundant.
                 // _ = o is S { Prop1: not 42 or 43, Prop2: not 44 or 45 }; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 31),
@@ -6332,14 +6233,8 @@ public class S
     public int Prop2 { get; set; }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,34): hidden CS9335: The pattern is redundant.
-                // _ = s is not { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 34),
-                // (2,56): hidden CS9335: The pattern is redundant.
-                // _ = s is not { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 56),
                 // (3,29): warning CS9336: The pattern is redundant.
                 // _ = s is { Prop1: not 42 or 43, Prop2: not 44 or 45 }; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 29),
@@ -6398,20 +6293,11 @@ public class S
     public int Prop2 { get; set; }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (2,21): warning CS9336: The pattern is redundant.
                 // _ = s is not { } or null; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(2, 21),
-                // (3,22): hidden CS9335: The pattern is redundant.
-                // _ = s is null or not { }; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(3, 22),
-                // (4,27): hidden CS9335: The pattern is redundant.
-                // _ = s is not ({ } and not null); // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(4, 27),
-                // (5,21): hidden CS9335: The pattern is redundant.
-                // _ = s is { } or not null; // 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(5, 21),
                 // (6,22): warning CS9336: The pattern is redundant.
                 // _ = s is not null or { }; // 5
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "{ }").WithLocation(6, 22),
@@ -6421,9 +6307,6 @@ public class S
                 // (8,23): warning CS9336: The pattern is redundant.
                 // _ = s is not S { } or null; // 7
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(8, 23),
-                // (9,22): hidden CS9335: The pattern is redundant.
-                // _ = s is null or not S { }; // 8
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S { }").WithLocation(9, 22),
                 // (14,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     not { } => 1, // 9
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not { }").WithLocation(14, 5));
@@ -6471,14 +6354,8 @@ public class C
     public int P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            compilation.VerifyDiagnostics(
-                // (3,18): hidden CS9335: The pattern is redundant.
-                // _ = s is { Prop: { } and { P: 42 or 43 } }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(3, 18),
-                // (4,18): hidden CS9335: The pattern is redundant.
-                // _ = s is { Prop: S2 { } }; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2 { }").WithLocation(4, 18));
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -6518,11 +6395,8 @@ struct S
     public C P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            compilation.VerifyEmitDiagnostics(
-                // (18,27): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: C { Prop: int and var s12 } }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(18, 27));
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6558,26 +6432,8 @@ struct S
     public C P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            compilation.VerifyEmitDiagnostics(
-                // (3,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and { } }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(3, 26),
-                // (5,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and { Prop: _ } }; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Prop: _ }").WithLocation(5, 26),
-                // (7,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and (_, _) }; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(7, 26),
-                // (11,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and C { } }; // 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C { }").WithLocation(11, 26),
-                // (13,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and C { Prop: _ } }; // 5
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C { Prop: _ }").WithLocation(13, 26),
-                // (15,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and C (_, _) }; // 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C (_, _)").WithLocation(15, 26));
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6613,26 +6469,8 @@ struct S
     public C P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            compilation.VerifyEmitDiagnostics(
-                // (3,25): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: C and { } }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(3, 25),
-                // (5,25): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: C and { Prop: _ } }; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Prop: _ }").WithLocation(5, 25),
-                // (7,25): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: C and (_, _) }; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(7, 25),
-                // (11,25): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: C and C { } }; // 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C { }").WithLocation(11, 25),
-                // (13,25): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: C and C { Prop: _ } }; // 5
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C { Prop: _ }").WithLocation(13, 25),
-                // (15,25): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: C and C (_, _) }; // 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C (_, _)").WithLocation(15, 25));
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6669,29 +6507,8 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            compilation.VerifyEmitDiagnostics(
-                // (2,17): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: { } }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(2, 17),
-                // (4,17): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: { Prop: _ } }; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Prop: _ }").WithLocation(4, 17),
-                // (6,17): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: (_, _) }; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(6, 17),
-                // (10,17): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: S2 { } }; // 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2 { }").WithLocation(10, 17),
-                // (12,17): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: S2 { Prop: _ } }; // 5
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2 { Prop: _ }").WithLocation(12, 17),
-                // (14,17): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: S2 (_, _) }; // 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2 (_, _)").WithLocation(14, 17),
-                // (18,28): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: S2 { Prop: int and var s12 } }; // 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(18, 28));
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6727,68 +6544,8 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            compilation.VerifyEmitDiagnostics(
-                // (3,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and { } }; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(3, 18),
-                // (3,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and { } }; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(3, 26),
-                // (4,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and { } ss1 }; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(4, 18),
-                // (5,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and { Prop: _ } }; // 4, 5
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(5, 18),
-                // (5,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and { Prop: _ } }; // 4, 5
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Prop: _ }").WithLocation(5, 26),
-                // (6,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and { Prop: var ss2 } }; // 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(6, 18),
-                // (7,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and (_, _) }; // 7, 8
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(7, 18),
-                // (7,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and (_, _) }; // 7, 8
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(7, 26),
-                // (8,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and (_, _) ss3 }; // 9
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(8, 18),
-                // (9,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and (var ss4, _) ss5 }; // 10
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(9, 18),
-                // (11,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and S2 { } }; // 11, 12
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(11, 18),
-                // (11,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and S2 { } }; // 11, 12
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2 { }").WithLocation(11, 26),
-                // (12,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and S2 { } ss6 }; // 13
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(12, 18),
-                // (13,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and S2 { Prop: _ } }; // 14, 15
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(13, 18),
-                // (13,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and S2 { Prop: _ } }; // 14, 15
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2 { Prop: _ }").WithLocation(13, 26),
-                // (14,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and S2 { Prop: var ss7 } }; // 16
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(14, 18),
-                // (15,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and S2 (_, _) }; // 17, 18
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(15, 18),
-                // (15,26): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and S2 (_, _) }; // 17, 18
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2 (_, _)").WithLocation(15, 26),
-                // (16,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and S2 (_, _) ss8 }; // 19
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(16, 18),
-                // (17,18): hidden CS9335: The pattern is redundant.
-                // _ = ss is S { P: { } and S2 (var ss9_, _) ss10 }; // 20
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(17, 18));
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6824,68 +6581,8 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            compilation.VerifyEmitDiagnostics(
-                // (3,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and { } }; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(3, 19),
-                // (3,26): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and { } }; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(3, 26),
-                // (4,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and { } sss1 }; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(4, 19),
-                // (5,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and { Prop: _ } }; // 4, 5
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(5, 19),
-                // (5,26): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and { Prop: _ } }; // 4, 5
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Prop: _ }").WithLocation(5, 26),
-                // (6,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and { Prop: var sss2 } }; // 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(6, 19),
-                // (7,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and (_, _) }; // 7, 8
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(7, 19),
-                // (7,26): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and (_, _) }; // 7, 8
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(7, 26),
-                // (8,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and (_, _) sss3 }; // 9
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(8, 19),
-                // (9,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and (var sss4, _) sss5 }; // 10
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(9, 19),
-                // (11,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and S2 { } }; // 11, 12
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(11, 19),
-                // (11,26): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and S2 { } }; // 11, 12
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2 { }").WithLocation(11, 26),
-                // (12,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and S2 { } sss6 }; // 13
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(12, 19),
-                // (13,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and S2 { Prop: _ } }; // 14, 15
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(13, 19),
-                // (13,26): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and S2 { Prop: _ } }; // 14, 15
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2 { Prop: _ }").WithLocation(13, 26),
-                // (14,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and S2 { Prop: var sss7 } }; // 16
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(14, 19),
-                // (15,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and S2 (_, _) }; // 17, 18
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(15, 19),
-                // (15,26): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and S2 (_, _) }; // 17, 18
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2 (_, _)").WithLocation(15, 26),
-                // (16,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and S2 (_, _) sss8 }; // 19
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(16, 19),
-                // (17,19): hidden CS9335: The pattern is redundant.
-                // _ = sss is S { P: S2 and S2 (var sss9, _) sss10 }; // 20
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S2").WithLocation(17, 19));
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6980,14 +6677,8 @@ struct S
     public C P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             compilation.VerifyEmitDiagnostics(
-                // (2,24): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [] and [..] }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[..]").WithLocation(2, 24),
-                // (3,24): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [] and [.._] }; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[.._]").WithLocation(3, 24),
                 // (6,5): error CS8518: An expression of type 'object' can never match the provided pattern.
                 // _ = s is S { P: [] and [_, ..] }; // 3
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is S { P: [] and [_, ..] }").WithArguments("object").WithLocation(6, 5),
@@ -7028,20 +6719,8 @@ struct S
     public C P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            compilation.VerifyEmitDiagnostics(
-                // (2,25): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [_] and [..] }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[..]").WithLocation(2, 25),
-                // (3,25): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [_] and [.._] }; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[.._]").WithLocation(3, 25),
-                // (6,25): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [_] and [_, ..] }; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, ..]").WithLocation(6, 25),
-                // (7,25): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [_] and [_, .._] }; // 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, .._]").WithLocation(7, 25));
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -7070,14 +6749,8 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            compilation.VerifyEmitDiagnostics(
-                // (2,17): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [..] }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[..]").WithLocation(2, 17),
-                // (3,17): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [.._] }; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[.._]").WithLocation(3, 17));
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -7106,14 +6779,8 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             compilation.VerifyEmitDiagnostics(
-                // (2,24): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [] and [..] }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[..]").WithLocation(2, 24),
-                // (3,24): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [] and [.._] }; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[.._]").WithLocation(3, 24),
                 // (6,5): error CS8518: An expression of type 'object' can never match the provided pattern.
                 // _ = s is S { P: [] and [_, ..] }; // 3
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is S { P: [] and [_, ..] }").WithArguments("object").WithLocation(6, 5),
@@ -7154,20 +6821,8 @@ struct S
     public S2 P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            compilation.VerifyEmitDiagnostics(
-                // (2,25): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [_] and [..] }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[..]").WithLocation(2, 25),
-                // (3,25): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [_] and [.._] }; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[.._]").WithLocation(3, 25),
-                // (6,25): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [_] and [_, ..] }; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, ..]").WithLocation(6, 25),
-                // (7,25): hidden CS9335: The pattern is redundant.
-                // _ = s is S { P: [_] and [_, .._] }; // 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "[_, .._]").WithLocation(7, 25));
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -7204,23 +6859,14 @@ _ = s is (_, _, _) and (_, _); // 4
 _ = s is (_, _, _) and (_, var s7); // 5
 _ = s is { Length: 3 } and (_, _); // 6
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             compilation.VerifyEmitDiagnostics(
-                // (10,21): hidden CS9335: The pattern is redundant.
-                // _ = s is (_, _) and (_, _); // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(10, 21),
                 // (12,21): error CS1061: 'ITuple' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'ITuple' could be found (are you missing a using directive or an assembly reference?)
                 // _ = s is (_, _) and (_, _) s6; // 2, 3
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(_, _)").WithArguments("System.Runtime.CompilerServices.ITuple", "Deconstruct").WithLocation(12, 21),
                 // (12,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'ITuple', with 2 out parameters and a void return type.
                 // _ = s is (_, _) and (_, _) s6; // 2, 3
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, _)").WithArguments("System.Runtime.CompilerServices.ITuple", "2").WithLocation(12, 21),
-                // (13,28): hidden CS9335: The pattern is redundant.
-                // _ = s is { Length: 2 } and (_, _);
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(13, 28),
-                // (14,33): hidden CS9335: The pattern is redundant.
-                // _ = s is not ({ Length: 2 } and (_, _));
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(14, 33),
                 // (20,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     not (_, _) => 1,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not (_, _)").WithLocation(20, 5),
@@ -7290,14 +6936,8 @@ public struct S
     public void Deconstruct(out object x, out object y) => throw null;
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,28): hidden CS9335: The pattern is redundant.
-                // _ = o is not S (42 and not 43, int x2); // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(4, 28),
-                // (5,36): hidden CS9335: The pattern is redundant.
-                // _ = o is not S { Prop1: 42 and not 43, Prop2: _ and var x3 }; // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 36),
                 // (10,5): error CS8518: An expression of type 'S' can never match the provided pattern.
                 // _ = s is not { Prop1: _ }; // 3
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is not { Prop1: _ }").WithArguments("S").WithLocation(10, 5),
@@ -7333,26 +6973,8 @@ public class C
     public void Deconstruct(out int x, out int y) => throw null;
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,17): hidden CS9335: The pattern is redundant.
-                // _ = o is C and (int, int); // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(2, 17),
-                // (2,22): hidden CS9335: The pattern is redundant.
-                // _ = o is C and (int, int); // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(2, 22),
-                // (6,17): hidden CS9335: The pattern is redundant.
-                // _ = c is C and (int, int); // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(6, 17),
-                // (6,22): hidden CS9335: The pattern is redundant.
-                // _ = c is C and (int, int); // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(6, 22),
-                // (9,11): hidden CS9335: The pattern is redundant.
-                // _ = c is (int, int); // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(9, 11),
-                // (9,16): hidden CS9335: The pattern is redundant.
-                // _ = c is (int, int); // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(9, 16),
                 // (13,5): warning CS8794: An expression of type 'C' always matches the provided pattern.
                 // _ = c is not object or (int x4, int y4); // 7, 8, 9
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "c is not object or (int x4, int y4)").WithArguments("C").WithLocation(13, 5),
@@ -7377,14 +6999,8 @@ _ = o is [not 42 or 43, not 44 or 45]; // 3, 4
 _ = o is not [_, _];
 _ = o is not [.._]; // 5
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (2,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, 44 and not 45]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 26),
-                // (2,41): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, 44 and not 45]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 41),
                 // (3,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, not 44 or 45]; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 21),
@@ -7406,14 +7022,8 @@ public class C
     public object Prop { get; set; }
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (2,34): hidden CS9335: The pattern is redundant.
-                // _ = o is not [{ Prop: 42 and not 43 }, { Prop: 44 and not 45 }]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 34),
-                // (2,59): hidden CS9335: The pattern is redundant.
-                // _ = o is not [{ Prop: 42 and not 43 }, { Prop: 44 and not 45 }]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 59),
                 // (3,29): warning CS9336: The pattern is redundant.
                 // _ = o is [{ Prop: not 42 or 43 }, { Prop: not 44 or 45 }]; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 29),
@@ -7505,26 +7115,8 @@ switch (o)
         break;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            comp.VerifyEmitDiagnostics(
-                // (2,22): hidden CS9335: The pattern is redundant.
-                // _ = o is [42 and not 43, 44 and not 45]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 22),
-                // (2,37): hidden CS9335: The pattern is redundant.
-                // _ = o is [42 and not 43, 44 and not 45]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 37),
-                // (5,17): hidden CS9335: The pattern is redundant.
-                //     [42 and not 43, 44 and not 45] => 0, // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 17),
-                // (5,32): hidden CS9335: The pattern is redundant.
-                //     [42 and not 43, 44 and not 45] => 0, // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(5, 32),
-                // (11,22): hidden CS9335: The pattern is redundant.
-                //     case [42 and not 43, 44 and not 45]: // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(11, 22),
-                // (11,37): hidden CS9335: The pattern is redundant.
-                //     case [42 and not 43, 44 and not 45]: // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(11, 37));
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -7547,26 +7139,8 @@ switch (t)
         break;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            comp.VerifyEmitDiagnostics(
-                // (2,22): hidden CS9335: The pattern is redundant.
-                // _ = t is (42 and not 43, 44 and not 45); // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 22),
-                // (2,37): hidden CS9335: The pattern is redundant.
-                // _ = t is (42 and not 43, 44 and not 45); // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 37),
-                // (5,17): hidden CS9335: The pattern is redundant.
-                //     (42 and not 43, 44 and not 45) => 0, // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 17),
-                // (5,32): hidden CS9335: The pattern is redundant.
-                //     (42 and not 43, 44 and not 45) => 0, // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(5, 32),
-                // (11,22): hidden CS9335: The pattern is redundant.
-                //     case (42 and not 43, 44 and not 45): // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(11, 22),
-                // (11,37): hidden CS9335: The pattern is redundant.
-                //     case (42 and not 43, 44 and not 45): // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(11, 37));
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -7595,26 +7169,8 @@ class C
     public void Deconstruct(out int x, out int y) => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            comp.VerifyEmitDiagnostics(
-                // (3,22): hidden CS9335: The pattern is redundant.
-                // _ = c is (42 and not 43, 44 and not 45); // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(3, 22),
-                // (3,37): hidden CS9335: The pattern is redundant.
-                // _ = c is (42 and not 43, 44 and not 45); // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(3, 37),
-                // (6,17): hidden CS9335: The pattern is redundant.
-                //     (42 and not 43, 44 and not 45) => 0, // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(6, 17),
-                // (6,32): hidden CS9335: The pattern is redundant.
-                //     (42 and not 43, 44 and not 45) => 0, // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(6, 32),
-                // (12,22): hidden CS9335: The pattern is redundant.
-                //     case (42 and not 43, 44 and not 45): // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(12, 22),
-                // (12,37): hidden CS9335: The pattern is redundant.
-                //     case (42 and not 43, 44 and not 45): // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(12, 37));
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -7644,26 +7200,8 @@ class C
     public int Prop2 { get; set; }
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
-            comp.VerifyEmitDiagnostics(
-                // (3,30): hidden CS9335: The pattern is redundant.
-                // _ = c is { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(3, 30),
-                // (3,52): hidden CS9335: The pattern is redundant.
-                // _ = c is { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(3, 52),
-                // (6,25): hidden CS9335: The pattern is redundant.
-                //     { Prop1: 42 and not 43, Prop2: 44 and not 45 } => 0, // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(6, 25),
-                // (6,47): hidden CS9335: The pattern is redundant.
-                //     { Prop1: 42 and not 43, Prop2: 44 and not 45 } => 0, // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(6, 47),
-                // (12,30): hidden CS9335: The pattern is redundant.
-                //     case { Prop1: 42 and not 43, Prop2: 44 and not 45 }: // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(12, 30),
-                // (12,52): hidden CS9335: The pattern is redundant.
-                //     case { Prop1: 42 and not 43, Prop2: 44 and not 45 }: // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(12, 52));
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -7686,26 +7224,14 @@ public struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (2,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, 44 and not 45, ..]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 26),
-                // (2,41): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, 44 and not 45, ..]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 41),
                 // (3,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, not 44 or 45, ..]; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 21),
                 // (3,35): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, not 44 or 45, ..]; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 35),
-                // (5,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, .., 44 and not 45]; // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 26),
-                // (5,45): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, .., 44 and not 45]; // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(5, 45),
                 // (6,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, .., not 44 or 45]; // 7, 8
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 21),
@@ -7742,44 +7268,17 @@ public struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (2,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, .._]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 26),
                 // (3,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, .._]; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 21),
-                // (4,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..(_ or _)]; // 5, 6, 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(4, 26),
-                // (4,33): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..(_ or _)]; // 5, 6, 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "_ or _").WithLocation(4, 33),
-                // (4,38): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..(_ or _)]; // 5, 6, 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "_").WithLocation(4, 38),
-                // (5,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..(_ and _)]; // 8, 9, 10
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 26),
-                // (7,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..var x]; // 11
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(7, 26),
                 // (8,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, ..var y]; // 12
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(8, 21),
-                // (10,36): hidden CS9335: The pattern is redundant.
-                // _ = o is not [..var x2, 42 and not 43]; // 13
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(10, 36),
                 // (11,31): warning CS9336: The pattern is redundant.
                 // _ = o is [..var y2, not 42 or 43]; // 14
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(11, 31),
-                // (13,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..var z or var t]; // 15, 16, 17, 18
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(13, 26),
-                // (13,32): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, ..var z or var t]; // 15, 16, 17, 18
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "var z or var t").WithLocation(13, 32),
                 // (13,36): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is not [42 and not 43, ..var z or var t]; // 15, 16, 17, 18
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(13, 36),
@@ -7812,29 +7311,14 @@ public struct S
     public S this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (3,29): hidden CS9335: The pattern is redundant.
-                // _ = s is not [..[42 and not 43]]; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(3, 29),
                 // (4,24): warning CS9336: The pattern is redundant.
                 // _ = s is [..[not 42 or 43]]; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(4, 24),
-                // (5,29): hidden CS9335: The pattern is redundant.
-                // _ = s is not [..[42 and not 43]]; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 29),
-                // (6,29): hidden CS9335: The pattern is redundant.
-                // _ = s is not [..[42 and not 43]]; // 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(6, 29),
-                // (8,29): hidden CS9335: The pattern is redundant.
-                // _ = s is not [..[42 and not 43, ..var x]]; // 5
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(8, 29),
                 // (9,24): warning CS9336: The pattern is redundant.
                 // _ = s is [..[not 42 or 43]]; // 6
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(9, 24),
-                // (11,29): hidden CS9335: The pattern is redundant.
-                // _ = s is not [..[42 and not 43]]; // 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(11, 29),
                 // (12,25): warning CS9336: The pattern is redundant.
                 // _ = s is [.. [not 42 or 43]]; // 8
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 25));
@@ -7873,35 +7357,20 @@ public struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (2,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, _]; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 26),
                 // (3,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, _]; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 21),
-                // (5,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, var x]; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 26),
                 // (6,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, var y]; // 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 21),
-                // (8,34): hidden CS9335: The pattern is redundant.
-                // _ = o is not [var x2, 42 and not 43]; // 5
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(8, 34),
                 // (9,29): warning CS9336: The pattern is redundant.
                 // _ = o is [var y2, not 42 or 43]; // 6
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(9, 29),
-                // (11,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, _ and var x3]; // 7, 8
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(11, 26),
                 // (12,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, _ and var y3]; // 9, 10
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 21),
-                // (14,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, var x4 and _]; // 11, 12
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(14, 26),
                 // (15,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, var y4 and _]; // 13, 14
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(15, 21),
@@ -7913,13 +7382,7 @@ public struct S
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(18, 21),
                 // (19,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, int y7]; // 18
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(19, 21),
-                // (21,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, int and var y8]; // 19, 20
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(21, 26),
-                // (21,30): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, int and var y8]; // 19, 20
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(21, 30));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(19, 21));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -7940,26 +7403,14 @@ public struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (2,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, _, ..44 and not 45]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 26),
-                // (2,46): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, _, ..44 and not 45]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 46),
                 // (3,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, _, ..not 44 or 45]; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 21),
                 // (3,40): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, _, ..not 44 or 45]; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 40),
-                // (5,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, var x, ..44 and not 45]; // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 26),
-                // (5,50): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, var x, ..44 and not 45]; // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(5, 50),
                 // (6,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, var y, ..not 44 or 45]; // 7, 8
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 21),
@@ -7998,7 +7449,7 @@ struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (2,27): warning CS9336: The pattern is redundant.
                 // _ = o is C and [not 42 or 43, ..(not 44 or 45)]; // 1, 2
@@ -8006,9 +7457,6 @@ struct S
                 // (2,44): warning CS9336: The pattern is redundant.
                 // _ = o is C and [not 42 or 43, ..(not 44 or 45)]; // 1, 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(2, 44),
-                // (3,31): hidden CS9335: The pattern is redundant.
-                // _ = o is C and [..(42 and not 43), not 44 or 45]; // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(3, 31),
                 // (3,46): warning CS9336: The pattern is redundant.
                 // _ = o is C and [..(42 and not 43), not 44 or 45]; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 46),
@@ -8018,24 +7466,15 @@ struct S
                 // (6,52): warning CS9336: The pattern is redundant.
                 // _ = c is not object or [not 42 or 43, ..(not 44 or 45)]; // 5, 6
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(6, 52),
-                // (7,39): hidden CS9335: The pattern is redundant.
-                // _ = c is not object or [..(42 and not 43), not 44 or 45]; // 7, 8
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(7, 39),
                 // (7,54): warning CS9336: The pattern is redundant.
                 // _ = c is not object or [..(42 and not 43), not 44 or 45]; // 7, 8
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(7, 54),
                 // (10,35): warning CS9336: The pattern is redundant.
                 // _ = s is not object or [not 42 or 43, ..(44 and not 45)]; // 9, 10
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(10, 35),
-                // (10,53): hidden CS9335: The pattern is redundant.
-                // _ = s is not object or [not 42 or 43, ..(44 and not 45)]; // 9, 10
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(10, 53),
                 // (11,38): warning CS9336: The pattern is redundant.
                 // _ = s is not object or [..(not 42 or 43), 44 and not 45]; // 11, 12
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(11, 38),
-                // (11,54): hidden CS9335: The pattern is redundant.
-                // _ = s is not object or [..(not 42 or 43), 44 and not 45]; // 11, 12
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(11, 54));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(11, 38));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -8056,7 +7495,7 @@ public struct S
     public int this[System.Range r] => throw null;
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0029: Cannot implicitly convert type 'int' to 'S'
                 // _ = o is not (42 and not 43 and var x1); // 1, 2
@@ -8070,12 +7509,6 @@ public struct S
                 // (3,40): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, _, ..not 44 or 45]; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(3, 40),
-                // (5,26): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, var x2, ..44 and not 45]; // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 26),
-                // (5,51): hidden CS9335: The pattern is redundant.
-                // _ = o is not [42 and not 43, var x2, ..44 and not 45]; // 5, 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(5, 51),
                 // (6,21): warning CS9336: The pattern is redundant.
                 // _ = o is [not 42 or 43, var x3, ..not 44 or 45]; // 7, 8
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 21),
@@ -8155,17 +7588,11 @@ switch (i)
     default: break; // 11
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,20): hidden CS9335: The pattern is redundant.
-                // _ = i is 1 or 2 or 1; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "1").WithLocation(2, 20),
                 // (3,5): warning CS8794: An expression of type 'int' always matches the provided pattern.
                 // _ = i is 1 or 2 or not 1; // 2
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is 1 or 2 or not 1").WithArguments("int").WithLocation(3, 5),
-                // (5,25): hidden CS9335: The pattern is redundant.
-                // _ = i is not (1 or 2 or 1); // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "1").WithLocation(5, 25),
                 // (6,5): error CS8518: An expression of type 'int' can never match the provided pattern.
                 // _ = i is not (1 or 2 or not 1); // 4
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is not (1 or 2 or not 1)").WithArguments("int").WithLocation(6, 5),
@@ -8260,14 +7687,8 @@ public {{typeKind}} S
     public int this[System.Range r] => throw null;
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             compilation.VerifyDiagnostics(
-                // (5,38): hidden CS9335: The pattern is redundant.
-                //         if (s is { Prop1: 42 and not 43 } or { Prop2: 44 and not 45 }) { } // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 38),
-                // (5,66): hidden CS9335: The pattern is redundant.
-                //         if (s is { Prop1: 42 and not 43 } or { Prop2: 44 and not 45 }) { } // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(5, 66),
                 // (6,37): warning CS9336: The pattern is redundant.
                 //         if (s is { Prop1: not 42 or 43 } and { Prop2: not 44 or 45 }) { } // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 37),
@@ -8289,21 +7710,12 @@ public {{typeKind}} S
                 // (10,43): warning CS9336: The pattern is redundant.
                 //         if (s is (not 42 or 43, not 44 or 45)) { } // 8, 9
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(10, 43),
-                // (11,30): hidden CS9335: The pattern is redundant.
-                //         if (s is (42 and not 43, 44 and not 45)) { } // 10, 11
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(11, 30),
-                // (11,45): hidden CS9335: The pattern is redundant.
-                //         if (s is (42 and not 43, 44 and not 45)) { } // 10, 11
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(11, 45),
                 // (12,29): warning CS9336: The pattern is redundant.
                 //         if (s is (not 42 or 43, _) and var (x2, x3)) { } // 12
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 29),
                 // (13,29): warning CS9336: The pattern is redundant.
                 //         if (s is (not 42 or 43, _) and (_, _)) { } // 13, 14
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(13, 29),
-                // (13,40): hidden CS9335: The pattern is redundant.
-                //         if (s is (not 42 or 43, _) and (_, _)) { } // 13, 14
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(13, 40),
                 // (14,29): warning CS9336: The pattern is redundant.
                 //         if (s is (not 42 or 43, not 44 or 45) and (var x4, var x5)) { } // 15, 16
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(14, 29),
@@ -8316,12 +7728,6 @@ public {{typeKind}} S
                 // (16,43): warning CS9336: The pattern is redundant.
                 //         if (s is [not 42 or 43, not 44 or 45]) { } // 17, 18
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(16, 43),
-                // (17,30): hidden CS9335: The pattern is redundant.
-                //         if (s is [42 and not 43, 44 and not 45]) { } // 19, 20
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(17, 30),
-                // (17,45): hidden CS9335: The pattern is redundant.
-                //         if (s is [42 and not 43, 44 and not 45]) { } // 19, 20
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(17, 45),
                 // (18,29): warning CS9336: The pattern is redundant.
                 //         if (s is [not 42 or 43, not 44 or 45] and [var x6, var x7]) { } // 21, 22
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(18, 29),
@@ -8334,12 +7740,6 @@ public {{typeKind}} S
                 // (20,43): warning CS9336: The pattern is redundant.
                 //         if (t is (not 42 or 43, not 44 or 45)) { } // 23, 24
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(20, 43),
-                // (21,30): hidden CS9335: The pattern is redundant.
-                //         if (t is (42 and not 43, 44 and not 45)) { } // 25, 26
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(21, 30),
-                // (21,45): hidden CS9335: The pattern is redundant.
-                //         if (t is (42 and not 43, 44 and not 45)) { } // 25, 26
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(21, 45),
                 // (22,29): warning CS9336: The pattern is redundant.
                 //         if (t is (not 42 or 43, not 44 or 45) and (var x8, var x9)) { } // 27, 28
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(22, 29),
@@ -8391,14 +7791,8 @@ public {{typeKind}} S
     public object this[System.Range r] => throw null;
 }
 """;
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             compilation.VerifyDiagnostics(
-                // (5,38): hidden CS9335: The pattern is redundant.
-                //         if (s is { Prop1: 42 and not 43 } or { Prop2: 44 and not 45 }) { } // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 38),
-                // (5,66): hidden CS9335: The pattern is redundant.
-                //         if (s is { Prop1: 42 and not 43 } or { Prop2: 44 and not 45 }) { } // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(5, 66),
                 // (6,37): warning CS9336: The pattern is redundant.
                 //         if (s is { Prop1: not 42 or 43 } and { Prop2: not 44 or 45 }) { } // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(6, 37),
@@ -8420,21 +7814,12 @@ public {{typeKind}} S
                 // (10,43): warning CS9336: The pattern is redundant.
                 //         if (s is (not 42 or 43, not 44 or 45)) { } // 8, 9
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(10, 43),
-                // (11,30): hidden CS9335: The pattern is redundant.
-                //         if (s is (42 and not 43, 44 and not 45)) { } // 10, 11
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(11, 30),
-                // (11,45): hidden CS9335: The pattern is redundant.
-                //         if (s is (42 and not 43, 44 and not 45)) { } // 10, 11
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(11, 45),
                 // (12,29): warning CS9336: The pattern is redundant.
                 //         if (s is (not 42 or 43, _) and var (x2, x3)) { } // 12
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(12, 29),
                 // (13,29): warning CS9336: The pattern is redundant.
                 //         if (s is (not 42 or 43, _) and (_, _)) { } // 13, 14
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(13, 29),
-                // (13,40): hidden CS9335: The pattern is redundant.
-                //         if (s is (not 42 or 43, _) and (_, _)) { } // 13, 14
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(13, 40),
                 // (14,29): warning CS9336: The pattern is redundant.
                 //         if (s is (not 42 or 43, not 44 or 45) and (var x4, var x5)) { } // 15, 16
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(14, 29),
@@ -8447,12 +7832,6 @@ public {{typeKind}} S
                 // (16,43): warning CS9336: The pattern is redundant.
                 //         if (s is [not 42 or 43, not 44 or 45]) { } // 17, 18
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "45").WithLocation(16, 43),
-                // (17,30): hidden CS9335: The pattern is redundant.
-                //         if (s is [42 and not 43, 44 and not 45]) { } // 19, 20
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(17, 30),
-                // (17,45): hidden CS9335: The pattern is redundant.
-                //         if (s is [42 and not 43, 44 and not 45]) { } // 19, 20
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(17, 45),
                 // (18,29): warning CS9336: The pattern is redundant.
                 //         if (s is [not 42 or 43, not 44 or 45] and [var x6, var x7]) { } // 21, 22
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(18, 29),
@@ -8611,7 +7990,7 @@ _ = i is (string or not 42) or 0;
 _ = i is 42 or (42 or not 0);
 _ = i is (not 42) or 43;
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (2,34): warning CS9336: The pattern is redundant.
                 // _ = i is not (42 or 43) or 43 or 0; // warn
@@ -8619,9 +7998,6 @@ _ = i is (not 42) or 43;
                 // (3,34): warning CS9336: The pattern is redundant.
                 // _ = i is not (42 or 43) or 43 or (0); // warn
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "(0)").WithLocation(3, 34),
-                // (4,28): hidden CS9335: The pattern is redundant.
-                // _ = i is (42 or not 43) or 0;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "0").WithLocation(4, 28),
                 // (5,26): warning CS9336: The pattern is redundant.
                 // _ = i is 42 or not 43 or 0; // warn
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "0").WithLocation(5, 26),
@@ -8634,9 +8010,6 @@ _ = i is (not 42) or 43;
                 // (7,40): warning CS9336: The pattern is redundant.
                 // _ = i is not (42 or 43) or 43 or (0 or 1); // warn
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(7, 40),
-                // (8,36): hidden CS9335: The pattern is redundant.
-                // _ = i is (not (42 or 43) or 43) or 0;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "0").WithLocation(8, 36),
                 // (9,35): warning CS9336: The pattern is redundant.
                 // _ = i is not (42 or 43) or (43 or 0); // warn
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "0").WithLocation(9, 35),
@@ -8651,16 +8024,7 @@ _ = i is (not 42) or 43;
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "0").WithLocation(12, 44),
                 // (13,38): warning CS9336: The pattern is redundant.
                 // _ = i is string or not (42 or 43) or 0; // warn
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "0").WithLocation(13, 38),
-                // (14,32): hidden CS9335: The pattern is redundant.
-                // _ = i is (string or not 42) or 0;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "0").WithLocation(14, 32),
-                // (15,17): hidden CS9335: The pattern is redundant.
-                // _ = i is 42 or (42 or not 0);
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "42").WithLocation(15, 17),
-                // (16,22): hidden CS9335: The pattern is redundant.
-                // _ = i is (not 42) or 43;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(16, 22));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "0").WithLocation(13, 38));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -8680,14 +8044,8 @@ class C
 }
 class Derived : C { }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,31): hidden CS9335: The pattern is redundant.
-                // _ = s is { Prop1: not 42 } or { Prop1: 43 }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Prop1: 43 }").WithLocation(3, 31),
-                // (4,30): hidden CS9335: The pattern is redundant.
-                // _ = s is (not 42, _) or (not 43, _); // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(4, 30)
                 );
         }
 
@@ -8871,14 +8229,8 @@ public struct S
     public int P3 { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (5,64): hidden CS9335: The pattern is redundant.
-                //         if (s is { P0: 0 } or { P2: > -1 } or (({ P1: > 1 } or { P2: 2 }) and { P3: 3 })) { } // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ P2: 2 }").WithLocation(5, 64),
-                // (7,49): hidden CS9335: The pattern is redundant.
-                //         if (s is { P0: 0 } or { P2: > -1 } or (({ P2: 2 } or { P1: > 1 }) and { P3: 3 })) { } // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ P2: 2 }").WithLocation(7, 49)
                 );
         }
 
@@ -8942,29 +8294,17 @@ public class C
     public string P { get; set; }
 }
 """;
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (2,15): hidden CS9335: The pattern is redundant.
-                // _ = s is { P: string or null }; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string or null").WithLocation(2, 15),
                 // (3,5): error CS8518: An expression of type 'S' can never match the provided pattern.
                 // _ = s is { P: string and null }; // 2
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is { P: string and null }").WithArguments("S").WithLocation(3, 5),
-                // (7,15): hidden CS9335: The pattern is redundant.
-                // _ = c is { P: string or null }; // 3
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string or null").WithLocation(7, 15),
                 // (8,5): error CS8518: An expression of type 'C' can never match the provided pattern.
                 // _ = c is { P: string and null }; // 4
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "c is { P: string and null }").WithArguments("C").WithLocation(8, 5),
                 // (10,28): warning CS9336: The pattern is redundant.
                 // _ = c is not null and { P: string or null }; // 5
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "string or null").WithLocation(10, 28),
-                // (13,17): hidden CS9335: The pattern is redundant.
-                // _ = o is S { P: string or null }; // 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string or null").WithLocation(13, 17),
-                // (14,17): hidden CS9335: The pattern is redundant.
-                // _ = o is C { P: string or null }; // 7
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string or null").WithLocation(14, 17));
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "string or null").WithLocation(10, 28));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -8984,17 +8324,8 @@ public class C
     public object O;
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,12): hidden CS9335: The pattern is redundant.
-                // _ =  c is ({F: 1 and not 1} and {O: not A or B}) or {F: 2}; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{F: 1 and not 1} and {O: not A or B}").WithLocation(3, 12),
-                // (3,37): hidden CS9335: The pattern is redundant.
-                // _ =  c is ({F: 1 and not 1} and {O: not A or B}) or {F: 2}; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "not A or B").WithLocation(3, 37),
-                // (3,41): hidden CS9335: The pattern is redundant.
-                // _ =  c is ({F: 1 and not 1} and {O: not A or B}) or {F: 2}; // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "A").WithLocation(3, 41),
                 // (3,46): warning CS9336: The pattern is redundant.
                 // _ =  c is ({F: 1 and not 1} and {O: not A or B}) or {F: 2}; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(3, 46)
@@ -9099,20 +8430,14 @@ _ = o is Base x17 and Derived;
 class Base { }
 class Derived : Base { }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithHiddenRedundantPatterns);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (2,17): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is string x1 or string; // 1, 2
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x1").WithLocation(2, 17),
-                // (2,23): hidden CS9335: The pattern is redundant.
-                // _ = o is string x1 or string; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(2, 23),
                 // (3,17): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = o is object x2 or string; // 3, 4
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x2").WithLocation(3, 17),
-                // (3,23): hidden CS9335: The pattern is redundant.
-                // _ = o is object x2 or string; // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(3, 23),
                 // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     string => 1, // 5
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(8, 5),
@@ -9122,9 +8447,6 @@ class Derived : Base { }
                 // (21,17): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 // _ = b is object x5 or Derived; // 7, 8
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x5").WithLocation(21, 17),
-                // (21,23): hidden CS9335: The pattern is redundant.
-                // _ = b is object x5 or Derived; // 7, 8
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "Derived").WithLocation(21, 23),
                 // (26,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     Derived => 1, // 9
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Derived").WithLocation(26, 5),
@@ -9139,19 +8461,7 @@ class Derived : Base { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x9").WithLocation(32, 28),
                 // (35,5): error CS8518: An expression of type 'object' can never match the provided pattern.
                 // _ = o is string x11 and not string; // 13
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "o is string x11 and not string").WithArguments("object").WithLocation(35, 5),
-                // (37,23): hidden CS9335: The pattern is redundant.
-                // _ = b is Base x12 and object; // 14
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "object").WithLocation(37, 23),
-                // (38,23): hidden CS9335: The pattern is redundant.
-                // _ = b is Base x13 and Base; // 15
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "Base").WithLocation(38, 23),
-                // (41,23): hidden CS9335: The pattern is redundant.
-                // _ = o is Base x15 and object; // 16
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "object").WithLocation(41, 23),
-                // (42,23): hidden CS9335: The pattern is redundant.
-                // _ = o is Base x16 and Base; // 17
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "Base").WithLocation(42, 23));
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "o is string x11 and not string").WithArguments("object").WithLocation(35, 5));
         }
 
         [Fact]
@@ -9256,9 +8566,6 @@ class C
 ";
             var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
-                // (3,30): hidden CS9335: The pattern is redundant.
-                // _ = o is C { Prop1: 0 } and (not null or (C and ({ Prop1: 0 } or { Prop2: 1 })));
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "not null or (C and ({ Prop1: 0 } or { Prop2: 1 }))").WithLocation(3, 30),
                 // (3,43): warning CS9336: The pattern is redundant.
                 // _ = o is C { Prop1: 0 } and (not null or (C and ({ Prop1: 0 } or { Prop2: 1 })));
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "C and ({ Prop1: 0 } or { Prop2: 1 })").WithLocation(3, 43),
@@ -9342,27 +8649,6 @@ int i = 0;
 _ = i is 42 or not 43;
 ";
             var compilation = CreateCompilation(source);
-            compilation.VerifyEmitDiagnostics();
-        }
-
-        [Fact]
-        public void RedundantPattern_EasyOut_01()
-        {
-            var source = """
-                int i = 0;
-                _ = i is (not 42) or 43;
-                """;
-
-            // Note: severity is hidden rather than warning because the '(not 42)' has parentheses.
-            var options = TestOptions.ReleaseExeWithHiddenRedundantPatterns;
-            var compilation = CreateCompilation(source, options: options);
-            compilation.VerifyEmitDiagnostics(
-                // (2,22): hidden CS9335: The pattern is redundant.
-                // _ = i is (not 42) or 43;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 22));
-
-            options = TestOptions.ReleaseExe;
-            compilation = CreateCompilation(source, options: options);
             compilation.VerifyEmitDiagnostics();
         }
     }

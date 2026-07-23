@@ -2942,11 +2942,6 @@
         <target state="translated">Using 指令在以前显示为全局使用</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="translated">模式是冗余的。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">模式太复杂，无法分析冗余。</target>
@@ -2955,11 +2950,6 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">模式太复杂，无法分析冗余。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="translated">模式是冗余的。</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">

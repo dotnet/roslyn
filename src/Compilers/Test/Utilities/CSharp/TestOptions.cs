@@ -68,9 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpCompilationOptions ReleaseDll = CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions ReleaseExe = CreateTestOptions(OutputKind.ConsoleApplication, OptimizationLevel.Release);
 
-        public static readonly CSharpCompilationOptions ReleaseDllWithHiddenRedundantPatterns = ReleaseDll.WithSpecificDiagnosticOptions(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.HDN_RedundantPattern), ReportDiagnostic.Hidden);
-        public static readonly CSharpCompilationOptions ReleaseExeWithHiddenRedundantPatterns = ReleaseExe.WithSpecificDiagnosticOptions(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.HDN_RedundantPattern), ReportDiagnostic.Hidden);
-
         public static readonly CSharpCompilationOptions ReleaseDebugDll = ReleaseDll.WithDebugPlusMode(true);
 
         public static readonly CSharpCompilationOptions ReleaseDebugExe = ReleaseExe.WithDebugPlusMode(true);

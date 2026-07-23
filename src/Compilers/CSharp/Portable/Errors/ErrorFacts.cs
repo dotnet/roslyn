@@ -2544,7 +2544,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadSpreadInCatchFilter
                 or ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch
                 or ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
-                or ErrorCode.HDN_RedundantPattern
                 or ErrorCode.WRN_RedundantPattern
                 or ErrorCode.HDN_RedundantPatternStackGuard
                 or ErrorCode.ERR_BadVisBaseType

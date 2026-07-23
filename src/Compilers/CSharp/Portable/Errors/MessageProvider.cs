@@ -115,7 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_UnassignedThisSupportedVersion
                 or ErrorCode.WRN_CollectionExpressionRefStructMayAllocate
                 or ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate
-                or ErrorCode.HDN_RedundantPattern
             );
 
         public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
