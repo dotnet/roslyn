@@ -1172,11 +1172,11 @@ hasRelatedInterfaces:
             TypeWithAnnotations constraintType,
             ref bool hasError)
         {
-            if (SatisfiesConstraintType(args.Conversions.WithNullability(false), typeArgument, constraintType, ref useSiteInfo))
+            if (SatisfiesConstraintType(args.Conversions.WithNullability(false), typeArgument, constraintType, ref useSiteInfo, args.Diagnostics))
             {
                 if (nullabilityDiagnosticsBuilderOpt != null)
                 {
-                    if (!SatisfiesConstraintType(args.Conversions.WithNullability(true), typeArgument, constraintType, ref useSiteInfo) ||
+                    if (!SatisfiesConstraintType(args.Conversions.WithNullability(true), typeArgument, constraintType, ref useSiteInfo, args.Diagnostics) ||
                         !constraintTypeAllows(constraintType, getTypeArgumentState(typeArgument)))
                     {
                         nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument))));
@@ -1345,11 +1345,12 @@ hasRelatedInterfaces:
             ConversionsBase conversions,
             TypeWithAnnotations typeArgument,
             TypeWithAnnotations constraintType,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            BindingDiagnosticBag diagnostics = null)
         {
             if (constraintType.Type.IsErrorType())
             {
-                return false;
+                return true;
             }
 
             // Spec 4.4.4 describes the valid conversions from
