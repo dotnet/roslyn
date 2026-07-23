@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -172,8 +173,18 @@ namespace Microsoft.CodeAnalysis
 
         internal static string GetAssemblyLocation(Type type)
         {
+#if NET
+            if (RuntimeFeature.IsDynamicCodeSupported)
+            {
+                var location = type.Assembly.Location;
+                return string.IsNullOrEmpty(location) ? "<unknown>" : location;
+            }
+
+            return "<unknown>";
+#else
             var location = type.Assembly.Location;
             return string.IsNullOrEmpty(location) ? "<unknown>" : location;
+#endif
         }
 
         /// <summary>
