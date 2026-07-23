@@ -28,12 +28,22 @@ internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase
             return codeDocument;
         }
 
+        // The decl C# document is lowered before the tag-helper rewrite phase runs, so the code
+        // document it back-references has no rewritten syntax tree. Tooling reads
+        // GetRequiredTagHelperRewrittenSyntaxTree() off the decl document (e.g. diagnostic filtering
+        // in the workspaces layer); the decl is markup-free, so its rewritten tree is just the
+        // canonical syntax tree. Seed it here so that back-reference is complete without disturbing the
+        // main document, which the real rewrite phase updates later.
+        var declCodeDocument = codeDocument.GetTagHelperRewrittenSyntaxTree() is null
+            ? codeDocument.WithTagHelperRewrittenSyntaxTree(codeDocument.GetRequiredSyntaxTree())
+            : codeDocument;
+
         // The decl writer suppresses diagnostic collection because every diagnostic on the decl tree is
         // also reachable from the impl tree the final lowering phase writes; letting both report would
         // surface every Razor-detected issue twice.
         var declDocument = RazorCSharpDocumentWriter.Write(
             declDocNode,
-            codeDocument,
+            declCodeDocument,
             reportDiagnostics: false,
             isDeclarationDocument: true,
             cancellationToken: cancellationToken);
