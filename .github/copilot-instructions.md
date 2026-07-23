@@ -117,7 +117,7 @@ Write the plan to `plan.md` in your session folder (see the session context) and
 - **Validation:** exact build + targeted test commands you'll run (see Build & Test).
 ```
 
-For non-trivial work, **post the plan and wait for approval before writing the implementing diff** — the plan is meant to be reviewed while it's still cheap to change, not after a large diff already exists.
+**Post the plan and wait for approval before writing the implementing diff** — the plan is meant to be reviewed now, not after a large diff already exists.
 
 Then implement, keeping the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. If the plan changes materially while implementing, update it rather than silently diverging. Only after the plan's **Acceptance** and **Validation** are satisfied (and the Validation Checklist below passes) is the work "done."
 
