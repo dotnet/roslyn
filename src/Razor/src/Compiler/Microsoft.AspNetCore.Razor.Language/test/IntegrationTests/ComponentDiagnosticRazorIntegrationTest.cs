@@ -77,7 +77,7 @@ namespace Test
             The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document. Use '@using <namespace>' directive instead.
             """, item.GetMessage(CultureInfo.CurrentCulture));
                 Assert.Equal(0, item.Span.LineIndex);
-                Assert.Equal(0, item.Span.CharacterIndex);
+                Assert.Equal(14, item.Span.CharacterIndex);
             },
             item =>
             {
@@ -86,7 +86,7 @@ namespace Test
             The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document. Use '@using <namespace>' directive instead.
             """, item.GetMessage(CultureInfo.CurrentCulture));
                 Assert.Equal(1, item.Span.LineIndex);
-                Assert.Equal(0, item.Span.CharacterIndex);
+                Assert.Equal(17, item.Span.CharacterIndex);
             });
     }
 
