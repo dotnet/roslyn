@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_originalMethod.IsStatic)
             {
-                parameters.Add(new ExtensionMetadataMethodParameterSymbol(this, ((SourceNamedTypeSymbol)_originalMethod.ContainingType).ExtensionParameter!));
+                parameters.Add(new ExtensionMetadataMethodParameterSymbol(this, ((SourceNamedTypeSymbol)_originalMethod.ContainingType).RequiredExtensionParameter));
             }
 
             foreach (var parameter in sourceParameters)

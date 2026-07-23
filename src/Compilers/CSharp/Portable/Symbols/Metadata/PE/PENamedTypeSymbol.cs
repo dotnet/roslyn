@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         !MemberSignatureComparer.HaveSameParameterType(
                             candidate.Parameters[0],
                             typeMap1: null,
-                            @this.ExtensionParameter!,
+                            @this.RequiredExtensionParameter,
                             typeMap,
                             MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
                             considerDefaultValues: false,
