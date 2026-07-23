@@ -1203,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConversionsBase conversions = compilation?.Conversions ?? (ConversionsBase)extensionMember.ContainingAssembly.CorLibrary.TypeConversions;
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            Conversion conversion = conversions.ConvertExtensionMethodThisArg(parameterType: result.GetRequiredExtensionParameter().Type, receiverType, ref discardedUseSiteInfo, isMethodGroupConversion: false);
+            Conversion conversion = conversions.ConvertExtensionMethodThisArg(parameterType: result.RequiredContainingType.RequiredExtensionParameter.Type, receiverType, ref discardedUseSiteInfo, isMethodGroupConversion: false);
             if (!conversion.Exists)
             {
                 return null;

@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                         // The container of the synthesized symbol doesn't exist, we need to add the symbol.
                         // This may happen e.g. for members of a state machine type when a non-iterator method is changed to an iterator.
-                        if (!DefinitionExistsInPreviousGeneration(synthesizedSymbol.GetRequiredContainingType()))
+                        if (!DefinitionExistsInPreviousGeneration(synthesizedSymbol.RequiredContainingType))
                         {
                             return SymbolChange.Added;
                         }
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     if (edit.Kind == SemanticEditKind.Update)
                     {
                         var oldMethod = (IMethodSymbolInternal)GetRequiredInternalSymbol(edit.OldSymbol);
-                        var containingType = newMember.GetRequiredContainingType();
+                        var containingType = newMember.RequiredContainingType;
                         if (!updatedMethodsBuilder.TryGetValue(containingType, out var updatedMethodsPerType))
                         {
                             updatedMethodsPerType = ArrayBuilder<(IMethodSymbolInternal, IMethodSymbolInternal)>.GetInstance();

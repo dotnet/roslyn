@@ -128,11 +128,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
         }
 
-        internal static ParameterSymbol GetRequiredExtensionParameter(this Symbol symbol)
+        extension(NamedTypeSymbol namedType)
         {
-            var extensionParameter = symbol.RequiredContainingType.ExtensionParameter;
-            Debug.Assert(extensionParameter is not null);
-            return extensionParameter;
+            internal ParameterSymbol RequiredExtensionParameter
+            {
+                get
+                {
+                    var extensionParameter = namedType.ExtensionParameter;
+                    Debug.Assert(extensionParameter is not null);
+                    return extensionParameter;
+                }
+            }
         }
 
         internal static bool TryGetInstanceExtensionParameter(this Symbol symbol, [NotNullWhen(true)] out ParameterSymbol? extensionParameter)

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -118,13 +117,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return false;
-        }
-
-        internal static INamedTypeSymbolInternal GetRequiredContainingType(this ISymbolInternal symbol)
-        {
-            var containingType = symbol.ContainingType;
-            Debug.Assert(containingType is not null, $"'{symbol.Name}': Unexpected null ContainingType");
-            return containingType;
         }
 
         // Keep consistent with TypeSymbolExtensions.IsWellKnownTypeLock.

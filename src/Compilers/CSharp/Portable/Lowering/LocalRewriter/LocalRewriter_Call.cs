@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(rewrittenReceiver.Type is { });
 
-            RefKind receiverRefKind = methodOrIndexer.GetRequiredExtensionParameter().RefKind;
+            RefKind receiverRefKind = methodOrIndexer.RequiredContainingType.RequiredExtensionParameter.RefKind;
             bool isReceiverTakenByValue = receiverRefKind == RefKind.None;
 
             if (rewrittenReceiver.Type.IsReferenceType ||
@@ -1328,9 +1328,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol;
                 }
 
-                if (methodOrIndexer.IsExtensionBlockMember())
+                if (methodOrIndexer.IsExtensionBlockMember(out var extension))
                 {
-                    return methodOrIndexer.GetRequiredExtensionParameter().Type as NamedTypeSymbol;
+                    return extension.RequiredExtensionParameter.Type as NamedTypeSymbol;
                 }
 
                 return (NamedTypeSymbol?)methodOrIndexer.ContainingType;

@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static void getDeclaredUserDefinedUnaryOperators(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
             {
-                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.ContainingType!.ExtensionParameter is not null));
+                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.RequiredContainingType.ExtensionParameter is not null));
                 var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
                 NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
                 GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt: null, typeOperators, kind, name, operators);
