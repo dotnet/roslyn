@@ -22,6 +22,13 @@ public sealed class DocumentIntermediateNode : IntermediateNode
     /// </summary>
     internal bool IsSplitImplDocument { get; set; }
 
+    /// <summary>
+    /// The markup-free decl subtree captured by <see cref="DefaultRazorMarkupSplitPhase"/> when it split
+    /// this component, for <see cref="DefaultRazorDeclCSharpLoweringPhase"/> to lower into the decl C#
+    /// document before tag-helper discovery. Null when the document wasn't split.
+    /// </summary>
+    internal DocumentIntermediateNode DeclDocumentNode { get; set; }
+
     public RazorCodeGenerationOptions Options { get; set; }
 
     public CodeTarget Target { get; set; }
