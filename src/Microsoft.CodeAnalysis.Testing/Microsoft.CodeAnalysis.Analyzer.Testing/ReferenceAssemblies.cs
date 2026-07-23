@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 static string? GetInstalledPath(PackagePathResolver localPathResolver, PackagePathResolver globalPathResolver, NuGet.Packaging.Core.PackageIdentity packageIdentity)
                 {
-                    string? installedPath = s_packageToInstalledLocation.GetValueOrDefault(packageIdentity);
+                    var installedPath = s_packageToInstalledLocation.GetValueOrDefault(packageIdentity);
                     if (installedPath is null)
                     {
                         installedPath = GetInstalledPath(localPathResolver, packageIdentity)

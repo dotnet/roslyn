@@ -267,11 +267,10 @@ namespace Microsoft.CodeAnalysis.Testing
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            return await VerifySourceGeneratorAsync(Language, sourceGenerators, testState, verifier.PushContext("Source generator application"), cancellationToken);
+            return await VerifySourceGeneratorAsync(sourceGenerators, testState, verifier.PushContext("Source generator application"), cancellationToken);
         }
 
         private protected async Task<ImmutableArray<Diagnostic>> VerifySourceGeneratorAsync(
-            string language,
             ImmutableArray<Type> sourceGenerators,
             SolutionState testState,
             IVerifier verifier,
@@ -445,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         protected async Task VerifyDiagnosticsAsync(EvaluatedProjectState primaryProject, ImmutableArray<EvaluatedProjectState> additionalProjects, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
-            (string filename, SourceText content)[] sources = primaryProject.Sources.ToArray();
+            var sources = primaryProject.Sources.ToArray();
 
             var analyzers = GetDiagnosticAnalyzers().ToImmutableArray();
             VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(primaryProject, additionalProjects, analyzers, verifier, cancellationToken).ConfigureAwait(false), analyzers, expected, verifier);

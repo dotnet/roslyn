@@ -147,11 +147,10 @@ namespace Microsoft.CodeAnalysis.Testing
         protected async Task VerifyRefactoringAsync(SolutionState testState, SolutionState fixedState, DiagnosticResult triggerSpan, IVerifier verifier, CancellationToken cancellationToken)
         {
             var numberOfIncrementalIterations = OffersEmptyRefactoring || HasAnyChange(testState, fixedState, recursive: true) ? 1 : 0;
-            await VerifyRefactoringAsync(Language, triggerSpan, GetCodeRefactoringProviders().ToImmutableArray(), testState, fixedState, numberOfIncrementalIterations, ApplyRefactoringAsync, verifier.PushContext("Code refactoring application"), cancellationToken);
+            await VerifyRefactoringAsync(triggerSpan, GetCodeRefactoringProviders().ToImmutableArray(), testState, fixedState, numberOfIncrementalIterations, ApplyRefactoringAsync, verifier.PushContext("Code refactoring application"), cancellationToken);
         }
 
         private async Task VerifyRefactoringAsync(
-            string language,
             DiagnosticResult triggerSpan,
             ImmutableArray<CodeRefactoringProvider> codeRefactoringProviders,
             SolutionState oldState,
