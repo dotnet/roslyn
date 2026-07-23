@@ -726,7 +726,9 @@ function Ensure-ProcDump() {
     Unzip $zipFilePath $outDir
   }
 
-  return $filePath
+  # Always return the containing directory (not the exe itself) so callers can use this
+  # uniformly, e.g. as a Helix correlation payload or a PROCDUMP_PATH value.
+  return $outDir
 }
 
 # Setup the CI machine for running our integration tests.

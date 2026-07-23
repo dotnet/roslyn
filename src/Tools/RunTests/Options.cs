@@ -66,7 +66,7 @@ namespace RunTests
         public bool CollectDumps { get; set; }
 
         /// <summary>
-        /// The path to procdump.exe
+        /// The path to the directory containing the procdump binaries (procdump.exe / procdump64.exe / procdump64a.exe).
         /// </summary>
         public string? ProcDumpFilePath { get; set; }
 
