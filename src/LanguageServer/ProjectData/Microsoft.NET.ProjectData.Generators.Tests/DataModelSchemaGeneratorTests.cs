@@ -57,7 +57,8 @@ public sealed class DataModelSchemaGeneratorTests
 				}
 				""")]);
 
-		driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
+		// Roslyn is still on xunit v2, so must CancellationToken.None instead of the TestContext's CancellationToken
+		driver = driver.RunGenerators(compilation, CancellationToken.None);
 		GeneratorRunResult result = Assert.Single(driver.GetRunResult().Results);
 
 		Assert.NotEmpty(result.GeneratedSources);

@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- Roslyn expects all unit test projects end with "UnitTests" -->
+    <AssemblyName>Microsoft.NET.ProjectData.Generators.UnitTests</AssemblyName>
     <RootNamespace>Microsoft.NET.ProjectData.Generators.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -9,14 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.NET.ProjectData.Generators\Microsoft.NET.ProjectData.Generators.csproj" />
+    <ProjectReference Include="..\Microsoft.NET.ProjectData.Generators\Microsoft.NET.ProjectData.Generators.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="xunit.v3" />
-    <PackageReference Include="xunit.runner.visualstudio" />
+    <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
 
 </Project>

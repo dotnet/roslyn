@@ -15,4 +15,8 @@
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />
 
+  <PropertyGroup>
+    <TargetFramework>$(NetVSCode)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
 </Project>

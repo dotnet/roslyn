@@ -422,7 +422,8 @@ public class CacheFileReaderTests
 		ImmutableArray<CachedSliceData> slices = await ParseAsync(content);
 		Assert.Equal(2, slices[0].MetadataReferences.Length);
 
-		Assert.Equal(["global", "interop"], slices[0].MetadataReferences[0].Aliases);
+		// Roslyn is on xunit v2, so we must call ToArray() to get the correct overload that compares the values and not the actual array identity
+		Assert.Equal(["global", "interop"], slices[0].MetadataReferences[0].Aliases.ToArray());
 		Assert.True(slices[0].MetadataReferences[0].EmbedInteropTypes);
 
 		Assert.True(slices[0].MetadataReferences[1].Aliases.IsEmpty);
@@ -437,7 +438,8 @@ public class CacheFileReaderTests
 	public void DeriveFolderNames_From_Relative_Path()
 	{
 		ImmutableArray<string> folders = CacheFileReader.DeriveFolderNamesFromPortablePath("src/Models/User.cs");
-		Assert.Equal(["src", "Models"], folders);
+		// Roslyn is on xunit v2, so we must call ToArray() to get the correct overload that compares the values and not the actual array identity
+		Assert.Equal(["src", "Models"], folders.ToArray());
 	}
 
 	[Fact]

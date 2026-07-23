@@ -20,12 +20,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Source generators must use Microsoft.CodeAnalysis versions compatible with the build host's Roslyn;
-     so these are pinned for now. This can be removed once we update the SDK version to be newer than the
-     centrally managed versions. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" VersionOverride="4.14.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" VersionOverride="5.8.0-1.26319.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="all" VersionOverride="5.8.0-1.26319.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

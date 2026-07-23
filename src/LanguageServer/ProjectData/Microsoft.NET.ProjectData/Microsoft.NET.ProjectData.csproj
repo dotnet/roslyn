@@ -9,7 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.NET.ProjectData.Generators\Microsoft.NET.ProjectData.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     <AdditionalFiles Include="..\Microsoft.NET.ProjectData.Generators\project-data-schema.json" />
-    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.Tests" Key="$(VsPublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.UnitTests" Key="$(VsPublicKey)" />
     <InternalsVisibleTo Include="CSDevKit.Tests" Key="$(VsPublicKey)" />
   </ItemGroup>
 
