@@ -98,7 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool EnableRedundantPatternsCheckForSpecificPattern(SyntaxNode patternSyntax)
         {
             // Easy out to avoid work in cases when the diagnostics would never be visible to the user.
-            // See also 'ShouldWarn(SyntaxNode)'.
             var hasWarningSeveritySyntaxForm = patternSyntax.DescendantNodesAndSelf().Any(static node => node is BinaryPatternSyntax binary && FindNotInBinary(binary.Left));
             return hasWarningSeveritySyntaxForm;
         }
