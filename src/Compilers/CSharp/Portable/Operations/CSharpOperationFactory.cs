@@ -1058,6 +1058,19 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit = !boundConversion.ExplicitCastInCode;
             }
 
+            // Special handling for explicit user-defined conversions with nullable lifting:
+            // When casting to a nullable type via user-defined conversion (e.g., (S1?)10 where S1 has implicit conversion from int),
+            // the final conversion (S1 -> S1?) needs to be non-implicit so GetOperation can find it,
+            // even though ExplicitCastInCode is false (required by validation rules).
+            if (isImplicit &&
+                boundConversion.ConversionGroupOpt?.Conversion is { IsUserDefined: true, IsImplicit: false } &&
+                (boundConversion.InConversionGroupFlags & InConversionGroupFlags.UserDefinedFinal) != 0 &&
+                boundConversion.Conversion.IsNullable &&
+                boundConversion.Syntax.Kind() == SyntaxKind.CastExpression)
+            {
+                isImplicit = false;
+            }
+
             if (boundConversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
             {
                 Debug.Assert(!forceOperandImplicitLiteral);
@@ -1116,6 +1129,26 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 BoundConversion correctedConversionNode = boundConversion;
                 Conversion conversion = boundConversion.Conversion;
+                bool flattenedUserDefinedConversion = false;
+
+                // Flatten user-defined conversion chains with nullable lifting:
+                // When the conversion is nullable and the operand is an implicit user-defined conversion
+                // with the same syntax, use the ConversionGroup's conversion (which represents the entire
+                // conversion chain) and the operand's operand directly.
+                if (boundConversion.Conversion.IsNullable &&
+                    boundOperand is BoundConversion operandConversion &&
+                    operandConversion.Syntax == boundConversion.Syntax &&
+                    boundConversion.ConversionGroupOpt?.Conversion.IsUserDefined == true &&
+                    operandConversion.ConversionGroupOpt == boundConversion.ConversionGroupOpt &&
+                    operandConversion.Conversion.IsUserDefined &&
+                    operandConversion.WasCompilerGenerated)
+                {
+                    // Use the ConversionGroup's conversion, which represents the entire user-defined conversion chain
+                    conversion = boundConversion.ConversionGroupOpt.Conversion;
+                    // Use the operand's operand as the operand for this conversion
+                    boundOperand = operandConversion.Operand;
+                    flattenedUserDefinedConversion = true;
+                }
 
                 if (boundOperand.Syntax == boundConversion.Syntax)
                 {
@@ -1169,8 +1202,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
                     bool isChecked = boundConversion.Checked && (conversion.IsNumeric || (boundConversion.SymbolOpt is not null && SyntaxFacts.IsCheckedOperator(boundConversion.SymbolOpt.Name)));
                     IOperation operand = forceOperandImplicitLiteral
-                        ? CreateBoundLiteralOperation((BoundLiteral)correctedConversionNode.Operand, @implicit: true)
-                        : Create(correctedConversionNode.Operand);
+                        ? CreateBoundLiteralOperation((BoundLiteral)(flattenedUserDefinedConversion ? boundOperand : correctedConversionNode.Operand), @implicit: true)
+                        : Create(flattenedUserDefinedConversion ? boundOperand : correctedConversionNode.Operand);
                     return new ConversionOperation(operand, conversion, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
                 }
             }
