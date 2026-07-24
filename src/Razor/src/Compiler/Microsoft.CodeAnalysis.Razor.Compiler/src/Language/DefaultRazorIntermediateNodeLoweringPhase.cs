@@ -532,6 +532,15 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             return node.GetSourceSpan(SourceDocument);
         }
 
+        // The @addTagHelper/@removeTagHelper/@tagHelperPrefix chunk generator hangs off the directive's
+        // content span, but the "not valid in a component" diagnostic reads best over the whole directive
+        // (and still has a span to report when the directive is empty), so walk up to the directive node.
+        protected SourceSpan? BuildTagHelperDirectiveSourceSpan(CSharpStatementLiteralSyntax node)
+        {
+            var directive = node.FirstAncestorOrSelf<SyntaxNode>(static n => n is BaseRazorDirectiveSyntax);
+            return BuildSourceSpanFromNode(directive ?? node);
+        }
+
         protected static AttributeStructure InferAttributeStructure(MarkupAttributeBlockSyntax node)
         {
             if (node.EqualsToken.Kind == SyntaxKind.None && node.Value == null)
@@ -2051,15 +2060,15 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 // the chunk generator here; the base visitor copies it onto the resulting IR node.
                 case AddTagHelperChunkGenerator addTagHelper:
                     addTagHelper.Diagnostics.Add(
-                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
                     break;
                 case RemoveTagHelperChunkGenerator removeTagHelper:
                     removeTagHelper.Diagnostics.Add(
-                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
                     break;
                 case TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix:
                     tagHelperPrefix.Diagnostics.Add(
-                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
                     break;
 
                 case null:
@@ -2135,15 +2144,15 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 // the chunk generator here; the base visitor copies it onto the resulting IR directive node.
                 case AddTagHelperChunkGenerator addTagHelper:
                     addTagHelper.Diagnostics.Add(
-                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
                     break;
                 case RemoveTagHelperChunkGenerator removeTagHelper:
                     removeTagHelper.Diagnostics.Add(
-                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
                     break;
                 case TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix:
                     tagHelperPrefix.Diagnostics.Add(
-                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
                     break;
             }
 

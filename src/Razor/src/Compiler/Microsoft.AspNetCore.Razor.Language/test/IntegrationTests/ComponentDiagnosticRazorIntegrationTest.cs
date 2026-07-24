@@ -77,7 +77,7 @@ namespace Test
             The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document. Use '@using <namespace>' directive instead.
             """, item.GetMessage(CultureInfo.CurrentCulture));
                 Assert.Equal(0, item.Span.LineIndex);
-                Assert.Equal(14, item.Span.CharacterIndex);
+                Assert.Equal(0, item.Span.CharacterIndex);
             },
             item =>
             {
@@ -86,8 +86,25 @@ namespace Test
             The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document. Use '@using <namespace>' directive instead.
             """, item.GetMessage(CultureInfo.CurrentCulture));
                 Assert.Equal(1, item.Span.LineIndex);
-                Assert.Equal(17, item.Span.CharacterIndex);
+                Assert.Equal(0, item.Span.CharacterIndex);
             });
+    }
+
+    [Fact]
+    public void RejectsEmptyTagHelperDirectives()
+    {
+        // Even with no content, @addTagHelper/@removeTagHelper/@tagHelperPrefix still report RZ9978
+        // ("not valid in a component document"), and the diagnostic spans the directive itself (char 0)
+        // rather than the (empty) directive content.
+        var result = CompileToCSharp("""
+            @addTagHelper
+            @removeTagHelper
+            @tagHelperPrefix
+            """);
+
+        Assert.Contains(result.RazorDiagnostics, static d => d.Id == "RZ9978" && d.Span.LineIndex == 0 && d.Span.CharacterIndex == 0);
+        Assert.Contains(result.RazorDiagnostics, static d => d.Id == "RZ9978" && d.Span.LineIndex == 1 && d.Span.CharacterIndex == 0);
+        Assert.Contains(result.RazorDiagnostics, static d => d.Id == "RZ9978" && d.Span.LineIndex == 2 && d.Span.CharacterIndex == 0);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/7271")]
