@@ -39,7 +39,7 @@ internal sealed class InitializeManager : IInitializeManager
             var builder = ArrayBuilder<string>.GetInstance(workspaceFolders.Length);
             foreach (var workspaceFolder in workspaceFolders)
             {
-                if (workspaceFolder.DocumentUri.ParsedUri is not { } parsedUri)
+                if (workspaceFolder.DocumentUri.ParsedDocumentUri is null)
                     continue;
 
                 var workspaceFolderPath = workspaceFolder.DocumentUri.GetDocumentFilePathFromUri();

@@ -15,14 +15,25 @@ internal abstract class AbstractCompilerDeveloperSdkLspServiceDocumentRequestHan
 {
     public abstract bool RequiresLSPSolution { get; }
     public abstract Task<TResponse> HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken);
-    public abstract Uri GetTextDocumentIdentifier(TRequest request);
+
+    [Obsolete("Override GetDocumentUri instead.")]
+    public virtual Uri GetTextDocumentIdentifier(TRequest request)
+        => throw new NotImplementedException();
+
+    public virtual DocumentUri GetDocumentUri(TRequest request)
+    {
+#pragma warning disable CS0618 // Delegating to the legacy override for compatibility.
+        return new(GetTextDocumentIdentifier(request));
+#pragma warning restore CS0618
+    }
+
     public abstract bool MutatesSolutionState { get; }
 
     bool IMethodHandler.MutatesSolutionState => MutatesSolutionState;
     bool ISolutionRequiredHandler.RequiresLSPSolution => RequiresLSPSolution;
 
     TextDocumentIdentifier ITextDocumentIdentifierHandler<TRequest, TextDocumentIdentifier>.GetTextDocumentIdentifier(TRequest request)
-        => new() { DocumentUri = new(GetTextDocumentIdentifier(request)) };
+        => new() { DocumentUri = GetDocumentUri(request) };
     Task<TResponse> IRequestHandler<TRequest, TResponse, LspRequestContext>.HandleRequestAsync(TRequest request, LspRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(request, new RequestContext(context), cancellationToken);
 }

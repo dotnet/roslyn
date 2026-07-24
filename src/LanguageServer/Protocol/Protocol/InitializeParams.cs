@@ -74,14 +74,6 @@ internal sealed class InitializeParams : IWorkDoneProgressParams
         set;
     }
 
-    [Obsolete("Use RootDocumentUri instead. This property will be removed in a future version.")]
-    [JsonIgnore]
-    public Uri RootUri
-    {
-        get => RootDocumentUri.GetRequiredParsedUri();
-        set => RootDocumentUri = new DocumentUri(value);
-    }
-
     /// <summary>
     /// Gets or sets the initialization options as specified by the client.
     /// </summary>

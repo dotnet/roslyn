@@ -28,10 +28,10 @@ internal sealed class TextDocumentContentHandler() : ILspServiceDocumentRequestH
     {
         Contract.ThrowIfNull(context.TextDocument, $"{request.Uri} was not found in any workspace, cannot provide content");
 
-        var scheme = request.Uri.ParsedUri?.Scheme;
+        var scheme = request.Uri.ParsedDocumentUri?.Scheme;
         if (scheme is not null)
         {
-            var provider = context.GetRequiredServices<ITextDocumentContentProvider>().Single(p => p.Scheme == scheme);
+            var provider = context.GetRequiredServices<ITextDocumentContentProvider>().Single(p => p.Scheme.Equals(scheme, StringComparison.OrdinalIgnoreCase));
 
             var contentText = await provider.GetTextAsync(context.TextDocument, cancellationToken).ConfigureAwait(false);
             return new TextDocumentContentResult { Text = contentText };

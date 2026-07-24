@@ -12,34 +12,28 @@ namespace Roslyn.LanguageServer.Protocol;
 /// see https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri
 /// </summary>
 /// <remarks>
-/// While .NET has a type represent URIs (System.Uri), we do not want to use this type directly in serialization and
-/// deserialization.  System.Uri does full parsing and validation on the URI upfront, so any issues in the uri format
-/// will cause deserialization to fail and bypass any of our error recovery.
-/// 
-/// Compounding this problem, System.Uri will fail to parse various RFC spec valid URIs. In order to gracefully handle
-/// these issues, we defer the parsing of the URI until someone actually asks for it (and can handle the failure).
+/// The underlying parsed representation is <see cref="Protocol.ParsedUri"/>, which implements vscode-uri compatible
+/// parsing without depending on System.Uri.
 /// </remarks>
 internal sealed record class DocumentUri(string UriString)
 {
-    private Optional<Uri> _parsedUri;
+    private Optional<ParsedUri?> _parsedUri;
 
+    [Obsolete("Use the constructor taking ParsedUri instead.")]
     public DocumentUri(Uri parsedUri) : this(parsedUri.AbsoluteUri)
-        => _parsedUri = parsedUri;
+    {
+    }
+
+    public DocumentUri(ParsedUri parsedDocumentUri) : this(parsedDocumentUri.ToString())
+        => _parsedUri = parsedDocumentUri;
 
     /// <summary>
-    /// Gets the parsed System.Uri for the URI string.
-    /// </summary>
-    /// <returns>
-    /// Null if the URI string is not parse-able with System.Uri.
-    /// </returns>
-    /// <remarks>
-    /// Invalid RFC spec URI strings are not parse-able as so will return null here. However, System.Uri can also fail
-    /// to parse certain valid RFC spec URI strings.
+    /// Gets the parsed URI using vscode-uri compatible parsing. Lazily parsed from
+    /// <see cref="UriString"/> on first access if not provided at construction time.
     /// 
-    /// For example, any URI containing a 'sub-delims' character in the host name is a valid RFC spec URI, but will fail
-    /// with System.Uri
-    /// </remarks>
-    public Uri? ParsedUri
+    /// May be null if the URI string is not parseable.
+    /// </summary>
+    public ParsedUri? ParsedDocumentUri
     {
         get
         {
@@ -48,16 +42,49 @@ internal sealed record class DocumentUri(string UriString)
         }
     }
 
-    private static Uri? ParseUri(string uriString)
+    private static ParsedUri? ParseUri(string uriString)
     {
         try
         {
-            return new Uri(uriString);
+            return Protocol.ParsedUri.Parse(uriString);
         }
         catch (UriFormatException)
         {
-            // This is not a URI that System.Uri can handle.
+            // This is not a URI that we can parse.
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Gets the parsed <see cref="System.Uri"/> for the URI string.
+    /// </summary>
+    /// <returns>
+    /// Null if the URI string is not parse-able with <see cref="System.Uri"/>.
+    /// </returns>
+    /// <remarks>
+    /// A new <see cref="System.Uri"/> instance is created from <see cref="ParsedDocumentUri"/> on each access.
+    /// </remarks>
+    [Obsolete("Use ParsedDocUri instead.")]
+    public Uri? ParsedUri
+    {
+        get
+        {
+            var parsedDocumentUri = ParsedDocumentUri;
+            if (parsedDocumentUri is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                // We purposefully use the ToString(skipEncoding: true) overload here to avoid issues when the UriString contains
+                // an encoded drive letter part (e.g. `file:///c%3A/`) which breaks System.Uri parsing.
+                return new Uri(parsedDocumentUri.Value.ToString(skipEncoding: true));
+            }
+            catch (UriFormatException)
+            {
+                return null;
+            }
         }
     }
 
@@ -74,48 +101,20 @@ internal sealed record class DocumentUri(string UriString)
         if (this.UriString == otherUri.UriString)
             return true;
 
+        var thisParsed = ParsedDocumentUri;
+        var otherParsed = otherUri.ParsedDocumentUri;
+
         // Bail if we cannot parse either of the URIs.  We already determined the URI strings are not equal and we need
         // to be able to parse the URIs to do deeper equivalency checks.
-        if (otherUri.ParsedUri is null || this.ParsedUri is null)
+        if (thisParsed is null || otherParsed is null)
             return false;
 
-        // Next we compare the parsed URIs to handle various casing and encoding scenarios (for example - different
-        // schemes may handle casing differently).
-
-        // Uri.Equals will not always consider a percent encoded URI equal to an unencoded URI, even if they point to
-        // the same resource. As above, the client is supposed to be consistent in which kind of URI they send.
-        //
-        // However, there are rare cases where we are comparing an unencoded URI to an encoded URI and should consider
-        // them equivalent if they point to the same file path. For example - say the client generally sends us the
-        // unencoded URI.  When we serialize URIs back to the client, we always serialize the AbsoluteUri property (see
-        // FromUri). The AbsoluteUri property is *always* percent encoded - if this URI gets sent back to us as part of
-        // a data object on a request (e.g. codelens/resolve), the client will leave the URI untouched, even if they
-        // generally send unencoded URIs.  In such cases we need to consider the encoded and unencoded URI equivalent.
-        //
-        // To handle that, we first compare the AbsoluteUri properties on both, which are always percent encoded.
-        return (this.ParsedUri.IsAbsoluteUri && otherUri.ParsedUri.IsAbsoluteUri && this.ParsedUri.AbsoluteUri == otherUri.ParsedUri.AbsoluteUri) ||
-            Equals(this.ParsedUri, otherUri.ParsedUri);
+        return thisParsed.Value.Equals(otherParsed.Value);
     }
 
     public override int GetHashCode()
     {
-        // We can't do anything better than the uri string hash code if we cannot parse the URI.
-        if (this.ParsedUri is null)
-            return this.UriString.GetHashCode();
-
-        // Since the Uri type does not consider an encoded Uri equal to an unencoded Uri, we need to handle this
-        // ourselves. The AbsoluteUri property is always encoded, so we can use this to compare the URIs (see Equals
-        // above).
-        //
-        // However, depending on the kind of URI, case sensitivity in AbsoluteUri should be ignored. Uri.GetHashCode
-        // normally handles this internally, but the parameters it uses to determine which comparison to use are not
-        // exposed.
-        //
-        // Instead, we will always create the hash code ignoring case, and will rely on the Equals implementation to
-        // handle collisions (between two Uris with different casing).  This should be very rare in practice. Collisions
-        // can happen for non UNC URIs (e.g. `git:/blah` vs `git:/Blah`).
-        return this.ParsedUri.IsAbsoluteUri
-            ? StringComparer.OrdinalIgnoreCase.GetHashCode(this.ParsedUri.AbsoluteUri)
-            : this.ParsedUri.GetHashCode();
+        var parsed = ParsedDocumentUri;
+        return parsed is null ? UriString.GetHashCode() : parsed.Value.GetHashCode();
     }
 }

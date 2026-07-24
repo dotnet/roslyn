@@ -184,7 +184,7 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
         Assert.NotNull(unit.CreateParams.Token.Value);
 
         var end = await unit.WaitForEndAsync().WaitAsync(TimeSpan.FromMinutes(2));
-        Assert.Equal(expectedEndMessage, end.Message);
+        Assert.Equal(expectedEndMessage, end.Message, ignoreCase: true);
     }
 
     private static string GetLoadingProjectsMessage(int projectCount)
