@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
 using Xunit;
@@ -61,5 +62,34 @@ public sealed partial class ExampleTests
 
         var result = await server.WaitForShutdown();
         Assert.True(0 == result, "Server failed to shut down properly");
+    }
+
+    [Fact]
+    public async Task DirectDispatch_NotificationMapsNoValueToNull()
+    {
+        var server = TestExampleLanguageServer.CreateLanguageServer();
+
+        var result = await server.ExecuteDirectRequestAsync(
+            Methods.InitializedName,
+            new InitializedParams(),
+            CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task DirectDispatch_CancellationPreservesToken()
+    {
+        var server = TestExampleLanguageServer.CreateLanguageServer();
+        using var cancellationSource = new CancellationTokenSource();
+        cancellationSource.Cancel();
+
+        var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => server.ExecuteDirectRequestAsync(
+                Methods.InitializedName,
+                new InitializedParams(),
+                cancellationSource.Token));
+
+        Assert.Equal(cancellationSource.Token, exception.CancellationToken);
     }
 }
