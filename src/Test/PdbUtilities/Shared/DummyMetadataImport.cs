@@ -147,6 +147,11 @@ namespace Roslyn.Test.PdbUtilities
                 builder.Append(_metadataReaderOpt.GetString(typeRef.Name));
                 qualifiedNameLength = Math.Min(builder.Length, Math.Max(0, qualifiedNameBufferLength - 1));
                 builder.CopyTo(0, qualifiedName, 0, qualifiedNameLength);
+
+                if (qualifiedNameBufferLength > 0)
+                {
+                    qualifiedName[qualifiedNameLength] = '\0';
+                }
             }
             else
             {
