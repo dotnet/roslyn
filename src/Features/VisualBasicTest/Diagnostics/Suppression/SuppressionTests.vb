@@ -1067,7 +1067,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 Imports System.Diagnostics.CodeAnalysis
 
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:Class1"")>
-"
+".Replace(vbCrLf, vbLf)
 
                     Await TestAsync(source.Value, expected)
 
@@ -1107,7 +1107,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 Imports System.Diagnostics.CodeAnalysis
 
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""namespace"", Target:=""~N:N"")>
-"
+".Replace(vbCrLf, vbLf)
 
                     Await TestInRegularAndScriptAsync(source.Value, expected, index:=1)
 
@@ -1151,7 +1151,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 Imports System.Diagnostics.CodeAnalysis
 
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:N1.N2.Class1"")>
-"
+".Replace(vbCrLf, vbLf)
 
                     Await TestAsync(source.Value, expected)
 
@@ -1197,7 +1197,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 Imports System.Diagnostics.CodeAnalysis
 
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""type"", Target:=""~T:N.Generic`1.Class1"")>
-"
+".Replace(vbCrLf, vbLf)
 
                     Await TestAsync(source.Value, expected)
 
@@ -1243,7 +1243,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 Imports System.Diagnostics.CodeAnalysis
 
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method"")>
-"
+".Replace(vbCrLf, vbLf)
 
                     Await TestAsync(source.Value, expected)
 
@@ -1293,7 +1293,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 Imports System.Diagnostics.CodeAnalysis
 
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method(System.Int32,System.Int32@)"")>
-"
+".Replace(vbCrLf, vbLf)
 
                     Await TestAsync(source.Value, expected)
 
@@ -1347,7 +1347,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 Imports System.Diagnostics.CodeAnalysis
 
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method``1(``0,System.Int32@)"")>
-"
+".Replace(vbCrLf, vbLf)
 
                     Await TestAsync(source.Value, expected)
 
@@ -1399,7 +1399,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 Imports System.Diagnostics.CodeAnalysis
 
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~P:N.Generic.C.P"")>
-"
+".Replace(vbCrLf, vbLf)
 
                     Await TestAsync(source.Value, expected)
 
@@ -1441,7 +1441,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 Imports System.Diagnostics.CodeAnalysis
 
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~F:C.F"")>
-"
+".Replace(vbCrLf, vbLf)
 
                     Await TestAsync(source.Value, expected)
 
@@ -1499,7 +1499,7 @@ $"' This file is used by Code Analysis to maintain SuppressMessage
 Imports System.Diagnostics.CodeAnalysis
 
 <Assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.Pending}"", Scope:=""member"", Target:=""~E:C.SampleEvent"")>
-"
+".Replace(vbCrLf, vbLf)
 
                     Await TestAsync(source.Value, expected)
 

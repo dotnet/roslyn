@@ -1033,14 +1033,14 @@ internal sealed partial class CSharpExtractMethodService
                     return method.ReplaceToken(
                             body.OpenBraceToken,
                             body.OpenBraceToken.WithAppendedTrailingTrivia(
-                                ElasticCarriageReturnLineFeed));
+                                ElasticEndOfLine(Environment.NewLine)));
                 }
                 else if (expressionBody != null)
                 {
                     return method.ReplaceToken(
                             expressionBody.ArrowToken,
                             expressionBody.ArrowToken.WithPrependedLeadingTrivia(
-                                ElasticCarriageReturnLineFeed));
+                                ElasticEndOfLine(Environment.NewLine)));
                 }
                 else
                 {
