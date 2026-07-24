@@ -4,11 +4,10 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -68,7 +67,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         _hostProjectFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>().HostProjectFactory;
         _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var workspace = _hostProjectFactory.Workspace;
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace));
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace), workspace.Services.GetService<IFileBasedProgramService>());
     }
 
     /// <summary>

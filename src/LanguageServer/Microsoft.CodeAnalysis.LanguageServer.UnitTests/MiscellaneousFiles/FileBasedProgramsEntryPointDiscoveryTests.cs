@@ -3,6 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Reflection;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -55,9 +58,11 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         }
     }
 
-    private void DeferDeleteCacheDirectory(string workspacePath)
+    private void DeferDeleteCacheDirectory(TestLspServer testLspServer, string workspacePath)
     {
-        _additionalDirectoriesToDelete.Add(VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(workspacePath));
+        var fileBasedProgramService = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+        var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(workspacePath);
+        _additionalDirectoriesToDelete.Add(cacheDirectory);
     }
 
     /// <summary>Verify that multiple invocations of 'actualFactory' result in the same 'expected' sequence.</summary>
@@ -76,7 +81,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         //   Ordinary.cs
 
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
             #!/usr/bin/env dotnet
@@ -131,7 +135,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         //   App2.cs
 
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         var artifactsDir = tempDir.CreateDirectory("artifacts");
         var app1Text = """
@@ -161,7 +164,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         //   App4.cs
 
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
             #!/usr/bin/env dotnet
@@ -196,7 +198,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         //     App2.cs
 
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
             #!/usr/bin/env dotnet
@@ -227,7 +228,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         //   App.cs
 
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         var projectDir = tempDir.CreateDirectory("Project");
         var csprojFile = projectDir.CreateFile("Project.csproj");
@@ -256,7 +256,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         // Ensure discovery occurs when relevant options are enabled
         // Note: the option is checked in the higher level API, so we need to verify the effects in project system.
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
             #!/usr/bin/env dotnet
@@ -274,6 +273,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
             ]
         });
+        DeferDeleteCacheDirectory(testLspServer, tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
         await discovery.FindAndLoadEntryPointsAsync();
@@ -289,7 +289,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         // Ensure discovery doesn't occur when 'dotnet.projects.enableFileBasedPrograms: false' is set
         // Note: the option is checked in the higher level API, so we need to verify the effects in project system.
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
             #!/usr/bin/env dotnet
@@ -307,6 +306,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
             ]
         });
+        DeferDeleteCacheDirectory(testLspServer, tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
         await discovery.FindAndLoadEntryPointsAsync();
@@ -322,7 +322,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         // Ensure discovery doesn't occur when 'dotnet.fileBasedApps.enableAutomaticDiscovery: false' is set
         // Note: the option is checked in the higher level API, so we need to verify the effects in project system.
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
             #!/usr/bin/env dotnet
@@ -346,7 +345,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     {
         // File starting with UTF-8 BOM followed by '#!' should be discovered
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
             #!/usr/bin/env dotnet
@@ -364,8 +362,9 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
     }
 
-    private Task<TestLspServer> CreateDiscoveryTestServerAsync(string workspacePath)
-        => CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+    private async Task<TestLspServer> CreateDiscoveryTestServerAsync(string workspacePath)
+    {
+        var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
             // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
@@ -375,6 +374,9 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 new() { DocumentUri = CreateAbsoluteDocumentUri(workspacePath), Name = "workspace1" }
             ]
         });
+        DeferDeleteCacheDirectory(testLspServer, workspacePath);
+        return testLspServer;
+    }
 
     private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
     {
@@ -395,7 +397,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     {
         // Swap an FBA out for non-FBA at the same path 'sub1/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
@@ -416,7 +417,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var fileBasedProgramService = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+        var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache - should match
@@ -429,7 +431,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     {
         // Swap a non-FBA out for FBA at the same path 'sub/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
@@ -450,7 +451,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var fileBasedProgramService = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+        var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache — should match
@@ -463,7 +465,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     {
         // Swap a directory containing FBA out for a directory containing non-FBA at 'sub1/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
@@ -485,7 +486,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var fileBasedProgramService = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+        var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache
@@ -498,7 +500,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     {
         // Swap a directory containing non-FBA out for a directory containing FBA at the same path 'sub1/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
@@ -520,7 +521,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var fileBasedProgramService = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+        var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache — should match
@@ -532,7 +534,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     public async Task Fuzz_1()
     {
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
@@ -558,7 +559,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var fileBasedProgramService = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+        var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache — should match
@@ -570,7 +572,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     public async Task Fuzz_2()
     {
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
@@ -597,7 +598,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var fileBasedProgramService = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+        var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache — should match
@@ -609,7 +611,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     public async Task Fuzz_3()
     {
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
@@ -634,7 +635,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var fileBasedProgramService = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+        var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache — should match
@@ -842,7 +844,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         _testOutputHelper.WriteLine($"Random seed: {seed}");
 
         var tempDir = _tempRoot.CreateDirectory();
-        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
@@ -865,7 +866,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 }
 
                 // Delete cache from any prior iteration
-                var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+                var fileBasedProgramService = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+                var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(tempDir.Path);
                 if (Directory.Exists(cacheDirectory))
                     Directory.Delete(cacheDirectory, recursive: true);
 
@@ -917,6 +919,11 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
     private void DumpFuzzReproCase(int iteration, List<FuzzOp> setupOps, List<FuzzOp> editOps)
     {
+        _testOutputHelper.WriteLine(BuildFuzzReproCase(iteration, setupOps, editOps));
+    }
+
+    private static string BuildFuzzReproCase(int iteration, List<FuzzOp> setupOps, List<FuzzOp> editOps)
+    {
         var sb = new System.Text.StringBuilder();
         sb.AppendLine($$"""
 
@@ -924,20 +931,9 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 public async Task Fuzz_{{iteration}}()
                 {
                     var tempDir = _tempRoot.CreateDirectory();
-                    DeferDeleteCacheDirectory(tempDir.Path);
-                    sb.AppendLine();
 
-                    await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-                    {
-                        ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-                        OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-                        WorkspaceFolders =
-                        [
-                            new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = \"workspace1\" }
-                        ]
-                    });
+                    await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
                     var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-                    sb.AppendLine();
 
                     // Setup
             """);
@@ -960,7 +956,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                     var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
                     // Delete cache
-                    var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+                    var fileBasedProgramService = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+                    var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(tempDir.Path);
                     Directory.Delete(cacheDirectory, recursive: true);
 
                     // Discovery without cache — should match
@@ -969,7 +966,81 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 }
             """);
 
-        _testOutputHelper.WriteLine(sb.ToString());
+        return sb.ToString();
+    }
+
+    [Fact]
+    public void DumpFuzzReproCase_ProducesCompilableTestMethod()
+    {
+        var setupOps = new List<FuzzOp>
+        {
+            new FuzzOp.CreateDir(@"sub1\sub3"),
+            new FuzzOp.WriteCsproj("Project0.csproj"),
+            new FuzzOp.WriteFbaFile(@"sub1\sub3\Fba1.cs"),
+            new FuzzOp.WriteOrdinaryCs(@"sub1\Ordinary4.cs"),
+        };
+        var editOps = new List<FuzzOp>
+        {
+            new FuzzOp.DeleteFile("Project0.csproj"),
+            new FuzzOp.RenameFile(@"sub1\sub3\Fba1.cs", @"sub1\sub3\NewFba64.cs"),
+        };
+
+        var reproMethod = BuildFuzzReproCase(iteration: 0, setupOps, editOps);
+
+        var source = $$"""
+            using System;
+            using System.IO;
+            using System.Linq;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            using Microsoft.CodeAnalysis.Host;
+            using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
+            using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+            using Microsoft.CodeAnalysis.Test.Utilities;
+            using Microsoft.CodeAnalysis.FileBasedPrograms;
+            using Roslyn.Test.Utilities;
+            using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
+            using Xunit;
+
+            internal sealed class Skeleton
+            {
+                private readonly TempRoot {{nameof(_tempRoot)}} = new();
+                private const string {{nameof(FbaContent)}} = "", {{nameof(OrdinaryCsContent)}} = "", {{nameof(CsprojContent)}} = "";
+                private Task<TestLspServer> {{nameof(CreateDiscoveryTestServerAsync)}}(string p) => throw null!;
+            {{reproMethod}}
+            }
+            """;
+
+        var tree = CSharp.CSharpSyntaxTree.ParseText(SourceText.From(source));
+
+        IEnumerable<Assembly> assemblies =
+        [
+            typeof(Assert).Assembly,
+            typeof(FactAttribute).Assembly,
+            typeof(AssertEx).Assembly,
+            typeof(AbstractLanguageServerProtocolTests).Assembly,
+            typeof(Workspace).Assembly,
+            typeof(IHostWorkspaceProvider).Assembly,
+            typeof(FileBasedProgramsEntryPointDiscovery).Assembly,
+            GetType().Assembly,
+        ];
+        List<MetadataReference> references =
+        [
+            .. TargetFrameworkUtil.GetReferences(TargetFramework.Net100),
+            .. assemblies.Select(a => MetadataReference.CreateFromFile(a.Location)),
+        ];
+
+        var compilation = CSharp.CSharpCompilation.Create(
+            GetType().Assembly.GetName().Name!,
+            [tree],
+            references,
+            new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var errors = compilation.GetDiagnostics()
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .Where(d => d.Id != "CS0281") // ignore IVT errors
+            .Select(d => $"{d.Id}: {d.GetMessage()}");
+        AssertEx.Empty(errors, "Generated fuzz repro case does not compile.");
     }
 
     #endregion

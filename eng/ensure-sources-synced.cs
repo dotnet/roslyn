@@ -6,8 +6,8 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-// Verifies or updates the shared source files under `src/Features/CSharp/Portable/SyncedSource/FileBasedPrograms`
-// using files from dotnet/sdk at the commit specified in `src/Features/CSharp/Portable/SyncedSource/commitid.txt`.
+// Verifies or updates the shared source files under `src/Workspaces/CSharp/Portable/SyncedSource/FileBasedPrograms`
+// using files from dotnet/sdk at the commit specified in `src/Workspaces/CSharp/Portable/SyncedSource/commitid.txt`.
 //
 // Usage:
 //   dotnet run --file eng/ensure-sources-synced.cs
@@ -34,13 +34,13 @@ static async Task MainAsync(string[] args)
 
     var mode = ParseMode(args);
 
-    var commitIdPath = Path.Combine(root, "src", "Features", "CSharp", "Portable", "SyncedSource", "commitid.txt");
+    var commitIdPath = Path.Combine(root, "src", "Workspaces", "CSharp", "Portable", "SyncedSource", "commitid.txt");
     if (!File.Exists(commitIdPath)) throw new InvalidOperationException($"'{commitIdPath}' not found.");
 
     var sdkCommit = File.ReadAllText(commitIdPath).Trim();
     if (string.IsNullOrWhiteSpace(sdkCommit)) throw new InvalidOperationException($"'{commitIdPath}' is empty.");
 
-    var localSourceDir = Path.Combine(root, "src", "Features", "CSharp", "Portable", "SyncedSource", "FileBasedPrograms");
+    var localSourceDir = Path.Combine(root, "src", "Workspaces", "CSharp", "Portable", "SyncedSource", "FileBasedPrograms");
 
     var httpClient = CreateHttpClient();
 

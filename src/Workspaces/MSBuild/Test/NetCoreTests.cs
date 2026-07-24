@@ -137,7 +137,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         await using var buildHostProcessManager = new BuildHostProcessManager([LanguageNames.CSharp], ImmutableDictionary<string, string>.Empty);
 
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
-        var projectFile = await buildHost.LoadProjectAsync(projectFilePath, content, LanguageNames.CSharp, CancellationToken.None);
+        var projectFile = await buildHost.LoadProjectAsync(projectFilePath, physicalFilePath: null, content, LanguageNames.CSharp, globalProperties: null, CancellationToken.None);
         var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
         Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), projectFileInfo.OutputFilePath);
@@ -631,6 +631,348 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net6)");
         Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net5)");
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp()
+    {
+        var sourceText = """
+            Console.WriteLine("Hello World!");
+            """;
+
+        CreateFiles(new FileSet(("Program.cs", sourceText)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        // Assert that there is a single project loaded.
+        Assert.Single(workspace.CurrentSolution.ProjectIds);
+
+        // Assert that the project contains the source file.
+        var document = project.Documents.Single(static d => d.Name == "Program.cs");
+
+        // Assert that the document content matches.
+        var text = await document.GetTextAsync();
+        Assert.Equal(sourceText, text.ToString());
+
+        // Assert that there are references.
+        Assert.Empty(project.AllProjectReferences);
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+        Assert.Contains("DEBUG", compilation.SyntaxTrees.First().Options.PreprocessorSymbolNames);
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_NoExtension()
+    {
+        var sourceText = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello World!");
+            """;
+
+        CreateFiles(new FileSet(("Program", sourceText)));
+
+        var sourceFilePath = GetSolutionFileName("Program");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        // Assert that there is a single project loaded.
+        Assert.Single(workspace.CurrentSolution.ProjectIds);
+
+        // Assert that the project contains the source file.
+        var document = project.Documents.Single(static d => d.Name == "Program");
+
+        // Assert that the document content matches.
+        var text = await document.GetTextAsync();
+        Assert.Equal(sourceText, text.ToString());
+
+        // Assert that there are references.
+        Assert.Empty(project.AllProjectReferences);
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_NoExtension_NoShebang()
+    {
+        var sourceText = """
+            Console.WriteLine("Hello World!");
+            """;
+
+        CreateFiles(new FileSet(("Program", sourceText)));
+
+        var sourceFilePath = GetSolutionFileName("Program");
+
+        using var workspace = CreateMSBuildWorkspace();
+
+        // System.InvalidOperationException : Cannot open project 'Program' because the file extension '' is not associated with a language.
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await workspace.OpenProjectAsync(sourceFilePath));
+
+        Assert.Empty(workspace.Diagnostics);
+        Assert.Empty(workspace.CurrentSolution.ProjectIds);
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_Diagnostics()
+    {
+        var sourceText = """
+            #:unknown-directive
+            Console.WriteLine("Hello World!");
+            """;
+
+        CreateFiles(new FileSet(("Program.cs", sourceText)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Collection(workspace.Diagnostics,
+            d =>
+            {
+                Assert.Equal(WorkspaceDiagnosticKind.Failure, d.Kind);
+                Assert.Contains("Program.cs(1):", d.Message);
+                Assert.Contains("unknown-directive", d.Message);
+            });
+
+        // Assert that there are references.
+        Assert.Empty(project.AllProjectReferences);
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_RefDirective()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref Util.cs
+                Console.WriteLine($"Hello {Util.M()}!");
+                """),
+            ("Util.cs", """
+                #:property OutputType=Library
+                public static class Util
+                {
+                    public static string M() => "Util";
+                }
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        var projRef = Assert.Single(project.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
+
+        // Assert that there are references.
+        Assert.Same(projRef, Assert.Single(project.AllProjectReferences));
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_RefDirective_Duplicate()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref Util.cs
+                #:ref Util.cs
+                Console.WriteLine($"Hello {Util.M()}!");
+                """),
+            ("Util.cs", """
+                #:property OutputType=Library
+                public static class Util
+                {
+                    public static string M() => "Util";
+                }
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        var projRef = Assert.Single(project.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
+
+        // Assert that there are references.
+        Assert.Same(projRef, Assert.Single(project.AllProjectReferences));
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_RefDirective_Self()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref Program.cs
+                Console.WriteLine("Hello");
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        Assert.Equal(["Program"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        var projRef = Assert.Single(project.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single().Id);
+
+        // Assert that there are references.
+        Assert.Same(projRef, Assert.Single(project.AllProjectReferences));
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Can't assert that there are no compilation errors because self-referencing projects currently hang when calling GetCompilationAsync.
+        // See https://github.com/dotnet/roslyn/issues/84587.
+        using var cts = new CancellationTokenSource(100);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => project.GetCompilationAsync(cts.Token));
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_RefDirective_GlobalProperty()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref $(MyReferencedFileName).cs
+                Console.WriteLine($"Hello {Util.M()}!");
+                """),
+            ("Util.cs", """
+                #:property OutputType=Library
+                public static class Util
+                {
+                    public static string M() => "Util";
+                }
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace(("MyReferencedFileName", "Util"));
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        var projRef = Assert.Single(project.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
+
+        // Assert that there are references.
+        Assert.Same(projRef, Assert.Single(project.AllProjectReferences));
+        Assert.NotEmpty(project.AnalyzerReferences);
+        Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_AddProjectReference()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                Util.M();
+                """),
+            ("Util.cs", """
+                #:property OutputType=Library
+                public static class Util
+                {
+                    public static string M() => "Util";
+                }
+                """)));
+
+        using var workspace = CreateMSBuildWorkspace();
+        var programProject = await workspace.OpenProjectAsync(GetSolutionFileName("Program.cs"));
+
+        Assert.Empty(workspace.Diagnostics);
+        Assert.Equal(["Program"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+        Assert.Empty(programProject.ProjectReferences);
+
+        var diag = Assert.Single((await programProject.GetCompilationAsync()).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error && d.GetMessage().Contains("Util")));
+        Assert.Equal("CS0103", diag.Id); // The name 'Util' does not exist in the current context
+
+        var utilProject = await workspace.OpenProjectAsync(GetSolutionFileName("Util.cs"));
+
+        Assert.Empty(workspace.Diagnostics);
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        programProject = workspace.CurrentSolution.Projects.Single(p => p.Name == "Program");
+        Assert.Empty(programProject.ProjectReferences);
+
+        var solution = programProject.AddProjectReference(new ProjectReference(utilProject.Id)).Solution;
+        Assert.True(workspace.TryApplyChanges(solution));
+
+        Assert.Empty(workspace.Diagnostics);
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        programProject = workspace.CurrentSolution.Projects.Single(p => p.Name == "Program");
+        var projRef = Assert.Single(programProject.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
+
+        Assert.Empty((await programProject.GetCompilationAsync()).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error && d.GetMessage().Contains("Util")));
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
