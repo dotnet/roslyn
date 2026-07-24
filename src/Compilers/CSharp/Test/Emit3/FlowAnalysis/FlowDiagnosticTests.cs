@@ -2777,5 +2777,89 @@ struct Empty
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(6, 25)
                 );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5243")]
+        public void NoCascadedErrorsForMissingLabel_GotoCase()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        int s = 23;
+                        switch (s)
+                        {
+                            case 21:
+                                goto case 1;
+                                // Should NOT report: Control cannot fall through from one case label to another
+                            case 23:
+                                goto default;
+                                // Should NOT report: Control cannot fall out of switch from final case label
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,17): error CS0159: No such label 'case 1:' within the scope of the goto statement
+                //                 goto case 1;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 1;").WithArguments("case 1:").WithLocation(9, 17),
+                // (12,17): error CS0159: No such label 'default:' within the scope of the goto statement
+                //                 goto default;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto default;").WithArguments("default:").WithLocation(12, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5243")]
+        public void NoCascadedErrorsForMissingLabel_GotoLabel()
+        {
+            var source = """
+                class Program
+                {
+                    static int M()
+                    {
+                        goto goo;
+                        // Should NOT report: not all code paths return a value
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,14): error CS0159: No such label 'goo' within the scope of the goto statement
+                //         goto goo;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goo").WithArguments("goo").WithLocation(5, 14));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5243")]
+        public void NoCascadedErrorsForMissingLabel_MultipleCases()
+        {
+            var source = """
+                class Program
+                {
+                    static void M(int x)
+                    {
+                        switch (x)
+                        {
+                            case 1:
+                                goto case 99;
+                            case 2:
+                                goto case 98;
+                            case 3:
+                                goto case 97;
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,17): error CS0159: No such label 'case 99:' within the scope of the goto statement
+                //                 goto case 99;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 99;").WithArguments("case 99:").WithLocation(8, 17),
+                // (10,17): error CS0159: No such label 'case 98:' within the scope of the goto statement
+                //                 goto case 98;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 98;").WithArguments("case 98:").WithLocation(10, 17),
+                // (12,17): error CS0159: No such label 'case 97:' within the scope of the goto statement
+                //                 goto case 97;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 97;").WithArguments("case 97:").WithLocation(12, 17));
+        }
     }
 }
