@@ -35,3 +35,8 @@ public class MyTests
   test source code.
 - Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()`
   rather than asserting a count then indexing.
+- For some LanguageServer services created via `ILspServiceFactory` (for example,
+  `WorkspaceProjectDiscoveryService`), `GetRequiredLspService<T>()` in protocol
+  tests may not resolve the concrete service type directly. In these cases,
+  prefer direct unit tests that instantiate the service with lightweight test
+  doubles and validate behavior through test accessors.
