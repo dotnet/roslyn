@@ -173,6 +173,7 @@ internal static class NamedTypeGenerator
             case SyntaxKind.InterfaceDeclaration:
             case SyntaxKind.ClassDeclaration:
             case SyntaxKind.RecordDeclaration:
+            case SyntaxKind.ExtensionBlockDeclaration:
                 return ((TypeDeclarationSyntax)declaration).WithMembers(default);
 
             default:
@@ -185,6 +186,25 @@ internal static class NamedTypeGenerator
         CodeGenerationDestination destination,
         CSharpCodeGenerationContextInfo info)
     {
+        if (namedType.IsExtension)
+        {
+            var parameterList = namedType.ExtensionParameter is { } extensionParameter
+                ? ParameterGenerator.GenerateParameterList([extensionParameter], isExplicit: false, info)
+                : ParameterList();
+
+            return ExtensionBlockDeclaration(
+                GenerateAttributeDeclarations(namedType, info),
+                modifiers: default,
+                ExtensionKeyword,
+                GenerateTypeParameterList(namedType, info),
+                parameterList,
+                GenerateExtensionConstraintClauses(namedType),
+                openBraceToken: default,
+                members: default,
+                closeBraceToken: default,
+                semicolonToken: default);
+        }
+
         if (namedType.TypeKind == TypeKind.Enum)
         {
             return GenerateEnumDeclaration(namedType, destination, info);
@@ -332,4 +352,38 @@ internal static class NamedTypeGenerator
 
     private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(INamedTypeSymbol namedType)
         => namedType.TypeParameters.GenerateConstraintClauses();
+
+    private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateExtensionConstraintClauses(INamedTypeSymbol namedType)
+    {
+        var constraintClauses = GenerateConstraintClauses(namedType);
+        if (constraintClauses.Count == 0)
+            return constraintClauses;
+
+        using var _ = ArrayBuilder<TypeParameterConstraintClauseSyntax>.GetInstance(out var updatedConstraintClauses);
+
+        foreach (var constraintClause in constraintClauses)
+        {
+            var updatedConstraintClause = constraintClause;
+            var typeParameter = namedType.TypeParameters.FirstOrDefault(
+                typeParameter => typeParameter.Name == constraintClause.Name.Identifier.ValueText);
+
+            if (typeParameter is { HasReferenceTypeConstraint: true, ReferenceTypeConstraintNullableAnnotation: NullableAnnotation.Annotated })
+            {
+                foreach (var constraint in constraintClause.Constraints)
+                {
+                    if (constraint is ClassOrStructConstraintSyntax classConstraint &&
+                        classConstraint.Kind() == SyntaxKind.ClassConstraint)
+                    {
+                        updatedConstraintClause = constraintClause.WithConstraints(
+                            constraintClause.Constraints.Replace(classConstraint, classConstraint.WithQuestionToken(QuestionToken)));
+                        break;
+                    }
+                }
+            }
+
+            updatedConstraintClauses.Add(updatedConstraintClause);
+        }
+
+        return [.. updatedConstraintClauses];
+    }
 }
