@@ -9,6 +9,9 @@ using System.Diagnostics;
 
 namespace Microsoft.DiaSymReader
 {
+#if NET
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
     internal static class SymUnmanagedWriterFactory
     {
         /// <summary>
