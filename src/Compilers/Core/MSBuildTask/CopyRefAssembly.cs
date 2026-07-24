@@ -4,6 +4,8 @@
 
 using System;
 using System.IO;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -96,11 +98,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return true;
         }
 
-        private Guid ExtractMvid(string path)
+        private static Guid ExtractMvid(string path)
         {
             using (FileStream source = File.OpenRead(path))
+            using (PEReader reader = new PEReader(source))
             {
-                return MvidReader.ReadAssemblyMvidOrEmpty(source);
+                var metadataReader = reader.GetMetadataReader();
+                return metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
             }
         }
     }

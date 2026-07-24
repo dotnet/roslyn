@@ -56,7 +56,7 @@ The `CoreCompile` target supports a new output, called `IntermediateRefAssembly`
 The `Csc` task supports a new output, called `OutputRefAssembly`, which parallels the existing `OutputAssembly`.
 Both of those basically map to the `/refout` command-line parameter.
 
-An additional task, called `CopyRefAssembly`, is provided along with the existing `Csc` task. It takes a `SourcePath` and a `DestinationPath` and generally copies the file from the source over to the destination. But if it can determine that the contents of those two files match (by comparing their MVIDs, see details below), then the destination file is left untouched.
+An additional task, called `CopyRefAssembly`, is provided along with the existing `Csc` task. It takes a `SourcePath` and a `DestinationPath` and generally copies the file from the source over to the destination. But if it can determine that the contents of those two files match (by comparing their MVIDs), then the destination file is left untouched.
 
 As a side-note, `CopyRefAssembly` uses the same assembly resolution/redirection trick as `Csc` and `Vbc`, to avoid type loading problems with `System.IO.FileSystem`.
 
@@ -68,7 +68,6 @@ With C# 7.1, the compiler now honours the `EmitOptions.IncludePrivateMembers` fl
 Method bodies aren't compiled when using `EmitMetadataOnly`. Even the diagnostic check for emitting methods lacking a body (`void M();`) is filtered from declaration diagnostics, so such code will successfully emit with `EmitMetadataOnly`.  
 
 Later on, the `EmitOptions.TolerateErrors` flag will allow emitting error types as well.  
-`Emit` was modified to produce a new PE section called ".mvid" containing a copy of the MVID, when emitting ref assemblies. This makes it easy for `CopyRefAssembly` to extract and compare MVIDs from ref assemblies.
 
 Going back to the 4 driving scenarios:
 1. For a regular compilation, `EmitMetadataOnly` is left to `false` and no `metadataPeStream` is passed into `Emit`.
