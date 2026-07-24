@@ -151,7 +151,7 @@
       Language Server
     -->
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.10.72-preview" />
-    <PackageVersion Include="NuGet.ProjectModel" Version="6.8.0-rc.112" />
+    <PackageVersion Include="NuGet.ProjectModel" Version="6.14.0" />
     <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftNETTestSdkVersion)" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftNETTestSdkVersion)" />
 
