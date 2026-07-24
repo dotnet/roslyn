@@ -24,6 +24,12 @@ internal interface IDocumentChangeTracker
 
 internal sealed class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
 {
+    public static readonly NonMutatingDocumentChangeTracker Instance = new();
+
+    private NonMutatingDocumentChangeTracker()
+    {
+    }
+
     public ValueTask StartTrackingAsync(DocumentUri documentUri, SourceText initialText, string languageId, int lspVersion, CancellationToken cancellationToken)
     {
         throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
