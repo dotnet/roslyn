@@ -244,7 +244,7 @@ internal static class SymbolCompletionItem
             s_lastContextPositionInfo = new ContextPositionCache(contextPosition, contextPositionString);
         }
 
-        properties.Add(KeyValuePair.Create("ContextPosition", contextPositionString));
+        properties.Add(CompletionItem.CreateContextPositionKvp(contextPositionString));
     }
 
     private static void AddSupportedPlatforms(ArrayBuilder<KeyValuePair<string, string>> properties, SupportedPlatformData? supportedPlatforms)
@@ -304,7 +304,7 @@ internal static class SymbolCompletionItem
 
     public static int GetContextPosition(CompletionItem item)
     {
-        if (item.TryGetProperty("ContextPosition", out var text) &&
+        if (item.TryGetProperty(CompletionItem.ContextPositionKey, out var text) &&
             int.TryParse(text, out var number))
         {
             return number;

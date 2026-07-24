@@ -118,7 +118,7 @@ public sealed class CompletionList
         return new CompletionList(defaultSpan, itemsList, rules, suggestionModeItem, isExclusive);
     }
 
-    private CompletionList With(
+    internal CompletionList With(
         Optional<TextSpan> span = default,
         Optional<IReadOnlyList<CompletionItem>> itemsList = default,
         Optional<CompletionRules> rules = default,
