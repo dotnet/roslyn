@@ -165,6 +165,14 @@
     <value>The '#:project' directive is invalid: {0}</value>
     <comment>{0} is the inner error message.</comment>
   </data>
+  <data name="InvalidRefDirective" xml:space="preserve">
+    <value>The '#:ref' directive is invalid: {0}</value>
+    <comment>{Locked="#:ref"}{0} is the inner error message.</comment>
+  </data>
+  <data name="CouldNotFindRefFile" xml:space="preserve">
+    <value>Could not find file '{0}'.</value>
+    <comment>{0} is the file path.</comment>
+  </data>
   <data name="MissingDirectiveName" xml:space="preserve">
     <value>Missing name of '{0}'.</value>
     <comment>{0} is the directive name like 'package' or 'sdk'.</comment>
@@ -175,11 +183,11 @@
   </data>
   <data name="InvalidIncludeExcludeMappingEntry" xml:space="preserve">
     <value>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</value>
-    <comment>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="="}</comment>
+    <comment>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'='"}</comment>
   </data>
   <data name="InvalidIncludeExcludeMappingExtension" xml:space="preserve">
     <value>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</value>
-    <comment>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="."}</comment>
+    <comment>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'.'"}</comment>
   </data>
   <data name="InvalidIncludeExcludeMappingItemType" xml:space="preserve">
     <value>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</value>

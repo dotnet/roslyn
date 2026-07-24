@@ -17,6 +17,11 @@
         <target state="translated">Das Projekt oder Verzeichnis "{0}" wurde nicht gefunden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CouldNotFindRefFile">
+        <source>Could not find file '{0}'.</source>
+        <target state="new">Could not find file '{0}'.</target>
+        <note>{0} is the file path.</note>
+      </trans-unit>
       <trans-unit id="DirectiveError">
         <source>error</source>
         <target state="translated">Fehler</target>
@@ -39,13 +44,13 @@
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingEntry">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</source>
-        <target state="translated">Jeder Eintrag in der MSBuild-Eigenschaft „FileBasedProgramsItemMapping“ muss aus zwei durch „=“ getrennten Teilen bestehen. Der Eintrag „{0}“ ist ungültig.</target>
-        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="="}</note>
+        <target state="needs-review-translation">Jeder Eintrag in der MSBuild-Eigenschaft „FileBasedProgramsItemMapping“ muss aus zwei durch „=“ getrennten Teilen bestehen. Der Eintrag „{0}“ ist ungültig.</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'='"}</note>
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingExtension">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</source>
-        <target state="translated">Jeder Eintrag in der MSBuild-Eigenschaft „FileBasedProgramsItemMapping“ muss einer nicht leeren Dateierweiterung zugeordnet sein, die mit „.“ beginnt. Die Erweiterung „{0}“ im Eintrag „{1}“ ist ungültig.</target>
-        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="."}</note>
+        <target state="needs-review-translation">Jeder Eintrag in der MSBuild-Eigenschaft „FileBasedProgramsItemMapping“ muss einer nicht leeren Dateierweiterung zugeordnet sein, die mit „.“ beginnt. Die Erweiterung „{0}“ im Eintrag „{1}“ ist ungültig.</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'.'"}</note>
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingItemType">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</source>
@@ -56,6 +61,11 @@
         <source>The '#:project' directive is invalid: {0}</source>
         <target state="translated">Die Anweisung „#:p roject“ ist ungültig: {0}</target>
         <note>{0} is the inner error message.</note>
+      </trans-unit>
+      <trans-unit id="InvalidRefDirective">
+        <source>The '#:ref' directive is invalid: {0}</source>
+        <target state="new">The '#:ref' directive is invalid: {0}</target>
+        <note>{Locked="#:ref"}{0} is the inner error message.</note>
       </trans-unit>
       <trans-unit id="MissingDirectiveName">
         <source>Missing name of '{0}'.</source>
