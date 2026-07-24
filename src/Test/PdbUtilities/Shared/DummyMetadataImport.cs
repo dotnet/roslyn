@@ -102,10 +102,11 @@ namespace Roslyn.Test.PdbUtilities
                 builder.Append(_metadataReaderOpt.GetString(typeDef.Name));
                 qualifiedNameLength = builder.Length;
 
-                var charsToCopy = Math.Min(builder.Length, Math.Max(0, qualifiedNameBufferLength - 1));
+                var effectiveBufferLength = Math.Min(qualifiedNameBufferLength, qualifiedName.Length);
+                var charsToCopy = Math.Min(builder.Length, Math.Max(0, effectiveBufferLength - 1));
                 builder.CopyTo(0, qualifiedName, 0, charsToCopy);
 
-                if (qualifiedNameBufferLength > 0)
+                if (effectiveBufferLength > 0)
                 {
                     qualifiedName[charsToCopy] = '\0';
                 }
@@ -149,10 +150,11 @@ namespace Roslyn.Test.PdbUtilities
                 builder.Append(_metadataReaderOpt.GetString(typeRef.Name));
                 qualifiedNameLength = builder.Length;
 
-                var charsToCopy = Math.Min(builder.Length, Math.Max(0, qualifiedNameBufferLength - 1));
+                var effectiveBufferLength = Math.Min(qualifiedNameBufferLength, qualifiedName.Length);
+                var charsToCopy = Math.Min(builder.Length, Math.Max(0, effectiveBufferLength - 1));
                 builder.CopyTo(0, qualifiedName, 0, charsToCopy);
 
-                if (qualifiedNameBufferLength > 0)
+                if (effectiveBufferLength > 0)
                 {
                     qualifiedName[charsToCopy] = '\0';
                 }
