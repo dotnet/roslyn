@@ -693,6 +693,128 @@ public class Program
             );
         }
 
+        [Fact]
+        public void SpanToImplicitHeapMemory()
+        {
+            var source = @"
+class Test
+{
+    static void Method1(int[] array)
+    {
+        var a = new { P = stackalloc int[3] { 1, 2, 3 } };
+        var b = (dynamic)stackalloc int[3] { 1, 2, 3 };
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll)
+                .VerifyDiagnostics(
+                // (6,23): error CS0828: Cannot assign 'Span<int>' to anonymous type property
+                //         var a = new { P = stackalloc int[3] { 1, 2, 3 } };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "P = stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(6, 23),
+                // (7,17): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'dynamic' is not possible.
+                //         var b = (dynamic)stackalloc int[3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(dynamic)stackalloc int[3] { 1, 2, 3 }").WithArguments("int", "dynamic").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
+        public void SpanToImplicitHeapMemoryInLinq()
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class Test
+{
+    static void Method1(int[] array)
+    {   
+        var array2 = new int[] { 1, 2, 3 };
+
+        unsafe {
+            var strs = from x in _M<int>()
+#line 100
+                       from y in _M<string>()
+#line 200
+                       let l = x
+#line 300
+                       let m = _GetPointer()
+#line 400
+                       let n = _GetDelegatePointer()
+                       select x.ToString() + y.ToString();
+        }
+        
+        var q = from c in array
+#line 500
+                from x in _M<int>()
+                join p in array2 on c equals p into g
+                select g;
+
+        var q2 = from x in _M<int>()
+#line 600
+                 from y in _M<string>()
+                 group x by y into g
+                 select g;
+
+        static IEnumerable<Span<T>> _M<T>() {
+            throw new Exception();
+        }
+        static void* _GetPointer() {
+            throw new Exception();
+        }
+        static delegate*<int> _GetDelegatePointer() {
+            throw new Exception();
+        }
+    }
+}
+
+public static class MyExtensions {
+
+    public static IEnumerable<MyGrouping<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IEnumerable<TSource> sources, Func<TSource, TKey> keyFactory, Func<TSource, TElement> elementFactory)
+    where TSource : allows ref struct
+    where TKey : allows ref struct    
+    where TElement : allows ref struct {
+        throw new Exception();
+    }
+
+    public class MyGrouping<TKey, TElement>
+    where TKey : allows ref struct
+    where TElement : allows ref struct {
+        
+    }
+
+    public static IEnumerable<TResult> SelectMany<TSource, TCollection, TResult>(this IEnumerable<TSource> sources, Func<TSource, IEnumerable<TCollection>> collectionsFactory, Func<TSource, TCollection, TResult> selector)
+        where TSource : allows ref struct
+        where TCollection : allows ref struct
+        where TResult : allows ref struct {
+        throw new Exception();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), targetFramework: TargetFramework.Net90);
+
+            comp.VerifyDiagnostics(
+                // (100,24): error CS0828: Cannot assign 'Span<string>' to anonymous type property
+                //                        from y in _M<string>()
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from y in _M<string>()").WithArguments("System.Span<string>").WithLocation(100, 24),
+                // (200,24): error CS0828: Cannot assign 'Span<int>' to anonymous type property
+                //                        let l = x
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let l = x").WithArguments("System.Span<int>").WithLocation(200, 24),
+                // (300,24): error CS0828: Cannot assign 'void*' to anonymous type property
+                //                        let m = _GetPointer()
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let m = _GetPointer()").WithArguments("void*").WithLocation(300, 24),
+                // (400,24): error CS0828: Cannot assign 'delegate*<int>' to anonymous type property
+                //                        let n = _GetDelegatePointer()
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let n = _GetDelegatePointer()").WithArguments("delegate*<int>").WithLocation(400, 24),
+                // (500,17): error CS0828: Cannot assign 'Span<int>' to anonymous type property
+                //                 from x in _M<int>()
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from x in _M<int>()").WithArguments("System.Span<int>").WithLocation(500, 17),
+                // (600,18): error CS0828: Cannot assign 'Span<string>' to anonymous type property
+                //                  from y in _M<string>()
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "from y in _M<string>()").WithArguments("System.Span<string>").WithLocation(600, 18)
+            );
+        }
+
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
         public void InterfaceImpl_01()

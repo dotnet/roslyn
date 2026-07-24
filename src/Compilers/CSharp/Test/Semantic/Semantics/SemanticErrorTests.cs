@@ -17172,7 +17172,7 @@ class Test
         }
 
         [Fact]
-        public void CS1932ERR_QueryRangeVariableAssignedBadValue()
+        public void CS0828ERR_AnonymousTypePropertyAssignedBadValue_InLinq()
         {
             CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
@@ -17186,14 +17186,14 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (8,21): error CS1932: Cannot assign <null> to a range variable
+                // (8,17): error CS0828: Cannot assign '<null>' to anonymous type property
                 //                 let k = null
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "k = null").WithArguments("<null>")
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let k = null").WithArguments("<null>").WithLocation(8, 17)
              );
         }
 
         [Fact]
-        public void CS1932ERR_QueryRangeVariableAssignedBadValue02()
+        public void CS0828ERR_AnonymousTypePropertyAssignedBadValue_InLinq02()
         {
             CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
@@ -17207,14 +17207,14 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (8,21): error CS1932: Cannot assign lambda expression to a range variable
+                // (8,17): error CS0828: Cannot assign 'lambda expression' to anonymous type property
                 //                 let k = ()=>3
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "k = ()=>3").WithArguments("lambda expression")
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let k = ()=>3").WithArguments("lambda expression").WithLocation(8, 17)
              );
         }
 
         [Fact]
-        public void CS1932ERR_QueryRangeVariableAssignedBadValue03()
+        public void CS0828ERR_AnonymousTypePropertyAssignedBadValue_InLinq03()
         {
             CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
@@ -17228,14 +17228,14 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (8,21): error CS1932: Cannot assign method group to a range variable
+                // (8,17): error CS0828: Cannot assign 'method group' to anonymous type property
                 //                 let k = Main
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "k = Main").WithArguments("method group")
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let k = Main").WithArguments("method group").WithLocation(8, 17)
              );
         }
 
         [Fact]
-        public void CS1932ERR_QueryRangeVariableAssignedBadValue04()
+        public void CS0828ERR_AnonymousTypePropertyAssignedBadValue_InLinq04()
         {
             CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
@@ -17250,9 +17250,9 @@ class Test
     static void M() {}
 }
 ").VerifyDiagnostics(
-                // (8,21): error CS1932: Cannot assign void to a range variable
+                // (8,17): error CS0828: Cannot assign 'void' to anonymous type property
                 //                 let k = M()
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "k = M()").WithArguments("void")
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let k = M()").WithArguments("void").WithLocation(8, 17)
              );
         }
 
