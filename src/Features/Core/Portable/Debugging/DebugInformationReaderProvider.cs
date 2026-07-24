@@ -95,7 +95,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
             if (symReader != null)
             {
                 Debug.Assert(OperatingSystem.IsWindows());
-                (symReader as IDisposable)?.Dispose();
+                ((IDisposable)symReader).Dispose();
             }
 #else
             if (symReader != null && Marshal.IsComObject(symReader))
