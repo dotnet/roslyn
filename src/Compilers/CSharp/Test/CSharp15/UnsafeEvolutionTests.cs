@@ -4201,10 +4201,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // (7,15): error CS9362: 'C.GetTask()' must be used in an unsafe context because it is marked as 'unsafe'
             //         await GetTask();
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "GetTask()").WithArguments("C.GetTask()").WithLocation(7, 15),
-            // (9,20): error CS4004: Cannot await in an unsafe context
-            //         _ = unsafe(await GetTask());
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await GetTask()").WithLocation(9, 20));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "GetTask()").WithArguments("C.GetTask()").WithLocation(7, 15));
     }
 
     [Fact]
@@ -5069,7 +5066,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
             class C
             {
-                // Await in unsafe block is an error regardless of unsafe modifier.
+                // Await in an unsafe block is allowed under the unsafe evolution feature.
                 async Task M1()
                 {
                     unsafe { await Task.Yield(); }
@@ -5096,21 +5093,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (9,18): error CS4004: Cannot await in an unsafe context
-            //         unsafe { await Task.Yield(); }
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 18),
             // (15,18): error CS9238: Cannot use 'yield return' in an 'unsafe' block
             //         unsafe { yield return 1; }
-            Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(15, 18),
-            // (22,9): error CS4004: Cannot await in an unsafe context
-            //         await Task.Yield();
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(22, 9));
+            Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(15, 18));
 
         // With updated rules: M3's body is NOT in unsafe context, so await is fine there.
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
-            // (9,18): error CS4004: Cannot await in an unsafe context
-            //         unsafe { await Task.Yield(); }
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 18),
             // (15,18): error CS9238: Cannot use 'yield return' in an 'unsafe' block
             //         unsafe { yield return 1; }
             Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(15, 18));
@@ -6720,10 +6708,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 """,
             ],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (1,10): error CS4004: Cannot await in an unsafe context
-            // unsafe { await new C(); }
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await new C()").WithLocation(1, 10));
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -6810,10 +6795,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [corlib],
             parseOptions: WithRuntimeAsync(TestOptions.RegularPreview),
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (7,18): error CS4004: Cannot await in an unsafe context
-            //         unsafe { await new Task(); }
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await new Task()").WithLocation(7, 18));
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -14877,5 +14859,200 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Await_InUnsafeBlock()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task Main()
+                {
+                    unsafe
+                    {
+                        await Task.Yield();
+                    }
+                    Console.Write(123);
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            // (9,13): error CS4004: Cannot await in an unsafe context
+            //             await Task.Yield();
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 13));
+
+        var expectedOutput = "123";
+
+        CompileAndVerify(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(), expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(), expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Await_InFixedStatement_Body()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task M(int[] a)
+                {
+                    unsafe
+                    {
+                        fixed (int* p = a)
+                        {
+                            await Task.Yield();
+                        }
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (10,17): error CS4004: Cannot await in an unsafe context
+            //                 await Task.Yield();
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(10, 17));
+
+        var expectedDiagnostics = new[]
+        {
+            // (10,17): error CS9396: Cannot await in the body of a 'fixed' statement
+            //                 await Task.Yield();
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await Task.Yield()").WithLocation(10, 17),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Await_InFixedStatement_Body_SafeContext()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task M(int[] a)
+                {
+                    fixed (int* p = a)
+                    {
+                        await Task.Yield();
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = a)
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, @"fixed (int* p = a)
+        {
+            await Task.Yield();
+        }").WithLocation(6, 9),
+            // (6,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = a)
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 16));
+
+        var expectedDiagnostics = new[]
+        {
+            // (8,13): error CS9396: Cannot await in the body of a 'fixed' statement
+            //             await Task.Yield();
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await Task.Yield()").WithLocation(8, 13),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Await_InFixedStatement_Initializer()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task M()
+                {
+                    fixed (byte* p = await GetAsync())
+                    {
+                    }
+                }
+                static Task<byte[]> GetAsync() => null;
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (byte* p = await GetAsync())
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, @"fixed (byte* p = await GetAsync())
+        {
+        }").WithLocation(6, 9),
+            // (6,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (byte* p = await GetAsync())
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "byte*").WithLocation(6, 16));
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,26): error CS9396: Cannot await in the body of a 'fixed' statement
+            //         fixed (byte* p = await GetAsync())
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await GetAsync()").WithLocation(6, 26),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Await_InFixedStatement_NestedLambda()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task M(int[] a)
+                {
+                    fixed (int* p = a)
+                    {
+                        Func<Task> f = async () => { await Task.Yield(); };
+                        await f();
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = a)
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, @"fixed (int* p = a)
+        {
+            Func<Task> f = async () => { await Task.Yield(); };
+            await f();
+        }").WithLocation(7, 9),
+            // (7,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (int* p = a)
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 16));
+
+        var expectedDiagnostics = new[]
+        {
+            // (10,13): error CS9396: Cannot await in the body of a 'fixed' statement
+            //             await f();
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await f()").WithLocation(10, 13),
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
     }
 }

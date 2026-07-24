@@ -743,20 +743,10 @@ class Test
                     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(9, 26)
                     );
 
-            var expectedPreviewDiagnostics = new[]
-            {
-                // (6,45): error CS4004: Cannot await in an unsafe context
-                //     unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(6, 45),
-                // (7,56): error CS4004: Cannot await in an unsafe context
-                //     unsafe async static Task M2(delegate*<void>[] i) { await Task.Yield(); } // 2
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 56)
-            };
-
             CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics(expectedPreviewDiagnostics);
+                .VerifyEmitDiagnostics();
             CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext)
-                .VerifyDiagnostics(expectedPreviewDiagnostics);
+                .VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1268,7 +1258,7 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (7,9): error CS4004: Cannot await in an unsafe context
                 //         await Task.Factory.StartNew(() => { });  // not OK
                 Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Factory.StartNew(() => { })"),
@@ -1307,7 +1297,7 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (8,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
                 //         await Task.Factory.StartNew(() => { });
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(8, 9),
@@ -1559,7 +1549,8 @@ class Test
             var c = CreateCompilationWithMscorlib461(
                 source,
                 new MetadataReference[] { SystemRef, LinqAssemblyRef },
-                TestOptions.UnsafeReleaseDll);
+                TestOptions.UnsafeReleaseDll,
+                parseOptions: TestOptions.Regular14);
 
             c.VerifyDiagnostics(
                 // (22,41): error CS4004: Cannot await in an unsafe context
