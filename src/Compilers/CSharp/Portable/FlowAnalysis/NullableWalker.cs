@@ -11583,13 +11583,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeWithState operandType;
                     TypeWithState valueType;
                     int valueSlot;
-                    if (underlyingConversion.IsIdentity)
+                    if (underlyingConversion.IsIdentity || !underlyingConversion.Exists)
                     {
                         if (variable.Expression is BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithInferredType } local)
                         {
                             // when the LHS is a var declaration, we can just visit the right part to infer the type
                             valueType = operandType = VisitRvalueWithState(rightPart);
                             _variables.SetType(local.LocalSymbol, operandType.ToAnnotatedTypeWithAnnotations(compilation));
+                        }
+                        else if (variable.Expression is BoundDiscardExpression { IsInferred: true })
+                        {
+                            // when the LHS is an inferred discard (var _), skip conversion check — type is inferred from RHS
+                            valueType = operandType = VisitRvalueWithState(rightPart);
+                        }
+                        else if (variable.Expression is BoundDiscardExpression { IsInferred: false } &&
+                                 lvalueType.NullableAnnotation.IsNotAnnotated())
+                        {
+                            // Explicit non-nullable discard (e.g. `string _`): visit the RHS and directly report
+                            // WRN_ConvertingNullableToNonNullable if it is maybe-null. (https://github.com/dotnet/roslyn/issues/82919)
+                            operandType = default;
+                            valueType = VisitRvalueWithState(rightPart);
+                            Unsplit();
+                            if (valueType.State == NullableFlowState.MaybeNull)
+                            {
+                                ReportNonSafetyDiagnostic(rightPart.Syntax.GetLocation());
+                            }
                         }
                         else
                         {
@@ -13627,7 +13645,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
-            var result = TypeWithAnnotations.Create(node.Type, node.IsInferred ? NullableAnnotation.Annotated : node.NullableAnnotation);
+            var annotation = node.Syntax.Parent is RefExpressionSyntax
+                ? node.NullableAnnotation
+                : (node.IsInferred ? NullableAnnotation.Annotated : node.NullableAnnotation);
+            var result = TypeWithAnnotations.Create(node.Type, annotation);
             var rValueType = TypeWithState.ForType(node.Type);
             SetResult(node, rValueType, result);
             return null;
