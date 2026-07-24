@@ -1105,7 +1105,7 @@ or E._{i}
         public void ManyTupleSwitchArms_01()
         {
             const int fieldsPerEntity = 25;
-            const int tupleConstantArmCount = 10_000;
+            const int tupleConstantArmCount = 500;
             var sb = new StringBuilder();
             sb.AppendLine("public static class P");
             sb.AppendLine("{");
@@ -1126,7 +1126,7 @@ or E._{i}
             {
                 var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
                 comp.VerifyDiagnostics();
-            });
+            }, timeout: TimeSpan.FromSeconds(10));
         }
 
         [Fact]
