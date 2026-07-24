@@ -33,6 +33,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             _operationKind = operationKind;
             _fileName = fileName;
             this.Title = CreateDisplayText();
+            this.EquivalenceKey = _operationKind.ToString();
         }
 
         private string CreateDisplayText()
@@ -46,6 +47,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             };
 
         public override string Title { get; }
+        public override string EquivalenceKey { get; }
 
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
