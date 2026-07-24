@@ -1857,6 +1857,64 @@ public sealed class RemoveUnusedMembersTests
             }
             """, []);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72884")]
+    public Task PropertyIsRefReturningAndIncremented()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            class C1
+            {
+                int a;
+                private ref int A => ref a;
+                public void Increment() => A++;
+            }
+            """, []);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72884")]
+    public Task PropertyIsRefReturningAndRead()
+    {
+        // Observed behavior: no IDE0052 diagnostic; plain read usage of the ref-returning property is handled correctly.
+        return VerifyCS.VerifyAnalyzerAsync("""
+            class C1
+            {
+                int a;
+                private ref int A => ref a;
+                public int Read() => A;
+            }
+            """, []);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72884")]
+    public Task PropertyIsRefReturningAndCompoundAssigned()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            class C1
+            {
+                int a;
+                private ref int A => ref a;
+                public void M() => A += 5;
+            }
+            """, []);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72884")]
+    public Task PropertyIsRefReturningAndSimpleAssigned()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            class C1
+            {
+                int a;
+                private ref int A => ref a;
+                public void M() => A = 5;
+            }
+            """, []);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72884")]
+    public Task RefReturningIndexerIsWrittenThrough()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            class C1
+            {
+                int[] a = new int[1];
+                private ref int this[int i] => ref a[i];
+                public void M() => this[0]++;
+            }
+            """, []);
+
     [Fact]
     public async Task IndexerIsIncrementedAndValueUsed()
     {
