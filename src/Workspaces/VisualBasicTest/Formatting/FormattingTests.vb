@@ -4610,6 +4610,31 @@ End Class
             End Using
         End Sub
 
+        <Fact>
+        Public Sub NewLineOption_LineFeedOnly_FromElasticCarriageReturnLineFeed()
+            Using workspace = New AdhocWorkspace()
+                Dim tree = SyntaxFactory.ParseCompilationUnit("Class C" & vbCrLf & "End Class")
+
+                tree = tree.ReplaceTrivia(
+                    tree.DescendantTrivia().Where(Function(tr) tr.IsKind(SyntaxKind.EndOfLineTrivia)),
+                    Function(o, r) SyntaxFactory.ElasticCarriageReturnLineFeed)
+
+                Dim options = New VisualBasicSyntaxFormattingOptions() With
+                {
+                    .LineFormatting = New LineFormattingOptions() With
+                    {
+                        .NewLine = vbLf
+                    }
+                }
+
+                Dim formatted = Formatter.Format(tree, workspace.Services.SolutionServices, options, CancellationToken.None)
+                Dim actual = formatted.ToFullString()
+                Dim expected = "Class C" & vbLf & "End Class"
+
+                Assert.Equal(expected, actual)
+            End Using
+        End Sub
+
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2822")>
         Public Async Function FormatLabelFollowedByDotExpression() As Task
             Dim code = <Code>

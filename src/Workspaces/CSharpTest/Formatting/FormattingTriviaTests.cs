@@ -1668,6 +1668,27 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
         Assert.Equal("class C\n{\n}", actual);
     }
 
+    [Fact]
+    public void NewLineOptions_LineFeedOnly_FromElasticCarriageReturnLineFeed()
+    {
+        using var workspace = new AdhocWorkspace();
+        var tree = SyntaxFactory.ParseCompilationUnit("class C\r\n{\r\n}");
+
+        tree = tree.ReplaceTrivia(
+            tree.DescendantTrivia().Where(tr => tr.IsKind(SyntaxKind.EndOfLineTrivia)),
+            static (o, r) => SyntaxFactory.ElasticCarriageReturnLineFeed);
+
+        var options = new CSharpSyntaxFormattingOptions()
+        {
+            LineFormatting = new() { NewLine = "\n" }
+        };
+
+        var formatted = Formatter.Format(tree, workspace.Services.SolutionServices, options, CancellationToken.None);
+
+        var actual = formatted.ToFullString();
+        Assert.Equal("class C\n{\n}", actual);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4019")]
     public void FormatWithTabs()
     {

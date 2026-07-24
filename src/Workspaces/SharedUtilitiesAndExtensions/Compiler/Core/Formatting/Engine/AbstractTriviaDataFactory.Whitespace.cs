@@ -56,6 +56,13 @@ internal abstract partial class AbstractTriviaDataFactory
 
             if (this.LineBreaks == line && this.Spaces == indentation)
             {
+                // Elastic trivia must still flow through a formatted whitespace instance so the
+                // newline text is materialized from LineFormattingOptions.NewLine.
+                if (this.TreatAsElastic)
+                {
+                    return new ModifiedWhitespace(this.Options, this, line, indentation, elastic: false);
+                }
+
                 return this;
             }
 

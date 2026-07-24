@@ -199,6 +199,16 @@ internal abstract partial class AbstractFormatEngine
                 return true;
             }
 
+            if (operation.Line > 0 && triviaInfo.TreatAsElastic && triviaInfo.SecondTokenIsFirstTokenOnLine)
+            {
+                Debug.Assert(!context.IsFormattingDisabled(pairIndex));
+
+                // Even when preserving the same logical line count, elastic trivia should be rewritten so
+                // the concrete newline text comes from the current line formatting options.
+                context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithLine(triviaInfo.LineBreaks, indentation, context, formattingRules, cancellationToken));
+                return true;
+            }
+
             // lines between tokens are as expected, but indentation is not right
             if (triviaInfo.SecondTokenIsFirstTokenOnLine &&
                 indentation != triviaInfo.Spaces)
