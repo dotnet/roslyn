@@ -111,6 +111,11 @@ internal sealed class DotnetCliHelper : ILspService
         startInfo.Environment.Remove("MSBUILD_EXE_PATH");
         startInfo.Environment.Remove("MSBuildExtensionsPath");
 
+        // Diagnostic ports are scoped to a single runtime. Inheriting a suspended startup port from a traced host process
+        // causes the CLI process to wait indefinitely for a resume command intended for its parent.
+        startInfo.Environment.Remove("DOTNET_DiagnosticPorts");
+        startInfo.Environment.Remove("DOTNET_DefaultDiagnosticPortSuspend");
+
         var process = Process.Start(startInfo);
         Contract.ThrowIfNull(process, $"Unable to start dotnet CLI at {_dotnetExecutablePath.Value} with arguments {arguments} in directory {workingDirectory}");
         if (!keepStandardInputOpen)
