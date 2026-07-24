@@ -10,12 +10,18 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
+#if NET
+using System.Runtime.InteropServices.Marshalling;
+#endif
 using System.Text;
 using Microsoft.DiaSymReader.PortablePdb;
 
 namespace Roslyn.Test.PdbUtilities
 {
-    internal sealed class DummyMetadataImport : IMetadataImport, IDisposable
+#if NET
+    [GeneratedComClass]
+#endif
+    internal sealed partial class DummyMetadataImport : IMetadataImport, IDisposable
     {
         private readonly MetadataReader _metadataReaderOpt;
         private readonly IDisposable _metadataOwnerOpt;
