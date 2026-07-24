@@ -174,17 +174,14 @@ namespace Microsoft.CodeAnalysis
         internal static string GetAssemblyLocation(Type type)
         {
 #if NET
-            if (RuntimeFeature.IsDynamicCodeSupported)
+            if (!RuntimeFeature.IsDynamicCodeSupported)
             {
-                var location = type.Assembly.Location;
-                return string.IsNullOrEmpty(location) ? "<unknown>" : location;
+                return "<unknown>";
             }
+#endif
 
-            return "<unknown>";
-#else
             var location = type.Assembly.Location;
             return string.IsNullOrEmpty(location) ? "<unknown>" : location;
-#endif
         }
 
         /// <summary>
