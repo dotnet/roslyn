@@ -27,6 +27,17 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         }
 
         /// <summary>
+        /// A tag helper descriptor's <see cref="TagHelperDescriptor.TypeName"/> with any generic type
+        /// arguments removed -- e.g. <c>MyApp.Counter&lt;T&gt;</c> becomes <c>MyApp.Counter</c> -- so it
+        /// can be matched against the fallback components' type names, which carry no arity.
+        /// </summary>
+        internal static string StripGenericArity(string typeName)
+        {
+            var baseName = TypeNameHelper.GetNonGenericTypeName(typeName, out _);
+            return baseName.Length == typeName.Length ? typeName : baseName.ToString();
+        }
+
+        /// <summary>
         /// Returns the hint name for the decl half of a Razor component generated source given
         /// the impl half's hint name. The decl file substitutes <c>.decl.g.cs</c> for the
         /// trailing <c>.g.cs</c> -- e.g. <c>Component1_razor.g.cs</c> →
