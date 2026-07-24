@@ -9877,6 +9877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NullableFlowState resultState = NullableFlowState.NotNull;
             bool canConvertNestedNullability = true;
+            var conversionFromBinding = conversion;
 
             if (isSuppressed || conversionOperand.IsSuppressed)
             {
@@ -10215,13 +10216,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
-                    if (assignmentKind == AssignmentKind.Argument)
+                    var underlying = conversionFromBinding.UnderlyingConversions;
+                    bool isNullableNumericConversion = conversionFromBinding.IsNullable && underlying.Length == 1 && underlying[0].IsNumeric;
+                    if (!isNullableNumericConversion)
                     {
-                        ReportNullabilityMismatchInArgument(getDiagnosticLocation(), operandType.Type, parameterOpt, targetType, forOutput: false);
-                    }
-                    else
-                    {
-                        ReportNullabilityMismatchInAssignment(getDiagnosticLocation(), GetTypeAsDiagnosticArgument(operandType.Type), targetType);
+                        if (assignmentKind == AssignmentKind.Argument)
+                        {
+                            ReportNullabilityMismatchInArgument(getDiagnosticLocation(), operandType.Type, parameterOpt, targetType, forOutput: false);
+                        }
+                        else
+                        {
+                            ReportNullabilityMismatchInAssignment(getDiagnosticLocation(), GetTypeAsDiagnosticArgument(operandType.Type), targetType);
+                        }
                     }
                 }
             }
