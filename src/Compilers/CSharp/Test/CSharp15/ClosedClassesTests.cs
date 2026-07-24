@@ -2308,10 +2308,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp.VerifyDiagnostics(
-            // (11,25): hidden CS9335: The pattern is redundant.
-            //             D2 { Value: < 1 } => 4,
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "< 1").WithLocation(11, 25));
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -6846,15 +6843,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
-                // (200,19): hidden CS9335: The pattern is redundant.
-                //             F2 or Y => 3,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "Y").WithLocation(200, 19),
                 // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(300, 18),
-                // (400,20): hidden CS9335: The pattern is redundant.
-                //             F1 and X => 1,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "X").WithLocation(400, 20)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(300, 18)
                 );
         }
     }

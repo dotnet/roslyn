@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 
 #if ROSLYN_TEST_REDUNDANT_PATTERN
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasUnionMatching,
             BindingDiagnosticBag diagnostics)
         {
-            if (pattern.HasErrors)
+            if (pattern.HasErrors || !ShouldAnalyze(compilation, syntax))
             {
                 return;
             }
@@ -90,6 +91,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Detect if 'patternSyntax' contains a 'not A or B'/'not A and B' syntactic form,
+        /// and that <see cref="ErrorCode.WRN_RedundantPattern"/> is enabled at its location.
+        /// </summary>
+        /// <remarks>
+        /// This and <see cref="ShouldWarn"/> methods are sensitive to parens.
+        /// So, for example, they will return false for '(not A) or B' as well as 'not (A or B)'.
+        /// These forms are thought to not be hazardous and to not warrant warnings.
+        /// </remarks>
+        private static bool ShouldAnalyze(CSharpCompilation compilation, SyntaxNode patternSyntax)
+        {
+            var hasWarningSeveritySyntaxForm = patternSyntax.DescendantNodesAndSelf().Any(
+                node => node is BinaryPatternSyntax binary && FindNotInBinary(binary.Left) && IsRedundantPatternWarningEnabled(compilation, binary.Right));
+            return hasWarningSeveritySyntaxForm;
+        }
+
+        private static bool IsRedundantPatternWarningEnabled(CSharpCompilation compilation, SyntaxNode syntax)
+        {
+            const ErrorCode code = ErrorCode.WRN_RedundantPattern;
+            var options = compilation.Options;
+            ReportDiagnostic report = CSharpDiagnosticFilter.GetDiagnosticReport(
+                ErrorFacts.GetSeverity(code),
+                MessageProvider.Instance.GetIsEnabledByDefault((int)code),
+                (int)code,
+                MessageProvider.Instance.GetIdForErrorCode((int)code),
+                ErrorFacts.GetWarningLevel(code),
+                syntax.Location,
+                customTags: [],
+                options.WarningLevel,
+                options.NullableContextOptions,
+                options.GeneralDiagnosticOption,
+                options.SpecificDiagnosticOptions,
+                options.SyntaxTreeOptionsProvider,
+                CancellationToken.None,
+                out bool hasPragmaSuppression);
+
+            return report != ReportDiagnostic.Suppress && !hasPragmaSuppression;
+        }
+
+        /// <summary>
         /// <see cref="CheckRedundantPatternsForIsPattern"/>
         /// </summary>
         internal static void CheckRedundantPatternsForSwitchExpression(
@@ -99,6 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             BindingDiagnosticBag diagnostics)
         {
+            if (!switchArms.Any(static (switchArm, compilation) => ShouldAnalyze(compilation, switchArm.Pattern.Syntax), compilation))
+            {
+                return;
+            }
+
             var redundantNodes = PooledHashSet<SyntaxNode>.GetInstance();
             var existingCases = ArrayBuilder<StateForCase>.GetInstance(switchArms.Length);
 
@@ -133,7 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int patternIndex = 0; patternIndex < switchArms.Length; patternIndex++)
                 {
                     BoundSwitchExpressionArm switchArm = switchArms[patternIndex];
-                    CheckOrAndAndReachability(existingCases, patternIndex, switchArm.Pattern, switchArm.HasUnionMatching, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                    if (ShouldAnalyze(compilation, switchArm.Pattern.Syntax))
+                    {
+                        CheckOrAndAndReachability(existingCases, patternIndex, switchArm.Pattern, switchArm.HasUnionMatching, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                    }
                 }
 
                 ReportRedundant(redundantNodes, diagnostics);
@@ -150,6 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchSection> switchSections,
             BindingDiagnosticBag diagnostics)
         {
+            if (!shouldAnalyzeAny(compilation, switchSections))
+            {
+                return;
+            }
+
             var redundantNodes = PooledHashSet<SyntaxNode>.GetInstance();
             var existingCases = ArrayBuilder<StateForCase>.GetInstance();
 
@@ -157,6 +210,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             existingCases.Free();
             redundantNodes.Free();
+
+            static bool shouldAnalyzeAny(CSharpCompilation compilation, ImmutableArray<BoundSwitchSection> switchSections)
+            {
+                foreach (var switchSection in switchSections)
+                {
+                    foreach (var switchLabel in switchSection.SwitchLabels)
+                    {
+                        if (ShouldAnalyze(compilation, switchLabel.Pattern.Syntax))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
 
             static void checkRedundantPatternsForSwitchStatement(
                 CSharpCompilation compilation,
@@ -194,7 +263,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                         {
-                            CheckOrAndAndReachability(existingCases, patternIndex, label.Pattern, label.HasUnionMatching, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                            if (ShouldAnalyze(compilation, label.Pattern.Syntax))
+                            {
+                                CheckOrAndAndReachability(existingCases, patternIndex, label.Pattern, label.HasUnionMatching, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                            }
+
                             patternIndex++;
                         }
                     }
@@ -208,81 +281,78 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var node in redundantNodes)
             {
-                ErrorCode errorCode = shouldWarn(node) ? ErrorCode.WRN_RedundantPattern : ErrorCode.HDN_RedundantPattern;
-                diagnostics.Add(errorCode, node);
+                Debug.Assert(ShouldWarn(node));
+                diagnostics.Add(ErrorCode.WRN_RedundantPattern, node);
             }
+        }
 
-            return;
-
-            // We need to reduce the break introduced by reporting redundant patterns
-            // and we never want to affect people who express their patterns thoroughly (but correctly)
-            // such as `switch { < 0 => -1, 0 => 0, > 0 => 1 }`.
-            // So we're only reporting a warning for situations that syntactically look hazardous.
-            // Others are reported as a hidden diagnostic.
-            // At the moment, we're only interested in patterns in a binary pattern with a `not` before the redundant pattern.
-            static bool shouldWarn(SyntaxNode syntax)
-            {
+        // We need to reduce the break introduced by reporting redundant patterns
+        // and we never want to affect people who express their patterns thoroughly (but correctly)
+        // such as `switch { < 0 => -1, 0 => 0, > 0 => 1 }`.
+        // So we're only reporting a warning for situations that syntactically look hazardous.
+        // At the moment, we're only interested in patterns in a binary pattern with a `not` before the redundant pattern.
+        private static bool ShouldWarn(SyntaxNode syntax)
+        {
 start:
-                if (syntax.Parent is ParenthesizedPatternSyntax parens)
-                {
-                    syntax = parens;
-                    goto start;
-                }
-
-                if (syntax.Parent is BinaryPatternSyntax binary)
-                {
-                    if (binary.Right == syntax && findNotInBinary(binary.Left))
-                    {
-                        return true;
-                    }
-
-                    syntax = binary;
-                    goto start;
-                }
-
-                // If the syntax is the whole sub-pattern, we walk up to the recursive pattern.
-                // For example: `not A or { Prop: <redundant> }`
-                if (syntax.Parent is SubpatternSyntax subpatternSyntax
-                    && subpatternSyntax.Parent is (PropertyPatternClauseSyntax or PositionalPatternClauseSyntax) and var patternClause
-                    && patternClause.Parent is RecursivePatternSyntax recursive)
-                {
-                    syntax = recursive;
-                    goto start;
-                }
-
-                // If the syntax is the whole list element pattern, we walk up to the list pattern.
-                // For example: `not A or [<redundant>, ...]`
-                if (syntax.Parent is ListPatternSyntax listPattern)
-                {
-                    syntax = listPattern;
-                    goto start;
-                }
-
-                if (syntax.Parent is SlicePatternSyntax slicePattern)
-                {
-                    syntax = slicePattern;
-                    goto start;
-                }
-
-                return false;
-            }
-
-            // Detect a `not` at top-level or inside a tree of binary patterns
-            // Note: we don't dig into parenthesized patterns as the meaning of `not` is not problematic then
-            static bool findNotInBinary(SyntaxNode syntax)
+            if (syntax.Parent is ParenthesizedPatternSyntax parens)
             {
-                while (syntax is BinaryPatternSyntax binarySyntax)
-                {
-                    if (findNotInBinary(binarySyntax.Right))
-                    {
-                        return true;
-                    }
+                syntax = parens;
+                goto start;
+            }
 
-                    syntax = binarySyntax.Left;
+            if (syntax.Parent is BinaryPatternSyntax binary)
+            {
+                if (binary.Right == syntax && FindNotInBinary(binary.Left))
+                {
+                    return true;
                 }
 
-                return syntax.Kind() == SyntaxKind.NotPattern;
+                syntax = binary;
+                goto start;
             }
+
+            // If the syntax is the whole sub-pattern, we walk up to the recursive pattern.
+            // For example: `not A or { Prop: <redundant> }`
+            if (syntax.Parent is SubpatternSyntax subpatternSyntax
+                && subpatternSyntax.Parent is (PropertyPatternClauseSyntax or PositionalPatternClauseSyntax) and var patternClause
+                && patternClause.Parent is RecursivePatternSyntax recursive)
+            {
+                syntax = recursive;
+                goto start;
+            }
+
+            // If the syntax is the whole list element pattern, we walk up to the list pattern.
+            // For example: `not A or [<redundant>, ...]`
+            if (syntax.Parent is ListPatternSyntax listPattern)
+            {
+                syntax = listPattern;
+                goto start;
+            }
+
+            if (syntax.Parent is SlicePatternSyntax slicePattern)
+            {
+                syntax = slicePattern;
+                goto start;
+            }
+
+            return false;
+        }
+
+        // Detect a `not` at top-level or inside a tree of binary patterns
+        // Note: we don't dig into parenthesized patterns as the meaning of `not` is not problematic then
+        private static bool FindNotInBinary(SyntaxNode syntax)
+        {
+            while (syntax is BinaryPatternSyntax binarySyntax)
+            {
+                if (FindNotInBinary(binarySyntax.Right))
+                {
+                    return true;
+                }
+
+                syntax = binarySyntax.Left;
+            }
+
+            return syntax.Kind() == SyntaxKind.NotPattern;
         }
 
         /// <summary>
@@ -527,7 +597,7 @@ start:
                 for (int i = 0; i < casesBuilder.Count; i++)
                 {
                     StateForCase @case = casesBuilder[i];
-                    bool shouldReport = !dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel);
+                    bool shouldReport = !dag.ReachableLabels.Contains(@case.CaseLabel) && !labelsToIgnore.Contains(@case.CaseLabel) && ShouldWarn(@case.Syntax);
                     if (shouldReport)
                     {
                         context.RedundantNodes.Add(@case.Syntax);

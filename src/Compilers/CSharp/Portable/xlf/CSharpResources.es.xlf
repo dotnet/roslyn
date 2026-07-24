@@ -2942,11 +2942,6 @@
         <target state="translated">La directiva using aparecía anteriormente como using global</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="translated">El patrón es redundante.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">El patrón es demasiado complejo para analizar la redundancia.</target>
@@ -2955,11 +2950,6 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">El patrón es demasiado complejo para analizar la redundancia.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="translated">El patrón es redundante.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
