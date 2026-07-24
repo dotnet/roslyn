@@ -94,7 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Detect if 'patternSyntax' contains a 'not A or B'/'not A and B' syntactic form,
         /// and that <see cref="ErrorCode.WRN_RedundantPattern"/> is enabled at its location.
         /// </summary>
-        /// <seealso cref="ShouldWarn"/>
+        /// <remarks>
+        /// This and <see cref="ShouldWarn"/> methods are sensitive to parens.
+        /// So, for example, they will return false for '(not A) or B' as well as 'not (A or B)'.
+        /// These forms are thought to not be hazardous and to not warrant warnings.
+        /// </remarks>
         private static bool ShouldAnalyze(CSharpCompilation compilation, SyntaxNode patternSyntax)
         {
             var hasWarningSeveritySyntaxForm = patternSyntax.DescendantNodesAndSelf().Any(
