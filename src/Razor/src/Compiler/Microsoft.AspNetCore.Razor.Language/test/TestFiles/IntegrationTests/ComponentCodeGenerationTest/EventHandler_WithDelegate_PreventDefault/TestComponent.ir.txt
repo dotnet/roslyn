@@ -17,5 +17,3 @@
                     ComponentAttribute - (95:1,51 [22] x:\dir\subdir\Test\TestComponent.cshtml) - onfocus - PreventDefault - AttributeStructure.DoubleQuotes
                         CSharpExpression - 
                             IntermediateToken - (95:1,51 [22] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ShouldPreventDefault()
-            CSharpCode - (130:2,7 [95] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (130:2,7 [95] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    void OnFocus(FocusEventArgs e) { }\n\n    bool ShouldPreventDefault() { return false; }\n

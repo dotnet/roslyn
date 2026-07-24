@@ -1,7 +1,5 @@
 ﻿[0000] OpenElement("div")
-[0000] OpenElement("p")
 [0001] AddAttribute("class", "row")
-[0001] AddContent(context)
 [0002] OpenElement("a")
 [0003] AddAttribute("href", "#")
 [0004] AddAttribute("@onclick", "Toggle")
@@ -10,3 +8,5 @@
 [0007] OpenElement("div")
 [0008] AddAttribute("class", "col-12 card card-body")
 [0009] AddContent(ChildContent)
+[0010] OpenElement("p")
+[0011] AddContent(context)

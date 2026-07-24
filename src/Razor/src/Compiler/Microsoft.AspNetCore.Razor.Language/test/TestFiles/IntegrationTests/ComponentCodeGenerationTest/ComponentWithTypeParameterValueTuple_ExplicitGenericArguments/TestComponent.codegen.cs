@@ -84,6 +84,16 @@ null
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
+#nullable restore
+#line (6,8)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
+    [Parameter]
+    public List<(TDomain Domain, TValue Value)> Data { get; set; }
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591

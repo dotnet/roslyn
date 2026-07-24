@@ -37,15 +37,15 @@ public class RazorProjectEngineTest
             engine.Phases,
             phase => Assert.IsType<DefaultRazorParsingPhase>(phase),
             phase => Assert.IsType<DefaultRazorSyntaxTreePhase>(phase),
-            phase => Assert.IsType<DefaultRazorTagHelperContextDiscoveryPhase>(phase),
             phase => Assert.IsType<DefaultRazorIntermediateNodeLoweringPhase>(phase),
-            phase => Assert.IsType<DefaultRazorMarkupSplitPhase>(phase),
-            phase => Assert.IsType<DefaultTagHelperResolutionPhase>(phase),
-            phase => Assert.IsType<DefaultRazorTagHelperRewritePhase>(phase),
             phase => Assert.IsType<DefaultRazorDocumentClassifierPhase>(phase),
             phase => Assert.IsType<DefaultRazorDirectiveClassifierPhase>(phase),
-            phase => Assert.IsType<DefaultRazorOptimizationPhase>(phase),
+            phase => Assert.IsType<DefaultRazorMarkupSplitPhase>(phase),
             phase => Assert.IsType<DefaultRazorDeclCSharpLoweringPhase>(phase),
+            phase => Assert.IsType<DefaultRazorTagHelperContextDiscoveryPhase>(phase),
+            phase => Assert.IsType<DefaultTagHelperResolutionPhase>(phase),
+            phase => Assert.IsType<DefaultRazorTagHelperRewritePhase>(phase),
+            phase => Assert.IsType<DefaultRazorOptimizationPhase>(phase),
             phase => Assert.IsType<DefaultRazorCSharpLoweringPhase>(phase));
     }
 

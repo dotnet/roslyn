@@ -14,5 +14,3 @@
                     HtmlAttribute - (22:0,22 [17] x:\dir\subdir\Test\TestComponent.cshtml) -  @bind=" - "
                         CSharpExpressionAttributeValue - (30:0,30 [8] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             LazyIntermediateToken - (31:0,31 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Enabled
-            CSharpCode - (51:1,7 [41] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (51:1,7 [41] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public bool Enabled { get; set; }\n

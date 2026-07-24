@@ -90,6 +90,23 @@ namespace Test
             });
     }
 
+    [Fact]
+    public void RejectsEmptyTagHelperDirectives()
+    {
+        // Even with no content, @addTagHelper/@removeTagHelper/@tagHelperPrefix still report RZ9978
+        // ("not valid in a component document"), and the diagnostic spans the directive itself (char 0)
+        // rather than the (empty) directive content.
+        var result = CompileToCSharp("""
+            @addTagHelper
+            @removeTagHelper
+            @tagHelperPrefix
+            """);
+
+        Assert.Contains(result.RazorDiagnostics, static d => d.Id == "RZ9978" && d.Span.LineIndex == 0 && d.Span.CharacterIndex == 0);
+        Assert.Contains(result.RazorDiagnostics, static d => d.Id == "RZ9978" && d.Span.LineIndex == 1 && d.Span.CharacterIndex == 0);
+        Assert.Contains(result.RazorDiagnostics, static d => d.Id == "RZ9978" && d.Span.LineIndex == 2 && d.Span.CharacterIndex == 0);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/7271")]
     public void Component_RazorCommentInStartTagAttributeArea_IsIgnored()
     {

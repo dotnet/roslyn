@@ -39,3 +39,18 @@ Source Location: (185:12,4 [22] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1975:72,24 [22] )
 |ChildContent(Items3())|
 
+Source Location: (222:14,7 [248] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter] public TItem[] Items1 { get; set; }
+    [Parameter] public List<TItem[]> Items2 { get; set; }
+    [Parameter] public Func<TItem[]> Items3 { get; set; }
+    [Parameter] public RenderFragment<TItem[]> ChildContent { get; set; }
+|
+Generated Location: (2235:83,0 [248] )
+|
+    [Parameter] public TItem[] Items1 { get; set; }
+    [Parameter] public List<TItem[]> Items2 { get; set; }
+    [Parameter] public Func<TItem[]> Items3 { get; set; }
+    [Parameter] public RenderFragment<TItem[]> ChildContent { get; set; }
+|
+

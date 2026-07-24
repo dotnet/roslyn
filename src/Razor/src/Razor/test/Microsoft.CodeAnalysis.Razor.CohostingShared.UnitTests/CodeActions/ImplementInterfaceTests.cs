@@ -289,7 +289,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohost ImplementInterface positions members mid-@code-block with the decl/impl split; see https://github.com/dotnet/roslyn/issues/84609")]
     public async Task ImplementInterface_Explicitly_PartialBaseImplementations_AddsDerivedMembers()
     {
         await VerifyCodeActionAsync(

@@ -12,7 +12,7 @@ public class DefaultTagHelperOptimizationPassTest : RazorProjectEngineTestBase
 
     protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.ExecutePhasesThrough<IRazorDirectiveClassifierPhase>();
+        processor.ExecutePhasesThrough<DefaultRazorTagHelperRewritePhase>();
     }
 
     [Fact]

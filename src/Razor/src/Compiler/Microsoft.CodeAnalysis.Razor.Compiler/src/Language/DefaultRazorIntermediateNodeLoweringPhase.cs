@@ -532,6 +532,15 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             return node.GetSourceSpan(SourceDocument);
         }
 
+        // The @addTagHelper/@removeTagHelper/@tagHelperPrefix chunk generator hangs off the directive's
+        // content span, but the "not valid in a component" diagnostic reads best over the whole directive
+        // (and still has a span to report when the directive is empty), so walk up to the directive node.
+        protected SourceSpan? BuildTagHelperDirectiveSourceSpan(CSharpStatementLiteralSyntax node)
+        {
+            var directive = node.FirstAncestorOrSelf<SyntaxNode>(static n => n is BaseRazorDirectiveSyntax);
+            return BuildSourceSpanFromNode(directive ?? node);
+        }
+
         protected static AttributeStructure InferAttributeStructure(MarkupAttributeBlockSyntax node)
         {
             if (node.EqualsToken.Kind == SyntaxKind.None && node.Value == null)
@@ -2044,28 +2053,49 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
         public override void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
         {
-            if (node.ChunkGenerator is null or StatementChunkGenerator)
+            switch (node.ChunkGenerator)
             {
-                var isAttributeValue = _builder.Current is CSharpCodeAttributeValueIntermediateNode;
+                // @addTagHelper / @removeTagHelper / @tagHelperPrefix are not valid in a component
+                // document. Tag-helper discovery runs after IR lowering, so the diagnostic is attached to
+                // the chunk generator here; the base visitor copies it onto the resulting IR node.
+                case AddTagHelperChunkGenerator addTagHelper:
+                    addTagHelper.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
+                    break;
+                case RemoveTagHelperChunkGenerator removeTagHelper:
+                    removeTagHelper.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
+                    break;
+                case TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix:
+                    tagHelperPrefix.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
+                    break;
 
-                if (!isAttributeValue)
+                case null:
+                case StatementChunkGenerator:
                 {
-                    var statementNode = new CSharpCodeIntermediateNode()
+                    var isAttributeValue = _builder.Current is CSharpCodeAttributeValueIntermediateNode;
+
+                    if (!isAttributeValue)
                     {
-                        Source = BuildSourceSpanFromNode(node)
-                    };
-                    _builder.Push(statementNode);
-                }
+                        var statementNode = new CSharpCodeIntermediateNode()
+                        {
+                            Source = BuildSourceSpanFromNode(node)
+                        };
+                        _builder.Push(statementNode);
+                    }
 
-                _builder.Add(IntermediateNodeFactory.CSharpToken(
-                    arg: node,
-                    contentFactory: static node => node.GetContent(),
-                    source: BuildSourceSpanFromNode(node)));
+                    _builder.Add(IntermediateNodeFactory.CSharpToken(
+                        arg: node,
+                        contentFactory: static node => node.GetContent(),
+                        source: BuildSourceSpanFromNode(node)));
 
-                if (!isAttributeValue)
-                {
-                    _builder.Pop();
+                    if (!isAttributeValue)
+                    {
+                        _builder.Pop();
+                    }
                 }
+                break;
             }
 
             base.VisitCSharpStatementLiteral(node);
@@ -2103,6 +2133,30 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             RazorParserOptions options)
             : base(document, builder, usings, options)
         {
+        }
+
+        public override void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
+        {
+            switch (node.ChunkGenerator)
+            {
+                // @addTagHelper / @removeTagHelper / @tagHelperPrefix are not valid in a component import
+                // document. Tag-helper discovery runs after IR lowering, so the diagnostic is attached to
+                // the chunk generator here; the base visitor copies it onto the resulting IR directive node.
+                case AddTagHelperChunkGenerator addTagHelper:
+                    addTagHelper.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
+                    break;
+                case RemoveTagHelperChunkGenerator removeTagHelper:
+                    removeTagHelper.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
+                    break;
+                case TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix:
+                    tagHelperPrefix.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildTagHelperDirectiveSourceSpan(node)));
+                    break;
+            }
+
+            base.VisitCSharpStatementLiteral(node);
         }
 
         public override void VisitMarkupElement(MarkupElementSyntax node)

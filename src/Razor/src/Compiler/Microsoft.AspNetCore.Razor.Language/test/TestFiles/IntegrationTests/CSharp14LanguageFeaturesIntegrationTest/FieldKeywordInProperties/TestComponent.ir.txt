@@ -12,5 +12,3 @@
                 MarkupElement - (25:4,0 [13] x:\dir\subdir\Test\TestComponent.razor) - p
                     CSharpExpression - (29:4,4 [5] x:\dir\subdir\Test\TestComponent.razor)
                         LazyIntermediateToken - (29:4,4 [5] x:\dir\subdir\Test\TestComponent.razor) - CSharp - Value
-            CSharpCode - (49:6,7 [92] x:\dir\subdir\Test\TestComponent.razor)
-                LazyIntermediateToken - (49:6,7 [92] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    public int Value\n    {\n        get => field;\n        set => field = value;\n    }\n
