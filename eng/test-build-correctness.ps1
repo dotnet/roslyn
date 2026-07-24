@@ -75,6 +75,10 @@ try {
   Exec-DotNet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
   Write-Host ""
 
+  Write-Host "Checking generated Agentic Workflow files"
+  Exec-Command "pwsh" "-NoProfile -ExecutionPolicy Unrestricted -File `"$RepoRoot/.github/scripts/Validate-AgenticWorkflows.ps1`""
+  Write-Host ""
+
   ExitWithExitCode 0
 }
 catch {
