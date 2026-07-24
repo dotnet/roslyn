@@ -10326,6 +10326,29 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84564")]
+    public void Member_Field_ExplicitLayout_SemanticModelDiagnostics()
+    {
+        var source = """
+            using System.Runtime.InteropServices;
+
+            [StructLayout(LayoutKind.Explicit)]
+            struct S
+            {
+                [FieldOffset(0)] public int F1;
+                [FieldOffset(4)] public int F2;
+            }
+            """;
+        var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules());
+        var tree = compilation.SyntaxTrees.Single();
+        var field = tree.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().First();
+
+        compilation.GetSemanticModel(tree).GetDiagnostics(field.Span).Verify(
+            // (6,33): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            //     [FieldOffset(0)] public int F1;
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33));
+    }
+
     [Fact]
     public void Member_Field_ExtendedLayout()
     {
