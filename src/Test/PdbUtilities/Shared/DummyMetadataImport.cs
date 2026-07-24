@@ -75,7 +75,7 @@ namespace Roslyn.Test.PdbUtilities
 
         public void GetTypeDefProps(
             int typeDefinition,
-            [MarshalAs(UnmanagedType.LPWStr), Out] StringBuilder qualifiedName,
+            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] char[] qualifiedName,
             int qualifiedNameBufferLength,
             out int qualifiedNameLength,
             [MarshalAs(UnmanagedType.U4)] out TypeAttributes attributes,
@@ -91,16 +91,17 @@ namespace Roslyn.Test.PdbUtilities
 
             if (qualifiedName != null)
             {
-                qualifiedName.Clear();
+                var builder = new StringBuilder();
 
                 if (!typeDef.Namespace.IsNil)
                 {
-                    qualifiedName.Append(_metadataReaderOpt.GetString(typeDef.Namespace));
-                    qualifiedName.Append('.');
+                    builder.Append(_metadataReaderOpt.GetString(typeDef.Namespace));
+                    builder.Append('.');
                 }
 
-                qualifiedName.Append(_metadataReaderOpt.GetString(typeDef.Name));
-                qualifiedNameLength = qualifiedName.Length;
+                builder.Append(_metadataReaderOpt.GetString(typeDef.Name));
+                qualifiedNameLength = Math.Min(builder.Length, Math.Max(0, qualifiedNameBufferLength - 1));
+                builder.CopyTo(0, qualifiedName, 0, qualifiedNameLength);
             }
             else
             {
@@ -116,7 +117,7 @@ namespace Roslyn.Test.PdbUtilities
         public void GetTypeRefProps(
             int typeReference,
             out int resolutionScope,
-            [MarshalAs(UnmanagedType.LPWStr), Out] StringBuilder qualifiedName,
+            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] char[] qualifiedName,
             int qualifiedNameBufferLength,
             out int qualifiedNameLength)
         {
@@ -130,16 +131,17 @@ namespace Roslyn.Test.PdbUtilities
 
             if (qualifiedName != null)
             {
-                qualifiedName.Clear();
+                var builder = new StringBuilder();
 
                 if (!typeRef.Namespace.IsNil)
                 {
-                    qualifiedName.Append(_metadataReaderOpt.GetString(typeRef.Namespace));
-                    qualifiedName.Append('.');
+                    builder.Append(_metadataReaderOpt.GetString(typeRef.Namespace));
+                    builder.Append('.');
                 }
 
-                qualifiedName.Append(_metadataReaderOpt.GetString(typeRef.Name));
-                qualifiedNameLength = qualifiedName.Length;
+                builder.Append(_metadataReaderOpt.GetString(typeRef.Name));
+                qualifiedNameLength = Math.Min(builder.Length, Math.Max(0, qualifiedNameBufferLength - 1));
+                builder.CopyTo(0, qualifiedName, 0, qualifiedNameLength);
             }
             else
             {
@@ -318,7 +320,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint GetEventProps(uint ev, out uint pointerClass, StringBuilder stringEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags, out uint ptkEventType, out uint pmdAddOn, out uint pmdRemoveOn, out uint pmdFire, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 11)] uint[] rmdOtherMethod, uint countMax)
+        public uint GetEventProps(uint ev, out uint pointerClass, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] char[] stringEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags, out uint ptkEventType, out uint pmdAddOn, out uint pmdRemoveOn, out uint pmdFire, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 11)] uint[] rmdOtherMethod, uint countMax)
         {
             throw new NotImplementedException();
         }
@@ -328,7 +330,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public unsafe uint GetFieldProps(uint mb, out uint pointerClass, StringBuilder stringField, uint cchField, out uint pchField, out uint pdwAttr, out byte* ppvSigBlob, out uint pcbSigBlob, out uint pdwCPlusTypeFlag, out void* ppValue)
+        public unsafe uint GetFieldProps(uint mb, out uint pointerClass, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] char[] stringField, uint cchField, out uint pchField, out uint pdwAttr, out byte* ppvSigBlob, out uint pcbSigBlob, out uint pdwCPlusTypeFlag, out void* ppValue)
         {
             throw new NotImplementedException();
         }
@@ -338,12 +340,12 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public unsafe uint GetMemberProps(uint mb, out uint pointerClass, StringBuilder stringMember, uint cchMember, out uint pchMember, out uint pdwAttr, out byte* ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRVA, out uint pdwImplFlags, out uint pdwCPlusTypeFlag, out void* ppValue)
+        public unsafe uint GetMemberProps(uint mb, out uint pointerClass, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] char[] stringMember, uint cchMember, out uint pchMember, out uint pdwAttr, out byte* ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRVA, out uint pdwImplFlags, out uint pdwCPlusTypeFlag, out void* ppValue)
         {
             throw new NotImplementedException();
         }
 
-        public unsafe uint GetMemberRefProps(uint mr, ref uint ptk, StringBuilder stringMember, uint cchMember, out uint pchMember, out byte* ppvSigBlob)
+        public unsafe uint GetMemberRefProps(uint mr, ref uint ptk, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] char[] stringMember, uint cchMember, out uint pchMember, out byte* ppvSigBlob)
         {
             throw new NotImplementedException();
         }
@@ -363,7 +365,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint GetModuleRefProps(uint mur, StringBuilder stringName, uint cchName)
+        public uint GetModuleRefProps(uint mur, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] char[] stringName, uint cchName)
         {
             throw new NotImplementedException();
         }
@@ -388,7 +390,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public unsafe uint GetParamProps(uint tk, out uint pmd, out uint pulSequence, StringBuilder stringName, uint cchName, out uint pchName, out uint pdwAttr, out uint pdwCPlusTypeFlag, out void* ppValue)
+        public unsafe uint GetParamProps(uint tk, out uint pmd, out uint pulSequence, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] char[] stringName, uint cchName, out uint pchName, out uint pdwAttr, out uint pdwCPlusTypeFlag, out void* ppValue)
         {
             throw new NotImplementedException();
         }
@@ -398,12 +400,12 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint GetPinvokeMap(uint tk, out uint pdwMappingFlags, StringBuilder stringImportName, uint cchImportName, out uint pchImportName)
+        public uint GetPinvokeMap(uint tk, out uint pdwMappingFlags, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] char[] stringImportName, uint cchImportName, out uint pchImportName)
         {
             throw new NotImplementedException();
         }
 
-        public unsafe uint GetPropertyProps(uint prop, out uint pointerClass, StringBuilder stringProperty, uint cchProperty, out uint pchProperty, out uint pdwPropFlags, out byte* ppvSig, out uint bytePointerSig, out uint pdwCPlusTypeFlag, out void* ppDefaultValue, out uint pcchDefaultValue, out uint pmdSetter, out uint pmdGetter, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 14)] uint[] rmdOtherMethod, uint countMax)
+        public unsafe uint GetPropertyProps(uint prop, out uint pointerClass, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] char[] stringProperty, uint cchProperty, out uint pchProperty, out uint pdwPropFlags, out byte* ppvSig, out uint bytePointerSig, out uint pdwCPlusTypeFlag, out void* ppDefaultValue, out uint pcchDefaultValue, out uint pmdSetter, out uint pmdGetter, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 14)] uint[] rmdOtherMethod, uint countMax)
         {
             throw new NotImplementedException();
         }
@@ -413,7 +415,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public Guid GetScopeProps(StringBuilder stringName, uint cchName, out uint pchName)
+        public Guid GetScopeProps([MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] char[] stringName, uint cchName, out uint pchName)
         {
             throw new NotImplementedException();
         }
@@ -423,7 +425,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint GetUserString(uint stk, StringBuilder stringString, uint cchString)
+        public uint GetUserString(uint stk, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] char[] stringString, uint cchString)
         {
             throw new NotImplementedException();
         }
@@ -444,7 +446,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint ResolveTypeRef(uint tr, [In] ref Guid riid, [MarshalAs(UnmanagedType.Interface)] out object ppIScope)
+        public uint ResolveTypeRef(uint tr, in Guid riid, [MarshalAs(UnmanagedType.Interface)] out object ppIScope)
         {
             throw new NotImplementedException();
         }
