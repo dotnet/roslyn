@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -28,16 +29,21 @@ var invocationConfiguration = new InvocationConfiguration()
 };
 return await command.Parse(args).InvokeAsync(invocationConfiguration, CancellationToken.None);
 
-static async Task RunAsync(ServerConfiguration serverConfiguration, CancellationToken cancellationToken)
+static async Task<int> RunAsync(ServerConfiguration serverConfiguration, CancellationToken cancellationToken)
 {
-    if (serverConfiguration.UseStdIo && serverConfiguration.ServerPipeName is not null)
+    if (serverConfiguration.IsDaemon)
     {
-        throw new InvalidOperationException("Server cannot be started with both --stdio and --pipe options.");
+        Contract.ThrowIfTrue(serverConfiguration.UseStdIo, "Server cannot be started with --daemon together with --stdio.");
+        Contract.ThrowIfNull(serverConfiguration.ServerPipeName, "Server started with --daemon must also specify --pipe.");
+        Contract.ThrowIfTrue(serverConfiguration.ClientProcessId is not null, "Server cannot be started with --daemon together with --clientProcessId.");
     }
-
-    if (!serverConfiguration.UseStdIo && serverConfiguration.ServerPipeName is null)
+    else if (serverConfiguration.UseStdIo)
     {
-        throw new InvalidOperationException("Server must be started with either --stdio or --pipe option.");
+        Contract.ThrowIfFalse(serverConfiguration.ServerPipeName is null, "Server cannot be started with --stdio together with --pipe.");
+    }
+    else
+    {
+        Contract.ThrowIfNull(serverConfiguration.ServerPipeName, "Server must be started with either --stdio or --pipe option.");
     }
 
     if (serverConfiguration.UseStdIo)
@@ -73,6 +79,17 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     logger.LogInformation("  Assembly informational version: {assemblyInformationalVersion}", typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "<unknown>");
     logger.LogInformation("  Executable path: {processPath}", Environment.ProcessPath ?? "<unknown>");
     logger.LogInformation("  Process ID: {processId}", Environment.ProcessId);
+
+    if (serverConfiguration.IsDaemon)
+    {
+        // We are the shared daemon. A short-lived bootstrap process (in the thin client) started us and then exited,
+        // orphaning us out of the editor's process tree so a teardown of that tree can't take us down. On Unix,
+        // additionally move into a new session so signals aimed at the launching client's session/process group (e.g.
+        // terminal-close SIGHUP) don't reach the shared daemon. A no-op on Windows, where leaving the editor's
+        // job/tree is handled entirely by the bootstrap orphaning us.
+        DaemonProcessDetach.DetachIntoNewSessionIfUnix(logger);
+    }
+
     if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -115,21 +132,56 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
     RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
 
-    if (serverConfiguration.UseStdIo)
+    // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
+    // exactly one connection; daemon mode accepts many and manages its own idle timeout. Both run through the same
+    // connection manager loop.
+    ILanguageServerConnectionSource connectionSource;
+
+    if (serverConfiguration.IsDaemon)
     {
-        connectionManager.CreateLanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, typeRefResolver);
+        if (!NamedPipeDaemonConnectionSource.TryCreate(
+                serverConfiguration.ServerPipeName!, serverConfiguration.DaemonKeepAlive, logger, out var daemonSource))
+        {
+            // Another daemon already owns this pipe. With the thin client holding its startup mutex through
+            // the connect, this generally only happens when a '--daemon' process is started outside that
+            // protocol (e.g. manually, or a stale instance). It's recoverable - the client connects to the
+            // existing daemon - so we exit with a distinct non-zero code rather than throwing, which would
+            // surface a stack trace in the editor's output for a benign condition.
+            return ServerExitCodes.DaemonAlreadyRunning;
+        }
+
+        connectionSource = daemonSource;
+    }
+    else if (serverConfiguration.UseStdIo)
+    {
+        connectionSource = new SingleLanguageServerConnectionSource(
+            new LanguageServerConnection(Console.OpenStandardInput(), Console.OpenStandardOutput()));
     }
     else
     {
         // The VS Code LSP client passes a full pipe path (e.g. \\.\pipe\<guid> on Windows, /tmp/<id>.sock on Unix).
         // NamedPipeClientStream expects just the pipe name on Windows (it prepends \\.\pipe\ itself),
         // and the full socket path on Unix.
-        var pipeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? serverConfiguration.ServerPipeName!.Replace(@"\\.\pipe\", "")
-            : serverConfiguration.ServerPipeName!;
+        var pipeName = serverConfiguration.ServerPipeName!;
+        const string windowsPipePrefix = @"\\.\pipe\";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+            pipeName.StartsWith(windowsPipePrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            pipeName = pipeName[windowsPipePrefix.Length..];
+        }
+
         var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
         await pipeClient.ConnectAsync(cancellationToken);
-        connectionManager.CreateLanguageServerHost(pipeClient, pipeClient, exportProvider, typeRefResolver);
+        connectionSource = new SingleLanguageServerConnectionSource(new LanguageServerConnection(pipeClient, pipeClient, pipeClient));
+    }
+
+    // Monitor the client process in single-server mode only; a shared daemon must not exit when one client
+    // dies (and the thin client doesn't forward --clientProcessId to the daemon).
+    if (!serverConfiguration.IsDaemon &&
+        serverConfiguration.ClientProcessId is int clientProcessId &&
+        RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
+    {
+        logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
     }
 
     logger.LogInformation("Language server initialized");
@@ -137,14 +189,16 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     try
     {
-        if (serverConfiguration.ClientProcessId is int clientProcessId && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
-            logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
-
-        await connectionManager.WaitForExitAsync();
+        using (connectionSource as IDisposable)
+        {
+            await connectionManager.RunAsync(connectionSource, exportProvider, typeRefResolver, logger, cancellationToken);
+        }
     }
     finally
     {
         // After the LSP server shutdown, report session wide telemetry
         RoslynLogger.ShutdownAndReportSessionTelemetry();
     }
+
+    return ServerExitCodes.Success;
 }

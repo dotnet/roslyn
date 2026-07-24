@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -61,15 +61,46 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         var workDoneProgressTarget = new WorkDoneProgressTarget();
 
         // Create server and open the project
-        var lspClient = await TestLspClient.CreateAsync(
-            clientCapabilities ?? new ClientCapabilities(),
-            ExtensionLogsDirectory.Path,
-            launchOptions,
-            LoggerFactory,
-            workspaceContent,
-            projectDirectory.Path,
-            workDoneProgressTarget,
-            locations: annotatedLocations);
+        var effectiveClientCapabilities = clientCapabilities ?? new ClientCapabilities();
+        TestLspClient lspClient = (launchOptions.DaemonMode, launchOptions.UseNamedPipe) switch
+        {
+            (DaemonMode: true, UseNamedPipe: true) => await TestLspClient.CreateDaemonPipeAsync(
+                effectiveClientCapabilities,
+                ExtensionLogsDirectory.Path,
+                launchOptions,
+                LoggerFactory,
+                workspaceContent,
+                projectDirectory.Path,
+                workDoneProgressTarget,
+                locations: annotatedLocations),
+            (DaemonMode: true, UseNamedPipe: false) => await TestLspClient.CreateDaemonStdioAsync(
+                effectiveClientCapabilities,
+                ExtensionLogsDirectory.Path,
+                launchOptions,
+                LoggerFactory,
+                workspaceContent,
+                projectDirectory.Path,
+                workDoneProgressTarget,
+                locations: annotatedLocations),
+            (DaemonMode: false, UseNamedPipe: true) => await TestLspClient.CreateSingleServerPipeAsync(
+                effectiveClientCapabilities,
+                ExtensionLogsDirectory.Path,
+                launchOptions,
+                LoggerFactory,
+                workspaceContent,
+                projectDirectory.Path,
+                workDoneProgressTarget,
+                locations: annotatedLocations),
+            (DaemonMode: false, UseNamedPipe: false) => await TestLspClient.CreateSingleServerStdioAsync(
+                effectiveClientCapabilities,
+                ExtensionLogsDirectory.Path,
+                launchOptions,
+                LoggerFactory,
+                workspaceContent,
+                projectDirectory.Path,
+                workDoneProgressTarget,
+                locations: annotatedLocations),
+        };
 
         if (workspaceContent.LoadPath is not null)
         {

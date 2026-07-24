@@ -667,6 +667,13 @@ public abstract partial class AbstractLanguageServerProtocolTests
             // Initialize the language server
             _ = _languageServer.Value;
 
+            // Make the test's workspace visible to this server's LspWorkspaceManager. In the full LSP server
+            // composition the server's own Host/Misc workspaces are created and registered by
+            // LanguageServerWorkspaceFactory; the test's separate TestWorkspace is not registered by anything
+            // else, so register it directly here. This is idempotent in the lighter-weight protocol test
+            // composition, where a mock event listener already registers it.
+            GetRequiredLspService<LspWorkspaceRegistrationService>().Register(TestWorkspace);
+
             if (_initializationOptions.CallInitialize)
             {
                 _initializeResult = await this.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams

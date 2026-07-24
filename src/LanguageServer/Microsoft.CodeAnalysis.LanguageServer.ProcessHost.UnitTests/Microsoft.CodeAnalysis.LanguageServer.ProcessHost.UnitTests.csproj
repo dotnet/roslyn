@@ -16,6 +16,12 @@
     <ProjectReference Include="..\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj" />
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
 
+    <!--
+      The tests launch the thin client (the dotnet-tool entry point) rather than the language server directly.
+      Reference it for build ordering only; the tests invoke it as a process and don't compile against it.
+    -->
+    <ProjectReference Include="..\roslyn-language-server\roslyn-language-server.csproj" ReferenceOutputAssembly="false" Private="false" />
+
     <ProjectReference Include="..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
@@ -30,6 +36,7 @@
     -->
     <Compile Include="..\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Utilities\TestPaths.cs" Link="Utilities\TestPaths.cs" />
     <Compile Include="..\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Utilities\NamedPipeTestUtilities.cs" Link="Utilities\NamedPipeTestUtilities.cs" />
+    <Compile Include="..\roslyn-language-server\ExitCodes.cs" Link="Utilities\ExitCodes.cs" />
   </ItemGroup>
 
   <!--
@@ -48,6 +55,27 @@
       <_LanguageServerFile Include="$(_LanguageServerOutputPath)\**\*.*" />
       <_LanguageServerFile Remove="$(_LanguageServerOutputPath)\**\*.mef-composition" />
       <Content Include="@(_LanguageServerFile)" Link="RoslynLSP\%(RecursiveDir)\%(_LanguageServerFile.Filename)%(_LanguageServerFile.Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Deploy the thin client (the dotnet-tool entry point) into the same RoslynLSP directory as the language server,
+    so its ServerExecutable finds the bundled server next to itself. Only the thin client's own outputs are
+    copied; the project has no package or project runtime dependencies, and its shared helpers are compiled into these
+    roslyn-language-server.* outputs, so they don't collide with the server files copied above.
+  -->
+  <Target Name="_CopyThinClientFiles" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
+    <MSBuild Projects="..\roslyn-language-server\roslyn-language-server.csproj" Targets="GetTargetPath">
+      <Output TaskParameter="TargetOutputs" ItemName="_ThinClientFilePath" />
+    </MSBuild>
+
+    <PropertyGroup>
+      <_ThinClientOutputPath>$([System.IO.Path]::GetDirectoryName(%(_ThinClientFilePath.Identity)))</_ThinClientOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(_ThinClientOutputPath)' != ''">
+      <_ThinClientFile Include="$(_ThinClientOutputPath)\roslyn-language-server.*" />
+      <Content Include="@(_ThinClientFile)" Link="RoslynLSP\%(_ThinClientFile.Filename)%(_ThinClientFile.Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 

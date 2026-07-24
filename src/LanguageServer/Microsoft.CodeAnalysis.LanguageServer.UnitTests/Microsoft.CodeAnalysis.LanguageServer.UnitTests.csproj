@@ -24,6 +24,12 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
   </ItemGroup>
 
+  <ItemGroup Label="Shared named-pipe helper for daemon client tests">
+    <!-- Tests connect to the daemon as a client using the same compiler-server pipe helper the thin client
+         uses, so the test's client stream agrees with the daemon's server stream on pipe path -->
+    <Compile Include="..\..\Compilers\Shared\NamedPipeUtil.cs" Link="Daemon\NamedPipeUtil.cs" />
+  </ItemGroup>
+
   <!--
     Copy files contained in the project to a RoslynLSP subdirectory to emulate deployment of the language server.
   -->

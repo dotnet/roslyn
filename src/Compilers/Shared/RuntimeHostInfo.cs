@@ -6,7 +6,11 @@
 
 using System;
 using System.IO;
+#if !NET
+// On .NET Framework, File.ResolveLinkTarget is provided as an extension member in this namespace
+// (see NativeMethods.cs). On .NET it is a native BCL method, so this using is unnecessary there.
 using Microsoft.CodeAnalysis.CommandLine;
+#endif
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
