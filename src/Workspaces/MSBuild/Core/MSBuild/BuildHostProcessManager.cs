@@ -333,10 +333,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         // it might try to load targets that aren't appropriate for the build host.
         processStartInfo.Environment.Remove("MSBUILD_EXE_PATH");
 
-        // Diagnostic ports are scoped to a single runtime. Inheriting a suspended startup port from a traced host process
-        // causes the build host to wait indefinitely for a resume command intended for its parent.
-        processStartInfo.Environment.Remove("DOTNET_DiagnosticPorts");
-        processStartInfo.Environment.Remove("DOTNET_DefaultDiagnosticPortSuspend");
+        processStartInfo.RemoveInheritedDotNetDiagnosticPorts();
 
         processStartInfo.CreateNoWindow = true;
         processStartInfo.UseShellExecute = false;
