@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -32,10 +33,10 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
         => CSharpSyntaxFacts.Instance;
 
     public override SyntaxTrivia CarriageReturnLineFeed
-        => SyntaxFactory.CarriageReturnLineFeed;
+        => SyntaxFactory.EndOfLine(Environment.NewLine);
 
     public override SyntaxTrivia ElasticCarriageReturnLineFeed
-        => SyntaxFactory.ElasticCarriageReturnLineFeed;
+        => SyntaxFactory.ElasticEndOfLine(Environment.NewLine);
 
     public override bool SupportsThrowExpression()
         => true;

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (requiresNewLine)
                 {
-                    this.AddEndOfLine(GetEndOfLine(trivia) ?? SyntaxFactory.CarriageReturnLineFeed);
+                    this.AddEndOfLine(GetEndOfLine(trivia) ?? SyntaxFactory.EndOfLine(Environment.NewLine));
                 }
 
                 _residualTrivia.Add(trivia);

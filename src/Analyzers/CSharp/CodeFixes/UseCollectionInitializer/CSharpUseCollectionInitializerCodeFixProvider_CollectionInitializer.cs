@@ -79,7 +79,7 @@ internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider
                 var addLineBreak = item.IsToken || item == nodeOrTokenList.Last();
                 if (addLineBreak && item.GetTrailingTrivia() is not [.., (kind: SyntaxKind.EndOfLineTrivia)])
                 {
-                    nodesAndTokens.Add(item.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed));
+                    nodesAndTokens.Add(item.WithAppendedTrailingTrivia(ElasticEndOfLine(Environment.NewLine)));
                 }
                 else
                 {

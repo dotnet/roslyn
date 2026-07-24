@@ -660,7 +660,7 @@ internal static class ConvertToRecordEngine
                             .WithTrailingTrivia(exteriorTrivia)))
                         .Append(XmlText(XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)))],
                         EndOfDocumentationCommentToken
-                            .WithTrailingTrivia(DocumentationCommentExterior("*/"), ElasticCarriageReturnLineFeed));
+                            .WithTrailingTrivia(DocumentationCommentExterior("*/"), ElasticEndOfLine(Environment.NewLine)));
             }
             else
             {
@@ -670,7 +670,7 @@ internal static class ConvertToRecordEngine
                     SyntaxKind.MultiLineDocumentationCommentTrivia,
                     [.. propertyParamComments.Skip(1)
                         .Prepend(XmlText(XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia)))])
-                    .WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
+                    .WithAppendedTrailingTrivia(ElasticEndOfLine(Environment.NewLine));
             }
         }
 
