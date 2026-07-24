@@ -2414,7 +2414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodInvocationInfo ReplaceWithExtensionImplementationIfNeeded(ref readonly MethodInvocationInfo methodInvocationInfo)
         {
             Symbol? symbol = methodInvocationInfo.MethodInfo.Symbol;
-            if (symbol?.IsExtensionBlockMember() != true || symbol.IsStatic)
+            if (symbol == null || !symbol.IsExtensionBlockMember(out var extension) || symbol.IsStatic)
             {
                 return methodInvocationInfo;
             }
@@ -2426,7 +2426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = methodInvocationInfo with { MethodInfo = replacedMethodInfo };
-            var extensionParameter = symbol.ContainingType.ExtensionParameter;
+            var extensionParameter = extension.ExtensionParameter;
             Debug.Assert(extensionParameter is not null);
             result.Parameters = methodInvocationInfo.Parameters.IsDefault ? [extensionParameter] : [extensionParameter, .. methodInvocationInfo.Parameters];
 

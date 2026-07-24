@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static void getDeclaredUserDefinedUnaryOperators(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
             {
-                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.ContainingType.ExtensionParameter is not null));
+                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.RequiredContainingType.ExtensionParameter is not null));
                 var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
                 NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
                 GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt: null, typeOperators, kind, name, operators);
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(x is { });
                 Debug.Assert(y is { });
 
-                if (x.OriginalDefinition.ContainingType.ContainingType != (object)x.OriginalDefinition.ContainingType.ContainingType)
+                if (x.OriginalDefinition.ContainingType.RequiredContainingType != (object?)x.OriginalDefinition.ContainingType.RequiredContainingType)
                 {
                     return false;
                 }
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var typeComparer = Symbols.SymbolEqualityComparer.AllIgnoreOptions;
 
-                int result = typeComparer.GetHashCode(op.OriginalDefinition.ContainingType.ContainingType);
+                int result = typeComparer.GetHashCode(op.OriginalDefinition.ContainingType.RequiredContainingType);
 
                 var extension = op.OriginalDefinition.ContainingType;
                 var groupingKey = extension.ExtensionGroupingName;

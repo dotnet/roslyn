@@ -162,14 +162,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol is TupleElementFieldSymbol fieldSymbol)
             {
-                TypeSymbol containingType = symbol.ContainingType;
+                TypeSymbol containingType = fieldSymbol.ContainingType;
 
                 // for tuple fields the variable identifier represents the underlying field
-                symbol = fieldSymbol.TupleUnderlyingField;
+                FieldSymbol underlyingField = fieldSymbol.TupleUnderlyingField;
+                symbol = underlyingField;
 
                 // descend through Rest fields
                 // force corresponding slots if do not exist
-                while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything))
+                while (!TypeSymbol.Equals(containingType, underlyingField.ContainingType, TypeCompareKind.ConsiderEverything))
                 {
                     var restField = containingType.GetMembers(NamedTypeSymbol.ValueTupleRestFieldName).FirstOrDefault(s => s is not TupleVirtualElementFieldSymbol) as FieldSymbol;
                     if (restField is null)

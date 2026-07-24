@@ -53,6 +53,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        public override NamedTypeSymbol ContainingType
+        {
+            get
+            {
+                var containingType = base.ContainingType;
+                Debug.Assert(containingType is not null || this is CrefTypeParameterSymbol, $"'{Name}': Unexpected null ContainingType");
+                return containingType!;
+            }
+        }
+#nullable disable
+
         /// <summary>
         /// The ordinal position of the type parameter in the parameter list which declares
         /// it. The first type parameter has ordinal zero.

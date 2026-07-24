@@ -312,12 +312,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (AdaptedMethodSymbol is SynthesizedExtensionMarker marker)
                 {
-                    return ((SourceMemberContainerTypeSymbol)AdaptedMethodSymbol.ContainingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
+                    return ((SourceMemberContainerTypeSymbol)AdaptedMethodSymbol.ContainingType.RequiredContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
                 }
                 else if (AdaptedMethodSymbol.IsExtensionBlockMember())
                 {
                     var containingType = AdaptedMethodSymbol.ContainingType;
-                    return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
+                    return ((SourceMemberContainerTypeSymbol)containingType.RequiredContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
                 }
 
                 return AdaptedMethodSymbol.ContainingType.GetCciAdapter();

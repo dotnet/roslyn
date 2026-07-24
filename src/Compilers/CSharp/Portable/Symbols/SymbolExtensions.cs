@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SymbolKind.Field:
                         // "this" in field initializer:
-                        type = symbol.ContainingType;
+                        type = ((FieldSymbol)symbol).ContainingType;
                         break;
 
                     case SymbolKind.NamedType:

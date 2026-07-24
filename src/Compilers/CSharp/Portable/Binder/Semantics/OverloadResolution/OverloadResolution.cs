@@ -2142,7 +2142,9 @@ outerDefault:
             where TMember : Symbol
         {
             Debug.Assert(m1.Result.IsValid);
+            Debug.Assert(m1.Member.ContainingType is not null);
             Debug.Assert(m2.Result.IsValid);
+            Debug.Assert(m2.Member.ContainingType is not null);
             Debug.Assert(arguments != null);
 
             // SPEC:
@@ -2598,11 +2600,11 @@ outerDefault:
             static ParameterSymbol getParameterOrExtensionParameter(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, TMember member)
             {
                 int paramIndex = result.ParameterFromArgument(argIndex);
-                if (member.IsExtensionBlockMember())
+                if (member.IsExtensionBlockMember(out var extension))
                 {
                     if (paramIndex == 0)
                     {
-                        ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
+                        ParameterSymbol? extensionParameter = extension.ExtensionParameter;
                         Debug.Assert(extensionParameter is not null);
                         return extensionParameter;
                     }

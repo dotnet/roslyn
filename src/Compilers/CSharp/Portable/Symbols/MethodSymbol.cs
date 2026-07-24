@@ -37,6 +37,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
+#nullable enable
+        public override NamedTypeSymbol ContainingType
+        {
+            get
+            {
+                var containingType = base.ContainingType;
+                Debug.Assert(containingType is not null || this is FunctionPointerMethodSymbol or SignatureOnlyMethodSymbol, $"'{Name}': Unexpected null ContainingType");
+                return containingType!;
+            }
+        }
+#nullable disable
+
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in

@@ -1570,7 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // for lambda expressions and is not a .NET Core scenario so it's not necessary to handle.)
                 if (this.MethodKind != MethodKind.LambdaMethod)
                 {
-                    for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
+                    for (NamedTypeSymbol? curr = this.ContainingType; (object?)curr != null; curr = curr.ContainingType)
                     {
                         if (curr is SourceNamedTypeSymbol { HasSecurityCriticalAttributes: true })
                         {
