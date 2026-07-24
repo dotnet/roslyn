@@ -67,6 +67,21 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         AssertEx.SequenceEqual(expected, actualFactory());
     }
 
+    [Theory, WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2369")]
+    [InlineData("#!/usr/bin/env dotnet\nclass C { }", false, "Explicit")]
+    [InlineData("\uFEFF#!/usr/bin/env dotnet\nclass C { }", false, "Explicit")]
+    [InlineData("#:sdk Microsoft.NET.Sdk\nConsole.WriteLine(\"Hello World\");", false, "Explicit")]
+    [InlineData("#:sdk Microsoft.NET.Sdk\nclass C { }", false, "None")]
+    [InlineData("Console.WriteLine(\"Hello World\");", false, "None")]
+    [InlineData("Console.WriteLine(\"Hello World\");", true, "Ambiguous")]
+    [InlineData("class C { }", true, "None")]
+    public void TestEntryPointHeuristic(string source, bool includeAmbiguousEntryPoints, string expectedName)
+    {
+        var expected = Enum.Parse<FileBasedProgramEntryPointKind>(expectedName);
+        var sourceText = SourceText.From(source);
+        Assert.Equal(expected, FileBasedProgramEntryPointHeuristic.GetEntryPointKind(sourceText, includeAmbiguousEntryPoints, CancellationToken.None));
+    }
+
     [Fact]
     public async Task TestDiscovery_Simple()
     {
