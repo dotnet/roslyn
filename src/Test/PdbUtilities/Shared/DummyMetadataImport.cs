@@ -107,6 +107,7 @@ namespace Roslyn.Test.PdbUtilities
                 {
                     qualifiedName[qualifiedNameLength] = '\0';
                 }
+            }
             else
             {
                 qualifiedNameLength =
