@@ -239,4 +239,12 @@ internal class TextDocumentClientCapabilities
     [JsonPropertyName("diagnostic")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DiagnosticSetting? Diagnostic { get; set; }
+
+    /// <summary>
+    /// Capabilities specific to the `textDocument/inlineCompletion` request.
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    [JsonPropertyName("inlineCompletion")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InlineCompletionClientCapabilities? InlineCompletion { get; set; }
 }
