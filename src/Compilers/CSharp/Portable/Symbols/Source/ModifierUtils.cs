@@ -115,7 +115,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((result & DeclarationModifiers.Safe) != 0)
             {
                 var safeToken = modifierTokens?.FirstOrDefault(SyntaxKind.SafeKeyword) ?? default;
-                modifierErrors |= !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, safeToken, safeToken == default ? errorLocation : null);
+                modifierErrors |= safeToken == default
+                    ? !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeatureUnsafeEvolution, diagnostics, errorLocation)
+                    : !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, safeToken);
+
+                if ((result & DeclarationModifiers.Unsafe) != 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, safeToken == default ? errorLocation : safeToken.GetLocation());
+                    modifierErrors = true;
+                }
             }
 
             return result;

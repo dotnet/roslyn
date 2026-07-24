@@ -2518,9 +2518,9 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="translated">'safe' 한정자는 'unsafe'로 표시되지 않고 'extern'이거나 명시적 또는 확장된 레이아웃이 있는 형식에서 필드와 유사한 멤버에서만 사용할 수 있습니다.</target>
-        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+        <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
+        <target state="needs-review-translation">'safe' 한정자는 'unsafe'로 표시되지 않고 'extern'이거나 명시적 또는 확장된 레이아웃이 있는 형식에서 필드와 유사한 멤버에서만 사용할 수 있습니다.</target>
+        <note>'safe' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>

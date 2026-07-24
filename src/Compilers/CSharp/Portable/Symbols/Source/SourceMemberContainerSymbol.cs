@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Class:
                     case TypeKind.Submission:
                         allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
-                            | DeclarationModifiers.Unsafe | DeclarationModifiers.Closed;
+                            | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe | DeclarationModifiers.Closed;
 
                         if (!this.IsRecord)
                         {
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         break;
                     case TypeKind.Struct:
-                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
+                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
 
                         if (!this.IsRecordStruct && !this.IsUnionDeclaration)
                         {
@@ -347,10 +347,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         break;
                     case TypeKind.Interface:
-                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
                         break;
                     case TypeKind.Delegate:
-                        allowedModifiers |= DeclarationModifiers.Unsafe;
+                        allowedModifiers |= DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
                         break;
                 }
             }

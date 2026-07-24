@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.ReadOnly, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Volatile, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Unsafe, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Safe, diagnostics, errorLocation);
 
                 if (reportBadMemberFlagIfAny(result, DeclarationModifiers.Required, diagnostics, errorLocation))
                 {
