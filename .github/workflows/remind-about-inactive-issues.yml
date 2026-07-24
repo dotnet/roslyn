@@ -1,0 +1,46 @@
+name: 'Remind Owners About Inactive Issues'
+
+on:
+  workflow_dispatch: 
+
+permissions:
+  issues: read
+  contents: read
+
+jobs:
+  remind-owners:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Check for inactive issues
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const inactivityThreshold = 180;  
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'untriaged',
+            });
+
+            const currentTime = new Date();
+            const inactivityThresholdMs = inactivityThreshold * 24 * 60 * 60 * 1000; 
+
+            for (const issue of issues) {
+              // Check if the issue does not have the "Area-Compilers" label
+              if (issue.labels.some(label => label.name === 'Area-Compilers')) {
+                continue;
+              }
+
+              // Check the last updated time of the issue (either comments, events, or commits)
+              const lastUpdatedTime = new Date(issue.updated_at);
+              const timeSinceLastUpdate = currentTime - lastUpdatedTime;
+
+              if (timeSinceLastUpdate > inactivityThresholdMs) {
+                console.log(`Issue #${issue.number} has been inactive for over ${inactivityThreshold} days.`);
+              }
+            }
