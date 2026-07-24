@@ -729,7 +729,7 @@ unsafe class Test
     {
         var p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
     }
-}", TestOptions.UnsafeReleaseDll);
+}", TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 // (7,32): error CS4004: Cannot await in an unsafe context
                 //         var p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };

@@ -218,9 +218,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if errors were found.</returns>
         private bool ReportBadAwaitContext(SyntaxNodeOrToken nodeOrToken, BindingDiagnosticBag diagnostics)
         {
-            if (this.InUnsafeRegion && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext))
+            if (this.InUnsafeRegion &&
+                !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext) &&
+                !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution))
             {
                 Error(diagnostics, ErrorCode.ERR_AwaitInUnsafeContext, nodeOrToken.GetLocation()!);
+                return true;
+            }
+            else if (this.Flags.Includes(BinderFlags.InFixedStatement) &&
+                !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext) &&
+                Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution))
+            {
+                Error(diagnostics, ErrorCode.ERR_BadAwaitInFixed, nodeOrToken.GetLocation()!);
                 return true;
             }
             else if (this.Flags.Includes(BinderFlags.InLockBody))

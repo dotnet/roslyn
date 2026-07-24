@@ -287,7 +287,7 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 // (8,13): error CS4004: Cannot await in an unsafe context
                 //             await using (var x = new C())

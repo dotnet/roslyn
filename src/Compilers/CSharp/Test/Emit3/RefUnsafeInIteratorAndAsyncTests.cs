@@ -264,7 +264,11 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            // (10,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+            //             System.Console.Write(y);
+            Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(10, 34));
     }
 
     [Fact]
@@ -299,7 +303,11 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            // (8,30): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+            //         System.Console.Write(y);
+            Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(8, 30));
     }
 
     [Fact]

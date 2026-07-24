@@ -4890,26 +4890,10 @@ unsafe class D
                 //             await Task.Delay(2);
                 Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(2)").WithLocation(33, 13));
 
-            var expectedPreviewDiagnostics = new[]
-            {
-                // (47,13): error CS4004: Cannot await in an unsafe context
-                //             await Task.Delay(3);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(3)").WithLocation(47, 13),
-                // (22,17): error CS4004: Cannot await in an unsafe context
-                //                 await Task.Delay(1);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(22, 17),
-                // (59,17): error CS4004: Cannot await in an unsafe context
-                //                 await Task.Delay(4);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(4)").WithLocation(59, 17),
-                // (33,13): error CS4004: Cannot await in an unsafe context
-                //             await Task.Delay(2);
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(2)").WithLocation(33, 13)
-            };
-
             CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll)
-                .VerifyDiagnostics(expectedPreviewDiagnostics);
+                .VerifyEmitDiagnostics();
             CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext)
-                .VerifyDiagnostics(expectedPreviewDiagnostics);
+                .VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]

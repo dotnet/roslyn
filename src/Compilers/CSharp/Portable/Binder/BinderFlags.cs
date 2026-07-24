@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SuppressObsoleteChecks = 1 << 1,
         ConstructorInitializer = 1 << 2,
         FieldInitializer = 1 << 3,
-        // Previously used, can be reused in the future
+        InFixedStatement = 1 << 4, // body or declaration of a 'fixed' statement (used to disallow 'await')
         CollectionInitializerAddMethod = 1 << 5,   // used for collection initializer add method overload resolution diagnostics
         AttributeArgument = 1 << 6,
         GenericConstraintsClause = 1 << 7, // "where" clause (used for cycle checking)
@@ -120,6 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Groups
 
-        AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,
+        AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock | InFixedStatement,
     }
 }

@@ -2720,7 +2720,7 @@ unsafe class C
         public int* Current { get => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 // (6,9): error CS4004: Cannot await in an unsafe context
                 //         await foreach (var i in new C())
