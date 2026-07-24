@@ -14,6 +14,8 @@ internal readonly record struct InlineTypeHintsOptions
     [DataMember] public bool ForLambdaParameterTypes { get; init; } = true;
     [DataMember] public bool ForImplicitObjectCreation { get; init; } = true;
     [DataMember] public bool ForCollectionExpressions { get; init; } = true;
+    [DataMember] public bool SuppressForTargetTypedNew { get; init; } = true;
+    [DataMember] public bool SuppressForTargetTypedCollectionExpressions { get; init; } = true;
 
     public InlineTypeHintsOptions()
     {
