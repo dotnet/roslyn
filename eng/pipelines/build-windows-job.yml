@@ -34,11 +34,13 @@ jobs:
   steps:
     - template: checkout-windows-task.yml
 
+    - template: cache-nuget-packages.yml
+
     - task: PowerShell@2
       displayName: Restore
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLogName Restore.binlog /p:RestoreLockedMode=true ${{ parameters.restoreArguments }}
 
     - template: cache-roslyn-outputs.yml
       parameters:

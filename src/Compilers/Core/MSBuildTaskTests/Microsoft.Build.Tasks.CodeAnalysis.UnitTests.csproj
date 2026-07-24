@@ -41,6 +41,9 @@
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" />
     <PackageReference Include="Basic.CompilerLog.Util" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="4.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="4.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="4.8.0" PrivateAssets="all" />
     <PackageReference Include="MessagePack" VersionOverride="3.1.4" />
   </ItemGroup>
   <ItemGroup>
