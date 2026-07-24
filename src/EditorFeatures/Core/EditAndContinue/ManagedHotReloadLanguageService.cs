@@ -61,4 +61,8 @@ internal sealed class ManagedHotReloadLanguageService(ManagedHotReloadLanguageSe
 
     public ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         => impl.HasChangesAsync(sourceFilePath, cancellationToken);
+
+    // internal for testing:
+    internal ManagedHotReloadLanguageServiceImpl Impl
+        => impl;
 }
