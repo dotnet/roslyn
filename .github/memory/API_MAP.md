@@ -19,6 +19,7 @@ Repo-wide entry points and the formal public-API tracking rules. Layer-specific 
 | `test.sh` / `Test.cmd` | Full test run. |
 | `dotnet test <test.csproj>` | Run a specific test project. |
 | `dotnet run --file eng/generate-compiler-code.cs` | Regenerate Syntax/BoundNodes code. |
+| `pwsh eng/validate-benchmarks.ps1 -configuration Release -ci` | Validate benchmark projects with BenchmarkDotNet Dry jobs; custom multi-job Razor harnesses use their explicit validation mode. Used by the correctness artifacts CI job. |
 | `dotnet msbuild <proj> /t:UpdateXlf` | Refresh `.xlf` after `.resx` changes. |
 
 Solution filters: `Roslyn.slnx` (full), `Compilers.slnf`, `Ide.slnf`, `Razor.slnf`.

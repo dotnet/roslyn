@@ -132,6 +132,11 @@
         <target state="translated">지원되지 않는 유형: '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Untested">
+        <source>Untested</source>
+        <target state="translated">테스트되지 않음</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_attributes">
         <source>Wrap attributes</source>
         <target state="translated">특성을 래핑합니다.</target>

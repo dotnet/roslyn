@@ -93,6 +93,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 nativeComPointer: nativeComPointer);
         }
 
+        internal DkmClrValue CreateDkmClrValue(
+            object value,
+            Type type,
+            DkmInspectionContext inspectionContext,
+            string alias = null,
+            DkmEvaluationResultFlags evalFlags = DkmEvaluationResultFlags.None,
+            DkmClrValueFlags valueFlags = DkmClrValueFlags.None)
+        {
+            return new DkmClrValue(
+                value,
+                DkmClrValue.GetHostObjectValue((TypeImpl)type, value),
+                new DkmClrType((DkmClrRuntimeInstance)inspectionContext.RuntimeInstance, (TypeImpl)type),
+                alias,
+                evalFlags,
+                valueFlags);
+        }
+
         internal DkmClrValue CreateErrorValue(
             DkmClrType type,
             string message)

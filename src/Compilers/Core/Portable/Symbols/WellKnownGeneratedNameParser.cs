@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Symbols;
 
-internal static partial class CommonGeneratedNames
+internal static partial class WellKnownGeneratedNames
 {
     /// <summary>
     /// Parses one or two debug ids that the specified <paramref name="metadataNameSuffix"/> ends with.

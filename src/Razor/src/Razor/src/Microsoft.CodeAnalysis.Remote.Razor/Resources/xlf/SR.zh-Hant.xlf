@@ -132,6 +132,11 @@
         <target state="translated">不支援的類型: '{0}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Untested">
+        <source>Untested</source>
+        <target state="translated">未測試</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_attributes">
         <source>Wrap attributes</source>
         <target state="translated">將屬性換行</target>
