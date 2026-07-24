@@ -61,9 +61,6 @@ public MyService(IDependency dependency) { }
 
 ## Key Development Patterns
 
-### Child .NET Processes
-When launching a child .NET process, call `ProcessStartInfo.RemoveInheritedDotNetDiagnosticPorts()` before starting it. Diagnostic ports target a single runtime, so inheriting the host's settings can suspend the child indefinitely.
-
 ### TestAccessor Pattern
 Expose internal state to tests without making it public:
 ```csharp
