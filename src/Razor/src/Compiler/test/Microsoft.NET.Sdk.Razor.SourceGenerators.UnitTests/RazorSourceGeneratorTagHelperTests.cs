@@ -1435,7 +1435,8 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Equal(2, result.GeneratedSources.Length);
+        // Index.cshtml (no decl), EmailTagHelper.razor (@inherits -> fallback, shell decl + impl) = 3
+        Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -1488,7 +1489,8 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Equal(2, result.GeneratedSources.Length);
+        // Index.cshtml (no decl), EmailTagHelper.razor (@inherits -> fallback, shell decl + impl) = 3
+        Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 

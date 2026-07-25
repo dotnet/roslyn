@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -43,14 +44,15 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
 
         // Partitioning needs the classified primary structure -- the primary class, its render method, and
         // the namespace. A component whose primary method body is suppressed, or that lacks that structure,
-        // can't be split here; it routes to fallback discovery keyed by its type name.
+        // can't be split here; it routes to fallback discovery keyed by its type name and builds no
+        // pre-compilation shell.
         var primaryClass = documentNode.FindPrimaryClass();
         var renderMethod = documentNode.FindPrimaryMethod();
         var primaryNamespace = documentNode.FindPrimaryNamespace();
         if (codeDocument.CodeGenerationOptions.SuppressPrimaryMethodBody ||
             primaryClass is null || renderMethod is null || primaryNamespace is null)
         {
-            return RouteToFallbackDiscovery();
+            return RouteToFallbackDiscovery(shellDecl: null);
         }
 
         // A header/arity directive (@inherits/@implements/@typeparam) puts a base type, interfaces, or
@@ -59,7 +61,7 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         // document lowers as a single file instead and its descriptor comes from fallback discovery.
         if (HasUnsplittableDocumentDirective(documentNode))
         {
-            return RouteToFallbackDiscovery();
+            return RouteToFallbackDiscovery(BuildStubDeclDocument(documentNode, primaryNamespace, primaryClass));
         }
 
         // Decide the split over the classified class body. Only an unroutable body (fallback) stays a
@@ -67,7 +69,7 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         var decision = MarkupSplitter.Split(primaryClass, renderMethod, codeDocument.ParserOptions);
         if (decision is SplitDecision.SplitFallback)
         {
-            return RouteToFallbackDiscovery();
+            return RouteToFallbackDiscovery(BuildStubDeclDocument(documentNode, primaryNamespace, primaryClass));
         }
 
         var plan = decision as SplitDecision.SplitPlan;
@@ -85,19 +87,74 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         return codeDocument.WithDocumentNode(documentNode);
 
         // Routes the document to fallback discovery: records its namespace-qualified type name -- the
-        // discovery key the source generator matches against tag-helper descriptor names. A document only
+        // discovery key the source generator matches against tag-helper descriptor names -- and stashes the
+        // type-shell decl (null when there is no referenceable type to build one for). A document only
         // routes here after classification, which creates the primary class unconditionally, so a class
         // name is always present; the name carries no generic arity (type parameters are held separately),
         // matching the descriptor form after arity is stripped.
-        RazorCodeDocument RouteToFallbackDiscovery()
+        RazorCodeDocument RouteToFallbackDiscovery(DocumentIntermediateNode? shellDecl)
         {
             Debug.Assert(primaryClass?.Name is not null, "A fallback component is missing its classified primary class.");
 
+            documentNode.DeclDocumentNode = shellDecl;
             documentNode.FallbackComponentTypeName = primaryNamespace?.Name is { } namespaceName
                 ? $"{namespaceName}.{primaryClass.Name}"
                 : primaryClass.Name;
             return codeDocument.WithDocumentNode(documentNode);
         }
+    }
+
+    // Builds a bodiless "type shell" decl for a component the split left unsplit: the same synthetic
+    // document -> namespace -> class spine as the full decl, but the class keeps only its name,
+    // modifiers, and type parameters (names only, for generic arity) -- no base type, interfaces,
+    // members, or type-parameter constraints. Emitted to pre-compilation so the component's type (and its
+    // nested types, which qualify from the resolved outer type) resolve for a split component that
+    // references them in C#, while carrying no discoverable surface -- no base means it isn't a
+    // component, so tag-helper discovery skips it and the declaration engine owns its real descriptor.
+    private static DocumentIntermediateNode BuildStubDeclDocument(
+        DocumentIntermediateNode documentNode,
+        NamespaceDeclarationIntermediateNode primaryNamespace,
+        ClassDeclarationIntermediateNode primaryClass)
+    {
+        var stubDocNode = RazorCSharpDocumentWriter.CloneContainer(documentNode);
+
+        // The shell's text must depend only on the declaration surface so it stays byte-stable across
+        // markup edits, keeping pre-compilation (and therefore discovery) cached -- same reason the full
+        // decl suppresses its checksum.
+        if (stubDocNode.Options is { SuppressChecksum: false } stubOptions)
+        {
+            stubDocNode.Options = stubOptions.WithFlags(suppressChecksum: true);
+        }
+
+        var stubNamespace = RazorCSharpDocumentWriter.CloneContainer(primaryNamespace);
+        var stubClass = RazorCSharpDocumentWriter.CloneContainer(primaryClass);
+        stubClass.BaseType = null;
+        stubClass.Interfaces = [];
+        stubClass.TypeParameters = StripTypeParameterConstraints(primaryClass.TypeParameters);
+
+        stubNamespace.Children.Add(stubClass);
+        stubDocNode.Children.Add(stubNamespace);
+
+        return stubDocNode;
+    }
+
+    // Keeps type-parameter names for generic arity while dropping constraints, whose types (e.g. a
+    // constraint on the component's own nested type) the bodiless shell doesn't declare. Partial classes
+    // allow constraints on the impl declaration alone, so the shell can omit them.
+    private static ImmutableArray<TypeParameter> StripTypeParameterConstraints(ImmutableArray<TypeParameter> typeParameters)
+    {
+        if (typeParameters.IsEmpty)
+        {
+            return typeParameters;
+        }
+
+        var builder = ImmutableArray.CreateBuilder<TypeParameter>(typeParameters.Length);
+        foreach (var typeParameter in typeParameters)
+        {
+            builder.Add(new TypeParameter(typeParameter.Name.Content));
+        }
+
+        return builder.MoveToImmutable();
     }
 
     // Builds the markup-free decl document: a synthetic document -> namespace -> class spine that shares
