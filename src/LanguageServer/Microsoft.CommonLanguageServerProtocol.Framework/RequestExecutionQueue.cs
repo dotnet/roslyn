@@ -78,7 +78,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
 
     /// <summary>
     /// Map of method to the handler info for each language.
-    /// The handler info is created lazily to avoid instantiating any types or handlers until a request is recieved for
+    /// The handler info is created lazily to avoid instantiating any types or handlers until a request is received for
     /// that particular method and language.
     /// </summary>
     private readonly FrozenDictionary<string, FrozenDictionary<string, Lazy<(RequestHandlerMetadata Metadata, IMethodHandler Handler, ProcessQueueCoreAsyncDelegate ProcessQueueCoreAsync)>>> _handlerInfoMap;
