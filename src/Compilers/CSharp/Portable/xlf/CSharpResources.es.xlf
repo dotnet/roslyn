@@ -579,7 +579,7 @@
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="translated">Una variable no puede declararse dentro de un patrón "not" u "or".</target>
+        <target state="new">A variable may not be declared within a 'not' or 'or' pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
