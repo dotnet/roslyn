@@ -714,7 +714,7 @@
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="translated">'Değil' ya da 'veya' deseninde değişken bildirilemez.</target>
+        <target state="new">A variable may not be declared within a 'not' or 'or' pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -5977,12 +5977,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">'unsafe' değiştiricisi, mevcut bellek güvenliği kuralları altında burada herhangi bir etkiye sahip değildir.</target>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnsafeMeaningless_Title">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">'unsafe' değiştiricisi, mevcut bellek güvenliği kuralları altında burada herhangi bir etkiye sahip değildir.</target>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
