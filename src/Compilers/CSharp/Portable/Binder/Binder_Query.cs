@@ -729,19 +729,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to represent the transparent identifier in the result.
             LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag d) =>
             {
-                var xExpression = new BoundParameter(let, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
+                var xExpression = new BoundParameter(state.fromExpression.Syntax, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
 
                 lambdaBodyBinder = lambdaBodyBinder.GetRequiredBinder(let.Expression);
 
                 var yExpression = lambdaBodyBinder.BindRValueWithoutTargetType(let.Expression, d);
-                var hasError = false;
-                var yExpressionType = GetAnonymousTypeFieldType(yExpression, let, d, ref hasError);
-                if (hasError)
+                if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
+                    Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, let, yExpression.Display);
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), CreateErrorType());
                 }
-                var xExpressionType = GetAnonymousTypeFieldType(xExpression, let, d);
-                var construction = MakePair(let, x.Name, xExpression, xExpressionType, let.Identifier.ValueText, yExpression, yExpressionType, state, d);
+
+                var construction = MakePair(let, x.Name, xExpression, let.Identifier.ValueText, yExpression, state, d);
 
                 // The bound block represents a closure scope for transparent identifiers captured in the let clause.
                 // Such closures shall be associated with the lambda body expression.
@@ -795,13 +794,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakePair(CSharpSyntaxNode node, string field1Name, BoundExpression field1Value, string field2Name, BoundExpression field2Value, QueryTranslationState state, BindingDiagnosticBag diagnostics)
         {
-            var field1Type = GetAnonymousTypeFieldType(field1Value, node, diagnostics);
-            var field2Type = GetAnonymousTypeFieldType(field2Value, node, diagnostics);
-            return MakePair(node, field1Name, field1Value, field1Type, field2Name, field2Value, field2Type, state, diagnostics);
-        }
-
-        private BoundExpression MakePair(CSharpSyntaxNode node, string field1Name, BoundExpression field1Value, TypeSymbol field1Type, string field2Name, BoundExpression field2Value, TypeSymbol field2Type, QueryTranslationState state, BindingDiagnosticBag diagnostics)
-        {
             if (field1Name == field2Name)
             {
                 // we will generate a diagnostic elsewhere
@@ -811,8 +803,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AnonymousTypeDescriptor typeDescriptor = new AnonymousTypeDescriptor(
                                                             ImmutableArray.Create(
-                                                                createField(field1Name, field1Value, field1Type),
-                                                                createField(field2Name, field2Value, field2Type)),
+                                                                createField(field1Name, field1Value),
+                                                                createField(field2Name, field2Value)),
                                                             node.Location
                                                      );
 
@@ -820,13 +812,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol anonymousType = manager.ConstructAnonymousTypeSymbol(typeDescriptor, diagnostics);
             return MakeConstruction(node, anonymousType, ImmutableArray.Create(field1Value, field2Value), diagnostics);
 
-            static AnonymousTypeField createField(string fieldName, BoundExpression fieldValue, TypeSymbol fieldType) =>
-                new AnonymousTypeField(fieldName, fieldValue.Syntax.Location, TypeWithAnnotations.Create(fieldType), RefKind.None, ScopedKind.None);
+            AnonymousTypeField createField(string fieldName, BoundExpression fieldValue) =>
+                new AnonymousTypeField(fieldName, fieldValue.Syntax.Location, TypeWithAnnotations.Create(TypeOrError(fieldValue, diagnostics)), RefKind.None, ScopedKind.None);
         }
 
         private TypeSymbol TypeOrError(BoundExpression e)
         {
             return e.Type ?? CreateErrorType();
+        }
+
+        private TypeSymbol TypeOrError(BoundExpression e, BindingDiagnosticBag diagnostics)
+        {
+            var type = e.Type;
+            if (type is null)
+            {
+                Error(diagnostics, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, e.Syntax, e.Display);
+                return CreateErrorType();
+            }
+            if (type.IsVoidType())
+            {
+                Error(diagnostics, ErrorCode.ERR_VoidAssignment, e.Syntax);
+            }
+            else if (type.IsRestrictedType() || type.IsPointerOrFunctionPointer())
+            {
+                Error(diagnostics, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, e.Syntax, type);
+            }
+            return type;
         }
 
         private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression, bool withDependencies)

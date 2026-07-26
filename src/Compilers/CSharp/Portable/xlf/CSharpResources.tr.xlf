@@ -10749,8 +10749,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryRangeVariableAssignedBadValue">
-        <source>Cannot assign {0} to a range variable</source>
-        <target state="translated">{0} bir aralık değişkenine atanamaz</target>
+        <source>Cannot assign '{0}' to a range variable. The target type is ambiguous or stack-only.</source>
+        <target state="translated">'{0}' bir aralık değişkenine atanamaz. Hedef tür belirsizdir veya yalnızca yığında bulunabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderCastable">
