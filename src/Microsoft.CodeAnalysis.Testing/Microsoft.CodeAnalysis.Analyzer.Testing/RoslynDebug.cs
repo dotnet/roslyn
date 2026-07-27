@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Testing
     {
         /// <inheritdoc cref="Debug.Assert(bool)"/>
         [Conditional("DEBUG")]
-        [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1405:Debug.Assert should provide message text", Justification = "This is a wrapper for Debug.Assert.")]
         public static void Assert([DoesNotReturnIf(false)] bool b)
             => Debug.Assert(b);
 

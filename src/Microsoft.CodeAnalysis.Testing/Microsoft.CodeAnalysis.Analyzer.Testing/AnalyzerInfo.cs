@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -161,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         internal abstract class CustomAnalysisContext : AnalysisContext
         {
-            [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "Set via reflection.")]
+            // Set via reflection
             public bool ConfiguresGeneratedCode;
         }
     }
