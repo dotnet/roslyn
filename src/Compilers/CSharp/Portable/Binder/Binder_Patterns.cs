@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static MethodSymbol? GetUnionTypeTryGetValueMethod(ConversionsBase conversions, NamedTypeSymbol inputUnionType, TypeSymbol type)
         {
-            return NamedTypeSymbol.GetUnionTypeTryGetValueMethod(conversions, inputUnionType, type);
+            return inputUnionType.GetUnionTypeTryGetValueMethod(conversions, type);
         }
 
         internal static bool HasTryGetValueSignature(MethodSymbol method)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsUnionTypeTryGetValueMethod(NamedTypeSymbol unionType, MethodSymbol method)
         {
-            return NamedTypeSymbol.IsUnionTypeTryGetValueMethod(unionType, method);
+            return unionType.IsUnionTypeTryGetValueMethod(method);
         }
 
         internal static bool IsUnionTypeHasValueProperty(NamedTypeSymbol unionType, PropertySymbol property)

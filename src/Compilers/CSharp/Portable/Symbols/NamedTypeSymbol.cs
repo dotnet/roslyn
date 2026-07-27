@@ -2525,20 +2525,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static MethodSymbol? GetUnionTypeTryGetValueMethod(ConversionsBase conversions, NamedTypeSymbol inputUnionType, TypeSymbol type)
+        internal MethodSymbol? GetUnionTypeTryGetValueMethod(ConversionsBase conversions, TypeSymbol type)
         {
-            Debug.Assert(inputUnionType.IsUnionType);
+            Debug.Assert(this.IsUnionType);
 
             MethodSymbol? bestMatch = null;
             Conversion bestMatchConversion = Conversion.NoConversion;
-            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
+            NamedTypeSymbol? membersInterfaceForDefinition = this.GetMemberProviderInterfaceForDefinition();
             PooledHashSet<TypeSymbol>? typeSet = null;
 
             if (membersInterfaceForDefinition is not null)
             {
                 if (!foundBetterMatch(
-                    conversions, inputUnionType, type,
-                    possiblyConstructedOrSubstitutedType: membersInterfaceForDefinition.AsMember(inputUnionType),
+                    conversions, type,
+                    possiblyConstructedOrSubstitutedType: membersInterfaceForDefinition.AsMember(this),
                     declaringType: membersInterfaceForDefinition,
                     ref typeSet, ref bestMatch, ref bestMatchConversion) ||
                     !bestMatchConversion.IsIdentity)
@@ -2547,16 +2547,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         NamedTypeSymbol possiblyConstructedOrSubstitutedType;
 
-                        if (inputUnionType.IsDefinition)
+                        if (this.IsDefinition)
                         {
                             possiblyConstructedOrSubstitutedType = declaringType;
                         }
                         else
                         {
-                            possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                            possiblyConstructedOrSubstitutedType = this.TypeSubstitution.SubstituteNamedType(declaringType);
                         }
 
-                        if (foundBetterMatch(conversions, inputUnionType, type, possiblyConstructedOrSubstitutedType, declaringType, ref typeSet, ref bestMatch, ref bestMatchConversion) &&
+                        if (foundBetterMatch(conversions, type, possiblyConstructedOrSubstitutedType, declaringType, ref typeSet, ref bestMatch, ref bestMatchConversion) &&
                             bestMatchConversion.IsIdentity)
                         {
                             break;
@@ -2566,26 +2566,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                for (NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
+                for (NamedTypeSymbol declaringType = this.OriginalDefinition;
                      declaringType is not null;
                      declaringType = declaringType.BaseTypeNoUseSiteDiagnostics)
                 {
                     NamedTypeSymbol possiblyConstructedOrSubstitutedType;
 
-                    if (inputUnionType.IsDefinition)
+                    if (this.IsDefinition)
                     {
                         possiblyConstructedOrSubstitutedType = declaringType;
                     }
-                    else if (declaringType == (object)inputUnionType.OriginalDefinition)
+                    else if (declaringType == (object)this.OriginalDefinition)
                     {
-                        possiblyConstructedOrSubstitutedType = inputUnionType;
+                        possiblyConstructedOrSubstitutedType = this;
                     }
                     else
                     {
-                        possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                        possiblyConstructedOrSubstitutedType = this.TypeSubstitution.SubstituteNamedType(declaringType);
                     }
 
-                    if (foundBetterMatch(conversions, inputUnionType, type, possiblyConstructedOrSubstitutedType, declaringType, ref typeSet, ref bestMatch, ref bestMatchConversion) &&
+                    if (foundBetterMatch(conversions, type, possiblyConstructedOrSubstitutedType, declaringType, ref typeSet, ref bestMatch, ref bestMatchConversion) &&
                         bestMatchConversion.IsIdentity)
                     {
                         break;
@@ -2596,9 +2596,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeSet?.Free();
             return bestMatch;
 
-            static bool foundBetterMatch(
+            bool foundBetterMatch(
                 ConversionsBase conversions,
-                NamedTypeSymbol inputUnionType,
                 TypeSymbol type,
                 NamedTypeSymbol possiblyConstructedOrSubstitutedType,
                 NamedTypeSymbol declaringType,
@@ -2625,7 +2624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         MethodSymbol declaredMethod = candidate;
 
-                        if (!inputUnionType.IsDefinition)
+                        if (!this.IsDefinition)
                         {
                             declaredMethod = candidate.OriginalDefinition.AsMember(declaringType);
                         }
@@ -2634,7 +2633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             typeSet = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
 
-                            foreach (var caseType in inputUnionType.OriginalDefinition.UnionCaseTypes(ref discardedUseSiteInfo))
+                            foreach (var caseType in this.OriginalDefinition.UnionCaseTypes(ref discardedUseSiteInfo))
                             {
                                 typeSet.Add(caseType);
 
@@ -2651,7 +2650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                              declaredMethod.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error &&
                              typeSet.Contains(declaredMethod.Parameters[0].Type);
 
-                        Debug.Assert(isMatch == IsUnionTypeTryGetValueMethod(inputUnionType, candidate));
+                        Debug.Assert(isMatch == this.IsUnionTypeTryGetValueMethod(candidate));
 
                         if (isMatch)
                         {
@@ -2699,9 +2698,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             };
         }
 
-        internal static bool IsUnionTypeTryGetValueMethod(NamedTypeSymbol unionType, MethodSymbol method)
+        internal bool IsUnionTypeTryGetValueMethod(MethodSymbol method)
         {
-            Debug.Assert(unionType.IsUnionType);
+            Debug.Assert(this.IsUnionType);
 
             if (method.Name is not WellKnownMemberNames.TryGetValueMethodName)
             {
@@ -2709,9 +2708,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NamedTypeSymbol originalContainingType = method.ContainingType.OriginalDefinition;
-            NamedTypeSymbol unionDefinition = unionType.OriginalDefinition;
+            NamedTypeSymbol unionDefinition = this.OriginalDefinition;
 
-            NamedTypeSymbol? membersInterfaceForDefinition = unionType.GetMemberProviderInterfaceForDefinition();
+            NamedTypeSymbol? membersInterfaceForDefinition = this.GetMemberProviderInterfaceForDefinition();
 
             if (membersInterfaceForDefinition is not null)
             {
@@ -2723,7 +2722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = unionDefinition.UnionCaseTypesNoUseSiteDiagnostics;
 
                 if (membersInterfaceForDefinition == (object)originalContainingType &&
-                    membersInterfaceForDefinition.AsMember(unionType).Equals(method.ContainingType, TypeCompareKind.AllIgnoreOptions))
+                    membersInterfaceForDefinition.AsMember(this).Equals(method.ContainingType, TypeCompareKind.AllIgnoreOptions))
                 {
                     return isMatch(method.OriginalDefinition, unionDefinitionCaseTypes);
                 }
@@ -2731,9 +2730,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var container in membersInterfaceForDefinition.AllInterfacesNoUseSiteDiagnostics)
                 {
                     if (container.OriginalDefinition == (object)originalContainingType &&
-                        (unionType.IsDefinition ? container : unionType.TypeSubstitution.SubstituteNamedType(container)).Equals(method.ContainingType, TypeCompareKind.AllIgnoreOptions))
+                        (this.IsDefinition ? container : this.TypeSubstitution.SubstituteNamedType(container)).Equals(method.ContainingType, TypeCompareKind.AllIgnoreOptions))
                     {
-                        if (!unionType.IsDefinition)
+                        if (!this.IsDefinition)
                         {
                             method = method.OriginalDefinition.AsMember(container);
                         }
@@ -2761,22 +2760,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         NamedTypeSymbol possiblyConstructedOrSubstitutedType;
 
-                        if (unionType.IsDefinition)
+                        if (this.IsDefinition)
                         {
                             possiblyConstructedOrSubstitutedType = container;
                         }
                         else if (container == (object)unionDefinition)
                         {
-                            possiblyConstructedOrSubstitutedType = unionType;
+                            possiblyConstructedOrSubstitutedType = this;
                         }
                         else
                         {
-                            possiblyConstructedOrSubstitutedType = unionType.TypeSubstitution.SubstituteNamedType(container);
+                            possiblyConstructedOrSubstitutedType = this.TypeSubstitution.SubstituteNamedType(container);
                         }
 
                         if (possiblyConstructedOrSubstitutedType.Equals(method.ContainingType, TypeCompareKind.AllIgnoreOptions))
                         {
-                            if (!unionType.IsDefinition)
+                            if (!this.IsDefinition)
                             {
                                 method = method.OriginalDefinition.AsMember(container);
                             }
