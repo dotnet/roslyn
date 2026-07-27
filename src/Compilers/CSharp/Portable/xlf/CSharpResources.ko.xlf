@@ -2517,7 +2517,7 @@
         <target state="translated">대상 런타임에서 확장 가능 또는 런타임 환경 기본 호출 규칙을 지원하지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
         <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
         <target state="needs-review-translation">'safe' 한정자는 'unsafe'로 표시되지 않고 'extern'이거나 명시적 또는 확장된 레이아웃이 있는 형식에서 필드와 유사한 멤버에서만 사용할 수 있습니다.</target>
         <note>'safe' and 'unsafe' should not be localized.</note>

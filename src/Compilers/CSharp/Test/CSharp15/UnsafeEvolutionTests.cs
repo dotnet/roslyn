@@ -13984,7 +13984,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // (1,19): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             // safe unsafe class C;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "C").WithLocation(1, 19));
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "C").WithLocation(1, 19));
     }
 
     [Fact]
@@ -14141,25 +14141,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         {
             // (4,5): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     safe unsafe public extern void M1();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(4, 5),
             // (5,5): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     safe unsafe public extern int P1 { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(5, 5),
             // (6,33): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     public safe extern int P2 { safe unsafe get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 33),
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(6, 33),
             // (7,5): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     safe unsafe public static extern event System.Action E1;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(7, 5),
             // (8,5): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     safe unsafe public extern C(int x);
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(8, 5),
             // (9,5): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     safe unsafe extern ~C();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(9, 5),
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(9, 5),
             // (12,9): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //         safe unsafe static extern void Local1();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 9),
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(12, 9),
         };
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);

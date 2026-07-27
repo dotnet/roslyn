@@ -2517,7 +2517,7 @@
         <target state="translated">Le runtime cible ne prend pas en charge les conventions d'appel par défaut des environnements extensibles ou d'exécution.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
         <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
         <target state="needs-review-translation">Le modificateur « safe » ne peut être utilisé que sur des membres qui ne sont pas marqués « unsafe » et qui sont soit « extern », soit de type champ dans des types avec une disposition explicite ou étendue.</target>
         <note>'safe' and 'unsafe' should not be localized.</note>

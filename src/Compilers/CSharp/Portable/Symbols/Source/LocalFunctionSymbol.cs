@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (HasSafeModifier && HasUnsafeModifier)
             {
-                addTo.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                addTo.Add(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe,
                     Syntax.Modifiers.GetModifierLocation(SyntaxKind.SafeKeyword, Syntax.Identifier.GetLocation()));
             }
 

@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((result & DeclarationModifiers.Unsafe) != 0)
                 {
-                    diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, safeToken == default ? errorLocation : safeToken.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, safeToken == default ? errorLocation : safeToken.GetLocation());
                     modifierErrors = true;
                 }
             }

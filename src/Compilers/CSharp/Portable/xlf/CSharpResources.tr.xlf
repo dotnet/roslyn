@@ -2517,7 +2517,7 @@
         <target state="translated">Hedef çalışma zamanı, genişletilebilir veya çalışma zamanı ortamı varsayılanı çağırma kurallarını desteklemiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
         <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
         <target state="needs-review-translation">'Safe' değiştiricisi yalnızca 'unsafe' olarak işaretlenmemiş ve 'extern' olan ya da açık ya da genişletilmiş düzene sahip türlerde alan benzeri olan üyelerde kullanılabilir.</target>
         <note>'safe' and 'unsafe' should not be localized.</note>

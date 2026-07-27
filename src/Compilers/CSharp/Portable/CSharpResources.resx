@@ -8135,7 +8135,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</value>
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>
   </data>
-  <data name="ERR_SafeModifierUnsupportedTarget" xml:space="preserve">
+  <data name="ERR_SafeModifierCannotBeUsedWithUnsafe" xml:space="preserve">
     <value>The 'safe' and 'unsafe' modifiers cannot be used together.</value>
     <comment>'safe' and 'unsafe' should not be localized.</comment>
   </data>

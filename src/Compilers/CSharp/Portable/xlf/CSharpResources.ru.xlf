@@ -2517,7 +2517,7 @@
         <target state="translated">Целевая среда выполнения не поддерживает расширяемые или принадлежащие среде выполнения соглашения о вызовах по умолчанию.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
         <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
         <target state="needs-review-translation">Модификатор "safe" можно использовать только для членов, которые не помечены как "unsafe" и либо являются "extern", либо являются полями в типах с явной или расширенной структурой.</target>
         <note>'safe' and 'unsafe' should not be localized.</note>

@@ -2517,7 +2517,7 @@
         <target state="translated">ターゲット ランタイムは、拡張可能またはランタイム環境の既定の呼び出し規則をサポートしていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
         <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
         <target state="needs-review-translation">'safe' 修飾子は、'unsafe' としてマークされていないメンバーで、かつ 'extern' メンバー、または明示的レイアウトもしくは拡張レイアウトを持つ型のフィールドに類似したメンバーにのみ使用できます。</target>
         <note>'safe' and 'unsafe' should not be localized.</note>

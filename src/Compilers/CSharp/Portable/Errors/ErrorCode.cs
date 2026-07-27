@@ -2496,7 +2496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingUnionValueProperty = 9386,
         ERR_MemberProviderInUnionDeclaration = 9387,
 
-        ERR_SafeModifierUnsupportedTarget = 9388,
+        ERR_SafeModifierCannotBeUsedWithUnsafe = 9388,
         ERR_ExternMemberRequiresUnsafeOrSafe = 9389,
         ERR_PartialMemberSafeDifference = 9390,
         ERR_AbstractBaseRecordImplementation = 9391,

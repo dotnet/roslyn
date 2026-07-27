@@ -2517,7 +2517,7 @@
         <target state="translated">目标运行时不支持可扩展或运行时环境默认调用约定。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
         <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
         <target state="needs-review-translation">"safe" 修饰符仅可用于未标记为 "unsafe"，且为 "extern" 或在具有显式或扩展布局的类型中类似字段的成员。</target>
         <note>'safe' and 'unsafe' should not be localized.</note>
