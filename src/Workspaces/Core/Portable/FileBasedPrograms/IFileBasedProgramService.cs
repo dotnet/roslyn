@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.DotNet.FileBasedPrograms;
 
@@ -18,7 +19,7 @@ internal interface IFileBasedProgramService : IWorkspaceService
 
     bool IsValidEntryPointPath(string entryPointFilePath);
 
-    IProjectRootElement LoadFileBasedAppProject(
+    ValueTask<IProjectRootElement> LoadFileBasedAppProjectAsync(
         IBuildService buildService,
         IProjectCollection projectCollection,
         string entryPointFilePath,

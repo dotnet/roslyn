@@ -26,11 +26,11 @@ internal static class FileBasedProgramsProjectLoader
     {
         var buildService = new FileBasedProgramsBuildService(buildHost, cancellationToken);
         await using var _ = buildService.ConfigureAwait(false);
-        var projectRootElement = fileBasedProgramService.LoadFileBasedAppProject(
+        var projectRootElement = await fileBasedProgramService.LoadFileBasedAppProjectAsync(
             buildService,
             FileBasedProgramsBuildService.ProjectCollection,
             entryPointFilePath,
-            reportError);
+            reportError).ConfigureAwait(false);
         return await buildHost.LoadProjectAsync(
             projectRootElement.FullPath!,
             physicalFilePath: entryPointFilePath,
@@ -50,12 +50,12 @@ file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost, Cance
 
     public ConcurrentBag<IAsyncDisposable> Disposables { get; } = [];
 
-    public Microsoft.DotNet.FileBasedPrograms.IProjectInstance CreateProjectInstanceFromProjectRootElement(
+    public ValueTask<Microsoft.DotNet.FileBasedPrograms.IProjectInstance> CreateProjectInstanceFromProjectRootElementAsync(
         IProjectRootElement projectRoot,
         IProjectCollection projectCollection,
         IDictionary<string, string>? additionalGlobalProperties)
     {
-        return ProjectInstance.FromProjectRootElement(this, buildHost, (ProjectRootElement)projectRoot, (ProjectCollection)projectCollection, additionalGlobalProperties, cancellationToken);
+        return ProjectInstance.FromProjectRootElementAsync(this, buildHost, (ProjectRootElement)projectRoot, (ProjectCollection)projectCollection, additionalGlobalProperties, cancellationToken);
     }
 
     public IProjectRootElement CreateProjectRootElement(XmlReader xmlReader, IProjectCollection projectCollection, string entryPointFilePath)
@@ -88,7 +88,7 @@ file sealed class ProjectCollection : IProjectCollection
 /// </summary>
 file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, CancellationToken cancellationToken) : Microsoft.DotNet.FileBasedPrograms.IProjectInstance
 {
-    public static ProjectInstance FromProjectRootElement(
+    public static async ValueTask<Microsoft.DotNet.FileBasedPrograms.IProjectInstance> FromProjectRootElementAsync(
         FileBasedProgramsBuildService service,
         RemoteBuildHost buildHost,
         ProjectRootElement projectRoot,
@@ -97,14 +97,14 @@ file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, C
         CancellationToken cancellationToken)
     {
         Debug.Assert(projectCollection == ProjectCollection.Instance);
-        var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), additionalGlobalProperties, cancellationToken).GetAwaiter().GetResult();
+        var remoteProjectInstance = await buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), additionalGlobalProperties, cancellationToken).ConfigureAwait(false);
         service.Disposables.Add(remoteProjectInstance);
         return new ProjectInstance(remoteProjectInstance, cancellationToken);
     }
 
-    public ImmutableArray<ImmutableArray<string>> GetItemMetadataValues(string itemType, ImmutableArray<string> metadataNames) => remoteProjectInstance.GetItemMetadataValuesAsync(itemType, metadataNames, cancellationToken).GetAwaiter().GetResult();
-    public string GetPropertyValue(string propertyName) => remoteProjectInstance.GetPropertyValueAsync(propertyName, cancellationToken).GetAwaiter().GetResult();
-    public string ExpandString(string value) => remoteProjectInstance.ExpandStringAsync(value, cancellationToken).GetAwaiter().GetResult();
+    public ValueTask<ImmutableArray<ImmutableArray<string>>> GetItemMetadataValuesAsync(string itemType, ImmutableArray<string> metadataNames) => new(remoteProjectInstance.GetItemMetadataValuesAsync(itemType, metadataNames, cancellationToken));
+    public ValueTask<string> GetPropertyValueAsync(string propertyName) => new(remoteProjectInstance.GetPropertyValueAsync(propertyName, cancellationToken));
+    public ValueTask<string> ExpandStringAsync(string value) => new(remoteProjectInstance.ExpandStringAsync(value, cancellationToken));
 }
 
 /// <summary>

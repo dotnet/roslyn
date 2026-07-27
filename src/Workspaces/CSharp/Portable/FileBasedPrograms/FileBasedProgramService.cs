@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.DotNet.FileBasedPrograms;
 
@@ -35,7 +36,7 @@ internal sealed class FileBasedProgramService() : IFileBasedProgramService
     public bool IsValidEntryPointPath(string entryPointFilePath)
         => VirtualProjectBuilder.IsValidEntryPointPath(entryPointFilePath);
 
-    public IProjectRootElement LoadFileBasedAppProject(
+    public async ValueTask<IProjectRootElement> LoadFileBasedAppProjectAsync(
         IBuildService buildService,
         IProjectCollection projectCollection,
         string entryPointFilePath,
@@ -43,12 +44,10 @@ internal sealed class FileBasedProgramService() : IFileBasedProgramService
     {
         var entryPointFileFullPath = Path.GetFullPath(entryPointFilePath);
         var virtualProjectBuilder = new VirtualProjectBuilder(buildService, entryPointFileFullPath, targetFramework: null);
-        virtualProjectBuilder.CreateProjectInstance(
+        var result = await virtualProjectBuilder.CreateProjectInstanceAsync(
             projectCollection,
-            (text, path, textSpan, message, innerException) => reportError($"{new SourceFile(path, text).GetLocationString(textSpan)}: {message}"),
-            project: out _,
-            out var projectRootElement,
-            evaluatedDirectives: out _);
-        return projectRootElement;
+            (text, path, textSpan, message, innerException) => reportError($"{new SourceFile(path, text).GetLocationString(textSpan)}: {message}"))
+            .ConfigureAwait(false);
+        return result.ProjectRootElement;
     }
 }

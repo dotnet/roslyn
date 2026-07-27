@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using System.Xml;
 
 namespace Microsoft.DotNet.FileBasedPrograms;
@@ -29,7 +30,7 @@ interface IBuildService
     /// NOTE: Unlike the MSBuild API, these properties are automatically merged with <paramref name="projectCollection"/>'s global properties
     /// (the latter come first, so the former can overwrite them).
     /// </param>
-    IProjectInstance CreateProjectInstanceFromProjectRootElement(
+    ValueTask<IProjectInstance> CreateProjectInstanceFromProjectRootElementAsync(
         IProjectRootElement projectRoot,
         IProjectCollection projectCollection,
         IDictionary<string, string>? additionalGlobalProperties);
@@ -64,9 +65,9 @@ internal
 #endif
 interface IProjectInstance
 {
-    ImmutableArray<ImmutableArray<string>> GetItemMetadataValues(string itemType, ImmutableArray<string> metadataNames);
-    string GetPropertyValue(string propertyName);
-    string ExpandString(string value);
+    ValueTask<ImmutableArray<ImmutableArray<string>>> GetItemMetadataValuesAsync(string itemType, ImmutableArray<string> metadataNames);
+    ValueTask<string> GetPropertyValueAsync(string propertyName);
+    ValueTask<string> ExpandStringAsync(string value);
 }
 
 /// <summary>

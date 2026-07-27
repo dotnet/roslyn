@@ -10,8 +10,10 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DotNet.Utilities;
@@ -208,7 +210,7 @@ sealed class VirtualProjectBuilder
     /// <c>#:include</c>/<c>#:exclude</c> have their <see cref="CSharpDirective.IncludeOrExclude.ItemType"/> determined
     /// and relative paths resolved relative to their containing file.
     /// </remarks>
-    private ImmutableArray<CSharpDirective> EvaluateDirectives(
+    private async ValueTask<ImmutableArray<CSharpDirective>> EvaluateDirectivesAsync(
         IProjectInstance project,
         ImmutableArray<CSharpDirective> directives,
         ErrorReporter reportError)
@@ -227,27 +229,27 @@ sealed class VirtualProjectBuilder
             switch (directive)
             {
                 case CSharpDirective.Project projectDirective:
-                    projectDirective = projectDirective.WithName(project.ExpandString(projectDirective.Name), CSharpDirective.Project.NameKind.Expanded);
+                    projectDirective = projectDirective.WithName(await project.ExpandStringAsync(projectDirective.Name), CSharpDirective.Project.NameKind.Expanded);
                     projectDirective = projectDirective.EnsureProjectFilePath(reportError);
 
                     builder.Add(projectDirective);
                     break;
 
                 case CSharpDirective.Ref refDirective:
-                    refDirective = refDirective.WithName(project.ExpandString(refDirective.Name), CSharpDirective.Ref.NameKind.Expanded);
+                    refDirective = refDirective.WithName(await project.ExpandStringAsync(refDirective.Name), CSharpDirective.Ref.NameKind.Expanded);
                     refDirective = refDirective.EnsureResolvedPath(reportError);
 
                     builder.Add(refDirective);
                     break;
 
                 case CSharpDirective.IncludeOrExclude includeOrExcludeDirective:
-                    var expandedPath = project.ExpandString(includeOrExcludeDirective.Name);
+                    var expandedPath = await project.ExpandStringAsync(includeOrExcludeDirective.Name);
                     var fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(includeOrExcludeDirective.Info.SourceFile.Path)!, expandedPath));
                     includeOrExcludeDirective = includeOrExcludeDirective.WithName(fullPath);
 
                     if (mapping.IsDefault)
                     {
-                        mapping = GetItemMapping(project, reportError);
+                        mapping = await GetItemMappingAsync(project, reportError);
                     }
 
                     includeOrExcludeDirective = includeOrExcludeDirective.WithDeterminedItemType(reportError, mapping);
@@ -264,15 +266,15 @@ sealed class VirtualProjectBuilder
         return builder.DrainToImmutable();
     }
 
-    internal ImmutableArray<(string Extension, string ItemType)> GetItemMapping(IProjectInstance project, ErrorReporter reportError)
+    internal async ValueTask<ImmutableArray<(string Extension, string ItemType)>> GetItemMappingAsync(IProjectInstance project, ErrorReporter reportError)
     {
         return CSharpDirective.IncludeOrExclude.ParseMapping(
-            project.GetPropertyValue(CSharpDirective.IncludeOrExclude.MappingPropertyName),
+            await project.GetPropertyValueAsync(CSharpDirective.IncludeOrExclude.MappingPropertyName),
             EntryPointSourceFile,
             reportError);
     }
 
-    public static IProjectInstance CreateProjectInstance(
+    public static async ValueTask<IProjectInstance> CreateProjectInstanceAsync(
         IBuildService buildService,
         string entryPointFilePath,
         string targetFramework,
@@ -281,27 +283,35 @@ sealed class VirtualProjectBuilder
     {
         var builder = new VirtualProjectBuilder(buildService, entryPointFilePath, targetFramework);
 
-        builder.CreateProjectInstance(
+        var result = await builder.CreateProjectInstanceAsync(
             projectCollection,
-            (text, path, textSpan, message, _) => errorReporter(path, text.Lines.GetLinePositionSpan(textSpan).Start.Line + 1, message),
-            out var projectInstance,
-            projectRootElement: out _,
-            evaluatedDirectives: out _);
+            (text, path, textSpan, message, _) => errorReporter(path, text.Lines.GetLinePositionSpan(textSpan).Start.Line + 1, message));
 
-        return projectInstance;
+        return result.Project;
     }
 
-    internal void CreateProjectInstance(
+    internal readonly struct Result(
+        IProjectInstance project,
+        IProjectRootElement projectRootElement,
+        ImmutableArray<CSharpDirective> evaluatedDirectives)
+    {
+        public IProjectInstance Project { get; } = project;
+        public IProjectRootElement ProjectRootElement { get; } = projectRootElement;
+        public ImmutableArray<CSharpDirective> EvaluatedDirectives { get; } = evaluatedDirectives;
+    }
+
+    internal async ValueTask<Result> CreateProjectInstanceAsync(
         IProjectCollection projectCollection,
         ErrorReporter reportError,
-        out IProjectInstance project,
-        out IProjectRootElement projectRootElement,
-        out ImmutableArray<CSharpDirective> evaluatedDirectives,
         ImmutableArray<CSharpDirective> directives = default,
         IDictionary<string, string>? additionalGlobalProperties = null,
         bool validateAllDirectives = false,
         HashSet<string>? processedRefFiles = null)
     {
+        IProjectInstance project;
+        IProjectRootElement projectRootElement;
+        ImmutableArray<CSharpDirective> evaluatedDirectives;
+
         var directivesOriginal = directives;
 
         if (directives.IsDefault)
@@ -318,144 +328,143 @@ sealed class VirtualProjectBuilder
             cached.Original == directivesOriginal)
         {
             evaluatedDirectives = cached.Evaluated;
-            (project, projectRootElement) = CreateProjectInstanceNoEvaluation(
+            (project, projectRootElement) = await CreateProjectInstanceNoEvaluation(
                 projectCollection,
                 evaluatedDirectives,
                 additionalGlobalProperties);
-
-            CheckDirectives(project, evaluatedDirectives, reportError);
-            CreateReferencedVirtualProjects(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles);
-
-            return;
         }
-
-        var entryPointDirectory = Path.GetDirectoryName(EntryPointFileFullPath)!;
-        var seenFiles = new HashSet<string>(StringComparer.Ordinal) { EntryPointFileFullPath };
-        var filesToProcess = new Queue<string>();
-        var evaluatedDirectiveBuilder = ImmutableArray.CreateBuilder<CSharpDirective>();
-        var deduplicator = new DirectiveDeduplicator();
-
-        do
+        else
         {
-            var directivesForEvaluation = DeduplicateSdkDirectives(directives);
+            var entryPointDirectory = Path.GetDirectoryName(EntryPointFileFullPath)!;
+            var seenFiles = new HashSet<string>(StringComparer.Ordinal) { EntryPointFileFullPath };
+            var filesToProcess = new Queue<string>();
+            var evaluatedDirectiveBuilder = ImmutableArray.CreateBuilder<CSharpDirective>();
+            var deduplicator = new DirectiveDeduplicator();
 
-            // Create a project with properties from #:property directives so they can be expanded inside EvaluateDirectives.
-            (project, projectRootElement) = CreateProjectInstanceNoEvaluation(
-                projectCollection,
-                [.. evaluatedDirectiveBuilder, .. directivesForEvaluation],
-                additionalGlobalProperties);
-
-            // Evaluate directives, e.g., determine item types for #:include/#:exclude from their file extension.
-            var fileEvaluatedDirectives = EvaluateDirectives(project, directivesForEvaluation, reportError);
-
-            // Detect duplicate directives across all files on evaluated directives. EvaluateDirectives only expands
-            // #:project, #:ref, #:include, and #:exclude; #:property and #:package values are still unevaluated here.
-            var deduplicatedFileEvaluatedDirectiveBuilder = ImmutableArray.CreateBuilder<CSharpDirective>(fileEvaluatedDirectives.Length);
-            foreach (var directive in fileEvaluatedDirectives)
+            do
             {
-                if (directive is CSharpDirective.Sdk)
-                {
-                    deduplicatedFileEvaluatedDirectiveBuilder.Add(directive);
-                    continue;
-                }
+                var directivesForEvaluation = DeduplicateSdkDirectives(directives);
 
-                if (directive is CSharpDirective.Named named)
-                {
-                    deduplicator.CheckDirective(named, reportError, out bool shouldKeep);
-                    if (!shouldKeep)
-                    {
-                        continue;
-                    }
-                }
-
-                deduplicatedFileEvaluatedDirectiveBuilder.Add(directive);
-            }
-
-            fileEvaluatedDirectives = deduplicatedFileEvaluatedDirectiveBuilder.DrainToImmutable();
-
-            evaluatedDirectiveBuilder.AddRange(fileEvaluatedDirectives);
-
-            if (fileEvaluatedDirectives != directives)
-            {
-                // This project will contain items from #:include/#:exclude directives which we will traverse recursively.
-                (project, projectRootElement) = CreateProjectInstanceNoEvaluation(
+                // Create a project with properties from #:property directives so they can be expanded inside EvaluateDirectives.
+                (project, projectRootElement) = await CreateProjectInstanceNoEvaluation(
                     projectCollection,
-                    evaluatedDirectiveBuilder.ToImmutable(),
+                    [.. evaluatedDirectiveBuilder, .. directivesForEvaluation],
                     additionalGlobalProperties);
-            }
 
-            var compileItems = project.GetItemMetadataValues("Compile", ["FullPath"]);
-            foreach (var compileItem in compileItems)
-            {
-                Debug.Assert(compileItem.Length == 1);
-                var fullPath = compileItem[0];
-                var compilePath = Path.GetFullPath(Path.Combine(
-                    entryPointDirectory,
-                    fullPath));
-                if (seenFiles.Add(compilePath))
+                // Evaluate directives, e.g., determine item types for #:include/#:exclude from their file extension.
+                var fileEvaluatedDirectives = await EvaluateDirectivesAsync(project, directivesForEvaluation, reportError);
+
+                // Detect duplicate directives across all files on evaluated directives. EvaluateDirectives only expands
+                // #:project, #:ref, #:include, and #:exclude; #:property and #:package values are still unevaluated here.
+                var deduplicatedFileEvaluatedDirectiveBuilder = ImmutableArray.CreateBuilder<CSharpDirective>(fileEvaluatedDirectives.Length);
+                foreach (var directive in fileEvaluatedDirectives)
                 {
-                    filesToProcess.Enqueue(compilePath);
-                }
-            }
-        }
-        while (TryGetNextFileToProcess());
-
-        evaluatedDirectives = evaluatedDirectiveBuilder.ToImmutable();
-        _evaluatedDirectives = (directivesOriginal, evaluatedDirectives);
-
-        CheckDirectives(project, evaluatedDirectives, reportError);
-        CreateReferencedVirtualProjects(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles);
-
-        bool TryGetNextFileToProcess()
-        {
-            while (filesToProcess.Count != 0)
-            {
-                var filePath = filesToProcess.Dequeue();
-                if (!File.Exists(filePath))
-                {
-                    reportError(EntryPointSourceFile.Text, EntryPointSourceFile.Path, default, string.Format(FileBasedProgramsResources.IncludedFileNotFound, filePath));
-                    continue;
-                }
-
-                var sourceFile = SourceFile.Load(filePath);
-                directives = FileLevelDirectiveHelpers.FindDirectives(sourceFile, validateAllDirectives, reportError, checkDuplicates: false);
-                return true;
-            }
-
-            return false;
-        }
-
-        // #:sdk directives become Sdk.props/Sdk.targets imports when creating the temporary project used for
-        // directive evaluation, so identical duplicates must be removed before that project is created.
-        ImmutableArray<CSharpDirective> DeduplicateSdkDirectives(ImmutableArray<CSharpDirective> directives)
-        {
-            if (!directives.Any(static directive => directive is CSharpDirective.Sdk))
-            {
-                return directives;
-            }
-
-            var builder = ImmutableArray.CreateBuilder<CSharpDirective>(directives.Length);
-            var changed = false;
-
-            foreach (var directive in directives)
-            {
-                if (directive is CSharpDirective.Sdk sdk)
-                {
-                    deduplicator.CheckDirective(sdk, reportError, out bool shouldKeep);
-                    if (!shouldKeep)
+                    if (directive is CSharpDirective.Sdk)
                     {
-                        changed = true;
+                        deduplicatedFileEvaluatedDirectiveBuilder.Add(directive);
                         continue;
                     }
+
+                    if (directive is CSharpDirective.Named named)
+                    {
+                        deduplicator.CheckDirective(named, reportError, out bool shouldKeep);
+                        if (!shouldKeep)
+                        {
+                            continue;
+                        }
+                    }
+
+                    deduplicatedFileEvaluatedDirectiveBuilder.Add(directive);
                 }
 
-                builder.Add(directive);
+                fileEvaluatedDirectives = deduplicatedFileEvaluatedDirectiveBuilder.DrainToImmutable();
+
+                evaluatedDirectiveBuilder.AddRange(fileEvaluatedDirectives);
+
+                if (fileEvaluatedDirectives != directives)
+                {
+                    // This project will contain items from #:include/#:exclude directives which we will traverse recursively.
+                    (project, projectRootElement) = await CreateProjectInstanceNoEvaluation(
+                        projectCollection,
+                        evaluatedDirectiveBuilder.ToImmutable(),
+                        additionalGlobalProperties);
+                }
+
+                var compileItems = await project.GetItemMetadataValuesAsync("Compile", ["FullPath"]);
+                foreach (var compileItem in compileItems)
+                {
+                    Debug.Assert(compileItem.Length == 1);
+                    var fullPath = compileItem[0];
+                    var compilePath = Path.GetFullPath(Path.Combine(
+                        entryPointDirectory,
+                        fullPath));
+                    if (seenFiles.Add(compilePath))
+                    {
+                        filesToProcess.Enqueue(compilePath);
+                    }
+                }
+            }
+            while (TryGetNextFileToProcess());
+
+            evaluatedDirectives = evaluatedDirectiveBuilder.ToImmutable();
+            _evaluatedDirectives = (directivesOriginal, evaluatedDirectives);
+
+            bool TryGetNextFileToProcess()
+            {
+                while (filesToProcess.Count != 0)
+                {
+                    var filePath = filesToProcess.Dequeue();
+                    if (!File.Exists(filePath))
+                    {
+                        reportError(EntryPointSourceFile.Text, EntryPointSourceFile.Path, default, string.Format(FileBasedProgramsResources.IncludedFileNotFound, filePath));
+                        continue;
+                    }
+
+                    var sourceFile = SourceFile.Load(filePath);
+                    directives = FileLevelDirectiveHelpers.FindDirectives(sourceFile, validateAllDirectives, reportError, checkDuplicates: false);
+                    return true;
+                }
+
+                return false;
             }
 
-            return changed ? builder.DrainToImmutable() : directives;
+            // #:sdk directives become Sdk.props/Sdk.targets imports when creating the temporary project used for
+            // directive evaluation, so identical duplicates must be removed before that project is created.
+            ImmutableArray<CSharpDirective> DeduplicateSdkDirectives(ImmutableArray<CSharpDirective> directives)
+            {
+                if (!directives.Any(static directive => directive is CSharpDirective.Sdk))
+                {
+                    return directives;
+                }
+
+                var builder = ImmutableArray.CreateBuilder<CSharpDirective>(directives.Length);
+                var changed = false;
+
+                foreach (var directive in directives)
+                {
+                    if (directive is CSharpDirective.Sdk sdk)
+                    {
+                        deduplicator.CheckDirective(sdk, reportError, out bool shouldKeep);
+                        if (!shouldKeep)
+                        {
+                            changed = true;
+                            continue;
+                        }
+                    }
+
+                    builder.Add(directive);
+                }
+
+                return changed ? builder.DrainToImmutable() : directives;
+            }
         }
 
-        (IProjectInstance, IProjectRootElement) CreateProjectInstanceNoEvaluation(
+        await CheckDirectivesAsync(project, evaluatedDirectives, reportError);
+        await CreateReferencedVirtualProjectsAsync(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles);
+
+        return new Result(project, projectRootElement, evaluatedDirectives);
+
+        async ValueTask<(IProjectInstance, IProjectRootElement)> CreateProjectInstanceNoEvaluation(
             IProjectCollection projectCollection,
             ImmutableArray<CSharpDirective> directives,
             IDictionary<string, string>? additionalGlobalProperties = null)
@@ -481,7 +490,7 @@ sealed class VirtualProjectBuilder
 
             var projectRoot = CreateProjectRootElement(projectFileText, projectCollection);
 
-            var project = _buildService.CreateProjectInstanceFromProjectRootElement(projectRoot, projectCollection, additionalGlobalProperties);
+            var project = await _buildService.CreateProjectInstanceFromProjectRootElementAsync(projectRoot, projectCollection, additionalGlobalProperties);
 
             lastProject = (projectFileText, project, projectRoot);
 
@@ -502,7 +511,7 @@ sealed class VirtualProjectBuilder
     /// Recursively creates virtual <see cref="IProjectRootElement"/>s for all <c>#:ref</c> directives
     /// so MSBuild can resolve <c>&lt;ProjectReference&gt;</c> items to them.
     /// </summary>
-    private void CreateReferencedVirtualProjects(
+    private async ValueTask CreateReferencedVirtualProjectsAsync(
         IProjectCollection projectCollection,
         ImmutableArray<CSharpDirective> directives,
         ErrorReporter reportError,
@@ -532,35 +541,32 @@ sealed class VirtualProjectBuilder
             }
 
             var refBuilder = new VirtualProjectBuilder(_buildService, resolvedPath, _targetFramework);
-            refBuilder.CreateProjectInstance(
+            await refBuilder.CreateProjectInstanceAsync(
                 projectCollection,
                 reportError,
-                project: out _,
-                projectRootElement: out _,
-                evaluatedDirectives: out _,
                 validateAllDirectives: validateAllDirectives,
                 processedRefFiles: processedFiles);
         }
     }
 
-    private void CheckDirectives(
+    private async ValueTask CheckDirectivesAsync(
         IProjectInstance project,
         ImmutableArray<CSharpDirective> directives,
         ErrorReporter reportError)
     {
-        bool? refEnabled = null;
+        var refEnabled = new StrongBox<bool?>();
 
         foreach (var directive in directives)
         {
             if (directive is CSharpDirective.Ref)
             {
-                CheckFlagEnabled(ref refEnabled, CSharpDirective.Ref.ExperimentalFileBasedProgramEnableRefDirective, directive);
+                await CheckFlagEnabledAsync(refEnabled, CSharpDirective.Ref.ExperimentalFileBasedProgramEnableRefDirective, directive);
             }
         }
 
-        void CheckFlagEnabled(ref bool? flag, string flagName, CSharpDirective directive)
+        async ValueTask CheckFlagEnabledAsync(StrongBox<bool?> flag, string flagName, CSharpDirective directive)
         {
-            bool value = flag ??= MSBuildUtilities.ConvertStringToBool(project.GetPropertyValue(flagName));
+            bool value = flag.Value ??= MSBuildUtilities.ConvertStringToBool(await project.GetPropertyValueAsync(flagName));
 
             if (!value)
             {
