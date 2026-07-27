@@ -160,24 +160,34 @@ extends:
                   artifactType: container
                   sbomEnabled: false
 
-                - output: nuget
-                  displayName: 'Publish CoreXT Packages'
-                  packageParentPath: '$(Build.ArtifactStagingDirectory)'
-                  packagesToPush: $(Build.ArtifactStagingDirectory)/packages/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg
-                  allowPackageConflicts: true
-                  nuGetFeedType: external
-                  publishFeedCredentials: 'DevDiv - VS package feed'
-                  condition: succeeded()
-
             steps:
               - task: NuGetToolInstaller@1
                 displayName: 'Use NuGet 6.2.4'
                 inputs:
                   versionSpec: 6.2.4
 
+              # Authenticate to azure-public/vs-impl feed via WIF service connection
               - task: NuGetAuthenticate@1
                 inputs:
-                  nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
+                  azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+                  feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json
+
+              # Authenticate to azure-public/vssdk feed via WIF service connection
+              - task: NuGetAuthenticate@1
+                inputs:
+                  azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+                  feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json
+
+              # Authenticate to DevDiv feeds (still using PAT-based service connections)
+              - task: NuGetAuthenticate@1
+                inputs:
+                  nuGetServiceConnections: devdiv/engineering, devdiv/dotnet-core-internal-tooling
+
+              # Authenticate to DevDiv VS (CoreXT) feed via WIF service connection
+              - task: NuGetAuthenticate@1
+                inputs:
+                  azureDevOpsServiceConnection: dnceng-devdiv-vs-feed-push
+                  feedUrl: https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json
 
               - task: NuGetCommand@2
                 inputs:
@@ -277,6 +287,27 @@ extends:
                   TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
                   FlattenFolders: true
                 condition: succeeded()
+
+              # Publish insertion packages to CoreXT store (DevDiv/VS feed)
+              # Uses ambient credentials from NuGetAuthenticate@1 above
+              - task: PowerShell@2
+                displayName: 'Publish CoreXT Packages'
+                condition: succeeded()
+                inputs:
+                  targetType: inline
+                  script: |
+                    $feedUrl = "https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json"
+                    $packages = Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)\packages" -Recurse -Filter "*.nupkg" | Where-Object { $_.Name -notlike "*.symbols.nupkg" }
+                    Write-Host "Found $($packages.Count) packages to push"
+                    foreach ($pkg in $packages) {
+                      Write-Host "Pushing $($pkg.Name)..."
+                      & dotnet nuget push $pkg.FullName --source $feedUrl --api-key AzureDevOps --skip-duplicate
+                      if ($LASTEXITCODE -ne 0) {
+                        Write-Error "Failed to push $($pkg.Name)"
+                        exit 1
+                      }
+                    }
+                    Write-Host "Successfully pushed $($packages.Count) packages"
 
               - task: CopyFiles@2
                 displayName: 'Collect "vsman" from $(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)'
