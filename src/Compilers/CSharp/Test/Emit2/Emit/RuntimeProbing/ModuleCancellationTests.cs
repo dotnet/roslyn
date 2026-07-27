@@ -2814,7 +2814,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
         AssertNotInstrumented(verifier, "TestUnion.Value.get");
 
         verifier.VerifyIL("TestUnion..ctor(int)", $$"""
-                        {
+            {
               // Code size       24 (0x18)
               .maxstack  2
               IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
