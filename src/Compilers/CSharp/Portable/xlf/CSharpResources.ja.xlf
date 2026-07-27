@@ -2519,7 +2519,7 @@
       </trans-unit>
       <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
         <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
-        <target state="needs-review-translation">'safe' 修飾子は、'unsafe' としてマークされていないメンバーで、かつ 'extern' メンバー、または明示的レイアウトもしくは拡張レイアウトを持つ型のフィールドに類似したメンバーにのみ使用できます。</target>
+        <target state="new">The 'safe' and 'unsafe' modifiers cannot be used together.</target>
         <note>'safe' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">

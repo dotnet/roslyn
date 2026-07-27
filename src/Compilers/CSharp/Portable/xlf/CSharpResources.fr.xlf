@@ -2519,7 +2519,7 @@
       </trans-unit>
       <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
         <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
-        <target state="needs-review-translation">Le modificateur « safe » ne peut être utilisé que sur des membres qui ne sont pas marqués « unsafe » et qui sont soit « extern », soit de type champ dans des types avec une disposition explicite ou étendue.</target>
+        <target state="new">The 'safe' and 'unsafe' modifiers cannot be used together.</target>
         <note>'safe' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
