@@ -14013,6 +14013,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.P5 += 1;
                 c.P6 += 1;
                 """,
+            verify: Verification.FailsPEVerify,
             expectedUnsafeSymbols: ["C.P1", "C.P2", "C.set_P2", "C.get_P3", "C.set_P3", "C.get_P4", "C.get_P5", "C.set_P5", "C.P6"],
             expectedSafeSymbols: ["C.get_P1", "C.set_P1", "C.get_P2", "C.P3", "C.P4", "C.set_P4", "C.P5", "C.get_P6", "C.set_P6"],
             expectedDiagnostics:
