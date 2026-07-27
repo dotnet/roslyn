@@ -102,31 +102,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool ShouldAnalyze(CSharpCompilation compilation, SyntaxNode patternSyntax)
         {
             var hasWarningSeveritySyntaxForm = patternSyntax.DescendantNodesAndSelf().Any(
-                node => node is BinaryPatternSyntax binary && FindNotInBinary(binary.Left) && IsRedundantPatternWarningEnabled(compilation, binary.Right));
+                node => node is BinaryPatternSyntax binary && FindNotInBinary(binary.Left) && isRedundantPatternWarningEnabled(compilation, binary.Right));
             return hasWarningSeveritySyntaxForm;
-        }
 
-        private static bool IsRedundantPatternWarningEnabled(CSharpCompilation compilation, SyntaxNode syntax)
-        {
-            const ErrorCode code = ErrorCode.WRN_RedundantPattern;
-            var options = compilation.Options;
-            ReportDiagnostic report = CSharpDiagnosticFilter.GetDiagnosticReport(
-                ErrorFacts.GetSeverity(code),
-                MessageProvider.Instance.GetIsEnabledByDefault((int)code),
-                (int)code,
-                MessageProvider.Instance.GetIdForErrorCode((int)code),
-                ErrorFacts.GetWarningLevel(code),
-                syntax.Location,
-                customTags: [],
-                options.WarningLevel,
-                options.NullableContextOptions,
-                options.GeneralDiagnosticOption,
-                options.SpecificDiagnosticOptions,
-                options.SyntaxTreeOptionsProvider,
-                CancellationToken.None,
-                out bool hasPragmaSuppression);
+            static bool isRedundantPatternWarningEnabled(CSharpCompilation compilation, SyntaxNode syntax)
+            {
+                const ErrorCode code = ErrorCode.WRN_RedundantPattern;
+                var options = compilation.Options;
+                ReportDiagnostic report = CSharpDiagnosticFilter.GetDiagnosticReport(
+                    ErrorFacts.GetSeverity(code),
+                    MessageProvider.Instance.GetIsEnabledByDefault((int)code),
+                    (int)code,
+                    MessageProvider.Instance.GetIdForErrorCode((int)code),
+                    ErrorFacts.GetWarningLevel(code),
+                    syntax.Location,
+                    customTags: [],
+                    options.WarningLevel,
+                    options.NullableContextOptions,
+                    options.GeneralDiagnosticOption,
+                    options.SpecificDiagnosticOptions,
+                    options.SyntaxTreeOptionsProvider,
+                    CancellationToken.None,
+                    out bool hasPragmaSuppression);
 
-            return report != ReportDiagnostic.Suppress && !hasPragmaSuppression;
+                return report != ReportDiagnostic.Suppress && !hasPragmaSuppression;
+            }
         }
 
         /// <summary>
