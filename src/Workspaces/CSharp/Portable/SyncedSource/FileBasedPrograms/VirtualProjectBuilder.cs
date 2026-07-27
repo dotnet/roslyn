@@ -229,27 +229,27 @@ sealed class VirtualProjectBuilder
             switch (directive)
             {
                 case CSharpDirective.Project projectDirective:
-                    projectDirective = projectDirective.WithName(await project.ExpandStringAsync(projectDirective.Name), CSharpDirective.Project.NameKind.Expanded);
+                    projectDirective = projectDirective.WithName(await project.ExpandStringAsync(projectDirective.Name).ConfigureAwait(false), CSharpDirective.Project.NameKind.Expanded);
                     projectDirective = projectDirective.EnsureProjectFilePath(reportError);
 
                     builder.Add(projectDirective);
                     break;
 
                 case CSharpDirective.Ref refDirective:
-                    refDirective = refDirective.WithName(await project.ExpandStringAsync(refDirective.Name), CSharpDirective.Ref.NameKind.Expanded);
+                    refDirective = refDirective.WithName(await project.ExpandStringAsync(refDirective.Name).ConfigureAwait(false), CSharpDirective.Ref.NameKind.Expanded);
                     refDirective = refDirective.EnsureResolvedPath(reportError);
 
                     builder.Add(refDirective);
                     break;
 
                 case CSharpDirective.IncludeOrExclude includeOrExcludeDirective:
-                    var expandedPath = await project.ExpandStringAsync(includeOrExcludeDirective.Name);
+                    var expandedPath = await project.ExpandStringAsync(includeOrExcludeDirective.Name).ConfigureAwait(false);
                     var fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(includeOrExcludeDirective.Info.SourceFile.Path)!, expandedPath));
                     includeOrExcludeDirective = includeOrExcludeDirective.WithName(fullPath);
 
                     if (mapping.IsDefault)
                     {
-                        mapping = await GetItemMappingAsync(project, reportError);
+                        mapping = await GetItemMappingAsync(project, reportError).ConfigureAwait(false);
                     }
 
                     includeOrExcludeDirective = includeOrExcludeDirective.WithDeterminedItemType(reportError, mapping);
@@ -269,7 +269,7 @@ sealed class VirtualProjectBuilder
     internal async ValueTask<ImmutableArray<(string Extension, string ItemType)>> GetItemMappingAsync(IProjectInstance project, ErrorReporter reportError)
     {
         return CSharpDirective.IncludeOrExclude.ParseMapping(
-            await project.GetPropertyValueAsync(CSharpDirective.IncludeOrExclude.MappingPropertyName),
+            await project.GetPropertyValueAsync(CSharpDirective.IncludeOrExclude.MappingPropertyName).ConfigureAwait(false),
             EntryPointSourceFile,
             reportError);
     }
@@ -285,7 +285,7 @@ sealed class VirtualProjectBuilder
 
         var result = await builder.CreateProjectInstanceAsync(
             projectCollection,
-            (text, path, textSpan, message, _) => errorReporter(path, text.Lines.GetLinePositionSpan(textSpan).Start.Line + 1, message));
+            (text, path, textSpan, message, _) => errorReporter(path, text.Lines.GetLinePositionSpan(textSpan).Start.Line + 1, message)).ConfigureAwait(false);
 
         return result.Project;
     }
@@ -331,7 +331,7 @@ sealed class VirtualProjectBuilder
             (project, projectRootElement) = await CreateProjectInstanceNoEvaluation(
                 projectCollection,
                 evaluatedDirectives,
-                additionalGlobalProperties);
+                additionalGlobalProperties).ConfigureAwait(false);
         }
         else
         {
@@ -349,10 +349,10 @@ sealed class VirtualProjectBuilder
                 (project, projectRootElement) = await CreateProjectInstanceNoEvaluation(
                     projectCollection,
                     [.. evaluatedDirectiveBuilder, .. directivesForEvaluation],
-                    additionalGlobalProperties);
+                    additionalGlobalProperties).ConfigureAwait(false);
 
                 // Evaluate directives, e.g., determine item types for #:include/#:exclude from their file extension.
-                var fileEvaluatedDirectives = await EvaluateDirectivesAsync(project, directivesForEvaluation, reportError);
+                var fileEvaluatedDirectives = await EvaluateDirectivesAsync(project, directivesForEvaluation, reportError).ConfigureAwait(false);
 
                 // Detect duplicate directives across all files on evaluated directives. EvaluateDirectives only expands
                 // #:project, #:ref, #:include, and #:exclude; #:property and #:package values are still unevaluated here.
@@ -387,10 +387,10 @@ sealed class VirtualProjectBuilder
                     (project, projectRootElement) = await CreateProjectInstanceNoEvaluation(
                         projectCollection,
                         evaluatedDirectiveBuilder.ToImmutable(),
-                        additionalGlobalProperties);
+                        additionalGlobalProperties).ConfigureAwait(false);
                 }
 
-                var compileItems = await project.GetItemMetadataValuesAsync("Compile", ["FullPath"]);
+                var compileItems = await project.GetItemMetadataValuesAsync("Compile", ["FullPath"]).ConfigureAwait(false);
                 foreach (var compileItem in compileItems)
                 {
                     Debug.Assert(compileItem.Length == 1);
@@ -459,8 +459,8 @@ sealed class VirtualProjectBuilder
             }
         }
 
-        await CheckDirectivesAsync(project, evaluatedDirectives, reportError);
-        await CreateReferencedVirtualProjectsAsync(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles);
+        await CheckDirectivesAsync(project, evaluatedDirectives, reportError).ConfigureAwait(false);
+        await CreateReferencedVirtualProjectsAsync(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles).ConfigureAwait(false);
 
         return new Result(project, projectRootElement, evaluatedDirectives);
 
@@ -490,7 +490,7 @@ sealed class VirtualProjectBuilder
 
             var projectRoot = CreateProjectRootElement(projectFileText, projectCollection);
 
-            var project = await _buildService.CreateProjectInstanceFromProjectRootElementAsync(projectRoot, projectCollection, additionalGlobalProperties);
+            var project = await _buildService.CreateProjectInstanceFromProjectRootElementAsync(projectRoot, projectCollection, additionalGlobalProperties).ConfigureAwait(false);
 
             lastProject = (projectFileText, project, projectRoot);
 
@@ -545,7 +545,7 @@ sealed class VirtualProjectBuilder
                 projectCollection,
                 reportError,
                 validateAllDirectives: validateAllDirectives,
-                processedRefFiles: processedFiles);
+                processedRefFiles: processedFiles).ConfigureAwait(false);
         }
     }
 
@@ -560,13 +560,13 @@ sealed class VirtualProjectBuilder
         {
             if (directive is CSharpDirective.Ref)
             {
-                await CheckFlagEnabledAsync(refEnabled, CSharpDirective.Ref.ExperimentalFileBasedProgramEnableRefDirective, directive);
+                await CheckFlagEnabledAsync(refEnabled, CSharpDirective.Ref.ExperimentalFileBasedProgramEnableRefDirective, directive).ConfigureAwait(false);
             }
         }
 
         async ValueTask CheckFlagEnabledAsync(StrongBox<bool?> flag, string flagName, CSharpDirective directive)
         {
-            bool value = flag.Value ??= MSBuildUtilities.ConvertStringToBool(await project.GetPropertyValueAsync(flagName));
+            bool value = flag.Value ??= MSBuildUtilities.ConvertStringToBool(await project.GetPropertyValueAsync(flagName).ConfigureAwait(false));
 
             if (!value)
             {
