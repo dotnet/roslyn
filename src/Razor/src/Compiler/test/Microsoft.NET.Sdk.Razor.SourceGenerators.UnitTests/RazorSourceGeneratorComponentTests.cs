@@ -1239,6 +1239,51 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         Assert.Equal(2, result.GeneratedSources.Length);
     }
 
+    // PROTOTYPE(sonic): remove this Skip (and the limitation) before merging to main -- see the issue below.
+    [Fact(Skip = "PROTOTYPE(sonic): fallback component nested-delegate metadata is lost by fast discovery; see https://github.com/dotnet/roslyn/issues/84646")]
+    public async Task Component_BindValue_NestedDelegateInFallbackComponent()
+    {
+        // Known limitation of the decl/impl split: a split (fast-path) component whose ValueChanged
+        // parameter type is a delegate nested in a *fallback* component loses the delegate's metadata
+        // during fast discovery -- the fallback emits a bodiless type shell that declares only the outer
+        // class, so the nested delegate binds as an error type and @bind-Value lowers as an EventCallback,
+        // producing CS1503 in the consumer. Tracked by https://github.com/dotnet/roslyn/issues/84646;
+        // remove the Skip when it is fixed.
+
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            // Widget can't be split (@implements forces the fallback path) and declares a nested delegate.
+            ["Widget.razor"] = """
+                @implements System.IDisposable
+                @code {
+                    public delegate void MyHandler(int x);
+                    public void Dispose() { }
+                }
+                """,
+            // MyInput is split and its ValueChanged parameter type is Widget's nested delegate.
+            ["MyInput.razor"] = """
+                @code {
+                    [Microsoft.AspNetCore.Components.Parameter] public int Value { get; set; }
+                    [Microsoft.AspNetCore.Components.Parameter] public MyApp.Widget.MyHandler? ValueChanged { get; set; }
+                }
+                """,
+            ["Index.razor"] = """
+                @using MyApp
+                @{ int myValue = 0; }
+                <MyInput @bind-Value="myValue" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        _ = RunGenerator(compilation!, ref driver, out var outputCompilation, static _ => { });
+
+        // Assert - the consumer should compile once the limitation is fixed.
+        Assert.Empty(outputCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));
+    }
+
     [Fact]
     public async Task Component_WithImplicitContextVariable()
     {
