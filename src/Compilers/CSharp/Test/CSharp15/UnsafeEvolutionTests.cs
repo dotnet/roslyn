@@ -13988,6 +13988,92 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void SafeModifier_Declarations_Accessors()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                #pragma warning disable CS0626 // extern without attributes
+
+                public class C
+                {
+                    public unsafe int P1 { safe get; safe set; }
+                    public unsafe int P2 { safe get; set; }
+                    public safe int P3 { unsafe get; unsafe set; }
+                    public safe int P4 { unsafe get; set; }
+                    public extern safe int P5 { unsafe get; unsafe set; }
+                    public extern unsafe int P6 { safe get; safe set; }
+                }
+                """,
+            caller: """
+                var c = new C();
+                c.P1 += 1;
+                c.P2 += 1;
+                c.P3 += 1;
+                c.P4 += 1;
+                c.P5 += 1;
+                c.P6 += 1;
+                """,
+            expectedUnsafeSymbols: ["C.P1", "C.P2", "C.set_P2", "C.get_P3", "C.set_P3", "C.get_P4", "C.get_P5", "C.set_P5", "C.P6"],
+            expectedSafeSymbols: ["C.get_P1", "C.set_P1", "C.get_P2", "C.P3", "C.P4", "C.set_P4", "C.P5", "C.get_P6", "C.set_P6"],
+            expectedDiagnostics:
+            [
+                // (3,1): error CS9362: 'C.P2.set' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P2 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
+                // (4,1): error CS9362: 'C.P3.set' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P3 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P3").WithArguments("C.P3.set").WithLocation(4, 1),
+                // (4,1): error CS9362: 'C.P3.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P3 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P3").WithArguments("C.P3.get").WithLocation(4, 1),
+                // (5,1): error CS9362: 'C.P4.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P4 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P4").WithArguments("C.P4.get").WithLocation(5, 1),
+                // (6,1): error CS9362: 'C.P5.set' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P5 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P5").WithArguments("C.P5.set").WithLocation(6, 1),
+                // (6,1): error CS9362: 'C.P5.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P5 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P5").WithArguments("C.P5.get").WithLocation(6, 1),
+            ]);
+
+        var source = """
+            class C
+            {
+                unsafe int M() => 0;
+
+                public unsafe int P1
+                {
+                    safe get => M();
+                    safe set => M();
+                }
+
+                public safe int P2
+                {
+                    unsafe get => M();
+                    unsafe set => M();
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (7,21): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         safe get => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(7, 21),
+            // (8,21): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         safe set => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(8, 21),
+            // (13,23): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         unsafe get => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(13, 23),
+            // (14,23): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         unsafe set => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(14, 23));
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
     public void SafeModifier_Declarations_Partial()
     {
         var source = """

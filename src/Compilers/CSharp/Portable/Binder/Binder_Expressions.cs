@@ -9988,9 +9988,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, propertySymbol, node, hasBaseReceiver: receiver?.Kind == BoundKind.BaseReference);
 
             // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
-            Debug.Assert(propertySymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.None ||
-                (propertySymbol.GetMethod is null || propertySymbol.GetMethod.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == propertySymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty)) ||
-                (propertySymbol.SetMethod is null || propertySymbol.SetMethod.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == propertySymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty)));
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, propertySymbol, ref lookupResult, diagnostics);
 
