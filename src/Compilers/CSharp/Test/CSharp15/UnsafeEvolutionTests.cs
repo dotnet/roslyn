@@ -14259,6 +14259,51 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
     }
 
+    [Theory, CombinatorialData]
+    public void SafeModifier_CompatMode(bool compilationReference)
+    {
+        var source1 = """
+            public static class C
+            {
+                public static safe void M(int* p) { }
+            }
+            """;
+
+        var ref1 = CreateCompilation(source1).VerifyEmitDiagnostics();
+
+        var source2 = """
+            C.M(null);
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,1): error CS9363: 'C.M(int*)' must be used in an unsafe context because it has pointers in its signature
+            // C.M(null);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "C.M(null)").WithArguments("C.M(int*)").WithLocation(1, 1),
+        };
+
+        CreateCompilation(source2, [AsReference(ref1, compilationReference)], options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, [AsReference(ref1, compilationReference)]).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void SafeModifier_CompatMode_SameAssembly()
+    {
+        var source = """
+            class C
+            {
+                safe void M1(int* p) { }
+                void M2() { M1(null); }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,17): error CS9363: 'C.M1(int*)' must be used in an unsafe context because it has pointers in its signature
+            //     void M2() { M1(null); }
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "M1(null)").WithArguments("C.M1(int*)").WithLocation(4, 17));
+    }
+
     [Fact]
     public void RequiresUnsafeAttribute_Synthesized()
     {
