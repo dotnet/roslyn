@@ -106,11 +106,11 @@ class A
         }
 
         [IterationCleanup]
-        public void Cleanup()
+        public async Task CleanupAsync()
         {
             if (_testServer is not null)
             {
-                _testServer.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                await _testServer.DisposeAsync();
             }
             _useExportProviderAttribute.After(null);
         }

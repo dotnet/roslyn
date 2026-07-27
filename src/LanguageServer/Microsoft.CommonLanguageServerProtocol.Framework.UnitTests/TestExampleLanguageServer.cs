@@ -41,14 +41,6 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
         return result;
     }
 
-    internal Task<object?> ExecuteDirectRequestAsync<TRequest>(string methodName, TRequest request, CancellationToken cancellationToken)
-    {
-        var entryPoint = CreateDelegatingEntryPoint(methodName);
-        return (Task<object?>)entryPoint.GetEntryPoint(hasParameter: true).Invoke(
-            entryPoint,
-            [JsonSerializer.SerializeToElement(request), cancellationToken])!;
-    }
-
     internal Task ExecuteNotificationAsync(string methodName, CancellationToken _)
         => _clientRpc.NotifyAsync(methodName);
 
