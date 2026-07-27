@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasError = errorArg != null;
             if (hasError)
             {
-                Error(diagnostics, errorCode, errorSyntax, errorArg);
+                Error(diagnostics, errorCode, errorSyntax, errorArg!);
             }
 
             return type;
