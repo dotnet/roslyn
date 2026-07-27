@@ -1014,6 +1014,89 @@ catch(bar) { baz(); }");
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13117")]
+    public void SwitchExpression_WithMarkupInLambda_Incomplete()
+    {
+        ParseDocumentTest("""
+            @{
+                var val = value switch
+                {
+                    1 => (__builder) =>
+                    {
+                        <span>incomplete
+            """);
+    }
+
+    [Fact, WorkItem("https://developercommunity.visualstudio.com/t/Many-Feature-unavailable-due-to-internal/11112701")]
+    public void SwitchExpression_Incomplete_NoBlock()
+    {
+        // Typing a switch expression before the '{' block exists must not crash the parser.
+        ParseDocumentTest("""
+            @{
+                var x = 1;
+                var y = x switch
+            """);
+    }
+
+    [Fact, WorkItem("https://developercommunity.visualstudio.com/t/Many-Feature-unavailable-due-to-internal/11112701")]
+    public void SwitchExpression_Incomplete_OpenBlockOnly()
+    {
+        ParseDocumentTest("""
+            @{
+                var x = 1;
+                var y = x switch
+                {
+            """);
+    }
+
+    [Theory, WorkItem("https://developercommunity.visualstudio.com/t/Many-Feature-unavailable-due-to-internal/11112701")]
+    // The no-block and open-block-only states are covered with baselines by the two
+    // [Fact] tests above; this theory casts a wider net over richer permutations.
+    // Switch expression truncated after the block is opened.
+    [InlineData("var y = x switch { 1")]
+    [InlineData("var y = x switch { 1 =>")]
+    [InlineData("var y = x switch { 1 => \"one\"")]
+    [InlineData("var y = x switch { 1 => \"one\",")]
+    [InlineData("var y = x switch { _ =>")]
+    [InlineData("var y = x switch { > 5 =>")]
+    [InlineData("var y = x switch { 1 when x > 0 =>")]
+    [InlineData("var y = x switch { int i =>")]
+    [InlineData("var y = x switch { { Length: 0 } =>")]
+    [InlineData("var y = (a, b) switch {")]
+    // Nested switch expressions truncated mid-typing.
+    [InlineData("var y = x switch { 1 => z switch")]
+    [InlineData("var y = x switch { 1 => z switch {")]
+    [InlineData("var y = x switch { 1 => z switch { 2 =>")]
+    // Lambda-bodied arms (the markup-in-code path).
+    [InlineData("var y = x switch { 1 => (b) =>")]
+    [InlineData("var y = x switch { 1 => (b) => {")]
+    [InlineData("var y = x switch { 1 => (b) => { var q =")]
+    [InlineData("var y = x switch { 1 => (b) => { <span>")]
+    [InlineData("var y = x switch { 1 => (b) => { <span>text")]
+    // Switch statement truncated at each stage of typing.
+    [InlineData("switch")]
+    [InlineData("switch (")]
+    [InlineData("switch (x")]
+    [InlineData("switch (x)")]
+    [InlineData("switch (x) {")]
+    [InlineData("switch (x) { case 1:")]
+    [InlineData("switch (x) { case 1: break;")]
+    [InlineData("switch (x) { default:")]
+    public void SwitchStatement_Incomplete_DoesNotThrow(string incompleteStatement)
+    {
+        // Incomplete switch constructs (as produced while typing) must never crash the
+        // parser; any resulting problems should surface as diagnostics, not exceptions.
+        var document = $$"""
+            @{
+                var x = 1;
+                {{incompleteStatement}}
+            """;
+
+        var syntaxTree = ParseDocument(document);
+
+        Assert.NotNull(syntaxTree);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/7230")]
     public void SwitchExpression_WithWrongKeyword()
     {

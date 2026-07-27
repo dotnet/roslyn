@@ -436,6 +436,62 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             ItemExpectation.Absent("AttributeUsage"),
         ]);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84394")]
+    public async Task AttributeTargetFiltering_InheritedAttributeUsage()
+    {
+        // AttributeUsage is inherited by derived attribute types. A method-only attribute and an attribute
+        // deriving from it (without its own AttributeUsage) should both be filtered out on a non-method target.
+        var code = """
+            [$$]
+            record struct TestRecordStruct
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class FactAttribute : System.Attribute
+            {
+            }
+
+            public class CulturedFactAttribute : FactAttribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Absent("Fact"),
+            ItemExpectation.Absent("CulturedFact")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84394")]
+    public async Task AttributeTargetFiltering_InheritedAttributeUsageOnValidTarget()
+    {
+        // On a valid (method) target both the method-only attribute and its derived attribute are offered.
+        var code = """
+            class TestClass
+            {
+                [$$]
+                public void M()
+                {
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class FactAttribute : System.Attribute
+            {
+            }
+
+            public class CulturedFactAttribute : FactAttribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("Fact"),
+            ItemExpectation.Exists("CulturedFact")
+        ]);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
     public async Task AttributeTargetFiltering_AssemblyAttribute()
     {

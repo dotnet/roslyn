@@ -43,13 +43,13 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             // (8,20): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
             //         if (obj is int? i1 or string? s) { }
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(8, 20),
-            // (8,25): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (8,25): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //         if (obj is int? i1 or string? s) { }
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(8, 25),
             // (8,31): error CS8116: It is not legal to use nullable type 'string?' in a pattern; use the underlying type 'string' instead.
             //         if (obj is int? i1 or string? s) { }
             Diagnostic(ErrorCode.ERR_PatternNullableType, "string?").WithArguments("string").WithLocation(8, 31),
-            // (8,39): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (8,39): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //         if (obj is int? i1 or string? s) { }
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "s").WithLocation(8, 39),
             // (9,20): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
@@ -112,13 +112,13 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             // (8,20): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
             //         if (obj is int[]? i1 or string[]? s) { }
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(8, 20),
-            // (8,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (8,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //         if (obj is int[]? i1 or string[]? s) { }
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(8, 27),
             // (8,33): error CS8116: It is not legal to use nullable type 'string[]?' in a pattern; use the underlying type 'string[]' instead.
             //         if (obj is int[]? i1 or string[]? s) { }
             Diagnostic(ErrorCode.ERR_PatternNullableType, "string[]?").WithArguments("string[]").WithLocation(8, 33),
-            // (8,43): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (8,43): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //         if (obj is int[]? i1 or string[]? s) { }
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "s").WithLocation(8, 43),
             // (9,20): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
@@ -526,13 +526,13 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             // (16,26): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
             //         if (e is { Prop: int? i2 or string? s1 }) { }
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(16, 26),
-            // (16,31): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (16,31): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //         if (e is { Prop: int? i2 or string? s1 }) { }
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i2").WithLocation(16, 31),
             // (16,37): error CS8116: It is not legal to use nullable type 'string?' in a pattern; use the underlying type 'string' instead.
             //         if (e is { Prop: int? i2 or string? s1 }) { }
             Diagnostic(ErrorCode.ERR_PatternNullableType, "string?").WithArguments("string").WithLocation(16, 37),
-            // (16,45): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (16,45): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //         if (e is { Prop: int? i2 or string? s1 }) { }
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "s1").WithLocation(16, 45),
             // (17,26): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
@@ -592,13 +592,13 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             // (16,26): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
             //         if (e is { Prop: int[]? i2 or string[]? s1 }) { }
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(16, 26),
-            // (16,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (16,33): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //         if (e is { Prop: int[]? i2 or string[]? s1 }) { }
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i2").WithLocation(16, 33),
             // (16,39): error CS8116: It is not legal to use nullable type 'string[]?' in a pattern; use the underlying type 'string[]' instead.
             //         if (e is { Prop: int[]? i2 or string[]? s1 }) { }
             Diagnostic(ErrorCode.ERR_PatternNullableType, "string[]?").WithArguments("string[]").WithLocation(16, 39),
-            // (16,49): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // (16,49): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
             //         if (e is { Prop: int[]? i2 or string[]? s1 }) { }
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "s1").WithLocation(16, 49),
             // (17,26): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.

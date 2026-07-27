@@ -5,6 +5,7 @@
 using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.Extensions.Logging;
+using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -48,7 +49,7 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
             }
             """));
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.Null(contentNullable);
     }
 
@@ -67,13 +68,13 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
+                "version": "10.0.301"
               }
             }
             """);
 
         var logger = LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>();
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), logger, CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), logger, localizeOutput: false, CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         var virtualProjectXml = content.VirtualProjectXml;
@@ -101,12 +102,12 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
+                "version": "10.0.301"
               }
             }
             """);
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(content.VirtualProjectXml);
@@ -127,12 +128,12 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
+                "version": "10.0.301"
               }
             }
             """);
 
-        var content = await projectProvider.GetVirtualProjectContentAsync(Path.Combine(tempDir.Path, "BAD"), GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var content = await projectProvider.GetVirtualProjectContentAsync(Path.Combine(tempDir.Path, "BAD"), GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.Null(content);
     }
 
@@ -152,13 +153,13 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
         var globalJsonFile = tempDir.CreateFile("global.json");
         await globalJsonFile.WriteAllTextAsync("""
             {
-              "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
-              }
+                "sdk": {
+                "version": "10.0.301"
+                }
             }
             """);
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         var diagnostic = content.Diagnostics.Single();

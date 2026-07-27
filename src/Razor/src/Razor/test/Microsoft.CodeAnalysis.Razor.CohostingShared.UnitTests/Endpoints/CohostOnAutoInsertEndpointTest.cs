@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -39,6 +40,16 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
 
                 The end.
                 """,
+            triggerCharacter: ">");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13203")]
+    public async Task EndTag_EmptyTagName()
+    {
+        await VerifyOnAutoInsertAsync(
+            input: "<>$$",
+            output: "<>$0</>",
             triggerCharacter: ">");
     }
 

@@ -74,4 +74,4 @@
 [$RootKey$\SettingsManifests\{6cf2e545-6109-4730-8883-cf43d7aec3e1}]
 @="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage"
 "ManifestPath"="$PackageFolder$\UnifiedSettings\roslynSettings.registration.json"
-"CacheTag"=qword:ABE9BBF01CC8B289
+"CacheTag"=qword:FD69333BD2711FE5

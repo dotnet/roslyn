@@ -1458,7 +1458,57 @@ public sealed class TypeImportCompletionProviderTests : AbstractCSharpCompletion
     }
 
     [Fact]
-    public async Task ShouldNotTriggerInsideTrivia()
+    public async Task ShouldNotTriggerInsidePlainComment()
+    {
+        var file1 = $$"""
+            namespace Foo
+            {
+                public class Bar
+                {} 
+            }
+            """;
+
+        var file2 = """
+            namespace Baz
+            {
+                // B$$
+                class Bat
+                {
+                }
+            }
+            """;
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+    }
+
+    [Fact]
+    public async Task ShouldNotTriggerInsideXmlDocText()
+    {
+        var file1 = $$"""
+            namespace Foo
+            {
+                public class Bar
+                {} 
+            }
+            """;
+
+        var file2 = """
+            namespace Baz
+            {
+                /// <summary>
+                /// B$$
+                /// </summary>
+                class Bat
+                {
+                }
+            }
+            """;
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54742")]
+    public async Task TriggerInsideCref()
     {
         var file1 = $$"""
             namespace Foo
@@ -1480,7 +1530,97 @@ public sealed class TypeImportCompletionProviderTests : AbstractCSharpCompletion
             }
             """;
         var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54742")]
+    public async Task TriggerInsideCrefGenericType()
+    {
+        var file1 = $$"""
+            namespace Foo
+            {
+                public class Bar<T>
+                {} 
+            }
+            """;
+
+        var file2 = """
+            namespace Baz
+            {
+                /// <summary>
+                /// <see cref="B$$"/>
+                /// </summary>
+                class Bat
+                {
+                }
+            }
+            """;
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54742")]
+    public async Task ShouldNotTriggerInsideQualifiedCref()
+    {
+        var file1 = $$"""
+            namespace Foo
+            {
+                public class Bar
+                {} 
+            }
+            """;
+
+        var file2 = """
+            namespace Baz
+            {
+                /// <summary>
+                /// <see cref="Foo.B$$"/>
+                /// </summary>
+                class Bat
+                {
+                }
+            }
+            """;
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
         await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54742")]
+    public async Task Commit_InsideCref()
+    {
+        var file1 = $$"""
+            namespace Foo
+            {
+                public class Bar
+                {} 
+            }
+            """;
+
+        var file2 = """
+            namespace Baz
+            {
+                /// <summary>
+                /// <see cref="B$$"/>
+                /// </summary>
+                class Bat
+                {
+                }
+            }
+            """;
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyCustomCommitProviderAsync(markup, "Bar", """
+            using Foo;
+
+            namespace Baz
+            {
+                /// <summary>
+                /// <see cref="Bar"/>
+                /// </summary>
+                class Bat
+                {
+                }
+            }
+            """);
     }
     private static void AssertRelativeOrder(List<string> expectedTypesInRelativeOrder, ImmutableArray<CompletionItem> allCompletionItems)
     {

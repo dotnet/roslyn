@@ -16,13 +16,13 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 [Export(typeof(ICSharpCodeActionProvider)), Shared]
 [method: ImportingConstructor]
-internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions languageServerFeatureOptions) : ICSharpCodeActionProvider
+internal sealed class CSharpCodeActionProvider(IClientSettingsManager clientSettingsManager) : ICSharpCodeActionProvider
 {
     // Internal for testing
     internal static readonly HashSet<string> SupportedDefaultCodeActionNames =
@@ -61,7 +61,7 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
         PredefinedCodeFixProviderNames.GenerateVariable,
     ];
 
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
 
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(
         RazorCodeActionContext context,
@@ -82,6 +82,7 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
         var allowList = isInImplicitExpression
             ? SupportedImplicitExpressionCodeActionNames
             : SupportedDefaultCodeActionNames;
+        var showAllCSharpCodeActions = _clientSettingsManager.GetClientSettings().AdvancedSettings.ShowAllCSharpCodeActions;
 
         using var results = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
@@ -91,15 +92,15 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
 
             // If this code action isn't on the allow list, it might have been handled by another provider, which means
             // it will already have been wrapped, so we have to check not to double-wrap it.
-            if (_languageServerFeatureOptions.ShowAllCSharpCodeActions &&
-                CanDeserializeTo<RazorCodeActionResolutionParams>(codeAction.Data))
+            if (showAllCSharpCodeActions &&
+                IsRazorCodeActionResolutionData(codeAction.Data))
             {
                 // This code action has already been wrapped by something else, so skip it here, or it could
-                // be marked as experimental when its not, and more importantly would be duplicated in the list.
+                // be marked as untested when it isn't, and more importantly would be duplicated in the list.
                 continue;
             }
 
-            if (_languageServerFeatureOptions.ShowAllCSharpCodeActions || isOnAllowList)
+            if (showAllCSharpCodeActions || isOnAllowList)
             {
                 results.Add(codeAction.WrapResolvableCodeAction(context, isOnAllowList: isOnAllowList));
             }
@@ -107,22 +108,22 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
 
         return Task.FromResult(results.ToImmutable());
 
-        static bool CanDeserializeTo<T>(object? data)
+        static bool IsRazorCodeActionResolutionData(object? data)
         {
-            // We don't care about errors here, and there is no TryDeserialize method, so we can just brute force this.
-            // Since this only happens if the feature flag is on, which is internal only and intended only for users of
-            // this repo, any perf hit here isn't going to affect real users.
+            if (data is not JsonElement { ValueKind: JsonValueKind.Object } element)
+            {
+                return false;
+            }
+
+            // There is no TryDeserialize API. Malformed delegated data just means that Razor hasn't wrapped it.
             try
             {
-                if (data is JsonElement element &&
-                    element.Deserialize<RazorCodeActionResolutionParams>() is not null)
-                {
-                    return true;
-                }
+                return element.Deserialize<RazorCodeActionResolutionParams>() is not null;
             }
-            catch { }
-
-            return false;
+            catch (JsonException)
+            {
+                return false;
+            }
         }
     }
 }

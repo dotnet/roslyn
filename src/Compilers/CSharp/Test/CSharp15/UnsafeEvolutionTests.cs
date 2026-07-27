@@ -79,15 +79,30 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 .VerifyDiagnostics(expectedDiagnosticsWithOldLangVersion);
         }
 
-        var libUpdated = CompileAndVerify([lib, .. additionalSources],
-            targetFramework: targetFramework,
-            parseOptions: parseOptions,
-            options: optionsDll.WithUpdatedMemorySafetyRules(),
-            verify: verify,
-            symbolValidator: symbolValidator)
-            .VerifyDiagnostics(expectedLibDiagnostics ?? []);
+        var libUpdatedHasErrors = expectedLibDiagnostics?.Any(d => !ErrorFacts.IsWarning((ErrorCode)d.Code)) == true;
 
-        var libUpdatedRefs = new MetadataReference[] { libUpdated.GetImageReference(), libUpdated.Compilation.ToMetadataReference() };
+        MetadataReference[] libUpdatedRefs;
+
+        if (libUpdatedHasErrors)
+        {
+            var libUpdated = CreateCompilation([lib, .. additionalSources],
+                targetFramework: targetFramework,
+                parseOptions: parseOptions,
+                options: optionsDll.WithUpdatedMemorySafetyRules())
+                .VerifyDiagnostics(expectedLibDiagnostics ?? []);
+            libUpdatedRefs = [libUpdated.ToMetadataReference()];
+        }
+        else
+        {
+            var libUpdated = CompileAndVerify([lib, .. additionalSources],
+                targetFramework: targetFramework,
+                parseOptions: parseOptions,
+                options: optionsDll.WithUpdatedMemorySafetyRules(),
+                verify: verify,
+                symbolValidator: symbolValidator)
+                .VerifyDiagnostics(expectedLibDiagnostics ?? []);
+            libUpdatedRefs = [libUpdated.GetImageReference(), libUpdated.Compilation.ToMetadataReference()];
+        }
 
         foreach (var libUpdatedRef in libUpdatedRefs)
         {
@@ -4639,8 +4654,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe enum E { A }
             unsafe record R;
             unsafe delegate void D();
+            unsafe union N(int);
             class X
             {
+                unsafe static X() { }
                 unsafe X() { }
                 unsafe ~X() { }
                 unsafe int f;
@@ -4649,7 +4666,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe event System.Action E { add { } remove { } }
                 public static unsafe implicit operator int(X x) => 0;
             }
+            unsafe partial class P1;
+            partial class P1;
+            partial class P2;
+            unsafe partial class P2;
             """;
+
+        CSharpTestSource sources = [source, IsExternalInitTypeDefinition, IUnionSource, UnionAttributeSource];
 
         var expectedDiagnostics = new[]
         {
@@ -4658,63 +4681,98 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("unsafe").WithLocation(10, 13),
         };
 
-        CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-
-        CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithWarningLevel(10)).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(sources, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
 
         expectedDiagnostics =
         [
-            // (7,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // (7,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe class C;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C").WithLocation(7, 14),
-            // (8,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(7, 14),
+            // (8,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe struct S;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "S").WithLocation(8, 15),
-            // (9,18): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "S").WithLocation(8, 15),
+            // (9,18): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe interface I;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "I").WithLocation(9, 18),
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "I").WithLocation(9, 18),
             // (10,13): error CS0106: The modifier 'unsafe' is not valid for this item
             // unsafe enum E { A }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("unsafe").WithLocation(10, 13),
-            // (11,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // (11,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe record R;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "R").WithLocation(11, 15),
-            // (12,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "R").WithLocation(11, 15),
+            // (12,22): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe delegate void D();
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(12, 22),
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "D").WithLocation(12, 22),
+            // (13,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe union N(int);
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "N").WithLocation(13, 14),
+            // (16,5): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            //     unsafe static X() { }
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(16, 5),
+            // (18,5): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            //     unsafe ~X() { }
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(18, 5),
+            // (25,22): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe partial class P1;
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "P1").WithLocation(25, 22),
+            // (27,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // partial class P2;
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "P2").WithLocation(27, 15),
         ];
 
-        CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(sources, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
 
-        CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithWarningLevel(11)).VerifyDiagnostics(expectedDiagnostics);
-
-        CreateCompilation([source, IsExternalInitTypeDefinition],
+        CreateCompilation(sources,
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
 
-        CreateCompilation([source, IsExternalInitTypeDefinition],
+        CreateCompilation(sources,
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (7,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // (7,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe class C;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C").WithLocation(7, 14),
-            // (8,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(7, 14),
+            // (8,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe struct S;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "S").WithLocation(8, 15),
-            // (9,18): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "S").WithLocation(8, 15),
+            // (9,18): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe interface I;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "I").WithLocation(9, 18),
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "I").WithLocation(9, 18),
             // (10,13): error CS0106: The modifier 'unsafe' is not valid for this item
             // unsafe enum E { A }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("unsafe").WithLocation(10, 13),
-            // (11,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // (11,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe record R;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "R").WithLocation(11, 15),
-            // (12,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "R").WithLocation(11, 15),
+            // (12,22): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe delegate void D();
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(12, 22));
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "D").WithLocation(12, 22),
+            // (13,1): error CS8803: Top-level statements must precede namespace and type declarations.
+            // unsafe union N(int);
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "unsafe union N(int);").WithLocation(13, 1),
+            // (13,8): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
+            // unsafe union N(int);
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(13, 8),
+            // (13,14): error CS8112: Local function 'N(int)' must declare a body because it is not marked 'static extern'.
+            // unsafe union N(int);
+            Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "N").WithArguments("N(int)").WithLocation(13, 14),
+            // (13,19): error CS1001: Identifier expected
+            // unsafe union N(int);
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(13, 19),
+            // (16,5): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            //     unsafe static X() { }
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(16, 5),
+            // (18,5): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            //     unsafe ~X() { }
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(18, 5),
+            // (25,22): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe partial class P1;
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "P1").WithLocation(25, 22),
+            // (27,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // partial class P2;
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "P2").WithLocation(27, 15));
     }
 
     [Fact]
@@ -4766,21 +4824,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
-            // (19,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // (19,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe class C;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C").WithLocation(19, 14),
-            // (20,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(19, 14),
+            // (20,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe struct S;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "S").WithLocation(20, 15),
-            // (21,18): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "S").WithLocation(20, 15),
+            // (21,18): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe interface I;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "I").WithLocation(21, 18),
-            // (22,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "I").WithLocation(21, 18),
+            // (22,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe record R;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "R").WithLocation(22, 15),
-            // (23,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "R").WithLocation(22, 15),
+            // (23,22): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe delegate void D();
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(23, 22));
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "D").WithLocation(23, 22));
     }
 
     [Fact]
@@ -4811,9 +4869,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
-            // (11,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // (11,22): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe delegate int* D();
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(11, 22));
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "D").WithLocation(11, 22));
     }
 
     [Fact]
@@ -4958,9 +5016,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (6,20): error CS9360: This operation may only be used in an unsafe context
             //     unsafe int f = *(default(int*));
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(6, 20),
-            // (8,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // (8,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe class D
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(8, 14),
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "D").WithLocation(8, 14),
             // (10,28): error CS9360: This operation may only be used in an unsafe context
             //     int M(int* p) { return *p; }
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(10, 28),
@@ -5173,9 +5231,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (19,6): error CS9362: 'A.A()' must be used in an unsafe context because it is marked as 'unsafe'
             //     [A] unsafe void M2() { }
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A").WithArguments("A.A()").WithLocation(19, 6),
-            // (22,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // (22,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe class UnsafeTest
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "UnsafeTest").WithLocation(22, 14),
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "UnsafeTest").WithLocation(22, 14),
             // (26,6): error CS9362: 'A.A()' must be used in an unsafe context because it is marked as 'unsafe'
             //     [A] void M2() { }
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A").WithArguments("A.A()").WithLocation(26, 6));
@@ -5227,9 +5285,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (4,21): error CS9360: This operation may only be used in an unsafe context
             //     void M2(int x = *(default(int*))) { }
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 21),
-            // (7,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // (7,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe class D
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(7, 14),
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "D").WithLocation(7, 14),
             // (9,20): error CS9360: This operation may only be used in an unsafe context
             //     void M(int x = *(default(int*))) { }
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(9, 20),
@@ -5377,22 +5435,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             #pragma warning disable CS0169 // unused field
                 unsafe int F;
             }
-            unsafe class U;
-            unsafe delegate void D();
             """;
         CSharpTestSource source =
         [
             declarationsSource,
             CompilerFeatureRequiredAttribute,
-            """
-            namespace System.Diagnostics.CodeAnalysis
-            {
-                public sealed class RequiresUnsafeAttribute : Attribute;
-            }
-            """,
+            RequiresUnsafeAttributeDefinition,
         ];
 
-        string[] safeSymbols = ["C", "U", "D"];
+        string[] safeSymbols = ["C"];
         string[] unsafeSymbols =
         [
             "C.<M0>g__F|0_0",
@@ -5437,13 +5488,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                         expectedSafeSymbols: [.. safeSymbols],
                         expectedDefinition: AttributeDefinition.FromSource);
                 })
-                .VerifyDiagnostics(
-                // (16,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
-                // unsafe class U;
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "U").WithLocation(16, 14),
-                // (17,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
-                // unsafe delegate void D();
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(17, 22));
+                .VerifyDiagnostics();
         }
 
         CreateCompilation(source,
@@ -5451,13 +5496,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (16,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
-            // unsafe class U;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "U").WithLocation(16, 14),
-            // (17,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
-            // unsafe delegate void D();
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(17, 22));
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         source =
         [
@@ -5513,13 +5552,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(12, 5),
             // (14,5): error CS0518: Predefined type 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute' is not defined or imported
             //     unsafe int F;
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(14, 5),
-            // (16,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
-            // unsafe class U;
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "U").WithLocation(16, 14),
-            // (17,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
-            // unsafe delegate void D();
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(17, 22));
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(14, 5));
     }
 
     [Theory, CombinatorialData]
@@ -5774,10 +5807,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ],
             expectedLibDiagnostics:
             [
-                // (2,21): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (2,21): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // public unsafe class C
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C").WithLocation(2, 21),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(2, 21),
             ]);
+    }
+
+    [Fact]
+    public void UnsafeClass_OtherModifierErrors()
+    {
+        var source = """
+            unsafe virtual class C;
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (1,22): error CS0106: The modifier 'virtual' is not valid for this item
+            // unsafe virtual class C;
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("virtual").WithLocation(1, 22),
+            // (1,22): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe virtual class C;
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(1, 22));
     }
 
     [Fact]
@@ -5839,15 +5887,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,8): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
                 // D2 b = C.M;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M").WithArguments("C.M()").WithLocation(2, 8),
-                // (7,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (7,22): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe delegate void D2();
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D2").WithLocation(7, 22),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "D2").WithLocation(7, 22),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
-                // (7,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (7,22): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe delegate void D2();
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D2").WithLocation(7, 22),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "D2").WithLocation(7, 22),
             ]);
     }
 
@@ -8196,12 +8244,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (3,36): error CS9362: 'A.F' must be used in an unsafe context because it is marked as 'unsafe'
                 // [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0, G = 0)] unsafe class C2;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "F = 0").WithArguments("A.F").WithLocation(3, 36),
-                // (3,64): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (3,64): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0, G = 0)] unsafe class C2;
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C2").WithLocation(3, 64),
-                // (4,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C2").WithLocation(3, 64),
+                // (4,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // partial class C3
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C3").WithLocation(4, 15),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C3").WithLocation(4, 15),
                 // (6,16): error CS9362: 'A.P2.set' must be used in an unsafe context because it is marked as 'unsafe'
                 //     [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0, G = 0)] void M1() { }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "P2 = 0").WithArguments("A.P2.set").WithLocation(6, 16),
@@ -8223,12 +8271,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
-                // (3,64): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (3,64): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0, G = 0)] unsafe class C2;
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C2").WithLocation(3, 64),
-                // (4,15): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C2").WithLocation(3, 64),
+                // (4,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // partial class C3
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C3").WithLocation(4, 15),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C3").WithLocation(4, 15),
             ]);
     }
 
@@ -9043,9 +9091,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (17,44): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
                 //     unsafe public event System.Action U2 = C.M();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M()").WithArguments("C.M()").WithLocation(17, 44),
-                // (19,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (19,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe class U
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "U").WithLocation(19, 14),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "U").WithLocation(19, 14),
                 // (21,37): error CS9360: This operation may only be used in an unsafe context
                 //     public event System.Action E1 = default(delegate*<System.Action>)();
                 Diagnostic(ErrorCode.ERR_UnsafeOperation, "default(delegate*<System.Action>)()").WithLocation(21, 37),
@@ -9085,9 +9133,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (16,44): error CS9360: This operation may only be used in an unsafe context
                 //     unsafe public event System.Action U1 = default(delegate*<System.Action>)();
                 Diagnostic(ErrorCode.ERR_UnsafeOperation, "default(delegate*<System.Action>)()").WithLocation(16, 44),
-                // (19,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (19,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe class U
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "U").WithLocation(19, 14),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "U").WithLocation(19, 14),
                 // (21,37): error CS9360: This operation may only be used in an unsafe context
                 //     public event System.Action E1 = default(delegate*<System.Action>)();
                 Diagnostic(ErrorCode.ERR_UnsafeOperation, "default(delegate*<System.Action>)()").WithLocation(21, 37),
@@ -9131,9 +9179,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ],
             expectedLibDiagnostics:
             [
-                // (6,21): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (6,21): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // public unsafe class C2(int x)
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C2").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C2").WithLocation(6, 21),
             ]);
     }
 
@@ -9201,21 +9249,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (18,1): error CS9362: 'B.B()' must be used in an unsafe context because it is marked as 'unsafe'
                 // unsafe class C3 : B;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "unsafe class C3 : B;").WithArguments("B.B()").WithLocation(18, 1),
-                // (18,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (18,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe class C3 : B;
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C3").WithLocation(18, 14),
-                // (19,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C3").WithLocation(18, 14),
+                // (19,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe class C4 : B
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C4").WithLocation(19, 14),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C4").WithLocation(19, 14),
                 // (21,5): error CS9362: 'B.B()' must be used in an unsafe context because it is marked as 'unsafe'
                 //     public C4() { }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "public C4() { }").WithArguments("B.B()").WithLocation(21, 5),
                 // (22,22): error CS9362: 'B.B()' must be used in an unsafe context because it is marked as 'unsafe'
                 //     public C4(int x) : base() { }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ": base()").WithArguments("B.B()").WithLocation(22, 22),
-                // (24,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (24,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe class D2() : B();
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D2").WithLocation(24, 14),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "D2").WithLocation(24, 14),
                 // (24,21): error CS9362: 'B.B()' must be used in an unsafe context because it is marked as 'unsafe'
                 // unsafe class D2() : B();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "B()").WithArguments("B.B()").WithLocation(24, 21),
@@ -9225,15 +9273,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (5,5): error CS9362: 'C5.C5()' must be used in an unsafe context because it is marked as 'unsafe'
                 // _ = new C5();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C5()").WithArguments("C5.C5()").WithLocation(5, 5),
-                // (18,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (18,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe class C3 : B;
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C3").WithLocation(18, 14),
-                // (19,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C3").WithLocation(18, 14),
+                // (19,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe class C4 : B
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "C4").WithLocation(19, 14),
-                // (24,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C4").WithLocation(19, 14),
+                // (24,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe class D2() : B();
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D2").WithLocation(24, 14),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "D2").WithLocation(24, 14),
             ]);
     }
 
@@ -9306,7 +9354,31 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             expectedUnsafeSymbols: [],
             expectedSafeSymbols: ["C", "C..cctor"],
-            expectedDiagnostics: []);
+            expectedDiagnostics: [],
+            expectedLibDiagnostics:
+            [
+                // (4,5): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                //     unsafe static C() { }
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(4, 5),
+            ]);
+    }
+
+    [Fact]
+    public void Member_Constructor_Static_OtherModifierErrors()
+    {
+        var source = """
+            class C
+            {
+                unsafe virtual static C() { }
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (3,5): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            //     unsafe virtual static C() { }
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(3, 5),
+            // (3,27): error CS0106: The modifier 'virtual' is not valid for this item
+            //     unsafe virtual static C() { }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("virtual").WithLocation(3, 27));
     }
 
     [Fact]
@@ -9731,6 +9803,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
+            // (3,5): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            //     unsafe ~C() { }
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(3, 5),
             // (4,16): error CS0245: Destructors and object.Finalize cannot be called directly. Consider calling IDisposable.Dispose if available.
             //     void M() { Finalize(); }
             Diagnostic(ErrorCode.ERR_CallingFinalizeDeprecated, "Finalize()").WithLocation(4, 16));
@@ -9740,6 +9815,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedUnsafeSymbols: [],
             expectedSafeSymbols: ["C.Finalize"],
             expectedDefinition: AttributeDefinition.None);
+    }
+
+    [Fact]
+    public void Member_Destructor_OtherModifierErrors()
+    {
+        var source = """
+            class C
+            {
+                unsafe virtual ~C() { }
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (3,5): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            //     unsafe virtual ~C() { }
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(3, 5),
+            // (3,21): error CS0106: The modifier 'virtual' is not valid for this item
+            //     unsafe virtual ~C() { }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("virtual").WithLocation(3, 21));
     }
 
     [Fact]
@@ -10613,9 +10706,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (8,21): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
                 //     unsafe int U2 = C.M();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M()").WithArguments("C.M()").WithLocation(8, 21),
-                // (10,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (10,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe class U
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "U").WithLocation(10, 14),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "U").WithLocation(10, 14),
                 // (12,14): error CS9360: This operation may only be used in an unsafe context
                 //     int F1 = *default(int*);
                 Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(12, 14),
@@ -10646,9 +10739,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (7,21): error CS9360: This operation may only be used in an unsafe context
                 //     unsafe int U1 = *default(int*);
                 Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(7, 21),
-                // (10,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // (10,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
                 // unsafe class U
-                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "U").WithLocation(10, 14),
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "U").WithLocation(10, 14),
                 // (12,14): error CS9360: This operation may only be used in an unsafe context
                 //     int F1 = *default(int*);
                 Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(12, 14),
@@ -14116,8 +14209,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(25, 16));
     }
 
-    [Theory, CombinatorialData]
-    public void SafeModifier_Extern_SafeUnsafe(bool updatedRules)
+    [Fact]
+    public void SafeModifier_Extern_SafeUnsafe()
     {
         var source = """
             #pragma warning disable CS0067, CS0626, CS0824, CS8321 // unused event, extern without attributes, extern constructor, unused local function
@@ -14136,7 +14229,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (4,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe unsafe public extern void M1();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
@@ -14157,7 +14251,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(9, 5),
             // (12,9): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //         safe unsafe static extern void Local1();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 9));
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 9),
+        };
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            [
+                .. expectedDiagnostics,
+                // (9,10): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                //     safe unsafe extern ~C();
+                Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(9, 10),
+            ]);
     }
 
     [Fact]
