@@ -204,6 +204,8 @@ internal sealed class ProjectBuildManager : IDisposable
 
     public (MSB.Execution.ProjectInstance? projectInstance, DiagnosticLog log) LoadProjectInstance(string path, TextReader content, IDictionary<string, string>? additionalGlobalProperties)
     {
+        Contract.ThrowIfTrue(_disposed);
+
         var log = new DiagnosticLog();
         try
         {
