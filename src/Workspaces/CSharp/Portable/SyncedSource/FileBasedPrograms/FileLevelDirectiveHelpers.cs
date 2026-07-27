@@ -983,7 +983,7 @@ internal sealed class SimpleDiagnostic
     {
         public required string Path { get; init; }
         public required LinePositionSpan Span { get; init; }
-#if FILE_BASED_PROGRAMS_SYSTEM_TEXT_JSON
+#if FILE_BASED_PROGRAMS_SYSTEM_TEXT_JSON // only run-api needs this, see remarks
         [System.Text.Json.Serialization.JsonIgnore]
 #endif
         public TextSpan TextSpan { get; init; }

@@ -1015,14 +1015,14 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         IEnumerable<Assembly> assemblies =
         [
-            typeof(Assert).Assembly,
-            typeof(FactAttribute).Assembly,
-            typeof(AssertEx).Assembly,
+            typeof(Assert).Assembly, // xunit.assert
+            typeof(FactAttribute).Assembly, // xunit.core
+            typeof(AssertEx).Assembly, // Microsoft.CodeAnalysis.Test.Utilities
             typeof(AbstractLanguageServerProtocolTests).Assembly,
-            typeof(Workspace).Assembly,
-            typeof(IHostWorkspaceProvider).Assembly,
-            typeof(FileBasedProgramsEntryPointDiscovery).Assembly,
-            GetType().Assembly,
+            typeof(Workspace).Assembly, // Microsoft.CodeAnalysis.Workspaces
+            typeof(IHostWorkspaceProvider).Assembly, // Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities
+            typeof(FileBasedProgramsEntryPointDiscovery).Assembly, // Microsoft.CodeAnalysis.LanguageServer
+            GetType().Assembly, // Microsoft.CodeAnalysis.LanguageServer.UnitTests
         ];
         List<MetadataReference> references =
         [
