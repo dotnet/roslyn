@@ -58,4 +58,15 @@
     <ProjectReference Include="..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
   </ItemGroup>
 
+  <!-- Microsoft.CodeAnalysis.LanguageServer only targets .NET, so its assets reader is linked in (rather
+       than referenced) and benchmarked on .NET only. ProjectAssetsReaderBenchmarks.cs is guarded to match.
+       The Using items mirror the global usings the linked file relies on in its own project. -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
+    <PackageReference Include="NuGet.ProjectModel" />
+    <Compile Include="..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\HostWorkspace\ProjectAssetsReader.cs" Link="Lsp\ProjectAssetsReader.cs" />
+    <Using Include="System" />
+    <Using Include="System.IO" />
+    <Using Include="Roslyn.Utilities" />
+  </ItemGroup>
+
 </Project>
