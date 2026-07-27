@@ -29,6 +29,21 @@ internal class VSCodeRemoteServiceInvoker(
     private readonly VSCodeBrokeredServiceInterceptor _serviceInterceptor = new();
 
     public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
+        Func<TService, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerMemberName] string? callerMemberName = null) where TService : class
+    {
+        var service = await GetOrCreateServiceAsync<TService>().ConfigureAwait(false);
+        if (service == null)
+        {
+            return default;
+        }
+
+        return await invocation(service, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
         Solution solution,
         Func<TService, RazorSolutionWrapper, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken,

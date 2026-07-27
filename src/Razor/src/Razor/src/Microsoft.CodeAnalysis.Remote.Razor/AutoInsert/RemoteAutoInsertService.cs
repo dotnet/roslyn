@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
@@ -150,6 +151,8 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             .SelectAsArray(
                 predicate: s => s.Metadata.Language == LanguageNames.CSharp,
                 selector: s => s.Value);
+        var csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions
+            ?? throw new InvalidOperationException("C# syntax formatting options were not provided for auto insert.");
 
         var autoInsertResponseItem = await OnAutoInsertHandler.GetOnAutoInsertResponseAsync(
             globalOptions,
@@ -157,7 +160,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             generatedDocument,
             mappedPosition,
             character,
-            options.ToLspFormattingOptions(),
+            csharpSyntaxFormattingOptions,
             includeNewLineBraceFormatting: true,
             cancellationToken
         ).ConfigureAwait(false);

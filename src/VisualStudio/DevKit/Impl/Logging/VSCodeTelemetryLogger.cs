@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.Extensions.Logging;
@@ -23,7 +24,6 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
     private TelemetrySession? _telemetrySession;
 
     private const string CollectorApiKey = "0c6ae279ed8443289764825290e4f9e2-1a736e7c-1324-4338-be46-fc2a58ae4d14-7255";
-    private static int _dumpsSubmitted = 0;
 
     private readonly ILogger _logger;
 
@@ -56,6 +56,10 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         _telemetrySession = session;
 
         TelemetryLogger.Create(_telemetrySession, logDelta: false);
+
+        FaultReporter.InitializeFatalErrorHandlers();
+        FaultReporter.IncludeServiceHubLogFiles = false;
+        FaultReporter.RegisterTelemetrySesssion(_telemetrySession);
     }
 
     public void Log(string name, List<KeyValuePair<string, object?>> properties)
@@ -103,42 +107,6 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
             userTask.End(result);
         else
             throw new InvalidCastException($"Unexpected value for scope: {scope}");
-    }
-
-    public void ReportFault(string eventName, string description, int logLevel, bool forceDump, int processId, Exception exception)
-    {
-        if (_telemetrySession is null)
-        {
-            return;
-        }
-
-        var faultEvent = new FaultEvent(
-            eventName: eventName,
-            description: description,
-            (FaultSeverity)logLevel,
-            exceptionObject: exception,
-            gatherEventDetails: faultUtility =>
-            {
-                if (forceDump)
-                {
-                    // Let's just send a maximum of three; number chosen arbitrarily
-                    if (Interlocked.Increment(ref _dumpsSubmitted) <= 3)
-                        faultUtility.AddProcessDump(processId);
-                }
-
-                if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
-                {
-                    // if needed, add any extra logs here
-                }
-
-                // Returning "0" signals that, if sampled, we should send data to Watson. 
-                // Any other value will cancel the Watson report. We never want to trigger a process dump manually, 
-                // we'll let TargetedNotifications determine if a dump should be collected.
-                // See https://aka.ms/roslynnfwdocs for more details
-                return 0;
-            });
-
-        _telemetrySession.PostEvent(faultEvent);
     }
 
     public void Dispose()

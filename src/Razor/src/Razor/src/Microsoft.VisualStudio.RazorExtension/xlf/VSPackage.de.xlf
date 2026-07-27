@@ -182,6 +182,16 @@
         <target state="translated">Warnung</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_ShowAllCSharpCodeActionsDescription">
+        <source>Show all C# code actions in Razor files. These actions are untested in Razor and may introduce syntax errors when applied. If this happens, please report a bug.</source>
+        <target state="translated">Alle C#-Codeaktionen in Razor-Dateien anzeigen. Diese Aktionen werden in Razor nicht getestet und können beim Anwenden Syntaxfehler verursachen. Melden Sie in diesem Fall einen Fehler.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ShowAllCSharpCodeActionsDisplayName">
+        <source>Show all C# code actions</source>
+        <target state="translated">Alle C#-Codeaktionen anzeigen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_SnippetsAll">
         <source>All</source>
         <target state="translated">Alle</target>
