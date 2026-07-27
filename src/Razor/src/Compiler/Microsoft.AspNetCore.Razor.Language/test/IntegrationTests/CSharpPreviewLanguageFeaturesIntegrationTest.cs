@@ -24,6 +24,55 @@ public sealed class CSharpPreviewLanguageFeaturesIntegrationTest()
         => $"TestFiles/IntegrationTests/{GetType().Name}/{testName}";
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13188")]
+    public void StringLiteralAttributeOnUnionParameter()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            #nullable enable
+
+            namespace System.Runtime.CompilerServices
+            {
+                public interface IUnion
+                {
+                    object? Value { get; }
+                }
+
+                public class UnionAttribute : System.Attribute
+                {
+                }
+            }
+            """));
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public union SlotContent(string, MarkupString, RenderFragment);
+
+                public class Slot : ComponentBase
+                {
+                    [Parameter]
+                    public SlotContent Content { get; set; }
+                }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            @{
+                var content = new Test.SlotContent(new MarkupString("<strong>hello</strong>"));
+            }
+
+            <Slot Content="hello" />
+            <Slot Content="@content" />
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md")]
     public void CollectionExpressionArguments()
     {

@@ -261,6 +261,7 @@
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests/Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj" />
+    <Project Path="src/LanguageServer/roslyn-language-server/roslyn-language-server.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework.Example/Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework.UnitTests/Microsoft.CommonLanguageServerProtocol.Framework.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/Microsoft.CommonLanguageServerProtocol.Framework.Package.csproj" />
@@ -312,6 +313,7 @@
     <Project Path="src/Tools/BuildValidator/BuildValidator.csproj" />
     <Project Path="src/Tools/GenerateRulesMissingDocumentation/GenerateRulesMissingDocumentation.csproj" />
     <Project Path="src/Tools/IdeBenchmarks/IdeBenchmarks.csproj" />
+    <Project Path="src/Tools/Benchmarks/Benchmarks.csproj" />
     <Project Path="src/Tools/IdeCoreBenchmarks/IdeCoreBenchmarks.csproj" />
     <Project Path="src/Tools/PrepareTests/PrepareTests.csproj" />
     <Project Path="src/Tools/Replay/Replay.csproj" />

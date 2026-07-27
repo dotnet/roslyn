@@ -111,6 +111,8 @@ internal sealed class DotnetCliHelper : ILspService
         startInfo.Environment.Remove("MSBUILD_EXE_PATH");
         startInfo.Environment.Remove("MSBuildExtensionsPath");
 
+        startInfo.RemoveInheritedDotNetDiagnosticPorts();
+
         var process = Process.Start(startInfo);
         Contract.ThrowIfNull(process, $"Unable to start dotnet CLI at {_dotnetExecutablePath.Value} with arguments {arguments} in directory {workingDirectory}");
         if (!keepStandardInputOpen)

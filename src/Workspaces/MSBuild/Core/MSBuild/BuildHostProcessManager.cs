@@ -333,6 +333,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         // it might try to load targets that aren't appropriate for the build host.
         processStartInfo.Environment.Remove("MSBUILD_EXE_PATH");
 
+        processStartInfo.RemoveInheritedDotNetDiagnosticPorts();
+
         processStartInfo.CreateNoWindow = true;
         processStartInfo.UseShellExecute = false;
         processStartInfo.RedirectStandardInput = true;
