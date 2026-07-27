@@ -10,5 +10,4 @@ internal static class TestDiscoverySymbolExtensions
 {
     public static string GetSymbolKeyString(this ISymbol symbol, CancellationToken cancellationToken)
         => SymbolKey.Create(symbol, cancellationToken).ToString();
-
 }
