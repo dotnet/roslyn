@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -102,7 +103,7 @@ file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, C
         return new ProjectInstance(remoteProjectInstance, cancellationToken);
     }
 
-    public ValueTask<ImmutableArray<ImmutableArray<string>>> GetItemMetadataValuesAsync(string itemType, ImmutableArray<string> metadataNames) => new(remoteProjectInstance.GetItemMetadataValuesAsync(itemType, metadataNames, cancellationToken));
+    public ValueTask<ImmutableArray<ImmutableArray<string>>> GetItemMetadataValuesAsync(string itemType, ImmutableArray<string> metadataNames) => new(remoteProjectInstance.GetItemMetadataValuesAsync(itemType, metadataNames.ToArray(), cancellationToken));
     public ValueTask<string> GetPropertyValueAsync(string propertyName) => new(remoteProjectInstance.GetPropertyValueAsync(propertyName, cancellationToken));
     public ValueTask<string> ExpandStringAsync(string value) => new(remoteProjectInstance.ExpandStringAsync(value, cancellationToken));
 }
