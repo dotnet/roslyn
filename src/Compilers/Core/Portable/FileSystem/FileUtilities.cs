@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
@@ -450,6 +452,20 @@ namespace Roslyn.Utilities
             {
                 throw new IOException(e.Message, e);
             }
+        }
+
+        /// <summary>Create a hard link to a file.</summary>
+        /// <seealso href="https://learn.microsoft.com/en-us/dotnet/api/system.io.file.createhardlink?view=net-11.0" />
+#if NET
+        [SupportedOSPlatform("windows")]
+#endif
+        public static bool TryCreateHardLink(string path, string pathToTarget)
+        {
+            return CreateHardLink(pathToTarget, path, IntPtr.Zero);
+
+            // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createhardlinkw
+            [DllImport("Kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
         }
     }
 }

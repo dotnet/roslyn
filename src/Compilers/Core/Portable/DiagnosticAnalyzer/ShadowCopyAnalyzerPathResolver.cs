@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -40,6 +41,8 @@ namespace Microsoft.CodeAnalysis
         private Mutex Mutex { get; }
 
         internal Task DeleteLeftoverDirectoriesTask { get; }
+
+        private readonly bool _useHardLinks;
 
         /// <summary>
         /// This is a counter that is incremented each time a new shadow sub directory is created to ensure they 
@@ -92,6 +95,18 @@ namespace Microsoft.CodeAnalysis
             ShadowDirectory = Path.Combine(BaseDirectory, shadowDirectoryName);
             Mutex = new Mutex(initiallyOwned: false, name: shadowDirectoryName);
             DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
+
+            if (PlatformInformation.IsWindows)
+            {
+                if (bool.TryParse(Environment.GetEnvironmentVariable("ROSLYN_SHADOW_HARD_LINKS"), out var result))
+                    _useHardLinks = result;
+                else
+                    _useHardLinks = true; // default
+            }
+            else
+            {
+                _useHardLinks = false;
+            }
         }
 
         private void DeleteLeftoverDirectories()
@@ -187,6 +202,22 @@ namespace Microsoft.CodeAnalysis
         {
             var analyzerShadowDir = GetAnalyzerShadowDirectory(originalAnalyzerPath);
             var analyzerShadowPath = Path.Combine(analyzerShadowDir, Path.GetFileName(originalAnalyzerPath));
+
+            if (_useHardLinks)
+            {
+                // Optimization for AV scanners.
+                // On Windows, we can allow loading from the original path, which might be in the nuget cache, in a build artifacts directory, etc.,
+                // while also allowing delete/overwrite of the file, by hard linking the file to the shadow location, and loading from the original location.
+                // Using the original path allows the AV scanner to reuse a cached scan result.
+                // TODO2: assumptions need to be verified, e.g. profiling shadow copy perf before/after the change.
+                Debug.Assert(PlatformInformation.IsWindows);
+                Directory.CreateDirectory(analyzerShadowDir);
+                if (FileUtilities.TryCreateHardLink(originalAnalyzerPath, analyzerShadowPath))
+                {
+                    return originalAnalyzerPath;
+                }
+            }
+
             ShadowCopyFile(originalAnalyzerPath, analyzerShadowPath);
             return analyzerShadowPath;
         }
