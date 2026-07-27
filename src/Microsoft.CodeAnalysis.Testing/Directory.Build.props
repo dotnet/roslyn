@@ -10,12 +10,16 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
+    <SupportsNet10Targeting>$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '18.0'))</SupportsNet10Targeting>
+
     <!--
       net8.0: Modern .NET target with current NuGet APIs
+      net10.0: Included when building with MSBuild 18.0+ toolsets
       netcoreapp3.1: Ensures full support for nullable reference types
       netstandard2.0/net472: Roslyn 3.x
     -->
     <TestingLibraryTargetFrameworks>net8.0;netcoreapp3.1;netstandard2.0;net461;net472</TestingLibraryTargetFrameworks>
+    <TestingLibraryTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(TestingLibraryTargetFrameworks)</TestingLibraryTargetFrameworks>
 
     <!--
       netcoreapp3.1: Ensures full support for nullable reference types
