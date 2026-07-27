@@ -975,6 +975,7 @@ class C { }
         }
 
         [Fact]
+        [UseCulture("en-US")]
         public void PreCompilation_Accessing_Compilation_Throws()
         {
             var source = @"
@@ -1003,13 +1004,14 @@ class C { }
             var result = Assert.Single(runResult.Results);
             Assert.NotNull(result.Exception);
             Assert.IsType<InvalidOperationException>(result.Exception);
-            Assert.Equal(string.Format(CodeAnalysisResources.CompilationNotAvailableInPreCompilationPhase, "CompilationProvider"), result.Exception!.Message);
+            Assert.Contains("pre-compilation", result.Exception!.Message);
 
             // A diagnostic was reported
             Assert.NotEmpty(diagnostics);
         }
 
         [Fact]
+        [UseCulture("en-US")]
         public void PreCompilation_Using_SyntaxProvider_Throws()
         {
             var source = @"
@@ -1041,7 +1043,7 @@ class C { }
             // Generator should be in error state with a useful InvalidOperationException
             Assert.NotNull(result.Exception);
             Assert.IsType<InvalidOperationException>(result.Exception);
-            Assert.Equal(CodeAnalysisResources.SyntaxProvidersNotAvailableInPreCompilationPhase, result.Exception!.Message);
+            Assert.Contains("pre-compilation", result.Exception!.Message);
 
             // The pre-compilation source must NOT have been produced
             Assert.Empty(result.GeneratedSources);

@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -136,5 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return OriginalDefinition.IsWindowsRuntimeEvent;
             }
         }
+
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingEvent.GetCallerUnsafeMode(fieldsBeingBound);
     }
 }

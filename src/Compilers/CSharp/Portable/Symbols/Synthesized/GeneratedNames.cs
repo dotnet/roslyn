@@ -352,11 +352,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>3__" + parameterName;
         }
 
-        internal static string MakeDynamicCallSiteContainerName(int methodOrdinal, int localFunctionOrdinal, int generation)
+        internal static string MakeDynamicCallSiteContainerName(int methodOrdinal, string? localFunctionOrdinalOrSuffix, int generation)
         {
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.DynamicCallSiteContainerType, methodOrdinal, generation,
-                                                   suffix: localFunctionOrdinal != -1 ? localFunctionOrdinal.ToString() : null,
-                                                   suffixTerminator: localFunctionOrdinal != -1 ? '|' : default);
+                                                   suffix: localFunctionOrdinalOrSuffix,
+                                                   suffixTerminator: localFunctionOrdinalOrSuffix != null ? '|' : default);
         }
 
         internal static string MakeDynamicCallSiteFieldName(int uniqueId)

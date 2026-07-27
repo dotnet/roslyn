@@ -110,29 +110,6 @@ internal sealed partial class ProjectSystemProject
     /// </summary>
     private readonly IFileChangeContext _documentFileChangeContext;
 
-    /// <summary>
-    /// The set of dynamic file info providers we have already subscribed to.
-    /// </summary>
-    private readonly HashSet<IDynamicFileInfoProvider> _dynamicFileInfoProvidersSubscribedTo = [];
-
-    /// <summary>
-    /// Map of the original dynamic file path to the <see cref="DynamicFileInfo.FilePath"/> that was associated with it.
-    ///
-    /// For example, the key is something like Page.cshtml which is given to us from the project system calling
-    /// <see cref="AddDynamicSourceFile(string, ImmutableArray{string})"/>. The value of the map is a generated file that
-    /// corresponds to the original path, say Page.g.cs. If we were given a file by the project system but no
-    /// <see cref="IDynamicFileInfoProvider"/> provided a file for it, we will record the value as null so we still can track
-    /// the addition of the .cshtml file for a later call to <see cref="RemoveDynamicSourceFile(string)"/>.
-    ///
-    /// The workspace snapshot will only have a document with  <see cref="DynamicFileInfo.FilePath"/> (the value) but not the
-    /// original dynamic file path (the key).
-    /// </summary>
-    /// <remarks>
-    /// We use the same string comparer as in the <see cref="BatchingDocumentCollection"/> used by _sourceFiles, below, as these
-    /// files are added to that collection too.
-    /// </remarks>
-    private readonly Dictionary<string, string?> _dynamicFilePathMaps = new(StringComparer.OrdinalIgnoreCase);
-
     private readonly BatchingDocumentCollection _sourceFiles;
     private readonly BatchingDocumentCollection _additionalFiles;
     private readonly BatchingDocumentCollection _analyzerConfigFiles;
@@ -909,136 +886,6 @@ internal sealed partial class ProjectSystemProject
 
     #endregion
 
-    #region Non Source File Addition/Removal
-
-    public void AddDynamicSourceFile(string dynamicFilePath, ImmutableArray<string> folders)
-    {
-        DynamicFileInfo? fileInfo = null;
-        IDynamicFileInfoProvider? providerForFileInfo = null;
-
-        var extension = FileNameUtilities.GetExtension(dynamicFilePath)?.TrimStart('.');
-        if (extension?.Length == 0)
-        {
-            fileInfo = null;
-        }
-        else
-        {
-            foreach (var provider in _hostInfo.DynamicFileInfoProviders)
-            {
-                // skip unrelated providers
-                if (!provider.Metadata.Extensions.Any(e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase)))
-                {
-                    continue;
-                }
-
-                // Don't get confused by _filePath and filePath.
-                // VisualStudioProject._filePath points to csproj/vbproj of the project
-                // and the parameter filePath points to dynamic file such as ASP.NET .g.cs files.
-                //
-                // Also, provider is free-threaded. so fine to call Wait rather than JTF.
-                fileInfo = provider.Value.GetDynamicFileInfoAsync(
-                    projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-
-                if (fileInfo != null)
-                {
-                    fileInfo = FixUpDynamicFileInfo(fileInfo, dynamicFilePath);
-                    providerForFileInfo = provider.Value;
-                    break;
-                }
-            }
-        }
-
-        using (_gate.DisposableWait())
-        {
-            if (_dynamicFilePathMaps.ContainsKey(dynamicFilePath))
-            {
-                // TODO: if we have a duplicate, we are not calling RemoveDynamicFileInfoAsync since we
-                // don't want to call with that under a lock. If we are getting duplicates we have bigger problems
-                // at that point since our workspace is generally out of sync with the project system.
-                // Given we're taking this as a late fix prior to a release, I don't think it's worth the added
-                // risk to handle a case that wasn't handled before either.
-                throw new ArgumentException($"{dynamicFilePath} has already been added to this project.");
-            }
-
-            // Record the mapping from the dynamic file path to the source file it generated. We will record
-            // 'null' if no provider was able to produce a source file for this input file. That could happen
-            // if the provider (say ASP.NET Razor) doesn't recognize the file, or the wrong type of file
-            // got passed through the system. That's not a failure from the project system's perspective:
-            // adding dynamic files is a hint at best that doesn't impact it.
-            _dynamicFilePathMaps.Add(dynamicFilePath, fileInfo?.FilePath);
-
-            if (fileInfo != null)
-            {
-                // If fileInfo is not null, that means we found a provider so this should be not-null as well
-                // since we had to go through the earlier assignment.
-                Contract.ThrowIfNull(providerForFileInfo);
-                _sourceFiles.AddDynamicFile_NoLock(providerForFileInfo, fileInfo, folders);
-            }
-        }
-    }
-
-    private static DynamicFileInfo FixUpDynamicFileInfo(DynamicFileInfo fileInfo, string filePath)
-    {
-        // we might change contract and just throw here. but for now, we keep existing contract where one can return null for DynamicFileInfo.FilePath.
-        // In this case we substitute the file being generated from so we still have some path.
-        if (string.IsNullOrEmpty(fileInfo.FilePath))
-        {
-            return new DynamicFileInfo(filePath, fileInfo.SourceCodeKind, fileInfo.TextLoader, fileInfo.DesignTimeOnly, fileInfo.DocumentServiceProvider);
-        }
-
-        return fileInfo;
-    }
-
-    public void RemoveDynamicSourceFile(string dynamicFilePath)
-    {
-        IDynamicFileInfoProvider provider;
-
-        using (_gate.DisposableWait())
-        {
-            if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out var sourceFilePath))
-            {
-                throw new ArgumentException($"{dynamicFilePath} wasn't added by a previous call to {nameof(AddDynamicSourceFile)}");
-            }
-
-            _dynamicFilePathMaps.Remove(dynamicFilePath);
-
-            // If we got a null path back, it means we never had a source file to add. In that case,
-            // we're done
-            if (sourceFilePath == null)
-            {
-                return;
-            }
-
-            provider = _sourceFiles.RemoveDynamicFile_NoLock(sourceFilePath);
-        }
-
-        // provider is free-threaded. so fine to call Wait rather than JTF
-        provider.RemoveDynamicFileInfoAsync(
-            projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).Wait(CancellationToken.None);
-    }
-
-    private void OnDynamicFileInfoUpdated(object? sender, string dynamicFilePath)
-    {
-        string? fileInfoPath;
-
-        using (_gate.DisposableWait())
-        {
-            if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out fileInfoPath))
-            {
-                // given file doesn't belong to this project.
-                // this happen since the event this is handling is shared between all projects
-                return;
-            }
-        }
-
-        if (fileInfoPath != null)
-        {
-            _sourceFiles.ProcessDynamicFileChange(dynamicFilePath, fileInfoPath);
-        }
-    }
-
-    #endregion
-
     #region Analyzer Addition/Removal
 
     public void AddAnalyzerReference(string fullPath)
@@ -1377,14 +1224,6 @@ internal sealed partial class ProjectSystemProject
             }
 
             _asynchronousFileChangeProcessingCancellationTokenSource.Cancel();
-
-            // clear tracking to external components
-            foreach (var provider in _dynamicFileInfoProvidersSubscribedTo)
-            {
-                provider.Updated -= OnDynamicFileInfoUpdated;
-            }
-
-            _dynamicFileInfoProvidersSubscribedTo.Clear();
         }
 
         _documentFileChangeContext.FileChanged -= DocumentFileChangeContext_FileChanged;
@@ -1425,10 +1264,10 @@ internal sealed partial class ProjectSystemProject
         Contract.ThrowIfNull(remainingAnalyzerReferences);
 
         foreach (var reference in remainingMetadataReferences.OfType<PortableExecutableReference>())
-            _projectSystemProjectFactory.FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
+            _projectSystemProjectFactory.PortableExecutableReferenceFileChangeTracker.StopWatchingReference(reference.FilePath!);
 
         foreach (var reference in remainingAnalyzerReferences)
-            _projectSystemProjectFactory.FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference.FullPath!, referenceToTrack: reference);
+            _projectSystemProjectFactory.AnalyzerReferenceFileChangeTracker.StopWatchingReference(reference.FullPath!);
     }
 
     public void ReorderSourceFiles(ImmutableArray<string> filePaths)

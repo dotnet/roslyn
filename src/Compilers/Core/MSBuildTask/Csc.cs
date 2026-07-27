@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                         // The alias called "global" is special.  It means that we don't
                         // give it an alias on the command-line.
-                        if (string.Compare("global", trimmedAlias, StringComparison.OrdinalIgnoreCase) == 0)
+                        if (string.Equals("global", trimmedAlias, StringComparison.OrdinalIgnoreCase))
                         {
                             appendGlobalReference(reference.ItemSpec);
                         }

@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -60,18 +60,26 @@ internal sealed class CSharpOnTypeFormattingPass(
             }
 
             // Ask C# for formatting changes.
-            var autoFormattingOptions = new RazorAutoFormattingOptions(
-                formatOnReturn: true, formatOnTyping: true, formatOnSemicolon: true, formatOnCloseBrace: true);
+            var document = roslynWorkspaceHelper.CreateCSharpDocument(context.CodeDocument);
+            var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
+            var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                roslynWorkspaceHelper.CreateCSharpDocument(context.CodeDocument),
-                typedChar: context.TriggerCharacter,
+            if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, context.TriggerCharacter, projectedIndex, cancellationToken))
+            {
+                _logger.LogInformation($"Roslyn says we shouldn't format for {context.TriggerCharacter} at position {projectedIndex}.");
+                return [];
+            }
+
+            var indentationOptions = CSharpFormatter.GetIndentationOptions(
+                document.Project.Solution.Services,
+                context.Options,
+                AutoFormattingOptions.Default,
+                FormattingOptions2.IndentStyle.Smart);
+            var formattingChanges = formattingService.GetFormattingChangesOnTypedCharacter(
+                documentSyntax,
                 projectedIndex,
-                context.Options.ToIndentationOptions(),
-                autoFormattingOptions,
-                indentStyle: RazorIndentStyle.Smart,
-                context.Options.CSharpSyntaxFormattingOptions,
-                cancellationToken).ConfigureAwait(false);
+                indentationOptions,
+                cancellationToken);
 
             if (formattingChanges.IsEmpty)
             {
@@ -417,7 +425,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
     private static string PrependLines(string text, string newLine, int count)
     {
-        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+        using var _ = AspNetCore.Razor.PooledObjects.StringBuilderPool.GetPooledObject(out var builder);
 
         builder.SetCapacityIfLarger((newLine.Length * count) + text.Length);
 
@@ -1141,7 +1149,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
     private static string RenderSourceMappings(RazorCodeDocument codeDocument)
     {
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
+        using var pooledBuilder = AspNetCore.Razor.PooledObjects.StringBuilderPool.GetPooledObject();
         var builder = pooledBuilder.Object;
 
         var documentText = codeDocument.Source.Text.ToString();

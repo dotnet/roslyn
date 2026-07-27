@@ -131,12 +131,12 @@ internal sealed class ProjectFile(
         var fileName = Path.GetFileNameWithoutExtension(filePath);
 
         // check for short name match
-        item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, shortAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
+        item = references.FirstOrDefault(it => string.Equals(it.EvaluatedInclude, shortAssemblyName, StringComparison.OrdinalIgnoreCase));
         if (item is not null)
             return item;
 
         // check for full name match
-        item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, fullAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
+        item = references.FirstOrDefault(it => string.Equals(it.EvaluatedInclude, fullAssemblyName, StringComparison.OrdinalIgnoreCase));
         if (item is not null)
             return item;
 
@@ -216,7 +216,7 @@ internal sealed class ProjectFile(
                                    || PathUtilities.PathsEqual(it.EvaluatedInclude, projectFilePath));
 
         // try to find by project name
-        item ??= references.First(it => string.Compare(projectName, it.GetMetadataValue(MetadataNames.Name), StringComparison.OrdinalIgnoreCase) == 0);
+        item ??= references.First(it => string.Equals(projectName, it.GetMetadataValue(MetadataNames.Name), StringComparison.OrdinalIgnoreCase));
 
         return item;
     }

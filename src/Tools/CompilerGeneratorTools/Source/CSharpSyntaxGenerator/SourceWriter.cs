@@ -1114,7 +1114,7 @@ namespace CSharpSyntaxGenerator
 
         private static bool HasValidate(TreeType node)
         {
-            return node.HasValidate != null && string.Compare(node.HasValidate, "true", ignoreCase: true) == 0;
+            return node.HasValidate != null && string.Equals(node.HasValidate, "true", StringComparison.OrdinalIgnoreCase);
         }
 
         private string GetRedFieldType(Field field)
@@ -1441,7 +1441,7 @@ namespace CSharpSyntaxGenerator
             foreach (var node in nodes)
             {
                 this.WriteRedFactory(node);
-                bool skipConvenienceFactories = node.SkipConvenienceFactories != null && string.Compare(node.SkipConvenienceFactories, "true", true) == 0;
+                bool skipConvenienceFactories = node.SkipConvenienceFactories != null && string.Equals(node.SkipConvenienceFactories, "true", StringComparison.OrdinalIgnoreCase);
                 if (!skipConvenienceFactories)
                 {
                     this.WriteRedFactoryWithNoAutoCreatableTokens(node);

@@ -1398,9 +1398,9 @@ class Test
                 // (12,25): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
                 //         return (s1, s2) switch { // 1
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, _)").WithLocation(12, 25),
-                // (18,25): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
+                // (18,25): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(not null, null)' is not covered.
                 //         return (s1, s2) switch { // 2
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, _)").WithLocation(18, 25),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(not null, null)").WithLocation(18, 25),
                 // (24,25): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, _)' is not covered.
                 //         return (s1, s2) switch { // 3
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, _)").WithLocation(24, 25),
@@ -3013,7 +3013,7 @@ for (var x = 0; x < 10; x++)
     var a = Infer(s);
     if (a is [_, .. var z, _])
     {
-        z.ToString();
+        z.ToString(); // (assumed not-null)
     }
 
     s = null;
@@ -3298,6 +3298,72 @@ class Container<T>
                 // (8,5): warning CS8602: Dereference of a possibly null reference.
                 //     z.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(8, 5)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84100")]
+        public void TupleSwitchPreferNonNullCounterexample_Union()
+        {
+            var source = """
+                #nullable enable
+                public record A;
+                public record B;
+                public union U(A, B);
+
+                public static class Repro
+                {
+                    public static string Direct(U u) => u switch { A => "a", B => "b" };
+
+                    public static string Unconditional(U u, string? s) => (u, s) switch
+                    {
+                        (A, _) => "a",
+                        (B, _) => "b",
+                    };
+
+                #line 19
+                    public static string Conditional(U u, string? s) => (u, s) switch
+                    {
+                        (A, _) => "a",
+                        (B, { } t) => t,
+                    };
+                }
+                """;
+
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], targetFramework: TargetFramework.Net100);
+            comp.VerifyDiagnostics(
+                // (19,64): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(B, null)' is not covered.
+                //     public static string Conditional(U u, string? s) => (u, s) switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(B, null)").WithLocation(19, 64)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84100")]
+        public void TupleSwitchPreferNonNullCounterexample_BoolNullable()
+        {
+            var source = """
+                #nullable enable
+                public static class Repro
+                {
+                    public static string ConditionalBool(bool? u, string? s)
+                    {
+                        if (u is null) return "";
+
+                        u.Value.ToString();
+
+                        return (u, s) switch
+                        {
+                            (true, _) => "a",
+                            (false, { } t) => t,
+                        };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,23): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(false, null)' is not covered.
+                //         return (u, s) switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(false, null)").WithLocation(10, 23)
                 );
         }
     }

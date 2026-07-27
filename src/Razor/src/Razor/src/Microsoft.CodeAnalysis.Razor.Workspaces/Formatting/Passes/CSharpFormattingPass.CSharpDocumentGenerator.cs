@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -161,7 +161,7 @@ internal partial class CSharpFormattingPass
             private readonly bool _insertSpaces = options.InsertSpaces;
             private readonly int _tabSize = options.TabSize;
             private readonly AttributeIndentStyle _attributeIndentStyle = options.AttributeIndentStyle;
-            private readonly RazorCSharpSyntaxFormattingOptions? _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
+            private readonly CSharpSyntaxFormattingOptions? _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
             private readonly StringBuilder _builder = builder;
             private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
             private readonly IDocumentMappingService _documentMappingService = documentMappingService;
@@ -378,6 +378,19 @@ internal partial class CSharpFormattingPass
                 // any indentation we want to add to line up attribute content, otherwise we'd end up pushing that content to
                 // the right repeatedly.
                 var attributeIndentationWidth = (htmlIndentLevel * _tabSize) + additionalIndentation.GetValueOrDefault();
+
+                // For lambda attributes like `OnClick=@(() => ...)`, Roslyn already contributes the
+                // lambda-body indentation on wrapped lines. If we keep applying the full attribute
+                // indentation baseline to those continuation lines, every format pass shifts the block
+                // body one level to the right.
+                if (expressionStartsBlockLambda &&
+                    attributeNode is MarkupAttributeBlockSyntax or MarkupTagHelperAttributeSyntax &&
+                    _currentLine.LineNumber > nodeStartLine &&
+                    htmlIndentLevel > 0)
+                {
+                    htmlIndentLevel--;
+                }
+
                 if (attributeIndentationWidth <= 0)
                 {
                     // Attributes don't affect indentation here, so the user's indentation is all we need.
@@ -1215,7 +1228,7 @@ internal partial class CSharpFormattingPass
                 //
                 // The formatted offset tells the mapping code to ignore whichever representation Roslyn chose, because
                 // the synthetic lambda opener is scaffolding for formatting and should not be copied back into Razor.
-                return _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
+                return _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
                     ? SyntheticLambdaSignatureLength
                     : SyntheticLambdaBodyStart.Length;
             }

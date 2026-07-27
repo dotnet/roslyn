@@ -65,7 +65,7 @@ internal sealed partial class SymbolicRenameLocations
             // Visual Basic and VB's identifiers are case insensitive. 
             // Do not cascade to symbols that are defined only in metadata.
             if (referencedSymbol.Kind == originalSymbol.Kind &&
-                string.Compare(TrimNameToAfterLastDot(referencedSymbol.Name), TrimNameToAfterLastDot(originalSymbol.Name), StringComparison.OrdinalIgnoreCase) == 0 &&
+                string.Equals(TrimNameToAfterLastDot(referencedSymbol.Name), TrimNameToAfterLastDot(originalSymbol.Name), StringComparison.OrdinalIgnoreCase) &&
                 referencedSymbol.Locations.Any(static loc => loc.IsInSource))
             {
                 return true;

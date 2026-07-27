@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Xml;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -50,7 +49,7 @@ public class RazorServicesTest(ITestOutputHelper testOutputHelper) : ToolingTest
             if (method.Name != "RunServiceAsync" &&
                 method.GetParameters() is [{ ParameterType: { } parameterType }, ..])
             {
-                if (typeof(RazorPinnedSolutionInfoWrapper).IsAssignableFrom(parameterType))
+                if (typeof(RazorSolutionWrapper).IsAssignableFrom(parameterType))
                 {
                     Assert.Fail($"Method {method.Name} in a Json service has a pinned solution info wrapper parameter that isn't Json serializable");
                 }

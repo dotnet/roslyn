@@ -2096,6 +2096,120 @@ class Test
             verifier.VerifyDiagnostics();
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77529")]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_PartialMethod(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Threading.Tasks;
+
+                partial class C
+                {
+                    public partial Task<int> M();
+
+                    public partial async Task<int> M()
+                    {
+                        await Task.Yield();
+                        return 0;
+                    }
+                }
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var stateMachine = type.GetTypeMember("<M>d__0");
+                var asyncMethod = type.GetMember<MethodSymbol>("M");
+
+                var attributes = asyncMethod.GetAttributes();
+                var stateMachineAttribute = attributes.First();
+                Assert.Equal("AsyncStateMachineAttribute", stateMachineAttribute.AttributeClass.Name);
+                Assert.Equal(stateMachine, stateMachineAttribute.ConstructorArguments.Single().ValueInternal);
+
+                if (optimizationLevel == OptimizationLevel.Debug)
+                {
+                    Assert.Equal(2, attributes.Length);
+                    Assert.Equal("DebuggerStepThroughAttribute", attributes.Last().AttributeClass.Name);
+                }
+                else
+                {
+                    Assert.Equal(1, attributes.Length);
+                }
+            });
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77529")]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void IteratorStateMachineAttribute_PartialMethod(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                partial class C
+                {
+                    public partial IEnumerable<int> M();
+
+                    public partial IEnumerable<int> M()
+                    {
+                        yield return 1;
+                        yield return 2;
+                    }
+                }
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var stateMachine = type.GetTypeMember("<M>d__0");
+                var iteratorMethod = type.GetMember<MethodSymbol>("M");
+
+                var iteratorAttribute = iteratorMethod.GetAttributes().Single();
+                Assert.Equal("IteratorStateMachineAttribute", iteratorAttribute.AttributeClass.Name);
+                Assert.Equal(stateMachine, iteratorAttribute.ConstructorArguments.Single().ValueInternal);
+            });
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77529")]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncIteratorStateMachineAttribute_PartialMethod(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                partial class C
+                {
+                    public partial IAsyncEnumerable<int> M();
+
+                    public partial async IAsyncEnumerable<int> M()
+                    {
+                        await Task.Yield();
+                        yield return 1;
+                    }
+                }
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: options), symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var stateMachine = type.GetTypeMember("<M>d__0");
+                var asyncIteratorMethod = type.GetMember<MethodSymbol>("M");
+
+                var attribute = asyncIteratorMethod.GetAttributes().Single();
+                Assert.Equal("AsyncIteratorStateMachineAttribute", attribute.AttributeClass.Name);
+                Assert.Equal(stateMachine, attribute.ConstructorArguments.Single().ValueInternal);
+            });
+        }
+
         #endregion
 
         #region IteratorStateMachineAttribute

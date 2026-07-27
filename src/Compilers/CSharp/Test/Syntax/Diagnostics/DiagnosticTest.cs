@@ -3014,13 +3014,13 @@ class Program
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                     case ErrorCode.ERR_RefLocalAcrossAwait:
                     case ErrorCode.ERR_DataSectionStringLiteralHashCollision:
-                    case ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync:
                     case ErrorCode.ERR_NonTaskMainCantBeAsync:
                     case ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported:
                     case ErrorCode.ERR_EncUpdateFailedMissingSymbol:
                     case ErrorCode.ERR_EncNoPIAReference:
                     case ErrorCode.ERR_EncReferenceToAddedMember:
                     case ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime:
+                    case ErrorCode.ERR_AbstractBaseRecordImplementation:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

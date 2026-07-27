@@ -256,10 +256,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var xExtension = x.OriginalDefinition.ContainingType;
-                var xGroupingKey = ((SourceNamedTypeSymbol)xExtension).ExtensionGroupingName;
+                var xGroupingKey = xExtension.ExtensionGroupingName;
                 Debug.Assert(xGroupingKey is not null);
                 var yExtension = y.OriginalDefinition.ContainingType;
-                var yGroupingKey = ((SourceNamedTypeSymbol)yExtension).ExtensionGroupingName;
+                var yGroupingKey = yExtension.ExtensionGroupingName;
 
                 if (!xGroupingKey.Equals(yGroupingKey))
                 {
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int result = typeComparer.GetHashCode(op.OriginalDefinition.ContainingType.ContainingType);
 
                 var extension = op.OriginalDefinition.ContainingType;
-                var groupingKey = ((SourceNamedTypeSymbol)extension).ExtensionGroupingName;
+                var groupingKey = extension.ExtensionGroupingName;
                 Debug.Assert(groupingKey is not null);
                 result = Hash.Combine(result, groupingKey.GetHashCode());
 

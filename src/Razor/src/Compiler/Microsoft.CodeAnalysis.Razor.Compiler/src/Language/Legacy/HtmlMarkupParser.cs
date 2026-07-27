@@ -1792,9 +1792,14 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
         if (typeAttribute != null)
         {
-            var contentValues = typeAttribute.Value.CreateRed().DescendantTokens();
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-            var scriptType = string.Concat(contentValues.Select(t => t.Content)).Trim();
+            foreach (var token in typeAttribute.Value.CreateRed().DescendantTokens())
+            {
+                builder.Append(token.Content);
+            }
+
+            var scriptType = builder.ToString().Trim();
 
             // Does not allow charset parameter (or any other parameters).
             return string.Equals(scriptType, "text/html", StringComparison.OrdinalIgnoreCase);

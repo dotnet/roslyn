@@ -12,7 +12,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -26,38 +27,38 @@ internal sealed class CSharpCodeActionProvider(LanguageServerFeatureOptions lang
     // Internal for testing
     internal static readonly HashSet<string> SupportedDefaultCodeActionNames =
     [
-        RazorPredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers,
-        RazorPredefinedCodeRefactoringProviderNames.AddAwait,
-        RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay,
-        RazorPredefinedCodeRefactoringProviderNames.InitializeMemberFromParameter, // Create and assign (property|field)
-        RazorPredefinedCodeRefactoringProviderNames.AddParameterCheck, // Add Null checks
-        RazorPredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers,
-        RazorPredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors,
-        RazorPredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
-        RazorPredefinedCodeRefactoringProviderNames.UseExpressionBody,
-        RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable,
-        RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString,
-        RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString,
-        RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString,
-        RazorPredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString,
-        RazorPredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString,
-        RazorPredefinedCodeFixProviderNames.ImplementAbstractClass,
-        RazorPredefinedCodeFixProviderNames.ImplementInterface,
-        RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
-        RazorPredefinedCodeFixProviderNames.GenerateConversion,
-        RazorPredefinedCodeFixProviderNames.GenerateConstructor,
-        RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod,
-        RazorPredefinedCodeFixProviderNames.GenerateMethod,
-        RazorPredefinedCodeFixProviderNames.GenerateType,
-        RazorPredefinedCodeFixProviderNames.GenerateVariable,
+        PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers,
+        PredefinedCodeRefactoringProviderNames.AddAwait,
+        PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay,
+        PredefinedCodeRefactoringProviderNames.InitializeMemberFromParameter, // Create and assign (property|field)
+        PredefinedCodeRefactoringProviderNames.AddParameterCheck, // Add Null checks
+        PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers,
+        PredefinedCodeFixProviderNames.GenerateDefaultConstructors,
+        PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
+        PredefinedCodeRefactoringProviderNames.UseExpressionBody,
+        PredefinedCodeRefactoringProviderNames.IntroduceVariable,
+        PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString,
+        PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString,
+        PredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString,
+        PredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString,
+        PredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString,
+        PredefinedCodeFixProviderNames.ImplementAbstractClass,
+        PredefinedCodeFixProviderNames.ImplementInterface,
+        PredefinedCodeFixProviderNames.RemoveUnusedVariable,
+        PredefinedCodeFixProviderNames.GenerateConversion,
+        PredefinedCodeFixProviderNames.GenerateConstructor,
+        PredefinedCodeFixProviderNames.GenerateDeconstructMethod,
+        PredefinedCodeFixProviderNames.GenerateMethod,
+        PredefinedCodeFixProviderNames.GenerateType,
+        PredefinedCodeFixProviderNames.GenerateVariable,
     ];
 
     internal static readonly HashSet<string> SupportedImplicitExpressionCodeActionNames =
     [
-        RazorPredefinedCodeFixProviderNames.GenerateConstructor,
-        RazorPredefinedCodeFixProviderNames.GenerateMethod,
-        RazorPredefinedCodeFixProviderNames.GenerateType,
-        RazorPredefinedCodeFixProviderNames.GenerateVariable,
+        PredefinedCodeFixProviderNames.GenerateConstructor,
+        PredefinedCodeFixProviderNames.GenerateMethod,
+        PredefinedCodeFixProviderNames.GenerateType,
+        PredefinedCodeFixProviderNames.GenerateVariable,
     ];
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;

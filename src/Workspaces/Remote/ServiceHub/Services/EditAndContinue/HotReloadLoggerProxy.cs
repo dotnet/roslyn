@@ -13,8 +13,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 internal sealed class HotReloadLoggerProxy(IServiceBroker serviceBroker) :
     BrokeredServiceProxy<IHotReloadLogger>(
         serviceBroker,
-        BrokeredServiceDescriptors.HotReloadLoggerService,
-        BrokeredServiceDescriptors.HotReloadLoggerServiceLegacy),
+#if DEVKIT
+        BrokeredServiceDescriptors.HotReloadLoggerServiceLegacy
+#else
+        BrokeredServiceDescriptors.HotReloadLoggerService
+#endif
+        ),
     IHotReloadLogger
 {
     public ValueTask LogAsync(HotReloadLogMessage message, CancellationToken cancellationToken)

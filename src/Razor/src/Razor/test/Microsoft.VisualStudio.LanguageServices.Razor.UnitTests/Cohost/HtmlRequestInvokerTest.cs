@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -107,7 +106,7 @@ public class HtmlRequestInvokerTest(ITestOutputHelper testOutput) : VisualStudio
     {
         var htmlTextSnapshot = new StringTextSnapshot("");
         var htmlTextBuffer = new TestTextBuffer(htmlTextSnapshot);
-        var checksum = await document.GetChecksumAsync(DisposalToken);
+        var checksum = await document.State.GetChecksumAsync(DisposalToken);
         var requestInvoker = new TestLSPRequestInvoker((method, null));
         var lspDocumentManager = new TestDocumentManager();
         var htmlVirtualDocument = new HtmlVirtualDocumentSnapshot(htmlDocumentUri, htmlTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1, state: checksum);
@@ -137,7 +136,7 @@ public class HtmlRequestInvokerTest(ITestOutputHelper testOutput) : VisualStudio
 
     private class RemoteServiceInvoker : IRemoteServiceInvoker
     {
-        public ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
+        public ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorSolutionWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
         {
             return new((TResult?)(object)"");
         }

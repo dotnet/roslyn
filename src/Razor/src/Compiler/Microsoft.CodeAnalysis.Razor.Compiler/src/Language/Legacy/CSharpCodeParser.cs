@@ -2630,7 +2630,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             }
 
             chunkGenerator = new AddImportChunkGenerator(
-                usingContentBuilder.ToString(),
+                usingContentBuilder.ToStringTrimmed(),
                 parsedNamespaceBuilder.ToString(),
                 isStatic,
                 hasExplicitSemicolon);

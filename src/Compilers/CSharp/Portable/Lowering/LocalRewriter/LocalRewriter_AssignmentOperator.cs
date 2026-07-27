@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression left = node.Left;
             BoundExpression loweredLeft;
+            bool receiverIsKnownToBeCaptured = false;
             switch (left.Kind)
             {
                 case BoundKind.PropertyAccess:
@@ -31,13 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.IndexerAccess:
-                    loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true);
+                    loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true, receiverIsKnownToBeCaptured: false);
                     break;
 
                 case BoundKind.ImplicitIndexerAccess:
                     loweredLeft = VisitImplicitIndexerAccess(
                         (BoundImplicitIndexerAccess)left,
-                        isLeftOfAssignment: true);
+                        isLeftOfAssignment: true,
+                        out receiverIsKnownToBeCaptured);
                     break;
 
                 case BoundKind.EventAccess:
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, used, AssignmentKind.SimpleAssignment);
+            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, used, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured);
         }
 
         private enum AssignmentKind
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Left and right sub-expressions must be in lowered form.
         /// </summary>
         private BoundExpression MakeAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight,
-            bool used, bool isChecked, AssignmentKind assignmentKind)
+            bool used, bool isChecked, AssignmentKind assignmentKind, bool receiverIsKnownToBeCaptured)
         {
             switch (rewrittenLeft.Kind)
             {
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.Unreachable();
 
                 default:
-                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, used: used, assignmentKind);
+                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, used: used, assignmentKind, receiverIsKnownToBeCaptured);
             }
         }
 
@@ -178,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenRight,
             bool isRef,
             bool used,
-            AssignmentKind assignmentKind)
+            AssignmentKind assignmentKind,
+            bool receiverIsKnownToBeCaptured)
         {
             switch (rewrittenLeft.Kind)
             {
@@ -203,7 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default(ImmutableArray<int>),
                             rewrittenRight,
                             used,
-                            assignmentKind);
+                            assignmentKind,
+                            receiverIsKnownToBeCaptured);
                     }
 
                 case BoundKind.IndexerAccess:
@@ -224,7 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.ArgsToParamsOpt,
                             rewrittenRight,
                             used,
-                            assignmentKind);
+                            assignmentKind,
+                            receiverIsKnownToBeCaptured);
                     }
 
                 case BoundKind.Local:
@@ -245,13 +250,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.Sequence:
-                    // An Index or Range pattern-based indexer, or an interpolated string handler conversion
-                    // that uses an indexer argument, produces a sequence with a nested
-                    // BoundIndexerAccess. We need to lower the final expression and produce an
-                    // update sequence
-                    var sequence = (BoundSequence)rewrittenLeft;
-                    if (sequence.Value.Kind == BoundKind.IndexerAccess)
                     {
+                        // An Index or Range pattern-based indexer, or an interpolated string handler conversion
+                        // that uses an indexer argument, produces a sequence with a BoundIndexerAccess as the value.
+                        // Similarly, a ref-returning extension indexer in an object initializer produces
+                        // a sequence with a BoundCall to the getter as the value.
+                        // To respect requirements from later phases, we need to rewrite the assignment to the value of the sequence.
+                        var sequence = (BoundSequence)rewrittenLeft;
                         return sequence.Update(
                             sequence.Locals,
                             sequence.SideEffects,
@@ -261,10 +266,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 rewrittenRight,
                                 isRef,
                                 used,
-                                assignmentKind),
+                                assignmentKind,
+                                receiverIsKnownToBeCaptured),
                             sequence.Type);
                     }
-                    goto default;
 
                 default:
                     {
@@ -277,10 +282,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(BoundExpression rewrittenReceiver, PropertySymbol property)
+        private bool IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(BoundExpression rewrittenReceiver, Symbol? symbol)
         {
-            return CanChangeValueBetweenReads(rewrittenReceiver, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true) &&
-                   IsExtensionBlockMemberWithByValPossiblyStructReceiver(property) &&
+            return symbol is not null &&
+                   CanChangeValueBetweenReads(rewrittenReceiver, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true) &&
+                   IsExtensionBlockMemberWithByValPossiblyStructReceiver(symbol) &&
                    CodeGen.CodeGenerator.HasHome(rewrittenReceiver,
                                        CodeGen.CodeGenerator.AddressKind.ReadOnlyStrict,
                                        _factory.CurrentFunction,
@@ -298,7 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             BoundExpression rewrittenRight,
             bool used,
-            AssignmentKind assignmentKind)
+            AssignmentKind assignmentKind,
+            bool receiverIsKnownToBeCaptured)
         {
             // Rewrite property assignment into call to setter.
             var setMethod = property.GetOwnOrInheritedSetMethod();
@@ -343,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             arguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref rewrittenReceiver,
-                forceReceiverCapturing: needSpecialExtensionPropertyReceiverReadOrder,
+                forceReceiverCapturing: needSpecialExtensionPropertyReceiverReadOrder && !receiverIsKnownToBeCaptured,
                 arguments,
                 property,
                 argsToParamsOpt,
@@ -354,11 +361,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (needSpecialExtensionPropertyReceiverReadOrder)
             {
 #if DEBUG
-                Debug.Assert(rewrittenReceiverBeforePossibleCapture != (object?)rewrittenReceiver);
+                Debug.Assert(receiverIsKnownToBeCaptured || rewrittenReceiverBeforePossibleCapture != (object?)rewrittenReceiver);
 #endif
                 Debug.Assert(storesOpt is { });
-                Debug.Assert(storesOpt.Count != 0);
-                Debug.Assert(argTempsBuilder is not null);
+                Debug.Assert(receiverIsKnownToBeCaptured || storesOpt.Count != 0);
+                Debug.Assert(receiverIsKnownToBeCaptured || argTempsBuilder is not null);
+                argTempsBuilder ??= ArrayBuilder<LocalSymbol>.GetInstance();
 
                 // Store everything that is non-trivial into a temporary; record the
                 // stores in storesToTemps and make the actual argument a reference to the temp.

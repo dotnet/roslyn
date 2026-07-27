@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -22,6 +23,7 @@ using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -131,9 +133,7 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         // can assume there should be no errors related to Razor, and having this array makes debugging failures a lot
         // easier.
         var errors = composition.GetCompositionErrors().ToArray();
-        // RazorInProcLanguageClient is a Roslyn type, which we don't care about, so no need to worry about false positives there,
-        // but command line builds fail to compose it correctly.
-        AssertEx.EqualOrDiff("", string.Join(Environment.NewLine, errors.Where(e => e.Contains("Razor") && !e.Contains("RazorInProcLanguageClient"))));
+        AssertEx.EqualOrDiff("", string.Join(Environment.NewLine, errors.Where(e => e.Contains("Razor"))));
 
         _localExportProvider = composition.ExportProviderFactory.CreateExportProvider();
         AddDisposable(_localExportProvider);
@@ -277,8 +277,8 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         return builder.Build(solution).GetAdditionalDocument(documentId).AssumeNotNull();
     }
 
-    protected static Uri FileUri(string projectRelativeFileName)
-        => new(FilePath(projectRelativeFileName));
+    private protected static DocumentUri FileUri(string projectRelativeFileName)
+        => ProtocolConversions.CreateAbsoluteDocumentUri(FilePath(projectRelativeFileName));
 
     protected static string FilePath(string projectRelativeFileName)
         => Path.GetFullPath(Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName));

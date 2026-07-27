@@ -50,8 +50,8 @@ internal sealed class ExtractToCssCodeActionResolver(
         var cssContent = text.ToString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(documentContext.Uri) };
-        var cssDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(cssFileUri) };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentContext.Uri };
+        var cssDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = cssFileUri };
 
         using var changes = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(capacity: 3);
 

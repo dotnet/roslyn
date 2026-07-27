@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 internal interface IEditAndContinueWorkspaceService : IWorkspaceService
 {
     IEditAndContinueService Service { get; }
-    IEditAndContinueSessionTracker SessionTracker { get; }
 }
 
 internal interface IEditAndContinueService

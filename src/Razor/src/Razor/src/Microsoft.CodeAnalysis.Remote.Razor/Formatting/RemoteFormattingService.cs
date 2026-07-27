@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -27,7 +26,7 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
     private readonly IRazorFormattingService _formattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
 
     public ValueTask<ImmutableArray<TextChange>> GetDocumentFormattingEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         ImmutableArray<TextChange> htmlChanges,
         RazorFormattingOptions options,
@@ -39,7 +38,7 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
             cancellationToken);
 
     public ValueTask<ImmutableArray<TextChange>> GetRangeFormattingEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         ImmutableArray<TextChange> htmlChanges,
         LinePositionSpan linePositionSpan,
@@ -63,7 +62,7 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
             cancellationToken);
 
     public ValueTask<ImmutableArray<TextChange>> GetOnTypeFormattingEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         ImmutableArray<TextChange> htmlChanges,
         LinePosition linePosition,
@@ -100,7 +99,7 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
     }
 
     public ValueTask<Response> GetOnTypeFormattingTriggerKindAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         LinePosition linePosition,
         string triggerCharacter,

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
@@ -23,32 +24,34 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
-internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider, IDisposable
+internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscellaneousFilesProjectProvider _canonicalProjectProvider;
+    private readonly DotnetCliHelper _dotnetCliHelper;
+
+    /// <summary>
+    /// Virtual (in-memory) projects don't exist on disk, so MSBuild worker nodes
+    /// can't re-evaluate them. Force single-node builds to keep everything in-process.
+    /// </summary>
+    protected override int MaxNodeCount => 1;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
         VirtualProjectXmlProvider projectXmlProvider,
-        LanguageServerWorkspaceFactory workspaceFactory,
-        IFileChangeWatcher fileChangeWatcher,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
-        ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
         IBinLogPathProvider binLogPathProvider,
         DotnetCliHelper dotnetCliHelper)
             : base(
-                workspaceFactory,
-                fileChangeWatcher,
+                lspServices,
                 globalOptionService,
                 loggerFactory,
                 listenerProvider,
-                projectLoadTelemetry,
                 serverConfigurationFactory,
                 binLogPathProvider,
                 dotnetCliHelper)
@@ -56,14 +59,16 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _projectXmlProvider = projectXmlProvider;
-        _canonicalProjectProvider = new CanonicalMiscellaneousFilesProjectProvider(workspaceFactory, loggerFactory);
+        _canonicalProjectProvider = new CanonicalMiscellaneousFilesProjectProvider(lspServices.GetRequiredService<IHostWorkspaceProvider>(), loggerFactory);
+        _dotnetCliHelper = dotnetCliHelper;
 
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
+        base.Dispose();
     }
 
     private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)
@@ -316,6 +321,15 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         if (documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferences or LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors)
         {
             var projectInfos = await _canonicalProjectProvider.GetProjectInfoAsync(documentPath, cancellationToken).ConfigureAwait(false);
+
+            // Note: We might enter this path when loading a file-based app with no directives.
+            // i.e. whether a file with no directives in it, depends on how user is using the file.
+            // The project system doesn't determine this with 100% certainty and instead just ensures we provide semantic info which is satisfactory for the 99% case.
+            // For telemetry purposes, we will consider this file a file-based app, if we see that build artifacts exist for it in the default location.
+            // This implies that the user used a command like `dotnet run app.cs` with it recently.
+            var isFileBasedProgram = PathUtilities.IsAbsolute(documentPath)
+                && Directory.Exists(VirtualProjectXmlProvider.GetArtifactsPath(documentPath));
+
             return new RemoteProjectLoadResult
             {
                 ProjectFileInfos = projectInfos,
@@ -323,7 +337,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 // This points to the Canonical.csproj, which always exists on disk and can be restored regardless of SDK.
                 ProjectRestorePath = projectInfos.FirstOrDefault()?.FilePath,
                 ProjectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
-                IsFileBasedProgram = false,
+                IsFileBasedProgram = isFileBasedProgram,
+                HasFileBasedAppDirectives = false,
                 IsMiscellaneousFile = true,
                 HasAllInformation = documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors,
                 PreferredBuildHostKind = BuildHostProcessKind.NetCore,
@@ -334,13 +349,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // Fall through to ordinary file-based app handling.
         Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
 
-        var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _logger, cancellationToken);
-        if (content is not var (virtualProjectContent, diagnostics))
+        var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _dotnetCliHelper, _logger, cancellationToken);
+        if (content is not var (virtualProjectContent, virtualProjectPath, diagnostics))
         {
-            // https://github.com/dotnet/roslyn/issues/78618: falling back to this until dotnet run-api is more widely available
-            _logger.LogInformation($"Failed to obtain virtual project for '{documentPath}' using dotnet run-api. Falling back to directly creating the virtual project.");
-            virtualProjectContent = VirtualProjectXmlProvider.MakeVirtualProjectContent_DirectFallback(documentPath);
-            diagnostics = [];
+            _logger.LogError("Failed to obtain virtual project for '{documentPath}' using dotnet run-api.", documentPath);
+            return null;
         }
 
         foreach (var diagnostic in diagnostics)
@@ -348,9 +361,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             _logger.LogError($"{diagnostic.Location.Path}{diagnostic.Location.Span.Start}: {diagnostic.Message}");
         }
 
-        // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.
-        // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
-        var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
+        virtualProjectPath ??= VirtualProjectXmlProvider.GetFallbackVirtualProjectPath(documentPath);
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
@@ -362,6 +373,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             ProjectRestorePath = documentPath,
             ProjectFactory = _workspaceFactory.HostProjectFactory,
             IsFileBasedProgram = true,
+            HasFileBasedAppDirectives = true,
             IsMiscellaneousFile = false,
             HasAllInformation = true,
             PreferredBuildHostKind = buildHostKind,

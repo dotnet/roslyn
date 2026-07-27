@@ -259,7 +259,7 @@ public partial class MSBuildProjectLoader
             ? new BinLogPathProvider(fileName)
             : null;
 
-        var buildHostProcessManager = new BuildHostProcessManager(_knownCommandLineParserLanguages, Properties, binLogPathProvider, _loggerFactory);
+        var buildHostProcessManager = new BuildHostProcessManager(_knownCommandLineParserLanguages, Properties, binLogPathProvider, loggerFactory: _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
         var projectFileProvider = new BuildHostProjectFileInfoProvider(

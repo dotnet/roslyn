@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,14 +12,14 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 internal interface IRemoteFormattingService
 {
     ValueTask<ImmutableArray<TextChange>> GetDocumentFormattingEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         ImmutableArray<TextChange> htmlChanges,
         RazorFormattingOptions options,
         CancellationToken cancellationToken);
 
     ValueTask<ImmutableArray<TextChange>> GetRangeFormattingEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         ImmutableArray<TextChange> htmlChanges,
         LinePositionSpan linePositionSpan,
@@ -28,7 +27,7 @@ internal interface IRemoteFormattingService
         CancellationToken cancellationToken);
 
     ValueTask<ImmutableArray<TextChange>> GetOnTypeFormattingEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         ImmutableArray<TextChange> htmlChanges,
         LinePosition linePosition,
@@ -37,7 +36,7 @@ internal interface IRemoteFormattingService
         CancellationToken cancellationToken);
 
     ValueTask<TriggerKind> GetOnTypeFormattingTriggerKindAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         LinePosition linePosition,
         string triggerCharacter,

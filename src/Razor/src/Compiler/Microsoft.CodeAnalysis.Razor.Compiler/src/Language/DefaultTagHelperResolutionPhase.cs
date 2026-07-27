@@ -493,7 +493,17 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         var allowedChildrenString = string.Join(", ", allowedNames.ToArray());
         var parentTagName = tagHelperNode.TagName;
 
-        foreach (var child in bodyNode.Children)
+        ValidateAllowedChildren(parentTagName, bodyNode.Children, in allowedNames, allowedChildrenString, prefix);
+    }
+
+    private static void ValidateAllowedChildren(
+        string parentTagName,
+        IntermediateNodeCollection children,
+        in PooledArrayBuilder<string> allowedNames,
+        string allowedChildrenString,
+        string prefix)
+    {
+        foreach (var child in children)
         {
             if (child is TagHelperIntermediateNode childTagHelper)
             {
@@ -534,11 +544,16 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                     }
                 }
             }
-            else if (child is CSharpExpressionIntermediateNode or CSharpCodeIntermediateNode)
+            else if (child is CSharpExpressionIntermediateNode)
             {
                 child.AddDiagnostic(
                     RazorDiagnosticFactory.CreateTagHelper_CannotHaveNonTagContent(
                         child.Source ?? SourceSpan.Undefined, parentTagName, allowedChildrenString));
+            }
+            else if (child is CSharpCodeIntermediateNode)
+            {
+                // Razor code blocks can contain markup children, so validate their children instead of the block itself.
+                ValidateAllowedChildren(parentTagName, child.Children, in allowedNames, allowedChildrenString, prefix);
             }
         }
     }

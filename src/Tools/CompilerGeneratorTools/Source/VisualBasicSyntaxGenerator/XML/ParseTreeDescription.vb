@@ -349,7 +349,7 @@ Public Class ParseNodeStructure
     Public Function DerivesFrom(baseClassName As String) As Boolean
         Dim nodeStructure As ParseNodeStructure = Me
         While nodeStructure IsNot Nothing
-            If String.Compare(nodeStructure.Name, baseClassName, True) = 0 Then
+            If String.Equals(nodeStructure.Name, baseClassName, StringComparison.OrdinalIgnoreCase) Then
                 Return True
             End If
             nodeStructure = nodeStructure.ParentStructure

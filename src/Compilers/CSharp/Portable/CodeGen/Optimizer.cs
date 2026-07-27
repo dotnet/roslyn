@@ -1079,6 +1079,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.Sequence:
+                    // The assignment should have been pushed inside the sequence during lowering,
+                    // so instead of `{...side-effects..., val} = something` we should get here with `{...side-effects..., (val = something)}`.
                     Debug.Assert(!IsIndirectAssignment(node.Update(((BoundSequence)node.Left).Value, node.Right, node.IsRef, node.Type)),
                         "indirect assignment to a sequence is unexpected");
                     return false;

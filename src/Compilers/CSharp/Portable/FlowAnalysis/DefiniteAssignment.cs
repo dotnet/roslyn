@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// that the variable in VariableIdentifier.Symbol is a root, i.e. not nested within another
         /// tracked variable. Slots less than 0 are illegal.
         /// </summary>
-        protected readonly ArrayBuilder<VariableIdentifier> variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, default);
+        protected readonly ArrayBuilder<VariableIdentifier> variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, fillWithValue: default);
 
         /// <summary>
         /// Some variables that should be considered initially assigned.  Used for region analysis.

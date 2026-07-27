@@ -161784,5 +161784,32 @@ async (string s) => { try {} catch (System.Exception e) {} };
                 """;
             CreateCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ObjectInitializer_OrderOfAnalysisMustFollowEvaluationOrder()
+        {
+            // NullableWalker must visit in evaluation order, so the side-effects of `x = null` are visible to later expressions
+            // That's why the analysis of object creation has granualr callbacks. We analyze all the parts we can prior to knowing the target-type,
+            // and we cannot defer everything until after we know the target-type.
+            string source = """
+#nullable enable
+
+string? x = "";
+
+M(new() { [x = null] = 1 }, M2(x.ToString()));
+
+void M<T>(T t, T t2) { }
+C M2(string? s) => throw null!;
+
+class C
+{
+    public int this[string? s] { set { } }
+}
+""";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,32): warning CS8602: Dereference of a possibly null reference.
+                // M(new() { [x = null] = 1 }, M2(x.ToString()));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 32));
+        }
     }
 }

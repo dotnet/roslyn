@@ -1044,7 +1044,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return false;
                     },
-                    u);
+                    u,
+                    ref localUseSiteInfo);
 
                 useSiteInfo = localUseSiteInfo;
             }

@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         continue;
                     }
 
-                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.ClosedAttribute))
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsClosedTypeAttribute))
                     {
                         isClosed = true;
                         continue;
@@ -1212,9 +1212,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return uncommon.lazyIsClosed.Value();
                 }
 
-                var hasClosedAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.ClosedAttribute);
-                uncommon.lazyIsClosed = hasClosedAttribute.ToThreeState();
-                return hasClosedAttribute;
+                var hasIsClosedTypeAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.IsClosedTypeAttribute);
+                uncommon.lazyIsClosed = hasIsClosedTypeAttribute.ToThreeState();
+                return hasIsClosedTypeAttribute;
             }
         }
 
