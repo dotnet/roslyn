@@ -47,7 +47,7 @@ internal static class SourceGeneratedDocumentUri
             uri += $"&{AssemblyPathParam}={Uri.EscapeDataString(identity.Generator.AssemblyPath)}";
 #pragma warning restore RS0030 // Do not use banned APIs
 
-        return ProtocolConversions.CreateAbsoluteDocumentUri(uri);
+        return new DocumentUri(uri);
     }
 
     public static SourceGeneratedDocumentIdentity? DeserializeIdentity(Solution solution, ParsedUri documentUri)
