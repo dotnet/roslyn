@@ -156,6 +156,29 @@ public sealed class ProjectDependencyHelperTests : IDisposable
         Assert.False(NeedsRestore(file.Path, ("Package", "1.0.0")));
     }
 
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("null")]
+    [InlineData("\"nope\"")]
+    [InlineData("12")]
+    public void NeedsRestore_LibrariesIsNotAnObject(string librariesValue)
+    {
+        // Valid JSON of an unexpected shape. LockFileFormat also read these as having no libraries rather
+        // than failing, so they report every reference as unresolved instead of throwing.
+        var projectAssetsPath = WriteAssetsFile($"{{\"version\":3,\"libraries\":{librariesValue}}}");
+
+        Assert.True(NeedsRestore(projectAssetsPath, ("Package", "1.0.0")));
+    }
+
+    [Fact]
+    public void NeedsRestore_MatchesProjectLibraries()
+    {
+        // Project libraries share the "Name/Version" key shape and were matched by the lock file model too.
+        var projectAssetsPath = WriteAssetsFile("""{"version":3,"libraries":{"Package/1.0.0":{"type":"project"}}}""");
+
+        Assert.False(NeedsRestore(projectAssetsPath, ("Package", "1.0.0")));
+    }
+
     private string WriteAssetsFile(string contents)
     {
         var file = _tempRoot.CreateFile();

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Buffers;
+using System.Text;
 using System.Text.Json;
 using NuGet.Versioning;
 
@@ -27,7 +28,7 @@ internal static class ProjectAssetsReader
     /// </summary>
     private const int MaxStackAllocatedKeyLength = 512;
 
-    private static ReadOnlySpan<byte> Utf8Bom => [0xEF, 0xBB, 0xBF];
+    private static ReadOnlySpan<byte> Utf8Bom => Encoding.UTF8.Preamble;
 
     /// <summary>
     /// Sets the entry in <paramref name="resolvedReferences"/> for each item in
@@ -127,7 +128,8 @@ internal static class ProjectAssetsReader
             ? keyBuffer[..reader.CopyString(keyBuffer)]
             : reader.GetString().AsSpan();
 
-        // Keys are "PackageId/Version"; anything else (including project libraries) cannot match a package.
+        // Package and project libraries both use "Name/Version" keys, and the lock file model this replaced
+        // matched against both. A key without that shape belongs to neither.
         var separatorIndex = libraryKey.LastIndexOf('/');
         if (separatorIndex <= 0 || separatorIndex == libraryKey.Length - 1)
             return;
