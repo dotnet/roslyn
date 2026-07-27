@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var yExpression = lambdaBodyBinder.BindRValueWithoutTargetType(let.Expression, d);
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
-                    Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, let, yExpression.Display);
+                    Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, yExpression.Syntax, yExpression.Display);
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), CreateErrorType());
                 }
 
@@ -813,31 +813,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeConstruction(node, anonymousType, ImmutableArray.Create(field1Value, field2Value), diagnostics);
 
             AnonymousTypeField createField(string fieldName, BoundExpression fieldValue) =>
-                new AnonymousTypeField(fieldName, fieldValue.Syntax.Location, TypeWithAnnotations.Create(TypeOrError(fieldValue, diagnostics)), RefKind.None, ScopedKind.None);
+                new AnonymousTypeField(fieldName, fieldValue.Syntax.Location, TypeWithAnnotations.Create(GetAnonymousTypeFieldType(fieldValue, fieldValue.Syntax, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, diagnostics, out _)), RefKind.None, ScopedKind.None);
         }
 
         private TypeSymbol TypeOrError(BoundExpression e)
         {
             return e.Type ?? CreateErrorType();
-        }
-
-        private TypeSymbol TypeOrError(BoundExpression e, BindingDiagnosticBag diagnostics)
-        {
-            var type = e.Type;
-            if (type is null)
-            {
-                Error(diagnostics, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, e.Syntax, e.Display);
-                return CreateErrorType();
-            }
-            if (type.IsVoidType())
-            {
-                Error(diagnostics, ErrorCode.ERR_VoidAssignment, e.Syntax);
-            }
-            else if (type.IsRestrictedType() || type.IsPointerOrFunctionPointer())
-            {
-                Error(diagnostics, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, e.Syntax, type);
-            }
-            return type;
         }
 
         private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression, bool withDependencies)

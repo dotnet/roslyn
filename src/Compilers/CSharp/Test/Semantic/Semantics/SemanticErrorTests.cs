@@ -17186,9 +17186,9 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (8,17): error CS1932: Cannot assign '<null>' to a range variable. The target type is ambiguous or stack-only.
+                // (8,25): error CS1932: Cannot assign '<null>' to a range variable. The target type is ambiguous or stack-only.
                 //                 let k = null
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "let k = null").WithArguments("<null>").WithLocation(8, 17)
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "null").WithArguments("<null>").WithLocation(8, 25)
              );
         }
 
@@ -17207,9 +17207,9 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (8,17): error CS1932: Cannot assign 'lambda expression' to a range variable. The target type is ambiguous or stack-only.
+                // (8,25): error CS1932: Cannot assign 'lambda expression' to a range variable. The target type is ambiguous or stack-only.
                 //                 let k = ()=>3
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "let k = ()=>3").WithArguments("lambda expression").WithLocation(8, 17)
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "()=>3").WithArguments("lambda expression").WithLocation(8, 25)
              );
         }
 
@@ -17228,14 +17228,14 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (8,17): error CS1932: Cannot assign 'method group' to a range variable. The target type is ambiguous or stack-only.
+                // (8,25): error CS1932: Cannot assign 'method group' to a range variable. The target type is ambiguous or stack-only.
                 //                 let k = Main
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "let k = Main").WithArguments("method group").WithLocation(8, 17)
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "Main").WithArguments("method group").WithLocation(8, 25)
              );
         }
 
         [Fact]
-        public void CS8209ERR_VoidAssignment_ForRangeVariable()
+        public void CS1932ERR_QueryRangeVariableAssignedBadValue04()
         {
             CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
@@ -17250,9 +17250,9 @@ class Test
     static void M() {}
 }
 ").VerifyDiagnostics(
-                // (8,25): error CS8209: A value of type 'void' may not be assigned.
+                // (8,25): error CS1932: Cannot assign 'void' to a range variable. The target type is ambiguous or stack-only.
                 //                 let k = M()
-                Diagnostic(ErrorCode.ERR_VoidAssignment, "M()").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableAssignedBadValue, "M()").WithArguments("void").WithLocation(8, 25)
              );
         }
 
