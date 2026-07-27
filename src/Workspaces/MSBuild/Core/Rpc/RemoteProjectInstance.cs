@@ -27,10 +27,10 @@ internal sealed class RemoteProjectInstance : IAsyncDisposable
         return diagnostics.ToImmutableArray();
     }
 
-    public async Task<ImmutableArray<RemoteProjectItemInstance>> GetItemsAsync(string itemType, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<ImmutableArray<string>>> GetItemMetadataValuesAsync(string itemType, ImmutableArray<string> metadataNames, CancellationToken cancellationToken)
     {
-        var itemInstances = await _client.InvokeAsync<int[]>(_remoteProjectInstanceTargetObject, nameof(IProjectInstance.GetItems), parameters: [itemType], cancellationToken).ConfigureAwait(false);
-        return itemInstances.SelectAsArray(i => new RemoteProjectItemInstance(_client, i));
+        var items = await _client.InvokeAsync<string[][]>(_remoteProjectInstanceTargetObject, nameof(IProjectInstance.GetItemMetadataValues), parameters: [itemType, metadataNames], cancellationToken).ConfigureAwait(false);
+        return items.SelectAsArray(values => values.ToImmutableArray());
     }
 
     public Task<string> GetPropertyValueAsync(string propertyName, CancellationToken cancellationToken)

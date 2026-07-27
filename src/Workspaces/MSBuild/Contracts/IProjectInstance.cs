@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal interface IProjectInstance : IDisposable
 {
     DiagnosticLogItem[] GetDiagnosticLogItems();
-    int[] GetItems(string itemType);
+    string[][] GetItemMetadataValues(string itemType, string[] metadataNames);
     string GetPropertyValue(string propertyName);
     string ExpandString(string value);
 }

@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
+using System.Linq;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -17,12 +17,10 @@ internal sealed class ProjectInstance(
 #endif
     IProjectInstance
 {
-    private readonly ConcurrentBag<ProjectItemInstance> _items = [];
-
     public DiagnosticLogItem[] GetDiagnosticLogItems()
         => [.. log];
 
-    public int[] GetItems(string itemType)
+    public string[][] GetItemMetadataValues(string itemType, string[] metadataNames)
     {
         if (projectInstance is null)
         {
@@ -30,16 +28,7 @@ internal sealed class ProjectInstance(
         }
 
         var items = projectInstance.GetItems(itemType);
-        var result = new int[items.Count];
-        var i = 0;
-        foreach (var item in items)
-        {
-            var rpcItem = new ProjectItemInstance(item);
-            _items.Add(rpcItem);
-            result[i++] = server.AddTarget(rpcItem);
-        }
-
-        return result;
+        return items.Select(item => metadataNames.Select(metadataName => item.GetMetadataValue(metadataName)).ToArray()).ToArray();
     }
 
     public string GetPropertyValue(string propertyName)
@@ -64,11 +53,6 @@ internal sealed class ProjectInstance(
 
     public void Dispose()
     {
-        while (_items.TryTake(out var item))
-        {
-            server.RemoveTarget(item);
-        }
-
         server.RemoveTarget(this);
     }
 }

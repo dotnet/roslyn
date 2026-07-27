@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -103,18 +102,9 @@ file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance, C
         return new ProjectInstance(remoteProjectInstance, cancellationToken);
     }
 
-    public IEnumerable<Microsoft.DotNet.FileBasedPrograms.IProjectItemInstance> GetItems(string itemType) => remoteProjectInstance.GetItemsAsync(itemType, cancellationToken).GetAwaiter().GetResult().Select(i => new ProjectItemInstance(itemType, i, cancellationToken));
+    public ImmutableArray<ImmutableArray<string>> GetItemMetadataValues(string itemType, ImmutableArray<string> metadataNames) => remoteProjectInstance.GetItemMetadataValuesAsync(itemType, metadataNames, cancellationToken).GetAwaiter().GetResult();
     public string GetPropertyValue(string propertyName) => remoteProjectInstance.GetPropertyValueAsync(propertyName, cancellationToken).GetAwaiter().GetResult();
     public string ExpandString(string value) => remoteProjectInstance.ExpandStringAsync(value, cancellationToken).GetAwaiter().GetResult();
-}
-
-/// <summary>
-/// Our adapter for MSBuild's <c>ProjectItemInstance</c> in <see cref="FileBasedProgramsBuildService"/> abstraction.
-/// </summary>
-file sealed class ProjectItemInstance(string itemType, RemoteProjectItemInstance remoteProjectItemInstance, CancellationToken cancellationToken) : Microsoft.DotNet.FileBasedPrograms.IProjectItemInstance
-{
-    public string ItemType => itemType;
-    public string GetMetadataValue(string name) => remoteProjectItemInstance.GetMetadataValueAsync(name, cancellationToken).GetAwaiter().GetResult();
 }
 
 /// <summary>

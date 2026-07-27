@@ -4,6 +4,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Xml;
 
 namespace Microsoft.DotNet.FileBasedPrograms;
@@ -63,24 +64,9 @@ internal
 #endif
 interface IProjectInstance
 {
-    IEnumerable<IProjectItemInstance> GetItems(string itemType);
+    ImmutableArray<ImmutableArray<string>> GetItemMetadataValues(string itemType, ImmutableArray<string> metadataNames);
     string GetPropertyValue(string propertyName);
     string ExpandString(string value);
-}
-
-/// <summary>
-/// An abstraction of MSBuild's <c>ProjectItemInstance</c>.
-/// </summary>
-/// <seealso cref="IBuildService"/>
-#if FILE_BASED_PROGRAMS_PUBLIC
-public
-#else
-internal
-#endif
-interface IProjectItemInstance
-{
-    string GetMetadataValue(string name);
-    string ItemType { get; }
 }
 
 /// <summary>

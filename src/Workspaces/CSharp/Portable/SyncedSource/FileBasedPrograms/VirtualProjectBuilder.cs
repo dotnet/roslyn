@@ -384,12 +384,14 @@ sealed class VirtualProjectBuilder
                     additionalGlobalProperties);
             }
 
-            var compileItems = project.GetItems("Compile");
+            var compileItems = project.GetItemMetadataValues("Compile", ["FullPath"]);
             foreach (var compileItem in compileItems)
             {
+                Debug.Assert(compileItem.Length == 1);
+                var fullPath = compileItem[0];
                 var compilePath = Path.GetFullPath(Path.Combine(
                     entryPointDirectory,
-                    compileItem.GetMetadataValue("FullPath")));
+                    fullPath));
                 if (seenFiles.Add(compilePath))
                 {
                     filesToProcess.Enqueue(compilePath);
