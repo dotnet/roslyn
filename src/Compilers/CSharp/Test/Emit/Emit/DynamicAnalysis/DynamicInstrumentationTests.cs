@@ -4109,6 +4109,40 @@ public static class E
 """);
         }
 
+        [Fact]
+        public void UnionDeclaration_01()
+        {
+            var comp0Ref = CreateCompilation([UnionAttributeSource, IUnionSource]).ToMetadataReference();
+
+            string source = """
+_ = (TestUnion)123;
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+public union TestUnion(string, int);
+""" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(7, 1, snippet: "", expectBodySpan: false)
+                .True("_ = (TestUnion)123;")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+
+            var verifier = CompileAndVerify(source, references: [comp0Ref], options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            AssertNotInstrumented(verifier, "TestUnion.Value.get");
+            AssertNotInstrumented(verifier, "TestUnion..ctor(int)");
+            AssertNotInstrumented(verifier, "TestUnion..ctor(string)");
+
+            verifier = CompileAndVerify(source, references: [comp0Ref], options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            AssertNotInstrumented(verifier, "TestUnion.Value.get");
+            AssertNotInstrumented(verifier, "TestUnion..ctor(int)");
+            AssertNotInstrumented(verifier, "TestUnion..ctor(string)");
+        }
+
         private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
             => AssertInstrumented(verifier, qualifiedMethodName, expected: false);
 
