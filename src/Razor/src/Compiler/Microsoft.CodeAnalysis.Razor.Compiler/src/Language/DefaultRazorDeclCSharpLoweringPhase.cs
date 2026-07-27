@@ -41,11 +41,16 @@ internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase
         // The decl writer suppresses diagnostic collection because every diagnostic on the decl tree is
         // also reachable from the impl tree the final lowering phase writes; letting both report would
         // surface every Razor-detected issue twice.
+        // A non-null FallbackComponentTypeName marks the main document as a fallback, and a fallback's decl
+        // (when it has one) is always the bodiless type shell rather than a real declaration surface, so it
+        // flows to RazorCSharpDocument.IsStubDocument -- letting tooling tell a shell apart from a real
+        // declaration half and fall back to the implementation document.
         var declDocument = RazorCSharpDocumentWriter.Write(
             declDocNode,
             declCodeDocument,
             reportDiagnostics: false,
             isDeclarationDocument: true,
+            isStubDocument: documentNode.FallbackComponentTypeName is not null,
             cancellationToken: cancellationToken);
 
         return codeDocument.WithDeclCSharpDocument(declDocument);

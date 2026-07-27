@@ -131,6 +131,26 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             """);
 
     [Fact]
+    public Task CSharpUnusedUsings_FallbackComponent()
+        // The component can't be split (an @implements directive forces the fallback path), so its
+        // declaration document is a bodiless type shell with no usings. The unused using must still be
+        // reported by falling back to the implementation diagnostics rather than filtering against the
+        // empty shell.
+       => VerifyDiagnosticsAsync("""
+            @implements System.IDisposable
+            {|RZ0005:@using System.Text|}
+
+            <div></div>
+
+            @code
+            {
+                public void Dispose()
+                {
+                }
+            }
+            """);
+
+    [Fact]
     public Task CSharpUsingUnusedInImplOnly()
        => VerifyDiagnosticsAsync("""
             @using System.Text
