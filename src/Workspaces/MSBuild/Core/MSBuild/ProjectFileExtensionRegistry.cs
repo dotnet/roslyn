@@ -52,38 +52,38 @@ internal sealed class ProjectFileExtensionRegistry
 
     public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName, out bool isFileBasedApp)
     {
+        var extension = Path.GetExtension(projectFilePath);
+        if (extension is null)
+        {
+            languageName = null;
+            isFileBasedApp = false;
+            _diagnosticReporter.Report(mode, $"Project file path was 'null'");
+            return false;
+        }
+
+        Debug.Assert(projectFilePath != null);
+
+        if (extension is ['.', .. var rest])
+            extension = rest;
+
         using (_dataGuard.DisposableWait())
         {
-            var extension = Path.GetExtension(projectFilePath);
-            if (extension is null)
-            {
-                languageName = null;
-                isFileBasedApp = false;
-                _diagnosticReporter.Report(mode, $"Project file path was 'null'");
-                return false;
-            }
-
-            Debug.Assert(projectFilePath != null);
-
-            if (extension is ['.', .. var rest])
-                extension = rest;
-
             if (_extensionToLanguageMap.TryGetValue(extension, out languageName))
             {
                 isFileBasedApp = false;
                 return true;
             }
-
-            if (_fileBasedProgramService?.IsValidEntryPointPath(projectFilePath) == true)
-            {
-                languageName = LanguageNames.CSharp;
-                isFileBasedApp = true;
-                return true;
-            }
-
-            isFileBasedApp = false;
-            _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
-            return false;
         }
+
+        if (_fileBasedProgramService?.IsValidEntryPointPath(projectFilePath) == true)
+        {
+            languageName = LanguageNames.CSharp;
+            isFileBasedApp = true;
+            return true;
+        }
+
+        isFileBasedApp = false;
+        _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
+        return false;
     }
 }
