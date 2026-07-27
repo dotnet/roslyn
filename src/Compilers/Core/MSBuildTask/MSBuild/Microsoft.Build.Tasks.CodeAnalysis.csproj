@@ -6,6 +6,12 @@
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
+    <!--
+      A .NET copy of this task assembly is included in the .NET SDK's Native AOT CLI, so it must be
+      clean for trimming, AOT, and single-file publishing. IsAotCompatible (enabled only for the .NET
+      build, not net472) turns on the trim, AOT, and single-file analyzers.
+    -->
+    <IsAotCompatible Condition="'$(TargetFramework)' == '$(NetRoslynSourceBuild)'">true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

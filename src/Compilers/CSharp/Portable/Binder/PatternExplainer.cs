@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var subInput = e.MakeResultTemp();
                                 var subPattern = SamplePatternForTemp(binder, subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
 
-                                if (evaluations.Length == 1 && e.Property is { Name: WellKnownMemberNames.ValuePropertyName } property &&
+                                if (!requireExactType && evaluations.Length == 1 && e.Property is { Name: WellKnownMemberNames.ValuePropertyName } property &&
                                     e.Input.Type is NamedTypeSymbol { IsUnionType: true } unionType &&
                                     Binder.IsUnionTypeValueProperty(unionType, property))
                                 {
