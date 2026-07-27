@@ -21,6 +21,10 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+    <!-- bundle_green transitively pulls in SQLitePCLRaw.lib.e_sqlite3.v110_xp, whose build .targets inject its own
+         (old) e_sqlite3.dll into x86\ and x64\ of the output. Exclude that package's assets so the injection does not
+         run and only the SourceGear.Sqlite3 e_sqlite3.dll below is copied to the output. -->
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" Version="$(SQLitePCLRawlibe_sqlite3Version)" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="SourceGear.Sqlite3" Version="$(SourceGearSqlite3Version)" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
