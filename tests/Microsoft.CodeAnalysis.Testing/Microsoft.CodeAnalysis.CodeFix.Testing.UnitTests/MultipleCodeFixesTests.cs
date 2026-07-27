@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     if (_nested)
                     {
-#if NETCOREAPP2_0 || NETCOREAPP3_1 || NET472
+#if NETCOREAPP2_0_OR_GREATER || NET472_OR_GREATER
 #pragma warning disable RS1010 // Create code actions should have a unique EquivalenceKey for FixAll occurrences support. (https://github.com/dotnet/roslyn-analyzers/issues/3475)
                         fixes = new List<CodeAction> { CodeAction.Create("Container", fixes.ToImmutableArray(), isInlinable: false) };
 #pragma warning restore RS1010 // Create code actions should have a unique EquivalenceKey for FixAll occurrences support.
