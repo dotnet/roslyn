@@ -4,6 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Settings;
@@ -505,6 +506,27 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_ControlBlock()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @{
+                    if (true) {
+                $$}
+                }
+                """,
+            output: """
+                @{
+                    if (true) {
+                        $0
+                    }
+                }
+                """,
+            NewLinePlacement.BeforeOpenBraceInControlBlocks);
+    }
+
+    [Fact]
     public async Task CSharp_OnEnter_TwoSpaceIndent()
     {
         await VerifyOnAutoInsertAsync(
@@ -549,6 +571,19 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             insertSpaces: false);
     }
 
+    private Task VerifyCSharpOnEnterKAndRBracesAsync(
+        TestCode input,
+        string output,
+        NewLinePlacement newLinePlacement)
+        => VerifyOnAutoInsertAsync(
+            input,
+            output,
+            triggerCharacter: "\n",
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
+            {
+                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines & ~newLinePlacement
+            });
+
     private async Task VerifyOnAutoInsertAsync(
         TestCode input,
         string? output,
@@ -558,9 +593,11 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         int tabSize = 4,
         bool formatOnType = true,
         bool autoClosingTags = true,
-        RazorFileKind? fileKind = null)
+        RazorFileKind? fileKind = null,
+        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
     {
         fileKind ??= RazorFileKind.Component;
+        csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
         var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
@@ -609,7 +646,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             Options = formattingOptions
         };
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, csharpSyntaxFormattingOptions, DisposalToken);
 
         if (output is not null)
         {
