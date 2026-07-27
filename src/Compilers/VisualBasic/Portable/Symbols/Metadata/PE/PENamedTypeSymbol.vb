@@ -666,36 +666,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim methodHandleToSymbol As Dictionary(Of MethodDefinitionHandle, PEMethodSymbol) = CreateMethods()
                 Dim members = ArrayBuilder(Of Symbol).GetInstance()
 
-                Dim ensureParameterlessConstructor As Boolean = (TypeKind = TypeKind.Structure OrElse TypeKind = TypeKind.Enum) AndAlso Not IsShared
+                Dim withEventNames As HashSet(Of String) = Nothing
+                Dim membersDict As Dictionary(Of String, ImmutableArray(Of Symbol))
 
-                For Each member In methodHandleToSymbol.Values
-                    members.Add(member)
+                Try
+                    Dim ensureParameterlessConstructor As Boolean = (TypeKind = TypeKind.Structure OrElse TypeKind = TypeKind.Enum) AndAlso Not IsShared
+
+                    For Each member In methodHandleToSymbol.Values
+                        members.Add(member)
+
+                        If ensureParameterlessConstructor Then
+                            ensureParameterlessConstructor = Not member.IsParameterlessConstructor()
+                        End If
+                    Next
 
                     If ensureParameterlessConstructor Then
-                        ensureParameterlessConstructor = Not member.IsParameterlessConstructor()
+                        members.Add(New SynthesizedConstructorSymbol(Nothing, Me, Me.IsShared, False, Nothing, Nothing))
                     End If
-                Next
 
-                If ensureParameterlessConstructor Then
-                    members.Add(New SynthesizedConstructorSymbol(Nothing, Me, Me.IsShared, False, Nothing, Nothing))
-                End If
+                    CreateProperties(methodHandleToSymbol, members)
+                    ' CreateFields will add withEvent names here if there are any.
+                    ' Otherwise stays Nothing
+                    CreateFields(members, withEventNames)
+                    CreateEvents(methodHandleToSymbol, members)
 
-                ' CreateFields will add withEvent names here if there are any.
-                ' Otherwise stays Nothing
-                Dim withEventNames As HashSet(Of String) = Nothing
+                    membersDict = New Dictionary(Of String, ImmutableArray(Of Symbol))(CaseInsensitiveComparison.Comparer)
+                    Dim groupedMembers = members.GroupBy(Function(m) m.Name, CaseInsensitiveComparison.Comparer)
 
-                CreateProperties(methodHandleToSymbol, members)
-                CreateFields(members, withEventNames)
-                CreateEvents(methodHandleToSymbol, members)
-
-                Dim membersDict As New Dictionary(Of String, ImmutableArray(Of Symbol))(CaseInsensitiveComparison.Comparer)
-                Dim groupedMembers = members.GroupBy(Function(m) m.Name, CaseInsensitiveComparison.Comparer)
-
-                For Each g In groupedMembers
-                    membersDict.Add(g.Key, ImmutableArray.CreateRange(g))
-                Next
-
-                members.Free()
+                    For Each g In groupedMembers
+                        membersDict.Add(g.Key, ImmutableArray.CreateRange(g))
+                    Next
+                Finally
+                    members.Free()
+                End Try
 
                 ' tell WithEvents properties that they are WithEvents properties
                 If withEventNames IsNot Nothing Then
