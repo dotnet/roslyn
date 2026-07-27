@@ -91,8 +91,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
                     new CodeGenerationContext(
                         contextLocation: State.ContextNode.GetLocation(),
                         autoInsertionLocation: groupMembers,
-                        sortMembers: groupMembers,
-                        allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument())),
+                        sortMembers: groupMembers)),
                 State.ClassOrStructType,
                 [.. memberDefinitions, .. extraMembers],
                 cancellationToken).ConfigureAwait(false);

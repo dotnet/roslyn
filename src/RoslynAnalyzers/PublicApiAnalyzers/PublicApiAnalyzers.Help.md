@@ -15,6 +15,21 @@ dotnet_public_api_analyzer.require_api_files = true
 
 See [Configuration options for code analysis](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/configuration-options) for more details on how to setup editorconfig based configuration.
 
+## Internal API tracking and InternalsVisibleTo
+
+The analyzer also supports tracking *internal* APIs (rules `RS0051`-`RS0058`) via `InternalAPI.Shipped.txt` / `InternalAPI.Unshipped.txt` files. Internal API tracking exists to catch binary-breaking changes across `InternalsVisibleTo` (IVT) boundaries.
+
+IVT grants to test projects and mocking frameworks are not real compatibility consumers, so they add no value to internal API tracking and only create noise. Because IVT is assembly-wide (not per-API), the analyzer makes this decision at the assembly level: it reads the compilation assembly's IVT grants, drops any that match the ignore patterns, and **if no real (non-ignored) IVT target remains, internal API tracking is disabled for that compilation**. To stay conservative, tracking is only disabled when there was at least one IVT grant and *every* grant is ignored; a project with internal API files but no IVT grants keeps tracking (the presence of the files is an explicit opt-in).
+
+The assembly name `DynamicProxyGenAssembly2` (used by Castle DynamicProxy, which backs mocking frameworks such as Moq) is **always** ignored by default. You can ignore additional IVT targets with the following .editorconfig option (a comma/semicolon-separated list; a `*` wildcard anywhere in the pattern and case-insensitive matching on the simple assembly name are supported):
+
+```ini
+[*.cs]
+dotnet_public_api_analyzer.internal_api_skip_ivt = *.Tests, *.UnitTests, MySpecificTestAssembly
+```
+
+This option only affects internal API tracking; public API tracking is never affected.
+
 ## Package version earlier than 3.3.x
 
 If you are using a `Microsoft.CodeAnalysis.PublicApiAnalyzers` package with version prior to 3.3.x, then you will need to manually create the following public API files in each project directory that needs to be analyzed. Additionally, you will need to mark the above files as analyzer additional files to enable analysis.

@@ -28,6 +28,14 @@ Run at the end of every task that changes code. This is not optional.
 
 **Any doc updated?** → No additional tracking needed. Git history tracks changes automatically.
 
+## Documentation Quality
+
+Documentation must describe the repository's current state, not the history or mechanics of the
+change being made. Do not add guidance that only makes sense in the context of the current diff,
+mentions behavior removed by the task, or warns against a workaround that no longer exists. Before
+adding guidance, ask whether it would help a future contributor starting from a clean checkout; if
+not, leave it out.
+
 ## Creating New Doc Files
 
 If knowledge doesn't fit existing files:

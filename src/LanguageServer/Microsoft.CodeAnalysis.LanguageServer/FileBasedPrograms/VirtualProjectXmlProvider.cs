@@ -30,10 +30,11 @@ internal class VirtualProjectXmlProvider()
         string documentFilePath,
         DotnetCliHelper dotnetCliHelper,
         ILogger logger,
+        bool localizeOutput,
         CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(documentFilePath);
-        var process = dotnetCliHelper.Run(["run-api"], workingDirectory, shouldLocalizeOutput: true, keepStandardInputOpen: true);
+        var process = dotnetCliHelper.Run(["run-api"], workingDirectory, localizeOutput, keepStandardInputOpen: true);
 
         cancellationToken.Register(() =>
         {

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15761,7 +15762,7 @@ namespace System
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/72539")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/74676")]
-        public void SynthesizedCollections_EnsureCompilerGenerated()
+        public void SynthesizedCollections_EnsureAttributes()
         {
             string source = """
                 using System;
@@ -15801,15 +15802,20 @@ namespace System
                     verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlyList"));
                 },
                 expectedOutput: """
-                    <>z__ReadOnlySingleElementList`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
-                    <>z__ReadOnlyArray`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
-                    <>z__ReadOnlyList`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlySingleElementList`1: System.Diagnostics.DebuggerDisplayAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlyArray`1: System.Diagnostics.DebuggerDisplayAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlyList`1: System.Diagnostics.DebuggerDisplayAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
 
                     """);
 
             static void verifyCompilerGeneratedType(NamedTypeSymbol type)
             {
                 Assert.Collection(type.GetAttributes(),
+                    a =>
+                    {
+                        Assert.Equal("System.Diagnostics.DebuggerDisplayAttribute", a.AttributeClass?.ToTestDisplayString());
+                        Assert.Equal("Count = {System.Collections.ICollection.Count}", a.CommonConstructorArguments.Single().Value);
+                    },
                     a => Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", a.AttributeClass?.ToTestDisplayString()));
                 Assert.DoesNotContain(type.GetMembers(),
                     m => m.GetAttributes().Any(a => a.AttributeClass?.ToTestDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute"));
@@ -16542,7 +16548,7 @@ partial class Program
             comp.VerifyDiagnostics();
 
             // ILVerify failure:
-            //[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }
+            //[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }
             var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[[1], [2]],"), verify: Verification.Fails);
             verifier.VerifyIL("Program.M", """
 {
@@ -47226,7 +47232,7 @@ class Program
                 ? Verification.FailsPEVerify
                 : Verification.Fails with
                 {
-                    ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }"
+                    ILVerifyMessage = InlineArrayTests.InlineArrayAsReadOnlySpanILVerifyMessage + '\n' + InlineArrayTests.InlineArrayElementRefILVerifyMessage
                 };
             var verifier = CompileAndVerify([sourceA, sourceB, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput(expectedOutput), targetFramework: TargetFramework.Net100, verify: ilVerifyFailure, symbolValidator: verifyResult(shouldHaveSynthesizedArrayType: arrayLength == 17, arrayLength));
             verifier.VerifyDiagnostics();
@@ -47376,7 +47382,7 @@ class Program
             var consumerComp = CreateCompilation([consumerSource, s_collectionExtensionsWithSpan], options: TestOptions.ReleaseExe, references: [libraryRef], targetFramework: TargetFramework.Net80);
             var verifier = CompileAndVerify(consumerComp, expectedOutput: IncludeExpectedOutput("[1, 2],"), verify: Verification.Fails with
             {
-                ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }"
+                ILVerifyMessage = InlineArrayTests.InlineArrayAsReadOnlySpanILVerifyMessage + '\n' + InlineArrayTests.InlineArrayElementRefILVerifyMessage
             }).VerifyDiagnostics();
             verifier.VerifyIL("Program.Main()", """
                 {
