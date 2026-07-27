@@ -527,6 +527,184 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_NestedType()
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @code {
+                    private class C {
+                $$}
+                }
+                """,
+            output: """
+                @code {
+                    private class C {
+                        $0
+                    }
+                }
+                """,
+            triggerCharacter: "\n",
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
+            {
+                NewLines = default
+            });
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_Method()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private void M() {
+                $$}
+                }
+                """,
+            output: """
+                @code {
+                    private void M() {
+                        $0
+                    }
+                }
+                """,
+            NewLinePlacement.BeforeOpenBraceInMethods);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_Property()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private int P {
+                $$}
+                }
+                """,
+            output: """
+                @code {
+                    private int P {
+                        $0
+                    }
+                }
+                """,
+            NewLinePlacement.BeforeOpenBraceInProperties);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_Accessor()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private int P
+                    {
+                        get {
+                $$}
+                    }
+                }
+                """,
+            output: """
+                @code {
+                    private int P
+                    {
+                        get {
+                            $0
+                        }
+                    }
+                }
+                """,
+            NewLinePlacement.BeforeOpenBraceInAccessors);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_Lambda()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private System.Action A = () => {
+                $$};
+                }
+                """,
+            output: """
+                @code {
+                    private System.Action A = () => {
+                        $0
+                    };
+                }
+                """,
+            NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_AnonymousMethod()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private System.Action A = delegate {
+                $$};
+                }
+                """,
+            output: """
+                @code {
+                    private System.Action A = delegate {
+                        $0
+                    };
+                }
+                """,
+            NewLinePlacement.BeforeOpenBraceInAnonymousMethods);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_ObjectInitializer()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private object O = new object {
+                $$};
+                }
+                """,
+            output: """
+                @code {
+                    private object O = new object {
+                        $0
+                    };
+                }
+                """,
+            NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12703")]
+    public async Task CSharp_OnEnter_KAndRBraces_AnonymousType()
+    {
+        await VerifyCSharpOnEnterKAndRBracesAsync(
+            input: """
+                @code {
+                    private object O = new {
+                $$};
+                }
+                """,
+            output: """
+                @code {
+                    private object O = new {
+                        $0
+                    };
+                }
+                """,
+            NewLinePlacement.BeforeOpenBraceInAnonymousTypes);
+    }
+
+    [Fact]
     public async Task CSharp_OnEnter_TwoSpaceIndent()
     {
         await VerifyOnAutoInsertAsync(
