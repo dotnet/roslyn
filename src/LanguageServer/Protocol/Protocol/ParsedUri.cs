@@ -5,7 +5,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -62,11 +61,6 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     }
 
     private static readonly bool s_isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
-    private static readonly Regex s_schemePattern = new(@"^[A-Za-z_][A-Za-z0-9_+.\-]*$", RegexOptions.Compiled);
-    private static readonly Regex s_singleSlashStart = new(@"^/", RegexOptions.Compiled);
-    private static readonly Regex s_doubleSlashStart = new(@"^//", RegexOptions.Compiled);
-    private static readonly Regex s_encodedAsHex = new(@"(%[0-9A-Za-z][0-9A-Za-z])+", RegexOptions.Compiled);
 
     /// <summary>
     /// The scheme component (e.g., "http", "file").
@@ -185,6 +179,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         var position = 0;
         var schemeLength = 0;
 
+        // Scheme: "https" in "https://example.com/path".
         while (position < span.Length)
         {
             var ch = span[position];
@@ -214,6 +209,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
         var authorityStart = 0;
         var authorityLength = 0;
+
+        // Authority: "example.com" in "https://example.com/path".
         if (position + 1 < span.Length && span[position] == '/' && span[position + 1] == '/')
         {
             position += 2;
@@ -226,6 +223,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             authorityLength = position - authorityStart;
         }
 
+        // Path: "/path/to/file" in "https://example.com/path/to/file?query".
         var pathStart = position;
         while (position < span.Length && span[position] is not ('?' or '#'))
         {
@@ -235,6 +233,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         var pathLength = position - pathStart;
         var queryStart = 0;
         var queryLength = 0;
+
+        // Query: "name=value" in "https://example.com/path?name=value#section".
         if (position < span.Length && span[position] == '?')
         {
             position++;
@@ -249,6 +249,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
         var fragmentStart = 0;
         var fragmentLength = 0;
+
+        // Fragment: "section" in "https://example.com/path#section".
         if (position < span.Length && span[position] == '#')
         {
             position++;
@@ -427,7 +429,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         }
 
         // scheme, https://tools.ietf.org/html/rfc3986#section-3.1
-        if (uri.Scheme.Length > 0 && !s_schemePattern.IsMatch(uri.Scheme))
+        if (uri.Scheme.Length > 0 && !IsValidScheme(uri.Scheme))
         {
             throw new UriFormatException("[UriError]: Scheme contains illegal characters.");
         }
@@ -453,6 +455,34 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             }
         }
     }
+
+    internal static bool IsValidScheme(ReadOnlySpan<char> scheme)
+    {
+        var length = scheme.Length > 0 && scheme[^1] == '\n'
+            ? scheme.Length - 1
+            : scheme.Length;
+
+        if (length == 0 || !IsValidSchemeFirstCharacter(scheme[0]))
+        {
+            return false;
+        }
+
+        for (var i = 1; i < length; i++)
+        {
+            var ch = scheme[i];
+            if (!IsValidSchemeFirstCharacter(ch)
+                && !(ch >= '0' && ch <= '9')
+                && ch is not ('+' or '.' or '-'))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsValidSchemeFirstCharacter(char ch)
+        => ch is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or '_';
 
     private static string SchemeFix(string scheme, bool strict)
     {
@@ -577,6 +607,9 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     }
 
     private static bool IsEncodingAllowed(char ch, bool isPath, bool isAuthority)
+        // RFC 3986 sections 2.3, 3.2, and 3.3 define the unreserved characters and
+        // the delimiters that may remain unescaped in authority and path components.
+        // https://www.rfc-editor.org/rfc/rfc3986.html#section-2.3
         => (ch >= 'a' && ch <= 'z')
             || (ch >= 'A' && ch <= 'Z')
             || (ch >= '0' && ch <= '9')
@@ -635,13 +668,59 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     private static string PercentDecode(string str)
     {
-        if (!s_encodedAsHex.IsMatch(str))
+        if (!TryFindEncodedAsHex(str, startIndex: 0, out var matchStart, out var matchLength))
         {
             return str;
         }
 
-        return s_encodedAsHex.Replace(str, match => DecodeURIComponentGraceful(match.Value));
+        var result = new StringBuilder(str.Length);
+        var position = 0;
+        do
+        {
+            result.Append(str, position, matchStart - position);
+            result.Append(DecodeURIComponentGraceful(str.Substring(matchStart, matchLength)));
+            position = matchStart + matchLength;
+        }
+        while (TryFindEncodedAsHex(str, position, out matchStart, out matchLength));
+
+        result.Append(str, position, str.Length - position);
+        return result.ToString();
     }
+
+    private static bool TryFindEncodedAsHex(
+        ReadOnlySpan<char> value,
+        int startIndex,
+        out int matchStart,
+        out int matchLength)
+    {
+        for (var i = startIndex; i <= value.Length - 3; i++)
+        {
+            if (value[i] == '%'
+                && IsAsciiLetterOrDigit(value[i + 1])
+                && IsAsciiLetterOrDigit(value[i + 2]))
+            {
+                var end = i + 3;
+                while (end <= value.Length - 3
+                    && value[end] == '%'
+                    && IsAsciiLetterOrDigit(value[end + 1])
+                    && IsAsciiLetterOrDigit(value[end + 2]))
+                {
+                    end += 3;
+                }
+
+                matchStart = i;
+                matchLength = end - i;
+                return true;
+            }
+        }
+
+        matchStart = 0;
+        matchLength = 0;
+        return false;
+    }
+
+    private static bool IsAsciiLetterOrDigit(char ch)
+        => ch is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or >= '0' and <= '9';
 
     private static string DecodeURIComponentGraceful(string str)
     {
@@ -724,6 +803,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     private static string FormatFilePath(string authority, string path, out FileComponentOffsets offsets)
     {
+        // Start the canonical URI and append an encoded UNC authority, if present:
+        // "//server/share/file" becomes "file://server".
         var result = new StringBuilder("file://", 7 + authority.Length + path.Length + 8);
         var authorityStart = result.Length;
         AppendFormattedAuthority(result, authority, EncodeURIComponentFast);
@@ -732,16 +813,19 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         var pathStart = result.Length;
         if (path.Length == 0)
         {
+            // File URIs always have an absolute path; an empty path becomes "file:///".
             result.Append('/');
         }
         else
         {
+            // Make relative-looking drive paths absolute: "C:/file" becomes "/C:/file".
             var addLeadingSlash = path[0] != '/';
             if (addLeadingSlash)
             {
                 result.Append('/');
             }
 
+            // Locate a drive letter in either "C:/file" or "/C:/file".
             var driveLetterIndex = path.Length >= 3 && path[0] == '/' && path[2] == ':'
                 ? 1
                 : path.Length >= 2 && path[1] == ':'
@@ -750,6 +834,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
             if (driveLetterIndex >= 0 && path[driveLetterIndex] is >= 'A' and <= 'Z')
             {
+                // Match vscode-uri by lower-casing drive letters while encoding the rest.
                 if (driveLetterIndex == 1)
                 {
                     result.Append('/');
@@ -760,10 +845,12 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             }
             else
             {
+                // Preserve path separators and percent-encode characters such as spaces.
                 AppendEncoded(result, path, start: 0, isPath: true, isAuthority: false);
             }
         }
 
+        // Save canonical component ranges so Authority and Path can be materialized lazily.
         offsets = new FileComponentOffsets(authorityStart, authorityLength, pathStart, result.Length - pathStart);
         return result.ToString();
     }
