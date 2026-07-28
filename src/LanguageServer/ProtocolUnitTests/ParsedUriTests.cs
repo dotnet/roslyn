@@ -180,6 +180,15 @@ public sealed class ParsedUriTests
         Assert.Same(uri.ToString(skipEncoding: true), uri.ToString(skipEncoding: true));
     }
 
+    [Fact]
+    public void Parse_PreservesRawQuery()
+    {
+        var uri = ParsedUri.Parse("https://example.com/?key=value%26with%2Bcharacters");
+
+        Assert.Equal("key=value&with+characters", uri.Query);
+        Assert.Equal("key=value%26with%2Bcharacters", uri.RawQuery);
+    }
+
     public static TheoryData<UriCase> ParseCases => new()
     {
         new("http:/api/files/test.me?t=1234")

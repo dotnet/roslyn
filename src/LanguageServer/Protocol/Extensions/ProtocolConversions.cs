@@ -258,7 +258,8 @@ internal static partial class ProtocolConversions
 
             return true;
         }
-#pragma warning restore
+#pragma warning restore RS0030 // Do not use banned APIs
+#pragma warning restore SYSLIB0013 // Type or member is obsolete
     }
 
     /// <summary>
@@ -629,7 +630,7 @@ internal static partial class ProtocolConversions
 
     public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLinkUri)
     {
-        return (helpLinkUri != null) ? new LSP.CodeDescription { Href = CreateAbsoluteDocumentUri(helpLinkUri) } : null;
+        return (helpLinkUri != null) ? new LSP.CodeDescription { Href = new DocumentUri(helpLinkUri) } : null;
     }
 
     public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)

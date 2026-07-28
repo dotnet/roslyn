@@ -32,14 +32,16 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         public string Authority { get; }
         public string Path { get; }
         public string Query { get; }
+        public string RawQuery { get; }
         public string Fragment { get; }
 
-        public Components(string scheme, string authority, string path, string query, string fragment)
+        public Components(string scheme, string authority, string path, string query, string rawQuery, string fragment)
         {
             Scheme = scheme;
             Authority = authority;
             Path = path;
             Query = query;
+            RawQuery = rawQuery;
             Fragment = fragment;
         }
     }
@@ -81,6 +83,11 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     /// The query component (e.g., "name=ferret").
     /// </summary>
     public string Query => GetComponents().Query;
+
+    /// <summary>
+    /// The query component as it appeared in the parsed URI, before percent-decoding.
+    /// </summary>
+    public string RawQuery => GetComponents().RawQuery;
 
     /// <summary>
     /// The fragment component (e.g., "nose").
@@ -154,14 +161,14 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             ? string.Empty
             : PercentDecode(formatted.Substring(offsets.AuthorityStart, offsets.AuthorityLength));
         var path = PercentDecode(formatted.Substring(offsets.PathStart, offsets.PathLength));
-        return CreateComponents("file", authority, path, string.Empty, string.Empty, strict: false);
+        return CreateComponents("file", authority, path, string.Empty, string.Empty, string.Empty, strict: false);
     }
 
-    private static Components CreateComponents(string scheme, string authority, string path, string query, string fragment, bool strict)
+    private static Components CreateComponents(string scheme, string authority, string path, string query, string rawQuery, string fragment, bool strict)
     {
         scheme = SchemeFix(scheme, strict);
         path = ReferenceResolution(scheme, path);
-        var components = new Components(scheme, authority, path, query, fragment);
+        var components = new Components(scheme, authority, path, query, rawQuery, fragment);
         ValidateUri(components, strict);
         return components;
     }
@@ -266,9 +273,10 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         var scheme = schemeLength == 0 ? string.Empty : value.Substring(0, schemeLength);
         var authority = authorityLength == 0 ? string.Empty : PercentDecode(value.Substring(authorityStart, authorityLength));
         var path = PercentDecode(pathLength == 0 ? string.Empty : value.Substring(pathStart, pathLength));
-        var query = queryLength == 0 ? string.Empty : PercentDecode(value.Substring(queryStart, queryLength));
+        var rawQuery = queryLength == 0 ? string.Empty : value.Substring(queryStart, queryLength);
+        var query = PercentDecode(rawQuery);
         var fragment = fragmentLength == 0 ? string.Empty : PercentDecode(value.Substring(fragmentStart, fragmentLength));
-        return CreateComponents(scheme, authority, path, query, fragment, strict);
+        return CreateComponents(scheme, authority, path, query, rawQuery, fragment, strict);
     }
 
     /// <summary>

@@ -62,14 +62,15 @@ internal static class SourceGeneratedDocumentUri
         if (projectId == null)
             return null;
 
-        var query = System.Web.HttpUtility.ParseQueryString(documentUri.Query);
-        var documentIdGuid = Guid.ParseExact(GetRequiredQueryValue(DocumentIdParam, query, documentUri.Query), GuidFormat);
-        var hintName = GetRequiredQueryValue(HintNameParam, query, documentUri.Query);
-        var assemblyName = GetRequiredQueryValue(AssemblyNameParam, query, documentUri.Query);
+        var rawQuery = documentUri.RawQuery;
+        var query = System.Web.HttpUtility.ParseQueryString(rawQuery);
+        var documentIdGuid = Guid.ParseExact(GetRequiredQueryValue(DocumentIdParam, query, rawQuery), GuidFormat);
+        var hintName = GetRequiredQueryValue(HintNameParam, query, rawQuery);
+        var assemblyName = GetRequiredQueryValue(AssemblyNameParam, query, rawQuery);
         // this one is actually OK if it's null, since it's optional
         var assemblyPath = query[AssemblyPathParam];
-        var assemblyVersion = Version.Parse(GetRequiredQueryValue(AssemblyVersionParam, query, documentUri.Query));
-        var typeName = GetRequiredQueryValue(TypeNameParam, query, documentUri.Query);
+        var assemblyVersion = Version.Parse(GetRequiredQueryValue(AssemblyVersionParam, query, rawQuery));
+        var typeName = GetRequiredQueryValue(TypeNameParam, query, rawQuery);
 
         var documentId = DocumentId.CreateFromSerialized(projectId, documentIdGuid, isSourceGenerated: true, hintName);
 
