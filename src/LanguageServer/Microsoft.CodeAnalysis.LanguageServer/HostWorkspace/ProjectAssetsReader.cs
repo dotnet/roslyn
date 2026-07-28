@@ -86,7 +86,20 @@ internal static class ProjectAssetsReader
                 isFinalBlock = readCount == 0;
 
                 var reader = new Utf8JsonReader(buffer.AsSpan(0, bufferedCount), isFinalBlock, state);
-                // The expected json structure is indicated by the conditional logic below.
+                // Expected json looks something like the following:
+                // {
+                //   "version": 3,
+                //   "targets": {},
+                //   "libraries": {
+                //     "Newtonsoft.Json/13.0.3": {
+                //       "sha512": "hash",
+                //       "type": "package",
+                //       "path": "newtonsoft.json/13.0.3",
+                //       "files": [
+                //         ".nupkg.metadata",
+                //         "lib/net6.0/Newtonsoft.Json.dll"
+                //   	  ]
+                //   },
                 while (reader.Read())
                 {
                     if (atLibrariesValue)
