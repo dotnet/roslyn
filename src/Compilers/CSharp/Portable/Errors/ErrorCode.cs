@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadInstanceArgType = 1929,
         ERR_QueryDuplicateRangeVariable = 1930,
         ERR_QueryRangeVariableOverrides = 1931,
-        ERR_QueryRangeVariableAssignedBadValue = 1932,
+        //ERR_QueryRangeVariableAssignedBadValue = 1932,   unused in Roslyn (replaced by ERR_AnonymousTypePropertyAssignedBadValue)
         //ERR_QueryNotAllowed = 1933,       unused in Roslyn. This specific message is not necessary for correctness and adds little.
         ERR_QueryNoProviderCastable = 1934,
         ERR_QueryNoProviderStandard = 1935,

@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var yExpression = lambdaBodyBinder.BindRValueWithoutTargetType(let.Expression, d);
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
-                    Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, yExpression.Syntax, yExpression.Display);
+                    Error(d, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, yExpression.Syntax, yExpression.Display);
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), CreateErrorType());
                 }
 
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeConstruction(node, anonymousType, ImmutableArray.Create(field1Value, field2Value), diagnostics);
 
             AnonymousTypeField createField(string fieldName, BoundExpression fieldValue) =>
-                new AnonymousTypeField(fieldName, fieldValue.Syntax.Location, TypeWithAnnotations.Create(GetAnonymousTypeFieldType(fieldValue, fieldValue.Syntax, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, diagnostics, out _)), RefKind.None, ScopedKind.None);
+                new AnonymousTypeField(fieldName, fieldValue.Syntax.Location, TypeWithAnnotations.Create(GetAnonymousTypeFieldType(fieldValue, fieldValue.Syntax, diagnostics, out _)), RefKind.None, ScopedKind.None);
         }
 
         private TypeSymbol TypeOrError(BoundExpression e)

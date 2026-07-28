@@ -10749,8 +10749,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryRangeVariableAssignedBadValue">
-        <source>Cannot assign '{0}' to a range variable. The target type is ambiguous or stack-only.</source>
-        <target state="translated">{0} nelze přiřadit k proměnné rozsahu. Cílový typ je nejednoznačný nebo pouze pro zásobník.</target>
+        <source>Cannot assign {0} to a range variable</source>
+        <target state="translated">{0} nejde přiřadit k proměnné rozsahu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderCastable">

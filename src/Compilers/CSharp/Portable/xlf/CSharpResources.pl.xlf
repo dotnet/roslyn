@@ -10749,8 +10749,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryRangeVariableAssignedBadValue">
-        <source>Cannot assign '{0}' to a range variable. The target type is ambiguous or stack-only.</source>
-        <target state="translated">Nie można przypisać „{0}” do zmiennej zakresu. Typ docelowy jest niejednoznaczny lub tylko stosowy.</target>
+        <source>Cannot assign {0} to a range variable</source>
+        <target state="translated">Nie można przypisać elementu „{0}” do zmiennej zakresu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderCastable">

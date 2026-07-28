@@ -10749,8 +10749,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryRangeVariableAssignedBadValue">
-        <source>Cannot assign '{0}' to a range variable. The target type is ambiguous or stack-only.</source>
-        <target state="translated">Não é possível atribuir "{0}" a uma variável de intervalo. O tipo de destino é ambíguo ou exclusivo da pilha.</target>
+        <source>Cannot assign {0} to a range variable</source>
+        <target state="translated">Não é possível atribuir {0} a uma variável de intervalo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderCastable">

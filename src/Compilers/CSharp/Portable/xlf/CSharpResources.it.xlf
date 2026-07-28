@@ -10749,8 +10749,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryRangeVariableAssignedBadValue">
-        <source>Cannot assign '{0}' to a range variable. The target type is ambiguous or stack-only.</source>
-        <target state="translated">Non è possibile assegnare '{0}' a una variabile di intervallo. Il tipo di destinazione è ambiguo o può trovarsi solo sullo stack.</target>
+        <source>Cannot assign {0} to a range variable</source>
+        <target state="translated">Non è possibile assegnare {0} a una variabile di intervallo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderCastable">

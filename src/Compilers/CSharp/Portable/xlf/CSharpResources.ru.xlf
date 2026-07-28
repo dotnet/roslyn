@@ -10749,8 +10749,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryRangeVariableAssignedBadValue">
-        <source>Cannot assign '{0}' to a range variable. The target type is ambiguous or stack-only.</source>
-        <target state="translated">Невозможно присвоить "{0}" переменной диапазона. Целевой тип неоднозначен или допустим только для стека.</target>
+        <source>Cannot assign {0} to a range variable</source>
+        <target state="translated">Невозможно присвоить {0} переменной диапазона.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderCastable">

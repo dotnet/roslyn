@@ -3408,7 +3408,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The range variable '{0}' conflicts with a previous declaration of '{0}'</value>
   </data>
   <data name="ERR_QueryRangeVariableAssignedBadValue" xml:space="preserve">
-    <value>Cannot assign '{0}' to a range variable. The target type is ambiguous or stack-only.</value>
+    <value>Cannot assign {0} to a range variable</value>
   </data>
   <data name="ERR_QueryNoProviderCastable" xml:space="preserve">
     <value>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Consider explicitly specifying the type of the range variable '{2}'.</value>

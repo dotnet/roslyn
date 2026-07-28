@@ -10749,8 +10749,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryRangeVariableAssignedBadValue">
-        <source>Cannot assign '{0}' to a range variable. The target type is ambiguous or stack-only.</source>
-        <target state="translated">"{0}" kann keiner Bereichsvariablen zugewiesen werden. Der Zieltyp ist mehrdeutig oder nur auf dem Stapelspeicher zulässig.</target>
+        <source>Cannot assign {0} to a range variable</source>
+        <target state="translated">"{0}" kann keiner Bereichsvariablen zugewiesen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderCastable">

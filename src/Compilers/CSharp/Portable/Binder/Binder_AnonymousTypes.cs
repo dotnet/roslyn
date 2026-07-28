@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 //  calculate the expression's type and report errors if needed
-                TypeSymbol fieldType = GetAnonymousTypeFieldType(boundExpressions[i], fieldInitializer, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, diagnostics, out var hasFieldTypeError);
+                TypeSymbol fieldType = GetAnonymousTypeFieldType(boundExpressions[i], fieldInitializer, diagnostics, out var hasFieldTypeError);
                 hasError |= hasFieldTypeError;
 
                 // build anonymous type field descriptor
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns the type to be used as a field type; generates errors in case the type is not
         /// supported for anonymous type fields.
         /// </summary>
-        private TypeSymbol GetAnonymousTypeFieldType(BoundExpression expression, SyntaxNode errorSyntax, ErrorCode errorCode, BindingDiagnosticBag diagnostics, out bool hasError)
+        private TypeSymbol GetAnonymousTypeFieldType(BoundExpression expression, SyntaxNode errorSyntax, BindingDiagnosticBag diagnostics, out bool hasError)
         {
             object? errorArg = null;
             TypeSymbol? type = expression.Type;
@@ -219,7 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = false;
                 return type ?? CreateErrorType("error");
             }
-            else if (type is null)
+
+            if (type is null)
             {
                 errorArg = expression.Display;
                 type = CreateErrorType("error");
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasError = errorArg != null;
             if (hasError)
             {
-                Error(diagnostics, errorCode, errorSyntax, errorArg!);
+                Error(diagnostics, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, errorSyntax, errorArg!);
             }
 
             return type;

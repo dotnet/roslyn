@@ -10749,8 +10749,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryRangeVariableAssignedBadValue">
-        <source>Cannot assign '{0}' to a range variable. The target type is ambiguous or stack-only.</source>
-        <target state="translated">'{0}' 을(를) 범위 변수에 할당할 수 없습니다. 대상 형식이 모호하거나 스택 전용입니다.</target>
+        <source>Cannot assign {0} to a range variable</source>
+        <target state="translated">{0}을(를) 범위 변수에 할당할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderCastable">

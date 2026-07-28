@@ -10749,8 +10749,8 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryRangeVariableAssignedBadValue">
-        <source>Cannot assign '{0}' to a range variable. The target type is ambiguous or stack-only.</source>
-        <target state="translated">Impossible d’assigner '{0}' à une variable de portée. Le type cible est ambigu ou réservé à la pile.</target>
+        <source>Cannot assign {0} to a range variable</source>
+        <target state="translated">Impossible d'assigner {0} à une variable de portée</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderCastable">

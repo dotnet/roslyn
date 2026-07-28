@@ -10749,8 +10749,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryRangeVariableAssignedBadValue">
-        <source>Cannot assign '{0}' to a range variable. The target type is ambiguous or stack-only.</source>
-        <target state="translated">範囲変数に '{0}' を割り当てることはできません。対象の型があいまいであるか、スタックのみに存在します。</target>
+        <source>Cannot assign {0} to a range variable</source>
+        <target state="translated">範囲変数に {0} を割り当てることができません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderCastable">
