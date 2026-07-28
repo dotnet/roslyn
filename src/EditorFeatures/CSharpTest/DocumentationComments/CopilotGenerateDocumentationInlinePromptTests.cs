@@ -107,7 +107,7 @@ public sealed class CopilotGenerateDocumentationInlinePromptTests
         // The chip was shown with the documentation-generation provider, and accepting it ran the real generation.
         Assert.NotNull(inlinePrompt.CapturedOptions);
         Assert.Equal("Roslyn.GenerateDocumentation", inlinePrompt.CapturedOptions!.ProviderName);
-        Assert.Equal("generate documentation", inlinePrompt.CapturedOptions.AcceptDescription);
+        Assert.Equal(EditorFeaturesResources.Generate_documentation, inlinePrompt.CapturedOptions.AcceptDescription);
 
         Assert.NotNull(inlinePrompt.AcceptTask);
         await inlinePrompt.AcceptTask!;
