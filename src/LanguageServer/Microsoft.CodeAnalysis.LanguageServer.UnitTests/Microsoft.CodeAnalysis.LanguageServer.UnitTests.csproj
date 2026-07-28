@@ -15,13 +15,17 @@
     <ProjectReference Include="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" />
     <ProjectReference Include="..\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj" />
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
-    <ProjectReference Include="..\ExternalAccess\TestDiscovery\Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.csproj" />
-
     <ProjectReference Include="..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
+  </ItemGroup>
+
+  <ItemGroup Label="Shared named-pipe helper for daemon client tests">
+    <!-- Tests connect to the daemon as a client using the same compiler-server pipe helper the thin client
+         uses, so the test's client stream agrees with the daemon's server stream on pipe path -->
+    <Compile Include="..\..\Compilers\Shared\NamedPipeUtil.cs" Link="Daemon\NamedPipeUtil.cs" />
   </ItemGroup>
 
   <!--

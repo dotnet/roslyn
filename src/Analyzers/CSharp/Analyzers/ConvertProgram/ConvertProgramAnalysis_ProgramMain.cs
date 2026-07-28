@@ -30,6 +30,11 @@ internal static partial class ConvertProgramAnalysis
         if (!root.IsTopLevelProgram())
             return false;
 
+        // File-based programs are built around top-level statements, so don't offer to convert to a
+        // 'Program.Main' style program.
+        if (root.SyntaxTree.IsFileBasedProgram())
+            return false;
+
         if (!CanOfferUseProgramMain(option, forAnalyzer))
             return false;
 

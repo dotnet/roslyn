@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(x is { });
                 Debug.Assert(y is { });
 
-                if (x.OriginalDefinition.ContainingType.ContainingType != (object)x.OriginalDefinition.ContainingType.ContainingType)
+                if (x.OriginalDefinition.ContainingType.ContainingType != (object)y.OriginalDefinition.ContainingType.ContainingType)
                 {
                     return false;
                 }
