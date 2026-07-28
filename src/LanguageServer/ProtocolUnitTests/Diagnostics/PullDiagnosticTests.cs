@@ -1525,15 +1525,15 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(3, results.Length);
 
         // The file in the project should have the editorconfig rule applied and return an error.
-        Assert.True(results[0].Uri.ParsedDocumentUri!.Value.Path.EndsWith("file.cs"));
+        Assert.True(results[0].Uri.ParsedDocumentUri!.Path.EndsWith("file.cs"));
         Assert.Equal(CSharpSyntaxAnalyzer.RuleId, results[0].Diagnostics!.Single().Code);
         Assert.Equal(LSP.DiagnosticSeverity.Error, results[0].Diagnostics!.Single().Severity);
 
         // The source generated file should only have the .globalconfig rule applied, which suppresses the diagnostic.
-        Assert.True(results[1].Uri.ParsedDocumentUri!.Value.Path.EndsWith("GeneratedFile.cs"));
+        Assert.True(results[1].Uri.ParsedDocumentUri!.Path.EndsWith("GeneratedFile.cs"));
         Assert.Empty(results[1].Diagnostics!);
 
-        Assert.True(results[2].Uri.ParsedDocumentUri!.Value.Path.EndsWith("Assembly1.csproj"));
+        Assert.True(results[2].Uri.ParsedDocumentUri!.Path.EndsWith("Assembly1.csproj"));
         Assert.Empty(results[2].Diagnostics!);
     }
 

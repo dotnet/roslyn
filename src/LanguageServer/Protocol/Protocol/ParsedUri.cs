@@ -6,6 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Roslyn.LanguageServer.Protocol;
@@ -24,8 +25,42 @@ namespace Roslyn.LanguageServer.Protocol;
 ///       urn:example:animal:ferret:nose
 /// </code>
 /// </summary>
-internal readonly struct ParsedUri : IEquatable<ParsedUri>
+internal sealed class ParsedUri : IEquatable<ParsedUri>
 {
+    private sealed class Components
+    {
+        public string Scheme { get; }
+        public string Authority { get; }
+        public string Path { get; }
+        public string Query { get; }
+        public string Fragment { get; }
+
+        public Components(string scheme, string authority, string path, string query, string fragment)
+        {
+            Scheme = scheme;
+            Authority = authority;
+            Path = path;
+            Query = query;
+            Fragment = fragment;
+        }
+    }
+
+    private readonly struct FileComponentOffsets
+    {
+        public int AuthorityStart { get; }
+        public int AuthorityLength { get; }
+        public int PathStart { get; }
+        public int PathLength { get; }
+
+        public FileComponentOffsets(int authorityStart, int authorityLength, int pathStart, int pathLength)
+        {
+            AuthorityStart = authorityStart;
+            AuthorityLength = authorityLength;
+            PathStart = pathStart;
+            PathLength = pathLength;
+        }
+    }
+
     private static readonly bool s_isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
     private static readonly Regex s_uriRegex = new(@"^(([^:/?#]+?):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?", RegexOptions.Compiled);
@@ -37,59 +72,105 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
     /// <summary>
     /// The scheme component (e.g., "http", "file").
     /// </summary>
-    public string Scheme { get; }
+    public string Scheme => GetComponents().Scheme;
 
     /// <summary>
     /// The authority component (e.g., "www.example.com").
     /// </summary>
-    public string Authority { get; }
+    public string Authority => GetComponents().Authority;
 
     /// <summary>
     /// The path component (e.g., "/some/path").
     /// </summary>
-    public string Path { get; }
+    public string Path => GetComponents().Path;
 
     /// <summary>
     /// The query component (e.g., "name=ferret").
     /// </summary>
-    public string Query { get; }
+    public string Query => GetComponents().Query;
 
     /// <summary>
     /// The fragment component (e.g., "nose").
     /// </summary>
-    public string Fragment { get; }
+    public string Fragment => GetComponents().Fragment;
 
-    private readonly string? _formatted;
+    /// <summary>Set eagerly for parsed URIs and lazily for file URIs.</summary>
+    private Components? _components;
+
+    /// <summary>Set only for file URIs; otherwise <see cref="_components"/> must be set.</summary>
+    private readonly FileComponentOffsets? _fileComponentOffsets;
+
+    /// <summary>Set eagerly for file URIs and lazily for parsed URIs.</summary>
+    private string? _formatted;
+
+    /// <summary>Set when unencoded formatting is first requested.</summary>
+    private string? _formattedWithoutEncoding;
+
+    /// <summary>Set when <see cref="FsPath"/> is first requested.</summary>
+    private string? _fsPath;
 
     /// <summary>
-    /// The file system path derived from this URI. Computed eagerly at construction time.
+    /// The file system path derived from this URI. Computed and cached on first access.
     /// Handles UNC paths, normalizes windows drive letters to lower-case, and uses the
     /// platform specific path separator.
     /// </summary>
-    public string FsPath { get; }
-
-    private ParsedUri(string scheme, string authority, string path, string query, string fragment, string? formatted = null)
+    public string FsPath
     {
-        Scheme = scheme;
-        Authority = authority;
-        Path = path;
-        Query = query;
-        Fragment = fragment;
-        _formatted = formatted;
-        FsPath = UriToFsPath(scheme, authority, path, keepDriveLetterCasing: false);
+        get
+        {
+            var fsPath = _fsPath;
+            if (fsPath is not null)
+            {
+                return fsPath;
+            }
+
+            var components = GetComponents();
+            fsPath = UriToFsPath(components.Scheme, components.Authority, components.Path, keepDriveLetterCasing: false);
+            return Interlocked.CompareExchange(ref _fsPath, fsPath, null) ?? fsPath;
+        }
     }
 
-    /// <summary>
-    /// Mirrors vscode-uri's constructor string code path: applies SchemeFix, ReferenceResolution,
-    /// and ValidateUri. Used by Parse and File.
-    /// </summary>
-    private static ParsedUri CreateFromComponents(string scheme, string authority, string path, string query, string fragment, bool strict)
+    private ParsedUri(Components components)
+    {
+        _components = components;
+    }
+
+    private ParsedUri(string formatted, FileComponentOffsets fileComponentOffsets)
+    {
+        _formatted = formatted;
+        _fileComponentOffsets = fileComponentOffsets;
+    }
+
+    private Components GetComponents()
+    {
+        var components = _components;
+        if (components is not null)
+        {
+            return components;
+        }
+
+        components = _fileComponentOffsets is { } offsets
+            ? ParseFileComponents(_formatted!, offsets)
+            : ParseComponents(_formatted!, strict: false);
+        return Interlocked.CompareExchange(ref _components, components, null) ?? components;
+    }
+
+    private static Components ParseFileComponents(string formatted, FileComponentOffsets offsets)
+    {
+        var authority = offsets.AuthorityLength == 0
+            ? string.Empty
+            : PercentDecode(formatted.Substring(offsets.AuthorityStart, offsets.AuthorityLength));
+        var path = PercentDecode(formatted.Substring(offsets.PathStart, offsets.PathLength));
+        return CreateComponents("file", authority, path, string.Empty, string.Empty, strict: false);
+    }
+
+    private static Components CreateComponents(string scheme, string authority, string path, string query, string fragment, bool strict)
     {
         scheme = SchemeFix(scheme, strict);
         path = ReferenceResolution(scheme, path);
-        var result = new ParsedUri(scheme, authority, path, query, fragment);
-        ValidateUri(result, strict);
-        return result;
+        var components = new Components(scheme, authority, path, query, fragment);
+        ValidateUri(components, strict);
+        return components;
     }
 
     /// <summary>
@@ -97,6 +178,9 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
     /// <c>file:///usr/home</c>, or <c>scheme:with/path</c>.
     /// </summary>
     public static ParsedUri Parse(string value, bool strict = false)
+        => new(ParseComponents(value, strict));
+
+    private static Components ParseComponents(string value, bool strict)
     {
         var match = s_uriRegex.Match(value);
         if (!match.Success)
@@ -110,39 +194,38 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
         var query = match.Groups[7].Success ? PercentDecode(match.Groups[7].Value) : string.Empty;
         var fragment = match.Groups[9].Success ? PercentDecode(match.Groups[9].Value) : string.Empty;
 
-        return CreateFromComponents(scheme, authority, path, query, fragment, strict);
+        return CreateComponents(scheme, authority, path, query, fragment, strict);
     }
 
     /// <summary>
     /// Creates a new URI from a file system path, e.g. <c>c:\my\files</c>,
     /// <c>/usr/home</c>, or <c>\\server\share\some\path</c>.
+    /// The canonical URI string is created immediately; URI components are parsed on first access.
     /// </summary>
     public static ParsedUri File(string path)
     {
         var authority = string.Empty;
 
-        // normalize to fwd-slashes on windows,
-        // on other systems bwd-slashes are valid
-        // filename character, eg /f\oo/ba\r.txt
+        // Normalize to forward slashes on Windows. On other systems, backslashes
+        // are valid file-name characters.
         if (s_isWindows)
         {
             path = path.Replace('\\', '/');
         }
 
-        // check for authority as used in UNC shares
-        // or use the path as given
+        // Check for authority as used in UNC shares, or use the path as given.
         if (path.Length >= 2 && path[0] == '/' && path[1] == '/')
         {
-            var idx = path.IndexOf('/', 2);
-            if (idx == -1)
+            var index = path.IndexOf('/', 2);
+            if (index == -1)
             {
                 authority = path.Substring(2);
                 path = "/";
             }
             else
             {
-                authority = path.Substring(2, idx - 2);
-                path = path.Substring(idx);
+                authority = path.Substring(2, index - 2);
+                path = path.Substring(index);
                 if (path.Length == 0)
                 {
                     path = "/";
@@ -150,7 +233,8 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
             }
         }
 
-        return CreateFromComponents("file", authority, path, string.Empty, string.Empty, strict: false);
+        var formatted = FormatFilePath(authority, path, out var offsets);
+        return new ParsedUri(formatted, offsets);
     }
 
     /// <summary>
@@ -165,12 +249,19 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
     /// <param name="skipEncoding">Do not encode the result.</param>
     public string ToString(bool skipEncoding)
     {
-        if (!skipEncoding && _formatted != null)
+        if (!skipEncoding)
         {
-            return _formatted;
+            return ToString();
         }
 
-        return AsFormatted(this, skipEncoding);
+        var formatted = _formattedWithoutEncoding;
+        if (formatted is not null)
+        {
+            return formatted;
+        }
+
+        formatted = AsFormatted(GetComponents(), skipEncoding: true);
+        return Interlocked.CompareExchange(ref _formattedWithoutEncoding, formatted, null) ?? formatted;
     }
 
     /// <summary>
@@ -178,13 +269,30 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
     /// </summary>
     public override string ToString()
     {
-        return _formatted ?? AsFormatted(this, skipEncoding: false);
+        var formatted = _formatted;
+        if (formatted is not null)
+        {
+            return formatted;
+        }
+
+        formatted = AsFormatted(GetComponents(), skipEncoding: false);
+        return Interlocked.CompareExchange(ref _formatted, formatted, null) ?? formatted;
     }
 
     #region Equality
 
-    public bool Equals(ParsedUri other)
+    public bool Equals(ParsedUri? other)
     {
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        if (other is null)
+        {
+            return false;
+        }
+
         // Schemes are always case-insensitive per RFC 3986 Section 3.1.
         if (!string.Equals(Scheme, other.Scheme, StringComparison.OrdinalIgnoreCase))
         {
@@ -227,14 +335,17 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
 #endif
     }
 
-    public static bool operator ==(ParsedUri left, ParsedUri right) => left.Equals(right);
-    public static bool operator !=(ParsedUri left, ParsedUri right) => !left.Equals(right);
+    public static bool operator ==(ParsedUri? left, ParsedUri? right)
+        => ReferenceEquals(left, right) || (left is not null && left.Equals(right));
+
+    public static bool operator !=(ParsedUri? left, ParsedUri? right)
+        => !(left == right);
 
     #endregion
 
     #region Validation helpers
 
-    private static void ValidateUri(ParsedUri uri, bool strict)
+    private static void ValidateUri(Components uri, bool strict)
     {
         // scheme, must be set in strict mode
         if (uri.Scheme.Length == 0 && strict)
@@ -346,75 +457,65 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
 
     private static string EncodeURIComponentFast(string uriComponent, bool isPath, bool isAuthority)
     {
-        StringBuilder? res = null;
-        var nativeEncodeStart = -1;
-
-        for (var pos = 0; pos < uriComponent.Length; pos++)
+        var pos = 0;
+        while (pos < uriComponent.Length && IsEncodingAllowed(uriComponent[pos], isPath, isAuthority))
         {
-            var code = uriComponent[pos];
-
-            // unreserved characters: https://tools.ietf.org/html/rfc3986#section-2.3
-            if ((code >= 'a' && code <= 'z')
-                || (code >= 'A' && code <= 'Z')
-                || (code >= '0' && code <= '9')
-                || code == '-'
-                || code == '.'
-                || code == '_'
-                || code == '~'
-                || (isPath && code == '/')
-                || (isAuthority && code == '[')
-                || (isAuthority && code == ']')
-                || (isAuthority && code == ':'))
-            {
-                // check if we are delaying native encode
-                if (nativeEncodeStart != -1)
-                {
-                    res ??= new StringBuilder();
-                    res.Append(PercentEncodeString(uriComponent.Substring(nativeEncodeStart, pos - nativeEncodeStart)));
-                    nativeEncodeStart = -1;
-                }
-
-                // check if we write into a new string (by default we try to return the param)
-                res?.Append(code);
-            }
-            else
-            {
-                // encoding needed, we need to allocate a new string
-                if (res == null)
-                {
-                    res = new StringBuilder(uriComponent, 0, pos, uriComponent.Length * 2);
-                }
-
-                // check with default table first
-                var escaped = GetEncodeTableEntry(code);
-                if (escaped != null)
-                {
-                    // check if we are delaying native encode
-                    if (nativeEncodeStart != -1)
-                    {
-                        res.Append(PercentEncodeString(uriComponent.Substring(nativeEncodeStart, pos - nativeEncodeStart)));
-                        nativeEncodeStart = -1;
-                    }
-
-                    // append escaped variant to result
-                    res.Append(escaped);
-                }
-                else if (nativeEncodeStart == -1)
-                {
-                    // use native encode only when needed
-                    nativeEncodeStart = pos;
-                }
-            }
+            pos++;
         }
 
-        if (nativeEncodeStart != -1)
+        if (pos == uriComponent.Length)
         {
-            res ??= new StringBuilder();
-            res.Append(PercentEncodeString(uriComponent.Substring(nativeEncodeStart)));
+            return uriComponent;
         }
 
-        return res != null ? res.ToString() : uriComponent;
+        var result = new StringBuilder(uriComponent, 0, pos, uriComponent.Length * 2);
+        AppendEncoded(result, uriComponent, pos, isPath, isAuthority);
+        return result.ToString();
     }
+
+    private static void AppendEncoded(StringBuilder result, string value, int start, bool isPath, bool isAuthority)
+    {
+        for (var pos = start; pos < value.Length; pos++)
+        {
+            var ch = value[pos];
+            if (IsEncodingAllowed(ch, isPath, isAuthority))
+            {
+                result.Append(ch);
+                continue;
+            }
+
+            var escaped = GetEncodeTableEntry(ch);
+            if (escaped is not null)
+            {
+                result.Append(escaped);
+                continue;
+            }
+
+            var nativeEnd = pos + 1;
+            while (nativeEnd < value.Length
+                && !IsEncodingAllowed(value[nativeEnd], isPath, isAuthority)
+                && GetEncodeTableEntry(value[nativeEnd]) is null)
+            {
+                nativeEnd++;
+            }
+
+            result.Append(PercentEncodeString(value.Substring(pos, nativeEnd - pos)));
+            pos = nativeEnd - 1;
+        }
+    }
+
+    private static bool IsEncodingAllowed(char ch, bool isPath, bool isAuthority)
+        => (ch >= 'a' && ch <= 'z')
+            || (ch >= 'A' && ch <= 'Z')
+            || (ch >= '0' && ch <= '9')
+            || ch == '-'
+            || ch == '.'
+            || ch == '_'
+            || ch == '~'
+            || (isPath && ch == '/')
+            || (isAuthority && ch == '[')
+            || (isAuthority && ch == ']')
+            || (isAuthority && ch == ':');
 
     private static string EncodeURIComponentMinimal(string path, bool isPath, bool isAuthority)
     {
@@ -549,6 +650,95 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
 
     #region Formatting
 
+    private static string FormatFilePath(string authority, string path, out FileComponentOffsets offsets)
+    {
+        var result = new StringBuilder("file://", 7 + authority.Length + path.Length + 8);
+        var authorityStart = result.Length;
+        AppendFormattedAuthority(result, authority, EncodeURIComponentFast);
+        var authorityLength = result.Length - authorityStart;
+
+        var pathStart = result.Length;
+        if (path.Length == 0)
+        {
+            result.Append('/');
+        }
+        else
+        {
+            var addLeadingSlash = path[0] != '/';
+            if (addLeadingSlash)
+            {
+                result.Append('/');
+            }
+
+            var driveLetterIndex = path.Length >= 3 && path[0] == '/' && path[2] == ':'
+                ? 1
+                : path.Length >= 2 && path[1] == ':'
+                    ? 0
+                    : -1;
+
+            if (driveLetterIndex >= 0 && path[driveLetterIndex] is >= 'A' and <= 'Z')
+            {
+                if (driveLetterIndex == 1)
+                {
+                    result.Append('/');
+                }
+
+                result.Append((char)(path[driveLetterIndex] + ('a' - 'A')));
+                AppendEncoded(result, path, driveLetterIndex + 1, isPath: true, isAuthority: false);
+            }
+            else
+            {
+                AppendEncoded(result, path, start: 0, isPath: true, isAuthority: false);
+            }
+        }
+
+        offsets = new FileComponentOffsets(authorityStart, authorityLength, pathStart, result.Length - pathStart);
+        return result.ToString();
+    }
+
+    private static void AppendFormattedAuthority(StringBuilder result, string authority, Encoder encoder)
+    {
+        if (authority.Length == 0)
+        {
+            return;
+        }
+
+        var index = authority.IndexOf('@');
+        if (index != -1)
+        {
+            // <user>@<auth>
+            var userinfo = authority.Substring(0, index);
+            authority = authority.Substring(index + 1);
+            index = userinfo.LastIndexOf(':');
+            if (index == -1)
+            {
+                result.Append(encoder(userinfo, false, false));
+            }
+            else
+            {
+                // <user>:<pass>@<auth>
+                result.Append(encoder(userinfo.Substring(0, index), false, false));
+                result.Append(':');
+                result.Append(encoder(userinfo.Substring(index + 1), false, true));
+            }
+
+            result.Append('@');
+        }
+
+        authority = authority.ToLowerInvariant();
+        index = authority.LastIndexOf(':');
+        if (index == -1)
+        {
+            result.Append(encoder(authority, false, true));
+        }
+        else
+        {
+            // <auth>:<port>
+            result.Append(encoder(authority.Substring(0, index), false, true));
+            result.Append(authority.Substring(index));
+        }
+    }
+
     /// <summary>
     /// Compute fsPath for the given URI components.
     /// </summary>
@@ -608,18 +798,18 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
     /// <summary>
     /// Create the external version of a URI.
     /// </summary>
-    private static string AsFormatted(ParsedUri uri, bool skipEncoding)
+    private static string AsFormatted(Components components, bool skipEncoding)
     {
         Encoder encoder = !skipEncoding
             ? EncodeURIComponentFast
             : EncodeURIComponentMinimal;
 
         var res = new StringBuilder();
-        var scheme = uri.Scheme;
-        var authority = uri.Authority;
-        var path = uri.Path;
-        var query = uri.Query;
-        var fragment = uri.Fragment;
+        var scheme = components.Scheme;
+        var authority = components.Authority;
+        var path = components.Path;
+        var query = components.Query;
+        var fragment = components.Fragment;
 
         if (scheme.Length > 0)
         {
@@ -632,43 +822,7 @@ internal readonly struct ParsedUri : IEquatable<ParsedUri>
             res.Append("//");
         }
 
-        if (authority.Length > 0)
-        {
-            var idx = authority.IndexOf('@');
-            if (idx != -1)
-            {
-                // <user>@<auth>
-                var userinfo = authority.Substring(0, idx);
-                authority = authority.Substring(idx + 1);
-                idx = userinfo.LastIndexOf(':');
-                if (idx == -1)
-                {
-                    res.Append(encoder(userinfo, false, false));
-                }
-                else
-                {
-                    // <user>:<pass>@<auth>
-                    res.Append(encoder(userinfo.Substring(0, idx), false, false));
-                    res.Append(':');
-                    res.Append(encoder(userinfo.Substring(idx + 1), false, true));
-                }
-
-                res.Append('@');
-            }
-
-            authority = authority.ToLowerInvariant();
-            idx = authority.LastIndexOf(':');
-            if (idx == -1)
-            {
-                res.Append(encoder(authority, false, true));
-            }
-            else
-            {
-                // <auth>:<port>
-                res.Append(encoder(authority.Substring(0, idx), false, true));
-                res.Append(authority.Substring(idx));
-            }
-        }
+        AppendFormattedAuthority(res, authority, encoder);
 
         if (path.Length > 0)
         {

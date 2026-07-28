@@ -149,7 +149,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Null(uri.ParsedUri);
 #pragma warning restore CS0618 // Type or member is obsolete
         Assert.NotNull(uri.ParsedDocumentUri);
-        Assert.Equal(filePath, uri.ParsedDocumentUri.Value.FsPath);
+        Assert.Equal(filePath, uri.ParsedDocumentUri.FsPath);
     }
 
     [ConditionalFact(typeof(WindowsOnly))]

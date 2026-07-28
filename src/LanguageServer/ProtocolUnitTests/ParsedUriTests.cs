@@ -171,14 +171,13 @@ public sealed class ParsedUriTests
     }
 
     [Fact]
-    public void Default_Struct()
+    public void CalculatedValues_AreCached()
     {
-        var uri = default(ParsedUri);
-        Assert.Null(uri.Scheme);
-        Assert.Null(uri.Authority);
-        Assert.Null(uri.Path);
-        Assert.Null(uri.Query);
-        Assert.Null(uri.Fragment);
+        var uri = ParsedUri.Parse("file:///C:/test%20path/file.cs?line=1#fragment");
+
+        Assert.Same(uri.FsPath, uri.FsPath);
+        Assert.Same(uri.ToString(), uri.ToString());
+        Assert.Same(uri.ToString(skipEncoding: true), uri.ToString(skipEncoding: true));
     }
 
     public static TheoryData<UriCase> ParseCases => new()
@@ -426,7 +425,7 @@ public sealed class ParsedUriTests
         new("C:/win/path")
         {
             Scheme = "file",
-            Path = "/C:/win/path",
+            Path = "/c:/win/path",
             ExpectedToString = "file:///c%3A/win/path",
             WindowsFsPath = @"c:\win\path",
             UnixFsPath = "c:/win/path",
@@ -487,6 +486,14 @@ public sealed class ParsedUriTests
             WindowsFsPath = @"\Users\jrieken\Code\_samples\18500\Mödel + Other Thîngß\model.js",
             UnixFsPath = "/Users/jrieken/Code/_samples/18500/Mödel + Other Thîngß/model.js",
         },
+        new("/emoji/😀.cs")
+        {
+            Scheme = "file",
+            Path = "/emoji/😀.cs",
+            ExpectedToString = "file:///emoji/%F0%9F%98%80.cs",
+            WindowsFsPath = @"\emoji\😀.cs",
+            UnixFsPath = "/emoji/😀.cs",
+        },
     };
 
     public static TheoryData<UriCase> FileWindowsCases => new()
@@ -521,6 +528,22 @@ public sealed class ParsedUriTests
             ExpectedToString = "file://localhost/c%24/GitDevelopment/express",
             WindowsFsPath = @"\\localhost\c$\GitDevelopment\express",
         },
+        new(@"\\SERVER\Share\Path")
+        {
+            Scheme = "file",
+            Authority = "server",
+            Path = "/Share/Path",
+            ExpectedToString = "file://server/Share/Path",
+            WindowsFsPath = @"\\server\Share\Path",
+        },
+        new(@"\\𐐀\Share")
+        {
+            Scheme = "file",
+            Authority = "𐐨",
+            Path = "/Share",
+            ExpectedToString = "file://%F0%90%90%A8/Share",
+            WindowsFsPath = @"\\𐐨\Share",
+        },
         new(@"c:\test with %\path")
         {
             Scheme = "file",
@@ -545,49 +568,49 @@ public sealed class ParsedUriTests
         new("C:/")
         {
             Scheme = "file",
-            Path = "/C:/",
+            Path = "/c:/",
             ExpectedToString = "file:///c%3A/",
             WindowsFsPath = @"c:\",
         },
         new(@"C:\")
         {
             Scheme = "file",
-            Path = "/C:/",
+            Path = "/c:/",
             ExpectedToString = "file:///c%3A/",
             WindowsFsPath = @"c:\",
         },
         new(@"C:\a\b")
         {
             Scheme = "file",
-            Path = "/C:/a/b",
+            Path = "/c:/a/b",
             ExpectedToString = "file:///c%3A/a/b",
             WindowsFsPath = @"c:\a\b",
         },
         new(@"C:\a\\b")
         {
             Scheme = "file",
-            Path = "/C:/a//b",
+            Path = "/c:/a//b",
             ExpectedToString = "file:///c%3A/a//b",
             WindowsFsPath = @"c:\a\\b",
         },
         new("C:\\%25\ue25b/a\\b")
         {
             Scheme = "file",
-            Path = "/C:/%25/a/b",
+            Path = "/c:/%25/a/b",
             ExpectedToString = "file:///c%3A/%2525%EE%89%9B/a/b",
             WindowsFsPath = @"c:\%25\a\b",
         },
         new("C:\\%25\ue25b/a\\\\b")
         {
             Scheme = "file",
-            Path = "/C:/%25/a//b",
+            Path = "/c:/%25/a//b",
             ExpectedToString = "file:///c%3A/%2525%EE%89%9B/a//b",
             WindowsFsPath = @"c:\%25\a\\b",
         },
         new("C:\\\u0089\uC7BD")
         {
             Scheme = "file",
-            Path = "/C:/잽",
+            Path = "/c:/잽",
             ExpectedToString = "file:///c%3A/%C2%89%EC%9E%BD",
             WindowsFsPath = @"c:\잽",
         },
@@ -610,49 +633,49 @@ public sealed class ParsedUriTests
         new("C:\\ !$&'()+,-;=@[]_~#")
         {
             Scheme = "file",
-            Path = "/C:/ !$&'()+,-;=@[]_~#",
+            Path = "/c:/ !$&'()+,-;=@[]_~#",
             ExpectedToString = "file:///c%3A/%20%21%24%26%27%28%29%2B%2C-%3B%3D%40%5B%5D_~%23",
             WindowsFsPath = @"c:\ !$&'()+,-;=@[]_~#",
         },
         new("C:\\ !$&'()+,-;=@[]_~#\ue25b")
         {
             Scheme = "file",
-            Path = "/C:/ !$&'()+,-;=@[]_~#",
+            Path = "/c:/ !$&'()+,-;=@[]_~#",
             ExpectedToString = "file:///c%3A/%20%21%24%26%27%28%29%2B%2C-%3B%3D%40%5B%5D_~%23%EE%89%9B",
             WindowsFsPath = @"c:\ !$&'()+,-;=@[]_~#",
         },
         new("C:\\\u0073\u0323\u0307")
         {
             Scheme = "file",
-            Path = "/C:/ṩ",
+            Path = "/c:/ṩ",
             ExpectedToString = "file:///c%3A/s%CC%A3%CC%87",
             WindowsFsPath = @"c:\ṩ",
         },
         new("A:/\\\u200e//")
         {
             Scheme = "file",
-            Path = "/A://‎//",
+            Path = "/a://‎//",
             ExpectedToString = "file:///a%3A//%E2%80%8E//",
             WindowsFsPath = @"a:\\‎\\",
         },
         new("B:\\/\u200e")
         {
             Scheme = "file",
-            Path = "/B://‎",
+            Path = "/b://‎",
             ExpectedToString = "file:///b%3A//%E2%80%8E",
             WindowsFsPath = @"b:\\‎",
         },
         new("C:/\\\\-Ā\r")
         {
             Scheme = "file",
-            Path = "/C:///-Ā\r",
+            Path = "/c:///-Ā\r",
             ExpectedToString = "file:///c%3A///-%C4%80%0D",
             WindowsFsPath = @"c:\\\-Ā" + "\r",
         },
         new("D:\\\\\\\\\u200e")
         {
             Scheme = "file",
-            Path = "/D:////‎",
+            Path = "/d:////‎",
             ExpectedToString = "file:///d%3A////%E2%80%8E",
             WindowsFsPath = @"d:\\\\‎",
         },

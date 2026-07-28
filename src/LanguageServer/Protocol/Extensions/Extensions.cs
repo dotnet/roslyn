@@ -80,13 +80,14 @@ internal static partial class Extensions
 
     public static ParsedUri GetRequiredParsedUri(this DocumentUri documentUri)
     {
-        Contract.ThrowIfNull(documentUri.ParsedDocumentUri, $"URI {documentUri} could not be parsed");
-        return documentUri.ParsedDocumentUri.Value;
+        var parsedDocumentUri = documentUri.ParsedDocumentUri;
+        Contract.ThrowIfNull(parsedDocumentUri, $"URI {documentUri} could not be parsed");
+        return parsedDocumentUri;
     }
 
     public static string GetDocumentFilePathFromUri(this DocumentUri uri)
     {
-        return uri.ParsedDocumentUri?.IsFile == true ? uri.ParsedDocumentUri.Value.FsPath : uri.UriString;
+        return uri.ParsedDocumentUri is { IsFile: true } parsedDocumentUri ? parsedDocumentUri.FsPath : uri.UriString;
     }
 
     /// <summary>
@@ -127,7 +128,7 @@ internal static partial class Extensions
         // We can get a null documentId if we were unable to find the project associated with the
         // generated document - this can happen if say a project is unloaded.  There may be LSP requests
         // already in-flight which may ask for a generated document from that project.  So we return null
-        var documentId = SourceGeneratedDocumentUri.DeserializeIdentity(solution, documentUri.ParsedDocumentUri.Value)?.DocumentId;
+        var documentId = SourceGeneratedDocumentUri.DeserializeIdentity(solution, documentUri.GetRequiredParsedUri())?.DocumentId;
 
         return documentId is not null ? [documentId] : [];
     }
@@ -216,12 +217,13 @@ internal static partial class Extensions
     public static Project? GetProject(this Solution solution, TextDocumentIdentifier projectIdentifier)
     {
         // We need to parse the URI (scheme, file path) to be able to lookup the URI in the solution.
-        if (projectIdentifier.DocumentUri.ParsedDocumentUri is null)
+        var parsedDocumentUri = projectIdentifier.DocumentUri.ParsedDocumentUri;
+        if (parsedDocumentUri is null)
         {
             return null;
         }
 
-        var projects = solution.Projects.WhereAsArray(project => string.Equals(project.FilePath, projectIdentifier.DocumentUri.ParsedDocumentUri.Value.FsPath, StringComparison.OrdinalIgnoreCase));
+        var projects = solution.Projects.WhereAsArray(project => string.Equals(project.FilePath, parsedDocumentUri.FsPath, StringComparison.OrdinalIgnoreCase));
         return !projects.Any()
             ? null
             : FindItemInProjectContext(projects, projectIdentifier, projectIdGetter: (item) => item.Id, defaultGetter: () => projects[0]);
