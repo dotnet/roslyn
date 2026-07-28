@@ -155,5 +155,55 @@ Integer
             Assert.Equal(SyntaxKind.SubLambdaHeader, lambda.SubOrFunctionHeader.Kind())
             Assert.Equal(SyntaxKind.EndSubStatement, lambda.EndSubOrFunctionStatement.Kind())
         End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+        Public Sub MultiLineFunctionLambdaExpression_RejectsSubLambdaHeader()
+            Assert.Throws(Of ArgumentException)(
+                Function() SyntaxFactory.MultiLineFunctionLambdaExpression(
+                    SyntaxFactory.SubLambdaHeader(),
+                    SyntaxFactory.EndFunctionStatement()))
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+        Public Sub MultiLineSubLambdaExpression_RejectsFunctionLambdaHeader()
+            Assert.Throws(Of ArgumentException)(
+                Function() SyntaxFactory.MultiLineSubLambdaExpression(
+                    SyntaxFactory.FunctionLambdaHeader(),
+                    SyntaxFactory.EndSubStatement()))
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+        Public Sub SingleLineFunctionLambdaExpression_UsesFunctionLambdaHeader()
+            Dim header = SyntaxFactory.FunctionLambdaHeader()
+            Dim lambda = SyntaxFactory.SingleLineFunctionLambdaExpression(header, SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)))
+
+            Assert.Equal(SyntaxKind.SingleLineFunctionLambdaExpression, lambda.Kind())
+            Assert.Equal(SyntaxKind.FunctionLambdaHeader, lambda.SubOrFunctionHeader.Kind())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+        Public Sub SingleLineSubLambdaExpression_UsesSubLambdaHeader()
+            Dim header = SyntaxFactory.SubLambdaHeader()
+            Dim lambda = SyntaxFactory.SingleLineSubLambdaExpression(header, SyntaxFactory.EmptyStatement())
+
+            Assert.Equal(SyntaxKind.SingleLineSubLambdaExpression, lambda.Kind())
+            Assert.Equal(SyntaxKind.SubLambdaHeader, lambda.SubOrFunctionHeader.Kind())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+        Public Sub SingleLineFunctionLambdaExpression_RejectsSubLambdaHeader()
+            Assert.Throws(Of ArgumentException)(
+                Function() SyntaxFactory.SingleLineFunctionLambdaExpression(
+                    SyntaxFactory.SubLambdaHeader(),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1))))
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+        Public Sub SingleLineSubLambdaExpression_RejectsFunctionLambdaHeader()
+            Assert.Throws(Of ArgumentException)(
+                Function() SyntaxFactory.SingleLineSubLambdaExpression(
+                    SyntaxFactory.FunctionLambdaHeader(),
+                    SyntaxFactory.EmptyStatement()))
+        End Sub
     End Class
 End Namespace
