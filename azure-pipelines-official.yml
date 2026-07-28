@@ -64,10 +64,12 @@ variables:
   - group: DotNet-Versions-Publish
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
+  # Populated at runtime by the 'Get DevDiv Drop Access Token' AzureCLI@2 step
+  # (WIF service connection dnceng-devdiv-drop-rw-code-rw-wif). See dotnet/roslyn#83726.
   - name: _DevDivDropAccessToken
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
+    value: ''
   - name: ArtifactServices.Drop.PAT
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
+    value: ''
   - group: AzureDevOps-Artifact-Feeds-Pats
 
   - name: BuildConfiguration
@@ -328,6 +330,26 @@ extends:
                   TargetFolder: '$(Build.ArtifactStagingDirectory)\insertion'
                   FlattenFolders: true
                 condition: succeeded()
+
+              # Acquire an Entra token for the DevDiv drop via the WIF service connection
+              # (cross-account: dnceng -> devdiv). Done immediately before the upload so the
+              # token does not expire during the long build/sign steps. See dotnet/roslyn#83726.
+              # The --resource GUID (499b84ac-1321-427f-aa17-267ca6975798) is the Azure DevOps app ID.
+              - task: AzureCLI@2
+                displayName: 'Get DevDiv Drop Access Token'
+                condition: and(succeeded(), eq(variables['SignType'], 'Real'))
+                inputs:
+                  azureSubscription: 'dnceng-devdiv-drop-rw-code-rw-wif'
+                  scriptType: pscore
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+                    if ($LASTEXITCODE -ne 0) {
+                      Write-Error "Failed to acquire DevDiv drop access token"
+                      exit 1
+                    }
+                    Write-Host "##vso[task.setvariable variable=_DevDivDropAccessToken;issecret=true]$token"
+                    Write-Host "##vso[task.setvariable variable=ArtifactServices.Drop.PAT;issecret=true]$token"
 
               - task: 1ES.MicroBuildVstsDrop@1
                 displayName: "Upload artifacts to VSTS Drop"
