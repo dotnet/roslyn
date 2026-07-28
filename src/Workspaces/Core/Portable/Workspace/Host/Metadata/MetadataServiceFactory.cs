@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -14,10 +15,16 @@ namespace Microsoft.CodeAnalysis.Host;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
 {
-    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new MetadataService(workspaceServices.GetRequiredService<IDocumentationProviderService>());
+    private readonly SharedMetadataCache _sharedMetadataCache = new();
 
-    internal sealed class MetadataService(IDocumentationProviderService documentationProviderService) : IMetadataService
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new MetadataService(
+            workspaceServices.GetRequiredService<IDocumentationProviderService>(),
+            _sharedMetadataCache);
+
+    internal sealed class MetadataService(
+        IDocumentationProviderService documentationProviderService,
+        SharedMetadataCache metadataCache) : IMetadataService
     {
         private readonly MetadataReferenceCache _metadataCache = new((path, properties) =>
         {
@@ -25,7 +32,17 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
 
             try
             {
-                return MetadataReference.CreateFromFile(path, properties, documentationProvider);
+                var metadata = metadataCache.GetMetadata(path, properties.Kind);
+                return metadata switch
+                {
+                    AssemblyMetadata assembly => assembly.GetReference(
+                        documentationProvider,
+                        properties.Aliases,
+                        properties.EmbedInteropTypes,
+                        path),
+                    ModuleMetadata module => module.GetReference(documentationProvider, path),
+                    _ => throw ExceptionUtilities.UnexpectedValue(metadata.Kind),
+                };
             }
             catch (IOException e)
             {

@@ -50,9 +50,9 @@ internal sealed class MetadataReferenceCache(Func<string, MetadataReferencePrope
                 if (!(_references.TryGetValue(properties, out var weakref) && weakref.TryGetTarget(out mref)))
                 {
                     // try to base this metadata reference off of an existing one, so we don't load the metadata bytes twice.
-                    foreach (var wr in _references.Values)
+                    foreach (var (existingProperties, wr) in _references)
                     {
-                        if (wr.TryGetTarget(out mref))
+                        if (existingProperties.Kind == properties.Kind && wr.TryGetTarget(out mref))
                         {
                             mref = mref.WithProperties(properties);
                             break;
