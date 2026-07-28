@@ -111,7 +111,7 @@ internal sealed class CSharpEncapsulateFieldService() : AbstractEncapsulateField
                 cancellationToken).ConfigureAwait(false);
             root = await withField.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var newFieldDeclaration = root.GetAnnotatedNodes(CodeGenerator.Annotation).First() as FieldDeclarationSyntax;
+            var newFieldDeclaration = (FieldDeclarationSyntax)root.GetAnnotatedNodes(CodeGenerator.Annotation).First();
             var newFieldDeclarator = newFieldDeclaration.Declaration.Variables.First();
             root = root.ReplaceNode(newFieldDeclarator, newFieldDeclarator.WithAdditionalAnnotations(declarationAnnotation));
 
