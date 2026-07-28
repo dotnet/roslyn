@@ -63,7 +63,6 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     private static readonly bool s_isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-    private static readonly Regex s_uriRegex = new(@"^(([^:/?#]+?):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?", RegexOptions.Compiled);
     private static readonly Regex s_schemePattern = new(@"^[A-Za-z_][A-Za-z0-9_+.\-]*$", RegexOptions.Compiled);
     private static readonly Regex s_singleSlashStart = new(@"^/", RegexOptions.Compiled);
     private static readonly Regex s_doubleSlashStart = new(@"^//", RegexOptions.Compiled);
@@ -182,18 +181,91 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     private static Components ParseComponents(string value, bool strict)
     {
-        var match = s_uriRegex.Match(value);
-        if (!match.Success)
+        var span = value.AsSpan();
+        var position = 0;
+        var schemeLength = 0;
+
+        while (position < span.Length)
         {
-            throw new UriFormatException($"[UriError]: URI could not be parsed: \"{value}\"");
+            var ch = span[position];
+            if (ch == ':')
+            {
+                if (position > 0)
+                {
+                    schemeLength = position;
+                    position++;
+                }
+
+                break;
+            }
+
+            if (ch is '/' or '?' or '#')
+            {
+                break;
+            }
+
+            position++;
         }
 
-        var scheme = match.Groups[2].Success ? match.Groups[2].Value : string.Empty;
-        var authority = match.Groups[4].Success ? PercentDecode(match.Groups[4].Value) : string.Empty;
-        var path = PercentDecode(match.Groups[5].Value);
-        var query = match.Groups[7].Success ? PercentDecode(match.Groups[7].Value) : string.Empty;
-        var fragment = match.Groups[9].Success ? PercentDecode(match.Groups[9].Value) : string.Empty;
+        if (schemeLength == 0)
+        {
+            position = 0;
+        }
 
+        var authorityStart = 0;
+        var authorityLength = 0;
+        if (position + 1 < span.Length && span[position] == '/' && span[position + 1] == '/')
+        {
+            position += 2;
+            authorityStart = position;
+            while (position < span.Length && span[position] is not ('/' or '?' or '#'))
+            {
+                position++;
+            }
+
+            authorityLength = position - authorityStart;
+        }
+
+        var pathStart = position;
+        while (position < span.Length && span[position] is not ('?' or '#'))
+        {
+            position++;
+        }
+
+        var pathLength = position - pathStart;
+        var queryStart = 0;
+        var queryLength = 0;
+        if (position < span.Length && span[position] == '?')
+        {
+            position++;
+            queryStart = position;
+            while (position < span.Length && span[position] != '#')
+            {
+                position++;
+            }
+
+            queryLength = position - queryStart;
+        }
+
+        var fragmentStart = 0;
+        var fragmentLength = 0;
+        if (position < span.Length && span[position] == '#')
+        {
+            position++;
+            fragmentStart = position;
+            while (position < span.Length && span[position] != '\n')
+            {
+                position++;
+            }
+
+            fragmentLength = position - fragmentStart;
+        }
+
+        var scheme = schemeLength == 0 ? string.Empty : value.Substring(0, schemeLength);
+        var authority = authorityLength == 0 ? string.Empty : PercentDecode(value.Substring(authorityStart, authorityLength));
+        var path = PercentDecode(pathLength == 0 ? string.Empty : value.Substring(pathStart, pathLength));
+        var query = queryLength == 0 ? string.Empty : PercentDecode(value.Substring(queryStart, queryLength));
+        var fragment = fragmentLength == 0 ? string.Empty : PercentDecode(value.Substring(fragmentStart, fragmentLength));
         return CreateComponents(scheme, authority, path, query, fragment, strict);
     }
 
