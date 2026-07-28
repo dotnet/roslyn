@@ -72,7 +72,7 @@
         <target state="translated">Фильтр</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
-      <trans-unit id="Generate_documentation">
+      <trans-unit id="generate_documentation">
         <source>generate documentation</source>
         <target state="new">generate documentation</target>
         <note>Accept action shown on the documentation-comment chip, e.g. "Tab to generate documentation".</note>

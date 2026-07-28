@@ -72,7 +72,7 @@ internal sealed class CopilotGenerateDocumentationCommentManager
             new InlinePromptOptions
             {
                 ProviderName = GenerateDocumentationProviderName,
-                AcceptDescription = EditorFeaturesResources.Generate_documentation,
+                AcceptDescription = EditorFeaturesResources.generate_documentation,
                 AutoAccept = false,
 
                 // Opt out: the buffer edit and caret move right after showing would otherwise dismiss the chip.
