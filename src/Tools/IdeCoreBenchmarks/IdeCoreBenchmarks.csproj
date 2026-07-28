@@ -51,6 +51,16 @@
     <ProjectReference Include="..\AnalyzerRunner\AnalyzerRunner.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetRoslyn)'">
+    <ProjectReference Include="..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj" />
+    <ProjectReference Include="..\..\LanguageServer\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Compile Remove="LanguageServerDaemonBenchmarks.cs" />
+    <Compile Remove="LanguageServerBenchmarkHost.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <!-- These aren't used by the build, but it allows the tool to locate dependencies of the built-in analyzers. -->
     <ProjectReference Include="..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />

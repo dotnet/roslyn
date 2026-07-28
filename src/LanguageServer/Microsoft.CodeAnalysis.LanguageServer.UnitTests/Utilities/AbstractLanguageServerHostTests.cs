@@ -15,6 +15,7 @@ using StreamJsonRpc;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 
@@ -211,6 +212,25 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         internal T GetRequiredLspService<T>() where T : class
             => GetServerForLspServices().GetLspServices().GetRequiredService<T>();
 
+        internal async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfTrue(projectFilePaths.IsEmpty);
+
+            var completionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            _clientRpc.AddLocalRpcMethod(
+                ProjectInitializationHandler.ProjectInitializationCompleteName,
+                () => completionSource.TrySetResult());
+
+            await ExecuteNotificationAsync(
+                OpenProjectHandler.OpenProjectName,
+                new OpenProjectHandler.NotificationParams
+                {
+                    Projects = [.. projectFilePaths.Select(ProtocolConversions.CreateAbsoluteDocumentUri)],
+                });
+
+            await completionSource.Task.WaitAsync(cancellationToken);
+        }
+
         /// <summary>The language server host whose MEF services back <see cref="GetRequiredLspService{T}"/>.</summary>
         private protected abstract LanguageServerHost GetServerForLspServices();
 
@@ -378,6 +398,9 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         // A "crashed" client has already dropped its transport, so skip the clean shutdown/exit handshake on dispose.
         private protected override bool ShouldShutDownCleanly => !_crashed;
+
+        private protected override Task WaitForServerShutdownAsync()
+            => _daemonServer?.WaitForExitAsync() ?? Task.CompletedTask;
 
         private protected override ValueTask DisposeTransportAsync() => _daemonClientStream.DisposeAsync();
     }
