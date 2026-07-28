@@ -301,7 +301,9 @@ extends:
                     Write-Host "Found $($packages.Count) packages to push"
                     foreach ($pkg in $packages) {
                       Write-Host "Pushing $($pkg.Name)..."
-                      & dotnet nuget push $pkg.FullName --source $feedUrl --api-key AzureDevOps --skip-duplicate
+                      # Use nuget.exe (6.2.4 from NuGetToolInstaller@1) rather than 'dotnet nuget push':
+                      # global.json pins the .NET SDK to 2.1.526, whose 'dotnet nuget push' does not support --skip-duplicate.
+                      & nuget.exe push $pkg.FullName -Source $feedUrl -ApiKey AzureDevOps -SkipDuplicate -NonInteractive
                       if ($LASTEXITCODE -ne 0) {
                         Write-Error "Failed to push $($pkg.Name)"
                         exit 1
