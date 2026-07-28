@@ -86,6 +86,7 @@ internal static class ProjectAssetsReader
                 isFinalBlock = readCount == 0;
 
                 var reader = new Utf8JsonReader(buffer.AsSpan(0, bufferedCount), isFinalBlock, state);
+                // The expected json structure is indicated by the conditional logic below.
                 while (reader.Read())
                 {
                     if (atLibrariesValue)
