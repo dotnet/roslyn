@@ -51,7 +51,7 @@ internal sealed class RemoteLinkedEditingRangeService(in ServiceArgs args) : Raz
 
         var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
 
-        // We only care if the user is within a TagHelper or HTML tag with a valid start and end tag.
+        // We only care if the user is within a TagHelper or HTML tag with a start and end tag.
         if (TryGetNearestMarkupNameTokens(syntaxTree, validLocation, out var startTagNameToken, out var endTagNameToken) &&
             (startTagNameToken.Span.Contains(validLocation.AbsoluteIndex) || endTagNameToken.Span.Contains(validLocation.AbsoluteIndex) ||
             startTagNameToken.Span.End == validLocation.AbsoluteIndex || endTagNameToken.Span.End == validLocation.AbsoluteIndex))
@@ -87,7 +87,9 @@ internal sealed class RemoteLinkedEditingRangeService(in ServiceArgs args) : Raz
             startTagNameToken = startTag?.Name ?? default;
             endTagNameToken = endTag?.Name ?? default;
 
-            return startTagNameToken.IsValid() && endTagNameToken.IsValid();
+            // Empty tag pairs use missing name tokens whose zero-width spans start linked editing.
+            return (startTagNameToken.IsValid() && endTagNameToken.IsValid()) ||
+                (startTagNameToken.IsMissing && endTagNameToken.IsMissing);
         }
 
         throw new InvalidOperationException("Element is expected to be a MarkupTagHelperElement or MarkupElement.");

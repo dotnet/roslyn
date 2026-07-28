@@ -38,23 +38,21 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         Assert.Equal(expectedResult, result);
     }
 
-    public static TheoryData<bool, bool, bool, bool> IsRemoteClientTestData { get; } = new()
+    public static TheoryData<bool, bool, bool> IsRemoteClientTestData { get; } = new()
     {
-        // isLiveShareHostActive, isLiveShareGuestActive, cloudEnvironmentConnectedActive, expectedResult
-        { false, false, false, false },
-        { true, false, false, false },
-        { false, true, false, true },
-        { false, false, true, true },
-        { true, false, true, true },
-        { true, true, true, true }
+        // isLiveShareHostActive, isLiveShareGuestActive, expectedResult
+        { false, false, false },
+        { true, false, false },
+        { false, true, true },
+        { true, true, true }
     };
 
     [UITheory]
     [MemberData(nameof(IsRemoteClientTestData))]
-    public void IsRemoteClient(bool liveShareHostActive, bool liveShareGuestActive, bool cloudEnvironmentConnectedActive, bool expectedResult)
+    public void IsRemoteClient(bool liveShareHostActive, bool liveShareGuestActive, bool expectedResult)
     {
         // Arrange
-        var uiContextService = CreateUIContextService(liveShareHostActive, liveShareGuestActive, cloudEnvironmentConnectedActive);
+        var uiContextService = CreateUIContextService(liveShareHostActive, liveShareGuestActive);
         var featureDetector = CreateLspEditorFeatureDetector(uiContextService);
 
         // Act
@@ -64,23 +62,21 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         Assert.Equal(expectedResult, result);
     }
 
-    public static TheoryData<bool, bool, bool, bool> IsLiveShareHostTestData { get; } = new()
+    public static TheoryData<bool, bool, bool> IsLiveShareHostTestData { get; } = new()
     {
-        // isLiveShareHostActive, isLiveShareGuestActive, cloudEnvironmentConnectedActive, expectedResult
-        { false, false, false, false },
-        { true, false, false, true },
-        { false, true, false, false },
-        { false, false, true, false },
-        { true, false, true, true },
-        { true, true, true, true }
+        // isLiveShareHostActive, isLiveShareGuestActive, expectedResult
+        { false, false, false },
+        { true, false, true },
+        { false, true, false },
+        { true, true, true }
     };
 
     [UITheory]
     [MemberData(nameof(IsLiveShareHostTestData))]
-    public void IsLiveShareHost(bool liveShareHostActive, bool liveShareGuestActive, bool cloudEnvironmentConnectedActive, bool expectedResult)
+    public void IsLiveShareHost(bool liveShareHostActive, bool liveShareGuestActive, bool expectedResult)
     {
         // Arrange
-        var uiContextService = CreateUIContextService(liveShareHostActive, liveShareGuestActive, cloudEnvironmentConnectedActive);
+        var uiContextService = CreateUIContextService(liveShareHostActive, liveShareGuestActive);
         var featureDetector = CreateLspEditorFeatureDetector(uiContextService);
 
         // Act
@@ -117,8 +113,7 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
 
     private static IUIContextService CreateUIContextService(
         bool liveShareHostActive = false,
-        bool liveShareGuestActive = false,
-        bool cloudEnvironmentConnectedActive = false)
+        bool liveShareGuestActive = false)
     {
         var mock = new StrictMock<IUIContextService>();
 
@@ -127,12 +122,6 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
 
         mock.Setup(x => x.IsActive(Guids.LiveShareGuestUIContextGuid))
             .Returns(liveShareGuestActive);
-
-        // https://github.com/dotnet/roslyn/issues/84261: Revisit use of obsolete CloudEnvironmentConnected_guid.
-#pragma warning disable CS0618 // Type or member is obsolete
-        mock.Setup(x => x.IsActive(VSConstants.UICONTEXT.CloudEnvironmentConnected_guid))
-            .Returns(cloudEnvironmentConnectedActive);
-#pragma warning restore CS0618 // Type or member is obsolete
 
         return mock.Object;
     }

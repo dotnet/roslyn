@@ -31,6 +31,7 @@ internal sealed class BuildHostProjectFileInfoProvider(
             targetFramework: null,
             () => buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken)
         ).ConfigureAwait(false);
+        await using var _ = projectFile.ConfigureAwait(false);
 
         // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
         var diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal BoundListPattern WithSubpatterns(ImmutableArray<BoundPattern> subpatterns)
         {
-            return Update(subpatterns, this.HasSlice, this.LengthAccess, this.IndexerAccess, this.ReceiverPlaceholder, this.ArgumentPlaceholder, this.Variable, this.VariableAccess, this.IsUnionMatching, this.InputType, this.NarrowedType);
+            return Update(subpatterns, this.HasSlice, this.LengthAccess, this.IndexerAccess, this.ReceiverPlaceholder, this.ArgumentPlaceholder, this.Variable, this.VariableAccess, this.InputType, this.NarrowedType);
         }
 
         private partial void Validate()
@@ -22,15 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(LengthAccess is null or BoundPropertyAccess or BoundBadExpression);
             Debug.Assert(IndexerAccess is null or BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess or BoundPointerElementAccess);
             Debug.Assert(Binder.GetIndexerOrImplicitIndexerSymbol(IndexerAccess) is var _);
-
-            if (IsUnionMatching)
-            {
-                Debug.Assert(NarrowedType.IsObjectType());
-            }
-            else
-            {
-                Debug.Assert(NarrowedType.Equals(InputType.StrippedType(), TypeCompareKind.AllIgnoreOptions));
-            }
+            Debug.Assert(UnionMatchingMode == UnionMatchingMode.None);
+            Debug.Assert(NarrowedType.Equals(InputType.StrippedType(), TypeCompareKind.AllIgnoreOptions));
         }
     }
 }

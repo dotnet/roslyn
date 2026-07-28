@@ -99,6 +99,12 @@ public sealed class CompletionContext
     }
 
     /// <summary>
+    /// When <see cref="IsExclusive"/>, set this to still allow expand items (e.g. unimported types) to be shown
+    /// alongside this provider's items. Other regular providers remain suppressed. Has no effect unless exclusive.
+    /// </summary>
+    internal bool AllowExpandedItemsWhileExclusive { get; set; }
+
+    /// <summary>
     /// The options that completion was started with.
     /// </summary>
     public OptionSet Options { get; }

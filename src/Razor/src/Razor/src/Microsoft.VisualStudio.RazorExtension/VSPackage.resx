@@ -219,6 +219,12 @@
   <data name="Setting_LogLevelWarning" xml:space="preserve">
     <value>Warning</value>
   </data>
+  <data name="Setting_ShowAllCSharpCodeActionsDescription" xml:space="preserve">
+    <value>Show all C# code actions in Razor files. These actions are untested in Razor and may introduce syntax errors when applied. If this happens, please report a bug.</value>
+  </data>
+  <data name="Setting_ShowAllCSharpCodeActionsDisplayName" xml:space="preserve">
+    <value>Show all C# code actions</value>
+  </data>
   <data name="Setting_SnippetsAll" xml:space="preserve">
     <value>All</value>
   </data>
