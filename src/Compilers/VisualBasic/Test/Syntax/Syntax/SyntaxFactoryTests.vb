@@ -142,6 +142,7 @@ Integer
             Dim lambda = SyntaxFactory.MultiLineFunctionLambdaExpression(header, SyntaxFactory.EndFunctionStatement())
 
             Assert.Equal(SyntaxKind.MultiLineFunctionLambdaExpression, lambda.Kind())
+            Assert.Equal(SyntaxKind.FunctionLambdaHeader, lambda.SubOrFunctionHeader.Kind())
             Assert.Equal(SyntaxKind.EndFunctionStatement, lambda.EndSubOrFunctionStatement.Kind())
         End Sub
 
@@ -151,6 +152,7 @@ Integer
             Dim lambda = SyntaxFactory.MultiLineSubLambdaExpression(header, SyntaxFactory.EndSubStatement())
 
             Assert.Equal(SyntaxKind.MultiLineSubLambdaExpression, lambda.Kind())
+            Assert.Equal(SyntaxKind.SubLambdaHeader, lambda.SubOrFunctionHeader.Kind())
             Assert.Equal(SyntaxKind.EndSubStatement, lambda.EndSubOrFunctionStatement.Kind())
         End Sub
     End Class
