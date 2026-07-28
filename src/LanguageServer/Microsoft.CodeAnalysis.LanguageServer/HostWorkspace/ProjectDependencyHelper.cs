@@ -91,7 +91,7 @@ internal static class ProjectDependencyHelper
         {
             // The file could not be read, so nothing is known about which packages are resolved. Report a
             // restore, which rewrites the file and recovers from a corrupt or partially written one.
-            logger.LogError(string.Format(
+            logger.LogError(e, string.Format(
                 LanguageServerResources.Failed_to_read_project_assets_file_0_version_1_2,
                 projectAssetsPath,
                 assetsFileVersion?.ToString() ?? "<unknown>",
