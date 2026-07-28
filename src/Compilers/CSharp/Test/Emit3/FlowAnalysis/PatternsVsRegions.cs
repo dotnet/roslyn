@@ -636,10 +636,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyEmitDiagnostics(
-                // (5,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (5,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (obj is string s or int i)
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "s").WithLocation(5, 27),
-                // (5,36): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (5,36): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (obj is string s or int i)
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i").WithLocation(5, 36));
 

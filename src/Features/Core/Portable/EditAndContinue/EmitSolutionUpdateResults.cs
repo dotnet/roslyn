@@ -87,7 +87,7 @@ internal readonly struct EmitSolutionUpdateResults
             var diagnostic = Diagnostic.Create(
                 descriptor,
                 Location.None,
-                string.Format(descriptor.MessageFormat.ToString(), "", errorMessage));
+                errorMessage);
 
             return new()
             {

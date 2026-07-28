@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.NestedFiles;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -28,9 +27,6 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
 
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers =
         args.ExportProvider.GetExportedValue<IRoslynCodeActionHelpers>();
-
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions =
-        args.ExportProvider.GetExportedValue<LanguageServerFeatureOptions>();
 
     public ValueTask<WorkspaceEdit?> GetNewNestedFileWorkspaceEditAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
@@ -54,7 +50,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
             return null;
         }
 
-        var nestedFileUri = LspFactory.CreateFilePathUri(nestedFilePath, _languageServerFeatureOptions);
+        var nestedFileUri = LspFactory.CreateFilePathUri(nestedFilePath);
 
         var content = await GenerateContentAsync(
             fileKind, context, razorFilePath, nestedFileUri, cancellationToken).ConfigureAwait(false);

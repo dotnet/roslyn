@@ -324,13 +324,8 @@ internal static class DiagnosticHelper
 
     public static string? GetHelpLinkForDiagnosticId(string id)
     {
-        // TODO: Add documentation for Regex and Json analyzer
-        // Tracked with https://github.com/dotnet/roslyn/issues/48530
-        if (id == "RE0001")
-            return null;
-
-        if (id.StartsWith("JSON", StringComparison.Ordinal))
-            return null;
+        if (id == "RE0001" || id.StartsWith("JSON", StringComparison.Ordinal))
+            return $"https://learn.microsoft.com/visualstudio/ide/reference/{id.ToLowerInvariant()}";
 
         // These diagnostics are hidden and not configurable, so help link can never be shown and is not applicable.
         if (id == RemoveUnnecessaryImports.RemoveUnnecessaryImportsConstants.DiagnosticFixableId ||

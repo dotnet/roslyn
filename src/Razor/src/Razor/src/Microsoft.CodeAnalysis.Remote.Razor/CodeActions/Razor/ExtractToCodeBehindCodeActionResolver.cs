@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,10 +25,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]
 internal sealed class ExtractToCodeBehindCodeActionResolver(
-    LanguageServerFeatureOptions languageServerFeatureOptions,
     IRoslynCodeActionHelpers roslynCodeActionHelpers) : IRazorCodeActionResolver
 {
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehind;
@@ -46,7 +43,7 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
 
         var path = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
         var codeBehindPath = FileUtilities.GenerateUniquePath(path, $"{Path.GetExtension(path)}.cs");
-        var codeBehindUri = LspFactory.CreateFilePathUri(codeBehindPath, _languageServerFeatureOptions);
+        var codeBehindUri = LspFactory.CreateFilePathUri(codeBehindPath);
 
         var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
