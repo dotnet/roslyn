@@ -388,7 +388,7 @@ equals_value
   ;
 
 event_block
-  : event_statement accessor_block* end_event_statement
+  : event_statement accessor_block+ end_event_statement
   ;
 
 event_statement
@@ -437,7 +437,7 @@ accessor_block
   ;
 
 add_handler_accessor_block
-  : accessor_statement end_add_handler_statement
+  : accessor_statement statement* end_add_handler_statement
   ;
 
 accessor_statement
@@ -449,39 +449,39 @@ accessor_statement
   ;
 
 add_handler_accessor_statement
-  : 'AddHandler'
+  : attribute_list* modifier* 'AddHandler' parameter_list?
   ;
 
 get_accessor_statement
-  : 'Get'
+  : attribute_list* modifier* 'Get' parameter_list?
   ;
 
 raise_event_accessor_statement
-  : 'RaiseEvent'
+  : attribute_list* modifier* 'RaiseEvent' parameter_list?
   ;
 
 remove_handler_accessor_statement
-  : 'RemoveHandler'
+  : attribute_list* modifier* 'RemoveHandler' parameter_list?
   ;
 
 set_accessor_statement
-  : 'Set'
+  : attribute_list* modifier* 'Set' parameter_list?
   ;
 
 get_accessor_block
-  : accessor_statement end_get_statement
+  : accessor_statement statement* end_get_statement
   ;
 
 raise_event_accessor_block
-  : accessor_statement end_raise_event_statement
+  : accessor_statement statement* end_raise_event_statement
   ;
 
 remove_handler_accessor_block
-  : accessor_statement end_remove_handler_statement
+  : accessor_statement statement* end_remove_handler_statement
   ;
 
 set_accessor_block
-  : accessor_statement end_set_statement
+  : accessor_statement statement* end_set_statement
   ;
 
 field_declaration
@@ -527,7 +527,7 @@ declare_statement
   ;
 
 declare_function_statement
-  : 'Declare' ('Ansi' | 'Unicode' | 'Auto')? 'Function' identifier_token 'Lib' literal_expression 'Alias'? literal_expression? simple_as_clause?
+  : attribute_list* modifier* 'Declare' ('Ansi' | 'Unicode' | 'Auto')? 'Function' identifier_token 'Lib' literal_expression 'Alias'? literal_expression? parameter_list? simple_as_clause?
   ;
 
 literal_expression
@@ -543,7 +543,7 @@ literal_expression
   ;
 
 declare_sub_statement
-  : 'Declare' ('Ansi' | 'Unicode' | 'Auto')? 'Sub' identifier_token 'Lib' literal_expression 'Alias'? literal_expression? simple_as_clause?
+  : attribute_list* modifier* 'Declare' ('Ansi' | 'Unicode' | 'Auto')? 'Sub' identifier_token 'Lib' literal_expression 'Alias'? literal_expression? parameter_list? simple_as_clause?
   ;
 
 delegate_statement
@@ -552,7 +552,7 @@ delegate_statement
   ;
 
 delegate_function_statement
-  : 'Delegate' 'Function' identifier_token type_parameter_list? simple_as_clause?
+  : attribute_list* modifier* 'Delegate' 'Function' identifier_token type_parameter_list? parameter_list? simple_as_clause?
   ;
 
 type_parameter_list
@@ -605,7 +605,7 @@ type_parameter_single_constraint_clause
   ;
 
 delegate_sub_statement
-  : 'Delegate' 'Sub' identifier_token type_parameter_list? simple_as_clause?
+  : attribute_list* modifier* 'Delegate' 'Sub' identifier_token type_parameter_list? parameter_list? simple_as_clause?
   ;
 
 lambda_header
@@ -614,11 +614,11 @@ lambda_header
   ;
 
 function_lambda_header
-  : 'Function' simple_as_clause?
+  : attribute_list* modifier* 'Function' parameter_list? simple_as_clause?
   ;
 
 sub_lambda_header
-  : 'Sub' simple_as_clause?
+  : attribute_list* modifier* 'Sub' parameter_list? simple_as_clause?
   ;
 
 method_statement
@@ -627,7 +627,7 @@ method_statement
   ;
 
 function_statement
-  : 'Function' identifier_token type_parameter_list? simple_as_clause? handles_clause? implements_clause?
+  : attribute_list* modifier* 'Function' identifier_token type_parameter_list? parameter_list? simple_as_clause? handles_clause? implements_clause?
   ;
 
 handles_clause
@@ -659,7 +659,7 @@ with_events_property_event_container
   ;
 
 sub_statement
-  : 'Sub' identifier_token type_parameter_list? simple_as_clause? handles_clause? implements_clause?
+  : attribute_list* modifier* 'Sub' identifier_token type_parameter_list? parameter_list? simple_as_clause? handles_clause? implements_clause?
   ;
 
 operator_statement
@@ -691,11 +691,11 @@ method_block
   ;
 
 function_block
-  : method_statement end_function_statement
+  : method_statement statement* end_function_statement
   ;
 
 sub_block
-  : method_statement end_sub_statement
+  : method_statement statement* end_sub_statement
   ;
 
 operator_block
@@ -711,7 +711,7 @@ namespace_statement
   ;
 
 property_block
-  : property_statement accessor_block* end_property_statement
+  : property_statement accessor_block+ end_property_statement
   ;
 
 type_block
@@ -987,7 +987,7 @@ label_statement
   ;
 
 local_declaration_statement
-  : modifier* variable_declarator (',' variable_declarator)*
+  : modifier+ variable_declarator (',' variable_declarator)*
   ;
 
 multi_line_if_block
@@ -1045,9 +1045,9 @@ redim_clause
   ;
 
 resume_statement
-  : resume_label_statement
+  : 'Resume' identifier_label?
+  | resume_label_statement
   | resume_next_statement
-  | resume_statement
   ;
 
 resume_label_statement
@@ -1056,10 +1056,6 @@ resume_label_statement
 
 resume_next_statement
   : 'Resume' next_label?
-  ;
-
-resume_statement
-  : 'Resume' identifier_label?
   ;
 
 return_statement
@@ -1075,12 +1071,8 @@ select_statement
   ;
 
 case_block
-  : case_block
-  | case_else_block
-  ;
-
-case_block
-  : case_statement statement*
+  : case_else_block
+  | case_statement statement*
   ;
 
 case_else_block
@@ -1442,14 +1434,23 @@ multi_line_lambda_expression
   ;
 
 multi_line_function_lambda_expression
-  : statement* end_sub_statement
+  : lambda_header statement* end_function_statement
   ;
 
 multi_line_sub_lambda_expression
-  : statement* end_function_statement
+  : lambda_header statement* end_sub_statement
   ;
 
 single_line_lambda_expression
+  : single_line_function_lambda_expression
+  | single_line_sub_lambda_expression
+  ;
+
+single_line_function_lambda_expression
+  : lambda_header (expression | statement)
+  ;
+
+single_line_sub_lambda_expression
   : lambda_header (expression | statement)
   ;
 
@@ -1498,7 +1499,7 @@ predefined_cast_expression
   ;
 
 query_expression
-  : query_clause*
+  : query_clause+
   ;
 
 query_clause
@@ -1676,7 +1677,7 @@ type
   ;
 
 array_type
-  : type array_rank_specifier*
+  : type array_rank_specifier+
   ;
 
 nullable_type
@@ -1846,7 +1847,7 @@ xml_processing_instruction
   ;
 
 xml_text
-  : xml_text_token*
+  : xml_text_token+
   ;
 
 structured_trivia
@@ -1912,16 +1913,12 @@ external_source_directive_trivia
   ;
 
 if_directive_trivia
-  : else_if_directive_trivia
-  | if_directive_trivia
+  : '#' 'Else'? 'If' expression 'Then'?
+  | else_if_directive_trivia
   ;
 
 else_if_directive_trivia
-  : 'Else'? 'ElseIf' expression 'Then'?
-  ;
-
-if_directive_trivia
-  : 'Else'? 'If' expression 'Then'?
+  : '#' 'Else'? 'ElseIf' expression 'Then'?
   ;
 
 reference_directive_trivia
