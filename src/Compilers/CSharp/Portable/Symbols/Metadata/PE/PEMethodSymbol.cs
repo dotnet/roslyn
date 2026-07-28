@@ -1829,7 +1829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 Debug.Assert(AssociatedSymbol?.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) != CallerUnsafeMode.Implicit);
 
-                return hasRequiresUnsafeAttribute;
+                return hasRequiresUnsafeAttribute || AssociatedSymbol?.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit;
             }
 
             // This might be expensive, so we cache it in _packedFlags.
