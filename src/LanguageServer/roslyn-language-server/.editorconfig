@@ -1,0 +1,4 @@
+[*.cs]
+
+# This executable has no synchronization context, so awaiting directly is safe.
+dotnet_diagnostic.CA2007.severity = none

@@ -5,7 +5,9 @@ using System;
 using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -98,6 +100,71 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
 
         // Assert
         AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13206")]
+    public void NestedPrefixedTagHelpers()
+    {
+        // Arrange
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "p",
+                typeName: "PTagHelper",
+                assemblyName: "TestAssembly"),
+            CreateTagHelperDescriptor(
+                tagName: "input",
+                typeName: "InputTagHelper",
+                assemblyName: "TestAssembly")
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+            @tagHelperPrefix th:
+            @addTagHelper *, TestAssembly
+            <th:p><th:input /></th:p>
+            """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13206")]
+    public void NestedPrefixedTagHelpers_OrphanEndTag()
+    {
+        // Arrange
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "p",
+                typeName: "PTagHelper",
+                assemblyName: "TestAssembly"),
+            CreateTagHelperDescriptor(
+                tagName: "input",
+                typeName: "InputTagHelper",
+                assemblyName: "TestAssembly")
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+            @tagHelperPrefix th:
+            @addTagHelper *, TestAssembly
+            <th:p>Hello</th:input></th:p>
+            """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert
+        var documentNode = codeDocument.GetRequiredDocumentNode();
+        AssertDocumentNodeMatchesBaseline(documentNode);
+        var diagnostic = Assert.Single(documentNode.GetAllDiagnostics());
+        Assert.Equal("RZ1034", diagnostic.Id);
     }
 
     [Fact]
