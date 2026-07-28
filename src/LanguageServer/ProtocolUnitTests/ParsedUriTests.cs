@@ -120,6 +120,20 @@ public sealed class ParsedUriTests
         => Assert.Throws<UriFormatException>(() => ParsedUri.Parse("file:////shares/files/p.cs"));
 
     [Fact]
+    public void Parse_DisallowTrailingNewlineInScheme()
+        => Assert.Throws<UriFormatException>(() => ParsedUri.Parse("scheme\n:path"));
+
+    [Fact]
+    public void Parse_MixedCaseAuthority_RoundTripsThroughToString()
+    {
+        var value = ParsedUri.Parse("http://User@Example.com/path");
+        var roundTrippedValue = ParsedUri.Parse(value.ToString());
+
+        Assert.Equal(value, roundTrippedValue);
+        Assert.Equal(value.GetHashCode(), roundTrippedValue.GetHashCode());
+    }
+
+    [Fact]
     public void DriveLetterPath_Regex()
     {
         var uri = ParsedUri.Parse("file:///_:/path");
@@ -294,6 +308,12 @@ public sealed class ParsedUriTests
             Scheme = "f3ile",
             Fragment = "d",
             ExpectedToString = "f3ile:#d",
+        },
+        new("3d:path")
+        {
+            Scheme = "3d",
+            Path = "path",
+            ExpectedToString = "3d:path",
         },
         new("foo+bar:path")
         {
@@ -834,6 +854,9 @@ public sealed class ParsedUriTests
         // Mixed encoding in authority (UNC path).
         new("file://sh%C3%A4res/path", "file://shäres/path", true),
         new("http://example.com/path?q%3D1", "http://example.com/path?q=1", true),
+        new("http://Example.com/path", "http://example.com/path", true),
+        new("http://User@Example.com/path", "http://User@example.com/path", true),
+        new("http://User@example.com/path", "http://user@example.com/path", false),
         // Encoded vs unencoded in fragments.
         new("http://example.com/path#frag%20ment", "http://example.com/path#frag ment", true),
         // Double-encoded percent: %25 decodes to %, which is different from a literal %.

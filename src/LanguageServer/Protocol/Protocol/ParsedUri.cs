@@ -388,7 +388,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             ? StringComparison.OrdinalIgnoreCase
             : StringComparison.Ordinal;
 
-        return string.Equals(Authority, other.Authority, comparison)
+        return AuthorityEquals(Authority, other.Authority, comparison == StringComparison.OrdinalIgnoreCase)
             && string.Equals(Path, other.Path, comparison)
             && string.Equals(Query, other.Query, comparison)
             && string.Equals(Fragment, other.Fragment, comparison);
@@ -400,9 +400,10 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     public override int GetHashCode()
     {
         // Scheme is always case-insensitive. Other components are case-insensitive only for UNC/DOS paths.
-        var componentComparer = IsUncOrDosPath ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+        var compareComponentsIgnoreCase = IsUncOrDosPath;
+        var componentComparer = compareComponentsIgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
         var schemeHash = StringComparer.OrdinalIgnoreCase.GetHashCode(Scheme ?? string.Empty);
-        var authorityHash = componentComparer.GetHashCode(Authority ?? string.Empty);
+        var authorityHash = GetAuthorityHashCode(Authority ?? string.Empty, compareComponentsIgnoreCase);
         var pathHash = componentComparer.GetHashCode(Path ?? string.Empty);
         var queryHash = componentComparer.GetHashCode(Query ?? string.Empty);
         var fragmentHash = componentComparer.GetHashCode(Fragment ?? string.Empty);
@@ -422,6 +423,65 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     public static bool operator !=(ParsedUri? left, ParsedUri? right)
         => !(left == right);
+
+    /// <summary>
+    /// Compares userinfo case-sensitively and host/port case-insensitively, matching RFC 3986 and vscode-uri formatting.
+    /// </summary>
+    private static bool AuthorityEquals(string left, string right, bool compareAllIgnoreCase)
+    {
+        if (compareAllIgnoreCase)
+        {
+            return string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
+        }
+
+        var leftSeparator = left.IndexOf('@');
+        var rightSeparator = right.IndexOf('@');
+        if (leftSeparator != rightSeparator)
+        {
+            return false;
+        }
+
+        if (leftSeparator < 0)
+        {
+            return string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (string.Compare(left, 0, right, 0, leftSeparator, StringComparison.Ordinal) != 0)
+        {
+            return false;
+        }
+
+        var leftHostLength = left.Length - leftSeparator - 1;
+        var rightHostLength = right.Length - rightSeparator - 1;
+        return leftHostLength == rightHostLength
+            && string.Compare(left, leftSeparator + 1, right, rightSeparator + 1, leftHostLength, StringComparison.OrdinalIgnoreCase) == 0;
+    }
+
+    /// <summary>
+    /// Hashes authority components using the same casing rules as <see cref="AuthorityEquals"/>.
+    /// </summary>
+    private static int GetAuthorityHashCode(string authority, bool compareAllIgnoreCase)
+    {
+        if (compareAllIgnoreCase)
+        {
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(authority);
+        }
+
+        var separator = authority.IndexOf('@');
+        if (separator < 0)
+        {
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(authority);
+        }
+
+#if NET
+        var userInfoHash = string.GetHashCode(authority.AsSpan(0, separator), StringComparison.Ordinal);
+        var hostHash = string.GetHashCode(authority.AsSpan(separator + 1), StringComparison.OrdinalIgnoreCase);
+#else
+        var userInfoHash = StringComparer.Ordinal.GetHashCode(authority.Substring(0, separator));
+        var hostHash = StringComparer.OrdinalIgnoreCase.GetHashCode(authority.Substring(separator + 1));
+#endif
+        return Hash.Combine(userInfoHash, hostHash);
+    }
 
     #endregion
 
@@ -466,20 +526,15 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     internal static bool IsValidScheme(ReadOnlySpan<char> scheme)
     {
-        var length = scheme.Length > 0 && scheme[^1] == '\n'
-            ? scheme.Length - 1
-            : scheme.Length;
-
-        if (length == 0 || !IsValidSchemeFirstCharacter(scheme[0]))
+        if (scheme.Length == 0 || !IsValidSchemeCharacter(scheme[0]))
         {
             return false;
         }
 
-        for (var i = 1; i < length; i++)
+        for (var i = 1; i < scheme.Length; i++)
         {
             var ch = scheme[i];
-            if (!IsValidSchemeFirstCharacter(ch)
-                && !(ch >= '0' && ch <= '9')
+            if (!IsValidSchemeCharacter(ch)
                 && ch is not ('+' or '.' or '-'))
             {
                 return false;
@@ -489,8 +544,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         return true;
     }
 
-    private static bool IsValidSchemeFirstCharacter(char ch)
-        => ch is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or '_';
+    private static bool IsValidSchemeCharacter(char ch)
+        => ch is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or >= '0' and <= '9' or '_';
 
     private static string SchemeFix(string scheme, bool strict)
     {
