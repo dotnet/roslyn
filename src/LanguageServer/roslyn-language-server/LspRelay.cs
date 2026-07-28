@@ -37,9 +37,10 @@ internal static class LspRelay
         var completedTask = await Task.WhenAny(editorToServer, serverToEditor).ConfigureAwait(false);
         var closedEndpoint = await completedTask.ConfigureAwait(false);
 
-        // Give the other direction a brief window to finish on its own. A clean shutdown closes the editor
-        // input in one direction and the server input in the other. If both copies instead terminate at the
-        // same endpoint, that endpoint was lost and caused both directions to stop.
+        // Give the other direction a brief window to finish on its own. If both copies terminate at the server,
+        // the server connection was lost and caused both directions to stop. Any other pair is a clean shutdown:
+        // an editor closes its bidirectional transport after sending LSP 'exit', so both copies can terminate at
+        // the editor before the server closes its side.
         var otherTask = completedTask == editorToServer ? serverToEditor : editorToServer;
         RelayEndpoint? otherClosedEndpoint = null;
         if (await Task.WhenAny(otherTask, Task.Delay(s_secondCloseGracePeriod)).ConfigureAwait(false) == otherTask)
@@ -47,8 +48,12 @@ internal static class LspRelay
 
         cancellationSource.Cancel();
 
-        if (otherClosedEndpoint is not null && otherClosedEndpoint != closedEndpoint)
-            return RelayCompletionKind.CleanShutdown;
+        if (otherClosedEndpoint is not null)
+        {
+            return closedEndpoint == RelayEndpoint.Server && otherClosedEndpoint == RelayEndpoint.Server
+                ? RelayCompletionKind.ServerConnectionLost
+                : RelayCompletionKind.CleanShutdown;
+        }
 
         return closedEndpoint == RelayEndpoint.Editor
             ? RelayCompletionKind.EditorConnectionLost
