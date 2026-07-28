@@ -73,12 +73,7 @@
     <ProjectReference Include="..\..\Razor\src\Razor\src\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj" />
 
     <!-- EA packages that can be removed once unification is complete -->
-    <ProjectReference Include="..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\Features\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj" />
     <ProjectReference Include="..\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
-    <ProjectReference Include="..\ExternalAccess\Copilot\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj" />
-    <ProjectReference Include="..\ExternalAccess\VisualDiagnostics\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
-    <ProjectReference Include="..\ExternalAccess\Xaml\Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />
   </ItemGroup>
 
   <ItemGroup>
