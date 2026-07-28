@@ -35,7 +35,6 @@ internal static class LspRelay
         var editorToServer = CopyUntilClosedAsync(fromEditor, toServer, RelayEndpoint.Editor, RelayEndpoint.Server, cancellationSource.Token);
         var serverToEditor = CopyUntilClosedAsync(fromServer, toEditor, RelayEndpoint.Server, RelayEndpoint.Editor, cancellationSource.Token);
         var completedTask = await Task.WhenAny(editorToServer, serverToEditor).ConfigureAwait(false);
-        var closedEndpoint = await completedTask.ConfigureAwait(false);
 
         // Give the other direction a brief window to finish on its own. If both copies terminate at the server,
         // the server connection was lost and caused both directions to stop. Any other pair is a clean shutdown:
@@ -47,6 +46,7 @@ internal static class LspRelay
             otherClosedEndpoint = await otherTask.ConfigureAwait(false);
 
         cancellationSource.Cancel();
+        var closedEndpoint = await completedTask.ConfigureAwait(false);
 
         if (otherClosedEndpoint is not null)
         {
