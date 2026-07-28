@@ -837,7 +837,7 @@ remove_handler_statement
   ;
 
 assignment_statement
-  : expression ('=' | '+=' | '-=' | '*=' | '/=' | '\=' | '^=' | '<<=' | '>>=' | '&=') expression
+  : expression ('=' | '+=' | '-=' | '*=' | '/=' | '\\=' | '^=' | '<<=' | '>>=' | '&=') expression
   ;
 
 call_statement
