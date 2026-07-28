@@ -11,7 +11,10 @@ internal static class WellKnownStartupOrder
     // Client server manager similarly has no dependencies, and nothing else can make requests without it
     public const int ClientServerManager = int.MinValue;
 
-    // Remote services initialize before "default"
+    // Options are early in case something needs to know what is enabled
+    public const int LanguageServerFeatureOptions = -1000;
+
+    // Remote services initialize before "default", but depends on the above so not too early
     public const int RemoteServices = -500;
 
     public const int Default = 0;

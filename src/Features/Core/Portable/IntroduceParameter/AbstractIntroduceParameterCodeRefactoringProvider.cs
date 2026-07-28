@@ -162,6 +162,8 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
 
         using var actionsBuilder = TemporaryArray<CodeAction>.Empty;
         using var actionsBuilderAllOccurrences = TemporaryArray<CodeAction>.Empty;
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var methodCallSites = await FindCallSitesAsync(document, methodSymbol, cancellationToken).ConfigureAwait(false);
 
         if (!containsClassExpression)
         {
@@ -171,13 +173,14 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
 
         if (methodSymbol.MethodKind is not MethodKind.Constructor)
         {
-            // The trampoline is always valid for a (non-constructor) method or local function: the call sites we rewrite
-            // are invocations (object creation call sites only apply to constructors). The call-site search is deferred
-            // to when an action is invoked (see CreateNewCodeAction), so offering these actions stays cheap while typing.
-            actionsBuilder.Add(CreateNewCodeAction(
-                FeaturesResources.into_extracted_method_to_invoke_at_call_sites, allOccurrences: false, IntroduceParameterCodeActionKind.Trampoline));
-            actionsBuilderAllOccurrences.Add(CreateNewCodeAction(
-                FeaturesResources.into_extracted_method_to_invoke_at_call_sites, allOccurrences: true, IntroduceParameterCodeActionKind.Trampoline));
+            var containsObjectCreationReferences = methodCallSites.Values.Flatten().OfType<TObjectCreationExpressionSyntax>().Any();
+            if (!containsObjectCreationReferences)
+            {
+                actionsBuilder.Add(CreateNewCodeAction(
+                    FeaturesResources.into_extracted_method_to_invoke_at_call_sites, allOccurrences: false, IntroduceParameterCodeActionKind.Trampoline));
+                actionsBuilderAllOccurrences.Add(CreateNewCodeAction(
+                    FeaturesResources.into_extracted_method_to_invoke_at_call_sites, allOccurrences: true, IntroduceParameterCodeActionKind.Trampoline));
+            }
 
             if (methodSymbol.MethodKind is not MethodKind.LocalFunction)
             {
@@ -195,16 +198,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         {
             return CodeAction.Create(
                 actionName,
-                async cancellationToken =>
-                {
-                    // Only search for call sites when the user applies the refactoring, not while the lightbulb
-                    // is computed on every keystroke. This whole-solution search can be slow on large solutions.
-                    var methodCallSites = selectedCodeAction == IntroduceParameterCodeActionKind.Overload
-                        ? new Dictionary<Document, List<TExpressionSyntax>> { [document] = [] }
-                        : await FindCallSitesAsync(document, methodSymbol, cancellationToken).ConfigureAwait(false);
-                    return await IntroduceParameterAsync(
-                        document, expression, methodSymbol, containingMethod, methodCallSites, allOccurrences, selectedCodeAction, cancellationToken).ConfigureAwait(false);
-                },
+                cancellationToken => IntroduceParameterAsync(document, expression, methodSymbol, containingMethod, methodCallSites, allOccurrences, selectedCodeAction, cancellationToken),
                 actionName);
         }
     }

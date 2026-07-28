@@ -1,12 +1,11 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using System.Globalization;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.LanguageServer.Daemon;
+using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Text;
@@ -20,25 +19,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests;
 
 public partial class AbstractLanguageServerClientTests
 {
-    internal abstract partial class TestLspClient : IAsyncDisposable
+    internal sealed class TestLspClient : IAsyncDisposable
     {
         internal const int TimeOutMsNewProcess = 60_000;
 
         private int _disposed = 0;
 
-        private readonly Process _thinClientProcess;
-        private readonly Task<Process> _serverProcessTask;
+        private readonly Process _process;
         private readonly string _workspaceRootPath;
         private readonly Dictionary<string, IList<LSP.Location>> _locations;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly int? _initializeProcessId;
         private LspWorkspaceContent _workspaceContent;
 
         private readonly JsonRpc _clientRpc;
 
         private ServerCapabilities? _serverCapabilities;
 
-        internal static async Task<SingleServerStdioLspClient> CreateSingleServerStdioAsync(
+        internal static async Task<TestLspClient> CreateAsync(
             ClientCapabilities clientCapabilities,
             string extensionLogsPath,
             LspServerLaunchOptions launchOptions,
@@ -48,103 +45,58 @@ public partial class AbstractLanguageServerClientTests
             WorkDoneProgressTarget workDoneProgressTarget,
             Dictionary<string, IList<LSP.Location>>? locations = null)
         {
-            var clientProcessId = launchOptions.ClientProcessId ?? Environment.ProcessId;
-            var thinClientProcess = CreateThinClient(pipePath: null, clientProcessId, extensionLogsPath, launchOptions, loggerFactory, logOutput: false);
-            var serverProcessTaskCompletionSource = new TaskCompletionSource<Process>();
-            var lspClient = new SingleServerStdioLspClient(thinClientProcess, serverProcessTaskCompletionSource.Task, workspaceContent, workspaceRootPath, workDoneProgressTarget, locations ?? [], loggerFactory);
+            var pipeName = CreateNewPipeName();
+            var fullPipePath = GetFullPipePath(pipeName);
+            var serverPipeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? pipeName : fullPipePath;
 
-            return await InitializeAsync(lspClient, serverProcessTaskCompletionSource, clientCapabilities, workspaceRootPath);
-        }
+            // Create the pipe server - the LSP server process will connect to this as a client.
+            var pipeServer = new NamedPipeServerStream(serverPipeName, PipeDirection.InOut, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
 
-        internal static async Task<SingleServerPipeClient> CreateSingleServerPipeAsync(
-            ClientCapabilities clientCapabilities,
-            string extensionLogsPath,
-            LspServerLaunchOptions launchOptions,
-            ILoggerFactory loggerFactory,
-            LspWorkspaceContent workspaceContent,
-            string workspaceRootPath,
-            WorkDoneProgressTarget workDoneProgressTarget,
-            Dictionary<string, IList<LSP.Location>>? locations = null)
-        {
-            var (lspClientPipeName, lspServerPipeName) = GetPipePaths();
-            var clientProcessId = launchOptions.ClientProcessId ?? Environment.ProcessId;
+            var processStartInfo = CreateLspStartInfo(fullPipePath, extensionLogsPath, launchOptions);
 
-            var pipeServer = new NamedPipeServerStream(lspClientPipeName, PipeDirection.InOut, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
-            var thinClientProcess = CreateThinClient(lspServerPipeName, clientProcessId, extensionLogsPath, launchOptions, loggerFactory, logOutput: true);
+            var process = Process.Start(processStartInfo);
+            Assert.NotNull(process);
 
-            // Wait for the pipe server to connect.  Also capture if the thin client process exits before the connection is established.
-            var pipeWaitTask = WaitForPipeServerConnectionAsync(pipeServer);
-            var thinClientExitTask = thinClientProcess.WaitForExitAsync();
-            var completedTask = await Task.WhenAny(pipeWaitTask, thinClientExitTask);
-            if (thinClientExitTask == completedTask)
+            var processOutputTracker = new ProcessOutputTracker(process, loggerFactory);
+
+            // Wait for the server process to connect to our pipe.
+            try
             {
-                throw new InvalidOperationException("Thin client process exited before the pipe server connection was established.");
+                await WaitForPipeConnectionAsync(pipeServer, process, processOutputTracker);
+            }
+            catch
+            {
+                pipeServer.Dispose();
+                TryKillProcess(process);
+                process.Dispose();
+                throw;
             }
 
-            var serverProcessTaskCompletionSource = new TaskCompletionSource<Process>();
-            var lspClient = new SingleServerPipeClient(thinClientProcess, pipeServer, serverProcessTaskCompletionSource.Task, workspaceContent, workspaceRootPath, workDoneProgressTarget, locations ?? [], loggerFactory);
+            var lspClient = new TestLspClient(process, pipeServer, workspaceContent, workspaceRootPath, workDoneProgressTarget, locations ?? [], loggerFactory);
 
-            return await InitializeAsync(lspClient, serverProcessTaskCompletionSource, clientCapabilities, workspaceRootPath);
-        }
+            // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
+            if (process.HasExited)
+            {
+                process.WaitForExit();
+                throw CreateProcessExitedBeforeConnectionException(process, processOutputTracker);
+            }
 
-        private static async Task<TClient> InitializeAsync<TClient>(
-            TClient lspClient,
-            TaskCompletionSource<Process> serverProcessTaskCompletionSource,
-            ClientCapabilities clientCapabilities,
-            string workspaceRootPath) where TClient : TestLspClient
-        {
+            lspClient.AddClientLocalRpcTarget(workDoneProgressTarget);
+            lspClient.AddClientLocalRpcTarget(ProjectInitializationHandler.ProjectInitializationCompleteName, lspClient.OnProjectInitializationComplete);
+
             // Initialize the capabilities.
             var initializeResponse = await lspClient.Initialize(clientCapabilities, workspaceRootPath);
             Assert.NotNull(initializeResponse?.Capabilities);
-
-            var serverProcessId = initializeResponse.ProcessId;
-            var serverProcess = Process.GetProcessById(serverProcessId);
-            serverProcessTaskCompletionSource.SetResult(serverProcess);
-
             lspClient._serverCapabilities = initializeResponse.Capabilities;
 
             await lspClient.Initialized();
 
             return lspClient;
-        }
 
-        private static Process CreateThinClient(
-            string? pipePath,
-            int clientProcessId,
-            string extensionLogsPath,
-            LspServerLaunchOptions launchOptions,
-            ILoggerFactory loggerFactory,
-            bool logOutput)
-        {
-            var thinClientProcess = new Process();
-            var processStartInfo = CreateThinClientStartInfo(pipePath, clientProcessId, extensionLogsPath, launchOptions);
-            thinClientProcess.StartInfo = processStartInfo;
-            thinClientProcess.ErrorDataReceived += (sender, e) => LogProcessData(sender, e, loggerFactory.CreateLogger("[ThinClient][stderr]"));
-
-            if (logOutput)
+            static string CreateNewPipeName()
             {
-                thinClientProcess.OutputDataReceived += (sender, e) => LogProcessData(sender, e, loggerFactory.CreateLogger("[ThinClient][stdout]"));
+                return NamedPipeTestUtilities.CreateShortPipeName();
             }
-
-            thinClientProcess.Start();
-            thinClientProcess.BeginErrorReadLine();
-
-            if (logOutput)
-            {
-                thinClientProcess.BeginOutputReadLine();
-            }
-
-            return thinClientProcess;
-        }
-
-        private static (string LspClientPipeName, string LspServerPipeName) GetPipePaths()
-        {
-            var pipeName = NamedPipeTestUtilities.CreateShortPipeName();
-
-            var lspServerPipeName = GetFullPipePath(pipeName);
-            var lspClientPipeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? pipeName : lspServerPipeName;
-
-            return (lspClientPipeName, lspServerPipeName);
 
             static string GetFullPipePath(string pipeName)
             {
@@ -154,30 +106,97 @@ public partial class AbstractLanguageServerClientTests
                     ? @"\\.\pipe\" + pipeName
                     : Path.Combine(Path.GetTempPath(), pipeName + ".sock");
             }
-        }
 
-        private static async Task<NamedPipeServerStream> WaitForPipeServerConnectionAsync(NamedPipeServerStream pipeServer)
-        {
-            using var cts = new CancellationTokenSource(TimeOutMsNewProcess);
-            var waitForConnectionTask = pipeServer.WaitForConnectionAsync(cts.Token);
-
-            try
+            static ProcessStartInfo CreateLspStartInfo(string pipeName, string extensionLogsPath, LspServerLaunchOptions launchOptions)
             {
-                await waitForConnectionTask;
+                var processStartInfo = new ProcessStartInfo()
+                {
+                    FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet",
+                };
+
+                // The LSP's runtime configuration sets rollforward to Major which allows it to run on a newer runtime
+                // when the expected runtime is not present. Additionally, we need to be able to use prerelease runtimes
+                // since unit tests may be running against preview builds of the .NET SDK.
+                processStartInfo.Environment["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1";
+
+                processStartInfo.ArgumentList.Add(TestPaths.GetLanguageServerPath());
+
+                processStartInfo.ArgumentList.Add("--pipe");
+                processStartInfo.ArgumentList.Add(pipeName);
+
+                processStartInfo.ArgumentList.Add("--clientProcessId");
+                processStartInfo.ArgumentList.Add(Environment.ProcessId.ToString());
+
+                processStartInfo.ArgumentList.Add("--logLevel");
+                processStartInfo.ArgumentList.Add("Trace");
+
+                processStartInfo.ArgumentList.Add("--extensionLogDirectory");
+                processStartInfo.ArgumentList.Add(extensionLogsPath);
+
+                if (launchOptions.AutoLoadProjects)
+                {
+                    processStartInfo.ArgumentList.Add("--autoLoadProjects");
+                }
+
+                if (launchOptions.IncludeDevKitComponents)
+                {
+                    processStartInfo.ArgumentList.Add("--devKitDependencyPath");
+                    processStartInfo.ArgumentList.Add(TestPaths.GetDevKitExtensionPath());
+                }
+
+                if (launchOptions.DebugLsp)
+                {
+                    processStartInfo.ArgumentList.Add("--debug");
+                }
+
+                processStartInfo.CreateNoWindow = false;
+                processStartInfo.UseShellExecute = false;
+                processStartInfo.RedirectStandardInput = true;
+                processStartInfo.RedirectStandardOutput = true;
+                processStartInfo.RedirectStandardError = true;
+
+                return processStartInfo;
             }
-            catch (OperationCanceledException ex) when (cts.IsCancellationRequested)
+
+            static async Task WaitForPipeConnectionAsync(NamedPipeServerStream pipeServer, Process process, ProcessOutputTracker processOutputTracker)
             {
-                throw new TimeoutException($"Timed out after {TimeOutMsNewProcess}ms waiting for the LSP process to connect to the pipe.", ex);
+                using var cts = new CancellationTokenSource(TimeOutMsNewProcess);
+                var waitForConnectionTask = pipeServer.WaitForConnectionAsync(cts.Token);
+                var waitForExitTask = process.WaitForExitAsync();
+
+                var completedTask = await Task.WhenAny(waitForConnectionTask, waitForExitTask);
+                if (completedTask == waitForExitTask)
+                {
+                    await waitForExitTask;
+                    process.WaitForExit();
+                    throw CreateProcessExitedBeforeConnectionException(process, processOutputTracker);
+                }
+
+                try
+                {
+                    await waitForConnectionTask;
+                }
+                catch (OperationCanceledException ex) when (cts.IsCancellationRequested)
+                {
+                    throw new TimeoutException($"Timed out after {TimeOutMsNewProcess}ms waiting for the LSP process to connect to the pipe.{processOutputTracker.GetCapturedOutput()}", ex);
+                }
             }
 
-            return pipeServer;
-        }
+            static Exception CreateProcessExitedBeforeConnectionException(Process process, ProcessOutputTracker processOutputTracker)
+                => new($"LSP process exited before connecting to the pipe with exit code {process.ExitCode}.{processOutputTracker.GetCapturedOutput()}");
 
-        private static void LogProcessData(object _, DataReceivedEventArgs e, ILogger logger)
-        {
-            if (e.Data != null)
+            static void TryKillProcess(Process process)
             {
-                logger.LogError(e.Data);
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                }
             }
         }
 
@@ -189,32 +208,28 @@ public partial class AbstractLanguageServerClientTests
 
         private readonly TaskCompletionSource _projectInitializationCompletedSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        protected TestLspClient(
-            Process thinClientProcess,
-            Stream sendingStream,
-            Stream receivingStream,
-            Task<Process> serverProcessTask,
+        private TestLspClient(
+            Process process,
+            Stream pipeStream,
             LspWorkspaceContent workspaceContent,
             string workspaceRootPath,
             WorkDoneProgressTarget workDoneProgressTarget,
             Dictionary<string, IList<LSP.Location>> locations,
-            ILoggerFactory loggerFactory,
-            int? initializeProcessId = null)
+            ILoggerFactory loggerFactory)
         {
             _workspaceContent = workspaceContent;
             _workspaceRootPath = Path.GetFullPath(workspaceRootPath);
             WorkDoneProgress = workDoneProgressTarget;
             _locations = locations;
             _loggerFactory = loggerFactory;
-            _initializeProcessId = initializeProcessId;
-            _thinClientProcess = thinClientProcess;
-            _serverProcessTask = serverProcessTask;
-            _thinClientProcess.EnableRaisingEvents = true;
+            _process = process;
 
-            Assert.False(_thinClientProcess.HasExited);
+            _process.EnableRaisingEvents = true;
+
+            Assert.False(_process.HasExited);
 
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
-            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(sendingStream, receivingStream, messageFormatter))
+            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(pipeStream, pipeStream, messageFormatter))
             {
                 AllowModificationWhileListening = true,
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
@@ -222,8 +237,6 @@ public partial class AbstractLanguageServerClientTests
 
             _clientRpc.AddLocalRpcMethod(Methods.WindowLogMessageName, GetMessageLogger("LogMessage"));
             _clientRpc.AddLocalRpcMethod(Methods.WindowShowMessageName, GetMessageLogger("ShowMessage"));
-            _clientRpc.AddLocalRpcTarget(workDoneProgressTarget);
-            _clientRpc.AddLocalRpcMethod(ProjectInitializationHandler.ProjectInitializationCompleteName, this.OnProjectInitializationComplete);
 
             _clientRpc.StartListening();
 
@@ -250,21 +263,56 @@ public partial class AbstractLanguageServerClientTests
             }
         }
 
-        internal Task<Process> GetServerProcessAsync()
-            => _serverProcessTask;
-
-        internal Process ThinClientProcess => _thinClientProcess;
-
-        internal void CloseEditorTransport()
+        private sealed class ProcessOutputTracker
         {
-            _clientRpc.Dispose();
-        }
+            private readonly object _gate = new();
+            private readonly StringBuilder _standardOutput = new();
+            private readonly StringBuilder _standardError = new();
+            private readonly ILoggerFactory _loggerFactory;
 
-        /// <summary>Performs a clean LSP <c>shutdown</c>/<c>exit</c> so the session ends gracefully.</summary>
-        internal async Task ShutdownAndExitAsync()
-        {
-            await _clientRpc.InvokeAsync(Methods.ShutdownName);
-            await _clientRpc.NotifyAsync(Methods.ExitName);
+            public ProcessOutputTracker(Process process, ILoggerFactory loggerFactory)
+            {
+                _loggerFactory = loggerFactory;
+
+                process.OutputDataReceived += Process_OutputDataReceived;
+                process.ErrorDataReceived += Process_ErrorDataReceived;
+
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+            }
+
+            public string GetCapturedOutput()
+            {
+                lock (_gate)
+                {
+                    return $"{Environment.NewLine}STDOUT:{Environment.NewLine}{_standardOutput}{Environment.NewLine}STDERR:{Environment.NewLine}{_standardError}";
+                }
+            }
+
+            private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+            {
+                _loggerFactory.CreateLogger("LSP STDOUT").LogInformation(e.Data);
+                Append(_standardOutput, e.Data);
+            }
+
+            private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+            {
+                _loggerFactory.CreateLogger("LSP STDERR").LogInformation(e.Data);
+                Append(_standardError, e.Data);
+            }
+
+            private void Append(StringBuilder builder, string? data)
+            {
+                if (data is null)
+                {
+                    return;
+                }
+
+                lock (_gate)
+                {
+                    builder.AppendLine(data);
+                }
+            }
         }
 
         public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class
@@ -293,10 +341,9 @@ public partial class AbstractLanguageServerClientTests
             _clientRpc.AddLocalRpcMethod(methodName, handler);
         }
 
-        public Task<RoslynInitializeResult?> Initialize(ClientCapabilities clientCapabilities, string workspaceRootPath)
-            => ExecuteRequestAsync<InitializeParams, RoslynInitializeResult>(Methods.InitializeName, new InitializeParams
+        public Task<InitializeResult?> Initialize(ClientCapabilities clientCapabilities, string workspaceRootPath)
+            => ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams
             {
-                ProcessId = _initializeProcessId,
                 Capabilities = clientCapabilities,
                 WorkspaceFolders =
                 [
@@ -405,29 +452,9 @@ public partial class AbstractLanguageServerClientTests
 
             var logger = _loggerFactory.CreateLogger("Shutdown");
 
-            var serverProcess = await GetServerProcessAsync();
-
-            await ShutdownAndWaitForExitAsync(serverProcess);
-
-            _clientRpc.Dispose();
-            _thinClientProcess.Dispose();
-            serverProcess.Dispose();
-            DisposeTransport();
-
-            logger.LogTrace("Process shut down.");
-        }
-
-        /// <summary>
-        /// Performs the clean LSP <c>shutdown</c>/<c>exit</c> handshake (when the session is still live) and waits for
-        /// the processes this client owns to exit. Single-server mode owns its dedicated server and waits for it (and
-        /// the thin client); daemon mode shares a long-lived daemon and so overrides this to wait only for its own
-        /// thin client.
-        /// </summary>
-        protected virtual async Task ShutdownAndWaitForExitAsync(Process serverProcess)
-        {
-            if (!_thinClientProcess.HasExited && !serverProcess.HasExited)
+            if (!_process.HasExited)
             {
-                _loggerFactory.CreateLogger("Shutdown").LogTrace("Sending a Shutdown request to the LSP.");
+                logger.LogTrace("Sending a Shutdown request to the LSP.");
 
                 await _clientRpc.InvokeAsync(Methods.ShutdownName);
                 await _clientRpc.NotifyAsync(Methods.ExitName);
@@ -435,148 +462,10 @@ public partial class AbstractLanguageServerClientTests
                 await _clientRpc.Completion;
             }
 
-            await serverProcess.WaitForExitAsync();
-            await _thinClientProcess.WaitForExitAsync();
+            _clientRpc.Dispose();
+            _process.Dispose();
+
+            logger.LogTrace("Process shut down.");
         }
-
-        protected virtual void DisposeTransport()
-        {
-        }
-    }
-
-    internal sealed class SingleServerStdioLspClient : TestLspClient
-    {
-        internal SingleServerStdioLspClient(
-            Process thinClientProcess,
-            Task<Process> serverProcessTask,
-            LspWorkspaceContent workspaceContent,
-            string workspaceRootPath,
-            WorkDoneProgressTarget workDoneProgressTarget,
-            Dictionary<string, IList<LSP.Location>> locations,
-            ILoggerFactory loggerFactory)
-            : base(
-                thinClientProcess,
-                thinClientProcess.StandardInput.BaseStream,
-                thinClientProcess.StandardOutput.BaseStream,
-                serverProcessTask,
-                workspaceContent,
-                workspaceRootPath,
-                workDoneProgressTarget,
-                locations,
-                loggerFactory)
-        {
-        }
-    }
-
-    internal sealed class SingleServerPipeClient : TestLspClient
-    {
-        private readonly NamedPipeServerStream _pipeServer;
-
-        internal SingleServerPipeClient(
-            Process thinClientProcess,
-            NamedPipeServerStream pipeServer,
-            Task<Process> serverProcessTask,
-            LspWorkspaceContent workspaceContent,
-            string workspaceRootPath,
-            WorkDoneProgressTarget workDoneProgressTarget,
-            Dictionary<string, IList<LSP.Location>> locations,
-            ILoggerFactory loggerFactory)
-            : base(
-                thinClientProcess,
-                pipeServer,
-                pipeServer,
-                serverProcessTask,
-                workspaceContent,
-                workspaceRootPath,
-                workDoneProgressTarget,
-                locations,
-                loggerFactory)
-        {
-            _pipeServer = pipeServer;
-        }
-
-        protected override void DisposeTransport()
-        {
-            _pipeServer.Dispose();
-        }
-    }
-
-    private protected static ProcessStartInfo CreateThinClientStartInfo(
-        string? pipePath,
-        int? clientProcessId,
-        string extensionLogsPath,
-        LspServerLaunchOptions launchOptions)
-    {
-        var processStartInfo = new ProcessStartInfo()
-        {
-            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet",
-        };
-
-        // The LSP's runtime configuration sets rollforward to Major which allows it to run on a newer runtime
-        // when the expected runtime is not present. Additionally, we need to be able to use prerelease runtimes
-        // since unit tests may be running against preview builds of the .NET SDK.
-        processStartInfo.Environment["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1";
-
-        processStartInfo.ArgumentList.Add(TestPaths.GetThinClientPath());
-
-        if (pipePath is not null)
-        {
-            processStartInfo.ArgumentList.Add("--pipe");
-            processStartInfo.ArgumentList.Add(pipePath);
-        }
-        else
-        {
-            processStartInfo.ArgumentList.Add("--stdio");
-        }
-
-        if (clientProcessId is int processId)
-        {
-            processStartInfo.ArgumentList.Add("--clientProcessId");
-            processStartInfo.ArgumentList.Add(processId.ToString(CultureInfo.InvariantCulture));
-        }
-
-        if (launchOptions.DaemonMode)
-        {
-            processStartInfo.ArgumentList.Add("--daemon-mode");
-
-            // Scope the daemon to this test by overriding its pipe name, so independent tests never share a daemon.
-            if (launchOptions.DaemonPipeName is { } daemonPipeName)
-                processStartInfo.Environment[DaemonPipeName.PipeNameOverrideEnvironmentVariable] = daemonPipeName;
-
-            // The thin client launches the daemon as a child, which inherits this environment, so forward the same
-            // integer value accepted by --daemonKeepAlive directly to the daemon.
-            if (launchOptions.DaemonKeepAlive is { } daemonKeepAlive)
-                processStartInfo.Environment[LanguageServerCommandLine.DaemonKeepAliveEnvironmentVariable] = daemonKeepAlive.ToString(CultureInfo.InvariantCulture);
-        }
-
-        processStartInfo.ArgumentList.Add("--logLevel");
-        processStartInfo.ArgumentList.Add("Trace");
-
-        processStartInfo.ArgumentList.Add("--extensionLogDirectory");
-        processStartInfo.ArgumentList.Add(extensionLogsPath);
-
-        if (launchOptions.AutoLoadProjects)
-        {
-            processStartInfo.ArgumentList.Add("--autoLoadProjects");
-        }
-
-        if (launchOptions.IncludeDevKitComponents)
-        {
-            processStartInfo.ArgumentList.Add("--devKitDependencyPath");
-            processStartInfo.ArgumentList.Add(TestPaths.GetDevKitExtensionPath());
-        }
-
-        if (launchOptions.DebugLsp)
-        {
-            processStartInfo.ArgumentList.Add("--debug");
-        }
-
-        processStartInfo.CreateNoWindow = false;
-        processStartInfo.UseShellExecute = false;
-        processStartInfo.RedirectStandardInput = true;
-        processStartInfo.RedirectStandardOutput = true;
-        processStartInfo.RedirectStandardError = true;
-
-        return processStartInfo;
     }
 }

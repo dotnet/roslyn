@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Razor;
@@ -22,8 +23,12 @@ using Microsoft.CodeAnalysis.Razor;
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
-internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionResolver
+[method: ImportingConstructor]
+internal sealed class ExtractToComponentCodeActionResolver(
+    LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
 {
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+
     public string Action => LanguageServerConstants.CodeActions.ExtractToNewComponent;
 
     public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
@@ -47,7 +52,7 @@ internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionRes
         var templatePath = Path.Combine(directoryName, "Component.razor");
         var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentUri = LspFactory.CreateFilePathUri(componentPath);
+        var newComponentUri = LspFactory.CreateFilePathUri(componentPath, _languageServerFeatureOptions);
 
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 

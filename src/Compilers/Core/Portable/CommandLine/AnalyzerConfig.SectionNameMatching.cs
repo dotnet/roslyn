@@ -107,15 +107,7 @@ namespace Microsoft.CodeAnalysis
 
             var lexer = new SectionNameLexer(sectionName);
             var numberRangePairs = ArrayBuilder<(int minValue, int maxValue)>.GetInstance();
-            try
-            {
-                if (!TryCompilePathList(ref lexer, sb, parsingChoice: false, numberRangePairs, recursionDepth: 0))
-                {
-                    numberRangePairs.Free();
-                    return null;
-                }
-            }
-            catch (InsufficientExecutionStackException)
+            if (!TryCompilePathList(ref lexer, sb, parsingChoice: false, numberRangePairs))
             {
                 numberRangePairs.Free();
                 return null;
@@ -239,11 +231,8 @@ namespace Microsoft.CodeAnalysis
             ref SectionNameLexer lexer,
             StringBuilder sb,
             bool parsingChoice,
-            ArrayBuilder<(int minValue, int maxValue)> numberRangePairs,
-            int recursionDepth)
+            ArrayBuilder<(int minValue, int maxValue)> numberRangePairs)
         {
-            StackGuard.EnsureSufficientExecutionStack(recursionDepth);
-
             while (!lexer.IsDone)
             {
                 var tokenKind = lexer.Lex();
@@ -279,7 +268,7 @@ namespace Microsoft.CodeAnalysis
                         if (rangeOpt is null)
                         {
                             // Not a number range. Try a choice expression
-                            if (!TryCompileChoice(ref lexer, sb, numberRangePairs, recursionDepth + 1))
+                            if (!TryCompileChoice(ref lexer, sb, numberRangePairs))
                             {
                                 return false;
                             }
@@ -382,11 +371,8 @@ namespace Microsoft.CodeAnalysis
         private static bool TryCompileChoice(
             ref SectionNameLexer lexer,
             StringBuilder sb,
-            ArrayBuilder<(int, int)> numberRangePairs,
-            int recursionDepth)
+            ArrayBuilder<(int, int)> numberRangePairs)
         {
-            StackGuard.EnsureSufficientExecutionStack(recursionDepth);
-
             if (lexer.Lex() != TokenKind.OpenCurly)
             {
                 return false;
@@ -397,7 +383,7 @@ namespace Microsoft.CodeAnalysis
 
             // We start immediately after a '{'
             // Try to compile the nested <path-list>
-            while (TryCompilePathList(ref lexer, sb, parsingChoice: true, numberRangePairs, recursionDepth + 1))
+            while (TryCompilePathList(ref lexer, sb, parsingChoice: true, numberRangePairs))
             {
                 // If we've successfully compiled a <path-list> the last token should
                 // have been a ',' or a '}'

@@ -16,7 +16,6 @@ using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CsProj;
-using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
@@ -27,12 +26,10 @@ internal class Program
         var argList = new List<string>(args);
 
         bool getDiffableDisasm;
-        bool validate;
 
         try
         {
             ParseAndRemoveBooleanParameter(argList, "--disasm-diff", out getDiffableDisasm);
-            ParseAndRemoveBooleanParameter(argList, "--validate", out validate);
         }
         catch (ArgumentException ex)
         {
@@ -42,11 +39,11 @@ internal class Program
 
         return BenchmarkSwitcher
             .FromAssembly(typeof(Program).Assembly)
-            .Run([.. argList], GetConfig(getDiffableDisasm, validate))
+            .Run(args, GetConfig(getDiffableDisasm))
             .ToExitCode();
     }
 
-    private static IConfig GetConfig(bool getDiffableDisasm, bool validate)
+    private static IConfig GetConfig(bool getDiffableDisasm)
     {
         if (Debugger.IsAttached)
         {
@@ -59,21 +56,12 @@ internal class Program
             .AddAnalyser(DefaultConfig.Instance.GetAnalysers().ToArray()) // copy default analysers
             .AddExporter(MarkdownExporter.GitHub) // export to GitHub markdown
             .AddColumnProvider(DefaultColumnProviders.Instance) // display default columns (method name, args etc)
+            .AddJob(Job.Default.DontEnforcePowerPlan()) // use the current runtime with Roslyn's shared BenchmarkDotNet defaults
+            .AddJob(GetJob(CsProjClassicNetToolchain.Net472))
             .AddDiagnoser(MemoryDiagnoser.Default)
             .AddExporter(JsonExporter.Full)
             .AddColumn(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
             .WithSummaryStyle(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
-
-        if (validate)
-        {
-            return config.AddJob(Job.Dry
-                .WithToolchain(InProcessNoEmitToolchain.Instance)
-                .DontEnforcePowerPlan());
-        }
-
-        config = config
-            .AddJob(Job.Default.DontEnforcePowerPlan()) // use the current runtime with Roslyn's shared BenchmarkDotNet defaults
-            .AddJob(GetJob(CsProjClassicNetToolchain.Net472));
 
         if (getDiffableDisasm)
         {

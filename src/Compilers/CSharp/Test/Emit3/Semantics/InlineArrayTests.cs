@@ -109,12 +109,7 @@ public class Enclosing
 47
 48
 ";
-            CompileAndVerify(comp, expectedOutput: output,
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics();
 
             var t = comp.GetSpecialType(SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute);
             Assert.Equal(SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute, t.SpecialType);
@@ -1575,7 +1570,7 @@ public class Enclosing
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111").VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1610,7 +1605,7 @@ public class Enclosing<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111").VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1645,7 +1640,7 @@ public class Enclosing
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111").VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1680,7 +1675,7 @@ public class Enclosing<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111").VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1715,7 +1710,7 @@ public class Enclosing<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, expectedOutput: "111").VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -1906,7 +1901,7 @@ public struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
             // No warning CS0414: The field 'Buffer._element0' is assigned but its value is never used
-            CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2465,7 +2460,7 @@ class Program
 " + Buffer10Definition;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
 @"
@@ -2556,7 +2551,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -2593,7 +2588,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
@@ -2706,7 +2701,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -2744,7 +2739,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
@@ -2785,7 +2780,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -2827,7 +2822,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
@@ -2867,7 +2862,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2892,7 +2887,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2917,7 +2912,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [Fact]
@@ -3018,7 +3013,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -3044,7 +3039,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -3073,7 +3068,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -3103,7 +3098,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -5460,7 +5455,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: InlineArrayElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -5678,12 +5673,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -5811,7 +5801,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -6027,12 +6017,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -6149,7 +6134,7 @@ class Program
 " + Buffer10Definition;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M1",
 @"
@@ -8524,7 +8509,7 @@ class Program
 " + Buffer10Definition;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -8636,12 +8621,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -8759,12 +8739,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -9028,12 +9003,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -9280,12 +9250,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -9474,12 +9439,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -9526,12 +9486,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -9582,12 +9537,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -9677,12 +9627,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -9727,12 +9672,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -9850,12 +9790,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
@@ -9903,12 +9838,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
@@ -9960,12 +9890,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
@@ -10097,12 +10022,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
@@ -10187,12 +10107,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("C.M2",
 @"
@@ -10810,12 +10725,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -10889,12 +10799,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -10946,12 +10851,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -11043,12 +10943,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -11094,12 +10989,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -11180,12 +11070,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -11220,12 +11105,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -11264,12 +11144,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [Fact]
@@ -11348,12 +11223,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -11387,12 +11257,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
         }
 
         [Fact]
@@ -12332,12 +12197,7 @@ class Program
 
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 1 0",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 1 0").VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
 @"
@@ -12534,14 +12394,7 @@ public struct Buffer2<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                    Verification.Fails with
-                    {
-                        ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                    } :
-                    Verification.Skipped
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
 @"
@@ -12604,12 +12457,7 @@ public struct Buffer2<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 2",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 2").VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
 @"
@@ -12676,12 +12524,7 @@ public struct Buffer2<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 2 1 0",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 2 1 0").VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
 @"
@@ -12730,7 +12573,7 @@ public struct Buffer1<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor",
 @"
@@ -13144,12 +12987,7 @@ public struct Buffer10
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 1 0",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 1 0").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer10..ctor",
 @"
@@ -13273,14 +13111,7 @@ public struct Buffer2
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                    Verification.Fails with
-                    {
-                        ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                    } :
-                    Verification.Skipped
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer2..ctor",
 @"
@@ -13334,12 +13165,7 @@ public struct Buffer2
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 2",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 2").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer2..ctor",
 @"
@@ -13398,12 +13224,7 @@ public struct Buffer2
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 2 1 0",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 0 2 1 0").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer2..ctor",
 @"
@@ -13456,7 +13277,7 @@ public ref struct Buffer1Ref
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics(
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics(
                 // (25,20): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(25, 20)
@@ -13530,7 +13351,7 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -13804,7 +13625,7 @@ public ref struct Buffer2Ref
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics(
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics(
                 // (17,20): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(17, 20)
@@ -13900,7 +13721,7 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -13961,7 +13782,7 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -14029,7 +13850,7 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -14070,7 +13891,7 @@ public struct Buffer1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
             verifier.VerifyIL("Buffer1..ctor",
 @"
@@ -15017,7 +14838,9 @@ class Program
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
                     Verification.Fails with
                     {
-                        ILVerifyMessage = InlineArrayAsSpanILVerifyMessage
+                        ILVerifyMessage = """
+                            [InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                            """
                     } :
                     Verification.Skipped,
                 symbolValidator: m =>
@@ -15035,25 +14858,22 @@ class Program
             verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName,
 @"
 {
-  // Code size       16 (0x10)
+  // Code size       20 (0x14)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldind.u1
-  IL_0002:  pop
-  IL_0003:  ldarg.0
-  IL_0004:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
-  IL_0009:  ldarg.1
-  IL_000a:  call       ""System.Span<TElement> System.Runtime.InteropServices.MemoryMarshal.CreateSpan<TElement>(scoped ref TElement, int)""
-  IL_000f:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  bne.un.s   IL_0007
+  IL_0005:  ldnull
+  IL_0006:  throw
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_000d:  ldarg.1
+  IL_000e:  call       ""System.Span<TElement> System.Runtime.InteropServices.MemoryMarshal.CreateSpan<TElement>(scoped ref TElement, int)""
+  IL_0013:  ret
 }
 ");
         }
-
-        internal static string InlineArrayAsSpanILVerifyMessage
-            => """
-               [InlineArrayAsSpan]: Unexpected type on the stack. { Offset = 0x1, Found = value 'TBuffer', Expected = Byte }
-               [InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
-               """;
 
         [Theory]
         [CombinatorialData]
@@ -15082,7 +14902,9 @@ class Program
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
                     Verification.Fails with
                     {
-                        ILVerifyMessage = InlineArrayAsReadOnlySpanILVerifyMessage
+                        ILVerifyMessage = """
+                            [InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }
+                            """
                     } :
                     Verification.Skipped,
                 symbolValidator: m =>
@@ -15100,26 +14922,23 @@ class Program
             verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName,
 @"
 {
-  // Code size       21 (0x15)
+  // Code size       25 (0x19)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldind.u1
-  IL_0002:  pop
-  IL_0003:  ldarg.0
-  IL_0004:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
-  IL_0009:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
-  IL_000e:  ldarg.1
-  IL_000f:  call       ""System.ReadOnlySpan<TElement> System.Runtime.InteropServices.MemoryMarshal.CreateReadOnlySpan<TElement>(scoped ref readonly TElement, int)""
-  IL_0014:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  bne.un.s   IL_0007
+  IL_0005:  ldnull
+  IL_0006:  throw
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
+  IL_000d:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_0012:  ldarg.1
+  IL_0013:  call       ""System.ReadOnlySpan<TElement> System.Runtime.InteropServices.MemoryMarshal.CreateReadOnlySpan<TElement>(scoped ref readonly TElement, int)""
+  IL_0018:  ret
 }
 ");
         }
-
-        internal static string InlineArrayAsReadOnlySpanILVerifyMessage
-            => """
-               [InlineArrayAsReadOnlySpan]: Unexpected type on the stack. { Offset = 0x1, Found = value 'TBuffer', Expected = Byte }
-               [InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x14 }
-               """;
 
         [Theory]
         [CombinatorialData]
@@ -15143,10 +14962,7 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: (release ? TestOptions.ReleaseDll : TestOptions.DebugDll).WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var verifier = CompileAndVerify(comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                    InlineArrayElementRefVerificationFails() :
-                    Verification.Skipped,
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: m =>
                 {
                     var t = m.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
@@ -15162,32 +14978,22 @@ class Program
             verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName,
 @"
 {
-  // Code size       16 (0x10)
+  // Code size       20 (0x14)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldind.u1
-  IL_0002:  pop
-  IL_0003:  ldarg.0
-  IL_0004:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
-  IL_0009:  ldarg.1
-  IL_000a:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.Add<TElement>(ref TElement, int)""
-  IL_000f:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  bne.un.s   IL_0007
+  IL_0005:  ldnull
+  IL_0006:  throw
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_000d:  ldarg.1
+  IL_000e:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.Add<TElement>(ref TElement, int)""
+  IL_0013:  ret
 }
 ");
         }
-
-        internal static Verification InlineArrayElementRefVerificationFails()
-        {
-            return Verification.Fails with
-            {
-                ILVerifyMessage = InlineArrayElementRefILVerifyMessage
-            };
-        }
-
-        internal static string InlineArrayElementRefILVerifyMessage
-            => """
-               [InlineArrayElementRef]: Unexpected type on the stack. { Offset = 0x1, Found = value 'TBuffer', Expected = Byte }
-               """;
 
         [Theory]
         [CombinatorialData]
@@ -15211,13 +15017,7 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: (release ? TestOptions.ReleaseDll : TestOptions.DebugDll).WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var verifier = CompileAndVerify(comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                    Verification.Fails with
-                    {
-                        ILVerifyMessage = InlineArrayElementRefReadOnlyILVerifyMessage
-                    } :
-                    Verification.Skipped,
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: m =>
                 {
                     var t = m.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
@@ -15233,25 +15033,23 @@ class Program
             verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName,
 @"
 {
-  // Code size       21 (0x15)
+  // Code size       25 (0x19)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldind.u1
-  IL_0002:  pop
-  IL_0003:  ldarg.0
-  IL_0004:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
-  IL_0009:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
-  IL_000e:  ldarg.1
-  IL_000f:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.Add<TElement>(ref TElement, int)""
-  IL_0014:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  bne.un.s   IL_0007
+  IL_0005:  ldnull
+  IL_0006:  throw
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
+  IL_000d:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_0012:  ldarg.1
+  IL_0013:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.Add<TElement>(ref TElement, int)""
+  IL_0018:  ret
 }
 ");
         }
-
-        internal static string InlineArrayElementRefReadOnlyILVerifyMessage
-            => """
-               [InlineArrayElementRefReadOnly]: Unexpected type on the stack. { Offset = 0x1, Found = value 'TBuffer', Expected = Byte }
-               """;
 
         [Theory]
         [CombinatorialData]
@@ -15273,7 +15071,7 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: (release ? TestOptions.ReleaseDll : TestOptions.DebugDll).WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? InlineArrayFirstElementRefVerificationFails() : Verification.Skipped,
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: m =>
                 {
                     var t = m.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
@@ -15289,30 +15087,20 @@ class Program
             verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName,
 @"
 {
-  // Code size       10 (0xa)
-  .maxstack  1
+  // Code size       14 (0xe)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldind.u1
-  IL_0002:  pop
-  IL_0003:  ldarg.0
-  IL_0004:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
-  IL_0009:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  bne.un.s   IL_0007
+  IL_0005:  ldnull
+  IL_0006:  throw
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_000d:  ret
 }
 ");
         }
-
-        internal static Verification InlineArrayFirstElementRefVerificationFails()
-        {
-            return Verification.Fails with
-            {
-                ILVerifyMessage = InlineArrayFirstElementRefILVerifyMessage
-            };
-        }
-
-        internal static string InlineArrayFirstElementRefILVerifyMessage
-            => """
-               [InlineArrayFirstElementRef]: Unexpected type on the stack. { Offset = 0x1, Found = value 'TBuffer', Expected = Byte }
-               """;
 
         [Theory]
         [CombinatorialData]
@@ -15334,13 +15122,7 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: (release ? TestOptions.ReleaseDll : TestOptions.DebugDll).WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var verifier = CompileAndVerify(comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                    Verification.Fails with
-                    {
-                        ILVerifyMessage = InlineArrayFirstElementRefReadOnlyILVerifyMessage
-                    } :
-                    Verification.Skipped,
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: m =>
                 {
                     var t = m.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
@@ -15356,23 +15138,21 @@ class Program
             verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName,
 @"
 {
-  // Code size       15 (0xf)
-  .maxstack  1
+  // Code size       19 (0x13)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldind.u1
-  IL_0002:  pop
-  IL_0003:  ldarg.0
-  IL_0004:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
-  IL_0009:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
-  IL_000e:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  bne.un.s   IL_0007
+  IL_0005:  ldnull
+  IL_0006:  throw
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
+  IL_000d:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
+  IL_0012:  ret
 }
 ");
         }
-
-        internal static string InlineArrayFirstElementRefReadOnlyILVerifyMessage
-            => """
-               [InlineArrayFirstElementRefReadOnly]: Unexpected type on the stack. { Offset = 0x1, Found = value 'TBuffer', Expected = Byte }
-               """;
 
         [Fact]
         public void NullableAnalysis_01()
@@ -15592,7 +15372,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "-1 110", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 110").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M2",
 @"
@@ -19015,12 +18795,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -19118,12 +18893,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -19196,12 +18966,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -19355,12 +19120,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayElementRefReadOnlyILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114 -111 -112 -113 -114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -19495,12 +19255,7 @@ public struct Buffer4<T>
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayElementRefReadOnlyILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -19699,12 +19454,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayElementRefReadOnlyILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: " 111 112 113 114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -19994,21 +19744,13 @@ public struct Buffer4<T>
 ";
             var expectedOutput = " 111 112 113 114";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: expectedOutput,
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.FailsILVerify with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x7f }
-
-                    """ + InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage + """
-
                     [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
                     """
             });
@@ -20904,8 +20646,8 @@ class Program
             {
                 ILVerifyMessage = """
                     [Test]: Return value missing on the stack. { Offset = 0x62 }
-
-                    """ + InlineArrayAsSpanILVerifyMessage + '\n' + InlineArrayElementRefILVerifyMessage
+                    [InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                    """
             });
             verifier.VerifyIL("Program.Test(C)", """
                 {
@@ -20994,10 +20736,10 @@ class Program
             var expectedOutput = "09009";
 
             CompileAndVerify(src, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: expectedOutput, verify: InlineArrayElementRefVerificationFails()).VerifyDiagnostics();
+                expectedOutput: expectedOutput).VerifyDiagnostics();
 
             CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: expectedOutput, verify: InlineArrayElementRefVerificationFails()).VerifyDiagnostics();
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -21532,12 +21274,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayElementRefReadOnlyILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<Test>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -21640,12 +21377,7 @@ class Program
 }
 ");
             comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayElementRefReadOnlyILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -21687,10 +21419,10 @@ class Program
             var expectedOutput = "09009";
 
             CompileAndVerify(src, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: expectedOutput, verify: InlineArrayElementRefVerificationFails()).VerifyDiagnostics();
+                expectedOutput: expectedOutput).VerifyDiagnostics();
 
             CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: expectedOutput, verify: InlineArrayElementRefVerificationFails()).VerifyDiagnostics();
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -22425,10 +22157,10 @@ class Program
             var expectedOutput = "0090-19";
 
             CompileAndVerify(src, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: expectedOutput, verify: InlineArrayElementRefVerificationFails()).VerifyDiagnostics();
+                expectedOutput: expectedOutput).VerifyDiagnostics();
 
             CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: expectedOutput, verify: InlineArrayElementRefVerificationFails()).VerifyDiagnostics();
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -22819,12 +22551,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayElementRefReadOnlyILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<Test>d__1.System.Collections.IEnumerator.MoveNext",
 @"
@@ -22887,12 +22614,7 @@ class Program
 }
 ");
             comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayElementRefReadOnlyILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "-1 111 112 113 114").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -22942,10 +22664,10 @@ class Program
             var expectedOutput = "0090-19";
 
             CompileAndVerify(src, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: expectedOutput, verify: InlineArrayElementRefVerificationFails()).VerifyDiagnostics();
+                expectedOutput: expectedOutput).VerifyDiagnostics();
 
             CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: expectedOutput, verify: InlineArrayElementRefVerificationFails()).VerifyDiagnostics();
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -23439,7 +23161,7 @@ struct Buffer4
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(7, 12)
                 );
 
-            CompileAndVerify(comp, expectedOutput: "0", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics(
+            CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics(
                 // (7,12): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     string this[int i] => "int";
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(7, 12)
@@ -23466,7 +23188,7 @@ struct Buffer4
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "0", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics(
+            CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics(
                 // (7,12): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     string this[System.Index i] => "index";
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(7, 12)
@@ -23572,7 +23294,7 @@ interface I1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "0", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -23882,7 +23604,7 @@ struct MyArray
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "123124", verify: InlineArrayFirstElementRefVerificationFails()).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test",
 @"
@@ -23926,12 +23648,7 @@ struct ThreeStringBuffer {
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "123124",
-                verify: Verification.Fails with
-                {
-                    ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                }
-                ).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics();
         }
 
         [Fact]
@@ -24007,13 +23724,7 @@ struct ThreeStringBuffer {
             foreach (var parseOptions in new[] { TestOptions.Regular12, TestOptions.Regular13, TestOptions.RegularPreview })
             {
                 var verifier = CompileAndVerify(src, expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "042",
-                    parseOptions: parseOptions, targetFramework: TargetFramework.Net80,
-                    verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                        Verification.Fails with
-                        {
-                            ILVerifyMessage = InlineArrayElementRefILVerifyMessage + '\n' + InlineArrayFirstElementRefILVerifyMessage
-                        } :
-                        Verification.FailsPEVerify);
+                    parseOptions: parseOptions, targetFramework: TargetFramework.Net80, verify: Verification.FailsPEVerify);
                 verifier.VerifyDiagnostics();
                 verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
                     {
@@ -24814,7 +24525,7 @@ using System.Runtime.CompilerServices;
 ref S s = ref Unsafe.NullRef<S>();
 try
 {
-    ref sbyte e = ref s[0];
+    ref byte e = ref s[0];
     Console.WriteLine("ERROR: Should have thrown NullReferenceException");
 }
 catch (NullReferenceException)
@@ -24823,11 +24534,12 @@ catch (NullReferenceException)
 }
 
 [InlineArray(10)]
-public struct S { public sbyte F; }
+public struct S { public byte F; }
 """;
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            comp.MakeTypeMissing(SpecialType.System_Byte);
+            comp.MakeTypeMissing(SpecialType.System_Boolean);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute);
             var verifier = CompileAndVerify(comp, expectedOutput: "PASS", verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
         }

@@ -9,6 +9,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 public static class LspTestCompositions
 {
     public static readonly TestComposition LanguageServerProtocol = FeaturesTestCompositions.Features
-        .AddAssemblies(typeof(LanguageServerProtocolResources).Assembly)
-        .AddParts(typeof(TestLspWorkspaceRegistrationEventListener));
+        .AddAssemblies(typeof(LanguageServerProtocolResources).Assembly);
 }

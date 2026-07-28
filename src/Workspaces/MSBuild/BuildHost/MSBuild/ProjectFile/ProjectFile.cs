@@ -17,7 +17,6 @@ internal sealed class ProjectFile(
     string language,
     MSB.Evaluation.Project? project,
     ProjectBuildManager buildManager,
-    RpcServer server,
     DiagnosticLog log) :
 #if NETFRAMEWORK
     MarshalByRefObject, // We need this object to pass across the AppDomain boundary when on .NET Framework
@@ -259,13 +258,5 @@ internal sealed class ProjectFile(
         }
 
         project.Save();
-    }
-
-    public void Dispose()
-    {
-        server.RemoveTarget(this);
-
-        if (project is not null)
-            buildManager.UnloadProject(project);
     }
 }

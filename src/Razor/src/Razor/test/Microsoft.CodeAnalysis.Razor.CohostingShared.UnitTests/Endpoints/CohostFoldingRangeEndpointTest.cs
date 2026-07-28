@@ -27,15 +27,15 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                 <div>
                   Hello World
                 </div>
-              }|]
-            </div>
+              }
+            |]</div>
 
             @if (true) {[|
               <div>
                 Hello World
               </div>
-            }|]
-
+            }
+            |]
             @if (true) {[|
             }|]
             """,
@@ -52,34 +52,19 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                 <div>
                   Hello World
                 </div>
-              }|]
-            </div>
+              }
+            |]</div>
 
             @if (true) {[|
               <div>
                 Hello World
               </div>
-            }|]
-
+            }
+            |]
             @if (true) {[|
             }|]
             """,
             miscellaneousFile: miscellaneousFile);
-
-    [Fact]
-    public Task IfStatements_Adjacent()
-        => VerifyFoldingRangesAsync("""
-            @if (true) {[|
-              <div>
-                Hello World
-              </div>
-            }|]
-            @if (false) {[|
-              <div>
-                Goodbye World
-              </div>
-            }|]
-            """);
 
     [Fact]
     public Task LockStatement()
@@ -107,7 +92,8 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                 <div>
                     Goodbye World
                 </div>
-                }|]|]
+                }|]
+            |]  }
             </div>
             """);
 
@@ -299,7 +285,8 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                 <div>
                     Goodbye World
                 </div>
-            |]    }|]
+            |]    }
+            |]  }
             </div>
 
             @code[|

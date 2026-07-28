@@ -89,7 +89,8 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                        _document.Project.Solution,
                         new CodeGenerationContext(
                             afterThisLocation: _state.Location,
-                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface)),
+                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface,
+                            allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument())),
                     _state.TypeToGenerateIn,
                     method,
                     cancellationToken).ConfigureAwait(false);

@@ -2069,7 +2069,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionType: true, UnionCaseTypesNoUseSiteDiagnostics: not [] } unionType &&
                         Binder.IsUnionTypeValueProperty(unionType, property):
                     {
-                        return unionType.UnionValueDeclaredNullableFlowState;
+                        // For union types where none of the case types are nullable, the default state for Value is "not null" rather than "maybe null".
+                        var result = NullableFlowState.NotNull;
+                        var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+                        unionType.ForEachUnionFactoryMethod(
+                            (factory, _) =>
+                            {
+                                var parameter = factory.Parameters[0];
+                                result = result.Join(GetParameterState(parameter.TypeWithAnnotations, parameter.FlowAnalysisAnnotations).State);
+                                return false;
+                            },
+                            (object?)null,
+                            ref discardedUseSiteInfo);
+
+                        return result;
                     }
 
                 case FieldSymbol:
@@ -10638,19 +10652,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var toType = (NamedTypeSymbol)targetType.StrippedType();
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            ImmutableArray<MethodSymbol> candidates = toType.UnionFactoryMethods(ref discardedUseSiteInfo);
-            int i = 0;
-            for (; i < candidates.Length; i++)
+            var match = toType.ForEachUnionFactoryMethod(
+                static (candidate, factory) => candidate.Equals(factory, TypeCompareKind.AllNullableIgnoreOptions),
+                factory,
+                ref discardedUseSiteInfo);
+            Debug.Assert(match is not null);
+            if (match is not null)
             {
-                MethodSymbol candidate = candidates[i];
-                if (candidate.Equals(factory, TypeCompareKind.AllNullableIgnoreOptions))
-                {
-                    factory = candidate;
-                    break;
-                }
+                factory = match;
             }
-
-            Debug.Assert(i < candidates.Length);
 
             // operand -> conversion "from" type
             var parameter = factory.Parameters[0];

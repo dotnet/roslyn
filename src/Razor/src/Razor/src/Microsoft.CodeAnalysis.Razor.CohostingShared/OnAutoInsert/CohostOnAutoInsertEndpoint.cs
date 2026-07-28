@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
@@ -87,33 +86,12 @@ internal sealed class CohostOnAutoInsertEndpoint(
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentOnAutoInsertParams request)
         => request.TextDocument;
 
-    protected override Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, TextDocument razorDocument, CancellationToken cancellationToken)
-    {
-        var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
-        return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
-    }
-
-    private async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
-        VSInternalDocumentOnAutoInsertParams request,
-        TextDocument razorDocument,
-        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
-        CancellationToken cancellationToken)
+    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Resolving auto-insertion for {razorDocument.FilePath}");
 
         var clientSettings = _clientSettingsManager.GetClientSettings();
-        var razorFormattingOptions = RazorFormattingOptions.From(
-            request.Options,
-            codeBlockBraceOnNextLine: clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine,
-            attributeIndentStyle: clientSettings.AdvancedSettings.AttributeIndentStyle,
-            csharpSyntaxFormattingOptions);
-        var resolvedCSharpSyntaxFormattingOptions = CSharpFormatter.GetResolvedCSharpSyntaxFormattingOptions(
-            razorDocument.Project.Solution.Services,
-            razorFormattingOptions);
-        razorFormattingOptions = razorFormattingOptions with
-        {
-            CSharpSyntaxFormattingOptions = resolvedCSharpSyntaxFormattingOptions
-        };
+        var razorFormattingOptions = RazorFormattingOptions.From(request.Options, codeBlockBraceOnNextLine: clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine, attributeIndentStyle: clientSettings.AdvancedSettings.AttributeIndentStyle);
 
         _logger.LogDebug($"Calling OOP to resolve insertion at {request.Position} invoked by typing '{request.Character}'");
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, Response>(
@@ -185,8 +163,7 @@ internal sealed class CohostOnAutoInsertEndpoint(
         public Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
             VSInternalDocumentOnAutoInsertParams request,
             TextDocument razorDocument,
-            CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
             CancellationToken cancellationToken)
-                => instance.HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
+                => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }
 }

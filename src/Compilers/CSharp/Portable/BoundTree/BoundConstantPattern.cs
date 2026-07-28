@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
-            if (UnionMatchingMode != UnionMatchingMode.None)
+            if (IsUnionMatching)
             {
                 Debug.Assert(NarrowedType.IsObjectType() ||
                              NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions) ||

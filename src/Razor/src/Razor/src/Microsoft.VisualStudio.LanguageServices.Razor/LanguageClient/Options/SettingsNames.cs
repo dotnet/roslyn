@@ -17,7 +17,6 @@ internal static class SettingsNames
     public const string Snippets = UnifiedCollection + ".snippets";
     public const string LogLevel = UnifiedCollection + ".logLevel";
     public const string FormatOnPaste = UnifiedCollection + ".formatOnPaste";
-    public const string ShowAllCSharpCodeActions = UnifiedCollection + ".showAllCSharpCodeActions";
 
     public static readonly string[] AllSettings =
     [
@@ -31,6 +30,5 @@ internal static class SettingsNames
         Snippets,
         LogLevel,
         FormatOnPaste,
-        ShowAllCSharpCodeActions,
     ];
 }

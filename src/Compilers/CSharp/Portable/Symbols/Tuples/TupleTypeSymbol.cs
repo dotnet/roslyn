@@ -21,10 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string ValueTupleTypeName = "ValueTuple";
         internal const string ValueTupleRestFieldName = "Rest";
 
-        private sealed partial class UncommonProperties
-        {
-            public TupleExtraData? _lazyTupleData;
-        }
+        private TupleExtraData? _lazyTupleData;
 
         /// <summary>
         /// Helps create a tuple type from source.
@@ -112,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal NamedTypeSymbol WithTupleDataFrom(NamedTypeSymbol original)
         {
-            if (!IsTupleType || (original._lazyUncommonProperties?._lazyTupleData == null && this._lazyUncommonProperties?._lazyTupleData == null) || TupleData!.EqualsIgnoringTupleUnderlyingType(original.TupleData))
+            if (!IsTupleType || (original._lazyTupleData == null && this._lazyTupleData == null) || TupleData!.EqualsIgnoringTupleUnderlyingType(original.TupleData))
             {
                 return this;
             }
@@ -121,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal NamedTypeSymbol? TupleUnderlyingType
-            => this._lazyUncommonProperties?._lazyTupleData != null ? this.TupleData!.TupleUnderlyingType : (this.IsTupleType ? this : null);
+            => this._lazyTupleData != null ? this.TupleData!.TupleUnderlyingType : (this.IsTupleType ? this : null);
 
         /// <summary>
         /// Copy this tuple, but modify it to use the new element types.
@@ -540,27 +537,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                UncommonProperties lazyUncommonProperties = GetUncommonProperties();
-                TupleExtraData? lazyTupleData = lazyUncommonProperties._lazyTupleData;
-
-                if (lazyTupleData is null)
+                if (_lazyTupleData is null)
                 {
-                    Interlocked.CompareExchange(ref lazyUncommonProperties._lazyTupleData, new TupleExtraData(this), null);
-                    return lazyUncommonProperties._lazyTupleData;
+                    Interlocked.CompareExchange(ref _lazyTupleData, new TupleExtraData(this), null);
                 }
 
-                return lazyTupleData;
+                return _lazyTupleData;
             }
         }
 
         public sealed override ImmutableArray<string?> TupleElementNames
-            => _lazyUncommonProperties is { _lazyTupleData: { } lazyTupleData } ? lazyTupleData.ElementNames : default;
+            => _lazyTupleData is null ? default : _lazyTupleData.ElementNames;
 
         private ImmutableArray<bool> TupleErrorPositions
-            => _lazyUncommonProperties is { _lazyTupleData: { } lazyTupleData } ? lazyTupleData.ErrorPositions : default;
+            => _lazyTupleData is null ? default : _lazyTupleData.ErrorPositions;
 
         private ImmutableArray<Location?> TupleElementLocations
-            => _lazyUncommonProperties is { _lazyTupleData: { } lazyTupleData } ? lazyTupleData.ElementLocations : default;
+            => _lazyTupleData is null ? default : _lazyTupleData.ElementLocations;
 
         public sealed override ImmutableArray<TypeWithAnnotations> TupleElementTypesWithAnnotations
             => IsTupleType ? TupleData!.TupleElementTypesWithAnnotations(this) : default;

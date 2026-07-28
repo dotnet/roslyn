@@ -387,10 +387,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_SealedStaticClass, GetFirstLocation(), this);
             }
 
-            if ((mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+            if (!modifierErrors &&
+                (mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
                 this.ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                diagnostics.Add(ErrorCode.ERR_UnsafeMeaningless, GetFirstLocation());
+                diagnostics.Add(ErrorCode.WRN_UnsafeMeaningless, GetFirstLocation());
             }
 
             switch (typeKind)
@@ -2108,7 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsUnionType)
             {
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                if (UnionFactoryMethods(ref discardedUseSiteInfo).IsEmpty)
+                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null, ref discardedUseSiteInfo) is null)
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
                 }

@@ -83,13 +83,12 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             return false;
         }
 
-        // Razor maps edits to its source-generated documents back to the corresponding Razor document.
-        if (document.IsRazorSourceGeneratedDocument())
+        if (context.AllowGenerationIntoHiddenCode?.Invoke(document) == true)
         {
             return true;
         }
 
-        // Other source-generated documents are immutable and cannot be generation targets.
+        // We can never generate into a document from a source generator, because those are immutable
         if (document is SourceGeneratedDocument)
         {
             return false;

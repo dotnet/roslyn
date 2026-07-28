@@ -19,6 +19,7 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
     private HostServices? _hostServices;
     private Workspace? _workspace;
     private IWorkspaceProvider? _workspaceProvider;
+    private LanguageServerFeatureOptions? _languageServerFeatureOptions;
 
     protected HostServices HostServices
     {
@@ -47,6 +48,15 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
         }
     }
 
+    private protected LanguageServerFeatureOptions LanguageServerFeatureOptions
+    {
+        get
+        {
+            EnsureInitialized();
+            return _languageServerFeatureOptions;
+        }
+    }
+
     protected virtual void ConfigureWorkspace(AdhocWorkspace workspace)
     {
     }
@@ -58,7 +68,8 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
     [MemberNotNull(
         nameof(_hostServices),
         nameof(_workspace),
-        nameof(_workspaceProvider))]
+        nameof(_workspaceProvider),
+        nameof(_languageServerFeatureOptions))]
     private void EnsureInitialized()
     {
         if (_initialized)
@@ -66,6 +77,7 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
             _hostServices.AssumeNotNull();
             _workspace.AssumeNotNull();
             _workspaceProvider.AssumeNotNull();
+            _languageServerFeatureOptions.AssumeNotNull();
             return;
         }
 
@@ -73,6 +85,7 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
         _workspace = TestWorkspace.Create(_hostServices, ConfigureWorkspace);
         AddDisposable(_workspace);
         _workspaceProvider = new TestWorkspaceProvider(_workspace);
+        _languageServerFeatureOptions = TestLanguageServerFeatureOptions.Instance;
         _initialized = true;
     }
 

@@ -39,7 +39,7 @@ public class CompletionListSerializationBenchmark
         }
 
         CompletionList deserializedCompletions;
-        var stream = new MemoryStream(originalStream.ToArray());
+        var stream = new MemoryStream(originalStream.GetBuffer());
         using (stream)
         {
             deserializedCompletions = JsonSerializer.Deserialize<CompletionList>(stream).AssumeNotNull();
@@ -100,7 +100,7 @@ public class CompletionListSerializationBenchmark
     {
         using var stream = new MemoryStream();
         JsonSerializer.Serialize(stream, completionList);
-        var buffer = stream.ToArray();
+        var buffer = stream.GetBuffer();
 
         return buffer;
     }

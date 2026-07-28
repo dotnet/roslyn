@@ -11,7 +11,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -54,12 +53,6 @@ internal abstract class AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TSynta
     {
         var option = context.GetAnalyzerOptions().PreferNamespaceAndFolderMatchStructure;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
-        {
-            return;
-        }
-
-        // File-based programs don't follow the "namespace matches folder structure" convention.
-        if (context.Node.SyntaxTree.IsFileBasedProgram())
         {
             return;
         }

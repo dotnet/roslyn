@@ -41,9 +41,7 @@ internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<Reques
     protected internal override void BeforeRequest<TRequest>(TRequest request)
     {
         // Update the locale for this request to the desired LSP locale.
-        var culture = GetCultureForRequest();
-        if (!ReferenceEquals(CultureInfo.CurrentUICulture, culture))
-            CultureInfo.CurrentUICulture = culture;
+        CultureInfo.CurrentUICulture = GetCultureForRequest();
     }
 
     /// <summary>

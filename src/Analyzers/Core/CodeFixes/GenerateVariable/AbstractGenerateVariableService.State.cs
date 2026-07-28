@@ -161,7 +161,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             IsContainedInUnsafeType = _service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
 
             var codeGenerationContext = new CodeGenerationContext(
-                contextLocation: IdentifierToken.GetLocation());
+                contextLocation: IdentifierToken.GetLocation(),
+                allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
 
             return CanGenerateLocal() || CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, codeGenerationContext, cancellationToken);
         }

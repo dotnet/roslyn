@@ -97,6 +97,11 @@ internal sealed class ComponentAccessibilityCodeActionProvider(IFileSystem fileS
     private void AddCreateComponentFromTag(
         RazorCodeActionContext context, BaseMarkupStartTagSyntax startTag, List<RazorVSInternalCodeAction> container)
     {
+        if (!context.SupportsFileCreation)
+        {
+            return;
+        }
+
         var path = context.Request.TextDocument.DocumentUri.GetAbsoluteOrUNCPath();
         path = FilePathNormalizer.Normalize(path);
 

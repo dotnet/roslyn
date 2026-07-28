@@ -26,7 +26,6 @@ internal sealed class QueueItem<TRequestContext>
 {
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
-    private readonly CancellationToken _cancellationToken;
 
     /// <summary>
     /// True if this queue item has actually started handling the request
@@ -55,12 +54,7 @@ internal sealed class QueueItem<TRequestContext>
         CancellationToken cancellationToken)
     {
         // Set the tcs state to cancelled if the token gets cancelled outside of our callback (for example the server shutting down).
-        _cancellationToken = cancellationToken;
-        cancellationToken.Register(static state =>
-        {
-            var queueItem = (QueueItem<TRequestContext>)state!;
-            queueItem._completionSource.TrySetCanceled(queueItem._cancellationToken);
-        }, this);
+        cancellationToken.Register(() => _completionSource.TrySetCanceled(cancellationToken));
 
         _logger = logger;
         SerializedRequest = serializedRequest;

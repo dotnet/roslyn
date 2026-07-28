@@ -26,6 +26,11 @@ internal sealed class ExtractToComponentCodeActionProvider() : IRazorCodeActionP
 {
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
+        if (!context.SupportsFileCreation)
+        {
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
+        }
+
         if (context.ContainsDiagnostic(ComponentDiagnosticFactory.UnexpectedMarkupElement.Id) &&
             !context.HasSelection)
         {

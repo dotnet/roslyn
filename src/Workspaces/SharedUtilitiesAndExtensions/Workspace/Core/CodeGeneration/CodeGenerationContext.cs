@@ -130,6 +130,11 @@ internal sealed class CodeGenerationContext
     /// </summary>
     public bool ReuseSyntax { get; }
 
+    /// <summary>
+    /// Allows code generation into locations that would otherwise be rejected for being hidden or source-generated.
+    /// </summary>
+    public Func<Document, bool>? AllowGenerationIntoHiddenCode { get; }
+
     public CodeGenerationContext(
         Location? contextLocation = null,
         Location? afterThisLocation = null,
@@ -144,7 +149,8 @@ internal sealed class CodeGenerationContext
         bool generateDocumentationComments = false,
         bool autoInsertionLocation = true,
         bool sortMembers = true,
-        bool reuseSyntax = false)
+        bool reuseSyntax = false,
+        Func<Document, bool>? allowGenerationIntoHiddenCode = null)
     {
         CheckLocation(contextLocation, nameof(contextLocation));
         CheckLocation(afterThisLocation, nameof(afterThisLocation));
@@ -163,6 +169,7 @@ internal sealed class CodeGenerationContext
         AutoInsertionLocation = autoInsertionLocation;
         SortMembers = sortMembers;
         ReuseSyntax = reuseSyntax;
+        AllowGenerationIntoHiddenCode = allowGenerationIntoHiddenCode;
     }
 
     private static void CheckLocation(Location? location, string name)
@@ -190,7 +197,8 @@ internal sealed class CodeGenerationContext
         Optional<bool> generateDocumentationComments = default,
         Optional<bool> autoInsertionLocation = default,
         Optional<bool> sortMembers = default,
-        Optional<bool> reuseSyntax = default)
+        Optional<bool> reuseSyntax = default,
+        Optional<Func<Document, bool>?> allowGenerationIntoHiddenCode = default)
     {
         var newContextLocation = contextLocation.HasValue ? contextLocation.Value : this.ContextLocation;
         var newAfterThisLocation = afterThisLocation.HasValue ? afterThisLocation.Value : this.AfterThisLocation;
@@ -206,6 +214,7 @@ internal sealed class CodeGenerationContext
         var newAutoInsertionLocation = autoInsertionLocation.HasValue ? autoInsertionLocation.Value : this.AutoInsertionLocation;
         var newSortMembers = sortMembers.HasValue ? sortMembers.Value : this.SortMembers;
         var newReuseSyntax = reuseSyntax.HasValue ? reuseSyntax.Value : this.ReuseSyntax;
+        var newAllowGenerationIntoHiddenCode = allowGenerationIntoHiddenCode.HasValue ? allowGenerationIntoHiddenCode.Value : this.AllowGenerationIntoHiddenCode;
 
         return new CodeGenerationContext(
             newContextLocation,
@@ -221,6 +230,7 @@ internal sealed class CodeGenerationContext
             newGenerateDocumentationComments,
             newAutoInsertionLocation,
             newSortMembers,
-            newReuseSyntax);
+            newReuseSyntax,
+            newAllowGenerationIntoHiddenCode);
     }
 }

@@ -67,6 +67,8 @@ internal sealed class PreviewFactoryService : AbstractPreviewFactoryService<IWpf
 
         try
         {
+            const string DiffOverviewMarginName = "deltadifferenceViewerOverview";
+
             diffViewer.ViewMode = mode;
 
             IWpfTextView view;
@@ -95,8 +97,9 @@ internal sealed class PreviewFactoryService : AbstractPreviewFactoryService<IWpf
             view.Options.SetOptionValue(DefaultTextViewHostOptions.SelectionMarginId, false);
             view.Options.SetOptionValue(DefaultTextViewHostOptions.SuggestionMarginId, false);
 
-            // Enable tab stop for the diff view host and collapse the unwanted bottom margin.
+            // Enable tab stop for the diff view host and collapse couple of unwanted margins.
             host.HostControl.IsTabStop = true;
+            host.GetTextViewMargin(DiffOverviewMarginName).VisualElement.Visibility = Visibility.Collapsed;
             host.GetTextViewMargin(PredefinedMarginNames.Bottom).VisualElement.Visibility = Visibility.Collapsed;
 
             // Enable focus for the diff viewer.

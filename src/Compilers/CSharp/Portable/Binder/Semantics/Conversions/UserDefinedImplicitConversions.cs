@@ -1026,20 +1026,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<UserDefinedConversionAnalysis> u,
                 ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                foreach (var factory in declaringType.UnionFactoryMethods(ref useSiteInfo))
-                {
-                    TypeSymbol convertsFrom = factory.GetParameterType(0);
-                    Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteInfo);
-                    Conversion targetConversion = EncompassingImplicitConversion(declaringType, target, ref useSiteInfo);
-
-                    Debug.Assert(targetConversion.Exists && targetConversion.IsImplicit);
-                    Debug.Assert(targetConversion.IsIdentity || (targetConversion.IsNullable && targetConversion.UnderlyingConversions[0].IsIdentity));
-
-                    if (fromConversion.Exists && targetConversion.Exists)
+                var localUseSiteInfo = useSiteInfo;
+                declaringType.ForEachUnionFactoryMethod(
+                    (factory, u) =>
                     {
-                        u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt: null, factory, fromConversion, targetConversion, convertsFrom, toType: declaringType));
-                    }
-                }
+                        TypeSymbol convertsFrom = factory.GetParameterType(0);
+                        Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref localUseSiteInfo);
+                        Conversion targetConversion = EncompassingImplicitConversion(declaringType, target, ref localUseSiteInfo);
+
+                        Debug.Assert(targetConversion.Exists && targetConversion.IsImplicit);
+                        Debug.Assert(targetConversion.IsIdentity || (targetConversion.IsNullable && targetConversion.UnderlyingConversions[0].IsIdentity));
+
+                        if (fromConversion.Exists && targetConversion.Exists)
+                        {
+                            u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt: null, factory, fromConversion, targetConversion, convertsFrom, toType: declaringType));
+                        }
+
+                        return false;
+                    },
+                    u,
+                    ref localUseSiteInfo);
+
+                useSiteInfo = localUseSiteInfo;
             }
         }
     }

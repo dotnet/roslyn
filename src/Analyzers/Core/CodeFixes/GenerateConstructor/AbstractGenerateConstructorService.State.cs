@@ -104,7 +104,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
             Contract.ThrowIfNull(TypeToGenerateIn);
             var codeGenerationContext = new CodeGenerationContext(
-                contextLocation: Token.GetLocation());
+                contextLocation: Token.GetLocation(),
+                allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
             if (!CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, codeGenerationContext, cancellationToken))
                 return false;
 
@@ -446,7 +447,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var context = new CodeGenerationSolutionContext(
                 document.Project.Solution,
                 new CodeGenerationContext(
-                    contextLocation: Token.GetLocation()));
+                    contextLocation: Token.GetLocation(),
+                    allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument()));
 
             return await CodeGenerator.AddMemberDeclarationsAsync(
                 context,
@@ -493,7 +495,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                 new CodeGenerationSolutionContext(
                     document.Project.Solution,
                     new CodeGenerationContext(
-                        contextLocation: Token.GetLocation())),
+                        contextLocation: Token.GetLocation(),
+                        allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument())),
                 TypeToGenerateIn,
                 GetRequiredLanguageService<SyntaxGenerator>(TypeToGenerateIn.Language).CreateMemberDelegatingConstructor(
                     GetRequiredLanguageService<SyntaxGeneratorInternal>(TypeToGenerateIn.Language),

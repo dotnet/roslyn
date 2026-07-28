@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 symbol,
                 node,
-                inUnsafeRegion: InUnsafeContext(compilation, symbol),
+                inUnsafeRegion: InUnsafeMethod(symbol),
                 useUpdatedEscapeRules: symbol.ContainingModule.UseUpdatedEscapeRules,
                 diagnostics);
             try
@@ -35,13 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool InUnsafeContext(CSharpCompilation compilation, Symbol symbol)
+        private static bool InUnsafeMethod(Symbol symbol)
         {
-            if (Binder.IsIteratorBodyWithSafeContext(compilation, isIteratorBody: symbol is MethodSymbol { IsIterator: true }))
-            {
-                return false;
-            }
-
             if (symbol is SourceMemberMethodSymbol { IntroducesUnsafeContext: true })
             {
                 return true;
@@ -374,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var localFunction = (LocalFunctionSymbol)node.Symbol;
-            var inUnsafeRegion = !Binder.IsIteratorBodyWithSafeContext(_compilation, isIteratorBody: localFunction.IsIterator) && (_inUnsafeRegion || localFunction.IntroducesUnsafeContext);
+            var inUnsafeRegion = _inUnsafeRegion || localFunction.IntroducesUnsafeContext;
             var analysis = new RefSafetyAnalysis(_compilation, localFunction, node, inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics);
             analysis.Visit(node.BlockBody);
             analysis.Visit(node.ExpressionBody);

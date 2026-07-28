@@ -140,7 +140,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.Parameter:
-                    EmitParameterLoad((BoundParameter)expression, used);
+                    if (used)  // unused parameter has no side-effects
+                    {
+                        EmitParameterLoad((BoundParameter)expression);
+                    }
                     break;
 
                 case BoundKind.FieldAccess:
@@ -1424,29 +1427,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitParameterLoad(BoundParameter parameter, bool used)
+        private void EmitParameterLoad(BoundParameter parameter)
         {
-            Debug.Assert(parameter.Type.Equals(parameter.ParameterSymbol.Type, TypeCompareKind.AllIgnoreOptions) ||
-                         (!used && parameter.Type.SpecialType == SpecialType.System_Byte &&
-                          parameter.ParameterSymbol is
-                          {
-                              Ordinal: 0,
-                              ContainingSymbol:
-                                   SynthesizedInlineArrayAsReadOnlySpanMethod or SynthesizedInlineArrayAsSpanMethod or SynthesizedInlineArrayElementRefMethod or
-                                   SynthesizedInlineArrayElementRefReadOnlyMethod or SynthesizedInlineArrayFirstElementRefMethod or SynthesizedInlineArrayFirstElementRefReadOnlyMethod
-                          })); // See a comment in SynthesizedInlineArrayAsSpanMethod.ThrowIfInlineArrayIsNullRef about the 'byte' type relaxation for some parameters.
+            int slot = ParameterSlot(parameter);
+            _builder.EmitLoadArgumentOpcode(slot);
 
-            if (used || parameter.ParameterSymbol.RefKind != RefKind.None)  // unused value parameter has no side-effects
+            if (parameter.ParameterSymbol.RefKind != RefKind.None)
             {
-                int slot = ParameterSlot(parameter);
-                _builder.EmitLoadArgumentOpcode(slot);
-
-                if (parameter.ParameterSymbol.RefKind != RefKind.None)
-                {
-                    EmitLoadIndirect(parameter.Type, parameter.Syntax);
-                }
-
-                EmitPopIfUnused(used);
+                var parameterType = parameter.ParameterSymbol.Type;
+                EmitLoadIndirect(parameterType, parameter.Syntax);
             }
         }
 

@@ -178,7 +178,7 @@ public class CodeFoldingTests(ITestOutputHelper testOutputHelper) : AbstractRazo
             """);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/10860")] // FUSE changes whitespace on folding ranges
     public async Task CodeFolding_IfBlock()
     {
         await TestServices.SolutionExplorer.AddFileAsync(

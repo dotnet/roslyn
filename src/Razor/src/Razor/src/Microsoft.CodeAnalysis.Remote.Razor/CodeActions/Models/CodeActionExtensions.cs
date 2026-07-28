@@ -60,8 +60,30 @@ internal static class CodeActionExtensions
         RazorLanguageKind language = RazorLanguageKind.CSharp,
         bool isOnAllowList = true)
     {
-        var wrapData = !TryHandleNestedCodeAction(razorCodeAction, context, action, language);
-        WrapResolvableCodeActionCore(razorCodeAction, context, action, language, isOnAllowList, wrapData);
+        if (!TryHandleNestedCodeAction(razorCodeAction, context, action, language))
+        {
+            var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
+            {
+                Action = action,
+                Language = language,
+                DelegatedDocumentUri = context.DelegatedDocumentUri,
+                Data = razorCodeAction.Data
+            };
+            razorCodeAction.Data = JsonSerializer.SerializeToElement(resolutionParams);
+        }
+
+        if (!isOnAllowList)
+        {
+            razorCodeAction.Title = $"(Exp) {razorCodeAction.Title} ({razorCodeAction.Name})";
+        }
+
+        if (razorCodeAction.Children != null)
+        {
+            for (var i = 0; i < razorCodeAction.Children.Length; i++)
+            {
+                razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCodeAction(context, action, language, isOnAllowList);
+            }
+        }
 
         return razorCodeAction;
     }
@@ -119,37 +141,35 @@ internal static class CodeActionExtensions
         return true;
     }
 
-    private static void WrapResolvableCodeActionCore(
-        VSInternalCodeAction razorCodeAction,
+    private static VSInternalCodeAction WrapResolvableCodeAction(
+        this VSInternalCodeAction razorCodeAction,
         RazorCodeActionContext context,
         string action,
         RazorLanguageKind language,
-        bool isOnAllowList,
-        bool wrapData)
+        bool isOnAllowList)
     {
-        if (wrapData)
+        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
         {
-            var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
-            {
-                Action = action,
-                Language = language,
-                DelegatedDocumentUri = context.DelegatedDocumentUri,
-                Data = razorCodeAction.Data
-            };
-            razorCodeAction.Data = JsonSerializer.SerializeToElement(resolutionParams);
-        }
+            Action = action,
+            Language = language,
+            DelegatedDocumentUri = context.DelegatedDocumentUri,
+            Data = razorCodeAction.Data
+        };
+        razorCodeAction.Data = JsonSerializer.SerializeToElement(resolutionParams);
 
         if (!isOnAllowList)
         {
-            razorCodeAction.Title = $"{razorCodeAction.Title} ({SR.Untested})";
+            razorCodeAction.Title = "(Exp) " + razorCodeAction.Title;
         }
 
         if (razorCodeAction.Children != null)
         {
             for (var i = 0; i < razorCodeAction.Children.Length; i++)
             {
-                WrapResolvableCodeActionCore(razorCodeAction.Children[i], context, action, language, isOnAllowList, wrapData: true);
+                razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCodeAction(context, action, language, isOnAllowList);
             }
         }
+
+        return razorCodeAction;
     }
 }

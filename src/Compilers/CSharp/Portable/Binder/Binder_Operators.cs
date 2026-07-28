@@ -4820,10 +4820,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindIsOperator(BinaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             var operand = BindRValueWithoutTargetType(node.Left, diagnostics);
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
 
             TypeSymbol inputType = operand.Type;
+            NamedTypeSymbol unionMatchingInputType;
+            NamedTypeSymbol unionType = null;
 
             // try binding as a type, but back off to binding as an expression if that does not work.
             bool wasUnderscore = IsUnderscore(node.Right);
@@ -4833,41 +4836,84 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // it did not bind as a type; try binding as a constant expression pattern
                 var isPatternDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-
-                if (tryAsConstantPattern(node, operand, operandHasErrors, inputType, isPatternDiagnostics) is { } isPatternExpression)
+                if ((object)inputType == null)
                 {
+                    if (!operandHasErrors)
+                    {
+                        isPatternDiagnostics.Add(ErrorCode.ERR_BadPatternExpression, node.Left.Location, operand.Display);
+                    }
+
+                    operand = ToBadExpression(operand);
+                    inputType = operand.Type;
+                }
+
+                if (inputType is not null)
+                {
+                    unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, isPatternDiagnostics);
+                }
+                else
+                {
+                    unionMatchingInputType = null;
+                }
+
+                bool hasErrors = node.Right.HasErrors;
+                var convertedExpression = BindExpressionForPattern(unionType, inputType, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, patternExpressionConversion: out _, out BoundExpression originalExpression);
+                if (wasExpression)
+                {
+                    hasErrors |= constantValueOpt is null;
                     isTypeDiagnostics.Free();
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
-                    return isPatternExpression;
+
+                    BoundConstantPattern boundConstantPattern;
+
+                    if (IsClassOrNullableValueTypeUnionNullPatternMatching(unionMatchingInputType, constantValueOpt))
+                    {
+                        // Special case of a null test for a class Union or for a Nullable<Union>.
+                        // For class its meaning is equivalent to: (<union instance> is null or <union instance>.Value is null) 
+                        // For Nullable<Union> its meaning is equivalent to: (<input value> is null or <input value>.GetValueOrDefault().Value is null) 
+                        // Therefore, the type isn't narrowed by this pattern and the following pattern, if any, will do union matching from scratch.
+
+                        // Ensure that the null value can actually be also matched against the original input type, since we are matching it against the input value as well.
+                        if (originalExpression.Type is not null && !originalExpression.Type.Equals(unionMatchingInputType.StrippedType(), TypeCompareKind.AllIgnoreOptions))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, node.Right.Location, unionMatchingInputType.StrippedType());
+                        }
+
+                        boundConstantPattern = new BoundConstantPattern(
+                            node.Right, convertedExpression, constantValueOpt, isUnionMatching: true, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors).MakeCompilerGenerated();
+                    }
+                    else
+                    {
+
+                        boundConstantPattern = new BoundConstantPattern(
+                            node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, isUnionMatching: unionMatchingInputType is not null, inputType: unionMatchingInputType ?? inputType, convertedExpression.Type ?? inputType, hasErrors).MakeCompilerGenerated();
+                    }
+
+                    return MakeIsPatternExpression(node, operand, boundConstantPattern, boundConstantPattern.IsUnionMatching, resultType, operandHasErrors, diagnostics);
                 }
 
                 isPatternDiagnostics.Free();
             }
 
-            var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             diagnostics.AddRangeAndFree(isTypeDiagnostics);
+            var targetType = typeExpression.Type;
 
-            if (((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) &&
-                inputType?.IsUnionMatchingInputType(unionType: out _) == true)
+            if (inputType is not null)
             {
-                var tryUnionMatchingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-                CompoundUseSiteInfo<AssemblySymbol> tryUnionMatchingUseSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                NamedTypeSymbol unionType = null;
-                bool permitDesignations = true;
-                BoundTypePattern typePattern = BindTypePattern(node, node.Right, ref unionType, inputType, ref permitDesignations, typeExpression, hasErrors: false, tryUnionMatchingDiagnostics, ref tryUnionMatchingUseSiteInfo, out bool hasUnionMatching);
-                diagnostics.Add(node.Right, tryUnionMatchingUseSiteInfo);
-
-                if (typePattern.UnionMatchingMode != UnionMatchingMode.None)
-                {
-                    Debug.Assert(hasUnionMatching);
-                    diagnostics.AddRangeAndFree(tryUnionMatchingDiagnostics);
-                    return MakeIsPatternExpression(node, operand, typePattern.MakeCompilerGenerated(), hasUnionMatching: true, resultType, operandHasErrors, diagnostics);
-                }
-
-                tryUnionMatchingDiagnostics.Free();
+                unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
+            }
+            else
+            {
+                unionMatchingInputType = null;
             }
 
-            var targetType = typeExpression.Type;
+            if (unionMatchingInputType is not null)
+            {
+                bool hasErrors = CheckValidPatternType(node.Right, unionType, inputType, targetType, diagnostics: diagnostics);
+                var pattern = new BoundTypePattern(node, typeExpression, isExplicitNotNullTest: targetType.SpecialType == SpecialType.System_Object, isUnionMatching: true, inputType: unionMatchingInputType, targetType, hasErrors);
+                return MakeIsPatternExpression(node, operand, pattern.MakeCompilerGenerated(), hasUnionMatching: true, resultType, operandHasErrors, diagnostics);
+            }
+
             var targetTypeWithAnnotations = typeExpression.TypeWithAnnotations;
             if (targetType.IsReferenceType && targetTypeWithAnnotations.NullableAnnotation.IsAnnotated())
             {
@@ -4952,79 +4998,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !(targetType?.IsErrorType() == true && bindAsTypeDiagnostics.HasAnyResolvedErrors());
             }
 
-            BoundExpression tryAsConstantPattern(BinaryExpressionSyntax node, BoundExpression operand, bool operandHasErrors, TypeSymbol inputType, BindingDiagnosticBag diagnostics)
-            {
-                if ((object)inputType == null)
-                {
-                    if (!operandHasErrors)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadPatternExpression, node.Left.Location, operand.Display);
-                    }
-
-                    operand = ToBadExpression(operand);
-                    inputType = operand.Type;
-                }
-
-                NamedTypeSymbol unionMatchingInputType;
-                NamedTypeSymbol unionType = null;
-
-                if (inputType is not null)
-                {
-                    unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
-                }
-                else
-                {
-                    unionMatchingInputType = null;
-                }
-
-                bool hasErrors = node.Right.HasErrors;
-                var convertedExpression = BindExpressionForPattern(unionType, inputType, node.Right, ref hasErrors, diagnostics, out var constantValueOpt, out var wasExpression, patternExpressionConversion: out _, out BoundExpression originalExpression);
-                if (wasExpression)
-                {
-                    hasErrors |= constantValueOpt is null;
-
-                    BoundConstantPattern boundConstantPattern;
-
-                    if (IsClassOrNullableValueTypeUnionNullPatternMatching(unionMatchingInputType, constantValueOpt))
-                    {
-                        // Special case of a null test for a class Union or for a Nullable<Union>.
-                        // For class its meaning is equivalent to: (<union instance> is null or <union instance>.Value is null) 
-                        // For Nullable<Union> its meaning is equivalent to: (<input value> is null or <input value>.GetValueOrDefault().Value is null) 
-                        // Therefore, the type isn't narrowed by this pattern and the following pattern, if any, will do union matching from scratch.
-
-                        // Ensure that the null value can actually be also matched against the original input type, since we are matching it against the input value as well.
-                        if (originalExpression.Type is not null && !originalExpression.Type.Equals(unionMatchingInputType.StrippedType(), TypeCompareKind.AllIgnoreOptions))
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, node.Right.Location, unionMatchingInputType.StrippedType());
-                        }
-
-                        boundConstantPattern = new BoundConstantPattern(
-                            node.Right, convertedExpression, constantValueOpt, unionMatchingMode: UnionMatchingMode.Both, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors).MakeCompilerGenerated();
-                    }
-                    else
-                    {
-
-                        boundConstantPattern = new BoundConstantPattern(
-                            node.Right, convertedExpression,
-                            constantValueOpt ?? ConstantValue.Bad,
-                            unionMatchingMode: unionMatchingInputType is not null ? UnionMatchingMode.UnionValue : UnionMatchingMode.None,
-                            inputType: unionMatchingInputType ?? inputType,
-                            convertedExpression.Type ?? inputType,
-                            hasErrors).MakeCompilerGenerated();
-                    }
-
-                    return MakeIsPatternExpression(
-                        node, operand, boundConstantPattern,
-                        boundConstantPattern.UnionMatchingMode != UnionMatchingMode.None,
-                        boolType: GetSpecialType(SpecialType.System_Boolean, diagnostics, node),
-                        operandHasErrors, diagnostics);
-                }
-
-                return null;
-            }
         }
 
-        private void ReportIsOperatorDiagnostics(
+        private static void ReportIsOperatorDiagnostics(
             CSharpSyntaxNode syntax,
             BindingDiagnosticBag diagnostics,
             TypeSymbol operandType,
@@ -5037,10 +5013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE:    we want to perform constant analysis of is/as expressions to generate warnings if the
             // NOTE:    expression will always be true/false/null.
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            ConstantValue constantValue = GetIsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue, ref useSiteInfo);
-            diagnostics.Add(syntax, useSiteInfo);
-
+            ConstantValue constantValue = GetIsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue);
             if (constantValue != null)
             {
                 if (constantValue.IsBad)
@@ -5069,7 +5042,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol targetType,
             ConversionKind conversionKind,
             ConstantValue operandConstantValue,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             bool operandCouldBeNull = true)
         {
             Debug.Assert((object)targetType != null);
@@ -5228,25 +5200,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         return ConstantValue.Bad;
-                    }
-
-                    // The following logic doesn't come from native compiler
-
-                    if (operandType.IsStructType())
-                    {
-                        // This logic is important for Unions feature to detect types that a union instance can never satisfy.
-                        if (targetType is TypeParameterSymbol tp &&
-                            !operandType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo).IsEqualToOrDerivedFrom(tp.EffectiveBaseClass(ref useSiteInfo), TypeCompareKind.AllIgnoreOptions, ref useSiteInfo))
-                        {
-                            return ConstantValue.False;
-                        }
-
-                        // https://github.com/dotnet/roslyn/issues/82636: We probably can detect more impossible scenarios.
-                        // Like:
-                        // - targetType is an open class, or not a class that a struct can derive from (SpecialType.System_Enum)
-                        // - target type is a different struct
-                        // - target type is an interface that struct doesn't implement, or a type parameter constrained to an interface like that
-                        // - etc.
                     }
 
                     // * Otherwise, we give up. Though there are other situations in which we can deduce that
@@ -5544,7 +5497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder, operandConversion, resultType, hasErrors);
         }
 
-        private bool ReportAsOperatorConversionDiagnostics(
+        private static bool ReportAsOperatorConversionDiagnostics(
             CSharpSyntaxNode node,
             BindingDiagnosticBag diagnostics,
             CSharpCompilation compilation,
@@ -5607,7 +5560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return hasErrors;
         }
 
-        private void ReportAsOperatorDiagnostics(
+        private static void ReportAsOperatorDiagnostics(
             CSharpSyntaxNode node,
             BindingDiagnosticBag diagnostics,
             TypeSymbol operandType,
@@ -5620,10 +5573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE:    we want to perform constant analysis of is/as expressions to generate warnings if the
             // NOTE:    expression will always be true/false/null.
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            ConstantValue constantValue = GetAsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue, ref useSiteInfo);
-            diagnostics.Add(node, useSiteInfo);
-
+            ConstantValue constantValue = GetAsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue);
             if (constantValue != null)
             {
                 if (constantValue.IsBad)
@@ -5644,14 +5594,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///  - <see cref="ConstantValue.Bad"/> - compiler doesn't support the type check, i.e. cannot perform it, even at runtime
         ///  - 'null' value - result is not known at compile time    
         /// </summary>
-        internal static ConstantValue GetAsOperatorConstantResult(TypeSymbol operandType, TypeSymbol targetType, ConversionKind conversionKind, ConstantValue operandConstantValue, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static ConstantValue GetAsOperatorConstantResult(TypeSymbol operandType, TypeSymbol targetType, ConversionKind conversionKind, ConstantValue operandConstantValue)
         {
             // NOTE:    Even though BoundIsOperator and BoundAsOperator will always have no ConstantValue
             // NOTE:    (they are non-constant expressions according to Section 7.19 of the specification),
             // NOTE:    we want to perform constant analysis of is/as expressions during binding to generate warnings (always true/false/null)
             // NOTE:    and during rewriting for optimized codegen.
 
-            ConstantValue isOperatorConstantResult = GetIsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue, ref useSiteInfo);
+            ConstantValue isOperatorConstantResult = GetIsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue);
             if (isOperatorConstantResult != null)
             {
                 if (isOperatorConstantResult.IsBad)

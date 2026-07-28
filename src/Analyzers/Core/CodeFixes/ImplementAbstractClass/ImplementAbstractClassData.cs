@@ -52,7 +52,8 @@ internal sealed class ImplementAbstractClassData(
             return null;
 
         var codeGenerationContext = new CodeGenerationContext(
-            contextLocation: classIdentifier.GetLocation());
+            contextLocation: classIdentifier.GetLocation(),
+            allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
 
         if (!CodeGenerator.CanAdd(document.Project.Solution, classType, codeGenerationContext, cancellationToken))
             return null;
@@ -104,7 +105,8 @@ internal sealed class ImplementAbstractClassData(
         var context = new CodeGenerationContext(
             contextLocation: classNodeToAddMembersTo.GetLocation(),
             autoInsertionLocation: groupMembers,
-            sortMembers: groupMembers);
+            sortMembers: groupMembers,
+            allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
 
         var info = await _document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
