@@ -87,20 +87,25 @@ var generator = SyntaxGenerator.GetGenerator(document);
 var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 ```
 
-### Workspaces Metadata Caching
+### Language Server Metadata Caching
 
-`MetadataServiceFactory` is a MEF `[Shared]` factory and owns the bounded
+The Language Server overrides the default `IMetadataService` at
+`ServiceLayer.Host`. Its MEF `[Shared]` factory owns the bounded
 `SharedMetadataCache` in
-`src/Workspaces/Core/Portable/Workspace/Host/Metadata/SharedMetadataCache.cs`.
-Workspaces created from the same host services share immutable backing
-`Metadata`, while their `MetadataReference` instances remain workspace-local so
-reference properties and documentation providers are not shared.
+`src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/HostWorkspace/SharedMetadataCache.cs`.
+Language Server workspaces created from the same export provider share immutable
+backing `Metadata`, while their `MetadataReference` instances remain
+workspace-local so reference properties and documentation providers are not
+shared. Other workspace hosts continue to use the default workspace-local
+metadata service.
 
 The cache retains at most one timestamped version per path and
 `MetadataImageKind`, does not cache failures or multi-module assemblies, and
 must not dispose evicted metadata because active references or compilations may
 still use it. Keep the per-workspace `MetadataReferenceCache` partitioned by
-image kind when changing this area. Tests live in
+image kind when changing this area. Cache tests live under
+`src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/HostWorkspace`;
+the default reference-cache tests remain in
 `src/Workspaces/CoreTest/SolutionTests/MetadataServiceTests.cs`.
 
 ## Coding Conventions

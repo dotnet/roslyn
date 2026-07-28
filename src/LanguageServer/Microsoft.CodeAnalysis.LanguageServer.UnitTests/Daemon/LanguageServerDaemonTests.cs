@@ -117,13 +117,17 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         var workspace1 = first.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
         var workspace2 = second.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
         var mscorlibPath = typeof(object).Assembly.Location;
+        var properties1 = MetadataReferenceProperties.Assembly;
+        var properties2 = properties1.WithAliases(["global", "MyAlias"]).WithEmbedInteropTypes(true);
 
         var reference1 = workspace1.Services.GetRequiredService<IMetadataService>()
-            .GetReference(mscorlibPath, MetadataReferenceProperties.Assembly);
+            .GetReference(mscorlibPath, properties1);
         var reference2 = workspace2.Services.GetRequiredService<IMetadataService>()
-            .GetReference(mscorlibPath, MetadataReferenceProperties.Assembly);
+            .GetReference(mscorlibPath, properties2);
 
         Assert.NotSame(reference1, reference2);
+        Assert.Equal(properties1, reference1.Properties);
+        Assert.Equal(properties2, reference2.Properties);
         Assert.Same(reference1.GetMetadataId(), reference2.GetMetadataId());
     }
 

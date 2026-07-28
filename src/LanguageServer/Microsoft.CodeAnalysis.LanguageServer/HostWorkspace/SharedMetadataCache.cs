@@ -8,7 +8,7 @@ using System.IO;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Host;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 /// <summary>
 /// A bounded cache of metadata shared by all workspaces created from the same host services.

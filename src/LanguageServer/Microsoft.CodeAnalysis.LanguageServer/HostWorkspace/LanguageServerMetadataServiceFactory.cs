@@ -2,22 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Composition;
-using System.IO;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Default), Shared]
+[ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
+internal sealed class LanguageServerMetadataServiceFactory() : IWorkspaceServiceFactory
 {
-    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new MetadataService(workspaceServices.GetRequiredService<IDocumentationProviderService>());
+    private readonly SharedMetadataCache _sharedMetadataCache = new();
 
-    private sealed class MetadataService(IDocumentationProviderService documentationProviderService) : IMetadataService
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new MetadataService(
+            workspaceServices.GetRequiredService<IDocumentationProviderService>(),
+            _sharedMetadataCache);
+
+    private sealed class MetadataService(
+        IDocumentationProviderService documentationProviderService,
+        SharedMetadataCache metadataCache) : IMetadataService
     {
         private readonly MetadataReferenceCache _metadataCache = new((path, properties) =>
         {
@@ -25,11 +31,20 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
 
             try
             {
-                return MetadataReference.CreateFromFile(path, properties, documentationProvider);
+                var metadata = metadataCache.GetMetadata(path, properties.Kind);
+                return metadata switch
+                {
+                    AssemblyMetadata assembly => assembly.GetReference(
+                        documentationProvider,
+                        properties.Aliases,
+                        properties.EmbedInteropTypes,
+                        path),
+                    ModuleMetadata module => module.GetReference(documentationProvider, path),
+                    _ => throw ExceptionUtilities.UnexpectedValue(metadata.Kind),
+                };
             }
             catch (IOException e)
             {
-                // Store failed references in the cache so that the behavior stays consistent once we observe the failure.
                 return new ThrowingExecutableReference(path, properties, documentationProvider, e);
             }
         });
@@ -37,8 +52,11 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
         public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             => (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
 
-        private sealed class ThrowingExecutableReference(string resolvedPath, MetadataReferenceProperties properties, DocumentationProvider documentationProvider, IOException exception)
-            : PortableExecutableReference(properties, resolvedPath)
+        private sealed class ThrowingExecutableReference(
+            string resolvedPath,
+            MetadataReferenceProperties properties,
+            DocumentationProvider documentationProvider,
+            IOException exception) : PortableExecutableReference(properties, resolvedPath)
         {
             protected override DocumentationProvider CreateDocumentationProvider()
                 => documentationProvider;
