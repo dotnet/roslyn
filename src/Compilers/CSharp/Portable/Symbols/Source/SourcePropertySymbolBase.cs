@@ -961,6 +961,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, Location, this);
                     }
+                    else if ((_getMethod.HasUnsafeModifier && _setMethod.HasUnsafeModifier && !_getMethod.HasSafeModifier && !_setMethod.HasSafeModifier) ||
+                        (_getMethod.HasSafeModifier && _setMethod.HasSafeModifier && !_getMethod.HasUnsafeModifier && !_setMethod.HasUnsafeModifier))
+                    {
+                        // Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.
+                        diagnostics.Add(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, Location, this);
+                    }
                     else if (this.IsAbstract)
                     {
                         // Check abstract property accessors are not private.
@@ -1004,6 +1010,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (accessor.LocalDeclaredReadOnly)
                             {
                                 diagnostics.Add(ErrorCode.ERR_ReadOnlyModMissingAccessor, Location, this);
+                            }
+
+                            if (accessor.HasUnsafeModifier ^ accessor.HasSafeModifier)
+                            {
+                                // Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.
+                                diagnostics.Add(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, Location, this);
                             }
                         }
                     }

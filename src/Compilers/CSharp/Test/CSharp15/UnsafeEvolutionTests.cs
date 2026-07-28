@@ -7219,27 +7219,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Current_Getter()
     {
-        CompileAndVerifyUnsafe(
-            lib: """
-                public class C
-                {
-                    public C GetEnumerator() => this;
-                    public bool MoveNext() => false;
-                    public int Current { unsafe get => 0; }
-                }
-                """,
-            caller: """
-                foreach (var x in new C()) { }
-                unsafe { foreach (var x in new C()) { } }
-                """,
-            expectedUnsafeSymbols: ["C.get_Current"],
-            expectedSafeSymbols: ["C", "C.Current"],
-            expectedDiagnostics:
-            [
-                // (1,1): error CS9362: 'C.Current.get' must be used in an unsafe context because it is marked as 'unsafe'
-                // foreach (var x in new C()) { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "foreach").WithArguments("C.Current.get").WithLocation(1, 1),
-            ]);
+        CreateCompilation("""
+            public class C
+            {
+                public C GetEnumerator() => this;
+                public bool MoveNext() => false;
+                public int Current { unsafe get => 0; }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (5,16): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.Current'. Instead, put that modifier on the property itself.
+            //     public int Current { unsafe get => 0; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "Current").WithArguments("C.Current").WithLocation(5, 16));
     }
 
     [Fact]
@@ -8091,7 +8083,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
 
-        // Both property and both accessors have unsafe - this is allowed
+        // Both property and both accessors have unsafe - this is disallowed
         CreateCompilation("""
             partial class C
             {
@@ -8100,7 +8092,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """,
             options: TestOptions.UnsafeReleaseDll)
-            .VerifyEmitDiagnostics();
+            .VerifyDiagnostics(
+            // (3,42): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P' and its accessor. Remove one of them.
+            //     public unsafe partial int P { unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("C.P").WithLocation(3, 42),
+            // (4,42): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P' and its accessor. Remove one of them.
+            //     public unsafe partial int P { unsafe get { int* p = null; return *p; } set { int* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("C.P").WithLocation(4, 42));
 
         // Property has unsafe on both, but only one accessor has explicit unsafe - mismatch on accessor
         CreateCompilation("""
@@ -8112,6 +8110,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
+            // (4,42): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P' and its accessor. Remove one of them.
+            //     public unsafe partial int P { unsafe get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("C.P").WithLocation(4, 42),
             // (4,42): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public unsafe partial int P { unsafe get => 0; set { } }
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 42));
@@ -8149,6 +8150,95 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (4,35): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public unsafe partial int P { get => 0; set { } }
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 35));
+    }
+
+    [Fact]
+    public void Member_Accessors_ConflictingUnsafeSafeModifiers()
+    {
+        CreateCompilation("""
+            class C
+            {
+                unsafe int P1 { unsafe get => 0; set { } }
+                unsafe int P2 { get => 0; unsafe set { } }
+                safe int P3 { safe get => 0; set { } }
+                safe int P4 { get => 0; safe set { } }
+                unsafe int P5 { safe get => 0; set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,28): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P1' and its accessor. Remove one of them.
+            //     unsafe int P1 { unsafe get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("C.P1").WithLocation(3, 28),
+            // (4,38): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P2' and its accessor. Remove one of them.
+            //     unsafe int P2 { get => 0; unsafe set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "set").WithArguments("C.P2").WithLocation(4, 38),
+            // (5,24): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P3' and its accessor. Remove one of them.
+            //     safe int P3 { safe get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("C.P3").WithLocation(5, 24),
+            // (6,34): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P4' and its accessor. Remove one of them.
+            //     safe int P4 { get => 0; safe set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "set").WithArguments("C.P4").WithLocation(6, 34),
+            // (7,26): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P5' and its accessor. Remove one of them.
+            //     unsafe int P5 { safe get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("C.P5").WithLocation(7, 26));
+
+        CreateCompilation("""
+            class C
+            {
+                int Q1 { unsafe get => 0; unsafe set { } }
+                int Q2 { safe get => 0; safe set { } }
+                int this[int i] { unsafe get => 0; unsafe set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.Q1'. Instead, put that modifier on the property itself.
+            //     int Q1 { unsafe get => 0; unsafe set { } }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "Q1").WithArguments("C.Q1").WithLocation(3, 9),
+            // (4,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.Q2'. Instead, put that modifier on the property itself.
+            //     int Q2 { safe get => 0; safe set { } }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "Q2").WithArguments("C.Q2").WithLocation(4, 9),
+            // (5,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.this[int]'. Instead, put that modifier on the property itself.
+            //     int this[int i] { unsafe get => 0; unsafe set { } }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "this").WithArguments("C.this[int]").WithLocation(5, 9));
+
+        CreateCompilation("""
+            class C
+            {
+                int S1 { unsafe get => 0; }
+                int S2 { safe get => 0; }
+                int S3 { unsafe set { } }
+                int this[int i] { safe get => 0; }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.S1'. Instead, put that modifier on the property itself.
+            //     int S1 { unsafe get => 0; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "S1").WithArguments("C.S1").WithLocation(3, 9),
+            // (4,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.S2'. Instead, put that modifier on the property itself.
+            //     int S2 { safe get => 0; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "S2").WithArguments("C.S2").WithLocation(4, 9),
+            // (5,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.S3'. Instead, put that modifier on the property itself.
+            //     int S3 { unsafe set { } }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "S3").WithArguments("C.S3").WithLocation(5, 9),
+            // (6,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.this[int]'. Instead, put that modifier on the property itself.
+            //     int this[int i] { safe get => 0; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "this").WithArguments("C.this[int]").WithLocation(6, 9));
+
+        CreateCompilation("""
+            class C
+            {
+                unsafe int R1 { get => 0; set { } }
+                int R2 { safe get => 0; unsafe set { } }
+                int R3 { unsafe get => 0; safe set { } }
+                unsafe int R4 { get => 0; }
+                safe int R5 { get => 0; }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -8681,7 +8771,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
 
-        // Both indexer and both accessors have unsafe - this is allowed
+        // Both indexer and both accessors have unsafe - this is disallowed
         CreateCompilation("""
             partial class C
             {
@@ -8690,7 +8780,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """,
             options: TestOptions.UnsafeReleaseDll)
-            .VerifyEmitDiagnostics();
+            .VerifyDiagnostics(
+            // (3,52): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.this[int]' and its accessor. Remove one of them.
+            //     public unsafe partial int this[int i] { unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("C.this[int]").WithLocation(3, 52),
+            // (4,52): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.this[int]' and its accessor. Remove one of them.
+            //     public unsafe partial int this[int i] { unsafe get { int* p = null; return *p; } set { int* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("C.this[int]").WithLocation(4, 52));
 
         // Indexer has unsafe on both, but only one accessor has explicit unsafe - mismatch on accessor
         CreateCompilation("""
@@ -8702,6 +8798,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
+            // (4,52): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.this[int]' and its accessor. Remove one of them.
+            //     public unsafe partial int this[int i] { unsafe get => i; set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("C.this[int]").WithLocation(4, 52),
             // (4,52): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public unsafe partial int this[int i] { unsafe get => i; set { } }
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 52));
@@ -12804,14 +12903,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
     }
 
-    [Theory, CombinatorialData]
-    public void Extern_Property_SafeModifier([CombinatorialValues("", "safe")] string accessorModifier)
+    [Fact]
+    public void Extern_Property_SafeModifier()
     {
-        var libSource = $$"""
+        var libSource = """
             #pragma warning disable CS0626 // extern without attributes
             public class C
             {
-                safe public extern int P2 { {{accessorModifier}} set; }
+                safe public extern int P2 { set; }
             }
             """;
 
@@ -12865,7 +12964,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P3").WithArguments("C.P3.set").WithLocation(7, 1),
             // (9,1): error CS9362: 'C.P4.set' must be used in an unsafe context because it is marked as 'unsafe'
             // c.P4 = 0;
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P4").WithArguments("C.P4.set").WithLocation(9, 1));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P4").WithArguments("C.P4.set").WithLocation(9, 1),
+            // (14,53): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P1' and its accessor. Remove one of them.
+            //     public unsafe extern int P1 { get; private safe set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "set").WithArguments("C.P1").WithLocation(14, 53),
+            // (15,30): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.P2'. Instead, put that modifier on the property itself.
+            //     public unsafe extern int P2 { safe get; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "P2").WithArguments("C.P2").WithLocation(15, 30),
+            // (15,40): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P2' and its accessor. Remove one of them.
+            //     public unsafe extern int P2 { safe get; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("C.P2").WithLocation(15, 40),
+            // (16,40): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P3' and its accessor. Remove one of them.
+            //     public unsafe extern int P3 { safe get; set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("C.P3").WithLocation(16, 40),
+            // (17,45): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P4' and its accessor. Remove one of them.
+            //     public safe extern int P4 { get; unsafe set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "set").WithArguments("C.P4").WithLocation(17, 45));
     }
 
     [Fact]
@@ -12959,25 +13073,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public class C
                 {
                     unsafe public extern int P1 { set; }
-                    unsafe public extern int P2 { unsafe set; }
                 }
                 """,
             caller: """
                 var c = new C();
                 c.P1 = 0;
-                c.P2 = 0;
                 """,
             verify: Verification.Skipped,
-            expectedUnsafeSymbols: ["C.P1", "C.set_P1", "C.P2", "C.set_P2"],
+            expectedUnsafeSymbols: ["C.P1", "C.set_P1"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
             [
                 // (2,1): error CS9362: 'C.P1.set' must be used in an unsafe context because it is marked as 'unsafe'
                 // c.P1 = 0;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P1").WithArguments("C.P1.set").WithLocation(2, 1),
-                // (3,1): error CS9362: 'C.P2.set' must be used in an unsafe context because it is marked as 'unsafe'
-                // c.P2 = 0;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
             ]);
     }
 
@@ -13044,14 +13153,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
     }
 
-    [Theory, CombinatorialData]
-    public void Extern_Indexer_SafeModifier([CombinatorialValues("", "safe")] string accessorModifier)
+    [Fact]
+    public void Extern_Indexer_SafeModifier()
     {
-        var libSource = $$"""
+        var libSource = """
             #pragma warning disable CS0626 // extern without attributes
             public class C
             {
-                public safe extern int this[int i] { {{accessorModifier}} get; set; }
+                public safe extern int this[int i] { get; set; }
             }
             """;
 
@@ -13169,26 +13278,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 {
                     unsafe public extern int this[int i] { set; }
                 }
-                public class C2
-                {
-                    unsafe public extern int this[int i] { unsafe set; }
-                }
                 """,
             caller: """
                 new C1()[0] = 0;
-                new C2()[0] = 0;
                 """,
             verify: Verification.Skipped,
-            expectedUnsafeSymbols: ["C1.this[]", "C1.set_Item", "C2.this[]", "C2.set_Item"],
-            expectedSafeSymbols: ["C1", "C2"],
+            expectedUnsafeSymbols: ["C1.this[]", "C1.set_Item"],
+            expectedSafeSymbols: ["C1"],
             expectedDiagnostics:
             [
                 // (1,1): error CS9362: 'C1.this[int].set' must be used in an unsafe context because it is marked as 'unsafe'
                 // new C1()[0] = 0;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C1()[0]").WithArguments("C1.this[int].set").WithLocation(1, 1),
-                // (2,1): error CS9362: 'C2.this[int].set' must be used in an unsafe context because it is marked as 'unsafe'
-                // new C2()[0] = 0;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C2()[0]").WithArguments("C2.this[int].set").WithLocation(2, 1),
             ]);
     }
 
@@ -13806,7 +13907,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 {
                     safe static extern void Local();
                 }
-                safe public extern int A { safe get; set; }
+                safe public extern int A { get; }
                 safe extern ~C();
             }
             """;
@@ -13844,11 +13945,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             //         safe static extern void Local();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(10, 9),
             // (12,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     safe public extern int A { safe get; set; }
+            //     safe public extern int A { get; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(12, 5),
-            // (12,32): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     safe public extern int A { safe get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(12, 32),
             // (13,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     safe extern ~C();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(13, 5));
@@ -13896,12 +13994,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (20,40): error CS0071: An explicit interface implementation of an event must use event accessor syntax
             //     safe extern event System.Action I1.E;
             Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "E").WithLocation(20, 40),
+            // (21,12): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'I3.I1.A'. Instead, put that modifier on the property itself.
+            //     int I1.A { safe extern get; safe extern set; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "A").WithArguments("I3.I1.A").WithLocation(21, 12),
             // (21,28): error CS0106: The modifier 'extern' is not valid for this item
             //     int I1.A { safe extern get; safe extern set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("extern").WithLocation(21, 28),
             // (21,45): error CS0106: The modifier 'extern' is not valid for this item
             //     int I1.A { safe extern get; safe extern set; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(21, 45));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(21, 45),
+            // (25,24): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'I4.I1.A'. Instead, put that modifier on the property itself.
+            //     safe extern int I1.A { safe get; safe set; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "A").WithArguments("I4.I1.A").WithLocation(25, 24),
+            // (25,33): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'I4.I1.A' and its accessor. Remove one of them.
+            //     safe extern int I1.A { safe get; safe set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "get").WithArguments("I4.I1.A").WithLocation(25, 33),
+            // (25,43): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'I4.I1.A' and its accessor. Remove one of them.
+            //     safe extern int I1.A { safe get; safe set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "set").WithArguments("I4.I1.A").WithLocation(25, 43));
     }
 
     [Theory, CombinatorialData]
@@ -13996,12 +14106,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
                 public class C
                 {
-                    public unsafe int P1 { safe get; safe set; }
-                    public unsafe int P2 { safe get; set; }
-                    public safe int P3 { unsafe get; unsafe set; }
-                    public safe int P4 { unsafe get; set; }
-                    public extern safe int P5 { unsafe get; unsafe set; }
-                    public extern unsafe int P6 { safe get; safe set; }
+                    public safe int P1 { get; set; }
+                    public int P2 { safe get; unsafe set; }
+                    public unsafe int P3 { get; set; }
+                    public int P4 { unsafe get; safe set; }
+                    public extern unsafe int P5 { get; set; }
+                    public extern safe int P6 { get; set; }
                 }
                 """,
             caller: """
@@ -14014,8 +14124,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.P6 += 1;
                 """,
             verify: Verification.FailsPEVerify,
-            expectedUnsafeSymbols: ["C.P1", "C.P2", "C.set_P2", "C.get_P3", "C.set_P3", "C.get_P4", "C.get_P5", "C.set_P5", "C.P6"],
-            expectedSafeSymbols: ["C.get_P1", "C.set_P1", "C.get_P2", "C.P3", "C.P4", "C.set_P4", "C.P5", "C.get_P6", "C.set_P6"],
+            expectedUnsafeSymbols: ["C.set_P2", "C.P3", "C.get_P3", "C.set_P3", "C.get_P4", "C.P5", "C.get_P5", "C.set_P5"],
+            expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1", "C.P2", "C.get_P2", "C.P4", "C.set_P4", "C.P6", "C.get_P6", "C.set_P6"],
             expectedDiagnostics:
             [
                 // (3,1): error CS9362: 'C.P2.set' must be used in an unsafe context because it is marked as 'unsafe'
@@ -14043,33 +14153,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 unsafe int M() => 0;
 
-                public unsafe int P1
+                public safe int P1
                 {
-                    safe get => M();
-                    safe set => M();
+                    get => M();
+                    set => M();
                 }
 
-                public safe int P2
+                public unsafe int P2
                 {
-                    unsafe get => M();
-                    unsafe set => M();
+                    get => M();
+                    set => M();
                 }
             }
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
-            // (7,21): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
-            //         safe get => M();
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(7, 21),
-            // (8,21): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
-            //         safe set => M();
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(8, 21),
-            // (13,23): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
-            //         unsafe get => M();
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(13, 23),
-            // (14,23): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
-            //         unsafe set => M();
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(14, 23));
+            // (7,16): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         get => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(7, 16),
+            // (8,16): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         set => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(8, 16),
+            // (13,16): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         get => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(13, 16),
+            // (14,16): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         set => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(14, 16));
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
     }

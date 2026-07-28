@@ -1999,7 +1999,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_AutoSetterCantBeReadOnly
                 or ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly
                 or ErrorCode.ERR_InvalidPropertyReadOnlyMods
+                or ErrorCode.ERR_InvalidPropertyUnsafeMods
                 or ErrorCode.ERR_DuplicatePropertyReadOnlyMods
+                or ErrorCode.ERR_SamePropertyUnsafeAccessorMods
                 or ErrorCode.ERR_FieldLikeEventCantBeReadOnly
                 or ErrorCode.ERR_PartialMemberReadOnlyDifference
                 or ErrorCode.ERR_ReadOnlyModMissingAccessor

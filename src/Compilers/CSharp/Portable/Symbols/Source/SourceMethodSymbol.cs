@@ -96,17 +96,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Whether the method has an 'unsafe' modifier.
-        /// For event accessors, this comes from the containing member's unsafe modifier
+        /// For property accessors, this might be inherited from the containing member.
+        /// For event accessors, this always comes from the containing member's unsafe modifier
         /// (the accessor is not allowed to have its own unsafe modifier).
         /// </summary>
         internal abstract bool HasUnsafeModifier { get; }
 
         /// <summary>
         /// Whether the method has a 'safe' modifier.
-        /// For event accessors, this comes from the containing member's safe modifier
+        /// For property accessors, this might be inherited from the containing member.
+        /// For event accessors, this always comes from the containing member's safe modifier
         /// (the accessor is not allowed to have its own safe modifier).
         /// </summary>
-        protected abstract bool HasSafeModifier { get; }
+        internal abstract bool HasSafeModifier { get; }
 
         internal bool IntroducesUnsafeContext
         {
