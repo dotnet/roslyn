@@ -4,6 +4,7 @@
 
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.Extensions.Logging;
@@ -62,10 +63,11 @@ internal static class ProjectDependencyHelper
         var packageReferences = projectFileInfo.PackageReferences;
         var resolvedReferences = ArrayPool<bool>.Shared.Rent(packageReferences.Length);
         Array.Clear(resolvedReferences, 0, packageReferences.Length);
+        int? assetsFileVersion = null;
         try
         {
             ProjectAssetsReader.FindResolvedPackageReferences(
-                projectAssetsPath, packageReferences, resolvedReferences.AsSpan(0, packageReferences.Length));
+                projectAssetsPath, packageReferences, resolvedReferences.AsSpan(0, packageReferences.Length), ref assetsFileVersion);
 
             using var _ = PooledHashSet<PackageReferenceItem>.GetInstance(out var unresolved);
             for (var i = 0; i < packageReferences.Length; i++)
@@ -84,6 +86,17 @@ internal static class ProjectDependencyHelper
             }
 
             return false;
+        }
+        catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
+        {
+            // The file could not be read, so nothing is known about which packages are resolved. Report a
+            // restore, which rewrites the file and recovers from a corrupt or partially written one.
+            logger.LogError(string.Format(
+                LanguageServerResources.Failed_to_read_project_assets_file_0_version_1_2,
+                projectAssetsPath,
+                assetsFileVersion?.ToString() ?? "<unknown>",
+                e.Message));
+            return true;
         }
         finally
         {

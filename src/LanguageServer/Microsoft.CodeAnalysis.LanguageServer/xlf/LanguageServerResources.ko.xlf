@@ -67,6 +67,11 @@
         <target state="translated">실패:    {0}, 통과:    {1}, 건너뜀:    {2}, 합계:    {3}, 기간: {4}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_read_project_assets_file_0_version_1_2">
+        <source>Failed to read project assets file {0} (version {1}), assuming a restore is required. {2}</source>
+        <target state="new">Failed to read project assets file {0} (version {1}), assuming a restore is required. {2}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
         <target state="translated">{0}:{1}에서 .runsettings 파일을 읽지 못했습니다.</target>

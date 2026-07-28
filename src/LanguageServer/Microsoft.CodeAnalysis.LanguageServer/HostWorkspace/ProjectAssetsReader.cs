@@ -36,10 +36,16 @@ internal static class ProjectAssetsReader
     /// Entries are only ever set to <see langword="true"/>, so <paramref name="resolvedReferences"/> must
     /// start cleared.
     /// </summary>
+    /// <param name="assetsFileVersion">
+    /// Set to the value of the top level <c>version</c> property once it is read, and left unchanged if the
+    /// file does not have an integer one. Reported when the file cannot be read, so it is passed by reference
+    /// to stay available to the caller if parsing later fails.
+    /// </param>
     public static void FindResolvedPackageReferences(
         string projectAssetsPath,
         ReadOnlySpan<PackageReferenceItem> packageReferences,
-        Span<bool> resolvedReferences)
+        Span<bool> resolvedReferences,
+        ref int? assetsFileVersion)
     {
         Contract.ThrowIfFalse(packageReferences.Length == resolvedReferences.Length);
 
@@ -62,6 +68,7 @@ internal static class ProjectAssetsReader
             // Depth of the object value of the top level "libraries" property, or -1 while outside of it.
             var librariesDepth = -1;
             var atLibrariesValue = false;
+            var atVersionValue = false;
 
             while (!isFinalBlock)
             {
@@ -87,6 +94,12 @@ internal static class ProjectAssetsReader
                         if (reader.TokenType == JsonTokenType.StartObject)
                             librariesDepth = reader.CurrentDepth;
                     }
+                    else if (atVersionValue)
+                    {
+                        atVersionValue = false;
+                        if (reader.TokenType == JsonTokenType.Number && reader.TryGetInt32(out var version))
+                            assetsFileVersion = version;
+                    }
                     else if (librariesDepth >= 0)
                     {
                         if (reader.TokenType == JsonTokenType.PropertyName && reader.CurrentDepth == librariesDepth + 1)
@@ -94,11 +107,12 @@ internal static class ProjectAssetsReader
                         else if (reader.TokenType == JsonTokenType.EndObject && reader.CurrentDepth == librariesDepth)
                             librariesDepth = -1;
                     }
-                    else if (reader.TokenType == JsonTokenType.PropertyName &&
-                        reader.CurrentDepth == 1 &&
-                        reader.ValueTextEquals("libraries"))
+                    else if (reader.TokenType == JsonTokenType.PropertyName && reader.CurrentDepth == 1)
                     {
-                        atLibrariesValue = true;
+                        if (reader.ValueTextEquals("libraries"))
+                            atLibrariesValue = true;
+                        else if (reader.ValueTextEquals("version"))
+                            atVersionValue = true;
                     }
                 }
 

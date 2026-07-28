@@ -96,10 +96,12 @@ namespace IdeCoreBenchmarks.Lsp
             Array.Clear(resolvedReferences, 0, s_packageReferences.Length);
             try
             {
+                int? assetsFileVersion = null;
                 ProjectAssetsReader.FindResolvedPackageReferences(
                     _projectAssetsPath,
                     s_packageReferences,
-                    resolvedReferences.AsSpan(0, s_packageReferences.Length));
+                    resolvedReferences.AsSpan(0, s_packageReferences.Length),
+                    ref assetsFileVersion);
 
                 for (var i = 0; i < s_packageReferences.Length; i++)
                 {

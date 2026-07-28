@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text;
-using System.Text.Json;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -33,12 +33,43 @@ public sealed class ProjectDependencyHelperTests : IDisposable
         Assert.False(NeedsRestore(projectAssetsPath));
     }
 
+    [Theory]
+    [InlineData("""{"libraries":{"Package/1.0.0":{}}""")]
+    [InlineData("not json")]
+    [InlineData("")]
+    [InlineData("\u0001\u0002\u0003")]
+    [InlineData("""{"version":3,"libraries":"unterminated""")]
+    public void NeedsRestore_UnreadableAssetsFile(string contents)
+    {
+        // The lock file model this replaced reported no resolved packages when it failed to parse, so an
+        // unreadable file has to report a restore rather than failing the project load.
+        var projectAssetsPath = WriteAssetsFile(contents);
+
+        Assert.True(NeedsRestore(projectAssetsPath, ("Package", "1.0.0")));
+    }
+
     [Fact]
-    public void NeedsRestore_MalformedAssetsFileThrows()
+    public void NeedsRestore_UnreadableAssetsFileLogsVersion()
+    {
+        var projectAssetsPath = WriteAssetsFile("""{"version":3,"libraries":{"Package/1.0.0":{}}""");
+        var logger = new TestLogger();
+
+        Assert.True(NeedsRestore(projectAssetsPath, logger, ("Package", "1.0.0")));
+
+        var message = Assert.Single(logger.Messages);
+        Assert.Contains(projectAssetsPath, message);
+        Assert.Contains("(version 3)", message);
+    }
+
+    [Fact]
+    public void NeedsRestore_UnreadableAssetsFileWithoutVersionLogsUnknown()
     {
         var projectAssetsPath = WriteAssetsFile("""{"libraries":{"Package/1.0.0":{}}""");
+        var logger = new TestLogger();
 
-        Assert.ThrowsAny<JsonException>(() => NeedsRestore(projectAssetsPath, ("Package", "1.0.0")));
+        Assert.True(NeedsRestore(projectAssetsPath, logger, ("Package", "1.0.0")));
+
+        Assert.Contains("(version <unknown>)", Assert.Single(logger.Messages));
     }
 
     [Theory]
@@ -187,6 +218,21 @@ public sealed class ProjectDependencyHelperTests : IDisposable
     }
 
     private static bool NeedsRestore(string projectAssetsPath, params (string Name, string VersionRange)[] packageReferences)
+        => NeedsRestore(projectAssetsPath, NullLogger.Instance, packageReferences);
+
+    private static bool NeedsRestore(string projectAssetsPath, ILogger logger, params (string Name, string VersionRange)[] packageReferences)
         => ProjectDependencyHelper.TestAccessor.CheckProjectAssetsForUnresolvedDependencies(
-            projectAssetsPath, packageReferences, NullLogger.Instance);
+            projectAssetsPath, packageReferences, logger);
+
+    private sealed class TestLogger : ILogger
+    {
+        public List<string> Messages { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+            => Messages.Add(formatter(state, exception));
+    }
 }
