@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
                 var setBuilder = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
-                foreach (var caseType in _unionType.UnionCaseTypes)
+                foreach (var caseType in _unionType.UnionCaseTypesNoUseSiteDiagnostics)
                 {
                     ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(caseType.StrippedType(), builder, setBuilder);
                 }

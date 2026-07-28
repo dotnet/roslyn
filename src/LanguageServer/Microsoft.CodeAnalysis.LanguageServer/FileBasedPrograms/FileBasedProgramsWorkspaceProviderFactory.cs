@@ -5,10 +5,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Extensions.Logging;
 
@@ -22,29 +19,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class FileBasedProgramsWorkspaceProviderFactory(
     VirtualProjectXmlProvider projectXmlProvider,
-    LanguageServerWorkspaceFactory workspaceFactory,
-    IFileChangeWatcher fileChangeWatcher,
     IGlobalOptionService globalOptionService,
-    ILoggerFactory loggerFactory,
     IAsynchronousOperationListenerProvider listenerProvider,
-    ProjectLoadTelemetryReporter projectLoadTelemetry,
-    ServerConfigurationFactory serverConfigurationFactory,
-    IBinLogPathProvider binLogPathProvider,
-    DotnetCliHelper dotnetCliHelper) : ILspServiceFactory
+    ServerConfigurationFactory serverConfigurationFactory) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         return new FileBasedProgramsProjectSystem(
             lspServices,
             projectXmlProvider,
-            workspaceFactory,
-            fileChangeWatcher,
             globalOptionService,
-            loggerFactory,
+            lspServices.GetRequiredService<ILoggerFactory>(),
             listenerProvider,
-            projectLoadTelemetry,
             serverConfigurationFactory,
-            binLogPathProvider,
-            dotnetCliHelper);
+            lspServices.GetRequiredService<IBinLogPathProvider>(),
+            lspServices.GetRequiredService<DotnetCliHelper>());
     }
 }

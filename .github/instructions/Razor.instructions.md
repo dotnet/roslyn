@@ -4,7 +4,7 @@ applyTo: "src/Razor/**/*.{cs,vb}"
 
 # Razor Tooling and Compiler Instructions for AI Coding Agents
 
-These instructions complement the repository-wide `copilot-instructions.md` and apply to
+These instructions complement the repository-wide `AGENTS.md` and apply to
 all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 `dotnet/razor`, and most files keep their original sub-tree layout
 (`src/Razor/src/Razor/...`, `src/Razor/src/Compiler/...`, `src/Razor/src/Shared/...`,
@@ -54,7 +54,6 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 
 ## Testing
 
-- Place `[WorkItem("url")]` on tests that track a specific issue (GitHub or DevOps URL).
 - Use `TestCode` with `[|...|]` span markers for before/after test scenarios. Access
   `input.Text` (cleaned) and `input.Span` (marked range).
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`).

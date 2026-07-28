@@ -391,6 +391,6 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
             return false;
         }
 
-        return string.CompareOrdinal(lineText, lineOffset, ExteriorTriviaText, 0, ExteriorTriviaText.Length) == 0;
+        return lineText.AsSpan(lineOffset).StartsWith(ExteriorTriviaText.AsSpan(), StringComparison.Ordinal);
     }
 }

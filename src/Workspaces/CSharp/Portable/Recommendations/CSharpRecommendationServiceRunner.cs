@@ -296,13 +296,39 @@ internal partial class CSharpRecommendationService
 
         private ImmutableArray<ISymbol> GetSymbolsForLabelContext()
         {
-            var allLabels = _context.SemanticModel.LookupLabels(_context.LeftToken.SpanStart);
+            var token = _context.TargetToken;
+            var allLabels = _context.SemanticModel.LookupLabels(token.SpanStart);
+
+            if (token.IsKind(SyntaxKind.BreakKeyword) || token.IsKind(SyntaxKind.ContinueKeyword))
+            {
+                var position = token.SpanStart;
+                return allLabels.WhereAsArray(
+                    static (label, arg) => IsValidBreakOrContinueTargetLabel(label, arg.position, arg.isBreak, arg.cancellationToken),
+                    (position, isBreak: token.IsKind(SyntaxKind.BreakKeyword), cancellationToken: _cancellationToken));
+            }
 
             // Exclude labels (other than 'default') that come from case switch statements
 
             return allLabels
                 .WhereAsArray(label => label.DeclaringSyntaxReferences.First().GetSyntax(_cancellationToken)
                     .Kind() is SyntaxKind.LabeledStatement or SyntaxKind.DefaultSwitchLabel);
+        }
+
+        private static bool IsValidBreakOrContinueTargetLabel(ISymbol label, int position, bool isBreak, CancellationToken cancellationToken)
+        {
+            var declaringSyntax = label.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(cancellationToken);
+            if (declaringSyntax is not LabeledStatementSyntax labeledStatement)
+                return false;
+
+            if (!labeledStatement.Span.Contains(position))
+                return false;
+
+            var statement = labeledStatement.Statement;
+            if (isBreak && statement is SwitchStatementSyntax)
+                return true;
+
+            return statement is ForStatementSyntax or ForEachStatementSyntax or ForEachVariableStatementSyntax
+                or WhileStatementSyntax or DoStatementSyntax;
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForTypeOrNamespaceContext()

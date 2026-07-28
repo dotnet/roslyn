@@ -38,9 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue;
 [UseExportProvider]
 public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinueWorkspaceTestBase
 {
-    private static readonly Version s_currentHotReloadVersion = new(1, 0);
-    private static readonly Version s_legacyHotReloadVersion = new(0, 1);
-
     private sealed class TestServiceBroker(Func<ServiceRpcDescriptor, Type, object> createService) : IServiceBroker
     {
         public List<ServiceRpcDescriptor> RequestedDescriptors { get; } = [];
@@ -62,10 +59,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     }
 
     private sealed class TestManagedHotReloadServiceProxy(IServiceBroker serviceBroker) :
-        BrokeredServiceProxy<DebuggerContracts.IManagedHotReloadService>(
-            serviceBroker,
-            BrokeredServiceDescriptors.DebuggerManagedHotReloadService,
-            BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy)
+        BrokeredServiceProxy<DebuggerContracts.IManagedHotReloadService>(serviceBroker, BrokeredServiceDescriptors.DebuggerManagedHotReloadService)
     {
         public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
             => InvokeAsync((service, cancellationToken) => service.GetCapabilitiesAsync(cancellationToken), cancellationToken);
@@ -106,10 +100,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     }
 
     private sealed class TestHotReloadLoggerProxy(IServiceBroker serviceBroker) :
-        BrokeredServiceProxy<DebuggerContracts.IHotReloadLogger>(
-            serviceBroker,
-            BrokeredServiceDescriptors.HotReloadLoggerService,
-            BrokeredServiceDescriptors.HotReloadLoggerServiceLegacy)
+        BrokeredServiceProxy<DebuggerContracts.IHotReloadLogger>(serviceBroker, BrokeredServiceDescriptors.HotReloadLoggerService)
     {
         public ValueTask LogAsync(DebuggerContracts.HotReloadLogMessage message, CancellationToken cancellationToken)
             => InvokeAsync((service, cancellationToken) => service.LogAsync(message, cancellationToken), cancellationToken);
@@ -125,7 +116,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             (!string.IsNullOrWhiteSpace(d.FilePath) ? $" {d.FilePath}({d.Span.StartLine}, {d.Span.StartColumn}, {d.Span.EndLine}, {d.Span.EndColumn}):" : "") +
             $" {d.Message}";
 
-    private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out ManagedHotReloadLanguageService languageService, Type[] additionalParts = null)
+    private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out ManagedHotReloadLanguageService languageService, out PdbMatchingSourceTextProvider sourceTextProvider, Type[] additionalParts = null)
     {
         var composition = EditorTestCompositions.EditorFeatures
             .AddParts(
@@ -135,10 +126,6 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             .AddParts(additionalParts);
 
         var workspace = new TestWorkspace(composition: composition, solutionTelemetryId: s_solutionTelemetryId);
-
-        var sourceTextProvider = (PdbMatchingSourceTextProvider)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is PdbMatchingSourceTextProvider).Value;
-        var listenerProvider = workspace.GetService<MockWorkspaceEventListenerProvider>();
-        listenerProvider.EventListeners = [sourceTextProvider];
 
         ((MockServiceBroker)workspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
         {
@@ -151,96 +138,13 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         solution = workspace.CurrentSolution;
         service = GetEditAndContinueService(workspace);
 
+        sourceTextProvider = new PdbMatchingSourceTextProvider(workspace);
+
         var factory = workspace.GetService<ManagedHotReloadLanguageServiceFactory>();
         var serviceBroker = workspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker;
         var solutionSnapshotProvider = workspace.GetService<ISolutionSnapshotProvider>();
-        languageService = factory.Create(serviceBroker, solutionSnapshotProvider);
+        languageService = factory.Create(serviceBroker, solutionSnapshotProvider, workspace.GetService<IHostWorkspaceProvider>(), sourceTextProvider);
         return workspace;
-    }
-
-    [Fact]
-    public async Task ManagedHotReloadServiceProxy_PrefersCurrentVersion()
-    {
-        var currentService = new TestManagedHotReloadService(ImmutableArray.Create("current"));
-        var legacyService = new TestManagedHotReloadService(ImmutableArray.Create("legacy"));
-        var broker = new TestServiceBroker((descriptor, _) => descriptor.Moniker.Version switch
-        {
-            var version when version == s_currentHotReloadVersion => currentService,
-            var version when version == s_legacyHotReloadVersion => legacyService,
-            _ => throw ExceptionUtilities.UnexpectedValue(descriptor.Moniker.Version),
-        });
-
-        var proxy = new TestManagedHotReloadServiceProxy(broker);
-        var capabilities = await proxy.GetCapabilitiesAsync(CancellationToken.None);
-
-        AssertEx.Equal(["current"], capabilities);
-        Assert.Collection(
-            broker.RequestedDescriptors,
-            descriptor => Assert.Equal(s_currentHotReloadVersion, descriptor.Moniker.Version));
-    }
-
-    [Fact]
-    public async Task ManagedHotReloadServiceProxy_FallsBackToLegacyVersion()
-    {
-        var legacyService = new TestManagedHotReloadService(ImmutableArray.Create("legacy"));
-        var broker = new TestServiceBroker((descriptor, _) => descriptor.Moniker.Version switch
-        {
-            var version when version == s_currentHotReloadVersion => null,
-            var version when version == s_legacyHotReloadVersion => legacyService,
-            _ => throw ExceptionUtilities.UnexpectedValue(descriptor.Moniker.Version),
-        });
-
-        var proxy = new TestManagedHotReloadServiceProxy(broker);
-        var capabilities = await proxy.GetCapabilitiesAsync(CancellationToken.None);
-
-        AssertEx.Equal(["legacy"], capabilities);
-        Assert.Collection(
-            broker.RequestedDescriptors,
-            descriptor => Assert.Equal(s_currentHotReloadVersion, descriptor.Moniker.Version),
-            descriptor => Assert.Equal(s_legacyHotReloadVersion, descriptor.Moniker.Version));
-    }
-
-    [Fact]
-    public async Task HotReloadLoggerProxy_PrefersCurrentVersion()
-    {
-        var currentLogger = new TestHotReloadLogger();
-        var legacyLogger = new TestHotReloadLogger();
-        var broker = new TestServiceBroker((descriptor, _) => descriptor.Moniker.Version switch
-        {
-            var version when version == s_currentHotReloadVersion => currentLogger,
-            var version when version == s_legacyHotReloadVersion => legacyLogger,
-            _ => throw ExceptionUtilities.UnexpectedValue(descriptor.Moniker.Version),
-        });
-
-        var proxy = new TestHotReloadLoggerProxy(broker);
-        await proxy.LogAsync(new DebuggerContracts.HotReloadLogMessage(DebuggerContracts.HotReloadVerbosity.Diagnostic, "current", errorLevel: DebuggerContracts.HotReloadDiagnosticErrorLevel.Info, category: "Roslyn"), CancellationToken.None);
-
-        Assert.Single(currentLogger.Messages);
-        Assert.Empty(legacyLogger.Messages);
-        Assert.Collection(
-            broker.RequestedDescriptors,
-            descriptor => Assert.Equal(s_currentHotReloadVersion, descriptor.Moniker.Version));
-    }
-
-    [Fact]
-    public async Task HotReloadLoggerProxy_FallsBackToLegacyVersion()
-    {
-        var legacyLogger = new TestHotReloadLogger();
-        var broker = new TestServiceBroker((descriptor, _) => descriptor.Moniker.Version switch
-        {
-            var version when version == s_currentHotReloadVersion => null,
-            var version when version == s_legacyHotReloadVersion => legacyLogger,
-            _ => throw ExceptionUtilities.UnexpectedValue(descriptor.Moniker.Version),
-        });
-
-        var proxy = new TestHotReloadLoggerProxy(broker);
-        await proxy.LogAsync(new DebuggerContracts.HotReloadLogMessage(DebuggerContracts.HotReloadVerbosity.Diagnostic, "legacy", errorLevel: DebuggerContracts.HotReloadDiagnosticErrorLevel.Info, category: "Roslyn"), CancellationToken.None);
-
-        Assert.Single(legacyLogger.Messages);
-        Assert.Collection(
-            broker.RequestedDescriptors,
-            descriptor => Assert.Equal(s_currentHotReloadVersion, descriptor.Moniker.Version),
-            descriptor => Assert.Equal(s_legacyHotReloadVersion, descriptor.Moniker.Version));
     }
 
     [Theory, CombinatorialData]
@@ -248,12 +152,12 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     {
         var localComposition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
             .AddExcludedPartTypes(
-                typeof(EditAndContinueService))
+                typeof(EditAndContinueService.WorkspaceServiceFactory))
             .AddParts(
                 typeof(NoCompilationLanguageService),
                 typeof(MockHostWorkspaceProvider),
                 typeof(MockServiceBrokerProvider),
-                typeof(MockEditAndContinueService),
+                typeof(MockEditAndContinueServiceFactory),
                 typeof(MockManagedHotReloadService));
 
         using var localWorkspace = new TestWorkspace(composition: localComposition);
@@ -269,12 +173,13 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
 
         MockEditAndContinueService mockEncService;
 
-        mockEncService = (MockEditAndContinueService)localWorkspace.GetService<IEditAndContinueService>();
+        mockEncService = (MockEditAndContinueService)localWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         var localFactory = localWorkspace.GetService<ManagedHotReloadLanguageServiceFactory>();
         var localBroker = localWorkspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker;
         var localSnapshotProvider = localWorkspace.GetService<ISolutionSnapshotProvider>();
-        var localService = localFactory.Create(localBroker, localSnapshotProvider);
+        using var pdbMatchingSourceTextProvider = new PdbMatchingSourceTextProvider(localWorkspace);
+        var localService = localFactory.Create(localBroker, localSnapshotProvider, localWorkspace.GetService<IHostWorkspaceProvider>(), pdbMatchingSourceTextProvider);
 
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
             .AddTestProject("proj", out var projectId)
@@ -518,8 +423,8 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         var dir = Temp.CreateDirectory();
         var sourceFile = dir.CreateFile("test.cs").WriteAllText(source1, Encoding.UTF8);
 
-        using var workspace = CreateEditorWorkspace(out var solution, out var service, out var languageService);
-        var sourceTextProvider = workspace.GetService<PdbMatchingSourceTextProvider>();
+        using var workspace = CreateEditorWorkspace(out var solution, out var service, out var languageService, out var sourceTextProvider);
+        using var _1 = sourceTextProvider;
 
         var projectId = ProjectId.CreateNewId();
         var documentId = DocumentId.CreateNewId(projectId);

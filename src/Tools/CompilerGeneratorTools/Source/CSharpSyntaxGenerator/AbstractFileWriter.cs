@@ -229,7 +229,7 @@ namespace CSharpSyntaxGenerator
 
         protected static bool IsRoot(Node n)
         {
-            return n.Root != null && string.Compare(n.Root, "true", true) == 0;
+            return n.Root != null && string.Equals(n.Root, "true", StringComparison.OrdinalIgnoreCase);
         }
 
         protected bool IsNode(string typeName)
@@ -244,7 +244,7 @@ namespace CSharpSyntaxGenerator
             => _typeMap.TryGetValue(typeName, out var node) ? node : null;
 
         private static bool IsTrue(string val)
-            => val != null && string.Compare(val, "true", true) == 0;
+            => val != null && string.Equals(val, "true", StringComparison.OrdinalIgnoreCase);
 
         protected static bool IsOptional(Field f)
             => IsTrue(f.Optional);
@@ -260,7 +260,7 @@ namespace CSharpSyntaxGenerator
 
         protected static bool HasErrors(Node n)
         {
-            return n.Errors == null || string.Compare(n.Errors, "true", true) == 0;
+            return n.Errors == null || string.Equals(n.Errors, "true", StringComparison.OrdinalIgnoreCase);
         }
 
         protected static string CamelCase(string name)

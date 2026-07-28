@@ -7,20 +7,27 @@ using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(OpenProjectHandler)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(OpenProjectHandler)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class OpenProjectHandlerFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new OpenProjectHandler(lspServices.GetRequiredService<LanguageServerProjectSystem>());
+}
+
 [Method(OpenProjectName)]
-internal sealed class OpenProjectHandler : ILspServiceNotificationHandler<OpenProjectHandler.NotificationParams>
+internal sealed class OpenProjectHandler : ILspService, ILspServiceNotificationHandler<OpenProjectHandler.NotificationParams>
 {
     internal const string OpenProjectName = "project/open";
 
     private readonly LanguageServerProjectSystem _projectSystem;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public OpenProjectHandler(LanguageServerProjectSystem projectSystem)
     {
         _projectSystem = projectSystem;
@@ -31,12 +38,12 @@ internal sealed class OpenProjectHandler : ILspServiceNotificationHandler<OpenPr
 
     Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        return _projectSystem.OpenProjectsAsync(request.Projects.SelectAsArray(p => p.LocalPath));
+        return _projectSystem.OpenProjectsAsync(request.Projects.SelectAsArray(p => p.GetDocumentFilePathFromUri()));
     }
 
     internal sealed class NotificationParams
     {
         [JsonPropertyName("projects")]
-        public required Uri[] Projects { get; set; }
+        public required DocumentUri[] Projects { get; set; }
     }
 }

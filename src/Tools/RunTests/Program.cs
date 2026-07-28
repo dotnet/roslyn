@@ -210,45 +210,7 @@ namespace RunTests
         /// </summary>
         private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
         {
-            async Task DumpProcess(Process targetProcess, string procDumpExeFilePath, string dumpFilePath)
-            {
-                var name = targetProcess.ProcessName;
-
-                // Our space for saving dump files is limited. Skip dumping for processes that won't contribute
-                // to bug investigations.
-                if (name is "procdump" or "conhost")
-                {
-                    return;
-                }
-
-                ConsoleUtil.Write($"Dumping {name} {targetProcess.Id} to {dumpFilePath} ... ");
-                try
-                {
-                    var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
-                    var processInfo = ProcessRunner.CreateProcess(procDumpExeFilePath, args, cancellationToken: cancellationToken);
-                    var processOutput = await processInfo.Result;
-
-                    // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
-                    // for successful cases (possibly returning the count of dumps that were written).  Best 
-                    // backup is to test for the dump file being present.
-                    if (File.Exists(dumpFilePath))
-                    {
-                        ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
-                    }
-                    else
-                    {
-                        ConsoleUtil.WriteLine($"FAILED with {processOutput.ExitCode}");
-                        ConsoleUtil.WriteLine($"{procDumpExeFilePath} {args}");
-                        ConsoleUtil.WriteLine(string.Join(Environment.NewLine, processOutput.OutputLines));
-                    }
-                }
-                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
-                {
-                    ConsoleUtil.WriteLine("FAILED");
-                    ConsoleUtil.WriteLine(ex.Message);
-                    Logger.Log("Failed to dump process", ex);
-                }
-            }
+            ConsoleUtil.Error("Test timeout exceeded, dumping remaining processes");
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -259,16 +221,28 @@ namespace RunTests
                 ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.ErrorLines));
             }
 
-            if (options.CollectDumps && !string.IsNullOrEmpty(options.ProcDumpFilePath))
-            {
-                ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
+            var dumpDir = options.LogFilesDirectory;
+            Directory.CreateDirectory(dumpDir);
 
+            if (options.CollectDumps)
+            {
                 var counter = 0;
-                foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
+                foreach (var proc in ProcessUtil.GetTestHostProcesses().OrderBy(x => x.ProcessName))
                 {
-                    var dumpDir = options.LogFilesDirectory;
-                    var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    await DumpProcess(proc, options.ProcDumpFilePath, dumpFilePath);
+                    var name = proc.ProcessName;
+
+                    var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
+                    ConsoleUtil.Write($"Dumping {name} {proc.Id} to {dumpFilePath} ... ");
+
+                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath))
+                    {
+                        ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
+                    }
+                    else
+                    {
+                        ConsoleUtil.WriteLine("FAILED");
+                    }
+
                     counter++;
                 }
             }

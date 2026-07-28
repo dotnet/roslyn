@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <!-- TODO: Remove UsingTasks when upgrading to Arcade 11: https://github.com/dotnet/roslyn/issues/83095 -->
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GroupItemsBy" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.Unsign" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Condition="$(ArcadeSdkVersion.StartsWith('10'))" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GroupItemsBy" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Condition="$(ArcadeSdkVersion.StartsWith('10'))" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.Unsign" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Condition="$(ArcadeSdkVersion.StartsWith('10'))" />
   <UsingTask TaskName="Microsoft.DotNet.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
 
   <UsingTask TaskName="Microsoft.NET.Build.Tasks.JoinItems" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />

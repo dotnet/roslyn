@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +22,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 /// Not tests of the formatting log, but tests that use formatting logs sent in
 /// by users reporting issues.
 /// </summary>
-public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
+public partial class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
     [Fact]
     [WorkItem("https://github.com/dotnet/vscode-csharp/issues/7264")]
@@ -63,6 +64,11 @@ public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattin
     public async Task GameTracAdmin()
         => Assert.NotNull(await GetFormattingEditsAsync());
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
+    public async Task RanOutOfOriginalLinesFullFormatting()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
     private async Task<TextEdit[]?> GetFormattingEditsAsync([CallerMemberName] string? testName = null)
     {
         var contents = GetResource(testName.AssumeNotNull(), "InitialDocument.txt").AssumeNotNull();
@@ -71,11 +77,11 @@ public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattin
 
         var options = new RazorFormattingOptions() with
         {
-            CSharpSyntaxFormattingOptions = CodeAnalysis.ExternalAccess.Razor.Features.RazorCSharpSyntaxFormattingOptions.Default
+            CSharpSyntaxFormattingOptions = CSharpSyntaxFormattingOptions.Default
         };
         if (GetResource(testName, "Options.json") is { } optionsFile)
         {
-            options = (RazorFormattingOptions)JsonSerializer.Deserialize(optionsFile, typeof(RazorFormattingOptions), JsonHelpers.JsonSerializerOptions).AssumeNotNull();
+            options = DeserializeFormattingOptions(optionsFile);
         }
 
         TextEdit[] htmlEdits = [];
@@ -107,6 +113,33 @@ public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattin
         }
 
         return edits;
+    }
+
+    private static RazorFormattingOptions DeserializeFormattingOptions(string optionsFile)
+    {
+        var hasCSharpSyntaxFormattingOptions = HasCSharpSyntaxFormattingOptions(optionsFile);
+
+        try
+        {
+            var options = JsonSerializer.Deserialize<RazorFormattingOptions>(optionsFile, JsonHelpers.JsonSerializerOptions);
+            if (!hasCSharpSyntaxFormattingOptions || options.CSharpSyntaxFormattingOptions is not null)
+            {
+                return options;
+            }
+        }
+        catch (JsonException)
+        {
+        }
+
+        var legacyOptions = JsonSerializer.Deserialize<LegacyRazorFormattingOptions>(optionsFile, JsonHelpers.JsonSerializerOptions);
+        return legacyOptions.ToRazorFormattingOptions();
+    }
+
+    private static bool HasCSharpSyntaxFormattingOptions(string optionsFile)
+    {
+        using var document = JsonDocument.Parse(optionsFile);
+        return document.RootElement.ValueKind == JsonValueKind.Object &&
+            document.RootElement.TryGetProperty(nameof(RazorFormattingOptions.CSharpSyntaxFormattingOptions), out _);
     }
 
     private RazorFileKind? GetFileKind(string testName)

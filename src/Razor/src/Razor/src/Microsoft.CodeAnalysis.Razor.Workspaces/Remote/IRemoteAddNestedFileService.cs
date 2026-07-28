@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.NestedFiles;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
@@ -16,7 +15,7 @@ internal interface IRemoteAddNestedFileService : IRemoteJsonService
     /// or null if the operation could not be completed.
     /// </summary>
     ValueTask<WorkspaceEdit?> GetNewNestedFileWorkspaceEditAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         NestedFileKind fileKind,
         CancellationToken cancellationToken);

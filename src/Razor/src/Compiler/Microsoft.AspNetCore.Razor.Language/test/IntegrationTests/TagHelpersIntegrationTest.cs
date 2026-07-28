@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -121,7 +122,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
+        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray().Single();
         Assert.False(codeDocument.IsDirectiveUsed(addTagHelperDirective));
     }
 
@@ -147,7 +148,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
+        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray().Single();
         Assert.True(codeDocument.IsDirectiveUsed(addTagHelperDirective));
     }
 
@@ -173,7 +174,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
+        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray().Single();
         var contributions = codeDocument.GetDirectiveTagHelperContributions();
         var contribution = Assert.Single(contributions);
         Assert.Equal(addTagHelperDirective.SpanStart, contribution.DirectiveSpanStart);

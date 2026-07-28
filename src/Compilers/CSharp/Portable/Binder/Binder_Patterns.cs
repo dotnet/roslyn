@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected NamedTypeSymbol? PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(SyntaxNode node, ref TypeSymbol inputType, ref NamedTypeSymbol? unionType, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(unionType is null || inputType.IsObjectType());
+
             if (inputType.IsUnionMatchingInputType(out var unionTypeOverride))
             {
                 MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, node);
@@ -35,31 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static PropertySymbol? GetUnionTypeValueProperty(NamedTypeSymbol inputUnionType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert(inputUnionType.IsUnionType);
-
-            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
-
-            if (membersInterfaceForDefinition is not null)
-            {
-                NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(inputUnionType);
-
-                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.ValuePropertyName))
-                {
-                    if (isSuitableProperty(member, out PropertySymbol? valueProperty))
-                    {
-                        return reportDiagnosticAndReturnProperty(membersInterface, valueProperty.AsMember(membersInterface), ref useSiteInfo);
-                    }
-                }
-
-                return reportDiagnosticAndReturnProperty(membersInterface, null, ref useSiteInfo);
-            }
-            else
-            {
-                return reportDiagnosticAndReturnProperty(
-                    inputUnionType,
-                    TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.ValuePropertyName, isSuitableProperty, ref useSiteInfo),
-                    ref useSiteInfo);
-            }
+            (NamedTypeSymbol container, PropertySymbol? valueProperty) = TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.ValuePropertyName, isSuitableProperty, ref useSiteInfo);
+            return reportDiagnosticAndReturnProperty(
+                container,
+                valueProperty,
+                ref useSiteInfo);
 
             static PropertySymbol? reportDiagnosticAndReturnProperty(NamedTypeSymbol memberProvider, PropertySymbol? valueProperty, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
@@ -93,8 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return property is
                 {
                     IsStatic: false,
-                    DeclaredAccessibility: Accessibility.Public,
-                    GetMethod: not null,
+                    GetMethod: { DeclaredAccessibility: Accessibility.Public },
                     RefKind: RefKind.None,
                     ParameterCount: 0,
                     Type.SpecialType: SpecialType.System_Object
@@ -104,35 +85,86 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private delegate bool IsSuitableUnionProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? member);
 
-        private static PropertySymbol? TryGetOwnOrInheritedUnionProperty(NamedTypeSymbol inputUnionType, string memberName, IsSuitableUnionProperty isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static (NamedTypeSymbol, PropertySymbol?) TryGetOwnOrInheritedUnionProperty(NamedTypeSymbol inputUnionType, string memberName, IsSuitableUnionProperty isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            for (NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
-                 declaringType is not null;
-                 declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
-            {
-                if (getMemberDeclaredInType(declaringType, memberName, isSuitableUnionMember, out PropertySymbol? member))
-                {
-                    if (!inputUnionType.IsDefinition)
-                    {
-                        NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+            Debug.Assert(inputUnionType.IsUnionType);
 
-                        if (declaringType == (object)inputUnionType.OriginalDefinition)
+            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
+            PropertySymbol? member;
+
+            if (membersInterfaceForDefinition is not null)
+            {
+                NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(inputUnionType);
+
+                if (getMemberDeclaredInType(membersInterfaceForDefinition, memberName, isSuitableUnionMember, out member))
+                {
+                    return (membersInterface, member.AsMember(membersInterface));
+                }
+
+                PropertySymbol? match = null;
+
+                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                {
+                    if (getMemberDeclaredInType(baseInterfaceForDefinition, memberName, isSuitableUnionMember, out member))
+                    {
+                        if (match is null)
                         {
-                            possiblyConstructedOrSubstitutedType = inputUnionType;
+                            match = member;
+                        }
+                        else if (!match.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(baseInterfaceForDefinition, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                        {
+                            // Ambiguity
+                            return (membersInterface, null);
                         }
                         else
                         {
-                            possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                            // Shadowed
                         }
+                    }
+                }
 
-                        member = member.OriginalDefinition.AsMember(possiblyConstructedOrSubstitutedType);
+                if (match is not null)
+                {
+                    if (!inputUnionType.IsDefinition)
+                    {
+                        match = match.OriginalDefinition.AsMember(inputUnionType.TypeSubstitution.SubstituteNamedType(match.ContainingType));
                     }
 
-                    return member;
+                    return (membersInterface, match);
                 }
-            }
 
-            return null;
+                return (membersInterface, null);
+            }
+            else
+            {
+                for (NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
+                     declaringType is not null;
+                     declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                {
+                    if (getMemberDeclaredInType(declaringType, memberName, isSuitableUnionMember, out member))
+                    {
+                        if (!inputUnionType.IsDefinition)
+                        {
+                            NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+
+                            if (declaringType == (object)inputUnionType.OriginalDefinition)
+                            {
+                                possiblyConstructedOrSubstitutedType = inputUnionType;
+                            }
+                            else
+                            {
+                                possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                            }
+
+                            member = member.OriginalDefinition.AsMember(possiblyConstructedOrSubstitutedType);
+                        }
+
+                        return (inputUnionType, member);
+                    }
+                }
+
+                return (inputUnionType, null);
+            }
 
             static bool getMemberDeclaredInType(NamedTypeSymbol declaringType, string memberName, IsSuitableUnionProperty isSuitableUnionMember, [NotNullWhen(true)] out PropertySymbol? member)
             {
@@ -162,27 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static PropertySymbol? GetUnionTypeHasValueProperty(NamedTypeSymbol inputUnionType)
         {
-            Debug.Assert(inputUnionType.IsUnionType);
-
-            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
-
-            if (membersInterfaceForDefinition is not null)
-            {
-                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.HasValuePropertyName))
-                {
-                    if (isSuitableProperty(member, out PropertySymbol? valueProperty))
-                    {
-                        return checkAndReturnProperty(valueProperty.AsMember(membersInterfaceForDefinition.AsMember(inputUnionType)));
-                    }
-                }
-
-                return null;
-            }
-            else
-            {
-                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                return checkAndReturnProperty(TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo));
-            }
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            (_, PropertySymbol? hasValueProperty) = TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo);
+            return checkAndReturnProperty(hasValueProperty);
 
             static PropertySymbol? checkAndReturnProperty(PropertySymbol? hasValueProperty)
             {
@@ -211,8 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return property is
                 {
                     IsStatic: false,
-                    DeclaredAccessibility: Accessibility.Public,
-                    GetMethod: not null,
+                    GetMethod: { DeclaredAccessibility: Accessibility.Public },
                     RefKind: RefKind.None,
                     ParameterCount: 0,
                     Type.SpecialType: SpecialType.System_Boolean
@@ -231,11 +244,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (membersInterfaceForDefinition is not null)
             {
-                foundBetterMatch(
+                if (!foundBetterMatch(
                     conversions, inputUnionType, type,
                     possiblyConstructedOrSubstitutedType: membersInterfaceForDefinition.AsMember(inputUnionType),
                     declaringType: membersInterfaceForDefinition,
-                    ref typeSet, ref bestMatch, ref bestMatchConversion);
+                    ref typeSet, ref bestMatch, ref bestMatchConversion) ||
+                    !bestMatchConversion.IsIdentity)
+                {
+                    foreach (var declaringType in membersInterfaceForDefinition.AllInterfacesNoUseSiteDiagnostics)
+                    {
+                        NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+
+                        if (inputUnionType.IsDefinition)
+                        {
+                            possiblyConstructedOrSubstitutedType = declaringType;
+                        }
+                        else
+                        {
+                            possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                        }
+
+                        if (foundBetterMatch(conversions, inputUnionType, type, possiblyConstructedOrSubstitutedType, declaringType, ref typeSet, ref bestMatch, ref bestMatchConversion) &&
+                            bestMatchConversion.IsIdentity)
+                        {
+                            break;
+                        }
+                    }
+                }
             }
             else
             {
@@ -307,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             typeSet = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
 
-                            foreach (var caseType in inputUnionType.OriginalDefinition.UnionCaseTypes)
+                            foreach (var caseType in inputUnionType.OriginalDefinition.UnionCaseTypes(ref discardedUseSiteInfo))
                             {
                                 typeSet.Add(caseType);
 
@@ -388,33 +423,90 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (membersInterfaceForDefinition is not null)
             {
-                if (membersInterfaceForDefinition == (object)originalContainingType)
+                if (!originalContainingType.IsInterface)
                 {
-                    return isMatch(method.OriginalDefinition, unionDefinition);
+                    return false;
                 }
-            }
-            else
-            {
-                for (var container = unionDefinition; container is not null; container = container.BaseTypeNoUseSiteDiagnostics)
+
+                ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = unionDefinition.UnionCaseTypesNoUseSiteDiagnostics;
+
+                if (membersInterfaceForDefinition == (object)originalContainingType &&
+                    membersInterfaceForDefinition.AsMember(unionType).Equals(method.ContainingType, TypeCompareKind.AllIgnoreOptions))
                 {
-                    if (container.OriginalDefinition == (object)originalContainingType)
+                    return isMatch(method.OriginalDefinition, unionDefinitionCaseTypes);
+                }
+
+                foreach (var container in membersInterfaceForDefinition.AllInterfacesNoUseSiteDiagnostics)
+                {
+                    if (container.OriginalDefinition == (object)originalContainingType &&
+                        (unionType.IsDefinition ? container : unionType.TypeSubstitution.SubstituteNamedType(container)).Equals(method.ContainingType, TypeCompareKind.AllIgnoreOptions))
                     {
                         if (!unionType.IsDefinition)
                         {
                             method = method.OriginalDefinition.AsMember(container);
                         }
+                        else
+                        {
+                            // The method is already a member of 'container'
+                            Debug.Assert(method.Equals(method.OriginalDefinition.AsMember(container), TypeCompareKind.AllIgnoreOptions));
+                        }
 
-                        return isMatch(method, unionDefinition);
+                        return isMatch(method, unionDefinitionCaseTypes);
+                    }
+                }
+            }
+            else if (originalContainingType.IsInterface)
+            {
+                return false;
+            }
+            else
+            {
+                ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = unionDefinition.UnionCaseTypesNoUseSiteDiagnostics;
+
+                for (var container = unionDefinition; container is not null; container = container.BaseTypeNoUseSiteDiagnostics)
+                {
+                    if (container.OriginalDefinition == (object)originalContainingType)
+                    {
+                        NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+
+                        if (unionType.IsDefinition)
+                        {
+                            possiblyConstructedOrSubstitutedType = container;
+                        }
+                        else if (container == (object)unionDefinition)
+                        {
+                            possiblyConstructedOrSubstitutedType = unionType;
+                        }
+                        else
+                        {
+                            possiblyConstructedOrSubstitutedType = unionType.TypeSubstitution.SubstituteNamedType(container);
+                        }
+
+                        if (possiblyConstructedOrSubstitutedType.Equals(method.ContainingType, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            if (!unionType.IsDefinition)
+                            {
+                                method = method.OriginalDefinition.AsMember(container);
+                            }
+                            else
+                            {
+                                // The method is already a member of 'container'
+                                Debug.Assert(possiblyConstructedOrSubstitutedType == (object)container);
+                                Debug.Assert(method.Equals(method.OriginalDefinition.AsMember(container), TypeCompareKind.AllIgnoreOptions));
+                            }
+
+                            return isMatch(method, unionDefinitionCaseTypes);
+                        }
                     }
                 }
             }
 
             return false;
 
-            static bool isMatch(MethodSymbol method, NamedTypeSymbol unionDefinition)
+            static bool isMatch(MethodSymbol method, ImmutableArray<TypeSymbol> unionDefinitionCaseTypes)
             {
                 return HasTryGetValueSignature(method) && method.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error &&
-                       unionDefinition.UnionCaseTypes.Any(
+                       unionDefinitionCaseTypes.Any(
                            static (caseType, parameterType) =>
                            {
                                if (caseType.Equals(parameterType, TypeCompareKind.AllIgnoreOptions))
@@ -476,11 +568,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
-            // Note that these labels are for the convenience of the compilation of patterns, and are not necessarily emitted into the lowered code.
-            LabelSymbol whenTrueLabel = new GeneratedLabelSymbol("isPatternSuccess");
-            LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
-
             bool negated = pattern.IsNegated(out var innerPattern);
+
+            // Note that these labels are for the convenience of the compilation of patterns, and are not necessarily emitted into the lowered code.
+            LabelSymbol whenTrueLabel = new GeneratedLabelSymbol(negated ? "isPatternFailure" : "isPatternSuccess");
+            LabelSymbol whenFalseLabel = new GeneratedLabelSymbol(negated ? "isPatternSuccess" : "isPatternFailure");
+
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
                 this.Compilation, pattern.Syntax, expression, innerPattern, hasUnionMatching, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
 
@@ -812,50 +905,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool BindLengthAndIndexerForListPattern(SyntaxNode node, TypeSymbol inputType, BindingDiagnosticBag diagnostics,
-            out BoundExpression indexerAccess, out BoundExpression lengthAccess, out BoundListPatternReceiverPlaceholder? receiverPlaceholder, out BoundListPatternIndexPlaceholder argumentPlaceholder)
+            out BoundExpression indexerAccess, [NotNull] out BoundExpression? lengthAccess, out BoundListPatternReceiverPlaceholder? receiverPlaceholder, out BoundListPatternIndexPlaceholder argumentPlaceholder)
         {
             Debug.Assert(!inputType.IsDynamic());
 
             bool hasErrors = false;
             receiverPlaceholder = new BoundListPatternReceiverPlaceholder(node, inputType) { WasCompilerGenerated = true };
-            if (inputType.IsSZArray())
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            hasErrors = !TryBindLengthOrCountInAnyScope(node, receiverPlaceholder, ref useSiteInfo, diagnostics, out lengthAccess);
+            if (lengthAccess is null)
             {
-                hasErrors |= !TryGetSpecialTypeMember(Compilation, SpecialMember.System_Array__Length, node, diagnostics, out PropertySymbol lengthProperty);
-                if (lengthProperty is not null)
-                {
-                    lengthAccess = new BoundPropertyAccess(node, receiverPlaceholder, initialBindingReceiverIsSubjectToCloning: ThreeState.False, lengthProperty, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, lengthProperty.Type) { WasCompilerGenerated = true };
-                }
-                else
-                {
-                    lengthAccess = new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, CreateErrorType(), hasErrors: true) { WasCompilerGenerated = true };
-                }
-            }
-            else
-            {
-                if (!TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics))
-                {
-                    hasErrors = true;
-                    Error(diagnostics, ErrorCode.ERR_ListPatternRequiresLength, node, inputType);
-                }
+                hasErrors = true;
+                Error(diagnostics, ErrorCode.ERR_ListPatternRequiresLength, node, inputType);
+                lengthAccess = new BoundBadExpression(node, LookupResultKind.Empty, symbols: [], childBoundNodes: [], CreateErrorType(), hasErrors: true) { WasCompilerGenerated = true };
             }
 
-            var analyzedArguments = AnalyzedArguments.GetInstance();
-            var systemIndexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
-            argumentPlaceholder = new BoundListPatternIndexPlaceholder(node, systemIndexType) { WasCompilerGenerated = true };
-            analyzedArguments.Arguments.Add(argumentPlaceholder);
+            diagnostics.Add(node, useSiteInfo);
 
-            indexerAccess = BindElementAccessCore(node, receiverPlaceholder, analyzedArguments, diagnostics).MakeCompilerGenerated();
-            indexerAccess = CheckValue(indexerAccess, BindValueKind.RValue, diagnostics);
-            Debug.Assert(indexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess or BoundPointerElementAccess);
-            analyzedArguments.Free();
+            hasErrors |= !tryBindIndexIndexer(receiverPlaceholder, out indexerAccess, out argumentPlaceholder, diagnostics, node);
+            return !hasErrors && !lengthAccess.HasErrors;
 
-            if (!systemIndexType.HasUseSiteError)
+            bool tryBindIndexIndexer(BoundListPatternReceiverPlaceholder receiverPlaceholder, out BoundExpression indexerAccess,
+                out BoundListPatternIndexPlaceholder argumentPlaceholder, BindingDiagnosticBag diagnostics,
+                SyntaxNode node)
             {
-                // Check required well-known member.
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
-            }
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                var systemIndexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
+                argumentPlaceholder = new BoundListPatternIndexPlaceholder(node, systemIndexType) { WasCompilerGenerated = true };
+                analyzedArguments.Arguments.Add(argumentPlaceholder);
 
-            return !hasErrors && !lengthAccess.HasErrors && !indexerAccess.HasErrors;
+                indexerAccess = BindElementAccessCore(node, receiverPlaceholder, analyzedArguments, diagnostics).MakeCompilerGenerated();
+                indexerAccess = CheckValue(indexerAccess, BindValueKind.RValue, diagnostics);
+                Debug.Assert(indexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess or BoundPointerElementAccess);
+                analyzedArguments.Free();
+
+                if (!systemIndexType.HasUseSiteError)
+                {
+                    // Check required well-known member.
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
+                }
+
+                return !indexerAccess.HasErrors;
+            }
         }
 
         private static BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType, BindingDiagnosticBag diagnostics)
@@ -923,6 +1014,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node, convertedExpression, constantValueOpt, isUnionMatching: true, inputType: unionMatchingInputType, narrowedType: unionMatchingInputType, hasErrors);
                 }
 
+                if (unionType is not null && !convertedType.IsObjectType())
+                {
+                    unionType = null;
+                }
+
                 return new BoundConstantPattern(
                     node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, convertedType, hasErrors || constantValueOpt is null);
             }
@@ -933,6 +1029,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var boundType = (BoundTypeExpression)convertedExpression;
                 bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
+
+                Debug.Assert(unionType is null || inputType.IsObjectType());
+                unionType = null;
                 return new BoundTypePattern(node, boundType, isExplicitNotNullTest, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, boundType.Type, hasErrors);
             }
         }
@@ -1214,9 +1313,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!hasErrors && unionType is not null && !convertedExpression.HasErrors && constantValue is { IsBad: false } && expression.Type is not null)
             {
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var unionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
                 bool matched = false;
-                foreach (var caseType in unionType.UnionCaseTypes)
+                foreach (var caseType in unionType.UnionCaseTypes(ref useSiteInfo))
                 {
                     var caseDiagnostics = BindingDiagnosticBag.GetInstance(unionDiagnostics);
                     ConvertPatternExpression(
@@ -1245,6 +1345,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         unionDiagnostics.AddRangeAndFree(caseDiagnostics);
                     }
                 }
+
+                diagnostics.Add(node, useSiteInfo);
 
                 if (!matched)
                 {
@@ -1376,7 +1478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue matchPossible = ConstantValue.Bad;
             conversion = Conversion.NoConversion;
 
-            foreach (var caseType in unionType.UnionCaseTypes)
+            foreach (var caseType in unionType.UnionCaseTypes(ref useSiteInfo))
             {
                 matchPossible = ExpressionOfTypeMatchesPatternType(
                     conversions, caseType, patternType, ref useSiteInfo, out conversion,
@@ -1450,6 +1552,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindPatternDesignation(
                 designation: node.Designation, declType: boundDeclType.TypeWithAnnotations, permitDesignations, typeSyntax, diagnostics,
                 hasErrors: ref hasErrors, variableSymbol: out Symbol? variableSymbol, variableAccess: out BoundExpression? variableAccess);
+
+            unionType = null;
             return new BoundDeclarationPattern(node, boundDeclType, isVar: false, variableSymbol, variableAccess, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: boundDeclType.Type, hasErrors);
         }
 
@@ -1625,6 +1729,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BindITupleSubpatterns(positionalClause, patternsBuilder, permitDesignations, diagnostics, out bool iTupleHasUnionMatching);
                         hasUnionMatching |= iTupleHasUnionMatching;
                         deconstructionSubpatterns = patternsBuilder.ToImmutableAndFree();
+
+                        unionType = null;
                         return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, deconstructionSubpatterns, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, iTupleType, hasErrors);
                     }
                     else
@@ -1656,6 +1762,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 properties.IsDefaultOrEmpty &&
                 deconstructMethod is null &&
                 deconstructionSubpatterns.IsDefault;
+
+            if (boundDeclType is not null)
+            {
+                unionType = null;
+            }
+            else
+            {
+                Debug.Assert(unionType is null || inputType.IsObjectType());
+            }
+
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, isExplicitNotNullTest: isExplicitNotNullTest,
@@ -2042,6 +2158,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         deconstructDiagnostics.Free();
                         bindITupleSubpatterns(tupleDesignation, subPatterns, permitDesignations, diagnostics, out bool iTupleHasUnionMatching);
                         hasUnionMatching |= iTupleHasUnionMatching;
+
+                        unionType = null;
                         return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, subPatterns.ToImmutableAndFree(), isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? strippedInputType, iTupleType, hasErrors);
                     }
                     else
@@ -2065,10 +2183,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                Debug.Assert(unionType is null || strippedInputType.IsObjectType());
                 return new BoundRecursivePattern(
                     syntax: node, declaredType: null, deconstructMethod: deconstructMethod,
                     deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null,
-                    isExplicitNotNullTest: false, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: inputType.StrippedType(), hasErrors: hasErrors);
+                    isExplicitNotNullTest: false, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: strippedInputType, hasErrors: hasErrors);
 
                 void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes, ref bool hasUnionMatching)
                 {
@@ -2134,6 +2253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundPropertySubpatternMember? member;
                 TypeSymbol memberType;
                 bool isLengthOrCount = false;
+                NamedTypeSymbol? unionType = null;
+
                 if (expr == null)
                 {
                     if (!hasErrors)
@@ -2145,7 +2266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref hasErrors);
+                    member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref hasErrors, out unionType);
                     memberType = member.Type;
                     // If we're dealing with the member that makes the type countable, and the type is also indexable, then it will be assumed to always return a non-negative value
                     if (memberType.SpecialType == SpecialType.System_Int32 &&
@@ -2160,21 +2281,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                NamedTypeSymbol? unionType = null;
+                if (unionType is not null)
+                {
+                    Debug.Assert(expr is not null);
+
+                    // Matching a union Value.
+                    MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, expr is MemberAccessExpressionSyntax memberAccess ? memberAccess.Name : expr); // Since new exhaustiveness rules will be used by DecisionDagBuilder.
+                }
+
                 BoundPattern boundPattern = BindPattern(pattern, ref unionType, memberType, permitDesignations, hasErrors, diagnostics, out bool patternHasUnionMatching);
                 hasUnionMatching |= patternHasUnionMatching;
                 var subpattern = new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern);
-
-                if (subpattern is { Member: { Receiver: null, Symbol: PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property }, IsLengthOrCount: false } &&
-                    inputType is NamedTypeSymbol { IsUnionType: true } inputUnionType &&
-                    Binder.IsUnionTypeValueProperty(inputUnionType, property))
-                {
-                    // https://github.com/dotnet/roslyn/issues/82636: The condition above matches the logic in DecisionDagBuilder.MakeTestsAndBindingsForRecursivePattern
-                    //                                                and, at the moment, it doesn't accept qualified names for the value property. However, it probably should.
-                    //                                                Once that is changed, this place should be updated to match the new logic.
-                    MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, subpattern.Member.Syntax); // Since new exhaustiveness rules will be used by DecisionDagBuilder.
-                }
-
                 builder.Add(subpattern);
             }
 
@@ -2182,7 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundPropertySubpatternMember LookupMembersForPropertyPattern(
-            TypeSymbol inputType, ExpressionSyntax expr, BindingDiagnosticBag diagnostics, ref bool hasErrors)
+            TypeSymbol inputType, ExpressionSyntax expr, BindingDiagnosticBag diagnostics, ref bool hasErrors, out NamedTypeSymbol? unionType)
         {
             BoundPropertySubpatternMember? receiver = null;
             Symbol? symbol = null;
@@ -2192,8 +2309,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
                     break;
                 case MemberAccessExpressionSyntax { Name: IdentifierNameSyntax name } memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
-                    receiver = LookupMembersForPropertyPattern(inputType, memberAccess.Expression, diagnostics, ref hasErrors);
-                    symbol = BindPropertyPatternMember(receiver.Type.StrippedType(), name, ref hasErrors, diagnostics);
+                    receiver = LookupMembersForPropertyPattern(inputType, memberAccess.Expression, diagnostics, ref hasErrors, unionType: out _);
+                    inputType = receiver.Type.StrippedType();
+                    symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
                     break;
                 default:
                     Error(diagnostics, ErrorCode.ERR_InvalidNameInSubpattern, expr);
@@ -2201,12 +2319,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            TypeSymbol memberType = symbol switch
+            unionType = null;
+            TypeSymbol memberType;
+
+            switch (symbol)
             {
-                FieldSymbol field => field.Type,
-                PropertySymbol property => property.Type,
-                _ => CreateErrorType()
-            };
+                case FieldSymbol field:
+                    memberType = field.Type;
+                    break;
+
+                case PropertySymbol property:
+                    memberType = property.Type;
+
+                    if (property.Name == WellKnownMemberNames.ValuePropertyName &&
+                        inputType is NamedTypeSymbol { IsUnionType: true } inputUnionType &&
+                        Binder.IsUnionTypeValueProperty(inputUnionType, property))
+                    {
+                        unionType = inputUnionType;
+                    }
+                    break;
+
+                default:
+                    memberType = CreateErrorType();
+                    break;
+            }
 
             return new BoundPropertySubpatternMember(expr, receiver, symbol, type: memberType, hasErrors);
         }
@@ -2290,6 +2426,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
+            Debug.Assert(unionType is null || inputType.IsObjectType());
+
             NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
             hasUnionMatching = unionMatchingInputType is not null;
 
@@ -2297,6 +2435,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var patternType = BindTypeForPattern(node.Type, unionType, inputType, diagnostics, ref hasErrors);
             bool isExplicitNotNullTest = patternType.Type.SpecialType == SpecialType.System_Object;
+
+            Debug.Assert(unionType is null || inputType.IsObjectType());
+            unionType = null;
+
             return new BoundTypePattern(node, patternType, isExplicitNotNullTest, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, patternType.Type, hasErrors);
         }
 
@@ -2359,6 +2501,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
+            if (unionType is not null && !type.IsObjectType())
+            {
+                unionType = null;
+            }
+
             return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, type, hasErrors);
 
             static BinaryOperatorKind tokenKindToBinaryOperatorKind(SyntaxKind kind) => kind switch
@@ -2407,27 +2554,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool underIsPattern,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
-            bool isUnionMatching = unionMatchingInputType is not null;
-
-            if (unionMatchingInputType is not null && (unionMatchingInputType.TypeKind != TypeKind.Struct || unionMatchingInputType.IsNullableType()))
-            {
-                // When we are not 'underIsPattern', we don't 'permitDesignations'. See an assignment and a comment below.
-                // Only 'BindIsPatternExpression' passes true for 'underIsPattern' and only 'BindUnaryPattern' propagates it. 
-                // Since we are doing Union matching, we are effectively in a sub-pattern, thus we are not directly under
-                // "is pattern", but we can still make things work for struct types (excluding Nullable<T>), because they
-                // do not have an implicit null check for the Union instance itself.
-                // The effect of this logic can be observed in unit-tests 'UnionMatching_15_Negated' and 'UnionMatching_16_Negated', for example.   
-                underIsPattern = false;
-            }
-
             MessageID.IDS_FeatureNotPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
             bool permitDesignations = underIsPattern; // prevent designators under 'not' except under an is-pattern
             NamedTypeSymbol? currentUnionType = unionType;
             var subPattern = BindPattern(node.Pattern, ref currentUnionType, inputType, permitDesignations, hasErrors, diagnostics, out hasUnionMatching, underIsPattern);
-            hasUnionMatching |= isUnionMatching;
-            return new BoundNegatedPattern(node, subPattern, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: inputType, hasErrors);
+            Debug.Assert(currentUnionType is null || subPattern.NarrowedType.IsObjectType());
+            return new BoundNegatedPattern(node, subPattern, inputType: inputType, narrowedType: inputType, hasErrors);
         }
 
         private BoundPattern BindBinaryPattern(

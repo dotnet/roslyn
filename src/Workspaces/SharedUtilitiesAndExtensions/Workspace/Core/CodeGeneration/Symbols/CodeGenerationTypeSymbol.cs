@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
@@ -81,6 +83,12 @@ internal abstract class CodeGenerationTypeSymbol(
     public virtual bool IsRecord => false;
 
     public virtual bool IsUnion => false;
+
+    public virtual bool IsClosed => false;
+
+#if !OLDER_ROSLYN
+    public ClosedDerivedTypeInfo GetClosedDerivedTypeInfo(CancellationToken cancellationToken) => throw new NotImplementedException();
+#endif
 
     public NullableAnnotation NullableAnnotation { get; } = nullableAnnotation;
 

@@ -1,0 +1,10 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+            CSharpCode - (52:2,12 [91] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                LazyIntermediateToken - (52:2,12 [91] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    public class Person(string name)\n    {\n        public string Name => name;\n    }\n

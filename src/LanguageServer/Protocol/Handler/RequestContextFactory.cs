@@ -23,7 +23,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
-        var logger = _lspServices.GetRequiredService<AbstractLspLogger>();
+        var logger = _lspServices.GetRequiredService<ILspLogger>();
         var serverInfoProvider = _lspServices.GetRequiredService<ServerInfoProvider>();
 
         if (clientCapabilities is null && queueItem.MethodName != Methods.InitializeName)

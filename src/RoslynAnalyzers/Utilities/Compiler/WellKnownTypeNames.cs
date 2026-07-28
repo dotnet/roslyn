@@ -62,7 +62,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisDiagnosticsSyntaxNodeAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext";
         public const string MicrosoftCodeAnalysisDiagnosticsSyntaxTreeAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext";
         public const string MicrosoftCodeAnalysisDocumentId = "Microsoft.CodeAnalysis.DocumentId";
-        public const string MicrosoftCodeAnalysisExternalAccessRazorRazorPinnedSolutionInfoWrapper = "Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper";
+        public const string MicrosoftCodeAnalysisRazorRemoteRazorSolutionWrapper = "Microsoft.CodeAnalysis.Razor.Remote.RazorSolutionWrapper";
         public const string MicrosoftCodeAnalysisGeneratorAttribute = "Microsoft.CodeAnalysis.GeneratorAttribute";
         public const string MicrosoftCodeAnalysisHostMefMefConstruction = "Microsoft.CodeAnalysis.Host.Mef.MefConstruction";
         public const string MicrosoftCodeAnalysisIIncrementalGenerator = "Microsoft.CodeAnalysis.IIncrementalGenerator";

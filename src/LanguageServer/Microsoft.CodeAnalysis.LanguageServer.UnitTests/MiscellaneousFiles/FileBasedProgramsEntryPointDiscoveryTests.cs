@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -26,7 +25,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     private readonly ILoggerFactory _loggerFactory;
     private readonly TestOutputLoggerProvider _loggerProvider;
     private readonly TempRoot _tempRoot;
-    private readonly TempDirectory _mefCacheDirectory;
 
     private readonly List<string> _additionalDirectoriesToDelete = [];
 
@@ -36,20 +34,12 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         _loggerProvider = new TestOutputLoggerProvider(testOutputHelper);
         _loggerFactory = new LoggerFactory([_loggerProvider]);
         _tempRoot = new();
-        _mefCacheDirectory = _tempRoot.CreateDirectory();
     }
 
-    protected override async ValueTask<ExportProvider> CreateExportProviderAsync()
+    protected override ValueTask<ExportProvider> CreateExportProviderAsync()
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
-
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            _loggerFactory,
-            includeDevKitComponents: false,
-            cacheDirectory: _mefCacheDirectory.Path,
-            extensionPaths: []);
-
-        return exportProvider;
+        return new(LanguageServerTestComposition.GetSharedExportProvider(AbstractLanguageServerHostTests.DefaultServerConfiguration, _loggerFactory));
     }
 
     public void Dispose()
@@ -915,12 +905,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
                 AssertEx.SequenceEqual(uncachedResult, cachedResult, StringComparer.OrdinalIgnoreCase,
                     $"Iteration {iteration}: Cached result differs from uncached result.");
-            }
-            catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
-            {
-                // Directories can randomly fail to delete etc when we are thrashing the disk.
-                // Not a big deal and not a reason to fail the test, just move on to the next iteration instead.
-                _testOutputHelper.WriteLine($"IO exception during fuzz testing: {ex.Message}");
             }
             catch (Exception)
             {

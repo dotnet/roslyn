@@ -2969,84 +2969,91 @@ namespace Microsoft.CodeAnalysis
 
             var diagnostics = DiagnosticBag.GetInstance();
 
-            var moduleBeingBuilt = CheckOptionsAndCreateModuleBuilder(
-                diagnostics,
-                manifestResources,
-                options,
-                debugEntryPoint,
-                sourceLinkStream,
-                embeddedTexts,
-                testData,
-                cancellationToken);
-
-            bool success = false;
-
-            if (moduleBeingBuilt != null)
+            try
             {
-                try
+                var moduleBeingBuilt = CheckOptionsAndCreateModuleBuilder(
+                    diagnostics,
+                    manifestResources,
+                    options,
+                    debugEntryPoint,
+                    sourceLinkStream,
+                    embeddedTexts,
+                    testData,
+                    cancellationToken);
+
+                bool success = false;
+
+                if (moduleBeingBuilt != null)
                 {
-                    success = CompileMethods(
-                        moduleBeingBuilt,
-                        emittingPdb: pdbStream != null || embedPdb,
-                        diagnostics: diagnostics,
-                        filterOpt: null,
-                        cancellationToken: cancellationToken);
-
-                    if (!options.EmitMetadataOnly)
+                    try
                     {
-                        // NOTE: We generate documentation even in presence of compile errors.
-                        // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
-                        if (!GenerateResources(moduleBeingBuilt, win32Resources, useRawWin32Resources: rebuildData is object, diagnostics, cancellationToken) ||
-                            !GenerateDocumentationComments(xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken))
-                        {
-                            success = false;
-                        }
+                        success = CompileMethods(
+                            moduleBeingBuilt,
+                            emittingPdb: pdbStream != null || embedPdb,
+                            diagnostics: diagnostics,
+                            filterOpt: null,
+                            cancellationToken: cancellationToken);
 
-                        if (success)
+                        if (!options.EmitMetadataOnly)
                         {
-                            ReportUnusedImports(diagnostics, cancellationToken);
+                            // NOTE: We generate documentation even in presence of compile errors.
+                            // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
+                            if (!GenerateResources(moduleBeingBuilt, win32Resources, useRawWin32Resources: rebuildData is object, diagnostics, cancellationToken) ||
+                                !GenerateDocumentationComments(xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken))
+                            {
+                                success = false;
+                            }
+
+                            if (success)
+                            {
+                                ReportUnusedImports(diagnostics, cancellationToken);
+                            }
+                        }
+                        else if (xmlDocumentationStream != null)
+                        {
+                            // If we're in metadata only, and the caller asks for xml docs, then still proceed and generate those.
+                            success = GenerateDocumentationComments(
+                                xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken);
                         }
                     }
-                    else if (xmlDocumentationStream != null)
+                    finally
                     {
-                        // If we're in metadata only, and the caller asks for xml docs, then still proceed and generate those.
-                        success = GenerateDocumentationComments(
-                            xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken);
+                        moduleBeingBuilt.CompilationFinished();
+                    }
+
+                    RSAParameters? privateKeyOpt = null;
+                    if (Options.StrongNameProvider != null && SignUsingBuilder && !Options.PublicSign)
+                    {
+                        privateKeyOpt = StrongNameKeys.PrivateKey;
+                    }
+
+                    if (!options.EmitMetadataOnly && CommonCompiler.HasUnsuppressedErrors(diagnostics))
+                    {
+                        success = false;
+                    }
+
+                    if (success)
+                    {
+                        success = SerializeToPeStream(
+                            moduleBeingBuilt,
+                            new SimpleEmitStreamProvider(peStream),
+                            (metadataPEStream != null) ? new SimpleEmitStreamProvider(metadataPEStream) : null,
+                            (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
+                            rebuildData,
+                            testData?.SymWriterFactory,
+                            diagnostics,
+                            emitOptions: options,
+                            privateKeyOpt: privateKeyOpt,
+                            cancellationToken: cancellationToken);
                     }
                 }
-                finally
-                {
-                    moduleBeingBuilt.CompilationFinished();
-                }
 
-                RSAParameters? privateKeyOpt = null;
-                if (Options.StrongNameProvider != null && SignUsingBuilder && !Options.PublicSign)
-                {
-                    privateKeyOpt = StrongNameKeys.PrivateKey;
-                }
-
-                if (!options.EmitMetadataOnly && CommonCompiler.HasUnsuppressedErrors(diagnostics))
-                {
-                    success = false;
-                }
-
-                if (success)
-                {
-                    success = SerializeToPeStream(
-                        moduleBeingBuilt,
-                        new SimpleEmitStreamProvider(peStream),
-                        (metadataPEStream != null) ? new SimpleEmitStreamProvider(metadataPEStream) : null,
-                        (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
-                        rebuildData,
-                        testData?.SymWriterFactory,
-                        diagnostics,
-                        emitOptions: options,
-                        privateKeyOpt: privateKeyOpt,
-                        cancellationToken: cancellationToken);
-                }
+                return new EmitResult(success, diagnostics.ToReadOnly());
             }
-
-            return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
+            finally
+            {
+                diagnostics.Free();
+            }
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters

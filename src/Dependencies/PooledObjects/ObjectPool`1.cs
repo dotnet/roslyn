@@ -8,6 +8,11 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
+#if DEBUG
+using System.Runtime.CompilerServices;
+using System.IO;
+#endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     /// <summary>
@@ -66,16 +71,26 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private readonly string _poolName;
 #endif
 
-        internal ObjectPool(Factory factory, bool trimOnFree = true, bool trackLeaks = true,
-            [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-            [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
-            : this(factory, Environment.ProcessorCount * 2, trimOnFree, trackLeaks, filePath, lineNumber)
+        internal ObjectPool(Factory factory, bool trimOnFree = true, bool trackLeaks = true
+#if DEBUG
+            , [CallerFilePath] string filePath = ""
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
+            : this(factory, Environment.ProcessorCount * 2, trimOnFree, trackLeaks
+#if DEBUG
+                , filePath, lineNumber
+#endif
+                )
         {
         }
 
-        internal ObjectPool(Factory factory, int size, bool trimOnFree = true, bool trackLeaks = true,
-            [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-            [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+        internal ObjectPool(Factory factory, int size, bool trimOnFree = true, bool trackLeaks = true
+#if DEBUG
+            , [CallerFilePath] string filePath = ""
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
             Debug.Assert(size >= 1);
             _factory = factory;
@@ -83,20 +98,23 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             TrimOnFree = trimOnFree;
 #if DEBUG
             _trackLeaks = trackLeaks;
-            _poolName = System.IO.Path.GetFileName(filePath) + ":" + lineNumber;
+            _poolName = Path.GetFileName(filePath) + ":" + lineNumber;
 #endif
         }
 
-        internal ObjectPool(Func<ObjectPool<T>, T> factory, int size,
-            [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-            [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+        internal ObjectPool(Func<ObjectPool<T>, T> factory, int size
+#if DEBUG
+            , [CallerFilePath] string filePath = ""
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
             Debug.Assert(size >= 1);
             _factory = () => factory(this);
             _items = new Element[size - 1];
 #if DEBUG
             _trackLeaks = true;
-            _poolName = System.IO.Path.GetFileName(filePath) + ":" + lineNumber;
+            _poolName = Path.GetFileName(filePath) + ":" + lineNumber;
 #endif
         }
 
@@ -114,7 +132,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// Note that Free will try to store recycled objects close to the start thus statistically 
         /// reducing how far we will typically search.
         /// </remarks>
-        internal T Allocate()
+        internal T Allocate(
+#if DEBUG
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
             // PERF: Examine the first element. If that fails, AllocateSlow will look at the remaining elements.
             // Note that the initial read is optimistically not synchronized. That is intentional. 
@@ -128,7 +151,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
 #if DEBUG
             if (_trackLeaks)
-                PoolTracker.OnAllocate(inst, _poolName);
+                PoolTracker.OnAllocate(inst, _poolName, filePath, lineNumber);
 #endif
             return inst;
         }

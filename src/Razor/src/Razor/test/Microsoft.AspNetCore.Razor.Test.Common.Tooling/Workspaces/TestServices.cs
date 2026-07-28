@@ -19,7 +19,7 @@ public class TestServices : HostServices
         _razorLanguageServices = razorLanguageServices;
     }
 
-    protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
+    protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
     {
         return new TestWorkspaceServices(this, _workspaceServices, _razorLanguageServices, workspace);
     }

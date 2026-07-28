@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_MemorySafetyRulesAttribute,
         System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute,
-        System_Runtime_CompilerServices_ClosedAttribute,
+        System_Runtime_CompilerServices_IsClosedTypeAttribute,
 
         System_ArgumentNullException,
 
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.MemorySafetyRulesAttribute",
             "System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute",
 
-            "System.Runtime.CompilerServices.ClosedAttribute",
+            "System.Runtime.CompilerServices.IsClosedTypeAttribute",
 
             "System.ArgumentNullException",
 

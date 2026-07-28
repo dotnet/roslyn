@@ -7,19 +7,26 @@ using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(OpenSolutionHandler)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(OpenSolutionHandler)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class OpenSolutionHandlerFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new OpenSolutionHandler(lspServices.GetRequiredService<LanguageServerProjectSystem>());
+}
+
 [Method(OpenSolutionName)]
-internal sealed class OpenSolutionHandler : ILspServiceNotificationHandler<OpenSolutionHandler.NotificationParams>
+internal sealed class OpenSolutionHandler : ILspService, ILspServiceNotificationHandler<OpenSolutionHandler.NotificationParams>
 {
     internal const string OpenSolutionName = "solution/open";
 
     private readonly LanguageServerProjectSystem _projectSystem;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public OpenSolutionHandler(LanguageServerProjectSystem projectSystem)
     {
         _projectSystem = projectSystem;
@@ -30,12 +37,12 @@ internal sealed class OpenSolutionHandler : ILspServiceNotificationHandler<OpenS
 
     Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        return _projectSystem.OpenSolutionAsync(request.Solution.LocalPath);
+        return _projectSystem.OpenSolutionAsync(request.Solution.GetDocumentFilePathFromUri());
     }
 
-    private sealed class NotificationParams
+    internal sealed class NotificationParams
     {
         [JsonPropertyName("solution")]
-        public required Uri Solution { get; set; }
+        public required DocumentUri Solution { get; set; }
     }
 }

@@ -54,12 +54,12 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
         var codeBlockContent = text.ToString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var codeBehindContent = GenerateCodeBehindClass(className, actionParams.Namespace, codeBlockContent, codeDocument);
 
-        codeBehindContent = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(documentContext.Snapshot.Project, codeBehindUri, codeBehindContent, cancellationToken).ConfigureAwait(false);
+        codeBehindContent = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(documentContext.Snapshot.Project, codeBehindUri.GetRequiredSystemUri(), codeBehindContent, cancellationToken).ConfigureAwait(false);
 
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(documentContext.Uri) };
-        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(codeBehindUri) };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentContext.Uri };
+        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = codeBehindUri };
 
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
         {
