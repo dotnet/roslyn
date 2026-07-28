@@ -11335,13 +11335,66 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13121")]
-    public async Task MultilineExplicitExpressionInAttribute_DoesNotShiftRight()
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_IsStable()
     {
         var code = """
             <MyComponent Show="@_bool1"
                          String="@("foo " +
                                    "bar " +
                                    "baz")" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInSecondAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                                       "bar " +
+                                       "baz")" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInFirstAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1",
+                                          "string2",
+                                          "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedSingleLineCollectionExpressionInFirstAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1", "string2", "string3"])" />
+            </div>
             """;
 
         await RunFormattingTestAsync(
