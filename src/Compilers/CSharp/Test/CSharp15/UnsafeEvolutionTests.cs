@@ -8933,8 +8933,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E4").WithArguments("C.E4").WithLocation(15, 9));
     }
 
-    [Fact]
-    public void Member_Event_Accessors()
+    [Theory, CombinatorialData]
+    public void Member_Event_Accessors(bool updatedRules)
     {
         CreateCompilation("""
             public class C
@@ -8945,7 +8945,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public event System.Action E4 { add { } safe remove { } }
             }
             """,
-            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
             // (3,37): error CS1609: Modifiers cannot be placed on event accessor declarations
             //     public event System.Action E1 { unsafe add { } remove { } }
