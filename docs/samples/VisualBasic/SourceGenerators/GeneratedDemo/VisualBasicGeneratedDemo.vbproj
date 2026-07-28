@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="People.csv" CsvLoadType="Startup" />
+    <AdditionalFiles Include="Cars.csv" CsvLoadType="OnDemand" CacheObjects="true" />
+
+    <AdditionalFiles Include="MainSettings.xmlsettings" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="MainSettings.xmlsettings" CopyToOutputDirectory="PreserveNewest" /> <!-- TODO: remove this when AdditionalFiles supports CopyToOutputDirectory -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SourceGeneratorSamples\VisualBasicSourceGeneratorSamples.vbproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Manually reference the generator props because we locally reference the generator. When added via NuGet this happens automatically -->
+  <Import Project="..\SourceGeneratorSamples\CsvGenerator.props" />
+
+</Project>
