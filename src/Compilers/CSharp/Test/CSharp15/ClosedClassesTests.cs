@@ -7732,4 +7732,77 @@ forLowering: false);
         Assert.True(c3.IsClosed);
         Assert.True(c3.IsStatic);
     }
+
+    [Fact]
+    public void ClosedUnion_01()
+    {
+        var src = @"
+[System.Runtime.CompilerServices.Union]
+closed class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2() : C1(1)
+{
+}
+
+class C3() : C1("""")
+{
+}
+
+class Program
+{
+    static int Test1(C1 u)
+    {
+#line 100
+        return u switch 
+        {
+            int => 2
+        };
+    }   
+
+    static int Test2(C1 u)
+    {
+#line 200
+        return u switch 
+        {
+            int => 2,
+            string => 3, 
+        };
+    }   
+
+    static int Test3(C1 u)
+    {
+#line 300
+        return u switch 
+        {
+            C2 => 1,
+        };
+    }   
+
+    static int Test4(C1 u)
+    {
+#line 400
+        return u switch 
+        {
+            C2 => 1,
+            C3 => 2,
+        };
+    }   
+}
+";
+        var comp = CreateCompilation([src, UnionAttributeSource, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute]);
+        comp.VerifyDiagnostics(
+            // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+            //         return u switch 
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(100, 18),
+            // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C3' is not covered.
+            //         return u switch 
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C3").WithLocation(300, 18)
+            );
+    }
 }
