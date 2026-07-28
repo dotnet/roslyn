@@ -57,8 +57,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <Compile Remove="LanguageServerDaemonBenchmarks.cs" />
-    <Compile Remove="LanguageServerBenchmarkHost.cs" />
+    <Compile Remove="LanguageServer\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
