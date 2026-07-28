@@ -35668,7 +35668,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(subOrFunctionHeader))
             End If
             Select Case subOrFunctionHeader.Kind()
-                Case SyntaxKind.FunctionLambdaHeader
+                Case SyntaxKind.SubLambdaHeader,
+                     SyntaxKind.FunctionLambdaHeader
                 Case Else
                     Throw new ArgumentException("subOrFunctionHeader")
             End Select
@@ -35961,7 +35962,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(subOrFunctionHeader))
             End If
             Select Case subOrFunctionHeader.Kind()
-                Case SyntaxKind.SubLambdaHeader
+                Case SyntaxKind.SubLambdaHeader,
+                     SyntaxKind.FunctionLambdaHeader
                 Case Else
                     Throw new ArgumentException("subOrFunctionHeader")
             End Select
@@ -36261,9 +36263,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             if subOrFunctionHeader Is Nothing Then
                 Throw New ArgumentNullException(NameOf(subOrFunctionHeader))
             End If
-            If (Not subOrFunctionHeader.IsKind(GetSingleLineLambdaExpressionSubOrFunctionHeaderKind(kind))) Then
-                Throw new ArgumentException("subOrFunctionHeader")
-            End If
+            Select Case subOrFunctionHeader.Kind()
+                Case SyntaxKind.SubLambdaHeader,
+                     SyntaxKind.FunctionLambdaHeader
+                Case Else
+                    Throw new ArgumentException("subOrFunctionHeader")
+            End Select
             if body Is Nothing Then
                 Throw New ArgumentNullException(NameOf(body))
             End If
@@ -36536,16 +36541,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New SingleLineLambdaExpressionSyntax(kind, Nothing, Nothing, subOrFunctionHeader, body)
         End Function
 
-        Private Shared Function GetSingleLineLambdaExpressionSubOrFunctionHeaderKind(kind As SyntaxKind) As SyntaxKind
-            Select Case kind
-                Case SyntaxKind.SingleLineFunctionLambdaExpression
-                    Return SyntaxKind.FunctionLambdaHeader
-                Case SyntaxKind.SingleLineSubLambdaExpression
-                    Return SyntaxKind.SubLambdaHeader
-                Case Else
-                    Throw New ArgumentException("SubOrFunctionHeader")
-            End Select
-        End Function
 
         ''' <summary>
         ''' Represents a multi-line lambda expression.
@@ -36568,7 +36563,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(subOrFunctionHeader))
             End If
             Select Case subOrFunctionHeader.Kind()
-                Case SyntaxKind.FunctionLambdaHeader
+                Case SyntaxKind.SubLambdaHeader,
+                     SyntaxKind.FunctionLambdaHeader
                 Case Else
                     Throw new ArgumentException("subOrFunctionHeader")
             End Select
@@ -36622,7 +36618,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(subOrFunctionHeader))
             End If
             Select Case subOrFunctionHeader.Kind()
-                Case SyntaxKind.SubLambdaHeader
+                Case SyntaxKind.SubLambdaHeader,
+                     SyntaxKind.FunctionLambdaHeader
                 Case Else
                     Throw new ArgumentException("subOrFunctionHeader")
             End Select
@@ -36683,9 +36680,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             if subOrFunctionHeader Is Nothing Then
                 Throw New ArgumentNullException(NameOf(subOrFunctionHeader))
             End If
-            If (Not subOrFunctionHeader.IsKind(GetMultiLineLambdaExpressionSubOrFunctionHeaderKind(kind))) Then
-                Throw new ArgumentException("subOrFunctionHeader")
-            End If
+            Select Case subOrFunctionHeader.Kind()
+                Case SyntaxKind.SubLambdaHeader,
+                     SyntaxKind.FunctionLambdaHeader
+                Case Else
+                    Throw new ArgumentException("subOrFunctionHeader")
+            End Select
             if endSubOrFunctionStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endSubOrFunctionStatement))
             End If
@@ -36698,16 +36698,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New MultiLineLambdaExpressionSyntax(kind, Nothing, Nothing, subOrFunctionHeader, statements.Node, endSubOrFunctionStatement)
         End Function
 
-        Private Shared Function GetMultiLineLambdaExpressionSubOrFunctionHeaderKind(kind As SyntaxKind) As SyntaxKind
-            Select Case kind
-                Case SyntaxKind.MultiLineFunctionLambdaExpression
-                    Return SyntaxKind.FunctionLambdaHeader
-                Case SyntaxKind.MultiLineSubLambdaExpression
-                    Return SyntaxKind.SubLambdaHeader
-                Case Else
-                    Throw New ArgumentException("SubOrFunctionHeader")
-            End Select
-        End Function
 
         ''' <summary>
         ''' Represents a multi-line lambda expression.

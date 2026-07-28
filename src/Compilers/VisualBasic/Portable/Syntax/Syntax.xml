@@ -6061,12 +6061,8 @@ Unify Enum declarations with other block type declarations.
       <spec-section>11.20</spec-section>
       <grammar>LambdaExpression</grammar>
 
-      <child name="SubOrFunctionHeader">
+      <child name="SubOrFunctionHeader" kind="@LambdaHeaderSyntax">
         <description>The header part of the lambda that includes the "Sub" or "Function" keyword, the argument list and return type.</description>
-        <kind name="FunctionLambdaHeader" node-kind="MultiLineFunctionLambdaExpression"/>
-        <kind name="SubLambdaHeader" node-kind="MultiLineSubLambdaExpression"/>
-        <kind name="FunctionLambdaHeader" node-kind="SingleLineFunctionLambdaExpression"/>
-        <kind name="SubLambdaHeader" node-kind="SingleLineSubLambdaExpression"/>
       </child>
 
     </node-structure>

@@ -1129,7 +1129,7 @@ Partial Public Class GeneratedTests
         End Function
 
         Private Shared Function GenerateGreenMultiLineSubLambdaExpression() As InternalSyntax.MultiLineLambdaExpressionSyntax
-            return InternalSyntax.SyntaxFactory.MultiLineSubLambdaExpression(GenerateGreenSubLambdaHeader(), Nothing, GenerateGreenEndFunctionStatement())
+            return InternalSyntax.SyntaxFactory.MultiLineSubLambdaExpression(GenerateGreenSubLambdaHeader(), Nothing, GenerateGreenEndSubStatement())
         End Function
 
         Private Shared Function GenerateGreenSubLambdaHeader() As InternalSyntax.LambdaHeaderSyntax
@@ -16218,7 +16218,7 @@ Partial Public Class GeneratedTests
         Private Shared Function GenerateRedMultiLineSubLambdaExpression() As MultiLineLambdaExpressionSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.MultiLineSubLambdaExpression(Nothing, Nothing, GenerateRedEndFunctionStatement())
+            SyntaxFactory.MultiLineSubLambdaExpression(Nothing, Nothing, GenerateRedEndSubStatement())
             catch e as ArgumentNullException
             exceptionTest = true
             End Try
@@ -16233,7 +16233,7 @@ Partial Public Class GeneratedTests
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.MultiLineSubLambdaExpression(GenerateRedSubLambdaHeader(), Nothing, GenerateRedEndFunctionStatement())
+            return SyntaxFactory.MultiLineSubLambdaExpression(GenerateRedSubLambdaHeader(), Nothing, GenerateRedEndSubStatement())
         End Function
 
         Private Shared Function GenerateRedSubLambdaHeader() As LambdaHeaderSyntax
