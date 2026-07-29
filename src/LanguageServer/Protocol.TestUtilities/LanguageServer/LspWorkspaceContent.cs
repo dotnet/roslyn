@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests;
+namespace Microsoft.CodeAnalysis.LanguageServer.Test.Utilities;
 
 internal readonly record struct LspWorkspaceContent(
     ImmutableDictionary<string, LspWorkspaceFile> Files,
@@ -58,14 +60,10 @@ internal readonly record struct LspWorkspaceContent(
     }
 
     public LspWorkspaceContent WithLoadPath(string path)
-    {
-        return this with { LoadPath = NormalizePath(path) };
-    }
+        => this with { LoadPath = NormalizePath(path) };
 
     public LspWorkspaceContent WithRestore(bool shouldRestore = true)
-    {
-        return this with { ShouldRestore = shouldRestore };
-    }
+        => this with { ShouldRestore = shouldRestore };
 
     public string GetFileText(string path)
         => Files[NormalizePath(path)].Content;
@@ -78,8 +76,7 @@ internal readonly record struct LspWorkspaceContent(
         if (PathUtilities.IsAbsolute(path))
             throw new ArgumentException("Path must be relative to the workspace root.", nameof(path));
 
-        var normalizedPath = PathUtilities.CollapseWithForwardSlash(path);
-        return normalizedPath;
+        return PathUtilities.CollapseWithForwardSlash(path);
     }
 }
 
@@ -92,10 +89,11 @@ internal readonly record struct LspWorkspaceFile(
 
     public static LspWorkspaceFile CreateMarkup([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup)
     {
-        string code;
-        int? cursorPosition;
-        ImmutableDictionary<string, ImmutableArray<TextSpan>> spans;
-        TestFileMarkupParser.GetPositionAndSpans(markup, out code, out cursorPosition, out spans);
+        TestFileMarkupParser.GetPositionAndSpans(
+            markup,
+            out var code,
+            out int? _,
+            out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
         return new(code, spans);
     }
 }

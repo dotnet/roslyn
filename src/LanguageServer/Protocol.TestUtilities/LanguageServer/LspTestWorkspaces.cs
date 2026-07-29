@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests;
+namespace Microsoft.CodeAnalysis.LanguageServer.Test.Utilities;
 
 internal static class LspTestWorkspaces
 {
@@ -17,5 +17,21 @@ internal static class LspTestWorkspaces
                 </Project>
                 """)
             .WithLoadPath("Project.csproj")
+            .WithRestore();
+
+    public static LspWorkspaceContent CreateConsoleApplication(string projectName)
+        => LspWorkspaceContent.Empty
+            .WithFile($"{projectName}.csproj", """
+                <Project Sdk="Microsoft.NET.Sdk">
+                  <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFramework>net10.0</TargetFramework>
+                  </PropertyGroup>
+                </Project>
+                """)
+            .WithFile("Program.cs", $$"""
+                Console.WriteLine("Hello from {{projectName}}");
+                """)
+            .WithLoadPath($"{projectName}.csproj")
             .WithRestore();
 }
