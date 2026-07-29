@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             Assert.True(task.Execute());
 
+            var expectedDestinationPath = Path.Combine(projectDir.Path, "dest.dll");
+            Assert.True(File.Exists(expectedDestinationPath));
+            Assert.False(File.Exists(Path.Combine(decoyCurrentDirectory.Path, "dest.dll")));
+            Assert.Equal("test", File.ReadAllText(expectedDestinationPath));
+
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 """Copying reference assembly from "example.dll" to "dest.dll".""",
                 engine.Log);
