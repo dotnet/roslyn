@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public StrongBox<NullableFlowState>? _lazyValueDeclaredNullableFlowState;
             public Symbol? _lazyHasValueProperty = ErrorTypeSymbol.UnknownResultType;
             public ImmutableArray<MethodSymbol> _lazyTryGetValueMethods;
+            public ImmutableArray<TypeUnionValueSet.CaseInfo> _lazyTypeUnionValueSetCases;
         }
 
         private sealed class UnionDataForDefinition : UnionData
@@ -53,9 +54,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public NamedTypeSymbol? _lazyMemberProviderInterface = ErrorTypeSymbol.UnknownResultType;
         }
 
+        private sealed class ClosedClassData
+        {
+            /// <summary>
+            /// This field is safe to read only after checking that <see cref="_lazySubtypes"/> has been initialized.
+            /// Reading of <see cref="_lazySubtypes"/> for this purpose should be done
+            /// using <see cref="RoslynImmutableInterlocked.VolatileRead{T}(ref readonly ImmutableArray{T})"/> API
+            /// to enforce order of read operations between the fields.
+            /// </summary>
+            public bool _lazySubtypesIsComplete;
+            public ImmutableArray<NamedTypeSymbol> _lazySubtypes;
+            public ImmutableArray<TypeUnionValueSet.CaseInfo> _lazyTypeUnionValueSetCases;
+        }
+
         private sealed partial class UncommonProperties
         {
             public UnionData? _lazyUnionData;
+            public ClosedClassData? _lazyClosedClassData;
         }
 #nullable disable
 
@@ -745,22 +760,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var candidateSubtypes = CandidateClosedSubtypeDefinitions;
-            if (!IsGenericType && candidateSubtypes.All(subtype => !subtype.IsGenericType))
+            ClosedClassData lazyClosedClassData = GetClosedClassData();
+            ImmutableArray<NamedTypeSymbol> lazySubtypes = RoslynImmutableInterlocked.VolatileRead(in lazyClosedClassData._lazySubtypes);
+            if (!lazySubtypes.IsDefault)
             {
-                subtypes = candidateSubtypes;
-                return true;
+                subtypes = lazySubtypes;
+                return lazyClosedClassData._lazySubtypesIsComplete;
             }
 
-            var resultBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(candidateSubtypes.Length);
-            var baseTypeTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-            this.FindTypeParameters(baseTypeTypeParameters);
+            (lazyClosedClassData._lazySubtypesIsComplete, lazySubtypes) = calculateClosedSubtypes(cancellationToken);
+            ImmutableInterlocked.InterlockedInitialize(ref lazyClosedClassData._lazySubtypes, lazySubtypes);
 
-            var success = tryGetSpeakableSubtypes(this, candidateSubtypes, resultBuilder, baseTypeTypeParameters, cancellationToken);
-            baseTypeTypeParameters.Free();
+            subtypes = lazyClosedClassData._lazySubtypes;
+            return lazyClosedClassData._lazySubtypesIsComplete;
 
-            subtypes = resultBuilder.ToImmutableAndFree();
-            return success;
+            (bool, ImmutableArray<NamedTypeSymbol>) calculateClosedSubtypes(CancellationToken cancellationToken)
+            {
+                var candidateSubtypes = CandidateClosedSubtypeDefinitions;
+                if (!IsGenericType && candidateSubtypes.All(subtype => !subtype.IsGenericType))
+                {
+                    return (true, candidateSubtypes);
+                }
+
+                var resultBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(candidateSubtypes.Length);
+                var baseTypeTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+                this.FindTypeParameters(baseTypeTypeParameters);
+
+                var success = tryGetSpeakableSubtypes(this, candidateSubtypes, resultBuilder, baseTypeTypeParameters, cancellationToken);
+                baseTypeTypeParameters.Free();
+
+                return (success, resultBuilder.ToImmutableAndFree());
+            }
 
             static bool tryGetSpeakableSubtypes(NamedTypeSymbol @this, ImmutableArray<NamedTypeSymbol> candidateSubtypes, ArrayBuilder<NamedTypeSymbol> resultBuilder, HashSet<TypeParameterSymbol> baseTypeTypeParameters, CancellationToken cancellationToken)
             {
@@ -784,6 +814,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return allSubtypesAreSpeakable;
             }
+        }
+
+        internal ImmutableArray<TypeUnionValueSet.CaseInfo> ClosedClassTypeUnionValueSetCases()
+        {
+            ClosedClassData lazyClosedClassData = GetClosedClassData();
+            ImmutableArray<TypeUnionValueSet.CaseInfo> lazyTypeUnionValueSetCases = lazyClosedClassData._lazyTypeUnionValueSetCases;
+            if (!lazyTypeUnionValueSetCases.IsDefault)
+            {
+                return lazyTypeUnionValueSetCases;
+            }
+
+            var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
+            var setBuilder = AllIgnoreOptionsSetPool.Allocate();
+            ValueSetFactory.ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(this, builder, setBuilder);
+            setBuilder.Free();
+
+            ImmutableInterlocked.InterlockedInitialize(ref lazyClosedClassData._lazyTypeUnionValueSetCases, builder.ToImmutableAndFree());
+            return lazyClosedClassData._lazyTypeUnionValueSetCases;
         }
 
         /// <summary>
@@ -1973,6 +2021,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal ImmutableArray<TypeUnionValueSet.CaseInfo> UnionTypeUnionValueSetCases()
+        {
+            UnionData lazyUnionData = GetUnionData();
+            ImmutableArray<TypeUnionValueSet.CaseInfo> lazyTypeUnionValueSetCases = lazyUnionData._lazyTypeUnionValueSetCases;
+            if (!lazyTypeUnionValueSetCases.IsDefault)
+            {
+                return lazyTypeUnionValueSetCases;
+            }
+
+            var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
+            var setBuilder = AllIgnoreOptionsSetPool.Allocate();
+            foreach (var caseType in UnionCaseTypesNoUseSiteDiagnostics)
+            {
+                ValueSetFactory.ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(caseType.StrippedType(), builder, setBuilder);
+            }
+
+            setBuilder.Free();
+
+            ImmutableInterlocked.InterlockedInitialize(ref lazyUnionData._lazyTypeUnionValueSetCases, builder.ToImmutableAndFree());
+            return lazyUnionData._lazyTypeUnionValueSetCases;
+        }
+
         internal ImmutableArray<MethodSymbol> UnionFactoryMethods(ref CompoundUseSiteInfo<AssemblySymbol> membersInterfaceForDefinitionInterfacesUseSiteInfo)
         {
             Debug.Assert(IsUnionType);
@@ -2233,6 +2303,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return lazyUnionData;
+        }
+
+        private ClosedClassData GetClosedClassData()
+        {
+            UncommonProperties lazyUncommonProperties = GetUncommonProperties();
+
+            ClosedClassData? lazyClosedClassData = lazyUncommonProperties._lazyClosedClassData;
+            if (lazyClosedClassData is null)
+            {
+                Debug.Assert(IsClosed);
+                Interlocked.CompareExchange(ref lazyUncommonProperties._lazyClosedClassData, new ClosedClassData(), null);
+                Debug.Assert(lazyUncommonProperties._lazyClosedClassData is not null);
+                return lazyUncommonProperties._lazyClosedClassData;
+            }
+
+            return lazyClosedClassData;
         }
 
         internal static bool IsSuitableUnionConstructor(MethodSymbol ctor)
