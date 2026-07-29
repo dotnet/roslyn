@@ -42,4 +42,8 @@ two-client daemon measurement showed the retained-memory benefit that
 BenchmarkDotNet's allocation column misses: median daemon private bytes after
 two Roslyn solutions fell from 1,847.6 MiB without sharing to 1,342.1 MiB with
 sharing (505.4 MiB, or 27.4%). The second solution's private-byte increment fell
-from 820.3 MiB to 257.3 MiB.
+from 820.3 MiB to 257.3 MiB. The smaller concurrent two-console-application
+benchmark reports process-memory growth around project loading. Across five
+measured iterations, sharing reduced median private-byte growth from 11.25 MiB
+to 6.43 MiB and median working-set growth from 13.96 MiB to 9.19 MiB. Treat
+these as per-workload deltas rather than absolute retained-process sizes.

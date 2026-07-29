@@ -116,13 +116,16 @@ the default reference-cache tests remain in
 
 `ServerConfiguration.UseSharedMetadataCache` defaults to `true` and provides an
 internal composition seam for tests and benchmarks. The daemon project-loading
-benchmark in `src/Tools/IdeCoreBenchmarks/LanguageServer` locally clones and
-restores two copies of the current Roslyn commit, then compares sequential
-`solution/open` requests from two real daemon clients with this value disabled
-and enabled. Clone and restore run outside measurement. The benchmark creates a
-fresh daemon outside each measured iteration so the shared-cache case starts
-with an empty cache, fully loads the first solution, and then measures the
-second solution's opportunity to reuse that metadata.
+benchmark in `src/Tools/IdeCoreBenchmarks/LanguageServer` materializes two
+console applications and loads them concurrently through two daemon clients,
+comparing this value disabled and enabled. It creates a fresh daemon outside
+each measured iteration so every sample starts with an empty shared cache.
+Each workload invocation reports the process private-byte and working-set
+deltas around project loading; these include managed and native memory but
+intentionally do not claim to be absolute retained-process measurements.
+`MemoryDiagnoser` performs one additional untimed workload invocation after the
+`AfterActualRun` marker, so only delta lines before that marker correspond to
+the configured timed iterations.
 For external daemon experiments, set the temporary
 `ROSLYN_LANGUAGE_SERVER_USE_SHARED_METADATA_CACHE` environment variable to
 `true`/`1` or `false`/`0` before launching the thin client. The bootstrap and
@@ -130,7 +133,7 @@ daemon inherit this value. Invalid values fail server startup.
 Set `ROSLYN_BENCHMARK_COLLECT_SHARED_METADATA_CACHE_STATISTICS=1` to report
 requests, hits, misses, successful and failed loads, concurrent duplicate loads,
 non-cacheable loads, timestamp changes, dead-entry removals, and current entries
-after each solution. Counter collection is otherwise disabled.
+after both projects load. Counter collection is otherwise disabled.
 
 ## Coding Conventions
 

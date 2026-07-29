@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -59,23 +60,29 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
     }
 
     private static TestServer Wrap(TestLspServer server)
-        => new(server.OpenSolutionAsync, server.DisposeAsync);
+        => new(server.OpenProjectsAsync, server.OpenSolutionAsync, server.DisposeAsync);
 
     private static async Task<TestServer> CreateClientAsync(TestDaemon daemon)
         => Wrap(await daemon.CreateClientAsync());
 
     internal sealed class TestServer : IAsyncDisposable
     {
+        private readonly Func<ImmutableArray<string>, CancellationToken, Task> _openProjectsAsync;
         private readonly Func<string, CancellationToken, Task> _openSolutionAsync;
         private readonly Func<ValueTask> _disposeAsync;
 
         internal TestServer(
+            Func<ImmutableArray<string>, CancellationToken, Task> openProjectsAsync,
             Func<string, CancellationToken, Task> openSolutionAsync,
             Func<ValueTask> disposeAsync)
         {
+            _openProjectsAsync = openProjectsAsync;
             _openSolutionAsync = openSolutionAsync;
             _disposeAsync = disposeAsync;
         }
+
+        internal Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths, CancellationToken cancellationToken)
+            => _openProjectsAsync(projectFilePaths, cancellationToken);
 
         internal Task OpenSolutionAsync(string solutionFilePath, CancellationToken cancellationToken)
             => _openSolutionAsync(solutionFilePath, cancellationToken);
@@ -120,21 +127,7 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
         long NonCacheableLoadCount,
         long ChangedDuringLoadCount,
         long DeadEntryRemovalCount,
-        int EntryCount)
-    {
-        internal MetadataCacheStatistics Subtract(MetadataCacheStatistics earlier)
-            => new(
-                RequestCount - earlier.RequestCount,
-                HitCount - earlier.HitCount,
-                MissCount - earlier.MissCount,
-                MetadataLoadCount - earlier.MetadataLoadCount,
-                FailedLoadCount - earlier.FailedLoadCount,
-                DuplicateLoadCount - earlier.DuplicateLoadCount,
-                NonCacheableLoadCount - earlier.NonCacheableLoadCount,
-                ChangedDuringLoadCount - earlier.ChangedDuringLoadCount,
-                DeadEntryRemovalCount - earlier.DeadEntryRemovalCount,
-                EntryCount);
-    }
+        int EntryCount);
 
     private sealed class NullTestOutputHelper : ITestOutputHelper
     {
