@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendTypeParameterReference(TypeParameterSymbol typeParameter, StringBuilder builder)
             {
-                if (typeParameter.ContainingType.IsExtension)
+                if (typeParameter.RequiredContainingType.IsExtension)
                 {
                     builder.Append("!");
                     builder.Append(StringExtensions.GetNumeral(typeParameter.Ordinal));
