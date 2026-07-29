@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to represent the transparent identifier in the result.
             LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag d) =>
             {
-                var xExpression = new BoundParameter(state.fromExpression.Syntax, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
+                var xExpression = new BoundParameter(let, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
 
                 lambdaBodyBinder = lambdaBodyBinder.GetRequiredBinder(let.Expression);
 
