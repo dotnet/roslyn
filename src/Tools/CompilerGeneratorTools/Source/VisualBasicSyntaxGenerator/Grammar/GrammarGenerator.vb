@@ -302,13 +302,8 @@ Friend Class GrammarGenerator
 
     Private Function HandleNodeKind(nodeKind As ParseNodeKind) As Production
         If Not String.IsNullOrEmpty(nodeKind.TokenText) Then
-            If nodeKind.TokenText = "\" Then
-                Return New Production("'\\'")
-            ElseIf nodeKind.TokenText = "'" Then
-                Return New Production("'\''")
-            Else
-                Return New Production("'" + nodeKind.TokenText + "'")
-            End If
+            Dim tokenText = nodeKind.TokenText.Replace("\", "\\").Replace("'", "\'")
+            Return New Production("'" + tokenText + "'")
         End If
 
         If nodeKind.Name = "EmptyToken" Then
