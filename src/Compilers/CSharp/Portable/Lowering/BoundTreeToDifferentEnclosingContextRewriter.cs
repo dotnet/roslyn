@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (method.ContainingType.IsAnonymousType)
+            if (method.RequiredContainingType.IsAnonymousType)
             {
                 //  Method of an anonymous type
                 var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();

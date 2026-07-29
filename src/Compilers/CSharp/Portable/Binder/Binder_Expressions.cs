@@ -6298,12 +6298,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static ImmutableSegmentedDictionary<string, Symbol> GetMembersRequiringInitialization(MethodSymbol constructor)
         {
             if (!constructor.ShouldCheckRequiredMembers() ||
-                constructor.ContainingType.HasRequiredMembersError) // An error will be reported on the constructor if from source, or a use-site diagnostic will be reported on the use if from metadata.
+                constructor.RequiredContainingType.HasRequiredMembersError) // An error will be reported on the constructor if from source, or a use-site diagnostic will be reported on the use if from metadata.
             {
                 return ImmutableSegmentedDictionary<string, Symbol>.Empty;
             }
 
-            return constructor.ContainingType.AllRequiredMembers;
+            return constructor.RequiredContainingType.AllRequiredMembers;
         }
 
         internal static void CheckRequiredMembersInObjectInitializer(

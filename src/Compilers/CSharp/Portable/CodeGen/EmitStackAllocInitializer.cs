@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_ReadOnlySpan_T__get_Item, _diagnostics, syntax: syntaxNode, isOptional: true) is MethodSymbol spanGetItemDefinition)
                     {
                         // Use RuntimeHelpers.CreateSpan and cpblk.
-                        var readOnlySpan = spanGetItemDefinition.ContainingType.Construct(elementType);
+                        var readOnlySpan = spanGetItemDefinition.RequiredContainingType.Construct(elementType);
                         Debug.Assert(TypeSymbol.Equals(readOnlySpan.OriginalDefinition, _module.Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything));
                         var spanGetItem = spanGetItemDefinition.AsMember(readOnlySpan);
 

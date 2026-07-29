@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (arity != 0)
                             {
                                 var typeParameters = methodSymbol.GetTypeParametersIncludingExtension();
-                                var typeArguments = methodSymbol.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(methodSymbol.TypeArgumentsWithAnnotations);
+                                var typeArguments = methodSymbol.RequiredContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(methodSymbol.TypeArgumentsWithAnnotations);
                                 for (int i = 0; i < arity; i++)
                                 {
                                     var typeParameter = typeParameters[i];

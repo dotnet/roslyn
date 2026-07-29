@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            NamedTypeSymbol originalContainingType = method.ContainingType.OriginalDefinition;
+            NamedTypeSymbol originalContainingType = method.RequiredContainingType.OriginalDefinition;
             NamedTypeSymbol unionDefinition = unionType.OriginalDefinition;
 
             NamedTypeSymbol? membersInterfaceForDefinition = unionType.GetMemberProviderInterfaceForDefinition();

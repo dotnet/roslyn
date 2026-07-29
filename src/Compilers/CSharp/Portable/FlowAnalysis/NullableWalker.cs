@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If we're enforcing required members (ie, the constructor is not attributed with SetsRequiredMembers), we also want to
                         // not warn for members named in such attributes.
                         var membersWithStateEnforcedByRequiredMembers = constructorEnforcesRequiredMembers
-                            ? method.ContainingType.GetMembersUnordered().SelectManyAsArray(
+                            ? method.RequiredContainingType.GetMembersUnordered().SelectManyAsArray(
                                 predicate: member => member is PropertySymbol { IsRequired: true },
                                 selector: member =>
                                 {
@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             : ImmutableArray<string>.Empty;
 
                         var alreadyWarnedMembers = PooledHashSet<Symbol>.GetInstance();
-                        foreach (var member in method.ContainingType.GetMembersUnordered())
+                        foreach (var member in method.RequiredContainingType.GetMembersUnordered())
                         {
                             // If this constructor has `SetsRequiredMembers`, then we need to check the state of _all_ required properties, regardless of whether they are auto-properties or not.
                             // For auto-properties, `GetMembersUnordered()` will return the backing field, and `checkStateOnConstructorExit` will follow that to the property itself, so we only need
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var chainedConstructorEnforcesRequiredMembers = GetBaseOrThisInitializer()?.ShouldCheckRequiredMembers() ?? false;
 
-                        if (chainedConstructorEnforcesRequiredMembers && !constructorEnforcesRequiredMembers && method.ContainingType.BaseTypeNoUseSiteDiagnostics is { } baseType)
+                        if (chainedConstructorEnforcesRequiredMembers && !constructorEnforcesRequiredMembers && method.RequiredContainingType.BaseTypeNoUseSiteDiagnostics is { } baseType)
                         {
                             // Members of the current type were checked above. We need to grab all the required members from the base
                             // type and enforce them as well. We don't need to check the non-required members: those warnings would have
@@ -947,16 +947,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Pre-C# 11, we don't use a default initial state for value type instance constructors without `: this()`
                     // because any usages of uninitialized fields will get definite assignment errors anyway.
                     if (!hasThisConstructorInitializer
-                        && (!method.ContainingType.IsValueType
+                        && (!method.RequiredContainingType.IsValueType
                             || method.IsStatic
                             || compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs)))
                     {
-                        return membersToBeInitialized(method.ContainingType, includeAllMembers: true, includeCurrentTypeRequiredMembers, includeBaseRequiredMembers);
+                        return membersToBeInitialized(method.RequiredContainingType, includeAllMembers: true, includeCurrentTypeRequiredMembers, includeBaseRequiredMembers);
                     }
 
                     // We want to presume all required members of the type are uninitialized, and in addition we want to set all fields to
                     // default if we can get to this constructor by doing so (ie, : this() in a value type).
-                    return membersToBeInitialized(method.ContainingType, includeAllMembers: method.IncludeFieldInitializersInBody(), includeCurrentTypeRequiredMembers, includeBaseRequiredMembers);
+                    return membersToBeInitialized(method.RequiredContainingType, includeAllMembers: method.IncludeFieldInitializersInBody(), includeCurrentTypeRequiredMembers, includeBaseRequiredMembers);
 
                     static ImmutableArray<Symbol> membersToBeInitialized(NamedTypeSymbol containingType, bool includeAllMembers, bool includeCurrentTypeRequiredMembers, bool includeBaseRequiredMembers)
                     {
@@ -1095,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnforceMemberNotNullOnMember(SyntaxNode? syntaxOpt, LocalState state, MethodSymbol method, string memberName)
         {
-            foreach (var member in method.ContainingType.GetMembers(memberName))
+            foreach (var member in method.RequiredContainingType.GetMembers(memberName))
             {
                 if (FailsMemberNotNullExpectation(member, state))
                 {
@@ -1131,12 +1131,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var memberName in method.NotNullWhenTrueMembers)
                     {
-                        enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: true, members: method.ContainingType.GetMembers(memberName), state: pendingReturn.StateWhenTrue, otherState: pendingReturn.StateWhenFalse);
+                        enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: true, members: method.RequiredContainingType.GetMembers(memberName), state: pendingReturn.StateWhenTrue, otherState: pendingReturn.StateWhenFalse);
                     }
 
                     foreach (var memberName in method.NotNullWhenFalseMembers)
                     {
-                        enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: false, members: method.ContainingType.GetMembers(memberName), state: pendingReturn.StateWhenFalse, otherState: pendingReturn.StateWhenTrue);
+                        enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: false, members: method.RequiredContainingType.GetMembers(memberName), state: pendingReturn.StateWhenFalse, otherState: pendingReturn.StateWhenTrue);
                     }
                 }
             }
@@ -1162,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var notNullMembers = sense ? method.NotNullWhenTrueMembers : method.NotNullWhenFalseMembers;
                     foreach (var memberName in notNullMembers)
                     {
-                        foreach (var member in method.ContainingType.GetMembers(memberName))
+                        foreach (var member in method.RequiredContainingType.GetMembers(memberName))
                         {
                             ReportFailedMemberNotNullIfNeeded(syntaxOpt, sense, member, state);
                         }
@@ -1215,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void makeMemberMaybeNull(MethodSymbol method, string memberName)
             {
-                var type = method.ContainingType;
+                var type = method.RequiredContainingType;
                 foreach (var member in type.GetMembers(memberName))
                 {
                     if (GetSlotForMemberPostCondition(member) is int memberSlot &&
@@ -2309,7 +2309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && constructor.IsConstructor()
                 && constructor.IsStatic == symbol.IsStatic)
             {
-                if ((constructor.IsStatic && containingSlot == 0 && constructor.ContainingType.Equals(symbol.ContainingType))
+                if ((constructor.IsStatic && containingSlot == 0 && constructor.RequiredContainingType.Equals(symbol.ContainingType))
                     || (!constructor.IsStatic && containingSlot > 0 && _variables[containingSlot].Symbol is ThisParameterSymbol))
                 {
                     // If symbol is a backing field, but property does not use the field keyword,
@@ -4470,7 +4470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 static bool isSuitableUnionConstruction(TypeSymbol type, [NotNullWhen(true)] MethodSymbol? constructor, [NotNullWhen(true)] out PropertySymbol? valueProperty)
                 {
                     if (constructor is not null &&
-                        constructor.ContainingType.Equals(type, TypeCompareKind.AllIgnoreOptions) &&
+                        constructor.RequiredContainingType.Equals(type, TypeCompareKind.AllIgnoreOptions) &&
                         type is NamedTypeSymbol { IsUnionType: true } unionType &&
                         unionType.GetMemberProviderInterfaceForDefinition() is null &&
                         NamedTypeSymbol.IsSuitableUnionConstructor(constructor))
@@ -5702,7 +5702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState leftUnderlyingType,
             TypeWithState rightUnderlyingType)
         {
-            TypeSymbol methodContainer = method.ContainingType;
+            TypeSymbol methodContainer = method.RequiredContainingType;
             MethodSymbol reinferredMethod;
 
             if (!method.IsExtensionBlockMember())
@@ -5711,9 +5711,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     getTypeIfContainingType(methodContainer, rightUnderlyingType.Type, rightOperand) ?? methodContainer;
                 reinferredMethod = (MethodSymbol)AsMemberOfType(asMemberOfType, method);
             }
-            else if (method.ContainingType.Arity != 0)
+            else if (method.RequiredContainingType.Arity != 0)
             {
-                NamedTypeSymbol extension = method.OriginalDefinition.ContainingType;
+                NamedTypeSymbol extension = method.OriginalDefinition.RequiredContainingType;
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
                 var inferenceResult = MethodTypeInferrer.Infer(
@@ -6847,8 +6847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             FlowAnalysisAnnotations annotations;
                             if (isExtensionBlockMethod)
                             {
-                                Debug.Assert(node.Method.ContainingType.ExtensionParameter is not null);
-                                annotations = node.Method.ContainingType.ExtensionParameter.FlowAnalysisAnnotations;
+                                annotations = node.Method.RequiredContainingType.RequiredExtensionParameter.FlowAnalysisAnnotations;
                             }
                             else
                             {
@@ -7173,7 +7172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var wellKnownType = wellKnownMethod.ContainingType;
+                var wellKnownType = wellKnownMethod.RequiredContainingType;
                 var parameterType = method.Parameters[0].TypeWithAnnotations;
                 var constructedType = wellKnownType.Construct(ImmutableArray.Create(parameterType));
                 var constructedMethod = wellKnownMethod.AsMember(constructedType);
@@ -7194,7 +7193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (implementationMethod.ContainingType.IsInterface)
+                    if (implementationMethod.RequiredContainingType.IsInterface)
                     {
                         // this method cannot be called directly from source because an interface can only explicitly implement a method from its base interface.
                         return false;
@@ -7366,7 +7365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = receiverType.Type;
             if (method.RequiresInstanceReceiver &&
                 type?.IsNullableType() == true &&
-                method.ContainingType.IsReferenceType)
+                method.RequiredContainingType.IsReferenceType)
             {
                 checkNullableValueType = true;
             }
@@ -7998,7 +7997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             do
             {
-                var type = method.ContainingType;
+                var type = method.RequiredContainingType;
                 var notNullMembers = method.NotNullMembers;
                 var notNullWhenTrueMembers = method.NotNullWhenTrueMembers;
                 var notNullWhenFalseMembers = method.NotNullWhenFalseMembers;
@@ -11129,7 +11128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (invokedAsExtensionMethod || isExtensionBlockMethod)
                     {
-                        ParameterSymbol? receiverParameter = isExtensionBlockMethod ? method.ContainingType.ExtensionParameter : method.Parameters[0];
+                        ParameterSymbol? receiverParameter = isExtensionBlockMethod ? method.RequiredContainingType.ExtensionParameter : method.Parameters[0];
                         Debug.Assert(receiverParameter is not null);
 
                         CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, receiverParameter, receiverType);
@@ -11515,7 +11514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Check nullability for `this` parameter
                     var argConversion = RemoveConversion(invocation.Arguments[0], includeExplicitConversions: false).conversion;
-                    var receiverParameter = isExtensionBlockMethod ? deconstructMethod.ContainingType.ExtensionParameter : deconstructMethod.Parameters[0];
+                    var receiverParameter = isExtensionBlockMethod ? deconstructMethod.RequiredContainingType.ExtensionParameter : deconstructMethod.Parameters[0];
                     Debug.Assert(receiverParameter is not null);
                     CheckExtensionMethodThisNullability(right, argConversion, receiverParameter, rightResult);
                 }
@@ -12381,7 +12380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (member.Kind == SymbolKind.Property)
             {
                 var getMethod = ((PropertySymbol)member.OriginalDefinition).GetMethod;
-                if ((object)getMethod != null && getMethod.ContainingType.SpecialType == SpecialType.System_Nullable_T)
+                if ((object)getMethod != null && getMethod.RequiredContainingType.SpecialType == SpecialType.System_Nullable_T)
                 {
                     if (getMethod == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value))
                     {
@@ -12877,9 +12876,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 method = (MethodSymbol)AsMemberOfType(operandType.Type!.StrippedType(), method);
             }
-            else if (method.ContainingType.Arity != 0)
+            else if (method.RequiredContainingType.Arity != 0)
             {
-                NamedTypeSymbol extension = method.OriginalDefinition.ContainingType;
+                NamedTypeSymbol extension = method.OriginalDefinition.RequiredContainingType;
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
                 var inferenceResult = MethodTypeInferrer.Infer(

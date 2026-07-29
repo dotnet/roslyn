@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is MethodSymbol implementationMethod)
                     {
                         return implementationMethod.AsMember(method.ContainingSymbol.ContainingType).
-                            ConstructIfGeneric(method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations));
+                            ConstructIfGeneric(method.RequiredContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations));
                     }
 
                     // Valid scenarios shouldn't get to here. These are the cases we know can get to here. If this assert triggers for
@@ -2849,7 +2849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case MethodSymbol method:
                         if (method.MethodKind == MethodKind.Constructor)
                         {
-                            return method.ContainingType.IsRefLikeType;
+                            return method.RequiredContainingType.IsRefLikeType;
                         }
 
                         return method.ReturnType.IsRefLikeOrAllowsRefLikeType();

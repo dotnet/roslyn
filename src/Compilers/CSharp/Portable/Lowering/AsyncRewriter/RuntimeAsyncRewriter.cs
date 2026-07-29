@@ -146,7 +146,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         var runtimeAsyncAwaitMethod = runtimeAsyncAwaitCall.Method;
         Debug.Assert(runtimeAsyncAwaitMethod is not null);
         Debug.Assert(ReferenceEquals(
-            runtimeAsyncAwaitMethod.ContainingType.OriginalDefinition,
+            runtimeAsyncAwaitMethod.RequiredContainingType.OriginalDefinition,
             _factory.Compilation.GetSpecialType(InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers)));
         Debug.Assert(runtimeAsyncAwaitMethod.Name is "Await" or "UnsafeAwaitAwaiter" or "AwaitAwaiter");
 

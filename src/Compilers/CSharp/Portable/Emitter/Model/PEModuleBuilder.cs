@@ -1399,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             object? reference;
             Cci.IMethodReference methodRef;
-            NamedTypeSymbol container = methodSymbol.ContainingType;
+            NamedTypeSymbol? container = methodSymbol.ContainingType;
 
             // Method of anonymous type being translated
             if (container?.IsAnonymousType == true)

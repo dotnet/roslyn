@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private StrongBox<byte?>? lazyNullableContext;
 
         public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
-            : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
+            : base(sourceMethod, TypeMap.Empty, sourceMethod.RequiredContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
         {
             Debug.Assert(sourceMethod.IsExtensionBlockMember());
-            Debug.Assert(sourceMethod.IsStatic || sourceMethod.ContainingType.ExtensionParameter is not null);
+            Debug.Assert(sourceMethod.IsStatic || sourceMethod.RequiredContainingType.ExtensionParameter is not null);
         }
 
         public override int Arity => TypeParameters.Length;
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsDeclaredReadOnly => false;
 
-        public sealed override Symbol ContainingSymbol => _originalMethod.ContainingType.ContainingSymbol;
+        public sealed override Symbol ContainingSymbol => _originalMethod.RequiredContainingType.ContainingSymbol;
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_originalMethod.IsStatic)
             {
-                parameters.Add(new ExtensionMetadataMethodParameterSymbol(this, ((SourceNamedTypeSymbol)_originalMethod.ContainingType).RequiredExtensionParameter));
+                parameters.Add(new ExtensionMetadataMethodParameterSymbol(this, ((SourceNamedTypeSymbol)_originalMethod.RequiredContainingType).RequiredExtensionParameter));
             }
 
             foreach (var parameter in sourceParameters)

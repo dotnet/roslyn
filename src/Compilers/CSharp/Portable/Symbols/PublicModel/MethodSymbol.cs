@@ -362,12 +362,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                     return null;
                 }
 
-                var enclosing = _underlying.ContainingType.ContainingType;
+                var enclosing = _underlying.RequiredContainingType.ContainingType;
                 var implementation = implDefinition.AsMember(enclosing);
                 if (implementation.Arity != 0)
                 {
                     var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(implementation.Arity);
-                    typeArguments.AddRange(_underlying.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+                    typeArguments.AddRange(_underlying.RequiredContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
                     typeArguments.AddRange(_underlying.TypeArgumentsWithAnnotations);
                     implementation = implementation.Construct(typeArguments.ToImmutableAndFree());
                 }

@@ -1728,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
                 bool result = method.IsAsRestrictive(ContainingSymbol, ref useSiteInfo) &&
-                              method.ContainingType.IsAtLeastAsVisibleAs(ContainingSymbol, ref useSiteInfo);
+                              method.RequiredContainingType.IsAtLeastAsVisibleAs(ContainingSymbol, ref useSiteInfo);
 
                 diagnostics.Add(syntax.Location, useSiteInfo);
                 return result;

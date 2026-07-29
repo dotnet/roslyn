@@ -2085,7 +2085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (candidate.IsGenericMethod || candidate.ContainingType.IsGenericType)
+                    if (candidate.IsGenericMethod || candidate.RequiredContainingType.IsGenericType)
                     {
                         // a single error for partial methods:
                         noMainFoundDiagnostics.Add(ErrorCode.WRN_MainCantBeGeneric, candidate.GetFirstLocation(), candidate);

@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static void reportObsoleteAndUnsafeDiagnostics(Binder @this, BindingDiagnosticBag diagnostics, MethodSymbol method, SyntaxNode syntax)
             {
                 @this.ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
-                @this.ReportDiagnosticsIfObsolete(diagnostics, method.ContainingType, syntax, hasBaseReceiver: false);
+                @this.ReportDiagnosticsIfObsolete(diagnostics, method.RequiredContainingType, syntax, hasBaseReceiver: false);
                 @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, syntax);
             }
         }

@@ -1290,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static void FindTypeParameters(this MethodSymbol method, HashSet<TypeParameterSymbol> result)
         {
-            FindTypeParameters(method.ContainingType, result);
+            FindTypeParameters(method.RequiredContainingType, result);
 
             foreach (var typeArgument in method.TypeArgumentsWithAnnotations)
             {

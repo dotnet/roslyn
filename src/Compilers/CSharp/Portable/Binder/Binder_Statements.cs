@@ -3914,7 +3914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Note that the base type can be null if we're compiling System.Object in source.
-            NamedTypeSymbol containingType = constructor.ContainingType;
+            NamedTypeSymbol containingType = constructor.RequiredContainingType;
             NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol? sourceConstructor = constructor as SourceMemberMethodSymbol;
@@ -4023,7 +4023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundCall? GenerateBaseParameterlessConstructorInitializer(MethodSymbol constructor, BindingDiagnosticBag diagnostics)
         {
-            NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol baseType = constructor.RequiredContainingType.BaseTypeNoUseSiteDiagnostics;
             MethodSymbol? baseConstructor = null;
             LookupResultKind resultKind = LookupResultKind.Viable;
             Location diagnosticsLocation = constructor.GetFirstLocationOrNone();
@@ -4063,7 +4063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
 
-            BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
+            BoundExpression receiver = new BoundThisReference(syntax, constructor.RequiredContainingType) { WasCompilerGenerated = true };
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,

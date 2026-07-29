@@ -1998,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (isClosedTypeAttributeCtor is not null)
                 {
-                    foreach (var derivedTypesSymbol in isClosedTypeAttributeCtor.ContainingType.GetMembers("DerivedTypes"))
+                    foreach (var derivedTypesSymbol in isClosedTypeAttributeCtor.RequiredContainingType.GetMembers("DerivedTypes"))
                     {
                         if (derivedTypesSymbol.Kind == SymbolKind.Property)
                         {
@@ -2377,7 +2377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we've already produced a diagnostic for the missing return type and we suppress the
             // diagnostic about duplicate signature.
             if (method1.OriginalDefinition is SourceMemberMethodSymbol { MethodKind: MethodKind.Constructor } constructor &&
-                ((ConstructorDeclarationSyntax)constructor.SyntaxRef.GetSyntax()).Identifier.ValueText != method1.ContainingType.Name)
+                ((ConstructorDeclarationSyntax)constructor.SyntaxRef.GetSyntax()).Identifier.ValueText != method1.RequiredContainingType.Name)
             {
                 return;
             }
@@ -2385,8 +2385,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (method1 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying1 } &&
                 method2 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying2 } &&
                 underlying1.IsStatic == underlying2.IsStatic &&
-                ((object)underlying1.ContainingType == underlying2.ContainingType ||
-                underlying1.ContainingType.ExtensionGroupingName == underlying2.ContainingType.ExtensionGroupingName) &&
+                ((object)underlying1.RequiredContainingType == underlying2.ContainingType ||
+                underlying1.RequiredContainingType.ExtensionGroupingName == underlying2.RequiredContainingType.ExtensionGroupingName) &&
                 diagnostics.DiagnosticBag?.AsEnumerableWithoutResolution().Any(
                     static (d, arg) =>
                         (d.Code is (int)ErrorCode.ERR_OverloadRefKind or (int)ErrorCode.ERR_MemberAlreadyExists or
@@ -2422,8 +2422,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Special case: if there are two destructors, use the destructor syntax instead of "Finalize"
             var methodName = (method1.MethodKind == MethodKind.Destructor && method2.MethodKind == MethodKind.Destructor) ?
-                "~" + method1.ContainingType.Name :
-                (method1.IsConstructor() ? method1.ContainingType.Name : method1.Name);
+                "~" + method1.RequiredContainingType.Name :
+                (method1.IsConstructor() ? method1.RequiredContainingType.Name : method1.Name);
 
             // Type '{1}' already defines a member called '{0}' with the same parameter types
             diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.GetFirstLocation(), methodName, containerForDiagnostics);
@@ -3127,7 +3127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var method in this.GetMembers(name).OfType<MethodSymbol>())
             {
-                if (method.IsOverride && method.GetConstructedLeastOverriddenMethod(this, requireSameReturnType: false).ContainingType.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object)
+                if (method.IsOverride && method.GetConstructedLeastOverriddenMethod(this, requireSameReturnType: false).RequiredContainingType.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object)
                 {
                     return true;
                 }

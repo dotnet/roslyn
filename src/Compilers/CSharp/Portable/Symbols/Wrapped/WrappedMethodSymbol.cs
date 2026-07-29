@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -25,6 +26,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public WrappedMethodSymbol()
         {
         }
+
+#nullable enable
+        public override NamedTypeSymbol ContainingType
+        {
+            get
+            {
+                var containingType = base.ContainingType;
+                Debug.Assert(containingType is not null, $"'{Name}': Unexpected null ContainingType");
+                return containingType;
+            }
+        }
+#nullable disable
 
         public abstract MethodSymbol UnderlyingMethod
         {

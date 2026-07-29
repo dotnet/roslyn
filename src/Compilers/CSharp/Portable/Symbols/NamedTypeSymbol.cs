@@ -1969,7 +1969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             foreach (MethodSymbol shadowingMethod in shadowingMethods)
                             {
                                 if (MemberSignatureComparer.CSharpOverrideComparer.Equals(shadowingMethod, method) &&
-                                    shadowingMethod.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(method.ContainingType, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                                    shadowingMethod.RequiredContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(method.ContainingType, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
                                 {
                                     // Shadowed
                                     goto nextMember;
@@ -2015,7 +2015,7 @@ nextMember:
             {
                 Debug.Assert(unionType.IsDefinition);
                 Debug.Assert(unionType.IsUnionType);
-                Debug.Assert(factory.IsDefinition || factory.ContainingType.IsInterface);
+                Debug.Assert(factory.IsDefinition || factory.RequiredContainingType.IsInterface);
 
                 return factory is
                 {

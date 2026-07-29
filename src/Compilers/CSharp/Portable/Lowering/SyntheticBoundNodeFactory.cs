@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments: default,
                 constantValueOpt: null,
                 initializerExpressionOpt: null,
-                constructor.ContainingType)
+                constructor.RequiredContainingType)
             { WasCompilerGenerated = true };
 
         public BoundObjectCreationExpression New(WellKnownMember wm, ImmutableArray<BoundExpression> args)
@@ -1338,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = new BoundMethodInfo(
                 Syntax,
                 ctor,
-                GetMethodFromHandleMethod(ctor.ContainingType, constructorInfo),
+                GetMethodFromHandleMethod(ctor.RequiredContainingType, constructorInfo),
                 constructorInfo)
             { WasCompilerGenerated = true };
 
@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // in special circumstances. These circumstances are exactly the checks performed by
             // MayUseCallForStructMethod (which is also used by the emitter when determining
             // whether or not to call a method with a value type receiver directly).
-            if (!method.ContainingType.IsValueType || !Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.MayUseCallForStructMethod(this.CompilationState.Compilation.SourceModule, method))
+            if (!method.RequiredContainingType.IsValueType || !Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.MayUseCallForStructMethod(this.CompilationState.Compilation.SourceModule, method))
             {
                 method = method.GetConstructedLeastOverriddenMethod(this.CompilationState.Type, requireSameReturnType: true);
             }
@@ -1445,7 +1445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = new BoundMethodInfo(
                 Syntax,
                 method,
-                GetMethodFromHandleMethod(method.ContainingType, systemReflectionMethodInfo),
+                GetMethodFromHandleMethod(method.RequiredContainingType, systemReflectionMethodInfo),
                 systemReflectionMethodInfo)
             { WasCompilerGenerated = true };
 

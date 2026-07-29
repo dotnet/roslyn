@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (isExtension)
                     {
-                        Debug.Assert(method.ContainingType.ExtensionParameter is not null);
+                        Debug.Assert(method.RequiredContainingType.ExtensionParameter is not null);
 
                         if (Compilation.SourceModule != method.ContainingModule)
                         {
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(leftType.IsReferenceType);
 
                             leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
-                            leftConversion = CreateConversion(node, leftPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.ContainingType.ExtensionParameter.Type, diagnostics);
+                            leftConversion = CreateConversion(node, leftPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.RequiredContainingType.ExtensionParameter!.Type, diagnostics);
                         }
                     }
 
@@ -1945,7 +1945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = UnaryOperatorOverloadResolutionResult.GetInstance();
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
-                NamedTypeSymbol extensionContainingType = signature.Method.OriginalDefinition.ContainingType.RequiredContainingType;
+                NamedTypeSymbol extensionContainingType = signature.Method.OriginalDefinition.RequiredContainingType.RequiredContainingType;
 
                 UnaryOperatorAnalysisResult? bestTrue = extensionUnaryOperatorOverloadResolution(syntax, extensionCandidates, result, extensionContainingType, UnaryOperatorKind.True, leftPlaceholder, ref useSiteInfo);
                 UnaryOperatorAnalysisResult? bestFalse = null;
@@ -3590,7 +3590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (isExtension)
                     {
-                        Debug.Assert(method.ContainingType.ExtensionParameter is not null);
+                        Debug.Assert(method.RequiredContainingType.ExtensionParameter is not null);
 
                         if (Compilation.SourceModule != method.ContainingModule)
                         {
@@ -3609,7 +3609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(operandType.IsReferenceType);
 
                             operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operandType).MakeCompilerGenerated();
-                            operandConversion = CreateConversion(node, operandPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.ContainingType.ExtensionParameter.Type, diagnostics);
+                            operandConversion = CreateConversion(node, operandPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.RequiredContainingType.ExtensionParameter!.Type, diagnostics);
                         }
                     }
 
@@ -3920,7 +3920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (MethodSymbol op in typeOperators)
                 {
-                    var extensionParameter = op.ContainingType.ExtensionParameter;
+                    var extensionParameter = op.RequiredContainingType.ExtensionParameter;
                     Debug.Assert(extensionParameter is not null);
                     if (!((extensionParameter.Type.IsValueType && extensionParameter.RefKind == RefKind.Ref) ||
                         (extensionParameter.Type.IsReferenceType && extensionParameter.RefKind == RefKind.None)))
