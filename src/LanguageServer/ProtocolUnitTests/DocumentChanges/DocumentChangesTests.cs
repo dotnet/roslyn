@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -363,6 +364,136 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
         }
     }
 
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84679")]
+    public async Task DidChange_FullDocumentReplacement_WithOmittedRange(bool mutatingLspWorkspace)
+    {
+        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                {|type:|}
+            }
+            """, mutatingLspWorkspace);
+
+        await using (testLspServer)
+        {
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
+
+            using var didChangePayload = JsonDocument.Parse($$"""
+                {
+                  "textDocument": {
+                    "uri": "{{locationTyped.DocumentUri}}",
+                    "version": 1
+                  },
+                  "contentChanges": [
+                    {
+                      "text": "class B { }"
+                    }
+                  ]
+                }
+                """);
+
+            await testLspServer.ExecutePreSerializedRequestAsync(LSP.Methods.TextDocumentDidChangeName, didChangePayload);
+
+            var document = testLspServer.GetTrackedTexts().FirstOrDefault();
+            Assert.NotNull(document);
+            Assert.Equal("class B { }", document.ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84679")]
+    public async Task DidChange_RangedEditThenFullReplacement_UsesFullReplacement(bool mutatingLspWorkspace)
+    {
+        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                void M()
+                {
+                    {|type:|}
+                } 
+            }
+            """, mutatingLspWorkspace);
+
+        await using (testLspServer)
+        {
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
+
+            await DidChange(testLspServer, locationTyped.DocumentUri,
+                CreateTextDocumentContentChangeEvent(startLine: 3, startCol: 8, endLine: 3, endCol: 8, newText: "// ignored"),
+                CreateFullDocumentContentChangeEvent("class B { }"));
+
+            var document = testLspServer.GetTrackedTexts().FirstOrDefault();
+            Assert.NotNull(document);
+            Assert.Equal("class B { }", document.ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84679")]
+    public async Task DidChange_FullReplacementThenRangedEdit_RangeIsAppliedToReplacement(bool mutatingLspWorkspace)
+    {
+        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                {|type:|}
+            }
+            """, mutatingLspWorkspace);
+
+        await using (testLspServer)
+        {
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
+
+            await DidChange(testLspServer, locationTyped.DocumentUri,
+                CreateFullDocumentContentChangeEvent("""
+                    class B
+                    {
+                    }
+                    """),
+                CreateTextDocumentContentChangeEvent(startLine: 1, startCol: 1, endLine: 1, endCol: 1, newText: $"{Environment.NewLine}    void M() {{ }}"));
+
+            var document = testLspServer.GetTrackedTexts().FirstOrDefault();
+            Assert.NotNull(document);
+            Assert.Equal("""
+                class B
+                {
+                    void M() { }
+                }
+                """, document.ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84679")]
+    public async Task DidChange_MultipleFullReplacements_OnlyFinalReplacementAndFollowingRangesApply(bool mutatingLspWorkspace)
+    {
+        var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync("""
+            class A
+            {
+                void M()
+                {
+                    {|type:|}
+                } 
+            }
+            """, mutatingLspWorkspace);
+
+        await using (testLspServer)
+        {
+            await DidOpen(testLspServer, locationTyped.DocumentUri);
+
+            await DidChange(testLspServer, locationTyped.DocumentUri,
+                CreateTextDocumentContentChangeEvent(startLine: 3, startCol: 8, endLine: 3, endCol: 8, newText: "// ignored"),
+                CreateFullDocumentContentChangeEvent("first"),
+                CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 5, endLine: 0, endCol: 5, newText: "!"),
+                CreateFullDocumentContentChangeEvent("second"),
+                CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 6, endLine: 0, endCol: 6, newText: "?"));
+
+            var document = testLspServer.GetTrackedTexts().FirstOrDefault();
+            Assert.NotNull(document);
+            Assert.Equal("second?", document.ToString());
+        }
+    }
+
     private LSP.TextDocumentContentChangeEvent CreateTextDocumentContentChangeEvent(int startLine, int startCol, int endLine, int endCol, string newText)
     {
         return new LSP.TextDocumentContentChangeEvent()
@@ -372,6 +503,14 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
                 Start = new LSP.Position(startLine, startCol),
                 End = new LSP.Position(endLine, endCol)
             },
+            Text = newText
+        };
+    }
+
+    private static LSP.TextDocumentContentChangeEvent CreateFullDocumentContentChangeEvent(string newText)
+    {
+        return new LSP.TextDocumentContentChangeEvent()
+        {
             Text = newText
         };
     }
@@ -404,6 +543,16 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
         LSP.TextDocumentContentChangeEvent change3 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 3, endLine: 0, endCol: 5, newText: "test3");
 
         Assert.False(DidChangeHandler.AreChangesInReverseOrder([change1, change2, change3]));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84679")]
+    public void DidChange_AreChangesInReverseOrder_FullDocumentReplacement()
+    {
+        LSP.TextDocumentContentChangeEvent change1 = CreateFullDocumentContentChangeEvent("replacement");
+        LSP.TextDocumentContentChangeEvent change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 0, endLine: 0, endCol: 0, newText: "suffix");
+
+        Assert.False(DidChangeHandler.AreChangesInReverseOrder([change1, change2]));
     }
 
     [Theory, CombinatorialData]
@@ -484,6 +633,25 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
         => await testLspServer.InsertTextAsync(uri, version, changes);
 
     private static Task DidChange(TestLspServer testLspServer, DocumentUri uri, params (int line, int column, string text)[] changes)
+        => DidChange(testLspServer, uri, version: 0, changes);
+
+    private static async Task DidChange(TestLspServer testLspServer, DocumentUri uri, int version, params LSP.TextDocumentContentChangeEvent[] changes)
+    {
+        await testLspServer.ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(
+            LSP.Methods.TextDocumentDidChangeName,
+            new LSP.DidChangeTextDocumentParams
+            {
+                TextDocument = new LSP.VersionedTextDocumentIdentifier
+                {
+                    DocumentUri = uri,
+                    Version = version
+                },
+                ContentChanges = changes
+            },
+            CancellationToken.None);
+    }
+
+    private static Task DidChange(TestLspServer testLspServer, DocumentUri uri, params LSP.TextDocumentContentChangeEvent[] changes)
         => DidChange(testLspServer, uri, version: 0, changes);
 
     private static async Task DidClose(TestLspServer testLspServer, DocumentUri uri) => await testLspServer.CloseDocumentAsync(uri);

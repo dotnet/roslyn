@@ -18,7 +18,7 @@ internal sealed class TextDocumentContentChangeEvent
     /// Gets or sets the range of the text that was changed.
     /// </summary>
     [JsonPropertyName("range")]
-    public Range Range
+    public Range? Range
     {
         get;
         set;
