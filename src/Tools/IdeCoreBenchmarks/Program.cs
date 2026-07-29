@@ -43,8 +43,10 @@ namespace IdeCoreBenchmarks
         private static int Main(string[] args)
         {
             Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
-            // BenchmarkDotNet passes its runner output paths as global properties. Prevent them from
-            // flowing into Roslyn's project graph.
+            // BenchmarkDotNet gives its generated runner a single output directory through global
+            // MSBuild properties. If those properties flow into Roslyn's multi-targeted project graph,
+            // different projects and target frameworks share output and intermediate paths, causing
+            // file-write races and mixed-framework assemblies.
             var existingProperties = Environment.GetEnvironmentVariable(GlobalPropertiesToRemoveFromProjectReferencesEnvVariableName);
             var propertiesToRemove = string.IsNullOrEmpty(existingProperties)
                 ? BenchmarkDotNetOutputProperties
