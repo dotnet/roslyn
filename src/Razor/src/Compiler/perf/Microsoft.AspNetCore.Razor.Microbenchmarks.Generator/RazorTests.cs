@@ -5,6 +5,8 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Generator;
 
+// These assertions track the Razor source generator's current output (generated hint names, tree counts,
+// emitted code shape); refresh them when the generator's output changes.
 public class RazorTests
 {
     [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
@@ -25,10 +27,10 @@ public class RazorTests
         Assert.NotNull(project.ParseOptions);
 
         Assert.Equal(110, project.AdditionalTexts.Length);
-        Assert.Equal(8, project.Compilation.SyntaxTrees.Count());
+        Assert.Equal(10, project.Compilation.SyntaxTrees.Count());
 
-        // Generator driver will throw if it's not been run yet. This checks we're in a cold state.
-        Assert.Throws<NullReferenceException>(() => project.GeneratorDriver.GetRunResult());
+        // No generated output yet: the driver hasn't been run, so we're still in a cold state.
+        Assert.Empty(project.GeneratorDriver.GetRunResult().GeneratedTrees);
     }
 
     [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
@@ -75,7 +77,7 @@ public class RazorTests
 
         // check the contents of the generated 0 page
         var initialResults = razorBenchmarks.Project!.GeneratorDriver.GetRunResult();
-        Assert.Contains("<h1>Page 0 </h1>", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Generated_0_razor.g.cs").SourceText.ToString());
+        Assert.Contains("<h1>Page 0 </h1>", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages/Generated/0_razor.g.cs").SourceText.ToString());
 
         // act
         var driver = razorBenchmarks.Razor_Edit_Independent();
@@ -83,7 +85,7 @@ public class RazorTests
         // assert
         var results = driver.GetRunResult();
         Assert.Empty(results.Diagnostics);
-        Assert.Contains("<h1>Independent file</h1>", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Generated_0_razor.g.cs").SourceText.ToString());
+        Assert.Contains("<h1>Independent file</h1>", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages/Generated/0_razor.g.cs").SourceText.ToString());
     }
 
     [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
@@ -111,7 +113,7 @@ public class RazorTests
 
         // check the contents of the counter page
         var initialResults = razorBenchmarks.Project!.GeneratorDriver.GetRunResult();
-        Assert.Contains("<h1>Counter</h1>", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Counter_razor.g.cs").SourceText.ToString());
+        Assert.Contains("<h1>Counter</h1>", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages/Counter_razor.g.cs").SourceText.ToString());
 
         // act
         var driver = razorBenchmarks.Razor_Edit_DependentIgnorable();
@@ -119,7 +121,7 @@ public class RazorTests
         // assert
         var results = driver.GetRunResult();
         Assert.Empty(results.Diagnostics);
-        Assert.Contains("<h1>Counter edited</h1>", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Counter_razor.g.cs").SourceText.ToString());
+        Assert.Contains("<h1>Counter edited</h1>", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages/Counter_razor.g.cs").SourceText.ToString());
     }
 
     [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
@@ -131,8 +133,8 @@ public class RazorTests
 
         // check the contents of the counter and index page
         var initialResults = razorBenchmarks.Project!.GeneratorDriver.GetRunResult();
-        Assert.Contains("public int IncrementAmount", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Counter_razor.g.cs").SourceText.ToString());
-        Assert.Contains("__builder.AddAttribute(6, \"IncrementAmount\", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>(", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
+        Assert.Contains("public int IncrementAmount", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages/Counter_razor.g.cs").SourceText.ToString());
+        Assert.Contains("global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>(", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages/Index_razor.g.cs").SourceText.ToString());
 
         // act
         var driver = razorBenchmarks.Razor_Edit_Dependent();
@@ -140,8 +142,8 @@ public class RazorTests
         // assert
         var results = driver.GetRunResult();
         Assert.Empty(results.Diagnostics);
-        Assert.DoesNotContain("public int IncrementAmount", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Counter_razor.g.cs").SourceText.ToString());
-        Assert.Contains("__builder.AddAttribute(6, \"IncrementAmount\", (object)(\"5\"));", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
+        Assert.DoesNotContain("public int IncrementAmount", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages/Counter_razor.g.cs").SourceText.ToString());
+        Assert.Contains("__builder.AddComponentParameter(6, \"IncrementAmount\", \"5\");", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages/Index_razor.g.cs").SourceText.ToString());
     }
 
     [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
@@ -153,7 +155,7 @@ public class RazorTests
 
         // check the contents of the index page
         var initialResults = razorBenchmarks.Project!.GeneratorDriver.GetRunResult();
-        Assert.Contains("__builder.OpenComponent<global::SampleApp.Pages.Counter>(5);", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
+        Assert.Contains("__builder.OpenComponent<global::SampleApp.Pages.Counter>(5);", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages/Index_razor.g.cs").SourceText.ToString());
 
         // act
         var driver = razorBenchmarks.Razor_Remove_Dependent();
@@ -165,6 +167,6 @@ public class RazorTests
         var diagnostic = Assert.Single(results.Diagnostics);
         Assert.Contains("RZ10012: Found markup element with unexpected name 'Counter'.", diagnostic.ToString());
 
-        Assert.Contains("__builder.OpenElement(5, \"Counter\");", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
+        Assert.Contains("__builder.OpenElement(5, \"Counter\");", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages/Index_razor.g.cs").SourceText.ToString());
     }
 }
