@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO.Pipes;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -149,6 +151,27 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
 
         Assert.NotSame(reference1, reference2);
         Assert.NotSame(reference1.GetMetadataId(), reference2.GetMetadataId());
+    }
+
+    [Fact]
+    public async Task Daemon_ClosingSolutionReleasesMetadataOnlyUsedByThatSolution()
+    {
+        var directory = TempRoot.CreateDirectory();
+        var sharedPath = Path.Combine(directory.Path, "Shared.dll");
+        var uniquePath = Path.Combine(directory.Path, "Unique.dll");
+        File.Copy(typeof(object).Assembly.Location, sharedPath);
+        File.Copy(typeof(Enumerable).Assembly.Location, uniquePath);
+
+        await using var daemon = await CreateDaemonServerAsync();
+        await using var owner = await daemon.CreateClientAsync();
+        await using var survivor = await daemon.CreateClientAsync();
+        var ownerWorkspace = owner.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
+        var survivorWorkspace = survivor.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
+        var references = CreateMetadataLifetimeReferences(ownerWorkspace, survivorWorkspace, sharedPath, uniquePath);
+
+        ClearProjects(ownerWorkspace);
+        references.UniqueMetadata.AssertReleased();
+        references.SharedMetadata.AssertHeld();
     }
 
     // If one client's server faults (e.g. the client process crashes and abruptly drops its connection), the daemon
@@ -335,6 +358,48 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             solution => solution.AddProject(projectName, projectName, LanguageNames.CSharp).Solution,
             WorkspaceChangeKind.ProjectAdded);
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static MetadataLifetimeReferences CreateMetadataLifetimeReferences(
+        Workspace ownerWorkspace,
+        Workspace survivorWorkspace,
+        string sharedPath,
+        string uniquePath)
+    {
+        var survivorSharedReference = survivorWorkspace.Services.GetRequiredService<IMetadataService>()
+            .GetReference(sharedPath, MetadataReferenceProperties.Assembly);
+        var ownerMetadataService = ownerWorkspace.Services.GetRequiredService<IMetadataService>();
+        var ownerSharedReference = ownerMetadataService.GetReference(sharedPath, MetadataReferenceProperties.Assembly);
+        var ownerUniqueReference = ownerMetadataService.GetReference(uniquePath, MetadataReferenceProperties.Assembly);
+
+        Assert.Same(survivorSharedReference.GetMetadataId(), ownerSharedReference.GetMetadataId());
+
+        AddProjectWithReferences(survivorWorkspace, "Survivor", [survivorSharedReference]);
+        AddProjectWithReferences(ownerWorkspace, "Owner", [ownerSharedReference, ownerUniqueReference]);
+
+        var references = new MetadataLifetimeReferences(
+            ObjectReference.Create(survivorSharedReference.GetMetadataId()),
+            ObjectReference.Create(ownerUniqueReference.GetMetadataId()));
+
+        return references;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ClearProjects(Workspace workspace)
+        => workspace.SetCurrentSolution(
+            solution => solution.RemoveProject(solution.Projects.Single().Id),
+            WorkspaceChangeKind.SolutionCleared);
+
+    private static void AddProjectWithReferences(
+        Workspace workspace,
+        string projectName,
+        IReadOnlyList<MetadataReference> references)
+        => workspace.SetCurrentSolution(
+            solution => solution
+                .AddProject(projectName, projectName, LanguageNames.CSharp)
+                .AddMetadataReferences(references)
+                .Solution,
+            WorkspaceChangeKind.ProjectAdded);
+
     private static DocumentUri LoadProjectWithDocument(LanguageServerWorkspaceFactory workspaceFactory, string typeName)
     {
         var filePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.cs");
@@ -347,4 +412,8 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
 
         return ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
     }
+
+    private readonly record struct MetadataLifetimeReferences(
+        ObjectReference<MetadataId> SharedMetadata,
+        ObjectReference<MetadataId> UniqueMetadata);
 }

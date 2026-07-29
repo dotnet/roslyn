@@ -58,7 +58,7 @@ public sealed class SharedMetadataCacheTests : TestBase
     [Fact]
     public void DeadMetadataIsReloaded()
     {
-        var cache = new SharedMetadataCache(collectStatistics: true);
+        var cache = new SharedMetadataCache();
         var path = typeof(object).Assembly.Location;
         var metadataReference = ObjectReference.CreateFromFactory(
             () => cache.GetMetadata(path, MetadataImageKind.Assembly));
@@ -67,60 +67,22 @@ public sealed class SharedMetadataCacheTests : TestBase
         var reloadedMetadata = cache.GetMetadata(path, MetadataImageKind.Assembly);
         Assert.Same(reloadedMetadata, cache.GetMetadata(path, MetadataImageKind.Assembly));
 
-        Assert.Equal(
-            new SharedMetadataCache.Statistics(
-                RequestCount: 3,
-                HitCount: 1,
-                MissCount: 2,
-                MetadataLoadCount: 2,
-                FailedLoadCount: 0,
-                DuplicateLoadCount: 0,
-                NonCacheableLoadCount: 0,
-                ChangedDuringLoadCount: 0,
-                DeadEntryRemovalCount: 0,
-                EntryCount: 1),
-            cache.GetStatistics());
         GC.KeepAlive(reloadedMetadata);
     }
 
     [Fact]
     public void CleanupRemovesDeadEntries()
     {
-        var cache = new SharedMetadataCache(cleanupThreshold: 2, collectStatistics: true);
+        var cache = new SharedMetadataCache(cleanupThreshold: 2);
         var metadataReference = ObjectReference.CreateFromFactory(
             () => cache.GetMetadata(typeof(object).Assembly.Location, MetadataImageKind.Assembly));
         metadataReference.AssertReleased();
 
         var liveMetadata = cache.GetMetadata(typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly);
 
-        Assert.Equal(1, cache.GetStatistics().DeadEntryRemovalCount);
-        Assert.Equal(1, cache.GetStatistics().EntryCount);
+        Assert.Equal(1, cache.GetTestAccessor().EntryCount);
         Assert.NotEmpty(((AssemblyMetadata)liveMetadata).GetModules());
         GC.KeepAlive(liveMetadata);
-    }
-
-    [Fact]
-    public void StatisticsTrackHitsAndMisses()
-    {
-        var cache = new SharedMetadataCache(collectStatistics: true);
-        var path = typeof(object).Assembly.Location;
-
-        var metadata = cache.GetMetadata(path, MetadataImageKind.Assembly);
-        Assert.Same(metadata, cache.GetMetadata(path, MetadataImageKind.Assembly));
-
-        Assert.Equal(
-            new SharedMetadataCache.Statistics(
-                RequestCount: 2,
-                HitCount: 1,
-                MissCount: 1,
-                MetadataLoadCount: 1,
-                FailedLoadCount: 0,
-                DuplicateLoadCount: 0,
-                NonCacheableLoadCount: 0,
-                ChangedDuringLoadCount: 0,
-                DeadEntryRemovalCount: 0,
-                EntryCount: 1),
-            cache.GetStatistics());
     }
 
     [Fact]
@@ -178,12 +140,11 @@ public sealed class SharedMetadataCacheTests : TestBase
     [Fact]
     public void NonExistentFile_DoesNotPoisonCache()
     {
-        var cache = new SharedMetadataCache(collectStatistics: true);
+        var cache = new SharedMetadataCache();
         var path = Path.Combine(TempRoot.Root, Guid.NewGuid().ToString() + ".dll");
 
         Assert.Throws<FileNotFoundException>(
             () => cache.GetMetadata(path, MetadataImageKind.Assembly));
-        Assert.Equal(1, cache.GetStatistics().FailedLoadCount);
 
         File.Copy(typeof(object).Assembly.Location, path);
 

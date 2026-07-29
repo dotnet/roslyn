@@ -15,13 +15,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class LanguageServerMetadataServiceFactory(ServerConfiguration serverConfiguration) : IWorkspaceServiceFactory
 {
     private readonly SharedMetadataCache? _sharedMetadataCache = serverConfiguration.UseSharedMetadataCache
-        ? new SharedMetadataCache(collectStatistics: serverConfiguration.CollectSharedMetadataCacheStatistics)
+        ? new SharedMetadataCache()
         : null;
-
-    internal SharedMetadataCache.Statistics? GetSharedMetadataCacheStatistics()
-        => serverConfiguration.CollectSharedMetadataCacheStatistics
-            ? _sharedMetadataCache?.GetStatistics()
-            : null;
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new MetadataService(

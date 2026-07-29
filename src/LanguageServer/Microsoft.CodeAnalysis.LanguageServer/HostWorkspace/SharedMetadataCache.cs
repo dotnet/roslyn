@@ -13,27 +13,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// <summary>
 /// A weak cache of metadata shared by all workspaces created from the same host services.
 /// </summary>
-internal sealed class SharedMetadataCache(int cleanupThreshold = 500, bool collectStatistics = false)
+internal sealed class SharedMetadataCache(int cleanupThreshold = 500)
 {
     private readonly object _gate = new();
     private readonly int _cleanupThreshold = cleanupThreshold > 0 ? cleanupThreshold : throw new ArgumentOutOfRangeException(nameof(cleanupThreshold));
-    private readonly bool _collectStatistics = collectStatistics;
     private readonly Dictionary<CacheKey, CacheEntry> _metadataCache = [];
     private int _addsSinceLastCleanup;
     private long _nextRequestId;
-    private long _requestCount;
-    private long _hitCount;
-    private long _missCount;
-    private long _metadataLoadCount;
-    private long _failedLoadCount;
-    private long _duplicateLoadCount;
-    private long _nonCacheableLoadCount;
-    private long _changedDuringLoadCount;
-    private long _deadEntryRemovalCount;
 
     public Metadata GetMetadata(string fullPath, MetadataImageKind kind)
     {
-        RecordStatistic(ref _requestCount);
         var timestamp = GetFileTimeStamp(fullPath);
         var key = new CacheKey(fullPath, kind);
         lock (_gate)
@@ -42,44 +31,24 @@ internal sealed class SharedMetadataCache(int cleanupThreshold = 500, bool colle
                 entry.Timestamp == timestamp &&
                 entry.Metadata.TryGetTarget(out var cachedMetadata))
             {
-                RecordStatistic(ref _hitCount);
                 return cachedMetadata;
             }
         }
 
-        RecordStatistic(ref _missCount);
         var requestId = Interlocked.Increment(ref _nextRequestId);
-        Metadata newMetadata;
-        bool cacheable;
-        try
-        {
-            (newMetadata, cacheable) = CreateMetadata(fullPath, kind);
-        }
-        catch
-        {
-            RecordStatistic(ref _failedLoadCount);
-            throw;
-        }
+        var (newMetadata, cacheable) = CreateMetadata(fullPath, kind);
 
-        RecordStatistic(ref _metadataLoadCount);
         if (!cacheable)
-        {
-            RecordStatistic(ref _nonCacheableLoadCount);
             return newMetadata;
-        }
 
         try
         {
             // Do not cache metadata under a timestamp that changed while the file was being read.
             if (GetFileTimeStamp(fullPath) != timestamp)
-            {
-                RecordStatistic(ref _changedDuringLoadCount);
                 return newMetadata;
-            }
         }
         catch (IOException)
         {
-            RecordStatistic(ref _changedDuringLoadCount);
             return newMetadata;
         }
 
@@ -90,7 +59,6 @@ internal sealed class SharedMetadataCache(int cleanupThreshold = 500, bool colle
             {
                 if (entry.Timestamp == timestamp && entry.Metadata.TryGetTarget(out var existingMetadata))
                 {
-                    RecordStatistic(ref _duplicateLoadCount);
                     metadata = existingMetadata;
                 }
                 else
@@ -120,29 +88,8 @@ internal sealed class SharedMetadataCache(int cleanupThreshold = 500, bool colle
         return metadata;
     }
 
-    internal Statistics GetStatistics()
-    {
-        lock (_gate)
-        {
-            return new Statistics(
-                RequestCount: Volatile.Read(ref _requestCount),
-                HitCount: Volatile.Read(ref _hitCount),
-                MissCount: Volatile.Read(ref _missCount),
-                MetadataLoadCount: Volatile.Read(ref _metadataLoadCount),
-                FailedLoadCount: Volatile.Read(ref _failedLoadCount),
-                DuplicateLoadCount: Volatile.Read(ref _duplicateLoadCount),
-                NonCacheableLoadCount: Volatile.Read(ref _nonCacheableLoadCount),
-                ChangedDuringLoadCount: Volatile.Read(ref _changedDuringLoadCount),
-                DeadEntryRemovalCount: Volatile.Read(ref _deadEntryRemovalCount),
-                EntryCount: _metadataCache.Count);
-        }
-    }
-
-    private void RecordStatistic(ref long statistic)
-    {
-        if (_collectStatistics)
-            Interlocked.Increment(ref statistic);
-    }
+    internal TestAccessor GetTestAccessor()
+        => new(this);
 
     private void CleanUpIfNeeded_NoLock()
     {
@@ -163,9 +110,6 @@ internal sealed class SharedMetadataCache(int cleanupThreshold = 500, bool colle
         {
             foreach (var key in deadKeys)
                 _metadataCache.Remove(key);
-
-            if (_collectStatistics)
-                Interlocked.Add(ref _deadEntryRemovalCount, deadKeys.Count);
         }
 
         _addsSinceLastCleanup = 0;
@@ -272,15 +216,15 @@ internal sealed class SharedMetadataCache(int cleanupThreshold = 500, bool colle
         public long RequestId { get; set; } = requestId;
     }
 
-    internal readonly record struct Statistics(
-        long RequestCount,
-        long HitCount,
-        long MissCount,
-        long MetadataLoadCount,
-        long FailedLoadCount,
-        long DuplicateLoadCount,
-        long NonCacheableLoadCount,
-        long ChangedDuringLoadCount,
-        long DeadEntryRemovalCount,
-        int EntryCount);
+    internal readonly struct TestAccessor(SharedMetadataCache cache)
+    {
+        internal int EntryCount
+        {
+            get
+            {
+                lock (cache._gate)
+                    return cache._metadataCache.Count;
+            }
+        }
+    }
 }

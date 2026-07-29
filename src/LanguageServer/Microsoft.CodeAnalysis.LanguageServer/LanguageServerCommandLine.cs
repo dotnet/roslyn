@@ -200,8 +200,6 @@ internal static class LanguageServerCommandLine
             var clientProcessId = parseResult.GetValue(clientProcessIdOption);
             var isDaemon = parseResult.GetValue(daemonOption);
             var daemonKeepAlive = ResolveDaemonKeepAlive(parseResult.GetValue(daemonKeepAliveOption));
-            var useSharedMetadataCache = ResolveUseSharedMetadataCache(
-                Environment.GetEnvironmentVariable(UseSharedMetadataCacheEnvironmentVariable));
 
             var serverConfiguration = new ServerConfiguration(
                 LaunchDebugger: launchDebugger,
@@ -218,8 +216,7 @@ internal static class LanguageServerCommandLine
                 SourceGeneratorExecutionPreference: sourceGeneratorExecutionPreference,
                 ClientProcessId: clientProcessId,
                 IsDaemon: isDaemon,
-                DaemonKeepAlive: daemonKeepAlive,
-                UseSharedMetadataCache: useSharedMetadataCache);
+                DaemonKeepAlive: daemonKeepAlive);
 
             return await onParsedAsync(serverConfiguration, cancellationToken);
         });
@@ -238,8 +235,6 @@ internal static class LanguageServerCommandLine
     /// </summary>
     internal const string DaemonKeepAliveEnvironmentVariable = "ROSLYN_LANGUAGE_SERVER_DAEMON_KEEPALIVE";
 
-    internal const string UseSharedMetadataCacheEnvironmentVariable = "ROSLYN_LANGUAGE_SERVER_USE_SHARED_METADATA_CACHE";
-
     private static TimeSpan ResolveDaemonKeepAlive(int seconds)
     {
         return seconds switch
@@ -247,23 +242,6 @@ internal static class LanguageServerCommandLine
             -1 => Timeout.InfiniteTimeSpan,
             >= 0 => TimeSpan.FromSeconds(seconds),
             _ => throw new ArgumentOutOfRangeException(nameof(seconds)),
-        };
-    }
-
-    internal static bool ResolveUseSharedMetadataCache(string? value)
-    {
-        if (value is null)
-            return true;
-
-        if (bool.TryParse(value, out var result))
-            return result;
-
-        return value switch
-        {
-            "1" => true,
-            "0" => false,
-            _ => throw new InvalidOperationException(
-                $"Invalid value '{value}' for {UseSharedMetadataCacheEnvironmentVariable}; expected true, false, 1, or 0."),
         };
     }
 }

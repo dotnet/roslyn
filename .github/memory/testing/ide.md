@@ -40,8 +40,10 @@ public class MyTests
   the same multi-client connection manager and named-pipe listener as product
   daemon mode. Its nullable `useSharedMetadataCache` override supports
   composition comparisons without replacing an otherwise explicit server
-  configuration. The opt-in `collectSharedMetadataCacheStatistics` argument and
-  daemon statistics accessor support cache diagnostics without adding counter
-  overhead to normal product/test runs. `TestLspServer.OpenProjectsAsync` and
-  `OpenSolutionAsync` exercise the corresponding LSP notifications and wait for
-  the project-initialization-complete callback before returning.
+  configuration. Metadata lifetime tests should keep references in each real
+  host workspace's current solution, remove projects from the solution being
+  closed, and use `ObjectReference<T>` from a non-inlined helper to avoid
+  async/JIT temporaries affecting GC assertions.
+  `TestLspServer.OpenProjectsAsync` and `OpenSolutionAsync` exercise the
+  corresponding LSP notifications and wait for the
+  project-initialization-complete callback before returning.

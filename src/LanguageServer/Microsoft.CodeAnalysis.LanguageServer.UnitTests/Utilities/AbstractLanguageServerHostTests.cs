@@ -87,14 +87,11 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         TimeSpan? keepAlive = null,
         ServerConfiguration? serverConfiguration = null,
         TimeSpan? initialConnectionTimeout = null,
-        bool? useSharedMetadataCache = null,
-        bool collectSharedMetadataCacheStatistics = false)
+        bool? useSharedMetadataCache = null)
     {
         var configuration = serverConfiguration ?? (ServerConfigurationWithoutDevKit with { IsDaemon = true });
         if (useSharedMetadataCache is not null)
             configuration = configuration with { UseSharedMetadataCache = useSharedMetadataCache.Value };
-        if (collectSharedMetadataCacheStatistics)
-            configuration = configuration with { CollectSharedMetadataCacheStatistics = true };
 
         Contract.ThrowIfFalse(configuration.IsDaemon);
         var extensionManager = ExtensionAssemblyManager.Create(configuration, LoggerFactory);
@@ -445,7 +442,6 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         private readonly CancellationTokenSource _cts;
         private readonly ExportProvider _exportProvider;
         private readonly ITestOutputHelper _testOutputHelper;
-        private LanguageServerMetadataServiceFactory? _metadataServiceFactory;
 
         internal static TestDaemon Create(
             ExportProvider exportProvider,
@@ -523,27 +519,6 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         internal NamedPipeDaemonConnectionSource.TestAccessor GetConnectionSourceTestAccessor()
             => _connectionSource.GetTestAccessor();
 
-        internal SharedMetadataCacheStatistics? GetSharedMetadataCacheStatistics()
-        {
-            _metadataServiceFactory ??= _exportProvider.GetExportedValues<IWorkspaceServiceFactory>()
-                .OfType<LanguageServerMetadataServiceFactory>()
-                .Single();
-            var statistics = _metadataServiceFactory.GetSharedMetadataCacheStatistics();
-            return statistics is { } value
-                ? new SharedMetadataCacheStatistics(
-                    value.RequestCount,
-                    value.HitCount,
-                    value.MissCount,
-                    value.MetadataLoadCount,
-                    value.FailedLoadCount,
-                    value.DuplicateLoadCount,
-                    value.NonCacheableLoadCount,
-                    value.ChangedDuringLoadCount,
-                    value.DeadEntryRemovalCount,
-                    value.EntryCount)
-                : null;
-        }
-
         /// <summary>
         /// Connects a new client to the daemon, initializes it, and associates it with the server the daemon spun up
         /// for the connection. Clients are created one at a time (the new server is correlated by diffing the daemon's
@@ -568,18 +543,6 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             client.AttachDaemonServer(newServer!);
             return client;
         }
-
-        internal readonly record struct SharedMetadataCacheStatistics(
-            long RequestCount,
-            long HitCount,
-            long MissCount,
-            long MetadataLoadCount,
-            long FailedLoadCount,
-            long DuplicateLoadCount,
-            long NonCacheableLoadCount,
-            long ChangedDuringLoadCount,
-            long DeadEntryRemovalCount,
-            int EntryCount);
 
         public async ValueTask DisposeAsync()
         {

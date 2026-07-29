@@ -26,7 +26,6 @@ public class LanguageServerDaemonBenchmarks
     private LanguageServerBenchmarkHost.BenchmarkTestDaemon _daemon = null!;
     private LanguageServerBenchmarkHost.TestServer? _firstServer;
     private LanguageServerBenchmarkHost.TestServer? _secondServer;
-    private LanguageServerBenchmarkHost.MetadataCacheStatistics? _statisticsAfterLoad;
     private ProcessMemorySnapshot? _processMemoryDelta;
 
     [GlobalSetup]
@@ -79,7 +78,6 @@ public class LanguageServerDaemonBenchmarks
                 ImmutableArray.Create(_secondWorkspace.GetFullPath(_secondWorkspace.Content.LoadPath!)),
                 CancellationToken.None));
         _processMemoryDelta = ProcessMemorySnapshot.Capture(_benchmarkProcess).Subtract(memoryBeforeLoad);
-        _statisticsAfterLoad = _daemon.GetSharedMetadataCacheStatistics();
     }
 
     [IterationCleanup]
@@ -88,13 +86,11 @@ public class LanguageServerDaemonBenchmarks
         try
         {
             WriteProcessMemoryDelta();
-            WriteMetadataCacheStatistics();
             DisposeIterationAsync().GetAwaiter().GetResult();
         }
         finally
         {
             _processMemoryDelta = null;
-            _statisticsAfterLoad = null;
         }
     }
 
@@ -104,21 +100,6 @@ public class LanguageServerDaemonBenchmarks
             return;
 
         Console.WriteLine($"Process memory load delta: privateBytes={delta.PrivateBytes}, workingSetBytes={delta.WorkingSetBytes}");
-    }
-
-    private void WriteMetadataCacheStatistics()
-    {
-        if (_statisticsAfterLoad is not { } statistics)
-            return;
-
-        Console.WriteLine($"Shared metadata cache after two projects: {Format(statistics)}");
-
-        static string Format(LanguageServerBenchmarkHost.MetadataCacheStatistics statistics)
-            => $"requests={statistics.RequestCount}, hits={statistics.HitCount}, misses={statistics.MissCount}, " +
-               $"loads={statistics.MetadataLoadCount}, failedLoads={statistics.FailedLoadCount}, " +
-               $"duplicateLoads={statistics.DuplicateLoadCount}, " +
-               $"nonCacheable={statistics.NonCacheableLoadCount}, changedDuringLoad={statistics.ChangedDuringLoadCount}, " +
-               $"deadEntryRemovals={statistics.DeadEntryRemovalCount}, entries={statistics.EntryCount}";
     }
 
     private async Task DisposeIterationAsync()
