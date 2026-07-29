@@ -98,9 +98,8 @@ public class LanguageServerDaemonBenchmarks
         _firstServer = await _daemon.CreateClientAsync();
         _secondServer = await _daemon.CreateClientAsync();
 
-        await Task.WhenAll(
-            _firstServer.OpenSolutionAsync(_firstSolutionPath, CancellationToken.None),
-            _secondServer.OpenSolutionAsync(_secondSolutionPath, CancellationToken.None));
+        await _firstServer.OpenSolutionAsync(_firstSolutionPath, CancellationToken.None);
+        await _secondServer.OpenSolutionAsync(_secondSolutionPath, CancellationToken.None);
     }
 
     [IterationCleanup]
