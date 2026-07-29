@@ -66,6 +66,10 @@ class Program
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Test2")
+
+                    Dim documentText = result.ConflictResolution.NewSolution.Projects.Single().Documents.Single().GetTextAsync().Result.ToString()
+                    Assert.Contains("Test(x);", documentText)
+                    Assert.Contains("Test2(1);", documentText)
                 End Using
             End Sub
 

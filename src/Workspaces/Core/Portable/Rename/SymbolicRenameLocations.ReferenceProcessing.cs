@@ -269,7 +269,12 @@ internal sealed partial class SymbolicRenameLocations
             if (location.IsImplicit)
                 return [];
 
-            var candidateReason = await GetCandidateReasonAsync(location, cancellationToken).ConfigureAwait(false);
+            var candidateReason = location.CandidateReason;
+            if (candidateReason is CandidateReason.OverloadResolutionFailure)
+            {
+                candidateReason = await GetCandidateReasonForOverloadResolutionFailureAsync(location, cancellationToken).ConfigureAwait(false);
+            }
+
             var results = new List<RenameLocation>();
 
             // If we were originally naming an alias, then we'll only use the location if was
@@ -332,11 +337,9 @@ internal sealed partial class SymbolicRenameLocations
 
             return results;
 
-            static async Task<CandidateReason> GetCandidateReasonAsync(ReferenceLocation location, CancellationToken cancellationToken)
+            static async Task<CandidateReason> GetCandidateReasonForOverloadResolutionFailureAsync(
+                ReferenceLocation location, CancellationToken cancellationToken)
             {
-                if (location.CandidateReason is not CandidateReason.OverloadResolutionFailure)
-                    return location.CandidateReason;
-
                 var syntaxRoot = await location.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var token = syntaxRoot.FindToken(location.Location.SourceSpan.Start, findInsideTrivia: true);
                 var syntaxFacts = location.Document.GetRequiredLanguageService<ISyntaxFactsService>();

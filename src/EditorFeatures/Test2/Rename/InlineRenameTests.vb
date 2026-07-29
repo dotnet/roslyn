@@ -157,6 +157,8 @@ class C
 
                     Assert.Equal(RenameFlyoutViewModel.Severity.Error, viewModel.StatusSeverity)
                     Assert.True(viewModel.Submit())
+
+                    Await WaitForRename(workspace)
                 End Using
             End Using
         End Function
