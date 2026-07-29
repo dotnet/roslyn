@@ -278,6 +278,8 @@ namespace Roslyn.SyntaxVisualizer.Extension
                 return;
             }
 
+            // https://github.com/dotnet/roslyn/issues/84691
+#pragma warning disable VSSDK007
             _ = ThreadHelper.JoinableTaskFactory.RunAsync(
                 async () =>
                 {
@@ -293,6 +295,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
 
                     NavigateFromSource();
                 });
+#pragma warning restore VSSDK007
         }
 
         // When user clicks / selects text in the editor select the corresponding item in the treeview.
