@@ -3,7 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -11,7 +12,6 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
-using Microsoft.CodeAnalysis.LanguageServer.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace IdeCoreBenchmarks;
@@ -20,13 +20,16 @@ namespace IdeCoreBenchmarks;
 [Config(typeof(BenchmarkConfig))]
 public class LanguageServerDaemonBenchmarks
 {
+    private const string MSBuildDisableNodeReuseEnvironmentVariable = "MSBUILDDISABLENODEREUSE";
+
     private TempRoot _tempRoot = null!;
     private LanguageServerBenchmarkHost _testHost = null!;
-    private MaterializedLspWorkspace _firstWorkspace = null!;
-    private MaterializedLspWorkspace _secondWorkspace = null!;
+    private string _firstSolutionPath = null!;
+    private string _secondSolutionPath = null!;
     private LanguageServerBenchmarkHost.BenchmarkTestDaemon _daemon = null!;
     private LanguageServerBenchmarkHost.TestServer? _firstServer;
     private LanguageServerBenchmarkHost.TestServer? _secondServer;
+    private string? _originalMSBuildDisableNodeReuse;
 
     private sealed class BenchmarkConfig : ManualConfig
     {
@@ -35,7 +38,10 @@ public class LanguageServerDaemonBenchmarks
             AddJob(Job.Default
                 .WithStrategy(RunStrategy.Monitoring)
                 .WithInvocationCount(1)
-                .WithToolchain(new InProcessEmitToolchain(TimeSpan.FromMinutes(30), logOutput: true)));
+                .WithIterationCount(3)
+                .WithWarmupCount(0)
+                .WithLaunchCount(1)
+                .WithToolchain(new InProcessEmitToolchain(TimeSpan.FromHours(1), logOutput: true)));
         }
     }
 
@@ -45,52 +51,70 @@ public class LanguageServerDaemonBenchmarks
         _tempRoot = new TempRoot();
         _testHost = new LanguageServerBenchmarkHost();
         await _testHost.WarmCompositionCacheAsync();
-        _firstWorkspace = MaterializedLspWorkspace.Create(
-            _tempRoot,
-            LspTestWorkspaces.CreateConsoleApplication("FirstConsoleApplication"),
-            CancellationToken.None);
-        _secondWorkspace = MaterializedLspWorkspace.Create(
-            _tempRoot,
-            LspTestWorkspaces.CreateConsoleApplication("SecondConsoleApplication"),
-            CancellationToken.None);
+
+        var sourceRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+        if (string.IsNullOrEmpty(sourceRoot))
+            throw new InvalidOperationException($"{Program.RoslynRootPathEnvVariableName} is not set.");
+
+        var commit = (await RunProcessAsync("git", new[] { "rev-parse", "HEAD" }, sourceRoot)).Trim();
+        _firstSolutionPath = await CreateRestoredCheckoutAsync(sourceRoot, commit);
+        _secondSolutionPath = await CreateRestoredCheckoutAsync(sourceRoot, commit);
     }
 
-    [IterationSetup(Target = nameof(LoadTwoConsoleApplicationsWithoutSharedMetadataCache))]
+    [IterationSetup(Target = nameof(LoadTwoRoslynSolutionsWithoutSharedMetadataCache))]
     public void IterationSetupWithoutSharedMetadataCache()
         => IterationSetup(useSharedMetadataCache: false);
 
-    [IterationSetup(Target = nameof(LoadTwoConsoleApplicationsWithSharedMetadataCache))]
+    [IterationSetup(Target = nameof(LoadTwoRoslynSolutionsWithSharedMetadataCache))]
     public void IterationSetupWithSharedMetadataCache()
         => IterationSetup(useSharedMetadataCache: true);
 
     private void IterationSetup(bool useSharedMetadataCache)
-        => _daemon = _testHost.CreateDaemonAsync(useSharedMetadataCache).GetAwaiter().GetResult();
+    {
+        _originalMSBuildDisableNodeReuse = Environment.GetEnvironmentVariable(MSBuildDisableNodeReuseEnvironmentVariable);
+        Environment.SetEnvironmentVariable(MSBuildDisableNodeReuseEnvironmentVariable, "1");
+
+        try
+        {
+            _daemon = _testHost.CreateDaemonAsync(useSharedMetadataCache).GetAwaiter().GetResult();
+        }
+        catch
+        {
+            RestoreMSBuildDisableNodeReuseEnvironmentVariable();
+            throw;
+        }
+    }
 
     [Benchmark(Baseline = true)]
-    public Task LoadTwoConsoleApplicationsWithoutSharedMetadataCache()
-        => LoadTwoConsoleApplications();
+    public Task LoadTwoRoslynSolutionsWithoutSharedMetadataCache()
+        => LoadTwoRoslynSolutions();
 
     [Benchmark]
-    public Task LoadTwoConsoleApplicationsWithSharedMetadataCache()
-        => LoadTwoConsoleApplications();
+    public Task LoadTwoRoslynSolutionsWithSharedMetadataCache()
+        => LoadTwoRoslynSolutions();
 
-    private async Task LoadTwoConsoleApplications()
+    private async Task LoadTwoRoslynSolutions()
     {
         _firstServer = await _daemon.CreateClientAsync();
         _secondServer = await _daemon.CreateClientAsync();
 
         await Task.WhenAll(
-            _firstServer.OpenProjectsAsync(
-                ImmutableArray.Create(_firstWorkspace.GetFullPath(_firstWorkspace.Content.LoadPath!)),
-                CancellationToken.None),
-            _secondServer.OpenProjectsAsync(
-                ImmutableArray.Create(_secondWorkspace.GetFullPath(_secondWorkspace.Content.LoadPath!)),
-                CancellationToken.None));
+            _firstServer.OpenSolutionAsync(_firstSolutionPath, CancellationToken.None),
+            _secondServer.OpenSolutionAsync(_secondSolutionPath, CancellationToken.None));
     }
 
     [IterationCleanup]
     public void IterationCleanup()
-        => DisposeIterationAsync().GetAwaiter().GetResult();
+    {
+        try
+        {
+            DisposeIterationAsync().GetAwaiter().GetResult();
+        }
+        finally
+        {
+            RestoreMSBuildDisableNodeReuseEnvironmentVariable();
+        }
+    }
 
     private async Task DisposeIterationAsync()
     {
@@ -119,5 +143,105 @@ public class LanguageServerDaemonBenchmarks
     {
         _testHost.Dispose();
         _tempRoot.Dispose();
+    }
+
+    private async Task<string> CreateRestoredCheckoutAsync(string sourceRoot, string commit)
+    {
+        var checkoutPath = _tempRoot.CreateDirectory().Path;
+        await RunProcessAsync(
+            "git",
+            new[] { "clone", "--shared", "--no-checkout", "--no-tags", sourceRoot, checkoutPath },
+            sourceRoot);
+        await RunProcessAsync(
+            "git",
+            new[] { "-c", "core.longpaths=true", "-C", checkoutPath, "checkout", "--detach", commit },
+            sourceRoot);
+
+        var solutionPath = Path.Combine(checkoutPath, "Roslyn.slnx");
+        await RunProcessAsync(
+            "dotnet",
+            new[]
+            {
+                "restore",
+                solutionPath,
+                "/p:UseSharedCompilation=false",
+                "/p:BuildInParallel=false",
+                "/m:1",
+                "/p:Deterministic=true",
+                "/p:Optimize=true",
+                "/nodeReuse:false",
+            },
+            checkoutPath);
+        return solutionPath;
+    }
+
+    private static async Task<string> RunProcessAsync(string fileName, string[] arguments, string workingDirectory)
+    {
+        var startInfo = new ProcessStartInfo(fileName)
+        {
+            WorkingDirectory = workingDirectory,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+        };
+        foreach (var argument in arguments)
+            startInfo.ArgumentList.Add(argument);
+
+        startInfo.Environment["DOTNET_CLI_UI_LANGUAGE"] = "en-US";
+        startInfo.Environment[MSBuildDisableNodeReuseEnvironmentVariable] = "1";
+
+        using var process = new Process { StartInfo = startInfo };
+        if (!process.Start())
+            throw new InvalidOperationException($"Failed to start '{fileName}'.");
+
+        var standardOutputTask = process.StandardOutput.ReadToEndAsync();
+        var standardErrorTask = process.StandardError.ReadToEndAsync();
+        using var processTimeoutSource = new CancellationTokenSource(TimeSpan.FromMinutes(30));
+        try
+        {
+            await process.WaitForExitAsync(processTimeoutSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            if (!process.HasExited)
+                process.Kill(entireProcessTree: true);
+
+            throw new TimeoutException($"'{fileName} {string.Join(' ', arguments)}' timed out.");
+        }
+
+        string[] processOutput;
+        try
+        {
+            processOutput = await Task.WhenAll(standardOutputTask, standardErrorTask).WaitAsync(TimeSpan.FromSeconds(30));
+        }
+        catch (TimeoutException)
+        {
+            throw new TimeoutException($"Timed out draining output from '{fileName} {string.Join(' ', arguments)}'.");
+        }
+
+        var standardOutput = processOutput[0];
+        var standardError = processOutput[1];
+
+        if (process.ExitCode != 0)
+        {
+            throw new InvalidOperationException($"""
+                '{fileName} {string.Join(' ', arguments)}' exited with code {process.ExitCode}.
+
+                Standard output:
+                {standardOutput}
+
+                Standard error:
+                {standardError}
+                """);
+        }
+
+        return standardOutput;
+    }
+
+    private void RestoreMSBuildDisableNodeReuseEnvironmentVariable()
+    {
+        Environment.SetEnvironmentVariable(MSBuildDisableNodeReuseEnvironmentVariable, _originalMSBuildDisableNodeReuse);
+        _originalMSBuildDisableNodeReuse = null;
     }
 }

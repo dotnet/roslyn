@@ -110,11 +110,13 @@ the default reference-cache tests remain in
 
 `ServerConfiguration.UseSharedMetadataCache` defaults to `true` and provides an
 internal composition seam for tests and benchmarks. The daemon project-loading
-benchmark in `src/Tools/IdeCoreBenchmarks/LanguageServer` compares two real
-daemon clients with this value disabled and enabled. It uses BenchmarkDotNet's
-in-process toolchain because the daemon harness itself is in-process, and
-creates a fresh daemon outside each measured iteration so the shared-cache case
-consistently measures one cold load followed by reuse from the second client.
+benchmark in `src/Tools/IdeCoreBenchmarks/LanguageServer` locally clones and
+restores two copies of the current Roslyn commit, then compares concurrent
+`solution/open` requests from two real daemon clients with this value disabled
+and enabled. Clone and restore run outside measurement. The benchmark creates a
+fresh daemon outside each measured iteration so the shared-cache case
+consistently starts with an empty cache and allows either concurrent client to
+populate entries that the other can reuse.
 
 ## Coding Conventions
 

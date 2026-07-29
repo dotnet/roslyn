@@ -220,18 +220,36 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         {
             Contract.ThrowIfTrue(projectFilePaths.IsEmpty);
 
+            await ExecuteProjectLoadNotificationAsync(
+                () => ExecuteNotificationAsync(
+                    OpenProjectHandler.OpenProjectName,
+                    new OpenProjectHandler.NotificationParams
+                    {
+                        Projects = [.. projectFilePaths.Select(ProtocolConversions.CreateAbsoluteDocumentUri)],
+                    }),
+                cancellationToken);
+        }
+
+        internal async Task OpenSolutionAsync(string solutionFilePath, CancellationToken cancellationToken)
+        {
+            await ExecuteProjectLoadNotificationAsync(
+                () => ExecuteNotificationAsync(
+                    OpenSolutionHandler.OpenSolutionName,
+                    new OpenSolutionHandler.NotificationParams
+                    {
+                        Solution = ProtocolConversions.CreateAbsoluteDocumentUri(solutionFilePath),
+                    }),
+                cancellationToken);
+        }
+
+        private async Task ExecuteProjectLoadNotificationAsync(Func<Task> executeNotificationAsync, CancellationToken cancellationToken)
+        {
             var completionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             _clientRpc.AddLocalRpcMethod(
                 ProjectInitializationHandler.ProjectInitializationCompleteName,
                 () => completionSource.TrySetResult());
 
-            await ExecuteNotificationAsync(
-                OpenProjectHandler.OpenProjectName,
-                new OpenProjectHandler.NotificationParams
-                {
-                    Projects = [.. projectFilePaths.Select(ProtocolConversions.CreateAbsoluteDocumentUri)],
-                });
-
+            await executeNotificationAsync();
             await completionSource.Task.WaitAsync(cancellationToken);
         }
 

@@ -40,4 +40,6 @@ public class MyTests
   the same multi-client connection manager and named-pipe listener as product
   daemon mode. Its nullable `useSharedMetadataCache` override supports
   composition comparisons without replacing an otherwise explicit server
-  configuration.
+  configuration. `TestLspServer.OpenProjectsAsync` and `OpenSolutionAsync`
+  exercise the corresponding LSP notifications and wait for the
+  project-initialization-complete callback before returning.
