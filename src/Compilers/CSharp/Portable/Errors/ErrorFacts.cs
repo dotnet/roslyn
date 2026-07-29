@@ -1432,6 +1432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadInstanceArgType
                 or ErrorCode.ERR_QueryDuplicateRangeVariable
                 or ErrorCode.ERR_QueryRangeVariableOverrides
+                or ErrorCode.ERR_QueryRangeVariableAssignedBadValue
                 or ErrorCode.ERR_QueryNoProviderCastable
                 or ErrorCode.ERR_QueryNoProviderStandard
                 or ErrorCode.ERR_QueryNoProvider

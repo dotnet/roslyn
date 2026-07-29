@@ -737,12 +737,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SourceLocation errorLocation = new SourceLocation(let.SyntaxTree, new TextSpan(let.Identifier.SpanStart, let.Expression.Span.End - let.Identifier.SpanStart));
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
-                    Error(d, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, errorLocation, yExpression.Display);
+                    Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Display);
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), CreateErrorType());
                 }
                 else if (!yExpression.HasAnyErrors && yExpression.Type!.IsVoidType())
                 {
-                    Error(d, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, errorLocation, yExpression.Type!);
+                    Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Type!);
                     Debug.Assert(yExpression.Type is { });
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), yExpression.Type);
                 }
