@@ -1264,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var decoder = ContainingSymbol switch
                 {
                     PEMethodSymbol method => new MetadataDecoder(containingModule, method),
-                    PEPropertySymbol => new MetadataDecoder(containingModule, (PENamedTypeSymbol)ContainingType),
+                    PEPropertySymbol => new MetadataDecoder(containingModule, (PENamedTypeSymbol)this.RequiredContainingType),
                     _ => throw ExceptionUtilities.UnexpectedValue(this.ContainingSymbol.Kind)
                 };
 

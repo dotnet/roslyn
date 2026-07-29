@@ -3376,7 +3376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return underlyingRefKind;
                     }
 
-                    if (!_underlyingParameter.ContainingType.IsInterface || _type.IsReferenceType)
+                    if (!_underlyingParameter.RequiredContainingType.IsInterface || _type.IsReferenceType)
                     {
                         return RefKind.None;
                     }
@@ -3408,7 +3408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ScopedKind.None;
                     }
 
-                    if (!_underlyingParameter.ContainingType.IsInterface || _type.IsReferenceType)
+                    if (!_underlyingParameter.RequiredContainingType.IsInterface || _type.IsReferenceType)
                     {
                         return ScopedKind.None;
                     }
