@@ -2431,7 +2431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitInterfaceMemberTypeMismatch = 9333,
         ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9334,
 
-        HDN_RedundantPattern = 9335,
+        // HDN_RedundantPattern = 9335,  // no longer reported
         WRN_RedundantPattern = 9336,
         HDN_RedundantPatternStackGuard = 9337,
 
