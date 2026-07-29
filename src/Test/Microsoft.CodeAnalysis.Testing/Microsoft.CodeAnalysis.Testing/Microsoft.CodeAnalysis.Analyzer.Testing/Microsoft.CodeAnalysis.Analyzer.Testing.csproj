@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(TestingLibraryTargetFrameworks)</TargetFrameworks>
+    <AssemblyName>Microsoft.CodeAnalysis.Analyzer.Testing</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Roslyn Analyzer Test Framework Common Types.</Description>
+    <PackageReleaseNotes>Roslyn Analyzer Test Framework Common Types</PackageReleaseNotes>
+    <PackageTags>Roslyn Analyzer Test Framework Common</PackageTags>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(TargetFramework)' == 'net461'">
+      <PropertyGroup>
+        <NuGetApiVersion>5.11.6</NuGetApiVersion>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net10.0'">
+      <PropertyGroup>
+        <NuGetApiVersion>7.0.3</NuGetApiVersion>
+        <DefineConstants>$(DefineConstants);NUGET_SIGNING</DefineConstants>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <NuGetApiVersion>6.3.4</NuGetApiVersion>
+        <DefineConstants>$(DefineConstants);NUGET_SIGNING</DefineConstants>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeFix.Testing" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeRefactoring.Testing" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.SourceGenerators.Testing" />
+
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzer.Testing.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="1.0.1" />
+    <PackageReference Include="Microsoft.VisualBasic" Version="10.0.1" Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="16.1.8" />
+    <PackageReference Include="Nullable" Version="1.3.0" PrivateAssets="all" />
+    <PackageReference Include="System.Formats.Asn1" Version="$(SystemFormatsAsn1Version)" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" Condition="'$(TargetFramework)' == 'netstandard1.6' or '$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net46'" />
+
+    <!-- Use PrivateAssets=compile to avoid exposing our NuGet dependencies downstream as public API. -->
+    <PackageReference Include="NuGet.Common" Version="$(NuGetApiVersion)" PrivateAssets="compile" />
+    <PackageReference Include="NuGet.Protocol" Version="$(NuGetApiVersion)" PrivateAssets="compile" />
+    <PackageReference Include="NuGet.Resolver" Version="$(NuGetApiVersion)" PrivateAssets="compile" />
+    <PackageReference Include="NuGet.Packaging" Version="$(NuGetApiVersion)" PrivateAssets="compile" />
+
+    <!-- Use PrivateAssets=compile to avoid exposing our DiffPlex dependency downstream as public API. -->
+    <PackageReference Include="DiffPlex" Version="$(DiffPlexVersion)" PrivateAssets="compile" />
+  </ItemGroup>
+</Project>

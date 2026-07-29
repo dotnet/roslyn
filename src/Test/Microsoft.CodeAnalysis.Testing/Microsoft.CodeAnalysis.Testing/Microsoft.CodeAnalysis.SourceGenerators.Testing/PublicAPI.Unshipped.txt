@@ -1,0 +1,10 @@
+Microsoft.CodeAnalysis.Testing.EmptySourceGeneratorProvider
+Microsoft.CodeAnalysis.Testing.EmptySourceGeneratorProvider.EmptySourceGeneratorProvider() -> void
+Microsoft.CodeAnalysis.Testing.EmptySourceGeneratorProvider.Execute(Microsoft.CodeAnalysis.GeneratorExecutionContext context) -> void
+Microsoft.CodeAnalysis.Testing.EmptySourceGeneratorProvider.Initialize(Microsoft.CodeAnalysis.GeneratorInitializationContext context) -> void
+Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>
+Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.SourceGeneratorTest() -> void
+Microsoft.CodeAnalysis.Testing.SourceGeneratorVerifier<TSourceGenerator, TTest, TVerifier>
+Microsoft.CodeAnalysis.Testing.SourceGeneratorVerifier<TSourceGenerator, TTest, TVerifier>.SourceGeneratorVerifier() -> void
+override Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+override abstract Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.GetSourceGenerators() -> System.Collections.Generic.IEnumerable<System.Type>
