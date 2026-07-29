@@ -736,6 +736,33 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_AssociateFileExtensionWithLanguage()
+    {
+        var sourceText = """
+            Console.WriteLine("Hello World!");
+            """;
+
+        CreateFiles(new FileSet(("Program.cs", sourceText)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        workspace.AssociateFileExtensionWithLanguage("cs", LanguageNames.CSharp);
+        await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Collection(workspace.Diagnostics,
+            d =>
+            {
+                // [Failure] Msbuild failed when processing the file 'Program.cs' with message:
+                // The project file could not be loaded. Data at the root level is invalid. Line 1, position 1.
+                Assert.Equal(WorkspaceDiagnosticKind.Failure, d.Kind);
+                Assert.Contains("Program.cs", d.Message);
+            });
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp_Diagnostics()
     {
         var sourceText = """
