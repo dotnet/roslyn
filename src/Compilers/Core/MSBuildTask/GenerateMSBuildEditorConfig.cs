@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -54,17 +55,47 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public ITaskItem FileName { get; set; }
 
+        /// <summary>
+        /// The path map used by the compiler (the value of the <c>/pathmap</c> option), in the same
+        /// <c>from=to,from2=to2</c> format. It is applied to the generated config only where
+        /// <see cref="MapSectionHeaderPaths"/> or <see cref="MapPropertyValues"/> opts in, rewriting
+        /// absolute paths to their deterministic (mapped) form so the config is independent of the
+        /// directory the build ran in. Paths that do not begin with a mapped root are left unchanged.
+        /// </summary>
+        public string PathMap { get; set; }
+
+        /// <summary>
+        /// When <see langword="true"/>, the file paths used as section headers are rewritten through
+        /// <see cref="PathMap"/>. The compiler tries both the real and mapped path when resolving a
+        /// file's options, so mapped headers continue to match. Opt-in and off by default.
+        /// </summary>
+        public bool MapSectionHeaderPaths { get; set; }
+
+        /// <summary>
+        /// When <see langword="true"/>, any emitted <c>build_property</c> value that begins with a
+        /// mapped root (e.g. <c>ProjectDir</c>) is rewritten through <see cref="PathMap"/>. Opt-in
+        /// and off by default because a source generator that reads such a value and opens or embeds
+        /// it would receive a non-openable mapped path.
+        /// </summary>
+        public bool MapPropertyValues { get; set; }
+
         public GenerateMSBuildEditorConfig()
         {
             ConfigFileContents = string.Empty;
             MetadataItems = Array.Empty<ITaskItem>();
             PropertyItems = Array.Empty<ITaskItem>();
             FileName = new TaskItem();
+            PathMap = string.Empty;
+            MapSectionHeaderPaths = false;
+            MapPropertyValues = false;
         }
 
         public override bool Execute()
         {
             StringBuilder builder = new StringBuilder();
+
+            // Only parse the path map if some part of the config opts in to mapping.
+            var pathMap = (MapSectionHeaderPaths || MapPropertyValues) ? ParsePathMap(PathMap) : s_emptyPathMap;
 
             // we always generate global configs
             builder.AppendLine("is_global = true");
@@ -72,14 +103,33 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // collect the properties into a global section
             foreach (var prop in PropertyItems)
             {
+                // Path-valued properties (e.g. ProjectDir) are absolute and would otherwise make the
+                // config location-dependent. NormalizePathPrefix is prefix-anchored, so only a value
+                // that starts with a mapped root is rewritten; other values are left as-is.
+                var value = prop.GetMetadata("Value");
+                if (MapPropertyValues)
+                {
+                    value = NormalizePathPrefix(value, pathMap);
+                }
+
                 builder.Append("build_property.")
                        .Append(prop.ItemSpec)
                        .Append(" = ")
-                       .AppendLine(prop.GetMetadata("Value"));
+                       .AppendLine(value);
             }
 
-            // group the metadata items by their full path
-            var groupedItems = MetadataItems.GroupBy(i => NormalizeWithForwardSlash(i.GetMetadata("FullPath")));
+            // group the metadata items by their full path, optionally rewriting each path through
+            // the compiler's path map so the section headers match the paths the compiler computes.
+            var groupedItems = MetadataItems.GroupBy(i =>
+            {
+                var fullPath = i.GetMetadata("FullPath");
+                if (MapSectionHeaderPaths)
+                {
+                    fullPath = NormalizePathPrefix(fullPath, pathMap);
+                }
+
+                return NormalizeWithForwardSlash(fullPath);
+            });
 
             foreach (var group in groupedItems)
             {
@@ -160,5 +210,154 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </remarks>
         private static string NormalizeWithForwardSlash(string p)
             => PlatformInformation.IsUnix ? p : p.Replace('\\', '/');
+
+        private static readonly List<KeyValuePair<string, string>> s_emptyPathMap = new List<KeyValuePair<string, string>>();
+
+        /// <remarks>
+        /// Parses the <see cref="PathMap"/> string into a list of prefix mappings, ordered the
+        /// same way the compiler orders them (longest key first, so the most specific prefix
+        /// wins). Kept in sync with Microsoft.CodeAnalysis.CommandLineParser.ParsePathMap and
+        /// SortPathMap. Malformed entries are ignored here; the compiler reports diagnostics for
+        /// the same <c>/pathmap</c> value.
+        /// </remarks>
+        private static List<KeyValuePair<string, string>> ParsePathMap(string pathMap)
+        {
+            var result = new List<KeyValuePair<string, string>>();
+            if (string.IsNullOrEmpty(pathMap))
+            {
+                return result;
+            }
+
+            foreach (var kEqualsV in SplitWithDoubledSeparatorEscaping(pathMap, ','))
+            {
+                if (kEqualsV.Length == 0)
+                {
+                    continue;
+                }
+
+                var kv = SplitWithDoubledSeparatorEscaping(kEqualsV, '=');
+                if (kv.Length != 2)
+                {
+                    continue;
+                }
+
+                var from = kv[0];
+                var to = kv[1];
+                if (from.Length == 0 || to.Length == 0)
+                {
+                    continue;
+                }
+
+                result.Add(new KeyValuePair<string, string>(EnsureTrailingSeparator(from), EnsureTrailingSeparator(to)));
+            }
+
+            result.Sort((x, y) => -x.Key.Length.CompareTo(y.Key.Length));
+            return result;
+        }
+
+        /// <remarks>
+        /// Kept in sync with Microsoft.CodeAnalysis.CommandLineParser.SplitWithDoubledSeparatorEscaping.
+        /// </remarks>
+        private static string[] SplitWithDoubledSeparatorEscaping(string str, char separator)
+        {
+            if (str.Length == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            var result = new List<string>();
+            var part = new StringBuilder();
+
+            int i = 0;
+            while (i < str.Length)
+            {
+                char c = str[i++];
+                if (c == separator)
+                {
+                    if (i < str.Length && str[i] == separator)
+                    {
+                        i++;
+                    }
+                    else
+                    {
+                        result.Add(part.ToString());
+                        part.Clear();
+                        continue;
+                    }
+                }
+
+                part.Append(c);
+            }
+
+            result.Add(part.ToString());
+            return result.ToArray();
+        }
+
+        /// <remarks>
+        /// Kept in sync with Roslyn.Utilities.PathUtilities.EnsureTrailingSeparator.
+        /// </remarks>
+        private static string EnsureTrailingSeparator(string s)
+        {
+            if (s.Length == 0 || s[s.Length - 1] == '/' || s[s.Length - 1] == '\\')
+            {
+                return s;
+            }
+
+            // Use the existing slashes in the path, if they're consistent
+            bool hasSlash = s.IndexOf('/') >= 0;
+            bool hasBackslash = s.IndexOf('\\') >= 0;
+            if (hasSlash && !hasBackslash)
+            {
+                return s + '/';
+            }
+            else if (!hasSlash && hasBackslash)
+            {
+                return s + '\\';
+            }
+            else
+            {
+                // If there are no slashes or they are inconsistent, use the current platform's slash.
+                return s + Path.DirectorySeparatorChar;
+            }
+        }
+
+        /// <remarks>
+        /// Kept in sync with Roslyn.Utilities.PathUtilities.NormalizePathPrefix.
+        /// </remarks>
+        private static string NormalizePathPrefix(string filePath, List<KeyValuePair<string, string>> pathMap)
+        {
+            if (pathMap.Count == 0)
+            {
+                return filePath;
+            }
+
+            // find the first key in the path map that matches a prefix of the path.
+            // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
+            foreach (var kv in pathMap)
+            {
+                var oldPrefix = kv.Key;
+                if (!(oldPrefix?.Length > 0)) continue;
+
+                // oldPrefix always ends with a path separator, so there's no need to check if it was a partial match
+                // e.g. for the map /goo=/bar and filename /goooo
+                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal))
+                {
+                    var replacementPrefix = kv.Value;
+
+                    // Replace that prefix.
+                    var replacement = replacementPrefix + filePath.Substring(oldPrefix.Length);
+
+                    // Normalize the path separators if used uniformly in the replacement
+                    bool hasSlash = replacementPrefix.IndexOf('/') >= 0;
+                    bool hasBackslash = replacementPrefix.IndexOf('\\') >= 0;
+                    return
+                        (hasSlash && !hasBackslash) ? replacement.Replace('\\', '/') :
+                        (hasBackslash && !hasSlash) ? replacement.Replace('/', '\\') :
+                        replacement;
+                }
+            }
+
+            return filePath;
+        }
     }
 }
