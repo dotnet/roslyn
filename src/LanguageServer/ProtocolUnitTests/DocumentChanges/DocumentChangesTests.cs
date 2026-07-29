@@ -635,7 +635,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
     private static Task DidChange(TestLspServer testLspServer, DocumentUri uri, params (int line, int column, string text)[] changes)
         => DidChange(testLspServer, uri, version: 0, changes);
 
-    private static async Task DidChange(TestLspServer testLspServer, DocumentUri uri, int version, params LSP.SumType<LSP.TextDocumentContentChangePartial, LSP.TextDocumentContentChangeWholeDocument>[] changes)
+    private static async Task DidChange(TestLspServer testLspServer, DocumentUri uri, int version, params TextDocumentContentChangeEvent[] changes)
     {
         await testLspServer.ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(
             LSP.Methods.TextDocumentDidChangeName,
@@ -651,7 +651,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             CancellationToken.None);
     }
 
-    private static Task DidChange(TestLspServer testLspServer, DocumentUri uri, params LSP.SumType<LSP.TextDocumentContentChangePartial, LSP.TextDocumentContentChangeWholeDocument>[] changes)
+    private static Task DidChange(TestLspServer testLspServer, DocumentUri uri, params TextDocumentContentChangeEvent[] changes)
         => DidChange(testLspServer, uri, version: 0, changes);
 
     private static async Task DidClose(TestLspServer testLspServer, DocumentUri uri) => await testLspServer.CloseDocumentAsync(uri);

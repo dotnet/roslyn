@@ -36,10 +36,10 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
         return null;
     }
 
-    internal static bool AreChangesInReverseOrder(SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>[] contentChanges)
+    internal static bool AreChangesInReverseOrder(TextDocumentContentChangeEvent[] contentChanges)
         => AreChangesInReverseOrder(contentChanges, startIndex: 0);
 
-    private static bool AreChangesInReverseOrder(SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>[] contentChanges, int startIndex)
+    private static bool AreChangesInReverseOrder(TextDocumentContentChangeEvent[] contentChanges, int startIndex)
     {
         for (var i = startIndex; i < contentChanges.Length; i++)
         {
@@ -64,7 +64,7 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
         return true;
     }
 
-    private static SourceText GetUpdatedSourceText(SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>[] contentChanges, SourceText text)
+    private static SourceText GetUpdatedSourceText(TextDocumentContentChangeEvent[] contentChanges, SourceText text)
     {
         var firstRangedChangeIndex = 0;
 

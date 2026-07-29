@@ -27,5 +27,5 @@ internal sealed class NotebookDocumentChangeCellsText
     /// </summary>
     [JsonPropertyName("changes")]
     [JsonRequired]
-    public SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>[] Changes { get; init; }
+    public TextDocumentContentChangeEvent[] Changes { get; init; }
 }
