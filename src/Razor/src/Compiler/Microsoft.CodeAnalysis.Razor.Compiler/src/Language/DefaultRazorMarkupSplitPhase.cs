@@ -43,14 +43,24 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         }
 
         // Partitioning needs the classified primary structure -- the primary class, its render method, and
-        // the namespace. A component whose primary method body is suppressed, or that lacks that structure,
-        // can't be split here; it routes to fallback discovery keyed by its type name and builds no
-        // pre-compilation shell.
+        // the namespace.
         var primaryClass = documentNode.FindPrimaryClass();
         var renderMethod = documentNode.FindPrimaryMethod();
         var primaryNamespace = documentNode.FindPrimaryNamespace();
+
+        // Fallback discovery is keyed by the component's type name, so it needs a classified primary class.
+        // Classification creates one unconditionally for a component file; without it there is no component
+        // type to discover or split, so leave the document untouched rather than dereference a null name.
+        if (primaryClass is null)
+        {
+            return codeDocument;
+        }
+
+        // A component whose primary method body is suppressed, or that lacks a render method or namespace,
+        // can't be split here; it routes to fallback discovery keyed by its type name and builds no
+        // pre-compilation shell.
         if (codeDocument.CodeGenerationOptions.SuppressPrimaryMethodBody ||
-            primaryClass is null || renderMethod is null || primaryNamespace is null)
+            renderMethod is null || primaryNamespace is null)
         {
             return RouteToFallbackDiscovery(shellDecl: null);
         }
