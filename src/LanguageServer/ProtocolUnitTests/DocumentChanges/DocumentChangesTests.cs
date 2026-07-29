@@ -411,7 +411,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
                 void M()
                 {
                     {|type:|}
-                } 
+                }
             }
             """, mutatingLspWorkspace);
 
@@ -473,7 +473,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
                 void M()
                 {
                     {|type:|}
-                } 
+                }
             }
             """, mutatingLspWorkspace);
 

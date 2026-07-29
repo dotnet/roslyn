@@ -51,6 +51,7 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
 
         for (var i = startIndex + 1; i < contentChanges.Length; i++)
         {
+            // The first loop verified that contentChanges[startIndex..] all have non-null ranges.
             var prevChange = contentChanges[i - 1];
             var curChange = contentChanges[i];
 
@@ -79,6 +80,8 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
 
         if (firstRangedChangeIndex == contentChanges.Length)
         {
+            // No ranged edits follow the last full-document replacement (or there are no changes),
+            // so return the already-updated text.
             return text;
         }
 
