@@ -4,10 +4,13 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -60984,6 +60987,286 @@ class Program
                 //         return u switch { I1 (_, _) and var i1 => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(53, 45)
                 );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84570")]
+        public void AnalyzerActions_01()
+        {
+            var comp0 = CreateCompilation([UnionAttributeSource, IUnionSource]);
+
+            var text1 = @"
+public union TestUnion(string, int)
+{
+    private int _f;
+
+    public void TestMethod(long x)
+    {
+    }
+}
+";
+
+            var analyzer = new AnalyzerActions_01_Analyzer();
+            var comp1 = CreateCompilation(text1, references: [comp0.ToMetadataReference()]);
+            comp1.GetAnalyzerDiagnostics([analyzer], null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4_1);
+            Assert.Equal(1, analyzer.FireCount4_2);
+            Assert.Equal(0, analyzer.FireCount4_3);
+            Assert.Equal(1, analyzer.FireCount5_1);
+            Assert.Equal(1, analyzer.FireCount5_2);
+            Assert.Equal(1, analyzer.FireCount5_3);
+            Assert.Equal(0, analyzer.FireCount5_4);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount8);
+            Assert.Equal(0, analyzer.FireCount9);
+            Assert.Equal(1, analyzer.FireCount10);
+            Assert.Equal(1, analyzer.FireCount11);
+            Assert.Equal(1, analyzer.FireCount12);
+            Assert.Equal(1, analyzer.FireCount13);
+            Assert.Equal(1, analyzer.FireCount14);
+            Assert.Equal(1, analyzer.FireCount15);
+            Assert.Equal(0, analyzer.FireCount16);
+            Assert.Equal(1, analyzer.FireCount17);
+            Assert.Equal(1, analyzer.FireCount18);
+            Assert.Equal(0, analyzer.FireCount19);
+            Assert.Equal(1, analyzer.FireCount20);
+            Assert.Equal(0, analyzer.FireCount21);
+            Assert.Equal(1, analyzer.FireCount22);
+        }
+
+        private class AnalyzerActions_01_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4_1;
+            public int FireCount4_2;
+            public int FireCount4_3;
+            public int FireCount5_1;
+            public int FireCount5_2;
+            public int FireCount5_3;
+            public int FireCount5_4;
+            public int FireCount6;
+            public int FireCount7;
+            public int FireCount8;
+            public int FireCount9;
+            public int FireCount10;
+            public int FireCount11;
+            public int FireCount12;
+            public int FireCount13;
+            public int FireCount14;
+            public int FireCount15;
+            public int FireCount16;
+            public int FireCount17;
+            public int FireCount18;
+            public int FireCount19;
+            public int FireCount20;
+            public int FireCount21;
+            public int FireCount22;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(Handle1, SyntaxKind.UnionDeclaration);
+                context.RegisterSyntaxNodeAction(Handle2, SyntaxKind.FieldDeclaration);
+                context.RegisterSyntaxNodeAction(Handle3, SyntaxKind.MethodDeclaration);
+                context.RegisterSyntaxNodeAction(Handle4, SyntaxKind.ParameterList);
+                context.RegisterSyntaxNodeAction(Handle5, SyntaxKind.Parameter);
+
+                context.RegisterCodeBlockAction(Handle6);
+                context.RegisterCodeBlockStartAction<SyntaxKind>(Handle7);
+
+                context.RegisterOperationAction(Handle9, OperationKind.ConstructorBody);
+                context.RegisterOperationBlockAction(Handle10);
+                context.RegisterOperationBlockStartAction(Handle11);
+
+                context.RegisterSymbolAction(Handle12, SymbolKind.NamedType);
+                context.RegisterSymbolAction(Handle13, SymbolKind.Method);
+                context.RegisterSymbolAction(Handle14, SymbolKind.Parameter);
+                context.RegisterSymbolAction(Handle15, SymbolKind.Field);
+                context.RegisterSymbolAction(Handle16, SymbolKind.Property);
+
+                context.RegisterSymbolStartAction(Handle17, SymbolKind.NamedType);
+                context.RegisterSymbolStartAction(Handle18, SymbolKind.Method);
+                context.RegisterSymbolStartAction(Handle19, SymbolKind.Parameter);
+                context.RegisterSymbolStartAction(Handle20, SymbolKind.Field);
+                context.RegisterSymbolStartAction(Handle21, SymbolKind.Property);
+            }
+
+            protected void Handle1(SyntaxNodeAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount1);
+                Assert.IsType<UnionDeclarationSyntax>(context.Node);
+                Assert.Equal("TestUnion", context.ContainingSymbol.ToTestDisplayString());
+            }
+
+            protected void Handle2(SyntaxNodeAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount2);
+                Assert.IsType<FieldDeclarationSyntax>(context.Node);
+                Assert.Equal("System.Int32 TestUnion._f", context.ContainingSymbol.ToTestDisplayString());
+            }
+
+            protected void Handle3(SyntaxNodeAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount3);
+                Assert.IsType<MethodDeclarationSyntax>(context.Node);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.ContainingSymbol.ToTestDisplayString());
+            }
+
+            protected void Handle4(SyntaxNodeAnalysisContext context)
+            {
+                switch (context.Node.Parent.Kind())
+                {
+                    case SyntaxKind.UnionDeclaration:
+                        Interlocked.Increment(ref FireCount4_1);
+                        Assert.Equal("TestUnion", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case SyntaxKind.MethodDeclaration:
+                        Interlocked.Increment(ref FireCount4_2);
+                        Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    default:
+                        Interlocked.Increment(ref FireCount4_3);
+                        break;
+                }
+            }
+
+            protected void Handle5(SyntaxNodeAnalysisContext context)
+            {
+                switch (context.Node.ToString())
+                {
+                    case "string":
+                        Interlocked.Increment(ref FireCount5_1);
+                        Assert.Equal("TestUnion", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "int":
+                        Interlocked.Increment(ref FireCount5_2);
+                        Assert.Equal("TestUnion", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "long x":
+                        Interlocked.Increment(ref FireCount5_3);
+                        Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    default:
+                        Interlocked.Increment(ref FireCount5_4);
+                        break;
+                }
+            }
+
+            private void Handle6(CodeBlockAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount6);
+                Assert.IsType<MethodDeclarationSyntax>(context.CodeBlock);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.OwningSymbol.ToTestDisplayString());
+            }
+
+            private void Handle7(CodeBlockStartAnalysisContext<SyntaxKind> context)
+            {
+                Interlocked.Increment(ref FireCount7);
+                Assert.IsType<MethodDeclarationSyntax>(context.CodeBlock);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.OwningSymbol.ToTestDisplayString());
+
+                context.RegisterCodeBlockEndAction(Handle8);
+            }
+
+            private void Handle8(CodeBlockAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount8);
+                Assert.IsType<MethodDeclarationSyntax>(context.CodeBlock);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.OwningSymbol.ToTestDisplayString());
+            }
+
+            protected void Handle9(OperationAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount9);
+            }
+
+            private void Handle10(OperationBlockAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount10);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.OwningSymbol.ToTestDisplayString());
+            }
+
+            private void Handle11(OperationBlockStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount11);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.OwningSymbol.ToTestDisplayString());
+            }
+
+            private void Handle12(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount12);
+                Assert.Equal("TestUnion", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle13(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount13);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle14(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount14);
+                Assert.Equal("System.Int64 x", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle15(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount15);
+                Assert.Equal("System.Int32 TestUnion._f", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle16(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount16);
+            }
+
+            private void Handle17(SymbolStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount17);
+                Assert.Equal("TestUnion", context.Symbol.ToTestDisplayString());
+                context.RegisterSymbolEndAction(Handle22);
+            }
+
+            private void Handle18(SymbolStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount18);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle19(SymbolStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount19);
+            }
+
+            private void Handle20(SymbolStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount20);
+                Assert.Equal("System.Int32 TestUnion._f", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle21(SymbolStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount21);
+            }
+
+            private void Handle22(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount22);
+                Assert.Equal("TestUnion", context.Symbol.ToTestDisplayString());
+            }
         }
     }
 }

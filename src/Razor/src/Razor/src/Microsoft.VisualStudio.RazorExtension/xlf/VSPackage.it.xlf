@@ -184,12 +184,12 @@
       </trans-unit>
       <trans-unit id="Setting_ShowAllCSharpCodeActionsDescription">
         <source>Show all C# code actions in Razor files. These actions are untested in Razor and may introduce syntax errors when applied. If this happens, please report a bug.</source>
-        <target state="new">Show all C# code actions in Razor files. These actions are untested in Razor and may introduce syntax errors when applied. If this happens, please report a bug.</target>
+        <target state="translated">Mostra tutte le azioni del codice C# nei file Razor. Queste azioni non sono testate in Razor e possono presentare errori di sintassi quando vengono applicate. Se ciò accade, segnala un bug.</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_ShowAllCSharpCodeActionsDisplayName">
         <source>Show all C# code actions</source>
-        <target state="new">Show all C# code actions</target>
+        <target state="translated">Mostra tutte le azioni del codice C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsAll">

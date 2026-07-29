@@ -1,0 +1,17 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template -  - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::PTagHelper - __PTagHelper
+            FieldDeclaration -  - private - global::InputTagHelper - __InputTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                TagHelper - (53:2,0 [25] TestFiles\IntegrationTests\TagHelpersIntegrationTest\Index.cshtml) - p - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        TagHelper - (59:2,6 [12] TestFiles\IntegrationTests\TagHelpersIntegrationTest\Index.cshtml) - input - TagMode.SelfClosing
+                            DefaultTagHelperBody - 
+                            DefaultTagHelperCreate -  - InputTagHelper
+                            DefaultTagHelperExecute - 
+                    DefaultTagHelperCreate -  - PTagHelper
+                    DefaultTagHelperExecute - 
