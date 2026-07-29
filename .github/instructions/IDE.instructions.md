@@ -123,6 +123,10 @@ and enabled. Clone and restore run outside measurement. The benchmark creates a
 fresh daemon outside each measured iteration so the shared-cache case starts
 with an empty cache, fully loads the first solution, and then measures the
 second solution's opportunity to reuse that metadata.
+For external daemon experiments, set the temporary
+`ROSLYN_LANGUAGE_SERVER_USE_SHARED_METADATA_CACHE` environment variable to
+`true`/`1` or `false`/`0` before launching the thin client. The bootstrap and
+daemon inherit this value. Invalid values fail server startup.
 Set `ROSLYN_BENCHMARK_COLLECT_SHARED_METADATA_CACHE_STATISTICS=1` to report
 requests, hits, misses, successful and failed loads, concurrent duplicate loads,
 non-cacheable loads, timestamp changes, dead-entry removals, and current entries

@@ -89,4 +89,29 @@ public sealed class LanguageServerCommandLineTests
         var configuration = await ParseAsync("--daemonKeepAlive", value);
         Assert.Null(configuration);
     }
+
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("true", true)]
+    [InlineData("TRUE", true)]
+    [InlineData("1", true)]
+    [InlineData("false", false)]
+    [InlineData("FALSE", false)]
+    [InlineData("0", false)]
+    public void UseSharedMetadataCache_ValidEnvironmentValue_UsesExpectedValue(string? value, bool expected)
+    {
+        Assert.Equal(expected, LanguageServerCommandLine.ResolveUseSharedMetadataCache(value));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("yes")]
+    [InlineData("2")]
+    public void UseSharedMetadataCache_InvalidEnvironmentValue_Throws(string value)
+    {
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => LanguageServerCommandLine.ResolveUseSharedMetadataCache(value));
+
+        Assert.Contains(LanguageServerCommandLine.UseSharedMetadataCacheEnvironmentVariable, exception.Message);
+    }
 }
