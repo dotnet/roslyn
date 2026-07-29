@@ -658,6 +658,9 @@ internal enum FunctionId
     VSCode_LanguageServer_Started = 860,
     VSCode_Project_Load_Started = 861,
     VSCode_Projects_Load_Completed = 862,
+    VSCode_LanguageServer_Daemon_Started = 863,
+    VSCode_LanguageServer_Daemon_Client_Connected = 864,
+    VSCode_LanguageServer_Daemon_Client_Disconnected = 865,
 
     GraphQuery_Calls = 870,
     GraphQuery_Contains = 871,

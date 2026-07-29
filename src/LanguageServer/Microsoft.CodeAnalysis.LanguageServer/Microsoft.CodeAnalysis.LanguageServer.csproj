@@ -68,10 +68,12 @@
 
     <!-- Not directly referenced but needed for Route embedded language features -->
     <ProjectReference Include="..\..\Features\ExternalAccess\Core\Microsoft.CodeAnalysis.Features.ExternalAccess.csproj" />
-    <ProjectReference Include="..\ExternalAccess\VisualDiagnostics\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
+    <ProjectReference Include="..\ExternalAccess\Core\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
     <!-- Ship the VS Code Razor entrypoint as a real runtime dependency so it participates in the server deps.json. -->
     <ProjectReference Include="..\..\Razor\src\Razor\src\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj" />
-    <ProjectReference Include="..\ExternalAccess\Core\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
+
+    <!-- EA packages that can be removed once unification is complete -->
+    <ProjectReference Include="..\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
   </ItemGroup>
 
   <ItemGroup>
