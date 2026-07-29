@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(unionMatchingInputType.IsSubjectForUnionMatching);
             Debug.Assert(exclusiveValuePattern.InputType.IsObjectType());
 
-            PropertySymbol? valueProperty = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics((NamedTypeSymbol)unionMatchingInputType.StrippedType());
+            PropertySymbol? valueProperty = ((NamedTypeSymbol)unionMatchingInputType.StrippedType()).UnionValuePropertyNoUseSiteDiagnostics();
 
             var member = new BoundPropertySubpatternMember(exclusiveValuePattern.Syntax, receiver: null, valueProperty, type: exclusiveValuePattern.InputType, hasErrors: valueProperty is null).MakeCompilerGenerated();
 
