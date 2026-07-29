@@ -56,6 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class ClosedClassData
         {
+            /// <summary>
+            /// This field is safe to read only after checking that <see cref="_lazySubtypes"/> has been initialized.
+            /// Reading of <see cref="_lazySubtypes"/> for this purpose should be done
+            /// using <see cref="RoslynImmutableInterlocked.VolatileRead{T}(ref readonly ImmutableArray{T})"/> API
+            /// to enforce order of read operations between the fields.
+            /// </summary>
             public bool _lazySubtypesIsComplete;
             public ImmutableArray<NamedTypeSymbol> _lazySubtypes;
             public ImmutableArray<TypeUnionValueSet.CaseInfo> _lazyTypeUnionValueSetCases;
