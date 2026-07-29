@@ -25,8 +25,13 @@ creates lazy file references. With sharing enabled, it immediately loads the
 backing metadata with `PEStreamOptions.PrefetchEntireImage`. Concurrent cold
 requests for the same key may both perform that work; insertion selects one
 metadata instance for both callers and disposes the duplicate, but does not
-single-flight the file read.
+single-flight the file read. The shared cache holds 500 entries. A sequential
+workload that scans more than 500 references in the same order can therefore
+evict every potentially reusable entry before reaching it on the second scan.
+The existing `MetadataReferenceCache` still avoids duplicate reference and
+metadata creation within each individual workspace, but it is not shared
+between daemon clients.
 **Workaround:** Do not interpret project-load timing or BenchmarkDotNet's
 allocation-traffic column as retained-metadata savings. Use sequential loading
-to isolate warm-cache behavior, and instrument cache hits, duplicate misses, and
-evictions when validating cache effectiveness.
+and enable the benchmark's shared-cache statistics to distinguish useful reuse
+from concurrent misses or capacity thrashing.

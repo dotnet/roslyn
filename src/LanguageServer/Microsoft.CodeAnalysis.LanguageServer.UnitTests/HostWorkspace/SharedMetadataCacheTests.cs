@@ -60,6 +60,32 @@ public sealed class SharedMetadataCacheTests : TestBase
     }
 
     [Fact]
+    public void StatisticsTrackHitsMissesAndEvictions()
+    {
+        var cache = new SharedMetadataCache(capacity: 1, collectStatistics: true);
+        var firstPath = typeof(object).Assembly.Location;
+        var secondPath = typeof(Enumerable).Assembly.Location;
+
+        _ = cache.GetMetadata(firstPath, MetadataImageKind.Assembly);
+        _ = cache.GetMetadata(firstPath, MetadataImageKind.Assembly);
+        _ = cache.GetMetadata(secondPath, MetadataImageKind.Assembly);
+
+        Assert.Equal(
+            new SharedMetadataCache.Statistics(
+                RequestCount: 3,
+                HitCount: 1,
+                MissCount: 2,
+                MetadataLoadCount: 2,
+                FailedLoadCount: 0,
+                DuplicateLoadCount: 0,
+                NonCacheableLoadCount: 0,
+                ChangedDuringLoadCount: 0,
+                EvictionCount: 1,
+                EntryCount: 1),
+            cache.GetStatistics());
+    }
+
+    [Fact]
     public void ChangedFileReplacesPreviousVersion()
     {
         var cache = new SharedMetadataCache(capacity: 2);
@@ -114,11 +140,12 @@ public sealed class SharedMetadataCacheTests : TestBase
     [Fact]
     public void NonExistentFile_DoesNotPoisonCache()
     {
-        var cache = new SharedMetadataCache();
+        var cache = new SharedMetadataCache(collectStatistics: true);
         var path = Path.Combine(TempRoot.Root, Guid.NewGuid().ToString() + ".dll");
 
         Assert.Throws<FileNotFoundException>(
             () => cache.GetMetadata(path, MetadataImageKind.Assembly));
+        Assert.Equal(1, cache.GetStatistics().FailedLoadCount);
 
         File.Copy(typeof(object).Assembly.Location, path);
 

@@ -57,4 +57,5 @@ internal sealed record class ServerConfiguration(
     int? ClientProcessId,
     bool IsDaemon = false,
     TimeSpan DaemonKeepAlive = default,
-    bool UseSharedMetadataCache = true);
+    bool UseSharedMetadataCache = true,
+    bool CollectSharedMetadataCacheStatistics = false);

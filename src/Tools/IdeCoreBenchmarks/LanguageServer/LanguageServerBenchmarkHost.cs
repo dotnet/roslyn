@@ -12,6 +12,8 @@ namespace IdeCoreBenchmarks;
 
 internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHost
 {
+    private const string CollectMetadataCacheStatisticsEnvironmentVariable = "ROSLYN_BENCHMARK_COLLECT_SHARED_METADATA_CACHE_STATISTICS";
+
     internal LanguageServerBenchmarkHost()
         : base(NullTestOutputHelper.Instance)
     {
@@ -22,8 +24,38 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
 
     internal async Task<BenchmarkTestDaemon> CreateDaemonAsync(bool useSharedMetadataCache)
     {
-        var daemon = await CreateDaemonServerAsync(useSharedMetadataCache: useSharedMetadataCache);
-        return new(() => CreateClientAsync(daemon), daemon.DisposeAsync);
+        var collectStatistics = Environment.GetEnvironmentVariable(CollectMetadataCacheStatisticsEnvironmentVariable) == "1";
+        var daemon = await CreateDaemonServerAsync(
+            useSharedMetadataCache: useSharedMetadataCache,
+            collectSharedMetadataCacheStatistics: collectStatistics);
+        if (collectStatistics)
+            _ = GetSharedMetadataCacheStatistics(daemon);
+
+        Func<MetadataCacheStatistics?> getStatistics = collectStatistics
+            ? () => GetSharedMetadataCacheStatistics(daemon)
+            : static () => null;
+        return new(
+            () => CreateClientAsync(daemon),
+            getStatistics,
+            daemon.DisposeAsync);
+    }
+
+    private static MetadataCacheStatistics? GetSharedMetadataCacheStatistics(TestDaemon daemon)
+    {
+        var statistics = daemon.GetSharedMetadataCacheStatistics();
+        return statistics is { } value
+            ? new MetadataCacheStatistics(
+                value.RequestCount,
+                value.HitCount,
+                value.MissCount,
+                value.MetadataLoadCount,
+                value.FailedLoadCount,
+                value.DuplicateLoadCount,
+                value.NonCacheableLoadCount,
+                value.ChangedDuringLoadCount,
+                value.EvictionCount,
+                value.EntryCount)
+            : null;
     }
 
     private static TestServer Wrap(TestLspServer server)
@@ -55,21 +87,53 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
     internal sealed class BenchmarkTestDaemon : IAsyncDisposable
     {
         private readonly Func<Task<TestServer>> _createClientAsync;
+        private readonly Func<MetadataCacheStatistics?> _getSharedMetadataCacheStatistics;
         private readonly Func<ValueTask> _disposeAsync;
 
         internal BenchmarkTestDaemon(
             Func<Task<TestServer>> createClientAsync,
+            Func<MetadataCacheStatistics?> getSharedMetadataCacheStatistics,
             Func<ValueTask> disposeAsync)
         {
             _createClientAsync = createClientAsync;
+            _getSharedMetadataCacheStatistics = getSharedMetadataCacheStatistics;
             _disposeAsync = disposeAsync;
         }
 
         internal async Task<TestServer> CreateClientAsync()
             => await _createClientAsync();
 
+        internal MetadataCacheStatistics? GetSharedMetadataCacheStatistics()
+            => _getSharedMetadataCacheStatistics();
+
         public ValueTask DisposeAsync()
             => _disposeAsync();
+    }
+
+    internal readonly record struct MetadataCacheStatistics(
+        long RequestCount,
+        long HitCount,
+        long MissCount,
+        long MetadataLoadCount,
+        long FailedLoadCount,
+        long DuplicateLoadCount,
+        long NonCacheableLoadCount,
+        long ChangedDuringLoadCount,
+        long EvictionCount,
+        int EntryCount)
+    {
+        internal MetadataCacheStatistics Subtract(MetadataCacheStatistics earlier)
+            => new(
+                RequestCount - earlier.RequestCount,
+                HitCount - earlier.HitCount,
+                MissCount - earlier.MissCount,
+                MetadataLoadCount - earlier.MetadataLoadCount,
+                FailedLoadCount - earlier.FailedLoadCount,
+                DuplicateLoadCount - earlier.DuplicateLoadCount,
+                NonCacheableLoadCount - earlier.NonCacheableLoadCount,
+                ChangedDuringLoadCount - earlier.ChangedDuringLoadCount,
+                EvictionCount - earlier.EvictionCount,
+                EntryCount);
     }
 
     private sealed class NullTestOutputHelper : ITestOutputHelper

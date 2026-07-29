@@ -29,6 +29,8 @@ public class LanguageServerDaemonBenchmarks
     private LanguageServerBenchmarkHost.BenchmarkTestDaemon _daemon = null!;
     private LanguageServerBenchmarkHost.TestServer? _firstServer;
     private LanguageServerBenchmarkHost.TestServer? _secondServer;
+    private LanguageServerBenchmarkHost.MetadataCacheStatistics? _statisticsAfterFirstLoad;
+    private LanguageServerBenchmarkHost.MetadataCacheStatistics? _statisticsAfterSecondLoad;
     private string? _originalMSBuildDisableNodeReuse;
 
     private sealed class BenchmarkConfig : ManualConfig
@@ -99,7 +101,9 @@ public class LanguageServerDaemonBenchmarks
         _secondServer = await _daemon.CreateClientAsync();
 
         await _firstServer.OpenSolutionAsync(_firstSolutionPath, CancellationToken.None);
+        _statisticsAfterFirstLoad = _daemon.GetSharedMetadataCacheStatistics();
         await _secondServer.OpenSolutionAsync(_secondSolutionPath, CancellationToken.None);
+        _statisticsAfterSecondLoad = _daemon.GetSharedMetadataCacheStatistics();
     }
 
     [IterationCleanup]
@@ -107,12 +111,34 @@ public class LanguageServerDaemonBenchmarks
     {
         try
         {
+            WriteMetadataCacheStatistics();
             DisposeIterationAsync().GetAwaiter().GetResult();
         }
         finally
         {
             RestoreMSBuildDisableNodeReuseEnvironmentVariable();
         }
+    }
+
+    private void WriteMetadataCacheStatistics()
+    {
+        if (_statisticsAfterFirstLoad is not { } afterFirst ||
+            _statisticsAfterSecondLoad is not { } afterSecond)
+        {
+            return;
+        }
+
+        Console.WriteLine($"Shared metadata cache after first solution: {Format(afterFirst)}");
+        Console.WriteLine($"Shared metadata cache second-solution delta: {Format(afterSecond.Subtract(afterFirst))}");
+        _statisticsAfterFirstLoad = null;
+        _statisticsAfterSecondLoad = null;
+
+        static string Format(LanguageServerBenchmarkHost.MetadataCacheStatistics statistics)
+            => $"requests={statistics.RequestCount}, hits={statistics.HitCount}, misses={statistics.MissCount}, " +
+               $"loads={statistics.MetadataLoadCount}, failedLoads={statistics.FailedLoadCount}, " +
+               $"duplicateLoads={statistics.DuplicateLoadCount}, " +
+               $"nonCacheable={statistics.NonCacheableLoadCount}, changedDuringLoad={statistics.ChangedDuringLoadCount}, " +
+               $"evictions={statistics.EvictionCount}, entries={statistics.EntryCount}";
     }
 
     private async Task DisposeIterationAsync()

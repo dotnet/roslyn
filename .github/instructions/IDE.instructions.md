@@ -97,9 +97,13 @@ Language Server workspaces created from the same export provider share immutable
 backing `Metadata`, while their `MetadataReference` instances remain
 workspace-local so reference properties and documentation providers are not
 shared. Other workspace hosts continue to use the default workspace-local
-metadata service.
+metadata service. Both implementations retain the existing per-workspace
+`MetadataReferenceCache`, which weakly reuses references and derives property
+variants from an existing reference to avoid reloading metadata within one
+workspace.
 
-The cache retains at most one timestamped version per path and
+The shared cache has a capacity of 500 entries and retains at most one
+timestamped version per path and
 `MetadataImageKind`, does not cache failures or multi-module assemblies, and
 must not dispose evicted metadata because active references or compilations may
 still use it. Keep the per-workspace `MetadataReferenceCache` partitioned by
@@ -117,6 +121,10 @@ and enabled. Clone and restore run outside measurement. The benchmark creates a
 fresh daemon outside each measured iteration so the shared-cache case starts
 with an empty cache, fully loads the first solution, and then measures the
 second solution's opportunity to reuse that metadata.
+Set `ROSLYN_BENCHMARK_COLLECT_SHARED_METADATA_CACHE_STATISTICS=1` to report
+requests, hits, misses, successful and failed loads, concurrent duplicate loads,
+non-cacheable loads, timestamp changes, evictions, and current entries after
+each solution. Counter collection is otherwise disabled.
 
 ## Coding Conventions
 
