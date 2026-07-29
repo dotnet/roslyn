@@ -89,18 +89,20 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 
 ### Language Server Metadata Caching
 
-The Language Server overrides the default `IMetadataService` at
-`ServiceLayer.Host`. Its MEF `[Shared]` factory owns the weak-value
-`SharedMetadataCache` in
+The default `IMetadataService` always owns a workspace-local
+`MetadataReferenceCache`. On a local cache miss, it asks the optional
+`IMetadataCacheService` workspace service for backing `Metadata` before falling
+back to `MetadataReference.CreateFromFile`. The Language Server exports
+`LanguageServerMetadataCacheService` at `ServiceLayer.Host`; this MEF `[Shared]`
+service owns the weak-value `SharedMetadataCache` in
 `src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/HostWorkspace/SharedMetadataCache.cs`.
 Language Server workspaces created from the same export provider share immutable
 backing `Metadata`, while their `MetadataReference` instances remain
 workspace-local so reference properties and documentation providers are not
-shared. Other workspace hosts continue to use the default workspace-local
-metadata service. Both implementations retain the existing per-workspace
-`MetadataReferenceCache`, which weakly reuses references and derives property
-variants from an existing reference to avoid reloading metadata within one
-workspace.
+shared. Other workspace hosts do not provide `IMetadataCacheService` and use the
+normal file-creation fallback. The local cache weakly reuses references and
+derives property variants from an existing reference to avoid consulting the
+shared cache again within one workspace.
 
 The shared cache has no fixed capacity and retains at most one timestamped
 version per path and `MetadataImageKind`. Workspace references and compilations

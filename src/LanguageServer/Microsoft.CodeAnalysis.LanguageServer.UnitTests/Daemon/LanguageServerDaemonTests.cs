@@ -122,12 +122,13 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         var properties1 = MetadataReferenceProperties.Assembly;
         var properties2 = properties1.WithAliases(["global", "MyAlias"]).WithEmbedInteropTypes(true);
 
-        var reference1 = workspace1.Services.GetRequiredService<IMetadataService>()
-            .GetReference(mscorlibPath, properties1);
-        var reference2 = workspace2.Services.GetRequiredService<IMetadataService>()
-            .GetReference(mscorlibPath, properties2);
+        var metadataService1 = workspace1.Services.GetRequiredService<IMetadataService>();
+        var metadataService2 = workspace2.Services.GetRequiredService<IMetadataService>();
+        var reference1 = metadataService1.GetReference(mscorlibPath, properties1);
+        var reference2 = metadataService2.GetReference(mscorlibPath, properties2);
 
         Assert.NotSame(reference1, reference2);
+        Assert.Same(reference1, metadataService1.GetReference(mscorlibPath, properties1));
         Assert.Equal(properties1, reference1.Properties);
         Assert.Equal(properties2, reference2.Properties);
         Assert.Same(reference1.GetMetadataId(), reference2.GetMetadataId());
