@@ -2942,11 +2942,6 @@
         <target state="translated">Die Verwenden-Anweisung wurde zuvor als „Global verwenden“ angezeigt</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="translated">Das Muster ist redundant.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">Das Muster ist zu komplex, um auf Redundanz analysiert zu werden.</target>
@@ -2955,11 +2950,6 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">Das Muster ist zu komplex, um auf Redundanz analysiert zu werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="translated">Das Muster ist redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
