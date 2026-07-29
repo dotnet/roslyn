@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.Razor.Remote;
 [method: ImportingConstructor]
 internal sealed class RemoteServiceInvoker(
     IWorkspaceProvider workspaceProvider,
-    LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientSettingsManager clientSettingsManager,
     IClientCapabilitiesService clientCapabilitiesService,
     ISemanticTokensLegendService semanticTokensLegendService,
@@ -34,7 +33,6 @@ internal sealed class RemoteServiceInvoker(
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory) : IRemoteServiceInvoker, IDisposable
 {
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
@@ -209,20 +207,6 @@ internal sealed class RemoteServiceInvoker(
                 await remoteClient.TryInvokeAsync<IRemoteMEFInitializationService>(
                     (s, ct) => s.InitializeAsync(cacheDirectory, ct),
                     _disposeTokenSource.Token).ConfigureAwait(false);
-
-                var initParams = new RemoteClientInitializationOptions
-                {
-                    ReturnCodeActionAndRenamePathsWithPrefixedSlash = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash,
-                    SupportsFileManipulation = _languageServerFeatureOptions.SupportsFileManipulation,
-                    ShowAllCSharpCodeActions = _languageServerFeatureOptions.ShowAllCSharpCodeActions,
-                };
-
-                _logger.LogDebug($"First OOP call, so initializing OOP service.");
-
-                await remoteClient
-                    .TryInvokeAsync<IRemoteClientInitializationService>(
-                        (s, ct) => s.InitializeAsync(initParams, ct),
-                        _disposeTokenSource.Token).ConfigureAwait(false);
 
                 // Now that we're initialized, send over the current client settings, and subscribe to changes
                 await UpdateClientSettingsAsync(remoteClient, _disposeTokenSource.Token).ConfigureAwait(false);

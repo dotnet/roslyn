@@ -387,6 +387,16 @@ public sealed class MSBuildWorkspace : Workspace
         }
         finally
         {
+            // Ensure that even if we have an issue with disposal that we still null out the field.
+            try
+            {
+                _applyChangesProjectFile?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            catch (Exception exception)
+            {
+                Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
+            }
+
             _applyChangesProjectFile = null;
         }
     }

@@ -2431,7 +2431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitInterfaceMemberTypeMismatch = 9333,
         ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9334,
 
-        HDN_RedundantPattern = 9335,
+        // HDN_RedundantPattern = 9335,  // no longer reported
         WRN_RedundantPattern = 9336,
         HDN_RedundantPatternStackGuard = 9337,
 
@@ -2480,7 +2480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnionConstructorCallsDefaultConstructor = 9375,
 
         ERR_UnsafeConstructorConstraint = 9376,
-        WRN_UnsafeMeaningless = 9377,
+        ERR_UnsafeMeaningless = 9377,
 
         ERR_PPShebangNotOnFirstLine = 9378,
 
