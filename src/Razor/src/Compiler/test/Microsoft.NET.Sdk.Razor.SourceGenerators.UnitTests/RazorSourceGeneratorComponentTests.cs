@@ -144,8 +144,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        // Index.cshtml (no decl), Component1.razor (decl + impl), Component2.razor (@inherits -> fallback, impl only) = 4
-        Assert.Equal(4, result.GeneratedSources.Length);
+        // Index.cshtml (no decl), Component1.razor (decl + impl), Component2.razor (@inherits -> fallback, shell decl + impl) = 5
+        Assert.Equal(5, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -192,8 +192,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        // Index.cshtml (no decl), Component1.razor (decl + impl), Component2.razor (@inherits -> fallback, impl only) = 4
-        Assert.Equal(4, result.GeneratedSources.Length);
+        // Index.cshtml (no decl), Component1.razor (decl + impl), Component2.razor (@inherits -> fallback, shell decl + impl) = 5
+        Assert.Equal(5, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -215,7 +215,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Equal(1, result.GeneratedSources.Length);
+        // Component1.razor (@inject -> fallback, shell decl + impl) = 2
+        Assert.Equal(2, result.GeneratedSources.Length);
         result.VerifyOutputsMatchBaseline();
     }
 
@@ -251,8 +252,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        // Index.cshtml (no decl), Component1 + BaseComponent (decl + impl each), DerivedComponent (@inherits -> fallback, impl only) = 6
-        Assert.Equal(6, result.GeneratedSources.Length);
+        // Index.cshtml (no decl), Component1 + BaseComponent (decl + impl each), DerivedComponent (@inherits -> fallback, shell decl + impl) = 7
+        Assert.Equal(7, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -447,7 +448,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             // Shared/Component1.razor(3,1): error RZ10001: The type of component 'Component1' cannot be inferred based on the values provided. Consider specifying the type arguments directly using the following attributes: 'T'.
             // <Component1 />
             Diagnostic("RZ10001").WithLocation(3, 1));
-        Assert.Equal(1, result.GeneratedSources.Length);
+        // Component1.razor (@typeparam -> fallback, shell decl + impl) = 2
+        Assert.Equal(2, result.GeneratedSources.Length);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8545")]
@@ -1235,6 +1237,51 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         // Assert
         result.Diagnostics.Verify();
         Assert.Equal(2, result.GeneratedSources.Length);
+    }
+
+    // PROTOTYPE(sonic): remove this Skip (and the limitation) before merging to main -- see the issue below.
+    [Fact(Skip = "PROTOTYPE(sonic): fallback component nested-delegate metadata is lost by fast discovery; see https://github.com/dotnet/roslyn/issues/84646")]
+    public async Task Component_BindValue_NestedDelegateInFallbackComponent()
+    {
+        // Known limitation of the decl/impl split: a split (fast-path) component whose ValueChanged
+        // parameter type is a delegate nested in a *fallback* component loses the delegate's metadata
+        // during fast discovery -- the fallback emits a bodiless type shell that declares only the outer
+        // class, so the nested delegate binds as an error type and @bind-Value lowers as an EventCallback,
+        // producing CS1503 in the consumer. Tracked by https://github.com/dotnet/roslyn/issues/84646;
+        // remove the Skip when it is fixed.
+
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            // Widget can't be split (@implements forces the fallback path) and declares a nested delegate.
+            ["Widget.razor"] = """
+                @implements System.IDisposable
+                @code {
+                    public delegate void MyHandler(int x);
+                    public void Dispose() { }
+                }
+                """,
+            // MyInput is split and its ValueChanged parameter type is Widget's nested delegate.
+            ["MyInput.razor"] = """
+                @code {
+                    [Microsoft.AspNetCore.Components.Parameter] public int Value { get; set; }
+                    [Microsoft.AspNetCore.Components.Parameter] public MyApp.Widget.MyHandler? ValueChanged { get; set; }
+                }
+                """,
+            ["Index.razor"] = """
+                @using MyApp
+                @{ int myValue = 0; }
+                <MyInput @bind-Value="myValue" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        _ = RunGenerator(compilation!, ref driver, out var outputCompilation, static _ => { });
+
+        // Assert - the consumer should compile once the limitation is fixed.
+        Assert.Empty(outputCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));
     }
 
     [Fact]

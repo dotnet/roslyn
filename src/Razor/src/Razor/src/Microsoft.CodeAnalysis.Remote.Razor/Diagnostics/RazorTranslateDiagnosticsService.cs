@@ -115,6 +115,14 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         var implDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
         var declDocument = codeDocument.GetCSharpDocument(declarationDocument: true);
 
+        // A fallback component's declaration document is a bodiless type shell with no members or usings.
+        // Treat it as absent: it produces no declaration diagnostics, and using it to filter unused-using
+        // diagnostics would incorrectly drop every genuinely-unused using reported on the implementation.
+        if (declDocument is { IsStubDocument: true })
+        {
+            declDocument = null;
+        }
+
         var filteredImplDiagnostics = FilterCSharpDiagnostics(implDiagnostics, implDocument);
         var filteredDeclDiagnostics = declDocument is not null
             ? FilterCSharpDiagnostics(declDiagnostics, declDocument)
