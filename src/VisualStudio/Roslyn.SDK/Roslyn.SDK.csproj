@@ -1,4 +1,4 @@
-﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -122,18 +122,12 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <Ngen>false</Ngen>
     </ProjectReference>
-    <ProjectReference Include="..\ComponentDebugger\Roslyn.ComponentDebugger.csproj">
-      <Name>Roslyn.ComponentDebugger</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>false</Ngen>
-    </ProjectReference>
+    <!-- ComponentDebugger omitted: needs version updates for VS 18.9 compatibility (ProjectSystem.Managed, NuGet.VisualStudio) -->
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" />
     <!-- Explicit reference to avoid missing package warning -->
-    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
-    <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Interop" />
+    <PackageReference Include="VSLangProj" />
   </ItemGroup>
 </Project>

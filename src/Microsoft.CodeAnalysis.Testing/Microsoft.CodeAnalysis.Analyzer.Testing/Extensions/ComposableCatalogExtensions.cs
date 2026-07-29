@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -79,12 +80,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 new Dictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>(),
                 Enumerable.Empty<ImportDefinitionBinding>(),
                 sharingBoundary: string.Empty,
-                default(MethodRef),
+                ImmutableList<MethodRef>.Empty,
                 MethodRef.Get(serviceImplType.GetConstructors(BindingFlags.Instance | BindingFlags.Public).First(), Resolver.DefaultInstance),
                 new List<ImportDefinitionBinding>(),
                 CreationPolicy.Shared,
-                new[] { typeof(Workspace).GetTypeInfo().Assembly.GetName() },
-                isSharingBoundaryInferred: false));
+                isSharingBoundaryInferred: false,
+                new[] { typeof(Workspace).GetTypeInfo().Assembly.GetName() }));
         }
     }
 }

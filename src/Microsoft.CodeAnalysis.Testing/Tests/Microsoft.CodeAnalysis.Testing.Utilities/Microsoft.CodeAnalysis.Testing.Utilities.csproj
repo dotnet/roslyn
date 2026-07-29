@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
@@ -26,7 +26,7 @@
         <MicrosoftCodeAnalysisPrimaryTestVersion>$(MicrosoftCodeAnalysis3PrimaryTestVersion)</MicrosoftCodeAnalysisPrimaryTestVersion>
       </PropertyGroup>
     </When>
-    <When Condition="'$(TargetFramework)' == 'netcoreapp3.1' OR '$(TargetFramework)' == 'net10.0'">
+    <When Condition="'$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'netcoreapp3.1' OR '$(TargetFramework)' == 'net10.0'">
       <PropertyGroup>
         <MicrosoftCodeAnalysisPrimaryTestVersion>$(MicrosoftCodeAnalysis3PrimaryTestVersion)</MicrosoftCodeAnalysisPrimaryTestVersion>
       </PropertyGroup>
@@ -34,8 +34,8 @@
   </Choose>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisPrimaryTestVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="$(MicrosoftCodeAnalysisPrimaryTestVersion)" />
-    <PackageReference Include="xunit.assert" Version="$(XunitVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" />
+    <PackageReference Include="xunit.assert" />
   </ItemGroup>
 </Project>

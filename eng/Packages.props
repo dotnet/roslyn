@@ -114,6 +114,23 @@
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="18.9.453" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="18.9.493" />
+    <!-- Packages imported from roslyn-sdk (SyntaxVisualizer, SDK Templates, ComponentDebugger) -->
+    <PackageVersion Include="EnvDTE" Version="18.9.438" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.EditorFeatures.Text" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.Interop" Version="18.9.438" />
+    <!-- Microsoft.VisualStudio.ProjectSystem.Managed* omitted: ComponentDebugger needs VS 17.3 versions
+         that conflict with roslyn's VS 18.9 ProjectSystem pin; requires version updates before enabling. -->
+    <PackageVersion Include="Microsoft.VisualStudio.SDK.Analyzers" Version="17.7.122" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop" Version="18.9.438" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="18.9.438" />
+    <PackageVersion Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.0.0-preview-2-31221-277" />
+    <PackageVersion Include="Microsoft.VisualStudio.TextManager.Interop.8.0" Version="18.9.438" />
+    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="18.7.1" />
+    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038" />
+    <PackageVersion Include="MSTest.TestAdapter" Version="1.3.2" />
+    <PackageVersion Include="MSTest.TestFramework" Version="1.3.2" />
+    <PackageVersion Include="VSLangProj" Version="18.9.438" />
     <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="18.3.113" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(VisualStudioEditorPackagesVersion)" />
@@ -125,6 +142,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.90" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.13.16" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageVersion Include="Nullable" Version="1.3.1" />
     <PackageVersion Include="StreamJsonRpc" Version="2.26.5" />
     <PackageVersion Include="MessagePack" Version="2.5.302" />
 
@@ -230,6 +248,8 @@
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <PackageVersion Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
     <PackageVersion Include="System.Threading.Channels" Version="8.0.0" />
+    <PackageVersion Include="System.Formats.Asn1" Version="10.0.8" />
+    <PackageVersion Include="System.Net.Http" Version="4.3.4" />
 
     <PackageVersion Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
 

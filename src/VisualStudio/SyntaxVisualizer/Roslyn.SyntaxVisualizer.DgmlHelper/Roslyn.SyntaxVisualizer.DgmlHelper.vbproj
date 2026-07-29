@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <IsProductComponent>false</IsProductComponent>
@@ -11,10 +11,10 @@
 
   <!-- Package References -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisCommonVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="$(MicrosoftCodeAnalysisVisualBasicVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Resources.resx" GenerateSource="true" ClassName="Roslyn.SyntaxVisualizer.DgmlHelper.My.Resources.Resources" ManifestResourceName="Roslyn.SyntaxVisualizer.DgmlHelper.My.Resources.Resources" />

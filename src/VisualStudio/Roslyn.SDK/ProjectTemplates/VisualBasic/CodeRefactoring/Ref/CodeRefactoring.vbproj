@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.9.8" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="3.3.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" />
   </ItemGroup>
 
 </Project>

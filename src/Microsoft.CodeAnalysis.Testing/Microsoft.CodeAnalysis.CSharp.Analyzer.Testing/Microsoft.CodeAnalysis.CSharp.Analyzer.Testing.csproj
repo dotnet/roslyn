@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>$(TestingLibraryTargetFrameworks)</TargetFrameworks>
@@ -14,8 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="1.0.1" />
-    <PackageReference Include="System.Formats.Asn1" Version="$(SystemFormatsAsn1Version)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="System.Formats.Asn1" VersionOverride="$(SystemFormatsAsn1Version)" />
   </ItemGroup>
 
   <ItemGroup>

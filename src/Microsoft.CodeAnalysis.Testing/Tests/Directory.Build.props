@@ -6,18 +6,19 @@
 
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
+
+    <!-- Suppress inclusion of roslyn-internal InstallTraceListener.cs from eng/targets/XUnit.targets -->
+    <RoslynAnalyzersProject>true</RoslynAnalyzersProject>
   </PropertyGroup>
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
     <SupportsNet10Targeting>$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '18.0'))</SupportsNet10Targeting>
-    <TestTargetFrameworks>netcoreapp3.1;net472</TestTargetFrameworks>
+    <TestTargetFrameworks>net8.0;net472</TestTargetFrameworks>
     <TestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(TestTargetFrameworks)</TestTargetFrameworks>
-    <SourceGeneratorTestTargetFrameworks>netcoreapp3.1;net472</SourceGeneratorTestTargetFrameworks>
+    <SourceGeneratorTestTargetFrameworks>net8.0;net472</SourceGeneratorTestTargetFrameworks>
     <SourceGeneratorTestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(SourceGeneratorTestTargetFrameworks)</SourceGeneratorTestTargetFrameworks>
-
-    <!-- Workaround dependencies that do not yet support netcoreapp3.1 https://github.com/dotnet/roslyn/issues/45114 -->
     <NoWarn>NU1701;$(NoWarn)</NoWarn>
 
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
