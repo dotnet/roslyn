@@ -252,6 +252,9 @@
   <data name="Project_0_has_unresolved_dependencies" xml:space="preserve">
     <value>Project {0} has unresolved dependencies</value>
   </data>
+  <data name="Failed_to_read_project_assets_file_0_version_1_2" xml:space="preserve">
+    <value>Failed to read project assets file {0} (version {1}), assuming a restore is required. {2}</value>
+  </data>
   <data name="Standard_Output_Messages" xml:space="preserve">
     <value>Standard Output Messages</value>
   </data>
