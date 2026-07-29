@@ -1860,14 +1860,14 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_QueryInInit()
         {
-            string source = """
+            string source = @"
 using System.Linq;
 using System.Collections.Generic;
 class C
 {
     static void Main(string[] args)
     {
-        /*<bind>*/for (IEnumerable<string> str = from x in "123"
+        /*<bind>*/for (IEnumerable<string> str = from x in ""123""
                                        let z = x.ToString()
                                        select z into w
                                        select w; ; )
@@ -1880,8 +1880,8 @@ class C
         }/*</bind>*/
     }
 }
-""";
-            string expectedOperationTree = """
+";
+            string expectedOperationTree = @"
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (IEnume ... }')
   Locals: Local_1: System.Collections.Generic.IEnumerable<System.String> str
   Condition: 
@@ -1893,7 +1893,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
               IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IEnumerable<System.String> str) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'str = from  ... select w')
                 Initializer: 
                   IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= from x in ... select w')
-                    ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from x in " ... select w')
+                    ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from x in "" ... select w')
                       Expression: 
                         IInvocationOperation (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<System.String, System.String>(this System.Collections.Generic.IEnumerable<System.String> source, System.Func<System.String, System.String> selector)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select w')
                           Instance Receiver: 
@@ -1909,11 +1909,11 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                                           Instance Receiver: 
                                             null
                                           Arguments(2):
-                                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'from x in "123"')
-                                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in "123"')
+                                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'from x in ""123""')
+                                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
                                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                                   Operand: 
-                                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "123") (Syntax: '"123"')
+                                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""123"") (Syntax: '""123""')
                                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x.ToString()')
@@ -1925,13 +1925,13 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                                                           ReturnedValue: 
                                                             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                               Initializers(2):
-                                                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Char, IsImplicit) (Syntax: 'from x in " ... select w')
+                                                                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Char, IsImplicit) (Syntax: 'let z = x.T ... select w')
                                                                     Left: 
-                                                                      IPropertyReferenceOperation: System.Char <anonymous type: System.Char x, System.String z>.x { get; } (OperationKind.PropertyReference, Type: System.Char, IsImplicit) (Syntax: 'from x in "123"')
+                                                                      IPropertyReferenceOperation: System.Char <anonymous type: System.Char x, System.String z>.x { get; } (OperationKind.PropertyReference, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                                         Instance Receiver: 
                                                                           IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                                     Right: 
-                                                                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Char, IsImplicit) (Syntax: 'from x in "123"')
+                                                                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                                   ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                                     Left: 
                                                                       IPropertyReferenceOperation: System.String <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'x.ToString()')
@@ -2002,7 +2002,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
       IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return;')
         ReturnedValue: 
           null
-""";
+";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 
@@ -2010,7 +2010,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForLoopStatement_QueryInBody()
         {
-            string source = """
+            string source = @"
 using System.Linq;
 using System.Collections.Generic;
 class C
@@ -2027,7 +2027,7 @@ class C
     {
         /*<bind>*/for (int i = 0; i < 5;)
         {
-            return from x in "123"
+            return from x in ""123""
                    let z = x.ToString()
                    select z into w
                    select w;
@@ -2036,8 +2036,8 @@ class C
     }
 }
 
-""";
-            string expectedOperationTree = """
+";
+            string expectedOperationTree = @"
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
@@ -2061,7 +2061,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return from ... select w;')
         ReturnedValue: 
-          ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from x in " ... select w')
+          ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from x in "" ... select w')
             Expression: 
               IInvocationOperation (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<System.String, System.String>(this System.Collections.Generic.IEnumerable<System.String> source, System.Func<System.String, System.String> selector)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select w')
                 Instance Receiver: 
@@ -2077,11 +2077,11 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                                 Instance Receiver: 
                                   null
                                 Arguments(2):
-                                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'from x in "123"')
-                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in "123"')
+                                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'from x in ""123""')
+                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable<System.Char>, IsImplicit) (Syntax: 'from x in ""123""')
                                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                         Operand: 
-                                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "123") (Syntax: '"123"')
+                                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""123"") (Syntax: '""123""')
                                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                     IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x.ToString()')
@@ -2093,13 +2093,13 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                                                 ReturnedValue: 
                                                   IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                     Initializers(2):
-                                                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Char, IsImplicit) (Syntax: 'from x in " ... select w')
+                                                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Char, IsImplicit) (Syntax: 'let z = x.T ... select w')
                                                           Left: 
-                                                            IPropertyReferenceOperation: System.Char <anonymous type: System.Char x, System.String z>.x { get; } (OperationKind.PropertyReference, Type: System.Char, IsImplicit) (Syntax: 'from x in "123"')
+                                                            IPropertyReferenceOperation: System.Char <anonymous type: System.Char x, System.String z>.x { get; } (OperationKind.PropertyReference, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                               Instance Receiver: 
                                                                 IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Char x, System.String z>, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                           Right: 
-                                                            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Char, IsImplicit) (Syntax: 'from x in "123"')
+                                                            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Char, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                         ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'let z = x.ToString()')
                                                           Left: 
                                                             IPropertyReferenceOperation: System.String <anonymous type: System.Char x, System.String z>.z { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'x.ToString()')
@@ -2138,7 +2138,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                                   IParameterReferenceOperation: w (OperationKind.ParameterReference, Type: System.String) (Syntax: 'w')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-""";
+";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
 

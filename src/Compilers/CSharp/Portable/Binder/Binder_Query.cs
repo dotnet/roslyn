@@ -736,8 +736,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var yExpression = lambdaBodyBinder.BindRValueWithoutTargetType(let.Expression, d);
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
-                    Error(d, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, yExpression.Syntax, yExpression.Display);
+                    Error(d, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, let, yExpression.Display);
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), CreateErrorType());
+                }
+                else if (!yExpression.HasAnyErrors && yExpression.Type!.IsVoidType())
+                {
+                    Error(d, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, let, yExpression.Type!);
+                    Debug.Assert(yExpression.Type is { });
+                    yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), yExpression.Type);
                 }
 
                 var construction = MakePair(let, x.Name, xExpression, let.Identifier.ValueText, yExpression, state, d);
@@ -813,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeConstruction(node, anonymousType, ImmutableArray.Create(field1Value, field2Value), diagnostics);
 
             AnonymousTypeField createField(string fieldName, BoundExpression fieldValue) =>
-                new AnonymousTypeField(fieldName, fieldValue.Syntax.Location, TypeWithAnnotations.Create(GetAnonymousTypeFieldType(fieldValue, fieldValue.Syntax, diagnostics, out _)), RefKind.None, ScopedKind.None);
+                new AnonymousTypeField(fieldName, fieldValue.Syntax.Location, TypeWithAnnotations.Create(GetAnonymousTypeFieldType(fieldValue, node, diagnostics)), RefKind.None, ScopedKind.None);
         }
 
         private TypeSymbol TypeOrError(BoundExpression e)

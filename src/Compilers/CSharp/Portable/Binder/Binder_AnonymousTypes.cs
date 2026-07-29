@@ -85,8 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 //  calculate the expression's type and report errors if needed
-                TypeSymbol fieldType = GetAnonymousTypeFieldType(boundExpressions[i], fieldInitializer, diagnostics, out var hasFieldTypeError);
-                hasError |= hasFieldTypeError;
+                TypeSymbol fieldType = GetAnonymousTypeFieldType(boundExpressions[i], fieldInitializer, diagnostics, ref hasError);
 
                 // build anonymous type field descriptor
                 fieldSyntaxNodes[i] = (nameToken.Kind() == SyntaxKind.IdentifierToken) ? (CSharpSyntaxNode)nameToken.Parent! : fieldInitializer;
@@ -205,39 +204,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private TypeSymbol GetAnonymousTypeFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, BindingDiagnosticBag diagnostics)
+        {
+            bool hasError = false;
+            return GetAnonymousTypeFieldType(expression, errorSyntax, diagnostics, ref hasError);
+        }
+
         /// <summary>
         /// Returns the type to be used as a field type; generates errors in case the type is not
         /// supported for anonymous type fields.
         /// </summary>
-        private TypeSymbol GetAnonymousTypeFieldType(BoundExpression expression, SyntaxNode errorSyntax, BindingDiagnosticBag diagnostics, out bool hasError)
+        private TypeSymbol GetAnonymousTypeFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, BindingDiagnosticBag diagnostics, ref bool hasError)
         {
             object? errorArg = null;
-            TypeSymbol? type = expression.Type;
+            TypeSymbol? expressionType = expression.Type;
 
-            if (expression.HasAnyErrors)
+            if (!expression.HasAnyErrors)
             {
-                hasError = false;
-                return type ?? CreateErrorType("error");
+                if (expression.HasExpressionType())
+                {
+                    RoslynDebug.Assert(expressionType is object);
+                    if (expressionType.IsVoidType())
+                    {
+                        errorArg = expressionType;
+                        expressionType = CreateErrorType(SyntaxFacts.GetText(SyntaxKind.VoidKeyword));
+                    }
+                    else if (expressionType.IsPointerOrFunctionPointer())
+                    {
+                        errorArg = expressionType;
+                        // CONSIDER: we could use an explicit error type instead of the unsafe type.
+                    }
+                    else if (expressionType.IsRestrictedType())
+                    {
+                        errorArg = expressionType;
+                    }
+                }
+                else
+                {
+                    errorArg = expression.Display;
+                }
             }
 
-            if (type is null)
+            if (expressionType is null)
             {
-                errorArg = expression.Display;
-                type = CreateErrorType("error");
-            }
-            else if (type.IsVoidType() || type.IsRestrictedType() || type.IsPointerOrFunctionPointer())
-            {
-                errorArg = type;
-                // CONSIDER: we could use an explicit error type instead of unsafe type.
+                expressionType = CreateErrorType("error");
             }
 
-            hasError = errorArg != null;
-            if (hasError)
+            if (errorArg != null)
             {
-                Error(diagnostics, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, errorSyntax, errorArg!);
+                hasError = true;
+                Error(diagnostics, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, errorSyntax, errorArg);
             }
 
-            return type;
+            return expressionType;
         }
     }
 }

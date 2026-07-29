@@ -17186,9 +17186,9 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (8,25): error CS0828: Cannot assign '<null>' to anonymous type property
+                // (8,17): error CS0828: Cannot assign '<null>' to anonymous type property
                 //                 let k = null
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "null").WithArguments("<null>").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let k = null").WithArguments("<null>").WithLocation(8, 17)
              );
         }
 
@@ -17207,9 +17207,9 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (8,25): error CS0828: Cannot assign 'lambda expression' to anonymous type property
+                // (8,17): error CS0828: Cannot assign 'lambda expression' to anonymous type property
                 //                 let k = ()=>3
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "()=>3").WithArguments("lambda expression").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let k = ()=>3").WithArguments("lambda expression").WithLocation(8, 17)
              );
         }
 
@@ -17228,9 +17228,9 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (8,25): error CS0828: Cannot assign 'method group' to anonymous type property
+                // (8,17): error CS0828: Cannot assign 'method group' to anonymous type property
                 //                 let k = Main
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Main").WithArguments("method group").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let k = Main").WithArguments("method group").WithLocation(8, 17)
              );
         }
 
@@ -17250,9 +17250,9 @@ class Test
     static void M() {}
 }
 ").VerifyDiagnostics(
-                // (8,25): error CS0828: Cannot assign 'void' to anonymous type property
+                // (8,17): error CS0828: Cannot assign 'void' to anonymous type property
                 //                 let k = M()
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "M()").WithArguments("void").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let k = M()").WithArguments("void").WithLocation(8, 17)
              );
         }
 
