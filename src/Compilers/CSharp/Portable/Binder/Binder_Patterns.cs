@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             match = member;
                         }
-                        else if (!match.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(baseInterfaceForDefinition, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                        else if (!match.RequiredContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(baseInterfaceForDefinition, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
                         {
                             // Ambiguity
                             return (membersInterface, null);

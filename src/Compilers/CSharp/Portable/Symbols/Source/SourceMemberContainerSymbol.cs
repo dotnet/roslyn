@@ -2464,10 +2464,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (checkCollisionWithTypeParameters && typeParameterNames == null)
                         {
-                            if (indexer.ContainingType.Arity > 0)
+                            if (indexer.RequiredContainingType.Arity > 0)
                             {
                                 typeParameterNames = PooledHashSet<string>.GetInstance();
-                                foreach (TypeParameterSymbol typeParameter in indexer.ContainingType.TypeParameters)
+                                foreach (TypeParameterSymbol typeParameter in indexer.RequiredContainingType.TypeParameters)
                                 {
                                     typeParameterNames.Add(typeParameter.Name);
                                 }

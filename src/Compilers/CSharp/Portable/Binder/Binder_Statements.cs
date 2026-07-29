@@ -1820,7 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool HasSynthesizedBackingField(PropertySymbol propertySymbol, [NotNullWhen(true)] out SourcePropertySymbolBase? sourcePropertyDefinition)
         {
-            if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+            if (!propertySymbol.IsDefinition && propertySymbol.RequiredContainingType.Equals(propertySymbol.RequiredContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 propertySymbol = propertySymbol.OriginalDefinition;
             }

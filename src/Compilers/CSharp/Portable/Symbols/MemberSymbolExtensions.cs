@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (member is PropertySymbol property)
             {
                 Debug.Assert(property.IsExtensionBlockMember());
-                return property.ContainingType.TypeParameters;
+                return property.RequiredContainingType.TypeParameters;
             }
 
             throw ExceptionUtilities.UnexpectedValue(member);
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (member is PropertySymbol property)
             {
                 Debug.Assert(property.IsExtensionBlockMember());
-                NamedTypeSymbol extension = property.ContainingType;
+                NamedTypeSymbol extension = property.RequiredContainingType;
                 Debug.Assert(extension.Arity > 0);
                 Debug.Assert(extension.Arity == typeArguments.Length);
 

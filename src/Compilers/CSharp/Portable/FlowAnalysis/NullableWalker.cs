@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // If the set method is null (ie missing), that's an error, but we'll recover as best we can
                                 foreach (var notNullMemberName in (property.SetMethod?.NotNullMembers ?? property.NotNullMembers))
                                 {
-                                    foreach (var member in property.ContainingType.GetMembers(notNullMemberName))
+                                    foreach (var member in property.RequiredContainingType.GetMembers(notNullMemberName))
                                     {
                                         @return = @return.Add(getFieldSymbolToBeInitialized(member));
                                     }

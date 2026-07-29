@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
             // duplicate side-effects, so we'll skip that step.
 
-            if (indexer.ContainingType.IsComImport)
+            if (indexer.RequiredContainingType.IsComImport)
             {
                 RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temps);
             }
