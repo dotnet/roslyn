@@ -108,6 +108,14 @@ image kind when changing this area. Cache tests live under
 the default reference-cache tests remain in
 `src/Workspaces/CoreTest/SolutionTests/MetadataServiceTests.cs`.
 
+`ServerConfiguration.UseSharedMetadataCache` defaults to `true` and provides an
+internal composition seam for tests and benchmarks. The daemon project-loading
+benchmark in `src/Tools/IdeCoreBenchmarks/LanguageServer` compares two real
+daemon clients with this value disabled and enabled. It uses BenchmarkDotNet's
+in-process toolchain because the daemon harness itself is in-process, and
+creates a fresh daemon outside each measured iteration so the shared-cache case
+consistently measures one cold load followed by reuse from the second client.
+
 ## Coding Conventions
 
 - **Private fields**: `_camelCase`

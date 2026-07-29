@@ -12,9 +12,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class LanguageServerMetadataServiceFactory() : IWorkspaceServiceFactory
+internal sealed class LanguageServerMetadataServiceFactory(ServerConfiguration serverConfiguration) : IWorkspaceServiceFactory
 {
-    private readonly SharedMetadataCache _sharedMetadataCache = new();
+    private readonly SharedMetadataCache? _sharedMetadataCache = serverConfiguration.UseSharedMetadataCache
+        ? new SharedMetadataCache()
+        : null;
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new MetadataService(
@@ -23,7 +25,7 @@ internal sealed class LanguageServerMetadataServiceFactory() : IWorkspaceService
 
     private sealed class MetadataService(
         IDocumentationProviderService documentationProviderService,
-        SharedMetadataCache metadataCache) : IMetadataService
+        SharedMetadataCache? metadataCache) : IMetadataService
     {
         private readonly MetadataReferenceCache _metadataCache = new((path, properties) =>
         {
@@ -31,6 +33,9 @@ internal sealed class LanguageServerMetadataServiceFactory() : IWorkspaceService
 
             try
             {
+                if (metadataCache is null)
+                    return MetadataReference.CreateFromFile(path, properties, documentationProvider);
+
                 var metadata = metadataCache.GetMetadata(path, properties.Kind);
                 return metadata switch
                 {

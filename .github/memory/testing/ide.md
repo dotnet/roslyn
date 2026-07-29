@@ -35,3 +35,9 @@ public class MyTests
   test source code.
 - Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()`
   rather than asserting a count then indexing.
+- Language Server daemon integration tests derive from
+  `AbstractLanguageServerMefHost` and use `CreateDaemonServerAsync`, which starts
+  the same multi-client connection manager and named-pipe listener as product
+  daemon mode. Its nullable `useSharedMetadataCache` override supports
+  composition comparisons without replacing an otherwise explicit server
+  configuration.

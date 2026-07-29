@@ -85,9 +85,13 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
     private protected async Task<TestDaemon> CreateDaemonServerAsync(
         TimeSpan? keepAlive = null,
         ServerConfiguration? serverConfiguration = null,
-        TimeSpan? initialConnectionTimeout = null)
+        TimeSpan? initialConnectionTimeout = null,
+        bool? useSharedMetadataCache = null)
     {
         var configuration = serverConfiguration ?? (ServerConfigurationWithoutDevKit with { IsDaemon = true });
+        if (useSharedMetadataCache is not null)
+            configuration = configuration with { UseSharedMetadataCache = useSharedMetadataCache.Value };
+
         Contract.ThrowIfFalse(configuration.IsDaemon);
         var extensionManager = ExtensionAssemblyManager.Create(configuration, LoggerFactory);
         var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, LoggerFactory);

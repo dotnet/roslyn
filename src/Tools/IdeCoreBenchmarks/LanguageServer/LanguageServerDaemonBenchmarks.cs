@@ -2,30 +2,42 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Engines;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using Microsoft.CodeAnalysis.LanguageServer.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace IdeCoreBenchmarks;
 
 [MemoryDiagnoser]
-[SimpleJob(RunStrategy.Monitoring, invocationCount: 1)]
+[Config(typeof(BenchmarkConfig))]
 public class LanguageServerDaemonBenchmarks
 {
     private TempRoot _tempRoot = null!;
     private LanguageServerBenchmarkHost _testHost = null!;
     private MaterializedLspWorkspace _firstWorkspace = null!;
     private MaterializedLspWorkspace _secondWorkspace = null!;
-    private LanguageServerBenchmarkHost.BenchmarkTestDaemon? _daemon;
+    private LanguageServerBenchmarkHost.BenchmarkTestDaemon _daemon = null!;
     private LanguageServerBenchmarkHost.TestServer? _firstServer;
     private LanguageServerBenchmarkHost.TestServer? _secondServer;
 
-    [Params(false, true)]
-    public bool UseDaemon { get; set; }
+    private sealed class BenchmarkConfig : ManualConfig
+    {
+        public BenchmarkConfig()
+        {
+            AddJob(Job.Default
+                .WithStrategy(RunStrategy.Monitoring)
+                .WithInvocationCount(1)
+                .WithToolchain(new InProcessEmitToolchain(TimeSpan.FromMinutes(30), logOutput: true)));
+        }
+    }
 
     [GlobalSetup]
     public async Task GlobalSetup()
@@ -41,24 +53,31 @@ public class LanguageServerDaemonBenchmarks
             _tempRoot,
             LspTestWorkspaces.CreateConsoleApplication("SecondConsoleApplication"),
             CancellationToken.None);
-
-        if (UseDaemon)
-            _daemon = await _testHost.CreateDaemonAsync();
     }
 
+    [IterationSetup(Target = nameof(LoadTwoConsoleApplicationsWithoutSharedMetadataCache))]
+    public void IterationSetupWithoutSharedMetadataCache()
+        => IterationSetup(useSharedMetadataCache: false);
+
+    [IterationSetup(Target = nameof(LoadTwoConsoleApplicationsWithSharedMetadataCache))]
+    public void IterationSetupWithSharedMetadataCache()
+        => IterationSetup(useSharedMetadataCache: true);
+
+    private void IterationSetup(bool useSharedMetadataCache)
+        => _daemon = _testHost.CreateDaemonAsync(useSharedMetadataCache).GetAwaiter().GetResult();
+
+    [Benchmark(Baseline = true)]
+    public Task LoadTwoConsoleApplicationsWithoutSharedMetadataCache()
+        => LoadTwoConsoleApplications();
+
     [Benchmark]
-    public async Task LoadTwoConsoleApplications()
+    public Task LoadTwoConsoleApplicationsWithSharedMetadataCache()
+        => LoadTwoConsoleApplications();
+
+    private async Task LoadTwoConsoleApplications()
     {
-        if (UseDaemon)
-        {
-            _firstServer = await _daemon!.CreateClientAsync();
-            _secondServer = await _daemon.CreateClientAsync();
-        }
-        else
-        {
-            _firstServer = await _testHost.CreateSingleServerAsync();
-            _secondServer = await _testHost.CreateSingleServerAsync();
-        }
+        _firstServer = await _daemon.CreateClientAsync();
+        _secondServer = await _daemon.CreateClientAsync();
 
         await Task.WhenAll(
             _firstServer.OpenProjectsAsync(
@@ -70,27 +89,34 @@ public class LanguageServerDaemonBenchmarks
     }
 
     [IterationCleanup]
-    public async Task IterationCleanup()
+    public void IterationCleanup()
+        => DisposeIterationAsync().GetAwaiter().GetResult();
+
+    private async Task DisposeIterationAsync()
     {
         var firstServer = _firstServer;
         var secondServer = _secondServer;
         _firstServer = null;
         _secondServer = null;
 
-        if (firstServer is not null && secondServer is not null)
-            await Task.WhenAll(firstServer.DisposeAsync().AsTask(), secondServer.DisposeAsync().AsTask());
-        else if (firstServer is not null)
-            await firstServer.DisposeAsync();
-        else if (secondServer is not null)
-            await secondServer.DisposeAsync();
+        try
+        {
+            if (firstServer is not null && secondServer is not null)
+                await Task.WhenAll(firstServer.DisposeAsync().AsTask(), secondServer.DisposeAsync().AsTask());
+            else if (firstServer is not null)
+                await firstServer.DisposeAsync();
+            else if (secondServer is not null)
+                await secondServer.DisposeAsync();
+        }
+        finally
+        {
+            await _daemon.DisposeAsync();
+        }
     }
 
     [GlobalCleanup]
-    public async Task GlobalCleanup()
+    public void GlobalCleanup()
     {
-        if (_daemon is not null)
-            await _daemon.DisposeAsync();
-
         _testHost.Dispose();
         _tempRoot.Dispose();
     }

@@ -18,15 +18,12 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
     {
     }
 
-    internal async Task<TestServer> CreateSingleServerAsync()
-        => Wrap(await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit));
-
     internal Task WarmCompositionCacheAsync()
         => WarmCompositionCacheCoreAsync();
 
-    internal async Task<BenchmarkTestDaemon> CreateDaemonAsync()
+    internal async Task<BenchmarkTestDaemon> CreateDaemonAsync(bool useSharedMetadataCache)
     {
-        var daemon = await CreateDaemonServerAsync();
+        var daemon = await CreateDaemonServerAsync(useSharedMetadataCache: useSharedMetadataCache);
         return new(() => CreateClientAsync(daemon), daemon.DisposeAsync);
     }
 

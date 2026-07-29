@@ -131,6 +131,26 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         Assert.Same(reference1.GetMetadataId(), reference2.GetMetadataId());
     }
 
+    [Fact]
+    public async Task Daemon_EachServerDoesNotShareMetadataWhenDisabled()
+    {
+        await using var daemon = await CreateDaemonServerAsync(useSharedMetadataCache: false);
+        await using var first = await daemon.CreateClientAsync();
+        await using var second = await daemon.CreateClientAsync();
+
+        var workspace1 = first.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
+        var workspace2 = second.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
+        var mscorlibPath = typeof(object).Assembly.Location;
+
+        var reference1 = workspace1.Services.GetRequiredService<IMetadataService>()
+            .GetReference(mscorlibPath, MetadataReferenceProperties.Assembly);
+        var reference2 = workspace2.Services.GetRequiredService<IMetadataService>()
+            .GetReference(mscorlibPath, MetadataReferenceProperties.Assembly);
+
+        Assert.NotSame(reference1, reference2);
+        Assert.NotSame(reference1.GetMetadataId(), reference2.GetMetadataId());
+    }
+
     // If one client's server faults (e.g. the client process crashes and abruptly drops its connection), the daemon
     // tears down only that server. The daemon stays alive, the other client's server is untouched and still
     // functional, and the daemon keeps accepting new clients.
