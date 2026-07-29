@@ -2358,6 +2358,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal PropertySymbol? UnionValuePropertyNoUseSiteDiagnostics()
+        {
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return this.UnionValueProperty(ref useSiteInfo);
+        }
+
         private delegate bool IsSuitableUnionProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? member);
 
         private PropertySymbol? TryGetOwnOrInheritedUnionProperty(string memberName, IsSuitableUnionProperty isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> membersProviderForDefinitionBasesUseSiteInfo)

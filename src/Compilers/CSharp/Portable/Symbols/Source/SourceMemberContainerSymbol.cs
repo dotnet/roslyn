@@ -2113,7 +2113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
                 }
 
-                if (Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(this) is null)
+                if (this.UnionValuePropertyNoUseSiteDiagnostics() is null)
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingUnionValueProperty, location);
                 }

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var originalInputType = (NamedTypeSymbol)inputType;
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                inputType = GetUnionTypeValueProperty(unionTypeOverride, ref useSiteInfo)?.Type ?? Compilation.GetSpecialType(SpecialType.System_Object);
+                inputType = unionTypeOverride.UnionValueProperty(ref useSiteInfo)?.Type ?? Compilation.GetSpecialType(SpecialType.System_Object);
                 diagnostics.Add(node, useSiteInfo);
                 unionType = unionTypeOverride;
                 return originalInputType;
@@ -44,45 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static PropertySymbol? GetUnionTypeValueProperty(NamedTypeSymbol inputUnionType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            return inputUnionType.UnionValueProperty(ref useSiteInfo);
-        }
-
-        internal static PropertySymbol? GetUnionTypeValuePropertyNoUseSiteDiagnostics(NamedTypeSymbol inputUnionType)
-        {
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return GetUnionTypeValueProperty(inputUnionType, ref useSiteInfo);
-        }
-
         internal static bool IsUnionTypeValueProperty(NamedTypeSymbol unionType, Symbol symbol)
         {
-            return Symbol.Equals(Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType), symbol, TypeCompareKind.AllIgnoreOptions);
-        }
-
-        internal static PropertySymbol? GetUnionTypeHasValueProperty(NamedTypeSymbol inputUnionType)
-        {
-            return inputUnionType.UnionHasValueProperty();
-        }
-
-        internal static MethodSymbol? GetUnionTypeTryGetValueMethod(ConversionsBase conversions, NamedTypeSymbol inputUnionType, TypeSymbol type)
-        {
-            return inputUnionType.GetUnionTypeTryGetValueMethod(conversions, type);
-        }
-
-        internal static bool HasTryGetValueSignature(MethodSymbol method)
-        {
-            return NamedTypeSymbol.HasTryGetValueSignature(method);
-        }
-
-        internal static bool IsUnionTypeTryGetValueMethod(NamedTypeSymbol unionType, MethodSymbol method)
-        {
-            return unionType.IsUnionTypeTryGetValueMethod(method);
+            return Symbol.Equals(unionType.UnionValuePropertyNoUseSiteDiagnostics(), symbol, TypeCompareKind.AllIgnoreOptions);
         }
 
         internal static bool IsUnionTypeHasValueProperty(NamedTypeSymbol unionType, PropertySymbol property)
         {
-            return Symbol.Equals(Binder.GetUnionTypeHasValueProperty(unionType), property, TypeCompareKind.AllIgnoreOptions);
+            return Symbol.Equals(unionType.UnionHasValueProperty(), property, TypeCompareKind.AllIgnoreOptions);
         }
 
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, BindingDiagnosticBag diagnostics)
