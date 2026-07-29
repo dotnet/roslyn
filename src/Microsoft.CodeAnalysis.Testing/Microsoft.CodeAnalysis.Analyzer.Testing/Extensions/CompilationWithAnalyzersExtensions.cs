@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
             else
             {
                 s_createCompilationWithAnalyzers = (compilation, analyzers, options, cancellationToken) =>
-                    compilation.WithAnalyzers(analyzers, options, cancellationToken);
+                    compilation.WithAnalyzers(analyzers, options);
             }
 
             s_getTaskOfAnalysisResultResult = LightupHelpers.CreatePropertyAccessor<Task, object>(taskOfAnalysisResult, nameof(Task<object>.Result), s_invalidResultSentinel);
