@@ -185,8 +185,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             // without modifying the current process environment
             var currentEnvironment = Environment.GetEnvironmentVariables();
             var originalDotNetRoot = (string?)currentEnvironment[RuntimeHostInfo.DotNetRootEnvironmentName];
+            var snapshot = BuildServerConnection.CreateEnvironmentVariableSnapshot(currentEnvironment);
 
-            var envVars = BuildServerConnection.GetServerEnvironmentVariables(currentEnvironment);
+            var envVars = BuildServerConnection.GetServerEnvironmentVariables(
+                Environment.GetEnvironmentVariable,
+                snapshot);
 
             if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr &&
                 RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, Logger.Log) is { } dotNetRoot)
@@ -229,7 +232,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 testEnvironment[testEnvVar] = "test_value";
             }
 
-            var envVars = BuildServerConnection.GetServerEnvironmentVariables(testEnvironment);
+            var envVars = BuildServerConnection.GetServerEnvironmentVariables(
+                name => (string?)testEnvironment[name],
+                BuildServerConnection.CreateEnvironmentVariableSnapshot(testEnvironment));
 
             if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr &&
                 RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, Logger.Log) != null)
@@ -261,15 +266,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             Assert.NotNull(processOnlyKey);
 
-            var processStartInfo = new ProcessStartInfo();
-            processStartInfo.EnvironmentVariables.Clear();
-            processStartInfo.EnvironmentVariables["TASK_ONLY_VARIABLE"] = "task-value";
+            var environment = new Dictionary<string, string?>
+            {
+                ["TASK_ONLY_VARIABLE"] = "task-value",
+            };
 
             var result = BuildServerConnection.GetServerEnvironmentVariables(
-                processStartInfo,
-                name => processStartInfo.EnvironmentVariables.ContainsKey(name)
-                    ? processStartInfo.EnvironmentVariables[name]
-                    : null);
+                name => environment.TryGetValue(name, out var value) ? value : null,
+                [new KeyValuePair<string, string?>("TASK_ONLY_VARIABLE", "task-value")]);
 
             Assert.Equal("task-value", result["TASK_ONLY_VARIABLE"]);
             Assert.False(result.ContainsKey(processOnlyKey));

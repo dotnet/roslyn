@@ -194,12 +194,17 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         public static CompileOnServerFunc GetCompileOnServerFunc(ICompilerServerLogger logger) => (buildRequest, pipeName, cancellationToken) =>
-            BuildServerConnection.RunServerBuildRequestAsync(
+        {
+            var environmentVariables = BuildServerConnection.CreateEnvironmentVariableSnapshot(Environment.GetEnvironmentVariables());
+            return BuildServerConnection.RunServerBuildRequestAsync(
                 buildRequest,
                 pipeName,
                 GetClientDirectory(),
+                Environment.GetEnvironmentVariable,
+                environmentVariables,
                 logger,
                 cancellationToken);
+        };
 
         /// <summary>
         /// Runs the provided compilation on the server.  If the compilation cannot be completed on the server then null

@@ -178,21 +178,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             BuildRequest buildRequest,
             string pipeName,
             string clientDirectory,
-            ICompilerServerLogger logger,
-            CancellationToken cancellationToken)
-                => RunServerBuildRequestAsync(
-                    buildRequest,
-                    pipeName,
-                    timeoutOverride: null,
-                    tryCreateServerFunc: (pipeName, logger) => TryCreateServer(clientDirectory, pipeName, logger, out int _),
-                    logger,
-                    cancellationToken);
-
-        internal static Task<BuildResponse> RunServerBuildRequestAsync(
-            BuildRequest buildRequest,
-            string pipeName,
-            string clientDirectory,
-            ProcessStartInfo processStartInfo,
+            Func<string, string?> getEnvironmentVariable,
+            IReadOnlyList<KeyValuePair<string, string?>> environmentVariables,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken)
                 => RunServerBuildRequestAsync(
@@ -202,7 +189,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     tryCreateServerFunc: (pipeName, logger) => TryCreateServer(
                         clientDirectory,
                         pipeName,
-                        processStartInfo,
+                        getEnvironmentVariable,
+                        environmentVariables,
                         logger,
                         out int _),
                     logger,
@@ -472,18 +460,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         /// <param name="clientDir">Absolute path to the directory containing the compiler client and server binaries.</param>
         /// <param name="pipeName">Name of the compiler-server pipe.</param>
-        internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(string clientDir, string pipeName) =>
-            GetServerProcessInfo(
-                clientDir,
-                pipeName,
-                Environment.GetEnvironmentVariable);
-
-        /// <summary>
-        /// Gets the executable path and command-line arguments used to start the compiler server.
-        /// </summary>
-        /// <param name="clientDir">Absolute path to the directory containing the compiler client and server binaries.</param>
-        /// <param name="pipeName">Name of the compiler-server pipe.</param>
-        /// <param name="getEnvironmentVariable">Reads the named environment variable.</param>
         internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
             string clientDir,
             string pipeName,
@@ -531,29 +507,33 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return Marshal.StringToHGlobalUni(envBlock.ToString());
         }
 
-        /// <summary>
-        /// Gets the environment variables that should be passed to the server process.
-        /// </summary>
-        /// <param name="currentEnvironment">Current environment variables to use as a base</param>
-        /// <param name="logger">Optional logger for logging environment variable setup</param>
-        /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
-        internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment, ICompilerServerLogger? logger = null)
+        internal static KeyValuePair<string, string?>[] CreateEnvironmentVariableSnapshot(System.Collections.IDictionary currentEnvironment)
         {
-            string? dotNetRoot = IsBuiltinToolRunningOnCoreClr
-                ? RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, logger is null ? null : logger.Log)
-                : null;
-
-            if (dotNetRoot == null && !RuntimeHostInfo.ShouldDisableTieredCompilation)
+            var result = new KeyValuePair<string, string?>[currentEnvironment.Count];
+            var index = 0;
+            foreach (System.Collections.DictionaryEntry entry in currentEnvironment)
             {
-                return null;
+                result[index++] = new KeyValuePair<string, string?>((string)entry.Key, (string?)entry.Value);
             }
 
-            return CreateServerEnvironmentVariables(currentEnvironment, dotNetRoot, logger);
+            return result;
+        }
+
+        internal static KeyValuePair<string, string?>[] CreateEnvironmentVariableSnapshot(
+            IEnumerable<KeyValuePair<string, string>> currentEnvironment)
+        {
+            var result = new List<KeyValuePair<string, string?>>();
+            foreach (var entry in currentEnvironment)
+            {
+                result.Add(new KeyValuePair<string, string?>(entry.Key, entry.Value));
+            }
+
+            return result.ToArray();
         }
 
         internal static Dictionary<string, string> GetServerEnvironmentVariables(
-            ProcessStartInfo processStartInfo,
             Func<string, string?> getEnvironmentVariable,
+            IReadOnlyList<KeyValuePair<string, string?>> currentEnvironment,
             ICompilerServerLogger? logger = null)
         {
             var dotNetRoot = IsBuiltinToolRunningOnCoreClr
@@ -562,20 +542,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     logger is null ? null : logger.Log)
                 : null;
 
-            return CreateServerEnvironmentVariables(processStartInfo.EnvironmentVariables, dotNetRoot, logger);
-        }
-
-        private static Dictionary<string, string> CreateServerEnvironmentVariables(
-            System.Collections.IEnumerable currentEnvironment,
-            string? dotNetRoot,
-            ICompilerServerLogger? logger)
-        {
             var environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (System.Collections.DictionaryEntry entry in currentEnvironment)
+            foreach (var entry in currentEnvironment)
             {
-                var key = (string)entry.Key;
-                var value = (string?)entry.Value;
-                environmentVariables[key] = value ?? string.Empty;
+                environmentVariables[entry.Key] = entry.Value ?? string.Empty;
             }
 
             if (dotNetRoot != null)
@@ -612,41 +582,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static bool TryCreateServer(
             string clientDirectory,
             string pipeName,
-            ICompilerServerLogger logger,
-            out int processId) =>
-            TryCreateServerCore(
-                clientDirectory,
-                pipeName,
-                Environment.GetEnvironmentVariable,
-                processStartInfo: null,
-                logger,
-                out processId);
-
-        internal static bool TryCreateServer(
-            string clientDirectory,
-            string pipeName,
-            ProcessStartInfo processStartInfo,
-            ICompilerServerLogger logger,
-            out int processId)
-        {
-            string? getEnvironmentVariable(string name) =>
-                processStartInfo.EnvironmentVariables.ContainsKey(name)
-                    ? processStartInfo.EnvironmentVariables[name]
-                    : null;
-            return TryCreateServerCore(
-                clientDirectory,
-                pipeName,
-                getEnvironmentVariable,
-                processStartInfo,
-                logger,
-                out processId);
-        }
-
-        private static bool TryCreateServerCore(
-            string clientDirectory,
-            string pipeName,
             Func<string, string?> getEnvironmentVariable,
-            ProcessStartInfo? processStartInfo,
+            IReadOnlyList<KeyValuePair<string, string?>> environmentVariablesSnapshot,
             ICompilerServerLogger logger,
             out int processId)
         {
@@ -663,12 +600,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
 
-            var environmentVariables = processStartInfo is null
-                ? GetServerEnvironmentVariables(Environment.GetEnvironmentVariables(), logger)
-                : GetServerEnvironmentVariables(
-                    processStartInfo,
-                    getEnvironmentVariable,
-                    logger);
+            var environmentVariables = GetServerEnvironmentVariables(
+                getEnvironmentVariable,
+                environmentVariablesSnapshot,
+                logger);
 
             if (PlatformInformation.IsWindows)
             {
@@ -691,12 +626,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 IntPtr environmentBlockPtr = IntPtr.Zero;
                 try
                 {
-                    if (environmentVariables != null)
-                    {
-                        environmentBlockPtr = CreateEnvironmentBlock(environmentVariables);
-                        // When passing a Unicode environment block, we must set the CREATE_UNICODE_ENVIRONMENT flag
-                        dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
-                    }
+                    environmentBlockPtr = CreateEnvironmentBlock(environmentVariables);
+                    // When passing a Unicode environment block, we must set the CREATE_UNICODE_ENVIRONMENT flag
+                    dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
 
                     bool success = CreateProcess(
                         lpApplicationName: null,
@@ -735,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 try
                 {
-                    var startInfo = processStartInfo ?? new ProcessStartInfo();
+                    var startInfo = new ProcessStartInfo();
                     startInfo.FileName = serverInfo.processFilePath;
                     startInfo.Arguments = serverInfo.commandLineArguments;
                     startInfo.UseShellExecute = false;
@@ -745,13 +677,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     startInfo.RedirectStandardError = true;
                     startInfo.CreateNoWindow = true;
 
-                    // Set environment variables directly on ProcessStartInfo
-                    if (environmentVariables != null)
+                    startInfo.EnvironmentVariables.Clear();
+                    foreach (var kvp in environmentVariables)
                     {
-                        foreach (var kvp in environmentVariables)
-                        {
-                            startInfo.EnvironmentVariables[kvp.Key] = kvp.Value;
-                        }
+                        startInfo.EnvironmentVariables[kvp.Key] = kvp.Value;
                     }
 
                     if (Process.Start(startInfo) is { } process)
