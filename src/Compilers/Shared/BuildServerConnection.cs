@@ -455,11 +455,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        /// <summary>
-        /// Gets the executable path and command-line arguments used to start the compiler server.
-        /// </summary>
-        /// <param name="clientDir">Absolute path to the directory containing the compiler client and server binaries.</param>
-        /// <param name="pipeName">Name of the compiler-server pipe.</param>
         internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
             string clientDir,
             string pipeName,
@@ -531,7 +526,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return result.ToArray();
         }
 
-        internal static Dictionary<string, string> GetServerEnvironmentVariables(
+        /// <summary>
+        /// Gets the environment variables that should be passed to the server process.
+        /// </summary>
+        /// <param name="currentEnvironment">Current environment variables to use as a base</param>
+        /// <param name="logger">Optional logger for logging environment variable setup</param>
+        /// <returns>Dictionary of environment variables to set</returns>
+        internal static Dictionary<string, string>? GetServerEnvironmentVariables(
             Func<string, string?> getEnvironmentVariable,
             IReadOnlyList<KeyValuePair<string, string?>> currentEnvironment,
             ICompilerServerLogger? logger = null)
@@ -542,23 +543,28 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     logger is null ? null : logger.Log)
                 : null;
 
+            // Start with current environment
             var environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var entry in currentEnvironment)
             {
-                environmentVariables[entry.Key] = entry.Value ?? string.Empty;
+                var key = entry.Key;
+                var value = entry.Value;
+
+                // Clear DOTNET_ROOT* variables such as DOTNET_ROOT_X64 by setting them to empty,
+                // as we want to set our own DOTNET_ROOT and avoid conflicts
+                if (dotNetRoot != null && key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                {
+                    environmentVariables[key] = string.Empty;
+                }
+                else
+                {
+                    environmentVariables[key] = value ?? string.Empty;
+                }
             }
 
+            // Set our DOTNET_ROOT
             if (dotNetRoot != null)
             {
-                // Clear DOTNET_ROOT* variables such as DOTNET_ROOT_X64 before setting our own DOTNET_ROOT.
-                foreach (var key in environmentVariables.Keys.ToArray())
-                {
-                    if (key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        environmentVariables[key] = string.Empty;
-                    }
-                }
-
                 logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName] = dotNetRoot;
             }
@@ -626,9 +632,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 IntPtr environmentBlockPtr = IntPtr.Zero;
                 try
                 {
-                    environmentBlockPtr = CreateEnvironmentBlock(environmentVariables);
-                    // When passing a Unicode environment block, we must set the CREATE_UNICODE_ENVIRONMENT flag
-                    dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
+                    if (environmentVariables != null)
+                    {
+                        environmentBlockPtr = CreateEnvironmentBlock(environmentVariables);
+                        // When passing a Unicode environment block, we must set the CREATE_UNICODE_ENVIRONMENT flag
+                        dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
+                    }
 
                     bool success = CreateProcess(
                         lpApplicationName: null,
@@ -667,20 +676,27 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 try
                 {
-                    var startInfo = new ProcessStartInfo();
-                    startInfo.FileName = serverInfo.processFilePath;
-                    startInfo.Arguments = serverInfo.commandLineArguments;
-                    startInfo.UseShellExecute = false;
-                    startInfo.WorkingDirectory = clientDirectory;
-                    startInfo.RedirectStandardInput = true;
-                    startInfo.RedirectStandardOutput = true;
-                    startInfo.RedirectStandardError = true;
-                    startInfo.CreateNoWindow = true;
-
-                    startInfo.EnvironmentVariables.Clear();
-                    foreach (var kvp in environmentVariables)
+                    var startInfo = new ProcessStartInfo()
                     {
-                        startInfo.EnvironmentVariables[kvp.Key] = kvp.Value;
+                        FileName = serverInfo.processFilePath,
+                        Arguments = serverInfo.commandLineArguments,
+                        UseShellExecute = false,
+                        WorkingDirectory = clientDirectory,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    // Set environment variables directly on ProcessStartInfo
+                    if (environmentVariables != null)
+                    {
+                        // Replace the inherited process environment with the caller-provided snapshot.
+                        startInfo.EnvironmentVariables.Clear();
+                        foreach (var kvp in environmentVariables)
+                        {
+                            startInfo.EnvironmentVariables[kvp.Key] = kvp.Value;
+                        }
                     }
 
                     if (Process.Start(startInfo) is { } process)

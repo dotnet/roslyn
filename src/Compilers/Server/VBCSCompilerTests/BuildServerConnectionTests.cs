@@ -275,6 +275,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 name => environment.TryGetValue(name, out var value) ? value : null,
                 [new KeyValuePair<string, string?>("TASK_ONLY_VARIABLE", "task-value")]);
 
+            Assert.NotNull(result);
             Assert.Equal("task-value", result["TASK_ONLY_VARIABLE"]);
             Assert.False(result.ContainsKey(processOnlyKey));
         }
