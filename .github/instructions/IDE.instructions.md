@@ -101,3 +101,29 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`
 - **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
+
+## LSP Protocol Layer (`src/LanguageServer/Protocol/`)
+
+### Union Types (SumType)
+LSP TypeScript union types (`A | B`) are represented in C# using `SumType<A, B>`. When a union type has a canonical name in the spec, mirror it with a C# 12 `global using` type alias:
+
+```csharp
+// TextDocumentContentChangeEvent.cs — mirrors the LSP spec's:
+// export type TextDocumentContentChangeEvent = TextDocumentContentChangePartial | TextDocumentContentChangeWholeDocument;
+global using TextDocumentContentChangeEvent =
+    Roslyn.LanguageServer.Protocol.SumType<
+        Roslyn.LanguageServer.Protocol.TextDocumentContentChangePartial,
+        Roslyn.LanguageServer.Protocol.TextDocumentContentChangeWholeDocument>;
+```
+
+Place the alias file at `src/LanguageServer/Protocol/Protocol/<TypeName>.cs`. Each project that uses the alias needs its own `global using` file (aliases are project-scoped, not namespace-scoped).
+
+### Discriminating SumType at runtime
+Use `Value is` pattern matching to switch on the concrete type:
+```csharp
+if (change.Value is TextDocumentContentChangeWholeDocument wholeDoc) { ... }
+var partial = (TextDocumentContentChangePartial)change.Value!;
+```
+
+### Deserialization discrimination between two object types
+When two object types share no `kind` discriminator, put `[JsonRequired]` on the property that is only present in one variant (`TextDocumentContentChangePartial.Range`). The `SumConverter` tries each type in order and moves to the next if deserialization throws, so list the stricter type first in the `SumType<>` parameters.
