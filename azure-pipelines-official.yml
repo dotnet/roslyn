@@ -59,17 +59,17 @@ variables:
     value: true
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
-  # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
+  # DevDiv drop access token is acquired via WIF service connection (dnceng-devdiv-drop-rw-code-rw-wif)
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
   - group: DotNet-Versions-Publish
-  - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
+  # Populated at runtime by the 'Get DevDiv Drop Access Token' AzureCLI@2 step
+  # (WIF service connection dnceng-devdiv-drop-rw-code-rw-wif). See dotnet/roslyn#83726.
   - name: _DevDivDropAccessToken
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
+    value: ''
   - name: ArtifactServices.Drop.PAT
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
-  - group: DotNet-Roslyn-Insertion-Variables
+    value: ''
   - group: AzureDevOps-Artifact-Feeds-Pats
 
   - name: BuildConfiguration
@@ -162,24 +162,34 @@ extends:
                   artifactType: container
                   sbomEnabled: false
 
-                - output: nuget
-                  displayName: 'Publish CoreXT Packages'
-                  packageParentPath: '$(Build.ArtifactStagingDirectory)'
-                  packagesToPush: $(Build.ArtifactStagingDirectory)/packages/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg
-                  allowPackageConflicts: true
-                  nuGetFeedType: external
-                  publishFeedCredentials: 'DevDiv - VS package feed'
-                  condition: succeeded()
-
             steps:
               - task: NuGetToolInstaller@1
                 displayName: 'Use NuGet 6.2.4'
                 inputs:
                   versionSpec: 6.2.4
 
+              # Authenticate to azure-public/vs-impl feed via WIF service connection
               - task: NuGetAuthenticate@1
                 inputs:
-                  nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
+                  azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+                  feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json
+
+              # Authenticate to azure-public/vssdk feed via WIF service connection
+              - task: NuGetAuthenticate@1
+                inputs:
+                  azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+                  feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json
+
+              # Authenticate to DevDiv feeds (still using PAT-based service connections)
+              - task: NuGetAuthenticate@1
+                inputs:
+                  nuGetServiceConnections: devdiv/engineering, devdiv/dotnet-core-internal-tooling
+
+              # Authenticate to DevDiv VS (CoreXT) feed via WIF service connection
+              - task: NuGetAuthenticate@1
+                inputs:
+                  azureDevOpsServiceConnection: dnceng-devdiv-vs-feed-push
+                  feedUrl: https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json
 
               - task: NuGetCommand@2
                 inputs:
@@ -280,6 +290,29 @@ extends:
                   FlattenFolders: true
                 condition: succeeded()
 
+              # Publish insertion packages to CoreXT store (DevDiv/VS feed)
+              # Uses ambient credentials from NuGetAuthenticate@1 above
+              - task: PowerShell@2
+                displayName: 'Publish CoreXT Packages'
+                condition: succeeded()
+                inputs:
+                  targetType: inline
+                  script: |
+                    $feedUrl = "https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json"
+                    $packages = Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)\packages" -Recurse -Filter "*.nupkg" | Where-Object { $_.Name -notlike "*.symbols.nupkg" }
+                    Write-Host "Found $($packages.Count) packages to push"
+                    foreach ($pkg in $packages) {
+                      Write-Host "Pushing $($pkg.Name)..."
+                      # Use nuget.exe (6.2.4 from NuGetToolInstaller@1) rather than 'dotnet nuget push':
+                      # global.json pins the .NET SDK to 2.1.526, whose 'dotnet nuget push' does not support --skip-duplicate.
+                      & nuget.exe push $pkg.FullName -Source $feedUrl -ApiKey AzureDevOps -SkipDuplicate -NonInteractive
+                      if ($LASTEXITCODE -ne 0) {
+                        Write-Error "Failed to push $($pkg.Name)"
+                        exit 1
+                      }
+                    }
+                    Write-Host "Successfully pushed $($packages.Count) packages"
+
               - task: CopyFiles@2
                 displayName: 'Collect "vsman" from $(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)'
                 inputs:
@@ -297,6 +330,26 @@ extends:
                   TargetFolder: '$(Build.ArtifactStagingDirectory)\insertion'
                   FlattenFolders: true
                 condition: succeeded()
+
+              # Acquire an Entra token for the DevDiv drop via the WIF service connection
+              # (cross-account: dnceng -> devdiv). Done immediately before the upload so the
+              # token does not expire during the long build/sign steps. See dotnet/roslyn#83726.
+              # The --resource GUID (499b84ac-1321-427f-aa17-267ca6975798) is the Azure DevOps app ID.
+              - task: AzureCLI@2
+                displayName: 'Get DevDiv Drop Access Token'
+                condition: and(succeeded(), eq(variables['SignType'], 'Real'))
+                inputs:
+                  azureSubscription: 'dnceng-devdiv-drop-rw-code-rw-wif'
+                  scriptType: pscore
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+                    if ($LASTEXITCODE -ne 0) {
+                      Write-Error "Failed to acquire DevDiv drop access token"
+                      exit 1
+                    }
+                    Write-Host "##vso[task.setvariable variable=_DevDivDropAccessToken;issecret=true]$token"
+                    Write-Host "##vso[task.setvariable variable=ArtifactServices.Drop.PAT;issecret=true]$token"
 
               - task: 1ES.MicroBuildVstsDrop@1
                 displayName: "Upload artifacts to VSTS Drop"
