@@ -17,6 +17,9 @@ namespace IdeCoreBenchmarks
 {
     internal class Program
     {
+        private const string GlobalPropertiesToRemoveFromProjectReferencesEnvVariableName = "_GlobalPropertiesToRemoveFromProjectReferences";
+        private const string BenchmarkDotNetOutputProperties = "ArtifactsPath;OutDir;OutputPath;PublishDir";
+
         private class IgnoreReleaseOnly : ManualConfig
         {
             public IgnoreReleaseOnly()
@@ -37,10 +40,25 @@ namespace IdeCoreBenchmarks
             return Path.Combine(Path.GetDirectoryName(sourceFilePath), @"..\..\..");
         }
 
-        private static void Main(string[] args)
+        private static int Main(string[] args)
         {
             Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
-            new BenchmarkSwitcher(typeof(Program).Assembly).Run(args);
+            // BenchmarkDotNet passes its runner output paths as global properties. Prevent them from
+            // flowing into Roslyn's project graph.
+            var existingProperties = Environment.GetEnvironmentVariable(GlobalPropertiesToRemoveFromProjectReferencesEnvVariableName);
+            var propertiesToRemove = string.IsNullOrEmpty(existingProperties)
+                ? BenchmarkDotNetOutputProperties
+                : $"{existingProperties};{BenchmarkDotNetOutputProperties}";
+            Environment.SetEnvironmentVariable(
+                GlobalPropertiesToRemoveFromProjectReferencesEnvVariableName,
+                propertiesToRemove);
+
+            var summaries = new BenchmarkSwitcher(typeof(Program).Assembly).Run(args);
+            return summaries.Any(summary =>
+                summary.HasCriticalValidationErrors ||
+                summary.Reports.Any(report => !report.BuildResult.IsBuildSuccess || !report.AllMeasurements.Any()))
+                ? 1
+                : 0;
         }
     }
 }
