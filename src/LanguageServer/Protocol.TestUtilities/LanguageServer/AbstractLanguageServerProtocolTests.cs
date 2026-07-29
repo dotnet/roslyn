@@ -537,7 +537,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         ImmutableArray<(LSP.Range Range, string Text)> changes,
         int version = 0)
     {
-        var changeEvents = changes.Select(change => new LSP.TextDocumentContentChangeEvent
+        var changeEvents = changes.Select(change => (LSP.SumType<LSP.TextDocumentContentChangePartial, LSP.TextDocumentContentChangeWholeDocument>)new LSP.TextDocumentContentChangePartial
         {
             Text = change.Text,
             Range = change.Range,

@@ -494,9 +494,9 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
         }
     }
 
-    private LSP.TextDocumentContentChangeEvent CreateTextDocumentContentChangeEvent(int startLine, int startCol, int endLine, int endCol, string newText)
+    private LSP.TextDocumentContentChangePartial CreateTextDocumentContentChangeEvent(int startLine, int startCol, int endLine, int endCol, string newText)
     {
-        return new LSP.TextDocumentContentChangeEvent()
+        return new LSP.TextDocumentContentChangePartial()
         {
             Range = new LSP.Range()
             {
@@ -507,9 +507,9 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
         };
     }
 
-    private static LSP.TextDocumentContentChangeEvent CreateFullDocumentContentChangeEvent(string newText)
+    private static LSP.TextDocumentContentChangeWholeDocument CreateFullDocumentContentChangeEvent(string newText)
     {
-        return new LSP.TextDocumentContentChangeEvent()
+        return new LSP.TextDocumentContentChangeWholeDocument()
         {
             Text = newText
         };
@@ -518,9 +518,9 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
     [Fact]
     public void DidChange_AreChangesInReverseOrder_True()
     {
-        LSP.TextDocumentContentChangeEvent change1 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 7, endLine: 0, endCol: 9, newText: "test3");
-        LSP.TextDocumentContentChangeEvent change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 5, endLine: 0, endCol: 7, newText: "test2");
-        LSP.TextDocumentContentChangeEvent change3 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 1, endLine: 0, endCol: 3, newText: "test1");
+        LSP.TextDocumentContentChangePartial change1 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 7, endLine: 0, endCol: 9, newText: "test3");
+        LSP.TextDocumentContentChangePartial change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 5, endLine: 0, endCol: 7, newText: "test2");
+        LSP.TextDocumentContentChangePartial change3 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 1, endLine: 0, endCol: 3, newText: "test1");
 
         Assert.True(DidChangeHandler.AreChangesInReverseOrder([change1, change2, change3]));
     }
@@ -528,9 +528,9 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
     [Fact]
     public void DidChange_AreChangesInReverseOrder_InForwardOrder()
     {
-        LSP.TextDocumentContentChangeEvent change1 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 1, endLine: 0, endCol: 3, newText: "test1");
-        LSP.TextDocumentContentChangeEvent change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 5, endLine: 0, endCol: 7, newText: "test2");
-        LSP.TextDocumentContentChangeEvent change3 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 7, endLine: 0, endCol: 9, newText: "test3");
+        LSP.TextDocumentContentChangePartial change1 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 1, endLine: 0, endCol: 3, newText: "test1");
+        LSP.TextDocumentContentChangePartial change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 5, endLine: 0, endCol: 7, newText: "test2");
+        LSP.TextDocumentContentChangePartial change3 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 7, endLine: 0, endCol: 9, newText: "test3");
 
         Assert.False(DidChangeHandler.AreChangesInReverseOrder([change1, change2, change3]));
     }
@@ -538,9 +538,9 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
     [Fact]
     public void DidChange_AreChangesInReverseOrder_Overlapping()
     {
-        LSP.TextDocumentContentChangeEvent change1 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 1, endLine: 0, endCol: 3, newText: "test1");
-        LSP.TextDocumentContentChangeEvent change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 2, endLine: 0, endCol: 4, newText: "test2");
-        LSP.TextDocumentContentChangeEvent change3 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 3, endLine: 0, endCol: 5, newText: "test3");
+        LSP.TextDocumentContentChangePartial change1 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 1, endLine: 0, endCol: 3, newText: "test1");
+        LSP.TextDocumentContentChangePartial change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 2, endLine: 0, endCol: 4, newText: "test2");
+        LSP.TextDocumentContentChangePartial change3 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 3, endLine: 0, endCol: 5, newText: "test3");
 
         Assert.False(DidChangeHandler.AreChangesInReverseOrder([change1, change2, change3]));
     }
@@ -549,8 +549,8 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
     [WorkItem("https://github.com/dotnet/roslyn/issues/84679")]
     public void DidChange_AreChangesInReverseOrder_FullDocumentReplacement()
     {
-        LSP.TextDocumentContentChangeEvent change1 = CreateFullDocumentContentChangeEvent("replacement");
-        LSP.TextDocumentContentChangeEvent change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 0, endLine: 0, endCol: 0, newText: "suffix");
+        LSP.TextDocumentContentChangeWholeDocument change1 = CreateFullDocumentContentChangeEvent("replacement");
+        LSP.TextDocumentContentChangePartial change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 0, endLine: 0, endCol: 0, newText: "suffix");
 
         Assert.False(DidChangeHandler.AreChangesInReverseOrder([change1, change2]));
     }
@@ -635,7 +635,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
     private static Task DidChange(TestLspServer testLspServer, DocumentUri uri, params (int line, int column, string text)[] changes)
         => DidChange(testLspServer, uri, version: 0, changes);
 
-    private static async Task DidChange(TestLspServer testLspServer, DocumentUri uri, int version, params LSP.TextDocumentContentChangeEvent[] changes)
+    private static async Task DidChange(TestLspServer testLspServer, DocumentUri uri, int version, params LSP.SumType<LSP.TextDocumentContentChangePartial, LSP.TextDocumentContentChangeWholeDocument>[] changes)
     {
         await testLspServer.ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(
             LSP.Methods.TextDocumentDidChangeName,
@@ -651,7 +651,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             CancellationToken.None);
     }
 
-    private static Task DidChange(TestLspServer testLspServer, DocumentUri uri, params LSP.TextDocumentContentChangeEvent[] changes)
+    private static Task DidChange(TestLspServer testLspServer, DocumentUri uri, params LSP.SumType<LSP.TextDocumentContentChangePartial, LSP.TextDocumentContentChangeWholeDocument>[] changes)
         => DidChange(testLspServer, uri, version: 0, changes);
 
     private static async Task DidClose(TestLspServer testLspServer, DocumentUri uri) => await testLspServer.CloseDocumentAsync(uri);

@@ -39,13 +39,13 @@ internal sealed class DidChangeTextDocumentParams : ITextDocumentParams
     /// <list type="bullet">
     /// <item>Start with the same initial content</item>
     /// <item>Apply the 'textDocument/didChange' notifications in the order you receive them.</item>
-    /// <item>Apply the `TextDocumentContentChangeEvent`s in a single notification in the order you receive them.</item>
+    /// <item>Apply the content changes in a single notification in the order you receive them.</item>
     /// </list>
     /// </para>
     /// </summary>
     [JsonPropertyName("contentChanges")]
     [JsonRequired]
-    public TextDocumentContentChangeEvent[] ContentChanges
+    public SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>[] ContentChanges
     {
         get;
         set;

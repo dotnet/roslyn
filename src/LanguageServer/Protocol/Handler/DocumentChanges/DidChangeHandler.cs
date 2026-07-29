@@ -36,14 +36,14 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
         return null;
     }
 
-    internal static bool AreChangesInReverseOrder(TextDocumentContentChangeEvent[] contentChanges)
+    internal static bool AreChangesInReverseOrder(SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>[] contentChanges)
         => AreChangesInReverseOrder(contentChanges, startIndex: 0);
 
-    private static bool AreChangesInReverseOrder(TextDocumentContentChangeEvent[] contentChanges, int startIndex)
+    private static bool AreChangesInReverseOrder(SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>[] contentChanges, int startIndex)
     {
         for (var i = startIndex; i < contentChanges.Length; i++)
         {
-            if (contentChanges[i].Range is null)
+            if (contentChanges[i].Value is not TextDocumentContentChangePartial)
             {
                 return false;
             }
@@ -51,11 +51,11 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
 
         for (var i = startIndex + 1; i < contentChanges.Length; i++)
         {
-            // The first loop verified that contentChanges[startIndex..] all have non-null ranges.
-            var prevChange = contentChanges[i - 1];
-            var curChange = contentChanges[i];
+            // The first loop verified that contentChanges[startIndex..] all contain TextDocumentContentChangePartial.
+            var prevChange = (TextDocumentContentChangePartial)contentChanges[i - 1].Value!;
+            var curChange = (TextDocumentContentChangePartial)contentChanges[i].Value!;
 
-            if (prevChange.Range!.Start.CompareTo(curChange.Range!.End) < 0)
+            if (prevChange.Range.Start.CompareTo(curChange.Range.End) < 0)
             {
                 return false;
             }
@@ -64,15 +64,15 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
         return true;
     }
 
-    private static SourceText GetUpdatedSourceText(TextDocumentContentChangeEvent[] contentChanges, SourceText text)
+    private static SourceText GetUpdatedSourceText(SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>[] contentChanges, SourceText text)
     {
         var firstRangedChangeIndex = 0;
 
         for (var i = contentChanges.Length - 1; i >= 0; i--)
         {
-            if (contentChanges[i].Range is null)
+            if (contentChanges[i].Value is TextDocumentContentChangeWholeDocument wholeDocChange)
             {
-                text = text.WithChanges(new TextChange(new TextSpan(0, text.Length), contentChanges[i].Text));
+                text = text.WithChanges(new TextChange(new TextSpan(0, text.Length), wholeDocChange.Text));
                 firstRangedChangeIndex = i + 1;
                 break;
             }
@@ -100,7 +100,7 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
             var newChanges = new TextChange[contentChanges.Length - firstRangedChangeIndex];
             for (var i = contentChanges.Length - 1; i >= firstRangedChangeIndex; i--)
             {
-                newChanges[contentChanges.Length - 1 - i] = ProtocolConversions.ContentChangeEventToTextChange(contentChanges[i], text);
+                newChanges[contentChanges.Length - 1 - i] = ProtocolConversions.ContentChangeEventToTextChange((TextDocumentContentChangePartial)contentChanges[i].Value!, text);
             }
 
             text = text.WithChanges(newChanges);
@@ -110,7 +110,7 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
             // The host didn't send us the items ordered, so we'll apply each one independently.
             for (var i = firstRangedChangeIndex; i < contentChanges.Length; i++)
             {
-                var change = contentChanges[i];
+                var change = (TextDocumentContentChangePartial)contentChanges[i].Value!;
                 text = text.WithChanges(ProtocolConversions.ContentChangeEventToTextChange(change, text));
             }
         }
