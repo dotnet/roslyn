@@ -2240,7 +2240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return lazyUnionData._lazyMemberProviderInterfaceAllInterfaces;
 
             // Produce all implemented interfaces in topologically sorted order.
-            ImmutableArray<NamedTypeSymbol> makeAllInterfaces(NamedTypeSymbol memberProviderInterface)
+            static ImmutableArray<NamedTypeSymbol> makeAllInterfaces(NamedTypeSymbol memberProviderInterface)
             {
                 var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
                 var visited = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
