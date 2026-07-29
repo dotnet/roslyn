@@ -589,11 +589,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessors. Remove one of them.
                 diagnostics.Add(ErrorCode.ERR_InvalidPropertyReadOnlyMods, location, _property);
             }
-            else if ((HasUnsafeModifier || HasSafeModifier) && (_property.HasUnsafeModifier || _property.HasSafeModifier))
-            {
-                // Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessors. Remove one of them.
-                diagnostics.Add(ErrorCode.ERR_InvalidPropertyUnsafeMods, location, _property);
-            }
             else if (LocalDeclaredReadOnly && IsStatic)
             {
                 // Static member '{0}' cannot be marked 'readonly'.
