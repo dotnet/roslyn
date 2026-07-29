@@ -188,7 +188,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(currentEnvironment);
 
-            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Logger.Log) is { } dotNetRoot)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr &&
+                RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, Logger.Log) is { } dotNetRoot)
             {
                 // Should have environment variables including DOTNET_ROOT
                 Assert.NotNull(envVars);
@@ -230,7 +231,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(testEnvironment);
 
-            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Logger.Log) != null)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr &&
+                RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, Logger.Log) != null)
             {
                 Assert.NotNull(envVars);
 
@@ -267,8 +269,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 processStartInfo,
                 name => processStartInfo.EnvironmentVariables.ContainsKey(name)
                     ? processStartInfo.EnvironmentVariables[name]
-                    : null,
-                static path => path);
+                    : null);
 
             Assert.Equal("task-value", result["TASK_ONLY_VARIABLE"]);
             Assert.False(result.ContainsKey(processOnlyKey));
@@ -283,8 +284,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var result = BuildServerConnection.GetServerProcessInfo(
                 clientDirectory,
                 "pipe",
-                name => name == RuntimeHostInfo.DotNetHostPathEnvironmentName ? dotNetPath : null,
-                static path => path);
+                name => name == RuntimeHostInfo.DotNetHostPathEnvironmentName ? dotNetPath : null);
 
             Assert.Equal(dotNetPath, result.processFilePath);
         }

@@ -106,17 +106,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public bool IsLogging => _loggingStream is object;
 
         /// <summary>
-        /// Static class initializer that initializes logging.
-        /// </summary>
-        public CompilerServerLogger(string identifier, string? loggingFilePath = null)
-            : this(identifier, loggingFilePath, Environment.GetEnvironmentVariable, static path => path)
-        {
-        }
-
-        /// <summary>
-        /// Overload that lets the caller supply the environment variable lookup and path absolutization.
-        /// This allows an MSBuild task to route both through its thread-safe execution environment
-        /// instead of process-global state
+        /// Initializes logging using the supplied environment variable lookup and path absolutization.
         /// </summary>
         /// <param name="getEnvironmentVariable">Reads the named environment variable.</param>
         /// <param name="makeAbsolutePath">

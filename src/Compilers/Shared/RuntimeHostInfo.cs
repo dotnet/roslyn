@@ -44,14 +44,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
         /// </summary>
-        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger) =>
-            GetToolDotNetRoot(GetDotNetPathOrDefault(), logger);
-
         internal static string? GetToolDotNetRoot(
             Func<string, string?> getEnvironmentVariable,
-            Func<string, string> getFullPath,
             Action<string, object[]>? logger) =>
-            GetToolDotNetRoot(GetDotNetPathOrDefault(getEnvironmentVariable, getFullPath), logger);
+            GetToolDotNetRoot(GetDotNetPathOrDefault(getEnvironmentVariable), logger);
 
         internal static string? GetToolDotNetRoot(string dotNetPath, Action<string, object[]>? logger)
         {
@@ -84,12 +80,7 @@ namespace Microsoft.CodeAnalysis
         /// in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
         /// this will return simply "dotnet".
         /// </summary>
-        internal static string GetDotNetPathOrDefault() =>
-            GetDotNetPathOrDefault(Environment.GetEnvironmentVariable, static path => path);
-
-        internal static string GetDotNetPathOrDefault(
-            Func<string, string?> getEnvironmentVariable,
-            Func<string, string> getFullPath)
+        internal static string GetDotNetPathOrDefault(Func<string, string?> getEnvironmentVariable)
         {
             if (getEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
             {
@@ -110,7 +101,12 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    var filePath = getFullPath(Path.Combine(item, fileName));
+                    if (!IsPathFullyQualified(item))
+                    {
+                        continue;
+                    }
+
+                    var filePath = Path.Combine(item, fileName);
                     if (File.Exists(filePath))
                     {
                         return filePath;
@@ -127,5 +123,26 @@ namespace Microsoft.CodeAnalysis
 
         internal static string GetDotNetExecCommandLine(string toolFilePath, string commandLineArguments) =>
             $@"exec ""{toolFilePath}"" {commandLineArguments}";
+
+        private static bool IsPathFullyQualified(string path)
+        {
+#if NET
+            return Path.IsPathFullyQualified(path);
+#else
+            if (!Path.IsPathRooted(path))
+            {
+                return false;
+            }
+
+            if (!PlatformInformation.IsWindows)
+            {
+                return true;
+            }
+
+            var root = Path.GetPathRoot(path);
+            // Return false for rooted but not fully qualified paths (root-relative "\foo" and drive-relative "C:foo").
+            return root is { Length: > 1 } && root[root.Length - 1] != Path.VolumeSeparatorChar;
+#endif
+        }
     }
 }

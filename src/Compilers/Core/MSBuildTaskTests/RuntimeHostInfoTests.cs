@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -52,7 +53,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
             new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
             new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
         ],
-        () => RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+        () => RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, _output.WriteLine));
 
         Assert.NotNull(result);
         AssertEx.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
@@ -67,7 +68,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
             new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
             new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
         ],
-        () => RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+        () => RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, _output.WriteLine));
 
         Assert.Null(result);
     }
@@ -91,7 +92,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
             new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
             new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
         ],
-        () => RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+        () => RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, _output.WriteLine));
 
         Assert.NotNull(result);
         AssertEx.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
@@ -107,16 +108,30 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
             projectDirectory.Path,
             new Dictionary<string, string>
             {
-                ["PATH"] = "bin",
+                ["PATH"] = binDirectory.Path,
                 [RuntimeHostInfo.DotNetHostPathEnvironmentName] = "",
                 [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
             });
 
-        var result = RuntimeHostInfo.GetDotNetPathOrDefault(
-            taskEnvironment.GetEnvironmentVariable,
-            path => taskEnvironment.GetAbsolutePath(path).Value);
+        var result = RuntimeHostInfo.GetDotNetPathOrDefault(taskEnvironment.GetEnvironmentVariable);
 
         Assert.Equal(dotNetPath, result);
+    }
+
+    [Fact]
+    public void DotNetInPath_SkipsRelativePaths()
+    {
+        var result = RuntimeHostInfo.GetDotNetPathOrDefault(name => name switch
+        {
+            "PATH" => PlatformInformation.IsWindows
+                ? @"relative;C:drive-relative;\root-relative"
+                : "relative",
+            RuntimeHostInfo.DotNetHostPathEnvironmentName => "",
+            RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName => "",
+            _ => null,
+        });
+
+        Assert.Equal($"dotnet{PlatformInformation.ExeExtension}", result);
     }
 }
 

@@ -169,9 +169,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 return UseAppHost
                     ? PathToBuiltInTool
-                    : RuntimeHostInfo.GetDotNetPathOrDefault(
-                        this.TaskEnvironment.GetEnvironmentVariable,
-                        path => this.TaskEnvironment.GetAbsolutePath(path).Value);
+                    : RuntimeHostInfo.GetDotNetPathOrDefault(this.TaskEnvironment.GetEnvironmentVariable);
             }
 
             return Path.Combine(ToolPath ?? "", ToolExe);
@@ -326,7 +324,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             if (IsBuiltinToolRunningOnCoreClr &&
                 RuntimeHostInfo.GetToolDotNetRoot(
                     this.TaskEnvironment.GetEnvironmentVariable,
-                    path => this.TaskEnvironment.GetAbsolutePath(path).Value,
                     Log.LogMessage) is { } dotNetRoot)
             {
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);

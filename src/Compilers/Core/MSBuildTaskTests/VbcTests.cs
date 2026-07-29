@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
             else
             {
-                AssertEx.Equal(RuntimeHostInfo.GetDotNetPathOrDefault(), vbc.GeneratePathToTool());
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetPathOrDefault(Environment.GetEnvironmentVariable), vbc.GeneratePathToTool());
                 AssertEx.Equal(RuntimeHostInfo.GetDotNetExecCommandLine(vbc.PathToBuiltInTool, ""), vbc.GenerateCommandLineContents());
             }
         }
