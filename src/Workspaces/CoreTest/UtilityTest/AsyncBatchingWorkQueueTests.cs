@@ -21,8 +21,7 @@ public sealed class AsyncBatchingWorkQueueTests
         var queue = new AsyncBatchingWorkQueue<int>(
             TimeSpan.FromSeconds(1),
             async (items, cancellationToken) => processed = true,
-            listener,
-            CancellationToken.None);
+            listener);
 
         queue.Dispose();
         queue.AddWork(1);
@@ -60,8 +59,7 @@ public sealed class AsyncBatchingWorkQueueTests
         var queue = new AsyncBatchingWorkQueue<int>(
             TimeSpan.FromDays(1),
             async (items, cancellationToken) => processed = true,
-            listener,
-            CancellationToken.None);
+            listener);
 
         // Queue up work, then dispose before the batch has had a chance to run.
         queue.AddWork(1);
@@ -98,8 +96,7 @@ public sealed class AsyncBatchingWorkQueueTests
         var queue = new AsyncBatchingWorkQueue<int>(
             TimeSpan.Zero,
             async (items, cancellationToken) => { },
-            AsynchronousOperationListenerProvider.NullListener,
-            CancellationToken.None);
+            AsynchronousOperationListenerProvider.NullListener);
 
         queue.Dispose();
         queue.Dispose();
@@ -135,8 +132,7 @@ public sealed class AsyncBatchingWorkQueueTests
         var queue = new AsyncBatchingWorkQueue<int>(
             TimeSpan.Zero,
             async (items, cancellationToken) => { },
-            AsynchronousOperationListenerProvider.NullListener,
-            CancellationToken.None);
+            AsynchronousOperationListenerProvider.NullListener);
 
         queue.Dispose();
         queue.CancelExistingWork();

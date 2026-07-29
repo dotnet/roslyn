@@ -113,7 +113,7 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
         Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
         IEqualityComparer<TItem>? equalityComparer,
         IAsynchronousOperationListener asyncListener,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         _delay = delay;
         _processBatchAsync = processBatchAsync;
