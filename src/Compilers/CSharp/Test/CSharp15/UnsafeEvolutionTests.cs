@@ -8261,6 +8261,23 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Accessors_ConflictingUnsafeSafeModifiers_Override()
+    {
+        CreateCompilation("""
+            class B
+            {
+                public virtual int P1 { get => 0; unsafe set { } }
+            }
+            class C : B
+            {
+                public override int P1 { unsafe set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
     public void Member_Property_Accessors_UnsafeKeyword_LangVersion()
     {
         var source = """
