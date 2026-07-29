@@ -399,10 +399,18 @@ build_property.Property2 = def456
 
             string projectDirectoryTarget = Path.Combine(resolvedProjectDirectory, relativeFileName);
 
-            // The file must be written relative to the project directory, not the process current directory.
-            Assert.True(File.Exists(projectDirectoryTarget));
-            Assert.False(File.Exists(currentDirectoryTarget));
-            Assert.Equal(configTask.ConfigFileContents, File.ReadAllText(projectDirectoryTarget));
+            try
+            {
+                // The file must be written relative to the project directory, not the process current directory.
+                Assert.True(File.Exists(projectDirectoryTarget));
+                Assert.False(File.Exists(currentDirectoryTarget));
+                Assert.Equal(configTask.ConfigFileContents, File.ReadAllText(projectDirectoryTarget));
+            }
+            finally
+            {
+                File.Delete(projectDirectoryTarget);
+                File.Delete(currentDirectoryTarget);
+            }
         }
 
         /// <summary>
