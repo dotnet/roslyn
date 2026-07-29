@@ -90,7 +90,7 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 ### Language Server Metadata Caching
 
 The Language Server overrides the default `IMetadataService` at
-`ServiceLayer.Host`. Its MEF `[Shared]` factory owns the bounded
+`ServiceLayer.Host`. Its MEF `[Shared]` factory owns the weak-value
 `SharedMetadataCache` in
 `src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/HostWorkspace/SharedMetadataCache.cs`.
 Language Server workspaces created from the same export provider share immutable
@@ -102,12 +102,14 @@ metadata service. Both implementations retain the existing per-workspace
 variants from an existing reference to avoid reloading metadata within one
 workspace.
 
-The shared cache has a capacity of 500 entries and retains at most one
-timestamped version per path and
-`MetadataImageKind`, does not cache failures or multi-module assemblies, and
-must not dispose evicted metadata because active references or compilations may
-still use it. Keep the per-workspace `MetadataReferenceCache` partitioned by
-image kind when changing this area. Cache tests live under
+The shared cache has no fixed capacity and retains at most one timestamped
+version per path and `MetadataImageKind`. Workspace references and compilations
+keep metadata alive while they use it; after those strong references disappear,
+the GC may collect the metadata. After every 500 successful additions or
+revivals, the cache removes dictionary entries whose weak targets are dead. It
+does not cache failures or multi-module assemblies. Keep the per-workspace
+`MetadataReferenceCache` partitioned by image kind when changing this area.
+Cache tests live under
 `src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/HostWorkspace`;
 the default reference-cache tests remain in
 `src/Workspaces/CoreTest/SolutionTests/MetadataServiceTests.cs`.
@@ -123,8 +125,8 @@ with an empty cache, fully loads the first solution, and then measures the
 second solution's opportunity to reuse that metadata.
 Set `ROSLYN_BENCHMARK_COLLECT_SHARED_METADATA_CACHE_STATISTICS=1` to report
 requests, hits, misses, successful and failed loads, concurrent duplicate loads,
-non-cacheable loads, timestamp changes, evictions, and current entries after
-each solution. Counter collection is otherwise disabled.
+non-cacheable loads, timestamp changes, dead-entry removals, and current entries
+after each solution. Counter collection is otherwise disabled.
 
 ## Coding Conventions
 

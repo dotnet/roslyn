@@ -23,6 +23,7 @@ public sealed class SharedMetadataCacheTests : TestBase
                 () => cache.GetMetadata(mscorlibPath, MetadataImageKind.Assembly))));
 
         Assert.All(metadata, item => Assert.Same(metadata[0], item));
+        Assert.NotEmpty(((AssemblyMetadata)metadata[0]).GetModules());
     }
 
     [Fact]
@@ -45,30 +46,26 @@ public sealed class SharedMetadataCacheTests : TestBase
     }
 
     [Fact]
-    public void EvictionDoesNotDisposeActiveMetadata()
+    public void CacheDoesNotKeepMetadataAlive()
     {
-        var cache = new SharedMetadataCache(capacity: 1);
-        var firstMetadata = (AssemblyMetadata)cache.GetMetadata(
-            typeof(object).Assembly.Location, MetadataImageKind.Assembly);
+        var cache = new SharedMetadataCache();
+        var metadataReference = ObjectReference.CreateFromFactory(
+            () => cache.GetMetadata(typeof(object).Assembly.Location, MetadataImageKind.Assembly));
 
-        _ = cache.GetMetadata(typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly);
-        var reloadedMetadata = cache.GetMetadata(
-            typeof(object).Assembly.Location, MetadataImageKind.Assembly);
-
-        Assert.NotSame(firstMetadata, reloadedMetadata);
-        Assert.NotEmpty(firstMetadata.GetModules());
+        metadataReference.AssertReleased();
     }
 
     [Fact]
-    public void StatisticsTrackHitsMissesAndEvictions()
+    public void DeadMetadataIsReloaded()
     {
-        var cache = new SharedMetadataCache(capacity: 1, collectStatistics: true);
-        var firstPath = typeof(object).Assembly.Location;
-        var secondPath = typeof(Enumerable).Assembly.Location;
+        var cache = new SharedMetadataCache(collectStatistics: true);
+        var path = typeof(object).Assembly.Location;
+        var metadataReference = ObjectReference.CreateFromFactory(
+            () => cache.GetMetadata(path, MetadataImageKind.Assembly));
+        metadataReference.AssertReleased();
 
-        _ = cache.GetMetadata(firstPath, MetadataImageKind.Assembly);
-        _ = cache.GetMetadata(firstPath, MetadataImageKind.Assembly);
-        _ = cache.GetMetadata(secondPath, MetadataImageKind.Assembly);
+        var reloadedMetadata = cache.GetMetadata(path, MetadataImageKind.Assembly);
+        Assert.Same(reloadedMetadata, cache.GetMetadata(path, MetadataImageKind.Assembly));
 
         Assert.Equal(
             new SharedMetadataCache.Statistics(
@@ -80,7 +77,48 @@ public sealed class SharedMetadataCacheTests : TestBase
                 DuplicateLoadCount: 0,
                 NonCacheableLoadCount: 0,
                 ChangedDuringLoadCount: 0,
-                EvictionCount: 1,
+                DeadEntryRemovalCount: 0,
+                EntryCount: 1),
+            cache.GetStatistics());
+        GC.KeepAlive(reloadedMetadata);
+    }
+
+    [Fact]
+    public void CleanupRemovesDeadEntries()
+    {
+        var cache = new SharedMetadataCache(cleanupThreshold: 2, collectStatistics: true);
+        var metadataReference = ObjectReference.CreateFromFactory(
+            () => cache.GetMetadata(typeof(object).Assembly.Location, MetadataImageKind.Assembly));
+        metadataReference.AssertReleased();
+
+        var liveMetadata = cache.GetMetadata(typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly);
+
+        Assert.Equal(1, cache.GetStatistics().DeadEntryRemovalCount);
+        Assert.Equal(1, cache.GetStatistics().EntryCount);
+        Assert.NotEmpty(((AssemblyMetadata)liveMetadata).GetModules());
+        GC.KeepAlive(liveMetadata);
+    }
+
+    [Fact]
+    public void StatisticsTrackHitsAndMisses()
+    {
+        var cache = new SharedMetadataCache(collectStatistics: true);
+        var path = typeof(object).Assembly.Location;
+
+        var metadata = cache.GetMetadata(path, MetadataImageKind.Assembly);
+        Assert.Same(metadata, cache.GetMetadata(path, MetadataImageKind.Assembly));
+
+        Assert.Equal(
+            new SharedMetadataCache.Statistics(
+                RequestCount: 2,
+                HitCount: 1,
+                MissCount: 1,
+                MetadataLoadCount: 1,
+                FailedLoadCount: 0,
+                DuplicateLoadCount: 0,
+                NonCacheableLoadCount: 0,
+                ChangedDuringLoadCount: 0,
+                DeadEntryRemovalCount: 0,
                 EntryCount: 1),
             cache.GetStatistics());
     }
@@ -88,7 +126,7 @@ public sealed class SharedMetadataCacheTests : TestBase
     [Fact]
     public void ChangedFileReplacesPreviousVersion()
     {
-        var cache = new SharedMetadataCache(capacity: 2);
+        var cache = new SharedMetadataCache();
         var path = Path.Combine(TempRoot.Root, Guid.NewGuid().ToString() + ".dll");
         var timestamp = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         File.Copy(typeof(object).Assembly.Location, path);

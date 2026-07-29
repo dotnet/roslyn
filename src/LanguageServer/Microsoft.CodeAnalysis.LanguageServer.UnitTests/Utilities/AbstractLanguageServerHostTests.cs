@@ -539,7 +539,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                     value.DuplicateLoadCount,
                     value.NonCacheableLoadCount,
                     value.ChangedDuringLoadCount,
-                    value.EvictionCount,
+                    value.DeadEntryRemovalCount,
                     value.EntryCount)
                 : null;
         }
@@ -578,7 +578,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             long DuplicateLoadCount,
             long NonCacheableLoadCount,
             long ChangedDuringLoadCount,
-            long EvictionCount,
+            long DeadEntryRemovalCount,
             int EntryCount);
 
         public async ValueTask DisposeAsync()

@@ -138,7 +138,7 @@ public class LanguageServerDaemonBenchmarks
                $"loads={statistics.MetadataLoadCount}, failedLoads={statistics.FailedLoadCount}, " +
                $"duplicateLoads={statistics.DuplicateLoadCount}, " +
                $"nonCacheable={statistics.NonCacheableLoadCount}, changedDuringLoad={statistics.ChangedDuringLoadCount}, " +
-               $"evictions={statistics.EvictionCount}, entries={statistics.EntryCount}";
+               $"deadEntryRemovals={statistics.DeadEntryRemovalCount}, entries={statistics.EntryCount}";
     }
 
     private async Task DisposeIterationAsync()

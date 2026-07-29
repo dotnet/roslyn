@@ -11,15 +11,15 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 /// <summary>
-/// A bounded cache of metadata shared by all workspaces created from the same host services.
+/// A weak cache of metadata shared by all workspaces created from the same host services.
 /// </summary>
-internal sealed class SharedMetadataCache(int capacity = 500, bool collectStatistics = false)
+internal sealed class SharedMetadataCache(int cleanupThreshold = 500, bool collectStatistics = false)
 {
     private readonly object _gate = new();
-    private readonly int _capacity = capacity > 0 ? capacity : throw new ArgumentOutOfRangeException(nameof(capacity));
+    private readonly int _cleanupThreshold = cleanupThreshold > 0 ? cleanupThreshold : throw new ArgumentOutOfRangeException(nameof(cleanupThreshold));
     private readonly bool _collectStatistics = collectStatistics;
-    private readonly Dictionary<CacheKey, CacheEntry> _metadataCache = new(capacity);
-    private readonly LinkedList<CacheKey> _lru = [];
+    private readonly Dictionary<CacheKey, CacheEntry> _metadataCache = [];
+    private int _addsSinceLastCleanup;
     private long _nextRequestId;
     private long _requestCount;
     private long _hitCount;
@@ -29,7 +29,7 @@ internal sealed class SharedMetadataCache(int capacity = 500, bool collectStatis
     private long _duplicateLoadCount;
     private long _nonCacheableLoadCount;
     private long _changedDuringLoadCount;
-    private long _evictionCount;
+    private long _deadEntryRemovalCount;
 
     public Metadata GetMetadata(string fullPath, MetadataImageKind kind)
     {
@@ -38,11 +38,12 @@ internal sealed class SharedMetadataCache(int capacity = 500, bool collectStatis
         var key = new CacheKey(fullPath, kind);
         lock (_gate)
         {
-            if (_metadataCache.TryGetValue(key, out var entry) && entry.Timestamp == timestamp)
+            if (_metadataCache.TryGetValue(key, out var entry) &&
+                entry.Timestamp == timestamp &&
+                entry.Metadata.TryGetTarget(out var cachedMetadata))
             {
                 RecordStatistic(ref _hitCount);
-                MoveToFront(entry.Node);
-                return entry.Metadata;
+                return cachedMetadata;
             }
         }
 
@@ -87,38 +88,29 @@ internal sealed class SharedMetadataCache(int capacity = 500, bool collectStatis
         {
             if (_metadataCache.TryGetValue(key, out var entry))
             {
-                if (entry.Timestamp == timestamp)
+                if (entry.Timestamp == timestamp && entry.Metadata.TryGetTarget(out var existingMetadata))
                 {
                     RecordStatistic(ref _duplicateLoadCount);
-                    metadata = entry.Metadata;
+                    metadata = existingMetadata;
                 }
                 else
                 {
                     if (entry.RequestId < requestId)
                     {
-                        entry.Metadata = newMetadata;
+                        entry.Metadata.SetTarget(newMetadata);
                         entry.Timestamp = timestamp;
                         entry.RequestId = requestId;
+                        CleanUpIfNeeded_NoLock();
                     }
 
                     metadata = newMetadata;
                 }
-
-                MoveToFront(entry.Node);
             }
             else
             {
-                if (_metadataCache.Count == _capacity)
-                {
-                    RecordStatistic(ref _evictionCount);
-                    var lastNode = _lru.Last!;
-                    _lru.RemoveLast();
-                    _metadataCache.Remove(lastNode.Value);
-                }
-
-                var node = _lru.AddFirst(key);
-                _metadataCache.Add(key, new CacheEntry(newMetadata, timestamp, requestId, node));
+                _metadataCache.Add(key, new CacheEntry(newMetadata, timestamp, requestId));
                 metadata = newMetadata;
+                CleanUpIfNeeded_NoLock();
             }
         }
 
@@ -141,7 +133,7 @@ internal sealed class SharedMetadataCache(int capacity = 500, bool collectStatis
                 DuplicateLoadCount: Volatile.Read(ref _duplicateLoadCount),
                 NonCacheableLoadCount: Volatile.Read(ref _nonCacheableLoadCount),
                 ChangedDuringLoadCount: Volatile.Read(ref _changedDuringLoadCount),
-                EvictionCount: Volatile.Read(ref _evictionCount),
+                DeadEntryRemovalCount: Volatile.Read(ref _deadEntryRemovalCount),
                 EntryCount: _metadataCache.Count);
         }
     }
@@ -150,6 +142,33 @@ internal sealed class SharedMetadataCache(int capacity = 500, bool collectStatis
     {
         if (_collectStatistics)
             Interlocked.Increment(ref statistic);
+    }
+
+    private void CleanUpIfNeeded_NoLock()
+    {
+        if (++_addsSinceLastCleanup < _cleanupThreshold)
+            return;
+
+        List<CacheKey>? deadKeys = null;
+        foreach (var (key, entry) in _metadataCache)
+        {
+            if (!entry.Metadata.TryGetTarget(out _))
+            {
+                deadKeys ??= [];
+                deadKeys.Add(key);
+            }
+        }
+
+        if (deadKeys is not null)
+        {
+            foreach (var key in deadKeys)
+                _metadataCache.Remove(key);
+
+            if (_collectStatistics)
+                Interlocked.Add(ref _deadEntryRemovalCount, deadKeys.Count);
+        }
+
+        _addsSinceLastCleanup = 0;
     }
 
     private static (Metadata metadata, bool cacheable) CreateMetadata(string fullPath, MetadataImageKind kind)
@@ -173,15 +192,6 @@ internal sealed class SharedMetadataCache(int capacity = 500, bool collectStatis
         {
             module.Dispose();
             throw;
-        }
-    }
-
-    private void MoveToFront(LinkedListNode<CacheKey> node)
-    {
-        if (!ReferenceEquals(_lru.First, node))
-        {
-            _lru.Remove(node);
-            _lru.AddFirst(node);
         }
     }
 
@@ -255,12 +265,11 @@ internal sealed class SharedMetadataCache(int capacity = 500, bool collectStatis
         }
     }
 
-    private sealed class CacheEntry(Metadata metadata, DateTime timestamp, long requestId, LinkedListNode<CacheKey> node)
+    private sealed class CacheEntry(Metadata metadata, DateTime timestamp, long requestId)
     {
-        public Metadata Metadata { get; set; } = metadata;
+        public WeakReference<Metadata> Metadata { get; } = new(metadata);
         public DateTime Timestamp { get; set; } = timestamp;
         public long RequestId { get; set; } = requestId;
-        public LinkedListNode<CacheKey> Node { get; } = node;
     }
 
     internal readonly record struct Statistics(
@@ -272,6 +281,6 @@ internal sealed class SharedMetadataCache(int capacity = 500, bool collectStatis
         long DuplicateLoadCount,
         long NonCacheableLoadCount,
         long ChangedDuringLoadCount,
-        long EvictionCount,
+        long DeadEntryRemovalCount,
         int EntryCount);
 }

@@ -53,7 +53,7 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
                 value.DuplicateLoadCount,
                 value.NonCacheableLoadCount,
                 value.ChangedDuringLoadCount,
-                value.EvictionCount,
+                value.DeadEntryRemovalCount,
                 value.EntryCount)
             : null;
     }
@@ -119,7 +119,7 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
         long DuplicateLoadCount,
         long NonCacheableLoadCount,
         long ChangedDuringLoadCount,
-        long EvictionCount,
+        long DeadEntryRemovalCount,
         int EntryCount)
     {
         internal MetadataCacheStatistics Subtract(MetadataCacheStatistics earlier)
@@ -132,7 +132,7 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
                 DuplicateLoadCount - earlier.DuplicateLoadCount,
                 NonCacheableLoadCount - earlier.NonCacheableLoadCount,
                 ChangedDuringLoadCount - earlier.ChangedDuringLoadCount,
-                EvictionCount - earlier.EvictionCount,
+                DeadEntryRemovalCount - earlier.DeadEntryRemovalCount,
                 EntryCount);
     }
 
