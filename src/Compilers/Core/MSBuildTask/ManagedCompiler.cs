@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private string? LibDirectoryToUse()
         {
-            // First check the real environment.
+            // First check the task environment.
             string? libDirectory = this.TaskEnvironment.GetEnvironmentVariable("LIB");
 
             // Now go through additional environment variables.
@@ -1230,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 var itemSpec = reference.ItemSpec;
 
-                if (string.IsNullOrEmpty(itemSpec) || !File.Exists(this.TaskEnvironment.GetAbsolutePath(itemSpec)))
+                if (string.IsNullOrEmpty(itemSpec) || !File.Exists(this.TaskEnvironment.GetAbsolutePath(itemSpec).Value))
                 {
                     success = false;
                     Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", itemSpec);
