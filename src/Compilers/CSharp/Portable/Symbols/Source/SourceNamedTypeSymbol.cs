@@ -1879,11 +1879,39 @@ next:;
         {
             base.AfterMembersChecks(diagnostics);
 
+            bool hasExplicitOrExtendedLayout = Layout.Kind == LayoutKind.Explicit || Layout.Kind == LayoutKind.Extended;
+            bool fieldsNeedSafeOrUnsafe = ContainingModule.UseUpdatedMemorySafetyRules && hasExplicitOrExtendedLayout;
+            var fields = GetFieldsToEmit();
+            foreach (var field in fields)
+            {
+                if (field is SourceMemberFieldSymbol { AssociatedSymbol: null, HasSafeModifier: true } sourceField &&
+                    (!hasExplicitOrExtendedLayout || field.IsStatic || field.IsConst || sourceField.HasUnsafeModifier))
+                {
+                    diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                        sourceField.ModifiersTokenList.GetModifierLocation(SyntaxKind.SafeKeyword, field.GetFirstLocation()));
+                }
+
+                if (fieldsNeedSafeOrUnsafe && !field.IsStatic && !field.IsConst && !fieldHasUnsafeOrSafeModifier(field))
+                {
+                    diagnostics.Add(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, field.GetFirstLocation());
+                }
+            }
+
             // Union type
             if (ShouldApplyUnionAttribute())
             {
                 _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor, diagnostics, GetFirstLocation());
             }
+
+            return;
+
+            static bool fieldHasUnsafeOrSafeModifier(FieldSymbol field) => field.AssociatedSymbol switch
+            {
+                SourcePropertySymbolBase prop => prop.HasUnsafeModifier || prop.HasSafeModifier,
+                SourceEventSymbol evt => evt.HasUnsafeModifier || evt.HasSafeModifier,
+                null => field is FieldSymbolWithAttributesAndModifiers fieldWithModifiers && (fieldWithModifiers.HasUnsafeModifier || fieldWithModifiers.HasSafeModifier),
+                _ => throw ExceptionUtilities.UnexpectedValue(field.AssociatedSymbol),
+            };
         }
 
         #endregion
@@ -2120,33 +2148,6 @@ next:;
                 }
             }
 
-            bool hasExplicitOrExtendedLayout = Layout.Kind == LayoutKind.Explicit || Layout.Kind == LayoutKind.Extended;
-            bool fieldsNeedSafeOrUnsafe = ContainingModule.UseUpdatedMemorySafetyRules && hasExplicitOrExtendedLayout;
-            var fields = GetFieldsToEmit();
-            foreach (var field in fields)
-            {
-                if (field is SourceMemberFieldSymbol { AssociatedSymbol: null, HasSafeModifier: true } sourceField &&
-                    (!hasExplicitOrExtendedLayout || field.IsStatic || field.IsConst || sourceField.HasUnsafeModifier))
-                {
-                    diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                        sourceField.ModifiersTokenList.GetModifierLocation(SyntaxKind.SafeKeyword, field.GetFirstLocation()));
-                }
-
-                if (fieldsNeedSafeOrUnsafe && !field.IsStatic && !field.IsConst && !fieldHasUnsafeOrSafeModifier(field))
-                {
-                    diagnostics.Add(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, field.GetFirstLocation());
-                }
-            }
-
-            return;
-
-            static bool fieldHasUnsafeOrSafeModifier(FieldSymbol field) => field.AssociatedSymbol switch
-            {
-                SourcePropertySymbolBase prop => prop.HasUnsafeModifier || prop.HasSafeModifier,
-                SourceEventSymbol evt => evt.HasUnsafeModifier || evt.HasSafeModifier,
-                null => field is FieldSymbolWithAttributesAndModifiers fieldWithModifiers && (fieldWithModifiers.HasUnsafeModifier || fieldWithModifiers.HasSafeModifier),
-                _ => throw ExceptionUtilities.UnexpectedValue(field.AssociatedSymbol),
-            };
         }
     }
 }
