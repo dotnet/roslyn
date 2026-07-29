@@ -231,7 +231,7 @@ public partial class MSBuildProjectLoader
                 // add all the extra options that are really behavior overrides
                 compilationOptions = commandLineArgs.CompilationOptions
                     .WithXmlReferenceResolver(new XmlFileResolver(projectDirectory))
-                    .WithSourceReferenceResolver(new SourceFileResolver([], projectDirectory))
+                    .WithSourceReferenceResolver(new SourceFileResolver([], projectDirectory, commandLineArgs.PathMap))
                     // TODO: https://github.com/dotnet/roslyn/issues/4967
                     .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver([], projectDirectory)))
                     .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths, Path.GetTempPath()))
