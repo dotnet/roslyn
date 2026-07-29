@@ -4015,6 +4015,45 @@ End Module
 </compilation>, useLatestFramework:=True, expectedOutput:="0 3 4 3 4 5 6 5 6 1001 1")
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84517")>
+        Public Sub BinaryConditional_AwaitInElseOperand_PreservesLiveLocals()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Sub Main()
+        DoStuffAsync().GetAwaiter().GetResult()
+    End Sub
+
+    Async Function DoStuffAsync() As Task
+        Dim a As Object = New Object()
+        Console.WriteLine($"Is a nothing: {a Is Nothing}")
+
+        Dim b As Object = If(GetNothingObj(), Await GetObjAsync())
+        Console.WriteLine($"Is b nothing: {b Is Nothing}")
+
+        Console.WriteLine($"Is a nothing: {a Is Nothing}")
+    End Function
+
+    Function GetNothingObj() As Object
+        Return Nothing
+    End Function
+
+    Async Function GetObjAsync() As Task(Of Object)
+        Await Task.Yield()
+        Return New Object()
+    End Function
+End Module
+    </file>
+</compilation>, useLatestFramework:=True,
+                expectedOutput:="Is a nothing: False" & Environment.NewLine &
+                                "Is b nothing: False" & Environment.NewLine &
+                                "Is a nothing: False" & Environment.NewLine)
+        End Sub
+
         <Fact()>
         Public Sub TypeOfExpression()
             CompileAndVerify(
@@ -13537,4 +13576,3 @@ End Class
         End Sub
     End Class
 End Namespace
-
