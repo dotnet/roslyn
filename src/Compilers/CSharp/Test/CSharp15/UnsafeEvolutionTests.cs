@@ -14971,4 +14971,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         // https://github.com/dotnet/roslyn/issues/82546: we should add and test an API to obtain memory safety rules version of the module
     }
+
+    [Theory, CombinatorialData]
+    public void PublicApi_RequiresUnsafe_VisualBasic(bool useMetadata)
+    {
+        var source = """
+            Public Class C
+                Public Sub M()
+                End Sub
+            End Class
+            """;
+
+        var sourceComp = CreateVisualBasicCompilation(source).VerifyDiagnostics();
+        var comp = useMetadata
+            ? CreateVisualBasicCompilation("", referencedAssemblies: [sourceComp.EmitToImageReference()])
+            : sourceComp;
+
+        comp.VerifyDiagnostics();
+        var method = comp.GetTypeByMetadataName("C")!.GetMember("M");
+        Assert.False(method.RequiresUnsafe);
+    }
 }
