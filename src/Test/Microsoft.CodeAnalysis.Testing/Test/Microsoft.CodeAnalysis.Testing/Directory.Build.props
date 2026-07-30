@@ -2,6 +2,7 @@
 <Project>
   <PropertyGroup>
     <NoWarn>$(NoWarn);NU5125;NU3005;CA2007;IDE0044;RS0016;RS0023;RS0030;RS0034;RS0038;RS1025;RS1026;VSTHRD200</NoWarn>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <!-- netcoreapp3.1 and net472 are not supported by the current Microsoft.NET.Test.Sdk, suppress the error. -->
     <SuppressTfmSupportBuildErrors>true</SuppressTfmSupportBuildErrors>
