@@ -72,6 +72,14 @@
     <DiffPlexVersion>1.7.2</DiffPlexVersion>
     <SystemFormatsAsn1Version>9.0.6</SystemFormatsAsn1Version>
     <SystemNetHttpVersion>4.3.4</SystemNetHttpVersion>
+
+    <!--
+      The Nullable NuGet package (v1.3.0) generates attribute types as 'internal'. Roslyn's
+      Features=strict requires that attribute types used on public API members be accessible to callers,
+      which causes CS0122 when building for net461/net472. Clear the strict feature to allow this pattern;
+      the testing library's public API surface is validated by the PublicAPI analyzer instead.
+    -->
+    <Features></Features>
   </PropertyGroup>
 
   <!-- We always want a good debugging experience in tests -->
