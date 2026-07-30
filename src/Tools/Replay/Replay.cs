@@ -131,15 +131,10 @@ static async Task<(TimeSpan BuildTime, TimeSpan TotalTime)> RunOneAsync(List<Com
 
     using var compilerServerLogger = new CompilerServerLogger(
         "replay",
-        Path.Combine(options.OutputDirectory, "server.log"),
-        Environment.GetEnvironmentVariable,
-        static path => path);
-    var environmentVariables = BuildServerConnection.CreateEnvironmentVariableSnapshot(Environment.GetEnvironmentVariables());
+        Path.Combine(options.OutputDirectory, "server.log"));
     if (!BuildServerConnection.TryCreateServer(
         options.ClientDirectory,
         options.PipeName,
-        Environment.GetEnvironmentVariable,
-        environmentVariables,
         compilerServerLogger,
         out int serverProcessId))
     {
@@ -160,7 +155,7 @@ static async Task<(TimeSpan BuildTime, TimeSpan TotalTime)> RunOneAsync(List<Com
 
     try
     {
-        await foreach (var buildData in BuildAllAsync(options, compilerCalls, environmentVariables, compilerServerLogger, CancellationToken.None).ConfigureAwait(false))
+        await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None).ConfigureAwait(false))
         {
             if (buildData.BuildResponse is not CompletedBuildResponse completedBuildResponse)
             {
@@ -201,7 +196,6 @@ static List<CompilerCall> ReadAllCompilerCalls(string binlogPath)
 static async IAsyncEnumerable<BuildData> BuildAllAsync(
     ReplayOptions options,
     List<CompilerCall> compilerCalls,
-    IReadOnlyList<KeyValuePair<string, string?>> environmentVariables,
     CompilerServerLogger compilerServerLogger,
     [EnumeratorCancellation] CancellationToken cancellationToken)
 {
@@ -216,7 +210,7 @@ static async IAsyncEnumerable<BuildData> BuildAllAsync(
         while (tasks.Count < maxParallel && index < compilerCalls.Count)
         {
             var compilerCall = compilerCalls[index];
-            tasks.Add(BuildAsync(options, compilerCall, GetOutputName(compilerCall), environmentVariables, compilerServerLogger, cancellationToken));
+            tasks.Add(BuildAsync(options, compilerCall, GetOutputName(compilerCall), compilerServerLogger, cancellationToken));
             index++;
         }
 
@@ -259,7 +253,6 @@ static async Task<BuildData> BuildAsync(
     ReplayOptions options,
     CompilerCall compilerCall,
     string outputName,
-    IReadOnlyList<KeyValuePair<string, string?>> environmentVariables,
     CompilerServerLogger compilerServerLogger,
     CancellationToken cancellationToken)
 {
@@ -280,8 +273,6 @@ static async Task<BuildData> BuildAsync(
         request,
         options.PipeName,
         options.ClientDirectory,
-        Environment.GetEnvironmentVariable,
-        environmentVariables,
         compilerServerLogger,
         cancellationToken).ConfigureAwait(false);
     return new BuildData(compilerCall, response);

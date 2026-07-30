@@ -509,8 +509,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             using var innerLogger = new CompilerServerLogger(
                 $"MSBuild {Process.GetCurrentProcess().Id}",
                 loggingFilePath: null,
-                this.TaskEnvironment.GetEnvironmentVariable,
-                path => this.TaskEnvironment.GetAbsolutePath(path).Value);
+                TaskEnvironment.GetEnvironmentVariable,
+                TaskEnvironment.GetFullPath);
             var logger = new TaskCompilerServerLogger(Log, innerLogger);
             return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
         }
@@ -559,8 +559,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var buildRequestArguments = GenerateCommandLineArgsList(responseFileCommands);
                 CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(
                     buildRequestArguments,
-                    logger.Log,
-                    this.TaskEnvironment.GetEnvironmentVariable);
+                    TaskEnvironment.GetEnvironmentVariable,
+                    logger.Log);
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     Language,
@@ -578,8 +578,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     buildRequest,
                     pipeName,
                     clientDirectory,
-                    this.TaskEnvironment.GetEnvironmentVariable,
-                    BuildServerConnection.CreateEnvironmentVariableSnapshot(this.TaskEnvironment.GetEnvironmentVariables()),
+                    TaskEnvironment.GetEnvironmentVariablesMap(),
                     logger,
                     _sharedCompileCts.Token);
 
@@ -642,7 +641,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string workingDirectory = GetWorkingDirectory();
             if (string.IsNullOrEmpty(workingDirectory))
             {
-                workingDirectory = this.TaskEnvironment.ProjectDirectory;
+                workingDirectory = TaskEnvironment.ProjectDirectory;
             }
             return workingDirectory;
         }
@@ -653,7 +652,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private string? LibDirectoryToUse()
         {
             // First check the task environment.
-            string? libDirectory = this.TaskEnvironment.GetEnvironmentVariable("LIB");
+            string? libDirectory = TaskEnvironment.GetEnvironmentVariable("LIB");
 
             // Now go through additional environment variables.
             string[] additionalVariables = EnvironmentVariables;
@@ -1230,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 var itemSpec = reference.ItemSpec;
 
-                if (string.IsNullOrEmpty(itemSpec) || !File.Exists(this.TaskEnvironment.GetAbsolutePath(itemSpec).Value))
+                if (string.IsNullOrEmpty(itemSpec) || !File.Exists(TaskEnvironment.GetAbsolutePath(itemSpec).Value))
                 {
                     success = false;
                     Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", itemSpec);

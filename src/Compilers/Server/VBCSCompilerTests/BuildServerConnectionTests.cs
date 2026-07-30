@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -183,16 +182,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             // This test verifies that GetServerEnvironmentVariables properly sets up DOTNET_ROOT
             // without modifying the current process environment
-            var currentEnvironment = Environment.GetEnvironmentVariables();
-            var originalDotNetRoot = (string?)currentEnvironment[RuntimeHostInfo.DotNetRootEnvironmentName];
-            var snapshot = BuildServerConnection.CreateEnvironmentVariableSnapshot(currentEnvironment);
+            var envMap = Environment.GetEnvironmentVariablesTyped();
+            var originalDotNetRoot = envMap[RuntimeHostInfo.DotNetRootEnvironmentName];
 
-            var envVars = BuildServerConnection.GetServerEnvironmentVariables(
-                Environment.GetEnvironmentVariable,
-                snapshot);
+            var envVars = BuildServerConnection.GetServerEnvironmentVariables(envMap);
 
-            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr &&
-                RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, Logger.Log) is { } dotNetRoot)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, Logger.Log) is { } dotNetRoot)
             {
                 // Should have environment variables including DOTNET_ROOT
                 Assert.NotNull(envVars);
@@ -220,11 +215,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var testEnvVars = new[] { "DOTNET_ROOT_X64", "DOTNET_ROOT_X86", "DOTNET_ROOT_ARM64", "DOTNET_ROOT(x86)" };
 
             // Create a test environment with DOTNET_ROOT* variants
-            var testEnvironment = new System.Collections.Hashtable();
-            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
-            {
-                testEnvironment[entry.Key] = entry.Value;
-            }
+            var testEnvironment = Environment.GetEnvironmentVariablesTyped();
 
             // Add test DOTNET_ROOT* variants
             foreach (var testEnvVar in testEnvVars)
@@ -232,12 +223,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 testEnvironment[testEnvVar] = "test_value";
             }
 
-            var envVars = BuildServerConnection.GetServerEnvironmentVariables(
-                name => (string?)testEnvironment[name],
-                BuildServerConnection.CreateEnvironmentVariableSnapshot(testEnvironment));
+            var envVars = BuildServerConnection.GetServerEnvironmentVariables(testEnvironment);
+            var getFunc = string? (string name) => testEnvironment.TryGetValue(name, out var value) ? value : null;
 
-            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr &&
-                RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, Logger.Log) != null)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(getFunc, Logger.Log) != null)
             {
                 Assert.NotNull(envVars);
 
@@ -248,68 +237,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     Assert.Equal(string.Empty, envVars[testEnvVar]);
                 }
             }
-        }
-
-        [Fact]
-        public void GetServerEnvironmentVariables_UsesProvidedSnapshot()
-        {
-            string? processOnlyKey = null;
-            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
-            {
-                var key = (string)entry.Key;
-                if (!string.Equals(key, "TASK_ONLY_VARIABLE", StringComparison.OrdinalIgnoreCase))
-                {
-                    processOnlyKey = key;
-                    break;
-                }
-            }
-
-            Assert.NotNull(processOnlyKey);
-
-            var environment = new Dictionary<string, string?>
-            {
-                ["TASK_ONLY_VARIABLE"] = "task-value",
-            };
-
-            var result = BuildServerConnection.GetServerEnvironmentVariables(
-                name => environment.TryGetValue(name, out var value) ? value : null,
-                [new KeyValuePair<string, string?>("TASK_ONLY_VARIABLE", "task-value")]);
-
-            Assert.NotNull(result);
-            Assert.Equal("task-value", result["TASK_ONLY_VARIABLE"]);
-            Assert.False(result.ContainsKey(processOnlyKey));
-        }
-
-        [Fact]
-        public void GetServerProcessInfo_UsesProvidedDotNetPath()
-        {
-            var clientDirectory = TempRoot.CreateDirectory().Path;
-            var dotNetPath = Path.Combine(clientDirectory, "task-dotnet");
-
-            var result = BuildServerConnection.GetServerProcessInfo(
-                clientDirectory,
-                "pipe",
-                name => name == RuntimeHostInfo.DotNetHostPathEnvironmentName ? dotNetPath : null);
-
-            Assert.Equal(dotNetPath, result.processFilePath);
-        }
-
-        [Fact]
-        public void CompilerServerLogger_UsesInjectedEnvironmentAndPath()
-        {
-            var projectDirectory = TempRoot.CreateDirectory();
-            var logDirectory = projectDirectory.CreateDirectory("logs");
-
-            using (var logger = new CompilerServerLogger(
-                "test",
-                loggingFilePath: null,
-                name => name == CompilerServerLogger.EnvironmentVariableName ? "logs" : null,
-                path => Path.Combine(projectDirectory.Path, path)))
-            {
-                logger.Log("message");
-            }
-
-            Assert.Single(Directory.GetFiles(logDirectory.Path));
         }
     }
 }

@@ -174,12 +174,27 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
+#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
         internal static Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
             string pipeName,
             string clientDirectory,
-            Func<string, string?> getEnvironmentVariable,
-            IReadOnlyList<KeyValuePair<string, string?>> environmentVariables,
+            ICompilerServerLogger logger,
+            CancellationToken cancellationToken) =>
+                RunServerBuildRequestAsync(
+                    buildRequest,
+                    pipeName,
+                    clientDirectory,
+                    Environment.GetEnvironmentVariablesTyped(),
+                    logger,
+                    cancellationToken);
+#endif
+
+        internal static Task<BuildResponse> RunServerBuildRequestAsync(
+            BuildRequest buildRequest,
+            string pipeName,
+            string clientDirectory,
+            IReadOnlyDictionary<string, string?> envMap,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken)
                 => RunServerBuildRequestAsync(
@@ -189,8 +204,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     tryCreateServerFunc: (pipeName, logger) => TryCreateServer(
                         clientDirectory,
                         pipeName,
-                        getEnvironmentVariable,
-                        environmentVariables,
+                        envMap,
                         logger,
                         out int _),
                     logger,
@@ -478,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         /// <param name="environmentVariables">Dictionary of environment variables to include</param>
         /// <returns>Pointer to environment block that must be freed with <see cref="Marshal.FreeHGlobal"/></returns>
-        private static IntPtr CreateEnvironmentBlock(Dictionary<string, string> environmentVariables)
+        private static IntPtr CreateEnvironmentBlock(IReadOnlyDictionary<string, string?> environmentVariables)
         {
             if (environmentVariables.Count == 0)
             {
@@ -502,50 +516,33 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return Marshal.StringToHGlobalUni(envBlock.ToString());
         }
 
-        internal static KeyValuePair<string, string?>[] CreateEnvironmentVariableSnapshot(System.Collections.IDictionary currentEnvironment)
-        {
-            var result = new KeyValuePair<string, string?>[currentEnvironment.Count];
-            var index = 0;
-            foreach (System.Collections.DictionaryEntry entry in currentEnvironment)
-            {
-                result[index++] = new KeyValuePair<string, string?>((string)entry.Key, (string?)entry.Value);
-            }
-
-            return result;
-        }
-
-        internal static KeyValuePair<string, string?>[] CreateEnvironmentVariableSnapshot(
-            IEnumerable<KeyValuePair<string, string>> currentEnvironment)
-        {
-            var result = new List<KeyValuePair<string, string?>>();
-            foreach (var entry in currentEnvironment)
-            {
-                result.Add(new KeyValuePair<string, string?>(entry.Key, entry.Value));
-            }
-
-            return result.ToArray();
-        }
+#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+        /// <summary>
+        /// Gets the environment variables that should be passed to the server process.
+        /// </summary>
+        internal static Dictionary<string, string?> GetServerEnvironmentVariables(ICompilerServerLogger? logger = null)
+            => GetServerEnvironmentVariables(Environment.GetEnvironmentVariablesTyped(), logger);
+#endif
 
         /// <summary>
         /// Gets the environment variables that should be passed to the server process.
         /// </summary>
-        /// <param name="currentEnvironment">Current environment variables to use as a base</param>
+        /// <param name="envMap">Current environment variables to use as a base</param>
         /// <param name="logger">Optional logger for logging environment variable setup</param>
         /// <returns>Dictionary of environment variables to set</returns>
-        internal static Dictionary<string, string>? GetServerEnvironmentVariables(
-            Func<string, string?> getEnvironmentVariable,
-            IReadOnlyList<KeyValuePair<string, string?>> currentEnvironment,
+        internal static Dictionary<string, string?> GetServerEnvironmentVariables(
+            IReadOnlyDictionary<string, string?> envMap,
             ICompilerServerLogger? logger = null)
         {
             var dotNetRoot = IsBuiltinToolRunningOnCoreClr
                 ? RuntimeHostInfo.GetToolDotNetRoot(
-                    getEnvironmentVariable,
+                    x => envMap.TryGetValue(x, out var value) ? value : null,
                     logger is null ? null : logger.Log)
                 : null;
 
             // Start with current environment
-            var environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var entry in currentEnvironment)
+            var environmentVariables = new Dictionary<string, string?>(Environment.EnvironmentVariableComparer);
+            foreach (var entry in envMap)
             {
                 var key = entry.Key;
                 var value = entry.Value;
@@ -579,6 +576,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return environmentVariables;
         }
 
+#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+        internal static bool TryCreateServer(
+            string clientDirectory,
+            string pipeName,
+            ICompilerServerLogger logger,
+            out int processId) => TryCreateServer(
+                clientDirectory,
+                pipeName,
+                Environment.GetEnvironmentVariablesTyped(),
+                logger,
+                out processId);
+#endif
+
         /// <summary>
         /// This will attempt to start a compiler server process using the executable inside the 
         /// directory <paramref name="clientDirectory"/>. This returns "true" if starting the 
@@ -588,8 +598,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static bool TryCreateServer(
             string clientDirectory,
             string pipeName,
-            Func<string, string?> getEnvironmentVariable,
-            IReadOnlyList<KeyValuePair<string, string?>> environmentVariablesSnapshot,
+            IReadOnlyDictionary<string, string?> envMap,
             ICompilerServerLogger logger,
             out int processId)
         {
@@ -597,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var serverInfo = GetServerProcessInfo(
                 clientDirectory,
                 pipeName,
-                getEnvironmentVariable);
+                x => envMap.TryGetValue(x, out var value) ? value : null);
 
             if (!File.Exists(serverInfo.processFilePath))
             {
@@ -606,12 +615,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
 
-            var environmentVariables = GetServerEnvironmentVariables(
-                getEnvironmentVariable,
-                environmentVariablesSnapshot,
-                logger);
-
-            if (PlatformInformation.IsWindows)
+            var environmentVariables = GetServerEnvironmentVariables(envMap, logger);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // As far as I can tell, there isn't a way to use the Process class to
                 // create a process with no stdin/stdout/stderr, so we use P/Invoke.

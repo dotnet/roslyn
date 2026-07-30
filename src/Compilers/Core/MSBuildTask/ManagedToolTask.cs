@@ -11,6 +11,7 @@ using System.Resources;
 using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -323,15 +324,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
             if (IsBuiltinToolRunningOnCoreClr &&
                 RuntimeHostInfo.GetToolDotNetRoot(
-                    this.TaskEnvironment.GetEnvironmentVariable,
+                    TaskEnvironment.GetEnvironmentVariable,
                     Log.LogMessage) is { } dotNetRoot)
             {
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 EnvironmentVariables =
                 [
-                    .. EnvironmentVariables?.Where(static e => !e.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase)) ?? [],
-                    .. this.TaskEnvironment.GetEnvironmentVariables()
-                        .Where(e => e.Key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                    .. EnvironmentVariables?.Where(static e => !e.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, Environment.EnvironmentVariableComparison)) ?? [],
+                    .. TaskEnvironment.GetEnvironmentVariablesMap()
+                        .Where(e => e.Key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, Environment.EnvironmentVariableComparison))
                         .Select(e => $"{e.Key}="),
                     $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}",
                 ];

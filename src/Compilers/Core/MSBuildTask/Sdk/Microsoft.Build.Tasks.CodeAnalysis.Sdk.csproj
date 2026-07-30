@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <TargetFramework>net472</TargetFramework>
-    <DefineConstants>$(DefineConstants);SDK_TASK;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
+    <DefineConstants>$(DefineConstants);SDK_TASK;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK;MICROSOFT_CODEANALYSIS_MSBUILD_TASK</DefineConstants>
 
     <!--
          This task is the same as the MSBuild version but for net472 only. Our NRT setup does 
@@ -20,9 +20,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <AdditionalFiles Include="..\BannedSymbols.MSBuildMT.txt" />
     <None Include="$(MSBuildThisFileDirectory)..\..\..\CSharp\csc\csc.rsp" CopyToOutputDirectory="PreserveNewest" />
     <None Include="$(MSBuildThisFileDirectory)..\..\..\VisualBasic\vbc\vbc.rsp" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

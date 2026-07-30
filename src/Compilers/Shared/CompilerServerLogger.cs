@@ -105,19 +105,26 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public bool IsLogging => _loggingStream is object;
 
+#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
         /// <summary>
         /// Initializes logging using the supplied environment variable lookup and path absolutization.
         /// </summary>
-        /// <param name="getEnvironmentVariable">Reads the named environment variable.</param>
-        /// <param name="makeAbsolutePath">
-        /// Resolves a (possibly relative) path to an absolute one before it is used for file system
-        /// access.
-        /// </param>
+        public CompilerServerLogger(
+            string identifier,
+            string? loggingFilePath)
+            : this(identifier, loggingFilePath, Environment.GetEnvironmentVariable, Path.GetFullPath)
+        {
+        }
+#endif
+
+        /// <summary>
+        /// Initializes logging using the supplied environment variable lookup and path absolutization.
+        /// </summary>
         public CompilerServerLogger(
             string identifier,
             string? loggingFilePath,
             Func<string, string?> getEnvironmentVariable,
-            Func<string, string> makeAbsolutePath)
+            Func<string, string> getFullPath)
         {
             _identifier = identifier;
 
@@ -128,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     loggingFilePath = getEnvironmentVariable(EnvironmentVariableName);
                     if (!string.IsNullOrEmpty(loggingFilePath))
                     {
-                        loggingFilePath = makeAbsolutePath(loggingFilePath);
+                        loggingFilePath = getFullPath(loggingFilePath);
 
                         // If the environment variable contains the path of a currently existing directory,
                         // then use a process-specific name for the log file and put it in that directory.

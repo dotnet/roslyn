@@ -75,11 +75,17 @@ namespace Microsoft.CodeAnalysis
             return directoryName;
         }
 
+#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+
         /// <summary>
         /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
         /// in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
         /// this will return simply "dotnet".
         /// </summary>
+        internal static string GetDotNetPathOrDefault() => GetDotNetPathOrDefault(Environment.GetEnvironmentVariable);
+
+#endif
+
         internal static string GetDotNetPathOrDefault(Func<string, string?> getEnvironmentVariable)
         {
             if (getEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
@@ -101,7 +107,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    if (!IsPathFullyQualified(item))
+                    if (!Path.IsPathRooted(item))
                     {
                         continue;
                     }
@@ -123,26 +129,5 @@ namespace Microsoft.CodeAnalysis
 
         internal static string GetDotNetExecCommandLine(string toolFilePath, string commandLineArguments) =>
             $@"exec ""{toolFilePath}"" {commandLineArguments}";
-
-        private static bool IsPathFullyQualified(string path)
-        {
-#if NET
-            return Path.IsPathFullyQualified(path);
-#else
-            if (!Path.IsPathRooted(path))
-            {
-                return false;
-            }
-
-            if (!PlatformInformation.IsWindows)
-            {
-                return true;
-            }
-
-            var root = Path.GetPathRoot(path);
-            // Return false for rooted but not fully qualified paths (root-relative "\foo" and drive-relative "C:foo").
-            return root is { Length: > 1 } && root[root.Length - 1] != Path.VolumeSeparatorChar;
-#endif
-        }
     }
 }

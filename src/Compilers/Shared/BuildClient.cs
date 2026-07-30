@@ -195,13 +195,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public static CompileOnServerFunc GetCompileOnServerFunc(ICompilerServerLogger logger) => (buildRequest, pipeName, cancellationToken) =>
         {
-            var environmentVariables = BuildServerConnection.CreateEnvironmentVariableSnapshot(Environment.GetEnvironmentVariables());
             return BuildServerConnection.RunServerBuildRequestAsync(
                 buildRequest,
                 pipeName,
                 GetClientDirectory(),
-                Environment.GetEnvironmentVariable,
-                environmentVariables,
+                Environment.GetEnvironmentVariablesTyped(),
                 logger,
                 cancellationToken);
         };
@@ -371,4 +369,5 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false).Skip(1);
         }
     }
+
 }

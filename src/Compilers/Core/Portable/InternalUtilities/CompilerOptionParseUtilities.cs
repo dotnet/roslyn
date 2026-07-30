@@ -37,13 +37,15 @@ namespace Roslyn.Utilities
             }
         }
 
+#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
         internal static void PrependFeatureFlagFromEnvironment(List<string> arguments, Action<string>? log = null) =>
-            PrependFeatureFlagFromEnvironment(arguments, log, Environment.GetEnvironmentVariable);
+            PrependFeatureFlagFromEnvironment(arguments, Environment.GetEnvironmentVariable, log);
+#endif
 
         internal static void PrependFeatureFlagFromEnvironment(
             List<string> arguments,
-            Action<string>? log,
-            Func<string, string?> getEnvironmentVariable)
+            Func<string, string?> getEnvironmentVariable,
+            Action<string>? log = null)
         {
             if (getEnvironmentVariable(CachePathEnvironmentVariable) is not { Length: > 0 } cachePath)
             {
