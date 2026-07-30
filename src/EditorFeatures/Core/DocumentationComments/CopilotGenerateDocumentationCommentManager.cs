@@ -107,7 +107,7 @@ internal sealed class CopilotGenerateDocumentationCommentManager
         // Apply the edit fire-and-forget: returning tears the session down (cancelling the token), so the write
         // must run afterward and not flow that token.
         var token = _asyncListener.BeginAsyncOperation(nameof(ApplyDocumentationEditsAsync));
-        _ = ApplyDocumentationEditsAsync(textView.TextBuffer, snapshot, edits).CompletesAsyncOperation(token);
+        _ = ApplyDocumentationEditsAsync(snapshot.TextBuffer, snapshot, edits).CompletesAsyncOperation(token);
     }
 
     private async Task ApplyDocumentationEditsAsync(ITextBuffer buffer, ITextSnapshot snapshot, ImmutableArray<DocumentationCommentEdit> edits)
