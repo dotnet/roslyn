@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
@@ -13,16 +12,16 @@ namespace Microsoft.CodeAnalysis.Testing
     {
         /// <inheritdoc cref="Debug.Assert(bool)"/>
         [Conditional("DEBUG")]
-        public static void Assert([DoesNotReturnIf(false)] bool b)
+        public static void Assert(bool b)
             => Debug.Assert(b);
 
         /// <inheritdoc cref="Debug.Assert(bool, string)"/>
         [Conditional("DEBUG")]
-        public static void Assert([DoesNotReturnIf(false)] bool b, string message)
+        public static void Assert(bool b, string message)
             => Debug.Assert(b, message);
 
         [Conditional("DEBUG")]
-        public static void AssertNotNull<T>([NotNull] T value)
+        public static void AssertNotNull<T>(T value)
             where T : class?
         {
             Assert(value is object, "Unexpected null reference");

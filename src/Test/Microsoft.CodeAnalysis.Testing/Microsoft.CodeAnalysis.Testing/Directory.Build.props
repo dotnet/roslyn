@@ -61,7 +61,7 @@
     <!--
       NU1701: Package 'name' was restored using 'moniker' instead of the project target framework 'moniker'. This package may not be fully compatible with your project.
     -->
-    <NoWarn>$(NoWarn);NU1701;NU3005;NU5125;CA1200;CA2007;CA2009</NoWarn>
+    <NoWarn>$(NoWarn);NU1701;NU3005;NU5125;CA1052;CA1200;CA2007;CA2009;IDE0044;RS0016;RS0023;RS0030;RS0034;RS0038;RS1025;RS1026;VSTHRD200</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

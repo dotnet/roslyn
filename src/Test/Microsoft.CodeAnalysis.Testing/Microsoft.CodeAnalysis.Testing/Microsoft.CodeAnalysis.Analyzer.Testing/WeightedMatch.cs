@@ -330,13 +330,13 @@ namespace Microsoft.CodeAnalysis.Testing
             /// </summary>
             public double Distance { get; }
 
-            public bool TryGetExpected([MaybeNullWhen(false)] out TExpected expected)
+            public bool TryGetExpected(out TExpected expected)
             {
                 expected = _expected;
                 return _hasExpected;
             }
 
-            public bool TryGetActual([MaybeNullWhen(false)] out TActual actual)
+            public bool TryGetActual(out TActual actual)
             {
                 actual = _actual;
                 return _hasActual;

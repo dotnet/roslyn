@@ -1,7 +1,7 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <PropertyGroup>
-    <NoWarn>$(NoWarn);NU5125;NU3005;CA2007</NoWarn>
+    <NoWarn>$(NoWarn);NU5125;NU3005;CA2007;IDE0044;RS0016;RS0023;RS0030;RS0034;RS0038;RS1025;RS1026;VSTHRD200</NoWarn>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <!-- netcoreapp3.1 and net472 are not supported by the current Microsoft.NET.Test.Sdk, suppress the error. -->
     <SuppressTfmSupportBuildErrors>true</SuppressTfmSupportBuildErrors>
@@ -15,11 +15,11 @@
   <PropertyGroup>
     <SupportsNet10Targeting>$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '18.0'))</SupportsNet10Targeting>
     <TestTargetFrameworks>netcoreapp3.1</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0</TestTargetFrameworks>
     <TestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TestTargetFrameworks);net472</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(TestTargetFrameworks)</TestTargetFrameworks>
     <SourceGeneratorTestTargetFrameworks>netcoreapp3.1</SourceGeneratorTestTargetFrameworks>
+    <SourceGeneratorTestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0</SourceGeneratorTestTargetFrameworks>
     <SourceGeneratorTestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(SourceGeneratorTestTargetFrameworks);net472</SourceGeneratorTestTargetFrameworks>
-    <SourceGeneratorTestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(SourceGeneratorTestTargetFrameworks)</SourceGeneratorTestTargetFrameworks>
 
     <!-- Workaround dependencies that do not yet support netcoreapp3.1 https://github.com/dotnet/roslyn/issues/45114 -->
     <NoWarn>NU1701;$(NoWarn)</NoWarn>

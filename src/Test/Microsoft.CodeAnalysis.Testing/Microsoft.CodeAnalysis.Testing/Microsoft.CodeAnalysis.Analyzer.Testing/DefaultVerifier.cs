@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         /// <inheritdoc/>
-        public virtual void True([DoesNotReturnIf(false)] bool assert, string? message = null)
+        public virtual void True(bool assert, string? message = null)
         {
             if (!assert)
             {
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         /// <inheritdoc/>
-        public virtual void False([DoesNotReturnIf(true)] bool assert, string? message = null)
+        public virtual void False(bool assert, string? message = null)
         {
             if (assert)
             {
@@ -99,7 +98,6 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         /// <inheritdoc/>
-        [DoesNotReturn]
         public virtual void Fail(string? message = null)
         {
             throw new InvalidOperationException(CreateMessage(message ?? "Verification failed for an unspecified reason."));
