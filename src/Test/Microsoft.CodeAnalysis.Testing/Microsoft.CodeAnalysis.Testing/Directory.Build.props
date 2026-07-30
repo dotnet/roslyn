@@ -1,5 +1,5 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
-<Project>  
+<Project>
   <PropertyGroup>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
 
@@ -61,7 +61,7 @@
     <!--
       NU1701: Package 'name' was restored using 'moniker' instead of the project target framework 'moniker'. This package may not be fully compatible with your project.
     -->
-    <NoWarn>$(NoWarn);NU1701;NU3005;NU5125</NoWarn>
+    <NoWarn>$(NoWarn);NU1701;NU3005;NU5125;CA1200;CA2007;CA2009</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
