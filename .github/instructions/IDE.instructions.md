@@ -26,6 +26,12 @@ var csharpService = workspace.Services.GetLanguageServices(LanguageNames.CSharp)
     .GetRequiredService<IMyCSharpService>();
 ```
 
+Syntax-tree creation flows through the language-specific `ISyntaxTreeFactoryService`. The C# and VB
+implementations are language-service factories so they can consume the optional workspace-scoped
+`ISyntaxTreeCacheService`. LanguageServer exports that cache at the Host layer to share immutable
+syntax roots process-wide; cache hits still produce distinct `SyntaxTree` wrappers so document text,
+paths, and identity remain workspace-specific.
+
 ### MEF Export Patterns
 ```csharp
 // Workspace service (language-agnostic)
@@ -35,6 +41,14 @@ internal class MyService : IMyService { }
 // Language service (per-language — never share across C#/VB)
 [ExportLanguageService(typeof(IMyService), LanguageNames.CSharp), Shared]
 internal class CSharpMyService : IMyService { }
+
+// Language service requiring a workspace-scoped dependency
+[ExportLanguageServiceFactory(typeof(IMyService), LanguageNames.CSharp), Shared]
+internal class CSharpMyServiceFactory : ILanguageServiceFactory
+{
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        => new CSharpMyService(languageServices.WorkspaceServices.GetService<IMyWorkspaceService>());
+}
 
 // Constructor — always include both attributes
 [ImportingConstructor]

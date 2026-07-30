@@ -43,6 +43,14 @@ namespace IdeCoreBenchmarks
         private static int Main(string[] args)
         {
             Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
+#if !NET472
+            if (args is ["--retained-syntax-tree-cache-memory", var includeCache, var sharedDocumentCount])
+            {
+                return LanguageServerDaemonBenchmarks.RunRetainedMemoryScenarioAsync(
+                    bool.Parse(includeCache), int.Parse(sharedDocumentCount)).GetAwaiter().GetResult();
+            }
+#endif
+
             // BenchmarkDotNet gives its generated runner a single output directory through global
             // MSBuild properties. If those properties flow into Roslyn's multi-targeted project graph,
             // different projects and target frameworks share output and intermediate paths, causing

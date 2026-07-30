@@ -26,6 +26,9 @@ public class MyTests
 
 - Use `[UseExportProvider]` for any test that depends on MEF services (a missing
   attribute typically surfaces as an unrelated-looking failure).
+- LanguageServer daemon and host tests derive from `AbstractLanguageServerHostTests`.
+  Hosts that opt out of the shared test export-provider cache receive independently
+  owned providers, which the base class disposes with the host.
 - Analyzer tests inherit from
   `AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor` (and the VB
   equivalents).

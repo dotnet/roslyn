@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Reflection;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.Logging;
@@ -25,16 +26,36 @@ internal sealed class LanguageServerTestComposition
     public static ExportProvider GetSharedExportProvider(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
     {
         Contract.ThrowIfTrue(serverConfiguration.ExtensionAssemblyPaths.Any(), "Tests that require extension assemblies should use AbstractLanguageServerMefHost instead");
-        var exportProvider = serverConfiguration.DevKitDependencyPath != null
-            ? s_devKit.ExportProviderFactory.CreateExportProvider()
-            : s_languageServer.ExportProviderFactory.CreateExportProvider();
+        var composition = serverConfiguration.DevKitDependencyPath != null ? s_devKit : s_languageServer;
+        var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
 
         LanguageServerExportProviderBuilder.TestAccessor.InitializeManualExports(exportProvider, new ExtensionAssemblyManager([], [], []), loggerFactory, serverConfiguration);
         return exportProvider;
     }
 
+    public static ExportProvider CreateExportProviderForBenchmark(
+        ServerConfiguration serverConfiguration,
+        ILoggerFactory loggerFactory,
+        bool includeSyntaxTreeCache)
+    {
+        Contract.ThrowIfTrue(serverConfiguration.ExtensionAssemblyPaths.Any());
+        Contract.ThrowIfTrue(serverConfiguration.DevKitDependencyPath is not null);
+
+        var exportProviderFactory = includeSyntaxTreeCache
+            ? s_languageServerExportProviderFactory.Value
+            : s_languageServerWithoutSyntaxTreeCacheExportProviderFactory.Value;
+        var exportProvider = exportProviderFactory.CreateExportProvider();
+        LanguageServerExportProviderBuilder.TestAccessor.InitializeManualExports(
+            exportProvider, new ExtensionAssemblyManager([], [], []), loggerFactory, serverConfiguration);
+        return exportProvider;
+    }
+
     private static readonly TestComposition s_languageServer = CreateBaseComposition();
     private static readonly TestComposition s_devKit = CreateDevKitComposition();
+    private static readonly Lazy<IExportProviderFactory> s_languageServerExportProviderFactory =
+        new(() => CreateExportProviderFactory(s_languageServer));
+    private static readonly Lazy<IExportProviderFactory> s_languageServerWithoutSyntaxTreeCacheExportProviderFactory =
+        new(() => CreateExportProviderFactory(s_languageServer.AddExcludedPartTypes(typeof(SyntaxTreeCacheService))));
 
     private static TestComposition CreateBaseComposition()
     {
@@ -48,5 +69,11 @@ internal sealed class LanguageServerTestComposition
     {
         var devKitDirectory = TestPaths.GetDevKitExtensionPath();
         return s_languageServer.AddAssemblies(Assembly.LoadFrom(devKitDirectory));
+    }
+
+    private static IExportProviderFactory CreateExportProviderFactory(TestComposition composition)
+    {
+        var configuration = composition.GetCompositionConfiguration();
+        return RuntimeComposition.CreateRuntimeComposition(configuration).CreateExportProviderFactory();
     }
 }
