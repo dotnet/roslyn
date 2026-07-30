@@ -1502,6 +1502,7 @@ Microsoft.CodeAnalysis.ITypeSymbol.get_NullableAnnotation
 Microsoft.CodeAnalysis.ITypeSymbol.get_OriginalDefinition
 Microsoft.CodeAnalysis.ITypeSymbol.get_SpecialType
 Microsoft.CodeAnalysis.ITypeSymbol.get_TypeKind
+Microsoft.CodeAnalysis.ITypeSymbol.get_UnionCaseTypes
 Microsoft.CodeAnalysis.ImportedNamespaceOrType
 Microsoft.CodeAnalysis.ImportedNamespaceOrType.get_DeclaringSyntaxReference
 Microsoft.CodeAnalysis.ImportedNamespaceOrType.get_NamespaceOrType
