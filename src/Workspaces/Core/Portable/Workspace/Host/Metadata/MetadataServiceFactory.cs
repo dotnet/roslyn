@@ -17,11 +17,11 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new MetadataService(
             workspaceServices.GetRequiredService<IDocumentationProviderService>(),
-            workspaceServices.GetService<IMetadataCacheService>());
+            workspaceServices.GetRequiredService<IMetadataProviderService>());
 
     private sealed class MetadataService(
         IDocumentationProviderService documentationProviderService,
-        IMetadataCacheService? metadataCacheService) : IMetadataService
+        IMetadataProviderService metadataProviderService) : IMetadataService
     {
         private readonly MetadataReferenceCache _metadataCache = new((path, properties) =>
         {
@@ -29,22 +29,13 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
 
             try
             {
-                if (metadataCacheService is not null &&
-                    metadataCacheService.TryGetMetadata(path, properties.Kind, out var metadata))
+                var metadata = metadataProviderService.GetMetadata(path, properties.Kind).Metadata;
+                return metadata switch
                 {
-                    return metadata switch
-                    {
-                        AssemblyMetadata assembly => assembly.GetReference(
-                            documentationProvider,
-                            properties.Aliases,
-                            properties.EmbedInteropTypes,
-                            path),
-                        ModuleMetadata module => module.GetReference(documentationProvider, path),
-                        _ => throw ExceptionUtilities.UnexpectedValue(metadata.Kind),
-                    };
-                }
-
-                return MetadataReference.CreateFromFile(path, properties, documentationProvider);
+                    AssemblyMetadata assembly => assembly.GetReference(documentationProvider, filePath: path).WithProperties(properties),
+                    ModuleMetadata module => module.GetReference(documentationProvider, path).WithProperties(properties),
+                    _ => throw ExceptionUtilities.UnexpectedValue(metadata.Kind),
+                };
             }
             catch (IOException e)
             {

@@ -90,26 +90,31 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 ### Language Server Metadata Caching
 
 The default `IMetadataService` always owns a workspace-local
-`MetadataReferenceCache`. On a local cache miss, it asks the optional
-`IMetadataCacheService` workspace service for backing `Metadata` before falling
-back to `MetadataReference.CreateFromFile`. The Language Server exports
-`LanguageServerMetadataCacheService` at `ServiceLayer.Host`; this MEF `[Shared]`
-service owns the weak-value `SharedMetadataCache` in
+`MetadataReferenceCache`. On a local cache miss, it asks the required
+`IMetadataProviderService` workspace service for backing `Metadata`, then creates
+the workspace-local reference with its documentation provider and properties.
+The default provider owns metadata creation. The Language Server overrides it
+with `LanguageServerMetadataProviderService` at `ServiceLayer.Host`; this MEF
+`[Shared]` service wraps the default creation path with the weak-value
+`SharedMetadataCache` in
 `src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/HostWorkspace/SharedMetadataCache.cs`.
 Language Server workspaces created from the same export provider share immutable
 backing `Metadata`, while their `MetadataReference` instances remain
 workspace-local so reference properties and documentation providers are not
-shared. Other workspace hosts do not provide `IMetadataCacheService` and use the
-normal file-creation fallback. The local cache weakly reuses references and
-derives property variants from an existing reference to avoid consulting the
-shared cache again within one workspace.
+shared. Other workspace hosts select the default provider. The local cache
+weakly reuses references and derives property variants from an existing
+reference to avoid consulting the provider again within one workspace.
 
 The shared cache has no fixed capacity and retains at most one timestamped
 version per path and `MetadataImageKind`. Workspace references and compilations
 keep metadata alive while they use it; after those strong references disappear,
 the GC may collect the metadata. After every 500 successful additions or
 revivals, the cache removes dictionary entries whose weak targets are dead. It
-does not cache failures or multi-module assemblies. Keep the per-workspace
+does not create or open metadata itself: on a miss it invokes the Language
+Server provider's base creation path and immediately publishes cacheable
+metadata. The provider determines cacheability from the already-loaded manifest;
+it does not load secondary modules to reject multi-module assemblies. Failures
+and multi-module assemblies are not cached. Keep the per-workspace
 `MetadataReferenceCache` partitioned by image kind when changing this area.
 Cache tests live under
 `src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/HostWorkspace`;

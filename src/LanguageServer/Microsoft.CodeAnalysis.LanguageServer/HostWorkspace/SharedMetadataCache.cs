@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection.PortableExecutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -21,7 +21,10 @@ internal sealed class SharedMetadataCache(int cleanupThreshold = 500)
     private int _addsSinceLastCleanup;
     private long _nextRequestId;
 
-    public Metadata GetMetadata(string fullPath, MetadataImageKind kind)
+    public MetadataProviderResult GetMetadata(
+        string fullPath,
+        MetadataImageKind kind,
+        Func<string, MetadataImageKind, MetadataProviderResult> getMetadata)
     {
         var timestamp = GetFileTimeStamp(fullPath);
         var key = new CacheKey(fullPath, kind);
@@ -31,25 +34,26 @@ internal sealed class SharedMetadataCache(int cleanupThreshold = 500)
                 entry.Timestamp == timestamp &&
                 entry.Metadata.TryGetTarget(out var cachedMetadata))
             {
-                return cachedMetadata;
+                return new(cachedMetadata, IsCacheable: true);
             }
         }
 
         var requestId = Interlocked.Increment(ref _nextRequestId);
-        var (newMetadata, cacheable) = CreateMetadata(fullPath, kind);
+        var result = getMetadata(fullPath, kind);
+        var newMetadata = result.Metadata;
 
-        if (!cacheable)
-            return newMetadata;
+        if (!result.IsCacheable)
+            return result;
 
         try
         {
             // Do not cache metadata under a timestamp that changed while the file was being read.
             if (GetFileTimeStamp(fullPath) != timestamp)
-                return newMetadata;
+                return result;
         }
         catch (IOException)
         {
-            return newMetadata;
+            return result;
         }
 
         Metadata metadata;
@@ -85,7 +89,7 @@ internal sealed class SharedMetadataCache(int cleanupThreshold = 500)
         if (!ReferenceEquals(newMetadata, metadata))
             newMetadata.Dispose();
 
-        return metadata;
+        return new(metadata, IsCacheable: true);
     }
 
     internal TestAccessor GetTestAccessor()
@@ -113,54 +117,6 @@ internal sealed class SharedMetadataCache(int cleanupThreshold = 500)
         }
 
         _addsSinceLastCleanup = 0;
-    }
-
-    private static (Metadata metadata, bool cacheable) CreateMetadata(string fullPath, MetadataImageKind kind)
-    {
-        var module = ModuleMetadata.CreateFromStream(OpenRead(fullPath), PEStreamOptions.PrefetchEntireImage);
-
-        if (kind == MetadataImageKind.Module)
-            return (module, cacheable: true);
-
-        try
-        {
-            // A manifest-only key cannot detect changes to secondary modules, so avoid sharing
-            // multi-module assemblies until all constituent modules participate in the key.
-            if (module.GetModuleNames().IsEmpty)
-                return (AssemblyMetadata.Create(module), cacheable: true);
-
-            module.Dispose();
-            return (MetadataReference.CreateFromFile(fullPath).GetMetadata(), cacheable: false);
-        }
-        catch
-        {
-            module.Dispose();
-            throw;
-        }
-    }
-
-    private static Stream OpenRead(string fullPath)
-    {
-        try
-        {
-            return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        }
-        catch (ArgumentException)
-        {
-            throw;
-        }
-        catch (DirectoryNotFoundException e)
-        {
-            throw new FileNotFoundException(e.Message, fullPath, e);
-        }
-        catch (IOException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            throw new IOException(e.Message, e);
-        }
     }
 
     private static DateTime GetFileTimeStamp(string fullPath)

@@ -4,6 +4,7 @@
 
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -12,6 +13,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public sealed class SharedMetadataCacheTests : TestBase
 {
+    private static readonly TestMetadataProvider s_metadataProvider = new();
+
     [Fact]
     public async Task ConcurrentRequests_ReturnSameMetadata()
     {
@@ -20,10 +23,30 @@ public sealed class SharedMetadataCacheTests : TestBase
 
         var metadata = await Task.WhenAll(
             Enumerable.Range(0, 10).Select(_ => Task.Run(
-                () => cache.GetMetadata(mscorlibPath, MetadataImageKind.Assembly))));
+                () => GetMetadata(cache, mscorlibPath, MetadataImageKind.Assembly))));
 
         Assert.All(metadata, item => Assert.Same(metadata[0], item));
         Assert.NotEmpty(((AssemblyMetadata)metadata[0]).GetModules());
+    }
+
+    [Fact]
+    public void CacheHit_DoesNotInvokeProvider()
+    {
+        var cache = new SharedMetadataCache();
+        var mscorlibPath = typeof(object).Assembly.Location;
+        var providerCallCount = 0;
+
+        var metadata1 = cache.GetMetadata(mscorlibPath, MetadataImageKind.Assembly, GetMetadataFromProvider).Metadata;
+        var metadata2 = cache.GetMetadata(mscorlibPath, MetadataImageKind.Assembly, GetMetadataFromProvider).Metadata;
+
+        Assert.Same(metadata1, metadata2);
+        Assert.Equal(1, providerCallCount);
+
+        MetadataProviderResult GetMetadataFromProvider(string path, MetadataImageKind kind)
+        {
+            providerCallCount++;
+            return s_metadataProvider.GetMetadata(path, kind);
+        }
     }
 
     [Fact]
@@ -35,12 +58,12 @@ public sealed class SharedMetadataCacheTests : TestBase
         File.Copy(typeof(object).Assembly.Location, path);
         File.SetLastWriteTimeUtc(path, timestamp);
 
-        var metadata1 = cache.GetMetadata(path, MetadataImageKind.Assembly);
+        var metadata1 = GetMetadata(cache, path, MetadataImageKind.Assembly);
 
         File.Copy(typeof(Enumerable).Assembly.Location, path, overwrite: true);
         File.SetLastWriteTimeUtc(path, timestamp.AddSeconds(1));
 
-        var metadata2 = cache.GetMetadata(path, MetadataImageKind.Assembly);
+        var metadata2 = GetMetadata(cache, path, MetadataImageKind.Assembly);
 
         Assert.NotSame(metadata1.Id, metadata2.Id);
     }
@@ -50,7 +73,7 @@ public sealed class SharedMetadataCacheTests : TestBase
     {
         var cache = new SharedMetadataCache();
         var metadataReference = ObjectReference.CreateFromFactory(
-            () => cache.GetMetadata(typeof(object).Assembly.Location, MetadataImageKind.Assembly));
+            () => GetMetadata(cache, typeof(object).Assembly.Location, MetadataImageKind.Assembly));
 
         metadataReference.AssertReleased();
     }
@@ -61,11 +84,11 @@ public sealed class SharedMetadataCacheTests : TestBase
         var cache = new SharedMetadataCache();
         var path = typeof(object).Assembly.Location;
         var metadataReference = ObjectReference.CreateFromFactory(
-            () => cache.GetMetadata(path, MetadataImageKind.Assembly));
+            () => GetMetadata(cache, path, MetadataImageKind.Assembly));
         metadataReference.AssertReleased();
 
-        var reloadedMetadata = cache.GetMetadata(path, MetadataImageKind.Assembly);
-        Assert.Same(reloadedMetadata, cache.GetMetadata(path, MetadataImageKind.Assembly));
+        var reloadedMetadata = GetMetadata(cache, path, MetadataImageKind.Assembly);
+        Assert.Same(reloadedMetadata, GetMetadata(cache, path, MetadataImageKind.Assembly));
 
         GC.KeepAlive(reloadedMetadata);
     }
@@ -75,10 +98,10 @@ public sealed class SharedMetadataCacheTests : TestBase
     {
         var cache = new SharedMetadataCache(cleanupThreshold: 2);
         var metadataReference = ObjectReference.CreateFromFactory(
-            () => cache.GetMetadata(typeof(object).Assembly.Location, MetadataImageKind.Assembly));
+            () => GetMetadata(cache, typeof(object).Assembly.Location, MetadataImageKind.Assembly));
         metadataReference.AssertReleased();
 
-        var liveMetadata = cache.GetMetadata(typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly);
+        var liveMetadata = GetMetadata(cache, typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly);
 
         Assert.Equal(1, cache.GetTestAccessor().EntryCount);
         Assert.NotEmpty(((AssemblyMetadata)liveMetadata).GetModules());
@@ -94,15 +117,15 @@ public sealed class SharedMetadataCacheTests : TestBase
         File.Copy(typeof(object).Assembly.Location, path);
         File.SetLastWriteTimeUtc(path, timestamp);
 
-        var firstMetadata = cache.GetMetadata(path, MetadataImageKind.Assembly);
-        var otherMetadata = cache.GetMetadata(typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly);
-        Assert.Same(firstMetadata, cache.GetMetadata(path, MetadataImageKind.Assembly));
+        var firstMetadata = GetMetadata(cache, path, MetadataImageKind.Assembly);
+        var otherMetadata = GetMetadata(cache, typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly);
+        Assert.Same(firstMetadata, GetMetadata(cache, path, MetadataImageKind.Assembly));
 
         File.Copy(typeof(Uri).Assembly.Location, path, overwrite: true);
         File.SetLastWriteTimeUtc(path, timestamp.AddSeconds(1));
 
-        Assert.NotSame(firstMetadata, cache.GetMetadata(path, MetadataImageKind.Assembly));
-        Assert.Same(otherMetadata, cache.GetMetadata(typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly));
+        Assert.NotSame(firstMetadata, GetMetadata(cache, path, MetadataImageKind.Assembly));
+        Assert.Same(otherMetadata, GetMetadata(cache, typeof(Enumerable).Assembly.Location, MetadataImageKind.Assembly));
     }
 
     [Fact]
@@ -129,8 +152,8 @@ public sealed class SharedMetadataCacheTests : TestBase
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         Assert.True(assemblyCompilation.Emit(assemblyPath).Success);
 
-        var metadata1 = (AssemblyMetadata)cache.GetMetadata(assemblyPath, MetadataImageKind.Assembly);
-        var metadata2 = (AssemblyMetadata)cache.GetMetadata(assemblyPath, MetadataImageKind.Assembly);
+        var metadata1 = (AssemblyMetadata)GetMetadata(cache, assemblyPath, MetadataImageKind.Assembly);
+        var metadata2 = (AssemblyMetadata)GetMetadata(cache, assemblyPath, MetadataImageKind.Assembly);
 
         Assert.NotSame(metadata1.Id, metadata2.Id);
         Assert.Equal(2, metadata1.GetModules().Length);
@@ -144,10 +167,15 @@ public sealed class SharedMetadataCacheTests : TestBase
         var path = Path.Combine(TempRoot.Root, Guid.NewGuid().ToString() + ".dll");
 
         Assert.Throws<FileNotFoundException>(
-            () => cache.GetMetadata(path, MetadataImageKind.Assembly));
+            () => GetMetadata(cache, path, MetadataImageKind.Assembly));
 
         File.Copy(typeof(object).Assembly.Location, path);
 
-        Assert.NotNull(cache.GetMetadata(path, MetadataImageKind.Assembly));
+        Assert.NotNull(GetMetadata(cache, path, MetadataImageKind.Assembly));
     }
+
+    private static Metadata GetMetadata(SharedMetadataCache cache, string path, MetadataImageKind kind)
+        => cache.GetMetadata(path, kind, s_metadataProvider.GetMetadata).Metadata;
+
+    private sealed class TestMetadataProvider : AbstractMetadataProviderService;
 }
