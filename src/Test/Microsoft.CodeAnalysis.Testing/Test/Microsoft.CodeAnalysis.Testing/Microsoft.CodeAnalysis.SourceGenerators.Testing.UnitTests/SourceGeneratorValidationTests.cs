@@ -184,7 +184,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 // Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.cs(1,10): error CS1513: } expected
                 DiagnosticResult.CompilerError("CS1513").WithSpan("Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.cs", 1, 10, 1, 10),
 
-
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
         }
@@ -219,7 +218,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 DiagnosticResult.CompilerError("BC30481").WithSpan(1, 1, 1, 8),
                 // Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.vb(1) : error BC30481: 'Class' statement must end with a matching 'End Class'.
                 DiagnosticResult.CompilerError("BC30481").WithSpan("Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.vb", 1, 1, 1, 8),
-
 
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);

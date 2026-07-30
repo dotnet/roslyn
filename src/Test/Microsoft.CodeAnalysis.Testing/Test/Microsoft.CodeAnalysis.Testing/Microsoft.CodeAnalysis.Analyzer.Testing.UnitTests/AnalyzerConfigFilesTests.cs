@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 // /0/Test0.cs(1,23): warning Brace: message
                 VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24),
 
-
                 """.ReplaceLineEndings();
             Assert.Equal(expected, exception.Message);
         }

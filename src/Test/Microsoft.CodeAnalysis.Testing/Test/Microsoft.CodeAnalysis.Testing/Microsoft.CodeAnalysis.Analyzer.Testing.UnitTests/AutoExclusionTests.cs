@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 // /0/Test0.cs(4,23): warning ThisToBase: message
                 VerifyCS.Diagnostic().WithSpan(4, 23, 4, 27),
 
-
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -104,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 Diagnostics:
                 // /0/Test0.cs(1,1): warning FirstLine: message
                 VerifyCS.Diagnostic().WithSpan(1, 1, 1, 1),
-
 
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -171,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 // /0/Test0.vb(5,5): warning ThisToBase: message
                 VerifyVB.Diagnostic().WithSpan(5, 5, 5, 12),
 
-
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -205,7 +202,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 Diagnostics:
                 // /0/Test0.vb(1,1): warning FirstLine: message
                 VerifyVB.Diagnostic().WithSpan(1, 1, 1, 1),
-
 
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);

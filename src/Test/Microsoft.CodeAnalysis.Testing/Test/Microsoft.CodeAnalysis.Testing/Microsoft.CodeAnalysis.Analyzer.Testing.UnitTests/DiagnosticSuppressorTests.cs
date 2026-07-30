@@ -110,7 +110,6 @@ class Sample { string {|#0:_value|}; }",
                     // /0/Test0.cs(1,23): warning Brace: message
                 VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24).WithIsSuppressed(true),
 
-
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -144,7 +143,6 @@ class Sample { string {|#0:_value|}; }",
                 Actual diagnostic:
                     // /0/Test0.cs(1,23): warning Brace: message
                 VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24),
-
 
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);

@@ -199,7 +199,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 // /0/Test0.cs(1,24): error CS1513: } expected
                 DiagnosticResult.CompilerError("CS1513").WithSpan(1, 24, 1, 24),
 
-
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }

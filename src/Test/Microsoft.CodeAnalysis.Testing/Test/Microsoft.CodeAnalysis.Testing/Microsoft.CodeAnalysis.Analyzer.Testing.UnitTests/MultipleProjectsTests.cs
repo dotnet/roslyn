@@ -444,7 +444,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 // /Secondary/Test0.cs(1,25): error CS0246: The type or namespace name 'Base2' could not be found (are you missing a using directive or an assembly reference?)
                 DiagnosticResult.CompilerError("CS0246").WithSpan("/Secondary/Test0.cs", 1, 25, 1, 30).WithArguments("Base2"),
 
-
                 """.ReplaceLineEndings();
 
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);

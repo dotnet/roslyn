@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.Testing
                     // /0/Test0.cs(1,17): warning Brace: message
                 VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18),
 
-
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -107,7 +106,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 Actual diagnostic:
                     // /0/Test0.cs(1,17): warning Brace: message
                 VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18),
-
 
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -137,7 +135,6 @@ namespace Microsoft.CodeAnalysis.Testing
                     // /0/Test0.cs(1,17): warning Brace: message
                 VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18),
 
-
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -165,7 +162,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 Actual diagnostic:
                     // /0/Test0.cs(1,17): warning Brace: message
                 VerifyCS.Diagnostic().WithSpan(1, 17, 1, 18),
-
 
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
@@ -212,7 +208,6 @@ namespace Microsoft.CodeAnalysis.Testing
                     // /0/Test0.cs(1,17): warning Brace: message
                 VerifyCS.Diagnostic().WithSpan(1, 17, 1, 17),
 
-
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
@@ -239,7 +234,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 Actual diagnostic:
                     // /0/Test0.cs(1,17): warning Brace: message
                 VerifyCS.Diagnostic().WithSpan(1, 17, 1, 17),
-
 
                 """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
