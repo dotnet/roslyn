@@ -71,6 +71,25 @@ internal sealed class UnresolvedAttributeIntermediateNode : IntermediateNode
         visitor.VisitDefault(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new UnresolvedAttributeIntermediateNode
+        {
+            AttributeName = AttributeName,
+            IsMinimized = IsMinimized,
+            ValueContent = ValueContent,
+            ValueSourceSpan = ValueSourceSpan,
+            AttributeStructure = AttributeStructure,
+            AttributeNameSpan = AttributeNameSpan,
+            AsTagHelperAttribute = AsTagHelperAttribute?.Clone(),
+            AsMarkupAttribute = AsMarkupAttribute?.Clone(),
+            HtmlAttributeNode = (HtmlAttributeIntermediateNode?)HtmlAttributeNode?.Clone(),
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(AttributeName);

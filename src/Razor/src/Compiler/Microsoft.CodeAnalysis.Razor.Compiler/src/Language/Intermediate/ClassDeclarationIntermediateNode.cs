@@ -24,6 +24,23 @@ public sealed class ClassDeclarationIntermediateNode : MemberDeclarationIntermed
     public override void Accept(IntermediateNodeVisitor visitor)
         => visitor.VisitClassDeclaration(this);
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new ClassDeclarationIntermediateNode
+        {
+            Name = Name,
+            BaseType = BaseType,
+            Modifiers = Modifiers,
+            Interfaces = Interfaces,
+            TypeParameters = TypeParameters,
+            IsPrimaryClass = IsPrimaryClass,
+            NullableContext = NullableContext,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(Name);

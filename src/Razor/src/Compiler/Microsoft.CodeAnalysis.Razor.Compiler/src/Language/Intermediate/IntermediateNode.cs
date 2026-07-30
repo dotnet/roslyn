@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -80,4 +81,35 @@ public abstract class IntermediateNode
     public virtual void FormatNode(IntermediateNodeFormatter formatter)
     {
     }
+
+    /// <summary>
+    ///  Returns a deep copy of this node and its descendants. The node-specific state is produced by
+    ///  <see cref="CloneNode"/>; this method copies the common state (source span, imported flag,
+    ///  diagnostics) and deep-clones the children onto it.
+    /// </summary>
+    internal IntermediateNode Clone()
+    {
+        var clone = CloneNode();
+
+        clone.Source = Source;
+        clone.IsImported = IsImported;
+        clone.AddDiagnosticsFromNode(this);
+
+        foreach (var child in Children)
+        {
+            clone.Children.Add(child.Clone());
+        }
+
+        return clone;
+    }
+
+    /// <summary>
+    ///  Creates a copy of this node carrying only its own state -- the node-specific fields (including the
+    ///  init-only <see cref="IsSynthesizedHelper"/>) and any child nodes held outside <see cref="Children"/>
+    ///  (deep-cloned). The common state and the <see cref="Children"/> are copied by <see cref="Clone"/>.
+    ///  Overridden by every node kind that can appear in an unresolved tree; the base throws so an
+    ///  unexpected kind fails loudly rather than silently producing an incomplete copy.
+    /// </summary>
+    protected virtual IntermediateNode CloneNode()
+        => throw new NotSupportedException($"{GetType().Name} does not support cloning.");
 }
