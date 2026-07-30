@@ -110,52 +110,7 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
     }
 
     [Fact]
-    public async Task Daemon_EachServerSharesMetadataButNotReferences()
-    {
-        await using var daemon = await CreateDaemonServerAsync();
-        await using var first = await daemon.CreateClientAsync();
-        await using var second = await daemon.CreateClientAsync();
-
-        var workspace1 = first.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
-        var workspace2 = second.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
-        var mscorlibPath = typeof(object).Assembly.Location;
-        var properties1 = MetadataReferenceProperties.Assembly;
-        var properties2 = properties1.WithAliases(["global", "MyAlias"]).WithEmbedInteropTypes(true);
-
-        var metadataService1 = workspace1.Services.GetRequiredService<IMetadataService>();
-        var metadataService2 = workspace2.Services.GetRequiredService<IMetadataService>();
-        var reference1 = metadataService1.GetReference(mscorlibPath, properties1);
-        var reference2 = metadataService2.GetReference(mscorlibPath, properties2);
-
-        Assert.NotSame(reference1, reference2);
-        Assert.Same(reference1, metadataService1.GetReference(mscorlibPath, properties1));
-        Assert.Equal(properties1, reference1.Properties);
-        Assert.Equal(properties2, reference2.Properties);
-        Assert.Same(reference1.GetMetadataId(), reference2.GetMetadataId());
-    }
-
-    [Fact]
-    public async Task Daemon_EachServerDoesNotShareMetadataWhenDisabled()
-    {
-        await using var daemon = await CreateDaemonServerAsync(useSharedMetadataCache: false);
-        await using var first = await daemon.CreateClientAsync();
-        await using var second = await daemon.CreateClientAsync();
-
-        var workspace1 = first.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
-        var workspace2 = second.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
-        var mscorlibPath = typeof(object).Assembly.Location;
-
-        var reference1 = workspace1.Services.GetRequiredService<IMetadataService>()
-            .GetReference(mscorlibPath, MetadataReferenceProperties.Assembly);
-        var reference2 = workspace2.Services.GetRequiredService<IMetadataService>()
-            .GetReference(mscorlibPath, MetadataReferenceProperties.Assembly);
-
-        Assert.NotSame(reference1, reference2);
-        Assert.NotSame(reference1.GetMetadataId(), reference2.GetMetadataId());
-    }
-
-    [Fact]
-    public async Task Daemon_ClosingSolutionReleasesMetadataOnlyUsedByThatSolution()
+    public async Task Daemon_ClosingSolutionReleasesReferencesOnlyUsedByThatSolution()
     {
         var directory = TempRoot.CreateDirectory();
         var sharedPath = Path.Combine(directory.Path, "Shared.dll");
@@ -164,15 +119,17 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         File.Copy(typeof(Enumerable).Assembly.Location, uniquePath);
 
         await using var daemon = await CreateDaemonServerAsync();
-        await using var owner = await daemon.CreateClientAsync();
+        await using var closing = await daemon.CreateClientAsync();
         await using var survivor = await daemon.CreateClientAsync();
-        var ownerWorkspace = owner.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
+        var closingWorkspace = closing.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
         var survivorWorkspace = survivor.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
-        var references = CreateMetadataLifetimeReferences(ownerWorkspace, survivorWorkspace, sharedPath, uniquePath);
+        CreateMetadataLifetimeReferences(closingWorkspace, survivorWorkspace, sharedPath, uniquePath,
+            out var sharedReference,
+            out var uniqueReference);
 
-        ClearProjects(ownerWorkspace);
-        references.UniqueMetadata.AssertReleased();
-        references.SharedMetadata.AssertHeld();
+        ClearProjects(closingWorkspace);
+        uniqueReference.AssertReleased();
+        sharedReference.AssertHeld();
     }
 
     // If one client's server faults (e.g. the client process crashes and abruptly drops its connection), the daemon
@@ -360,28 +317,27 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             WorkspaceChangeKind.ProjectAdded);
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static MetadataLifetimeReferences CreateMetadataLifetimeReferences(
-        Workspace ownerWorkspace,
+    private static void CreateMetadataLifetimeReferences(
+        Workspace closingWorkspace,
         Workspace survivorWorkspace,
         string sharedPath,
-        string uniquePath)
+        string uniquePath,
+        out ObjectReference<PortableExecutableReference> sharedReference,
+        out ObjectReference<PortableExecutableReference> uniqueReference)
     {
         var survivorSharedReference = survivorWorkspace.Services.GetRequiredService<IMetadataService>()
             .GetReference(sharedPath, MetadataReferenceProperties.Assembly);
-        var ownerMetadataService = ownerWorkspace.Services.GetRequiredService<IMetadataService>();
-        var ownerSharedReference = ownerMetadataService.GetReference(sharedPath, MetadataReferenceProperties.Assembly);
-        var ownerUniqueReference = ownerMetadataService.GetReference(uniquePath, MetadataReferenceProperties.Assembly);
+        var closingMetadataService = closingWorkspace.Services.GetRequiredService<IMetadataService>();
+        var closingSharedReference = closingMetadataService.GetReference(sharedPath, MetadataReferenceProperties.Assembly);
+        var closingUniqueReference = closingMetadataService.GetReference(uniquePath, MetadataReferenceProperties.Assembly);
 
-        Assert.Same(survivorSharedReference.GetMetadataId(), ownerSharedReference.GetMetadataId());
+        Assert.Same(survivorSharedReference, closingSharedReference);
 
         AddProjectWithReferences(survivorWorkspace, "Survivor", [survivorSharedReference]);
-        AddProjectWithReferences(ownerWorkspace, "Owner", [ownerSharedReference, ownerUniqueReference]);
+        AddProjectWithReferences(closingWorkspace, "Closing", [closingSharedReference, closingUniqueReference]);
 
-        var references = new MetadataLifetimeReferences(
-            ObjectReference.Create(survivorSharedReference.GetMetadataId()),
-            ObjectReference.Create(ownerUniqueReference.GetMetadataId()));
-
-        return references;
+        sharedReference = ObjectReference.Create(survivorSharedReference);
+        uniqueReference = ObjectReference.Create(closingUniqueReference);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -413,8 +369,4 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
 
         return ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
     }
-
-    private readonly record struct MetadataLifetimeReferences(
-        ObjectReference<MetadataId> SharedMetadata,
-        ObjectReference<MetadataId> UniqueMetadata);
 }

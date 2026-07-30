@@ -56,5 +56,4 @@ internal sealed record class ServerConfiguration(
     SourceGeneratorExecutionPreference SourceGeneratorExecutionPreference,
     int? ClientProcessId,
     bool IsDaemon = false,
-    TimeSpan DaemonKeepAlive = default,
-    bool UseSharedMetadataCache = true);
+    TimeSpan DaemonKeepAlive = default);

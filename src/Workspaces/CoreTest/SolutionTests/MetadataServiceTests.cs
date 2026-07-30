@@ -89,21 +89,6 @@ public sealed class MetadataServiceTests : TestBase
     }
 
     [Fact]
-    public void GetReference_DifferentImageKinds_DoNotShareMetadata()
-    {
-        using var workspace = SolutionTestHelpers.CreateWorkspace();
-        var metadataService = workspace.Services.GetRequiredService<IMetadataService>();
-        var mscorlibPath = typeof(object).Assembly.Location;
-
-        var assemblyReference = metadataService.GetReference(mscorlibPath, MetadataReferenceProperties.Assembly);
-        var moduleReference = metadataService.GetReference(mscorlibPath, MetadataReferenceProperties.Module);
-
-        Assert.Equal(MetadataImageKind.Assembly, assemblyReference.Properties.Kind);
-        Assert.Equal(MetadataImageKind.Module, moduleReference.Properties.Kind);
-        Assert.NotSame(assemblyReference.GetMetadataId(), moduleReference.GetMetadataId());
-    }
-
-    [Fact]
     public void GetReference_NonExistentFile_ReturnsThrowingReference()
     {
         using var workspace = SolutionTestHelpers.CreateWorkspace();

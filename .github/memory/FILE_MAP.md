@@ -19,10 +19,10 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 | `Dependencies/` | compiler | High-performance pooled collections & threading. |
 | `ExpressionEvaluator/` | compiler | Debugger expression evaluator. |
 | `Tools/` | compiler | Compiler tooling (BuildBoss, format tools). |
-| `Workspaces/` | ide | Solution/Project/Document model, host-service composition, MSBuild loading, Remote (OOP). |
+| `Workspaces/` | ide | Solution/Project/Document model, MSBuild loading, Remote (OOP). |
 | `Features/`, `EditorFeatures/` | ide | IDE feature logic and editor integration. |
 | `Analyzers/`, `CodeStyle/` | ide | IDE0xxx code-style analyzers & fixes. |
-| `LanguageServer/` | ide | LSP server, including daemon-scoped host services and shared backing-metadata cache. |
+| `LanguageServer/` | ide | LSP server. |
 | `VisualStudio/` | ide | VS language services & UI. |
 | `Razor/src/` | razor | Razor compiler + tooling (own sub-tree layout). |
 | `Scripting/`, `Interactive/` | — | C#/VB scripting engine and REPL. |

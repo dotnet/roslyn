@@ -45,26 +45,12 @@ public class LanguageServerDaemonBenchmarks
         _benchmarkProcess = Process.GetCurrentProcess();
     }
 
-    [IterationSetup(Target = nameof(LoadTwoConsoleApplicationsWithoutSharedMetadataCache))]
-    public void IterationSetupWithoutSharedMetadataCache()
-        => IterationSetup(useSharedMetadataCache: false);
-
-    [IterationSetup(Target = nameof(LoadTwoConsoleApplicationsWithSharedMetadataCache))]
-    public void IterationSetupWithSharedMetadataCache()
-        => IterationSetup(useSharedMetadataCache: true);
-
-    private void IterationSetup(bool useSharedMetadataCache)
-        => _daemon = _testHost.CreateDaemonAsync(useSharedMetadataCache).GetAwaiter().GetResult();
-
-    [Benchmark(Baseline = true)]
-    public Task LoadTwoConsoleApplicationsWithoutSharedMetadataCache()
-        => LoadTwoConsoleApplications();
+    [IterationSetup]
+    public void IterationSetup()
+        => _daemon = _testHost.CreateDaemonAsync().GetAwaiter().GetResult();
 
     [Benchmark]
-    public Task LoadTwoConsoleApplicationsWithSharedMetadataCache()
-        => LoadTwoConsoleApplications();
-
-    private async Task LoadTwoConsoleApplications()
+    public async Task LoadTwoConsoleApplications()
     {
         _firstServer = await _daemon.CreateClientAsync();
         _secondServer = await _daemon.CreateClientAsync();

@@ -17,35 +17,39 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new MetadataService(
             workspaceServices.GetRequiredService<IDocumentationProviderService>(),
-            workspaceServices.GetRequiredService<IMetadataProviderService>());
+            workspaceServices.GetRequiredService<IMetadataReferenceCacheService>());
 
-    private sealed class MetadataService(
-        IDocumentationProviderService documentationProviderService,
-        IMetadataProviderService metadataProviderService) : IMetadataService
+    private sealed class MetadataService : IMetadataService
     {
-        private readonly MetadataReferenceCache _metadataCache = new((path, properties) =>
+        private readonly IDocumentationProviderService _documentationProviderService;
+        private readonly IMetadataReferenceCacheService _metadataReferenceCacheService;
+
+        public MetadataService(
+            IDocumentationProviderService documentationProviderService,
+            IMetadataReferenceCacheService metadataReferenceCacheService)
         {
-            var documentationProvider = documentationProviderService.GetDocumentationProvider(path);
+            _documentationProviderService = documentationProviderService;
+            _metadataReferenceCacheService = metadataReferenceCacheService;
+        }
+
+        public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
+            => _metadataReferenceCacheService.GetReference(
+                resolvedPath, properties, CreateReference);
+
+        private PortableExecutableReference CreateReference(
+            string path, MetadataReferenceProperties properties)
+        {
+            var documentationProvider = _documentationProviderService.GetDocumentationProvider(path);
 
             try
             {
-                var metadata = metadataProviderService.GetMetadata(path, properties.Kind).Metadata;
-                return metadata switch
-                {
-                    AssemblyMetadata assembly => assembly.GetReference(documentationProvider, filePath: path).WithProperties(properties),
-                    ModuleMetadata module => module.GetReference(documentationProvider, path).WithProperties(properties),
-                    _ => throw ExceptionUtilities.UnexpectedValue(metadata.Kind),
-                };
+                return MetadataReference.CreateFromFile(path, properties, documentationProvider);
             }
             catch (IOException e)
             {
-                // Store failed references in the cache so that the behavior stays consistent once we observe the failure.
                 return new ThrowingExecutableReference(path, properties, documentationProvider, e);
             }
-        });
-
-        public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
-            => (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
+        }
 
         private sealed class ThrowingExecutableReference(string resolvedPath, MetadataReferenceProperties properties, DocumentationProvider documentationProvider, IOException exception)
             : PortableExecutableReference(properties, resolvedPath)

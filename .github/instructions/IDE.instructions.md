@@ -87,53 +87,6 @@ var generator = SyntaxGenerator.GetGenerator(document);
 var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 ```
 
-### Language Server Metadata Caching
-
-The default `IMetadataService` always owns a workspace-local
-`MetadataReferenceCache`. On a local cache miss, it asks the required
-`IMetadataProviderService` workspace service for backing `Metadata`, then creates
-the workspace-local reference with its documentation provider and properties.
-The default provider owns metadata creation. The Language Server overrides it
-with `LanguageServerMetadataProviderService` at `ServiceLayer.Host`; this MEF
-`[Shared]` service wraps the default creation path with the weak-value
-`SharedMetadataCache` in
-`src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/HostWorkspace/SharedMetadataCache.cs`.
-Language Server workspaces created from the same export provider share immutable
-backing `Metadata`, while their `MetadataReference` instances remain
-workspace-local so reference properties and documentation providers are not
-shared. Other workspace hosts select the default provider. The local cache
-weakly reuses references and derives property variants from an existing
-reference to avoid consulting the provider again within one workspace.
-
-The shared cache has no fixed capacity and retains at most one timestamped
-version per path and `MetadataImageKind`. Workspace references and compilations
-keep metadata alive while they use it; after those strong references disappear,
-the GC may collect the metadata. After every 500 successful additions or
-revivals, the cache removes dictionary entries whose weak targets are dead. It
-does not create or open metadata itself: on a miss it invokes the Language
-Server provider's base creation path and immediately publishes cacheable
-metadata. The provider determines cacheability from the already-loaded manifest;
-it does not load secondary modules to reject multi-module assemblies. Failures
-and multi-module assemblies are not cached. Keep the per-workspace
-`MetadataReferenceCache` partitioned by image kind when changing this area.
-Cache tests live under
-`src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/HostWorkspace`;
-the default reference-cache tests remain in
-`src/Workspaces/CoreTest/SolutionTests/MetadataServiceTests.cs`.
-
-`ServerConfiguration.UseSharedMetadataCache` defaults to `true` and provides an
-internal composition seam for tests and benchmarks. The daemon project-loading
-benchmark in `src/Tools/IdeCoreBenchmarks/LanguageServer` materializes two
-console applications and loads them concurrently through two daemon clients,
-comparing this value disabled and enabled. It creates a fresh daemon outside
-each measured iteration so every sample starts with an empty shared cache.
-Each workload invocation reports the process private-byte and working-set
-deltas around project loading; these include managed and native memory but
-intentionally do not claim to be absolute retained-process measurements.
-`MemoryDiagnoser` performs one additional untimed workload invocation after the
-`AfterActualRun` marker, so only delta lines before that marker correspond to
-the configured timed iterations.
-
 ## Coding Conventions
 
 - **Private fields**: `_camelCase`
