@@ -79,7 +79,6 @@ internal sealed class SourceGeneratorProjectEngine
     {
         Debug.Assert(sgDocument.CodeDocument.GetSyntaxTree() is not null);
 
-        int startIndex = _discoveryPhaseIndex;
         var codeDocument = sgDocument.CodeDocument;
 
         if (checkForIdempotency && codeDocument.TryGetTagHelpers(out var previousTagHelpers))
@@ -111,16 +110,19 @@ internal sealed class SourceGeneratorProjectEngine
             // Re-process the document with the updated tag helpers, starting from IR lowering. Resolution
             // binds unresolved nodes to their tag helpers by mutating the IR in place, so replaying from
             // resolution over an already-resolved tree finds nothing left to bind. Re-lowering rebuilds
-            // fresh unresolved IR from the syntax tree; classification, the split, discovery, and
-            // resolution then re-run over it against the new tag helpers.
-            startIndex = _loweringPhaseIndex;
-        }
-        else
-        {
-            codeDocument = codeDocument.WithTagHelpers(tagHelpers);
+            // fresh unresolved IR from the syntax tree; classification and the split then re-run over it.
+            //
+            // The discovery phase is skipped: the gate discovery above already computed the in-scope
+            // tag-helper context for the updated set, and it walks the syntax tree (not the IR) so re-lowering
+            // does not invalidate it. Re-running discovery here would recompute the identical context.
+            codeDocument = ExecutePhases(Phases[_loweringPhaseIndex.._discoveryPhaseIndex], codeDocument, cancellationToken);
+            codeDocument = ExecutePhases(Phases[(_discoveryPhaseIndex + 1)..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
+
+            return new SourceGeneratorRazorCodeDocument(codeDocument);
         }
 
-        codeDocument = ExecutePhases(Phases[startIndex..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
+        codeDocument = codeDocument.WithTagHelpers(tagHelpers);
+        codeDocument = ExecutePhases(Phases[_discoveryPhaseIndex..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
 
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
