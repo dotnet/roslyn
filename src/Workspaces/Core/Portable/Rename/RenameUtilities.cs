@@ -99,7 +99,7 @@ internal static class RenameUtilities
         if (symbols.Length == 0)
         {
             var info = semanticModel.GetSymbolInfo(bindableToken, cancellationToken);
-            if (info.CandidateReason == CandidateReason.MemberGroup)
+            if (info.CandidateReason is CandidateReason.MemberGroup or CandidateReason.OverloadResolutionFailure)
             {
                 return info.CandidateSymbols;
             }
