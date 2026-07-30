@@ -223,8 +223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInFixed">
-        <source>Cannot await in the body of a 'fixed' statement</source>
-        <target state="new">Cannot await in the body of a 'fixed' statement</target>
+        <source>Cannot await in the body or the initializer of a 'fixed' statement</source>
+        <target state="new">Cannot await in the body or the initializer of a 'fixed' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
@@ -11439,11 +11439,6 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">Operátor await nejde použít v inicializátoru proměnné statického skriptu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">Operátor await nejde použít v nezabezpečeném kontextu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

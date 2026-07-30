@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Better error location than `nodeOrToken` but using it only for new diagnostics to avoid test churn.
             var awaitNodeOrToken = nodeOrToken.AsNode() is AwaitExpressionSyntax awaitExpression ? awaitExpression.AwaitKeyword : nodeOrToken;
 
-            if (this.Flags.Includes(BinderFlags.InFixedStatementBody) && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext))
+            if (this.Flags.Includes(BinderFlags.InFixedStatement) && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext))
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitInFixed, awaitNodeOrToken);
                 return true;

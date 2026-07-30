@@ -720,9 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var bodyBinder = binder.WithAdditionalFlags(BinderFlags.InFixedStatementBody);
-            AddToMap(node.Statement, bodyBinder);
-            VisitPossibleEmbeddedStatement(node.Statement, bodyBinder);
+            VisitPossibleEmbeddedStatement(node.Statement, binder);
         }
 
         public override void VisitLockStatement(LockStatementSyntax node)
