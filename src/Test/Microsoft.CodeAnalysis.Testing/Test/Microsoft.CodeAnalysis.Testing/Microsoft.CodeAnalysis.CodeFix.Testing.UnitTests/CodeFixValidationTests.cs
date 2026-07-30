@@ -450,5 +450,3 @@ namespace Microsoft.CodeAnalysis.Testing
         }
     }
 }
-
-
