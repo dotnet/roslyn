@@ -87,7 +87,7 @@ internal sealed class ServerExecutable
         // only .NET install is reachable via PATH, the child apphost would otherwise fail to start.
         // Point the child at the runtime that is hosting us so it launches against the
         // same .NET.
-        if (RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, logger: null) is { } dotNetRoot)
+        if (RuntimeHostInfo.GetToolDotNetRoot(logger: null) is { } dotNetRoot)
         {
             // Clear any inherited DOTNET_ROOT* variants (e.g. DOTNET_ROOT_X64) so they can't override the value we set.
             foreach (var key in startInfo.Environment.Keys

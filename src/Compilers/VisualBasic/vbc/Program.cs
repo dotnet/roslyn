@@ -30,11 +30,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
         private static int MainCore(string[] args)
         {
-            using var logger = new CompilerServerLogger(
-                $"vbc {Process.GetCurrentProcess().Id}",
-                loggingFilePath: null,
-                Environment.GetEnvironmentVariable,
-                static path => path);
+            using var logger = new CompilerServerLogger($"vbc {Process.GetCurrentProcess().Id}");
 
 #if BOOTSTRAP
             ExitingTraceListener.Install(logger);

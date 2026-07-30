@@ -129,14 +129,8 @@ static async Task<(TimeSpan BuildTime, TimeSpan TotalTime)> RunOneAsync(List<Com
     Directory.CreateDirectory(options.OutputDirectory);
     Directory.CreateDirectory(options.TempDirectory);
 
-    using var compilerServerLogger = new CompilerServerLogger(
-        "replay",
-        Path.Combine(options.OutputDirectory, "server.log"));
-    if (!BuildServerConnection.TryCreateServer(
-        options.ClientDirectory,
-        options.PipeName,
-        compilerServerLogger,
-        out int serverProcessId))
+    using var compilerServerLogger = new CompilerServerLogger("replay", Path.Combine(options.OutputDirectory, "server.log"));
+    if (!BuildServerConnection.TryCreateServer(options.ClientDirectory, options.PipeName, compilerServerLogger, out int serverProcessId))
     {
         throw new Exception("Failed to create server");
     }
