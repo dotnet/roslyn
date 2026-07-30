@@ -7183,6 +7183,136 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    public async Task ExplicitStatement_ShiftedOpeningBrace()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                            @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            htmlFormatted: """
+                @(booleanValue ?@
+                <br /> : @
+                <br />)
+
+                            @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            expected: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """);
+    }
+
+    [Fact]
+    public async Task ExplicitStatement_AlreadyFormatted()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            htmlFormatted: """
+                @(booleanValue ?@
+                <br /> : @
+                <br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            expected: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """);
+    }
+
+    [Fact]
     public async Task Formats_NonCodeBlockDirectives()
     {
         await RunFormattingTestAsync(
