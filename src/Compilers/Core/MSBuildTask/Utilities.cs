@@ -4,6 +4,7 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             try
             {
-                path = Path.GetFullPath(taskEnvironment.GetAbsolutePath(path).Value);
+                path = taskEnvironment.GetFullPath(path);
             }
             catch (Exception e) when (IsIoRelatedException(e)) { }
             return path;

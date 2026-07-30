@@ -137,7 +137,7 @@ public abstract class IntegrationTestBase : TestBase
             "test",
             loggingFilePath: null,
             Environment.GetEnvironmentVariable,
-            static path => path);
+            Path.GetFullPath);
         await BuildServerConnection.RunServerShutdownRequestAsync(
             pipeName,
             timeoutOverride: null,

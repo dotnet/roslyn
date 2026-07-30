@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 return UseAppHost
                     ? PathToBuiltInTool
-                    : RuntimeHostInfo.GetDotNetPathOrDefault(this.TaskEnvironment.GetEnvironmentVariable);
+                    : RuntimeHostInfo.GetDotNetPathOrDefault(TaskEnvironment.GetEnvironmentVariable);
             }
 
             return Path.Combine(ToolPath ?? "", ToolExe);

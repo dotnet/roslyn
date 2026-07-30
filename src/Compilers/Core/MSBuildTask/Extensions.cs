@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Build.Framework;
 using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CommandLine;
@@ -12,7 +13,11 @@ internal static class Extensions
 {
     extension(TaskEnvironment taskEnvironment)
     {
-        internal string GetFullPath(string path) => taskEnvironment.GetAbsolutePath(path).Value;
+        internal string GetFullPath(string path)
+        {
+            var fullPath = taskEnvironment.GetAbsolutePath(path).Value;
+            return Path.GetFullPath(fullPath);
+        }
 
         /// <summary>
         /// Gets a dictionary containing the environment variables for the current task environment. This 

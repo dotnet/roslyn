@@ -5,4 +5,5 @@ M:System.Environment.GetCommandLineArgs();
 M:System.Environment.GetFolderPath();
 M:System.Environment.GetLogicalDrives();
 M:System.Environment.SetEnvironmentVariable();
+M:System.IO.Directory.GetCurrentDirectory();
 M:Microsoft.Build.Framework.TaskEnvironment.GetEnvironmentVariables(); Use GetEnvironmentVariablesMap() instead;

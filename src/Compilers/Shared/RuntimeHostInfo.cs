@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    if (!Path.IsPathRooted(item))
+                    if (!Path.IsPathFullyQualified(item))
                     {
                         continue;
                     }
