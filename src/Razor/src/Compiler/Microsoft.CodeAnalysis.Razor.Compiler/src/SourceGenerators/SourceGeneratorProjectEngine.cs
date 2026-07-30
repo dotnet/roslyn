@@ -15,6 +15,7 @@ internal sealed class SourceGeneratorProjectEngine
 
     private readonly IRazorEnginePhase _discoveryPhase;
     private readonly int _loweringPhaseIndex = -1;
+    private readonly int _declLoweringPhaseIndex = -1;
     private readonly int _discoveryPhaseIndex = -1;
     private readonly int _rewritePhaseIndex = -1;
 
@@ -28,7 +29,7 @@ internal sealed class SourceGeneratorProjectEngine
 
         foreach (var phase in Phases)
         {
-            if (_loweringPhaseIndex >= 0 && _discoveryPhaseIndex >= 0 && _rewritePhaseIndex >= 0)
+            if (_loweringPhaseIndex >= 0 && _declLoweringPhaseIndex >= 0 && _discoveryPhaseIndex >= 0 && _rewritePhaseIndex >= 0)
             {
                 break;
             }
@@ -37,6 +38,10 @@ internal sealed class SourceGeneratorProjectEngine
             {
                 case DefaultRazorIntermediateNodeLoweringPhase:
                     _loweringPhaseIndex = index;
+                    break;
+
+                case DefaultRazorDeclCSharpLoweringPhase:
+                    _declLoweringPhaseIndex = index;
                     break;
 
                 case DefaultRazorTagHelperContextDiscoveryPhase:
@@ -54,9 +59,11 @@ internal sealed class SourceGeneratorProjectEngine
 
         Debug.Assert(_discoveryPhase is not null);
         Debug.Assert(_loweringPhaseIndex >= 0);
+        Debug.Assert(_declLoweringPhaseIndex >= 0);
         Debug.Assert(_discoveryPhaseIndex >= 0);
         Debug.Assert(_rewritePhaseIndex >= 0);
-        Debug.Assert(_loweringPhaseIndex < _discoveryPhaseIndex);
+        Debug.Assert(_loweringPhaseIndex < _declLoweringPhaseIndex);
+        Debug.Assert(_declLoweringPhaseIndex < _discoveryPhaseIndex);
         Debug.Assert(_discoveryPhaseIndex < _rewritePhaseIndex);
     }
 
@@ -79,7 +86,6 @@ internal sealed class SourceGeneratorProjectEngine
     {
         Debug.Assert(sgDocument.CodeDocument.GetSyntaxTree() is not null);
 
-        int startIndex = _discoveryPhaseIndex;
         var codeDocument = sgDocument.CodeDocument;
 
         if (checkForIdempotency && codeDocument.TryGetTagHelpers(out var previousTagHelpers))
@@ -111,16 +117,34 @@ internal sealed class SourceGeneratorProjectEngine
             // Re-process the document with the updated tag helpers, starting from IR lowering. Resolution
             // binds unresolved nodes to their tag helpers by mutating the IR in place, so replaying from
             // resolution over an already-resolved tree finds nothing left to bind. Re-lowering rebuilds
-            // fresh unresolved IR from the syntax tree; classification, the split, discovery, and
-            // resolution then re-run over it against the new tag helpers.
-            startIndex = _loweringPhaseIndex;
-        }
-        else
-        {
-            codeDocument = codeDocument.WithTagHelpers(tagHelpers);
+            // fresh unresolved IR from the syntax tree; classification and the markup split then re-run over
+            // it -- the split is what carves the working IR into the impl half that resolution and rewrite
+            // operate on, so it cannot be skipped.
+            //
+            // Two phases in that range are skipped:
+            //  * Discovery: the gate discovery above already computed the in-scope tag-helper context for the
+            //    updated set. It walks the syntax tree (not the IR), so re-lowering does not invalidate it,
+            //    and re-running it would recompute the identical context.
+            //  * Decl C# lowering: it lowers the markup-free declaration half, whose text depends only on the
+            //    document's own source. A tag-helper change elsewhere cannot alter it, so the declaration
+            //    document from the initial parse is still valid. It is captured here and restored afterward
+            //    because nothing in the replayed range regenerates it, and it feeds the generator's output
+            //    cache comparison and declaration-diagnostic reporting.
+            var declCSharpDocument = codeDocument.GetDeclCSharpDocument();
+
+            codeDocument = ExecutePhases(Phases[_loweringPhaseIndex.._declLoweringPhaseIndex], codeDocument, cancellationToken);
+            codeDocument = ExecutePhases(Phases[(_discoveryPhaseIndex + 1)..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
+
+            if (declCSharpDocument is not null)
+            {
+                codeDocument = codeDocument.WithDeclCSharpDocument(declCSharpDocument);
+            }
+
+            return new SourceGeneratorRazorCodeDocument(codeDocument);
         }
 
-        codeDocument = ExecutePhases(Phases[startIndex..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
+        codeDocument = codeDocument.WithTagHelpers(tagHelpers);
+        codeDocument = ExecutePhases(Phases[_discoveryPhaseIndex..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
 
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
