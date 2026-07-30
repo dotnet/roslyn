@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis
         bool IsImplicitlyDeclared { get; }
 
         /// <summary>
-        /// Whether this symbol is considered caller-<see langword="unsafe"/> under the updated memory safety rules,
+        /// Whether this symbol is considered requires-<see langword="unsafe"/> under the updated memory safety rules,
         /// i.e., the symbol requires an <see langword="unsafe"/> context at its use site.
         /// This can be either a symbol compiled with the updated memory safety rules which has <see langword="unsafe"/> in its signature,
         /// or a symbol compiled with the legacy memory safety rules which has pointers in its signature.

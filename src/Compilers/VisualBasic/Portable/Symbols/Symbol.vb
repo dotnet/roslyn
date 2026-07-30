@@ -511,12 +511,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overridable ReadOnly Property RequiresUnsafe As Boolean Implements ISymbol.RequiresUnsafe
-            Get
-                Return False
-            End Get
-        End Property
-
         ''' <summary>
         ''' True if this symbol has been marked with the Obsolete attribute. 
         ''' This property returns Unknown if the Obsolete Attribute hasn't been cracked yet.
@@ -1338,6 +1332,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property ISymbol_Kind As SymbolKind Implements ISymbol.Kind, ISymbolInternal.Kind
             Get
                 Return Me.Kind
+            End Get
+        End Property
+
+        Private ReadOnly Property ISymbol_RequiresUnsafe As Boolean Implements ISymbol.RequiresUnsafe
+            Get
+                Return False
             End Get
         End Property
 
