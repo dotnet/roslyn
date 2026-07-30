@@ -870,7 +870,7 @@ unsafe class C
                 }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/73280 - these should ideally be langversion errors for upgrading to C#13
+            // https://github.com/dotnet/roslyn/issues/73280 - these should ideally be langversion errors for 'ref and unsafe in async and iterator methods'
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (8,31): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var lam = async () => await Task.Yield();
@@ -897,7 +897,7 @@ unsafe class C
                 }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/73280 - these should ideally be langversion errors for upgrading to C#13
+            // https://github.com/dotnet/roslyn/issues/73280 - these should ideally be langversion errors for 'ref and unsafe in async and iterator methods'
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (9,30): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         async void local() { await Task.Yield(); }

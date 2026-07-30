@@ -236,9 +236,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_BadAwaitInCatchFilter, nodeOrToken.GetLocation()!);
                 return true;
             }
-            else if (this.InUnsafeRegion && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext))
+            else if (this.InUnsafeRegion && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext) &&
+                !CheckFeatureAvailability(awaitNodeOrToken, MessageID.IDS_FeatureUnsafeEvolution, diagnostics))
             {
-                return !CheckFeatureAvailability(awaitNodeOrToken, MessageID.IDS_FeatureUnsafeEvolution, diagnostics);
+                return true;
             }
             else if (this.Flags.Includes(BinderFlags.InFinallyBlock) &&
                 (nodeOrToken.SyntaxTree as CSharpSyntaxTree)?.Options?.IsFeatureEnabled(MessageID.IDS_AwaitInCatchAndFinally) == false)
