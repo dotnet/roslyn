@@ -68,7 +68,7 @@ internal sealed class CopilotGenerateDocumentationCommentManager
         _inlinePromptService!.Show(
             textView,
             caret,
-            onAcceptAsync: dismissToken => GenerateAndApplyDocumentationAsync(document, snippet, snapshot, textView, dismissToken),
+            onAcceptAsync: dismissToken => GenerateAndApplyDocumentationAsync(document, snippet, snapshot, dismissToken),
             new InlinePromptOptions
             {
                 ProviderName = GenerateDocumentationProviderName,
@@ -81,7 +81,7 @@ internal sealed class CopilotGenerateDocumentationCommentManager
     }
 
     private async Task GenerateAndApplyDocumentationAsync(Document document,
-        DocumentationCommentSnippet snippet, ITextSnapshot snapshot, ITextView textView, CancellationToken cancellationToken)
+        DocumentationCommentSnippet snippet, ITextSnapshot snapshot, CancellationToken cancellationToken)
     {
         // Re-check Copilot availability / file-exclusion at accept time; degrade quietly otherwise.
         var copilotService = await IsGenerateDocumentationAvailableAsync(document, snippet.MemberNode, cancellationToken).ConfigureAwait(false);
