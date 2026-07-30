@@ -71,7 +71,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         var expected = """
             @(booleanValue ?@<br /> : @<br />)
 
-                        @{
+            @{
                 if (false)
                 {
                     // false
