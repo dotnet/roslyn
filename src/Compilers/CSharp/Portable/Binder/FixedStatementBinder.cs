@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly FixedStatementSyntax _syntax;
 
         public FixedStatementBinder(Binder enclosing, FixedStatementSyntax syntax)
-            : base(enclosing, enclosing.Flags | BinderFlags.InFixedStatement)
+            : base(enclosing)
         {
             Debug.Assert(syntax != null);
             _syntax = syntax;

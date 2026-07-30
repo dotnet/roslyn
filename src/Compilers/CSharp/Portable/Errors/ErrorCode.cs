@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitArgIntrinsic = 4001,
         // 4002 unused
         ERR_BadAwaitAsIdentifier = 4003,
-        ERR_AwaitInUnsafeContext = 4004,
+        // ERR_AwaitInUnsafeContext = 4004, // replaced with a langversion error
         ERR_UnsafeAsyncArgType = 4005,
         ERR_VarargsAsync = 4006,
         ERR_ByRefTypeAndAwait = 4007,

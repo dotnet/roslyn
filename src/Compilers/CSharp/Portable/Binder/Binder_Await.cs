@@ -218,18 +218,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if errors were found.</returns>
         private bool ReportBadAwaitContext(SyntaxNodeOrToken nodeOrToken, BindingDiagnosticBag diagnostics)
         {
-            if (this.InUnsafeRegion &&
-                !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext) &&
-                !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution))
+            // Better error location than `nodeOrToken` but using it only for new diagnostics to avoid test churn.
+            var awaitNodeOrToken = nodeOrToken.AsNode() is AwaitExpressionSyntax awaitExpression ? awaitExpression.AwaitKeyword : nodeOrToken;
+
+            if (this.Flags.Includes(BinderFlags.InFixedStatementBody))
             {
-                Error(diagnostics, ErrorCode.ERR_AwaitInUnsafeContext, nodeOrToken.GetLocation()!);
-                return true;
-            }
-            else if (this.Flags.Includes(BinderFlags.InFixedStatement) &&
-                !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext) &&
-                Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution))
-            {
-                Error(diagnostics, ErrorCode.ERR_BadAwaitInFixed, nodeOrToken.GetLocation()!);
+                Error(diagnostics, ErrorCode.ERR_BadAwaitInFixed, awaitNodeOrToken);
                 return true;
             }
             else if (this.Flags.Includes(BinderFlags.InLockBody))
@@ -241,6 +235,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitInCatchFilter, nodeOrToken.GetLocation()!);
                 return true;
+            }
+            else if (this.InUnsafeRegion && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext))
+            {
+                return !CheckFeatureAvailability(awaitNodeOrToken, MessageID.IDS_FeatureUnsafeEvolution, diagnostics);
             }
             else if (this.Flags.Includes(BinderFlags.InFinallyBlock) &&
                 (nodeOrToken.SyntaxTree as CSharpSyntaxTree)?.Options?.IsFeatureEnabled(MessageID.IDS_AwaitInCatchAndFinally) == false)

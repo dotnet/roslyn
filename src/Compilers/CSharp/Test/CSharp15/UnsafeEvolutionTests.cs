@@ -14881,9 +14881,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
-            // (9,13): error CS4004: Cannot await in an unsafe context
+            // (9,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //             await Task.Yield();
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 13));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(9, 13));
 
         var expectedOutput = "123";
 
@@ -14913,18 +14913,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (10,17): error CS4004: Cannot await in an unsafe context
-            //                 await Task.Yield();
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(10, 17));
-
         var expectedDiagnostics = new[]
         {
             // (10,17): error CS9396: Cannot await in the body of a 'fixed' statement
             //                 await Task.Yield();
-            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await Task.Yield()").WithLocation(10, 17),
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(10, 17),
         };
 
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
@@ -14957,13 +14953,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }").WithLocation(6, 9),
             // (6,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         fixed (int* p = a)
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 16));
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 16),
+            // (8,13): error CS9396: Cannot await in the body of a 'fixed' statement
+            //             await Task.Yield();
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(8, 13));
 
         var expectedDiagnostics = new[]
         {
             // (8,13): error CS9396: Cannot await in the body of a 'fixed' statement
             //             await Task.Yield();
-            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await Task.Yield()").WithLocation(8, 13),
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(8, 13),
         };
 
         CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -14999,17 +14998,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             //         fixed (byte* p = await GetAsync())
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "byte*").WithLocation(6, 16));
 
-        var expectedDiagnostics = new[]
-        {
-            // (6,26): error CS9396: Cannot await in the body of a 'fixed' statement
-            //         fixed (byte* p = await GetAsync())
-            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await GetAsync()").WithLocation(6, 26),
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics();
     }
 
     [Fact]
@@ -15041,13 +15033,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }").WithLocation(7, 9),
             // (7,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         fixed (int* p = a)
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 16));
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 16),
+            // (10,13): error CS9396: Cannot await in the body of a 'fixed' statement
+            //             await f();
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(10, 13));
 
         var expectedDiagnostics = new[]
         {
             // (10,13): error CS9396: Cannot await in the body of a 'fixed' statement
             //             await f();
-            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await f()").WithLocation(10, 13),
+            Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(10, 13),
         };
 
         CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);

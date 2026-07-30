@@ -729,12 +729,12 @@ class Test
 }";
             CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14)
                 .VerifyDiagnostics(
-                    // (6,45): error CS4004: Cannot await in an unsafe context
+                    // (6,45): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
-                    Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(6, 45),
-                    // (7,56): error CS4004: Cannot await in an unsafe context
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(6, 45),
+                    // (7,56): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     unsafe async static Task M2(delegate*<void>[] i) { await Task.Yield(); } // 2
-                    Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 56),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(7, 56),
                     // (8,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     //     async static Task M3(int*[] i) { await Task.Yield(); } // 3
                     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 26),
@@ -1259,12 +1259,12 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-                // (7,9): error CS4004: Cannot await in an unsafe context
+                // (7,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await Task.Factory.StartNew(() => { });  // not OK
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Factory.StartNew(() => { })"),
-                // (16,13): error CS4004: Cannot await in an unsafe context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(7, 9),
+                // (16,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             await Task.Factory.StartNew(() => { }); // not OK
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Factory.StartNew(() => { })"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(16, 13));
         }
 
         [Fact]
@@ -1304,9 +1304,9 @@ class Test
                 // (12,13): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
                 //             await Task.Factory.StartNew(() => { });
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(12, 13),
-                // (12,13): error CS4004: Cannot await in an unsafe context
+                // (12,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             await Task.Factory.StartNew(() => { });
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Factory.StartNew(() => { })").WithLocation(12, 13),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(12, 13),
                 // (20,13): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
                 //             await Task.Factory.StartNew(() => { });
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(20, 13),
@@ -1553,9 +1553,9 @@ class Test
                 parseOptions: TestOptions.Regular14);
 
             c.VerifyDiagnostics(
-                // (22,41): error CS4004: Cannot await in an unsafe context
+                // (22,41): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //                              join l3 in await F1() on l2 equals l3
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await F1()"),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(22, 41),
                 // (22,41): error CS1995: The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause
                 //                              join l3 in await F1() on l2 equals l3
                 Diagnostic(ErrorCode.ERR_BadAwaitInQuery, "await F1()"));
