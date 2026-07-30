@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     buildRequest,
                     pipeName,
                     clientDirectory,
-                    TaskEnvironment.GetEnvironmentVariablesMap(),
+                    TaskEnvironment.GetEnvironmentVariables(),
                     logger,
                     _sharedCompileCts.Token);
 

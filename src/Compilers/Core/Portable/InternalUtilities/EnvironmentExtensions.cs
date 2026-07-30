@@ -24,13 +24,13 @@ internal static class EnvironmentExtensions
         /// <summary>
         /// Gets the environment variables as a strongly-typed dictionary.
         /// </summary>
-        internal static Dictionary<string, string?> GetEnvironmentVariablesTyped()
+        internal static Dictionary<string, string> GetEnvironmentVariablesTyped()
         {
             var environmentVariables = Environment.GetEnvironmentVariables();
-            var map = new Dictionary<string, string?>(capacity: environmentVariables.Count, Environment.EnvironmentVariableComparer);
+            var map = new Dictionary<string, string>(capacity: environmentVariables.Count, Environment.EnvironmentVariableComparer);
             foreach (System.Collections.DictionaryEntry entry in environmentVariables)
             {
-                map[(string)entry.Key] = (string?)entry.Value;
+                map[(string)entry.Key] = (string?)entry.Value ?? "";
             }
 
             return map;

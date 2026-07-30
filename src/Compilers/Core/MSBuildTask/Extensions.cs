@@ -18,26 +18,5 @@ internal static class Extensions
             var fullPath = taskEnvironment.GetAbsolutePath(path).Value;
             return Path.GetFullPath(fullPath);
         }
-
-        /// <summary>
-        /// Gets a dictionary containing the environment variables for the current task environment. This 
-        /// dictionary has the same semantics as <cref see="System.Environment.GetEnvironmentVariables()"/> where
-        /// missing is represented as null. 
-        /// </summary>
-        internal IReadOnlyDictionary<string, string?> GetEnvironmentVariablesMap()
-        {
-#pragma warning disable RS0030 // Do not use banned APIs
-            var environmentVariables = taskEnvironment.GetEnvironmentVariables();
-#pragma warning restore RS0030 // Do not use banned APIs
-
-            var map = new Dictionary<string, string?>(capacity: environmentVariables.Count, Environment.EnvironmentVariableComparer);
-            foreach (var tuple in environmentVariables)
-            {
-                var value = tuple.Value == "" && taskEnvironment.GetEnvironmentVariable(tuple.Key) == null ? null : tuple.Value;
-                map[tuple.Key] = value;
-            }
-
-            return map;
-        }
     }
 }

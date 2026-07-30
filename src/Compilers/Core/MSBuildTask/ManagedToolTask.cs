@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 EnvironmentVariables =
                 [
                     .. EnvironmentVariables?.Where(static e => !e.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, Environment.EnvironmentVariableComparison)) ?? [],
-                    .. TaskEnvironment.GetEnvironmentVariablesMap()
+                    .. TaskEnvironment.GetEnvironmentVariables()
                         .Where(e => e.Key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, Environment.EnvironmentVariableComparison))
                         .Select(e => $"{e.Key}="),
                     $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}",

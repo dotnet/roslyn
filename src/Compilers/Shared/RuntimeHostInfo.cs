@@ -41,6 +41,14 @@ namespace Microsoft.CodeAnalysis
         internal const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
         internal const string DotNetTieredCompilationEnvironmentName = "DOTNET_TieredCompilation";
 
+#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+        /// <summary>
+        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
+        /// </summary>
+        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger) =>
+            GetToolDotNetRoot(Environment.GetEnvironmentVariable, logger);
+#endif
+
         /// <summary>
         /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
         /// </summary>

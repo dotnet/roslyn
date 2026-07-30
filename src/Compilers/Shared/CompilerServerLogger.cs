@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         public CompilerServerLogger(
             string identifier,
-            string? loggingFilePath)
+            string? loggingFilePath = null)
             : this(identifier, loggingFilePath, Environment.GetEnvironmentVariable, Path.GetFullPath)
         {
         }
