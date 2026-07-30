@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources = { testCode },
                     GeneratedSources =
                     {
-                        (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 42\r\n"),
+                        (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 38\r\n"),
                     },
                 },
                 FixedState =
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources = { fixedCode },
                     GeneratedSources =
                     {
-                        (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 43\r\n"),
+                        (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 39\r\n"),
                     },
                 },
             }.RunAsync();
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 Expected source file list to match
                 +Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.SourceGeneratorTests+TreeLengthGenerator\Generated.g.cs
 
-                """;
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
 
             CSharpTest<TreeLengthGenerator> CreateTest(TestBehaviors testBehaviors)
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         Sources = { fixedCode },
                         GeneratedSources =
                         {
-                            (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 43\r\n"),
+                            (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 39\r\n"),
                         },
                     },
                 };
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 Expected source file list to match
                 +Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.SourceGeneratorTests+TreeLengthGenerator\Generated.g.cs
 
-                """;
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
 
             CSharpTest<TreeLengthGenerator> CreateTest(TestBehaviors testBehaviors)
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         Sources = { testCode },
                         GeneratedSources =
                         {
-                            (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 42\r\n"),
+                            (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 38\r\n"),
                         },
                     },
                     FixedState =

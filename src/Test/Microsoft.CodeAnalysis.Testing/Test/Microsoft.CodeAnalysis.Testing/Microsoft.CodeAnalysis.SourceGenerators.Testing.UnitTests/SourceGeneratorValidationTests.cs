@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 Context: Source generator application
                 Context: Verifying source generated files
                 encoding of 'Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFile\EmptyGeneratedFile.cs' was expected to be 'utf-16' but was 'utf-8'
-                """;
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
         }
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 DiagnosticResult.CompilerError("CS1513").WithSpan("Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.cs", 1, 10, 1, 10),
 
 
-                """;
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
         }
 
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 DiagnosticResult.CompilerError("BC30481").WithSpan("Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.TestGenerators.AddFileWithCompileError\ErrorGeneratedFile.vb", 1, 1, 1, 8),
 
 
-                """;
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
         }
 

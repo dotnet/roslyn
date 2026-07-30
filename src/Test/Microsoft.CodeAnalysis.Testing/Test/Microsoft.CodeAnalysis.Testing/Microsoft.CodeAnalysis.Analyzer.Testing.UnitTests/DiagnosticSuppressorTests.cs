@@ -73,8 +73,8 @@ class Sample { string {|#0:_value|}; }",
                     },
                     ExpectedDiagnostics =
                     {
-                        DiagnosticResult.CompilerWarning("CS8618").WithLocation(0).WithIsSuppressed(true),
                         DiagnosticResult.CompilerWarning("CS0169").WithLocation(0),
+                        DiagnosticResult.CompilerWarning("CS8618").WithLocation(0).WithIsSuppressed(true).WithOptions(DiagnosticOptions.IgnoreAdditionalLocations),
                     },
                 },
             }.RunAsync();

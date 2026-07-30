@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         throw new InvalidOperationException("Unexpected state: should have failed during the previous assertion.");
                     }
 
-                    verifier.EqualOrDiff(expected.content.ToString(), actual.content.ToString(), $"content of '{expected.filename}' did not match. Diff shown with expected as baseline:");
+                    verifier.EqualOrDiff(expected.content.ToString().Replace("\r\n", "\n").Replace("\r", "\n"), actual.content.ToString().Replace("\r\n", "\n").Replace("\r", "\n"), $"content of '{expected.filename}' did not match. Diff shown with expected as baseline:");
                     verifier.Equal(expected.content.Encoding, actual.content.Encoding, $"encoding of '{expected.filename}' was expected to be '{expected.content.Encoding?.WebName}' but was '{actual.content.Encoding?.WebName}'");
                     verifier.Equal(expected.content.ChecksumAlgorithm, actual.content.ChecksumAlgorithm, $"checksum algorithm of '{expected.filename}' was expected to be '{expected.content.ChecksumAlgorithm}' but was '{actual.content.ChecksumAlgorithm}'");
 

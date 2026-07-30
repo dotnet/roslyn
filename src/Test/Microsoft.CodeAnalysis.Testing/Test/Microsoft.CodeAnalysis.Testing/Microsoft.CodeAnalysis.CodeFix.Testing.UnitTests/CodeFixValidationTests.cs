@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis.Testing
                  Node(CompilationUnit):
                    Node(ClassDeclaration):
                      Token(ClassKeyword): class
-                       Leading(EndOfLineTrivia): \r\n
+                       Leading(EndOfLineTrivia): \n
                        Trailing(WhitespaceTrivia):  
                      Token(IdentifierToken): TestClass
                        Trailing(WhitespaceTrivia):  
                      Token(OpenBraceToken): {
-                       Trailing(EndOfLineTrivia): \r\n
+                       Trailing(EndOfLineTrivia): \n
                      Node(MethodDeclaration):
                        Node(PredefinedType):
                          Token(VoidKeyword): void
@@ -98,14 +98,14 @@ namespace Microsoft.CodeAnalysis.Testing
                            Token(SemicolonToken): ;
                              Trailing(WhitespaceTrivia):  
                          Token(CloseBraceToken): }
-                           Trailing(EndOfLineTrivia): \r\n
+                           Trailing(EndOfLineTrivia): \n
                      Token(CloseBraceToken): }
-                       Trailing(EndOfLineTrivia): \r\n
+                       Trailing(EndOfLineTrivia): \n
                    Token(EndOfFileToken): 
                  
-
+ 
                 """,
-                failure.Message);
+                failure.Message.Replace("\r\n", "\n"));
         }
 
         [Fact]
@@ -129,12 +129,12 @@ namespace Microsoft.CodeAnalysis.Testing
                  Node(CompilationUnit):
                    Node(ClassDeclaration):
                      Token(ClassKeyword): class
-                       Leading(EndOfLineTrivia): \r\n
+                       Leading(EndOfLineTrivia): \n
                        Trailing(WhitespaceTrivia):  
                      Token(IdentifierToken): TestClass
                        Trailing(WhitespaceTrivia):  
                      Token(OpenBraceToken): {
-                       Trailing(EndOfLineTrivia): \r\n
+                       Trailing(EndOfLineTrivia): \n
                      Node(MethodDeclaration):
                        Node(PredefinedType):
                          Token(VoidKeyword): void
@@ -166,14 +166,14 @@ namespace Microsoft.CodeAnalysis.Testing
                            Token(SemicolonToken): ;
                              Trailing(WhitespaceTrivia):  
                          Token(CloseBraceToken): }
-                           Trailing(EndOfLineTrivia): \r\n
+                           Trailing(EndOfLineTrivia): \n
                      Token(CloseBraceToken): }
-                       Trailing(EndOfLineTrivia): \r\n
+                       Trailing(EndOfLineTrivia): \n
                    Token(EndOfFileToken): 
                  
 
                 """,
-                failure.Message);
+                failure.Message.Replace("\r\n", "\n"));
         }
 
         [Fact]
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Testing
                  
 
                 """,
-                failure.Message);
+                failure.Message.Replace("\r\n", "\n"));
         }
 
         [Fact]
@@ -450,3 +450,5 @@ namespace Microsoft.CodeAnalysis.Testing
         }
     }
 }
+
+

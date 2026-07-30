@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Testing
             for (var i = 0; i < updatedDocuments.Length; i++)
             {
                 var actual = await GetSourceTextFromDocumentAsync(updatedDocuments[i], cancellationToken).ConfigureAwait(false);
-                verifier.EqualOrDiff(newState.Sources[i].content.ToString(), actual.ToString(), $"content of '{newState.Sources[i].filename}' did not match. Diff shown with expected as baseline:");
+                verifier.EqualOrDiff(newState.Sources[i].content.ToString().Replace("\r\n", "\n").Replace("\r", "\n"), actual.ToString().Replace("\r\n", "\n").Replace("\r", "\n"), $"content of '{newState.Sources[i].filename}' did not match. Diff shown with expected as baseline:");
                 verifier.Equal(newState.Sources[i].content.Encoding, actual.Encoding, $"encoding of '{newState.Sources[i].filename}' was expected to be '{newState.Sources[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                 verifier.Equal(newState.Sources[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.Sources[i].filename}' was expected to be '{newState.Sources[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
                 var (fileName, folders) = GetNameAndFoldersFromPath(newState.DefaultPrefix, newState.Sources[i].filename);
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Testing
             for (var i = 0; i < updatedAdditionalDocuments.Length; i++)
             {
                 var actual = await updatedAdditionalDocuments[i].GetTextAsync(cancellationToken).ConfigureAwait(false);
-                verifier.EqualOrDiff(newState.AdditionalFiles[i].content.ToString(), actual.ToString(), $"content of '{newState.AdditionalFiles[i].filename}' did not match. Diff shown with expected as baseline:");
+                verifier.EqualOrDiff(newState.AdditionalFiles[i].content.ToString().Replace("\r\n", "\n").Replace("\r", "\n"), actual.ToString().Replace("\r\n", "\n").Replace("\r", "\n"), $"content of '{newState.AdditionalFiles[i].filename}' did not match. Diff shown with expected as baseline:");
                 verifier.Equal(newState.AdditionalFiles[i].content.Encoding, actual.Encoding, $"encoding of '{newState.AdditionalFiles[i].filename}' was expected to be '{newState.AdditionalFiles[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                 verifier.Equal(newState.AdditionalFiles[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.AdditionalFiles[i].filename}' was expected to be '{newState.AdditionalFiles[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
                 var (fileName, folders) = GetNameAndFoldersFromPath(newState.DefaultPrefix, newState.AdditionalFiles[i].filename);
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.Testing
             for (var i = 0; i < updatedAnalyzerConfigDocuments.Length; i++)
             {
                 var actual = await updatedAnalyzerConfigDocuments[i].GetTextAsync(cancellationToken).ConfigureAwait(false);
-                verifier.EqualOrDiff(newState.AnalyzerConfigFiles[i].content.ToString(), actual.ToString(), $"content of '{newState.AnalyzerConfigFiles[i].filename}' did not match. Diff shown with expected as baseline:");
+                verifier.EqualOrDiff(newState.AnalyzerConfigFiles[i].content.ToString().Replace("\r\n", "\n").Replace("\r", "\n"), actual.ToString().Replace("\r\n", "\n").Replace("\r", "\n"), $"content of '{newState.AnalyzerConfigFiles[i].filename}' did not match. Diff shown with expected as baseline:");
                 verifier.Equal(newState.AnalyzerConfigFiles[i].content.Encoding, actual.Encoding, $"encoding of '{newState.AnalyzerConfigFiles[i].filename}' was expected to be '{newState.AnalyzerConfigFiles[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                 verifier.Equal(newState.AnalyzerConfigFiles[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.AnalyzerConfigFiles[i].filename}' was expected to be '{newState.AnalyzerConfigFiles[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
                 var (fileName, folders) = GetNameAndFoldersFromPath(newState.DefaultPrefix, newState.AnalyzerConfigFiles[i].filename);

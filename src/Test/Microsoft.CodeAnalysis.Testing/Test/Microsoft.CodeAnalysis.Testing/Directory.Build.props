@@ -3,6 +3,8 @@
   <PropertyGroup>
     <NoWarn>$(NoWarn);NU5125;NU3005</NoWarn>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <!-- netcoreapp3.1 and net472 are not supported by the current Microsoft.NET.Test.Sdk, suppress the error. -->
+    <SuppressTfmSupportBuildErrors>true</SuppressTfmSupportBuildErrors>
 
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
@@ -22,6 +24,18 @@
 
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+
+  <!-- Versions of Microsoft.CodeAnalysis used by the test utility projects for compatibility testing -->
+  <PropertyGroup>
+    <MicrosoftCodeAnalysis3PrimaryTestVersion>4.12.0</MicrosoftCodeAnalysis3PrimaryTestVersion>
+  </PropertyGroup>
+
+  <!-- Version variables needed when CPM is disabled for this subtree -->
+  <PropertyGroup>
+    <SystemNetHttpVersion>4.3.4</SystemNetHttpVersion>
+    <XunitVersion>2.9.2</XunitVersion>
+    <XunitCombinatorialVersion>1.6.24</XunitCombinatorialVersion>
   </PropertyGroup>
 
   <Choose>
@@ -50,6 +64,10 @@
   <ItemGroup>
     <None Include="$(CodeAnalysisRuleSet)" Condition="'$(CodeAnalysisRuleSet)' != ''" Link="%(Filename)%(Extension)" />
     <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" PrivateAssets="all" ExcludeAssets="all" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+    <!-- Pin versions for parent-injected analyzer packages that have no version when CPM is disabled -->
+    <PackageReference Update="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" Version="18.7.23" PrivateAssets="all" />
+    <PackageReference Update="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="3.3.4-beta1.22504.1" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

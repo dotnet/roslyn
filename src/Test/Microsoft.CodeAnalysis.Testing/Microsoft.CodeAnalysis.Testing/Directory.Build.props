@@ -5,6 +5,12 @@
 
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
+
+    <!--
+      These projects use explicit Version= attributes on PackageReference items inherited from roslyn-sdk,
+      which is incompatible with Roslyn's Central Package Management. Opt out here to preserve compatibility.
+    -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
@@ -58,6 +64,16 @@
     <NoWarn>$(NoWarn);NU1701;NU3005;NU5125</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!--
+      Version variables used by the testing library project files that are not defined in
+      Roslyn's central version management (eng/Packages.props).
+    -->
+    <DiffPlexVersion>1.7.2</DiffPlexVersion>
+    <SystemFormatsAsn1Version>9.0.6</SystemFormatsAsn1Version>
+    <SystemNetHttpVersion>4.3.4</SystemNetHttpVersion>
+  </PropertyGroup>
+
   <!-- We always want a good debugging experience in tests -->
   <PropertyGroup>
     <Optimize>false</Optimize>
@@ -77,7 +93,14 @@
   <!-- Public API Analyzer configuration -->
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
+    <!--
+      Use Update (not Include) for Roslyn.Diagnostics.Analyzers to avoid NU1504 duplicate with the
+      parent Settings.props PackageReference, and to pin the version when CPM is disabled.
+    -->
+    <PackageReference Update="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
+    <!-- Pin versions for other parent-injected analyzer packages that have no version when CPM is disabled -->
+    <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" Version="18.7.23" PrivateAssets="all" />
+    <PackageReference Update="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="3.3.4-beta1.22504.1" PrivateAssets="all" />
     <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" PrivateAssets="all" ExcludeAssets="all" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
@@ -87,10 +110,5 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" ExcludeAssets="all" />
   </ItemGroup>
-
-  <!-- Use a different versioning scheme for nuget packages -->
-  <PropertyGroup>
-    <VersionPrefix>$(NugetPackagePrefix)</VersionPrefix>
-  </PropertyGroup>
 
 </Project>
