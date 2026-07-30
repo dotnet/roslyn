@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -115,9 +116,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal bool WriteMSBuildEditorConfig()
         {
+            Debug.Assert(!string.IsNullOrEmpty(FileName.ItemSpec), "WriteMSBuildEditorConfig should only be called when FileName.ItemSpec is not null or empty.");
+
             try
             {
-                var targetFileName = string.IsNullOrEmpty(FileName.ItemSpec) ? FileName.ItemSpec : TaskEnvironment.GetAbsolutePath(FileName.ItemSpec);
+                var targetFileName = TaskEnvironment.GetAbsolutePath(FileName.ItemSpec);
                 if (File.Exists(targetFileName))
                 {
                     string existingContents = File.ReadAllText(targetFileName);
