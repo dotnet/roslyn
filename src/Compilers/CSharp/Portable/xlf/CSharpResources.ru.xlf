@@ -223,8 +223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInFixed">
-        <source>Cannot await in the body or the initializer of a 'fixed' statement</source>
-        <target state="new">Cannot await in the body or the initializer of a 'fixed' statement</target>
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="new">Cannot await in context of a 'fixed' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">

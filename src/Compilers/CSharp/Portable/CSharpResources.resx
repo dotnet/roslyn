@@ -3832,7 +3832,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>The 'await' operator cannot be used in a static script variable initializer.</value>
   </data>
   <data name="ERR_BadAwaitInFixed" xml:space="preserve">
-    <value>Cannot await in the body or the initializer of a 'fixed' statement</value>
+    <value>Cannot await in context of a 'fixed' statement</value>
   </data>
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
     <value>The 'async' modifier can only be used in methods that have a body.</value>
