@@ -456,7 +456,7 @@ stages:
             /p:Configuration=Release
             /p:PublishToMSDL=false
 
-      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.slnx
+      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.slnx --check-package-install
         displayName: Validate Build Artifacts
 
       - powershell: eng/validate-rules-missing-documentation.ps1 -ci
