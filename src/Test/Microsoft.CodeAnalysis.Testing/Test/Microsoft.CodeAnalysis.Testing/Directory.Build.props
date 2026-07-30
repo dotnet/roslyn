@@ -16,10 +16,10 @@
   <PropertyGroup>
     <SupportsNet10Targeting>$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '18.0'))</SupportsNet10Targeting>
     <TestTargetFrameworks>netcoreapp3.1</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(TestTargetFrameworks)</TestTargetFrameworks>
     <TestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TestTargetFrameworks);net472</TestTargetFrameworks>
     <SourceGeneratorTestTargetFrameworks>netcoreapp3.1</SourceGeneratorTestTargetFrameworks>
-    <SourceGeneratorTestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0</SourceGeneratorTestTargetFrameworks>
+    <SourceGeneratorTestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(SourceGeneratorTestTargetFrameworks)</SourceGeneratorTestTargetFrameworks>
     <SourceGeneratorTestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(SourceGeneratorTestTargetFrameworks);net472</SourceGeneratorTestTargetFrameworks>
 
     <!-- Workaround dependencies that do not yet support netcoreapp3.1 https://github.com/dotnet/roslyn/issues/45114 -->

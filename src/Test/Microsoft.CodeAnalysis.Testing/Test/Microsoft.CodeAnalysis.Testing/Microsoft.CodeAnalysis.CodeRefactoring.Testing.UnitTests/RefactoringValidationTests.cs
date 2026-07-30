@@ -530,5 +530,3 @@ namespace Microsoft.CodeAnalysis.Testing
         }
     }
 }
-
-
