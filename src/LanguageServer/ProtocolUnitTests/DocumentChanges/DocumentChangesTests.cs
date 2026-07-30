@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -379,21 +378,8 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
         {
             await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            using var didChangePayload = JsonDocument.Parse($$"""
-                {
-                  "textDocument": {
-                    "uri": "{{locationTyped.DocumentUri}}",
-                    "version": 1
-                  },
-                  "contentChanges": [
-                    {
-                      "text": "class B { }"
-                    }
-                  ]
-                }
-                """);
-
-            await testLspServer.ExecutePreSerializedRequestAsync(LSP.Methods.TextDocumentDidChangeName, didChangePayload);
+            await DidChange(testLspServer, locationTyped.DocumentUri,
+                CreateFullDocumentContentChangeEvent("class B { }"));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
             Assert.NotNull(document);
