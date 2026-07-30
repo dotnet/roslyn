@@ -1,11 +1,23 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-// https://github.com/dotnet/sdk/issues/51487: avoid this extra copy of the file.
+// This file is shared between the SDK MSBuild build tasks and the Microsoft.DotNet.FileBasedPrograms source
+// package (which is also consumed by Roslyn and the dotnet CLI) to avoid a duplicate copy. See
+// https://github.com/dotnet/sdk/issues/51487. The build-tasks projects that link this file define
+// MSBUILD_BUILD_TASKS to select the Microsoft.DotNet.Cli namespace; every other consumer (the source
+// package, its external consumers, and ProjectTools) gets the Microsoft.DotNet.FileBasedPrograms form,
+// which matches the file as it originally shipped. The build tasks enable nullable and provide System via
+// ImplicitUsings, so emitting the directive and using there would be flagged as redundant (IDE0240/IDE0005).
+#if !MSBUILD_BUILD_TASKS
 #nullable enable
 using System;
+#endif
 
+#if MSBUILD_BUILD_TASKS
+namespace Microsoft.DotNet.Cli
+#else
 namespace Microsoft.DotNet.FileBasedPrograms
+#endif
 {
     /// <summary>
     /// Internal utilities copied from microsoft/MSBuild repo.

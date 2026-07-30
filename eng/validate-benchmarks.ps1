@@ -20,10 +20,11 @@ $benchmarkProjects = @(
   @{ Project = "src/Razor/src/Compiler/perf/Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj"; Framework = "net10.0" }
   @{ Project = "src/Razor/src/Razor/benchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.csproj"; Framework = "net10.0"; HasValidationMode = $true }
   @{ Project = "src/Razor/src/Compiler/perf/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj"; HasValidationMode = $true }
+  # Use a representative type to exercise the generated runner build without running the full benchmark suite.
+  @{ Project = "src/Tools/IdeCoreBenchmarks/IdeCoreBenchmarks.csproj"; Framework = "net10.0"; Filter = "*SegmentedArrayBenchmarks_Indexer*" }
 
   # These projects are excluded because their current benchmark harnesses do not
   # complete a Dry validation run in this script's execution model.
-  # @{ Project = "src/Tools/IdeCoreBenchmarks/IdeCoreBenchmarks.csproj"; Framework = "net10.0" }
   # @{ Project = "src/Tools/IdeBenchmarks/IdeBenchmarks.csproj" }
 )
 
@@ -65,7 +66,8 @@ foreach ($entry in $benchmarkProjects) {
 
   if ($ci) {
     # Keep the filter as one argument so PowerShell does not expand '*' into file names.
-    $args += "--filter=*"
+    $filter = if ($entry.ContainsKey("Filter")) { $entry["Filter"] } else { "*" }
+    $args += "--filter=$filter"
   }
 
   Write-Host "dotnet $($args -join ' ')"
