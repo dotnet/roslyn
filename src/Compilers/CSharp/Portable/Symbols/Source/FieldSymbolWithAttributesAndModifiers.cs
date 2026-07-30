@@ -426,5 +426,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, ContainingType.GetNullableContextValue(), type));
             }
         }
+
+#nullable enable
+        internal sealed override bool RequiresSafeOrUnsafeKeyword(BindingDiagnosticBag? diagnostics)
+        {
+            if (ContainingModule.UseUpdatedMemorySafetyRules &&
+                (ContainingType.Layout.Kind == LayoutKind.Explicit || ContainingType.Layout.Kind == LayoutKind.Extended) &&
+                !this.IsStatic && !this.IsConst)
+            {
+                if (diagnostics != null && !fieldHasUnsafeOrSafeModifier(this))
+                {
+                    diagnostics.Add(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, this.GetFirstLocation());
+                }
+
+                return true;
+            }
+
+            return false;
+
+            static bool fieldHasUnsafeOrSafeModifier(FieldSymbol field) => field.AssociatedSymbol switch
+            {
+                SourcePropertySymbolBase prop => prop.HasUnsafeModifier || prop.HasSafeModifier,
+                SourceEventSymbol evt => evt.HasUnsafeModifier || evt.HasSafeModifier,
+                null => field is FieldSymbolWithAttributesAndModifiers fieldWithModifiers && (fieldWithModifiers.HasUnsafeModifier || fieldWithModifiers.HasSafeModifier),
+                _ => throw ExceptionUtilities.UnexpectedValue(field.AssociatedSymbol),
+            };
+        }
     }
 }

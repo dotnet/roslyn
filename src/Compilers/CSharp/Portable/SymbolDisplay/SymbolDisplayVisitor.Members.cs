@@ -961,6 +961,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                 }
 
+                if (symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: { ContainingModule.UseUpdatedMemorySafetyRules: true } internalSymbol })
+                {
+                    if (internalSymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+                    {
+                        AddKeyword(SyntaxKind.UnsafeKeyword);
+                        AddSpace();
+                    }
+                    else if (internalSymbol.RequiresSafeOrUnsafeKeyword(diagnostics: null))
+                    {
+                        AddKeyword(SyntaxKind.SafeKeyword);
+                        AddSpace();
+                    }
+                }
+
                 if (symbol.IsExtern)
                 {
                     AddKeyword(SyntaxKind.ExternKeyword);

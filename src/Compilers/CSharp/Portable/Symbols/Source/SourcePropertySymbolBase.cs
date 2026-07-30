@@ -741,6 +741,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool HasAutoPropertySet
             => IsSetOnEitherPart(Flags.HasAutoPropertySet);
 
+#nullable enable
+        internal sealed override bool RequiresSafeOrUnsafeKeyword(BindingDiagnosticBag? diagnostics)
+        {
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern)
+            {
+                if (diagnostics != null && !HasUnsafeModifier && !HasSafeModifier)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                        (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, GetFirstLocation()));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+#nullable disable
+
         /// <summary>
         /// True if the property has a synthesized backing field, and
         /// either no accessor or the accessor is auto-implemented.
@@ -879,6 +897,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
 #nullable enable
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
             bool isExplicitInterfaceImplementation = IsExplicitInterfaceImplementation;
             this.CheckAccessibility(Location, diagnostics, isExplicitInterfaceImplementation);
             this.CheckModifiers(isExplicitInterfaceImplementation, Location, IsIndexer, diagnostics);
@@ -1049,12 +1069,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_refKind == RefKind.RefReadOnly)
             {
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, typeLocation, modifyCompilation: true);
-            }
-
-            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
-            {
-                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
-                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, GetFirstLocation()));
             }
 
             if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)

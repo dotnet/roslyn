@@ -626,6 +626,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// See <see cref="CallerUnsafeMode"/> for more details.
         /// </summary>
         internal abstract CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound);
+
+        internal virtual bool RequiresSafeOrUnsafeKeyword(BindingDiagnosticBag? diagnostics) => false;
 #nullable disable
 
         /// <summary>
@@ -759,6 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
+            RequiresSafeOrUnsafeKeyword(diagnostics);
         }
 
         /// <summary>
