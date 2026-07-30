@@ -58,7 +58,15 @@ internal sealed class SumConverter : JsonConverterFactory
             sumTypeType = NormalizeToNonNullable(sumTypeType);
 
             var typeInfo = sumTypeType.GetTypeInfo();
-            var parameterTypes = typeInfo.GenericTypeArguments;
+            // For generic SumType<T1, T2, ...> variants, use the generic type arguments.
+            // For non-generic named ISumType structs, infer the union variants from the
+            // declared single-parameter public constructors.
+            IEnumerable<Type> parameterTypes = typeInfo.GenericTypeArguments.Length > 0
+                ? typeInfo.GenericTypeArguments
+                : typeInfo.DeclaredConstructors
+                    .Select(static c => (Constructor: c, Parameters: c.GetParameters()))
+                    .Where(static t => !t.Constructor.IsStatic && t.Constructor.IsPublic && t.Parameters.Length == 1)
+                    .Select(static t => t.Parameters[0].ParameterType);
             foreach (var parameterType in parameterTypes)
             {
                 var parameterTypeInfo = NormalizeToNonNullable(parameterType).GetTypeInfo();
