@@ -35,7 +35,7 @@ internal static class PathExtensions
             if (path.Length < 2)
             {
                 // No way to specify a fixed path in one character or less.
-                return true;
+                return false;
             }
 
             if (path[0] == Path.DirectorySeparatorChar)
