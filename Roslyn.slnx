@@ -295,6 +295,20 @@
     <File Path=".vsconfig" />
   </Folder>
   <Folder Name="/Test/" />
+  <Folder Name="/Test/Microsoft.CodeAnalysis.Testing/">
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.Analyzer.Testing.UnitTests/Microsoft.CodeAnalysis.Analyzer.Testing.UnitTests.csproj" />
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.UnitTests/Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.UnitTests.csproj" />
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.UnitTests/Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.UnitTests.csproj" />
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.UnitTests/Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.UnitTests.csproj" />
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.UnitTests/Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.UnitTests.csproj" />
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests/Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests.csproj" />
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.CodeRefactoring.Testing.UnitTests/Microsoft.CodeAnalysis.CodeRefactoring.Testing.UnitTests.csproj" />
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests/Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests.csproj" />
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.UnitTests/Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.UnitTests.vbproj" />
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.UnitTests/Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.UnitTests.vbproj" />
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.UnitTests/Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.UnitTests.vbproj" />
+    <Project Path="src/Test/Microsoft.CodeAnalysis.Testing/Test/Microsoft.CodeAnalysis.Testing/Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.UnitTests/Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.UnitTests.vbproj" />
+  </Folder>
   <Folder Name="/Test/Perf/">
     <File Path="src/Test/Perf/readme.md" />
     <Project Path="src/Test/Perf/StackDepthTest/StackDepthTest.csproj" />
