@@ -7029,8 +7029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return parameters;
             }
 
-            ParameterSymbol? extensionParameter = member.RequiredContainingType.ExtensionParameter;
-            Debug.Assert(extensionParameter is not null);
+            ParameterSymbol extensionParameter = member.RequiredContainingType.RequiredExtensionParameter;
 
             return [extensionParameter, .. parameters];
         }
@@ -7063,8 +7062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static RefKind GetExtensionReceiverRefKind(Symbol member)
         {
-            ParameterSymbol? extensionParameter = member.RequiredContainingType.ExtensionParameter;
-            Debug.Assert(extensionParameter is not null);
+            ParameterSymbol extensionParameter = member.RequiredContainingType.RequiredExtensionParameter;
             // See "OverloadResolution.IsApplicable": we only give an implicit `ref` on the receiver for a `ref` parameter
             // For `ref readonly` or `in`, we use "none"
             // `out` is a declaration error

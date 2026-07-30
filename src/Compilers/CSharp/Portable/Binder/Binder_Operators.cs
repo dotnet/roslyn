@@ -3920,8 +3920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (MethodSymbol op in typeOperators)
                 {
-                    var extensionParameter = op.RequiredContainingType.ExtensionParameter;
-                    Debug.Assert(extensionParameter is not null);
+                    var extensionParameter = op.RequiredContainingType.RequiredExtensionParameter;
                     if (!((extensionParameter.Type.IsValueType && extensionParameter.RefKind == RefKind.Ref) ||
                         (extensionParameter.Type.IsReferenceType && extensionParameter.RefKind == RefKind.None)))
                     {

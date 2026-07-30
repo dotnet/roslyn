@@ -1603,8 +1603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool parameterMatchesReceiver(in BinaryOperatorSignature candidate, int paramIndex)
             {
                 var method = candidate.Method.OriginalDefinition;
-                var extensionParameter = method.RequiredContainingType.ExtensionParameter;
-                Debug.Assert(extensionParameter is not null);
+                var extensionParameter = method.RequiredContainingType.RequiredExtensionParameter;
 
                 return SourceUserDefinedOperatorSymbolBase.ExtensionOperatorParameterTypeMatchesExtendedType(method.Parameters[paramIndex].Type, extensionParameter.Type);
             }
@@ -1612,8 +1611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isOperandApplicableToReceiver(in BinaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 Debug.Assert(operand.Type is not null);
-                var extensionParameter = candidate.Method.RequiredContainingType.ExtensionParameter;
-                Debug.Assert(extensionParameter is not null);
+                var extensionParameter = candidate.Method.RequiredContainingType.RequiredExtensionParameter;
 
                 if (candidate.Kind.IsLifted() && operand.Type.IsNullableType())
                 {

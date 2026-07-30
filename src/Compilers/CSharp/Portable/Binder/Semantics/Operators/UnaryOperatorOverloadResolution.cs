@@ -218,8 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isApplicableToReceiver(in UnaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 Debug.Assert(operand.Type is not null);
-                var extensionParameter = candidate.Method.RequiredContainingType.ExtensionParameter;
-                Debug.Assert(extensionParameter is not null);
+                var extensionParameter = candidate.Method.RequiredContainingType.RequiredExtensionParameter;
 
                 if (candidate.Kind.IsLifted())
                 {
