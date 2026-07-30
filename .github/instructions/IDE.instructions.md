@@ -105,18 +105,28 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 ## LSP Protocol Layer (`src/LanguageServer/Protocol/`)
 
 ### Union Types (SumType)
-LSP TypeScript union types (`A | B`) are represented in C# using `SumType<A, B>`. When a union type has a canonical name in the spec, mirror it with a C# 12 `global using` type alias:
+LSP TypeScript union types (`A | B`) are represented in C# using `SumType<A, B>` or a dedicated named struct.
+
+**Anonymous / inline use** — use `SumType<A, B>` directly (e.g., in method signatures or protocol types that don't have a name in the spec).
+
+**Named spec type** — when the LSP spec names the union type, define a `readonly struct` in `src/LanguageServer/Protocol/Protocol/<TypeName>.cs` that implements `ISumType` with one constructor per variant and an implicit operator for each. The `SumConverter` factory handles serialization automatically for any `ISumType` struct. Example:
 
 ```csharp
-// TextDocumentContentChangeEvent.cs — mirrors the LSP spec's:
+// TextDocumentContentChangeEvent.cs — mirrors the LSP 3.18 spec's:
 // export type TextDocumentContentChangeEvent = TextDocumentContentChangePartial | TextDocumentContentChangeWholeDocument;
-global using TextDocumentContentChangeEvent =
-    Roslyn.LanguageServer.Protocol.SumType<
-        Roslyn.LanguageServer.Protocol.TextDocumentContentChangePartial,
-        Roslyn.LanguageServer.Protocol.TextDocumentContentChangeWholeDocument>;
+[JsonConverter(typeof(SumConverter))]
+internal readonly struct TextDocumentContentChangeEvent : ISumType, IEquatable<TextDocumentContentChangeEvent>
+{
+    public TextDocumentContentChangeEvent(TextDocumentContentChangePartial val) { this.Value = val; }
+    public TextDocumentContentChangeEvent(TextDocumentContentChangeWholeDocument val) { this.Value = val; }
+    public object? Value { get; }
+    public static implicit operator TextDocumentContentChangeEvent(TextDocumentContentChangePartial val) => new(val);
+    public static implicit operator TextDocumentContentChangeEvent(TextDocumentContentChangeWholeDocument val) => new(val);
+    // ... TryGetFirst/TryGetSecond, Equals, GetHashCode, ==, !=
+}
 ```
 
-Place the alias file at `src/LanguageServer/Protocol/Protocol/<TypeName>.cs`. Each project that uses the alias needs its own `global using` file (aliases are project-scoped, not namespace-scoped).
+Because the type lives in the `Roslyn.LanguageServer.Protocol` namespace, any file with `using Roslyn.LanguageServer.Protocol;` resolves it directly — no per-project `global using` shims are needed.
 
 ### Discriminating SumType at runtime
 Use `Value is` pattern matching to switch on the concrete type:
@@ -126,4 +136,4 @@ var partial = (TextDocumentContentChangePartial)change.Value!;
 ```
 
 ### Deserialization discrimination between two object types
-When two object types share no `kind` discriminator, put `[JsonRequired]` on the property that is only present in one variant (`TextDocumentContentChangePartial.Range`). The `SumConverter` tries each type in order and moves to the next if deserialization throws, so list the stricter type first in the `SumType<>` parameters.
+When two object types share no `kind` discriminator, put `[JsonRequired]` on the property that is only present in one variant (`TextDocumentContentChangePartial.Range`). The `SumConverter` tries each type in order and moves to the next if deserialization throws, so list the stricter type first. For named structs the constructor declaration order determines the attempt order.
