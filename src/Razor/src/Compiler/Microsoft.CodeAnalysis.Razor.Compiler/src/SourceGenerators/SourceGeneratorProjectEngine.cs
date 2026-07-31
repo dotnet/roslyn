@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 using System;
 using System.Diagnostics;
@@ -14,8 +15,6 @@ internal sealed class SourceGeneratorProjectEngine
     private readonly RazorProjectEngine _projectEngine;
 
     private readonly IRazorEnginePhase _discoveryPhase;
-    private readonly int _loweringPhaseIndex = -1;
-    private readonly int _declLoweringPhaseIndex = -1;
     private readonly int _discoveryPhaseIndex = -1;
     private readonly int _rewritePhaseIndex = -1;
 
@@ -29,21 +28,13 @@ internal sealed class SourceGeneratorProjectEngine
 
         foreach (var phase in Phases)
         {
-            if (_loweringPhaseIndex >= 0 && _declLoweringPhaseIndex >= 0 && _discoveryPhaseIndex >= 0 && _rewritePhaseIndex >= 0)
+            if (_discoveryPhaseIndex >= 0 && _rewritePhaseIndex >= 0)
             {
                 break;
             }
 
             switch (phase)
             {
-                case DefaultRazorIntermediateNodeLoweringPhase:
-                    _loweringPhaseIndex = index;
-                    break;
-
-                case DefaultRazorDeclCSharpLoweringPhase:
-                    _declLoweringPhaseIndex = index;
-                    break;
-
                 case DefaultRazorTagHelperContextDiscoveryPhase:
                     _discoveryPhase = phase;
                     _discoveryPhaseIndex = index;
@@ -58,12 +49,8 @@ internal sealed class SourceGeneratorProjectEngine
         }
 
         Debug.Assert(_discoveryPhase is not null);
-        Debug.Assert(_loweringPhaseIndex >= 0);
-        Debug.Assert(_declLoweringPhaseIndex >= 0);
         Debug.Assert(_discoveryPhaseIndex >= 0);
         Debug.Assert(_rewritePhaseIndex >= 0);
-        Debug.Assert(_loweringPhaseIndex < _declLoweringPhaseIndex);
-        Debug.Assert(_declLoweringPhaseIndex < _discoveryPhaseIndex);
         Debug.Assert(_discoveryPhaseIndex < _rewritePhaseIndex);
     }
 
@@ -73,11 +60,18 @@ internal sealed class SourceGeneratorProjectEngine
 
         codeDocument = ExecutePhases(Phases[.._discoveryPhaseIndex], codeDocument, cancellationToken);
 
-        // By this point, DefaultRazorParsingPhase has set the canonical syntax tree (_syntaxTree)
-        // so that discovery and subsequent phases can read it via GetSyntaxTree().
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
 
+    /// <summary>
+    ///  Runs tag-helper discovery, resolution and rewrite for a document. The generator calls this twice per
+    ///  document: first with <paramref name="checkForIdempotency"/> <see langword="false"/> to do the initial
+    ///  pass, then again with <see langword="true"/>. The second call is an incremental gate -- its inputs
+    ///  include the project-wide tag-helper set, so it re-runs whenever that set changes, but it returns the
+    ///  document unchanged unless the change actually affects this document (a used descriptor was added or
+    ///  removed). Only then does it replay resolution. The first call's inputs deliberately exclude the
+    ///  tag-helper set, so it re-runs only when the document itself changes.
+    /// </summary>
     public SourceGeneratorRazorCodeDocument ProcessTagHelpers(
         SourceGeneratorRazorCodeDocument sgDocument, 
         TagHelperCollection tagHelpers, 
@@ -114,39 +108,32 @@ internal sealed class SourceGeneratorProjectEngine
                 return sgDocument;
             }
 
-            // Re-process the document with the updated tag helpers, starting from IR lowering. Resolution
-            // binds unresolved nodes to their tag helpers by mutating the IR in place, so replaying from
-            // resolution over an already-resolved tree finds nothing left to bind. Re-lowering rebuilds
-            // fresh unresolved IR from the syntax tree; classification and the markup split then re-run over
-            // it -- the split is what carves the working IR into the impl half that resolution and rewrite
-            // operate on, so it cannot be skipped.
-            //
-            // Two phases in that range are skipped:
-            //  * Discovery: the gate discovery above already computed the in-scope tag-helper context for the
-            //    updated set. It walks the syntax tree (not the IR), so re-lowering does not invalidate it,
-            //    and re-running it would recompute the identical context.
-            //  * Decl C# lowering: it lowers the markup-free declaration half, whose text depends only on the
-            //    document's own source. A tag-helper change elsewhere cannot alter it, so the declaration
-            //    document from the initial parse is still valid. It is captured here and restored afterward
-            //    because nothing in the replayed range regenerates it, and it feeds the generator's output
-            //    cache comparison and declaration-diagnostic reporting.
-            var declCSharpDocument = codeDocument.GetDeclCSharpDocument();
-
-            codeDocument = ExecutePhases(Phases[_loweringPhaseIndex.._declLoweringPhaseIndex], codeDocument, cancellationToken);
-            codeDocument = ExecutePhases(Phases[(_discoveryPhaseIndex + 1)..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
-
-            if (declCSharpDocument is not null)
-            {
-                codeDocument = codeDocument.WithDeclCSharpDocument(declCSharpDocument);
-            }
+            codeDocument = ResolveTagHelpers(codeDocument);
 
             return new SourceGeneratorRazorCodeDocument(codeDocument);
         }
 
         codeDocument = codeDocument.WithTagHelpers(tagHelpers);
-        codeDocument = ExecutePhases(Phases[_discoveryPhaseIndex..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
+        codeDocument = _discoveryPhase.Execute(codeDocument, cancellationToken);
+        codeDocument = ResolveTagHelpers(codeDocument);
 
         return new SourceGeneratorRazorCodeDocument(codeDocument);
+
+        RazorCodeDocument ResolveTagHelpers(RazorCodeDocument codeDocument)
+        {
+            // Capture the unresolved node on the first pass (discovery doesn't mutate it), then resolve a
+            // clone of it every time. Resolution binds tag helpers by mutating the IR in place, so cloning
+            // keeps the stored node pristine for later replays -- which start from it instead of re-lowering.
+            var unresolvedDocumentNode = codeDocument.GetUnresolvedDocumentNode();
+            if (unresolvedDocumentNode is null)
+            {
+                unresolvedDocumentNode = codeDocument.GetRequiredDocumentNode();
+                codeDocument = codeDocument.WithUnresolvedDocumentNode(unresolvedDocumentNode);
+            }
+
+            codeDocument = codeDocument.WithDocumentNode((DocumentIntermediateNode)unresolvedDocumentNode.Clone());
+            return ExecutePhases(Phases[(_discoveryPhaseIndex + 1)..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
+        }
     }
 
     private static bool RequiresRewrite(

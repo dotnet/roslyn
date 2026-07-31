@@ -57,4 +57,19 @@ public sealed class DocumentIntermediateNode : IntermediateNode
 
         formatter.WriteProperty(nameof(DocumentKind), DocumentKind);
     }
+
+    protected override IntermediateNode CloneNode()
+    {
+        // The declaration subtree is already lowered and inert during replay, so it is shared by reference.
+        var clone = new DocumentIntermediateNode
+        {
+            DocumentKind = DocumentKind,
+            DeclDocumentNode = DeclDocumentNode,
+            FallbackComponentTypeName = FallbackComponentTypeName,
+            Options = Options,
+            Target = Target,
+        };
+
+        return clone;
+    }
 }
