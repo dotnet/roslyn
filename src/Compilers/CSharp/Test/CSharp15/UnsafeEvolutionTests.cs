@@ -15103,9 +15103,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (1,21): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // public unsafe class C
             Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(1, 21),
-            // (5,12): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            // (5,12): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     unsafe safe public void M3() { }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 12));
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(5, 12));
 
         var m1 = comp.GetMember<MethodSymbol>("C.M1").GetPublicSymbol();
         Assert.True(m1.RequiresUnsafe);
@@ -15143,10 +15143,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
-        comp.VerifyDiagnostics(
-            // (6,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public void M4(int* p) { }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 5));
+        comp.VerifyEmitDiagnostics();
 
         var m1 = comp.GetMember<MethodSymbol>("C.M1").GetPublicSymbol();
         Assert.True(m1.RequiresUnsafe);
