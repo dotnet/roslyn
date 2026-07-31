@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     DeconstructMethod: { Name: WellKnownMemberNames.TryGetValueMethodName } deconstructMethod,
                     Input: { } tryGetValueInput
                 } &&
-                Binder.HasTryGetValueSignature(deconstructMethod) &&
+                NamedTypeSymbol.HasTryGetValueSignature(deconstructMethod) &&
                 tryGetValueInput.Type is NamedTypeSymbol { IsUnionType: true } match)
             {
                 targetType = deconstructMethod.Parameters[0].Type;
@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryMakeTestsForUnionHasValue(SyntaxNode syntax, TestInputOutputInfo inputInfo, bool sense, [NotNullWhen(true)] out Tests? tests)
         {
-            if (inputInfo.UnionValue is { } unionValue && Binder.GetUnionTypeHasValueProperty((NamedTypeSymbol)inputInfo.DagTemp.Type) is PropertySymbol hasValue)
+            if (inputInfo.UnionValue is { } unionValue && ((NamedTypeSymbol)inputInfo.DagTemp.Type).UnionHasValueProperty() is PropertySymbol hasValue)
             {
                 if (_forLowering)
                 {
@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return inputInfo;
                 }
 
-                if (Binder.GetUnionTypeTryGetValueMethod(_conversions, (NamedTypeSymbol)inputInfo.DagTemp.Type, type) is MethodSymbol tryGetValue)
+                if (((NamedTypeSymbol)inputInfo.DagTemp.Type).GetUnionTypeTryGetValueMethod(_conversions, type) is MethodSymbol tryGetValue)
                 {
                     if (_forLowering)
                     {

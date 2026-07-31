@@ -2108,12 +2108,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsUnionType)
             {
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null, ref discardedUseSiteInfo) is null)
+                if (UnionFactoryMethods(ref discardedUseSiteInfo).IsEmpty)
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
                 }
 
-                if (Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(this) is null)
+                if (this.UnionValuePropertyNoUseSiteDiagnostics() is null)
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingUnionValueProperty, location);
                 }

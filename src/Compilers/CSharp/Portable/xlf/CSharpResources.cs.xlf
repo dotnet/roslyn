@@ -2942,11 +2942,6 @@
         <target state="translated">Direktiva using se dříve zobrazovala jako globální direktiva using</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="translated">Vzor je redundantní.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">Vzor je příliš složitý na analýzu redundance.</target>
@@ -2955,11 +2950,6 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">Vzor je příliš složitý na analýzu redundance.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="translated">Vzor je redundantní.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">

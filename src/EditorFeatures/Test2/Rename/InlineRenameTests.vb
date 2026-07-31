@@ -7,12 +7,16 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -110,7 +114,7 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function RenameToConflictingMemberReportsConflict(host As RenameTestHost) As Task
+        Public Async Function RenameToConflictingMemberReportsConflictAndAllowsSubmit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -126,23 +130,36 @@ class C
 
                 Dim session = StartSession(workspace)
 
-                Dim replacementInfo As IInlineRenameReplacementInfo = Nothing
-                AddHandler session.ReplacementsComputed, Sub(sender, info) replacementInfo = info
-
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim caretPosition = cursorDocument.CursorPosition.Value
                 Dim textBuffer = cursorDocument.GetTextBuffer()
 
-                ' Rename Foo to Bar
-                textBuffer.Delete(New Span(caretPosition, 3))
-                textBuffer.Insert(caretPosition, "Bar")
+                Using viewModel = New RenameFlyoutViewModel(
+                        session,
+                        New TextSpan(caretPosition, 3),
+                        registerOleComponent:=False,
+                        workspace.GetService(Of IGlobalOptionService)(),
+                        workspace.GetService(Of IThreadingContext)(),
+                        workspace.GetService(Of IAsynchronousOperationListenerProvider)(),
+                        smartRenameSessionFactory:=Nothing)
 
-                Await WaitForRename(workspace)
+                    textBuffer.Delete(New Span(caretPosition, 3))
+                    textBuffer.Insert(caretPosition, "1")
 
-                ' Reports an unresolved conflict
-                Assert.NotNull(replacementInfo)
-                Dim replacementKinds = replacementInfo.GetAllReplacementKinds().ToList()
-                Assert.Contains(InlineRenameReplacementKind.UnresolvedConflict, replacementKinds)
+                    Await WaitForRename(workspace)
+
+                    Assert.False(viewModel.Submit())
+
+                    textBuffer.Delete(New Span(caretPosition, 1))
+                    textBuffer.Insert(caretPosition, "Bar")
+
+                    Await WaitForRename(workspace)
+
+                    Assert.Equal(RenameFlyoutViewModel.Severity.Error, viewModel.StatusSeverity)
+                    Assert.True(viewModel.Submit())
+
+                    Await WaitForRename(workspace)
+                End Using
             End Using
         End Function
 
