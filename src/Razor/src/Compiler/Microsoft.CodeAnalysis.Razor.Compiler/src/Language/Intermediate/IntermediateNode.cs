@@ -85,9 +85,10 @@ public abstract class IntermediateNode
     /// <summary>
     ///  Returns a deep copy of this node and its descendants. The node-specific state is produced by
     ///  <see cref="CloneNode"/>; this method copies the common state (source span, imported flag,
-    ///  diagnostics) and deep-clones the children onto it.
+    ///  diagnostics) and deep-clones the children onto it. A node with a property that aliases one of
+    ///  its <see cref="Children"/> overrides this to re-point that property at the cloned child.
     /// </summary>
-    internal IntermediateNode Clone()
+    internal virtual IntermediateNode Clone()
     {
         var clone = CloneNode();
 

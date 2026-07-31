@@ -43,7 +43,10 @@ public class IntermediateNodeCloneTest
             }
             """;
 
-        AssertClone(source, RazorFileKind.Component);
+        // The tree contains at least one aliased child (a tag helper's unbound HTML attribute), so the
+        // clone's alias preservation is actually exercised rather than vacuously passing.
+        var aliasCount = AssertClone(source, RazorFileKind.Component);
+        Assert.True(aliasCount > 0);
     }
 
     [Fact]
@@ -62,10 +65,31 @@ public class IntermediateNodeCloneTest
             </html>
             """;
 
+        // The tree contains at least one aliased child (a tag helper's unbound HTML attribute), so the
+        // clone's alias preservation is actually exercised rather than vacuously passing.
+        var aliasCount = AssertClone(source, RazorFileKind.Legacy);
+        Assert.True(aliasCount > 0);
+    }
+
+    [Fact]
+    public void Clone_EdgeConstructs_ProducesFaithfulDeepCopy()
+    {
+        // Malformed directives and markup-element fallback containers are lowered node kinds that the other
+        // documents don't produce; a malformed @addTagHelper yields a MalformedDirectiveIntermediateNode and
+        // the mixed literal/expression attribute value yields a MarkupElementIntermediateNode fallback.
+        var source = """
+            @addTagHelper *
+            <MyTag data-a="x @DateTime.Now y" class="c">body</MyTag>
+            """;
+
+        var kinds = CollectKinds(Lower(source, RazorFileKind.Legacy));
+        Assert.Contains(nameof(MalformedDirectiveIntermediateNode), kinds);
+        Assert.Contains(nameof(MarkupElementIntermediateNode), kinds);
+
         AssertClone(source, RazorFileKind.Legacy);
     }
 
-    private void AssertClone(string content, RazorFileKind fileKind)
+    private int AssertClone(string content, RazorFileKind fileKind)
     {
         var documentNode = Lower(content, fileKind);
 
@@ -77,6 +101,113 @@ public class IntermediateNodeCloneTest
         Assert.Same(documentNode.DeclDocumentNode, clone.DeclDocumentNode);
         Assert.Same(documentNode.Options, clone.Options);
         Assert.Same(documentNode.Target, clone.Target);
+
+        return AssertAliasesPreserved(documentNode, clone);
+    }
+
+    // A node-typed property that holds one of the node's own Children is an alias (e.g.
+    // UnresolvedAttributeIntermediateNode.HtmlAttributeNode == Children[^1]). Cloning must preserve that
+    // aliasing: the cloned property has to point at the cloned child, not an independent copy. Otherwise the
+    // clone carries two divergent instances and a phase that mutates one while walking the other sees stale
+    // state. Walk the original and clone trees in lockstep and assert every alias is preserved by reference.
+    // Returns the number of aliases verified so a test can assert the tree actually exercised one.
+    private static int AssertAliasesPreserved(IntermediateNode original, IntermediateNode clone)
+    {
+        Assert.Equal(original.GetType(), clone.GetType());
+        Assert.Equal(original.Children.Count, clone.Children.Count);
+
+        var aliasCount = 0;
+
+        foreach (var (name, node) in NodeProperties(original))
+        {
+            var index = IndexOfReference(original.Children, node);
+            if (index < 0)
+            {
+                continue;
+            }
+
+            Assert.Same(clone.Children[index], GetPropertyValue(clone, name));
+            aliasCount++;
+        }
+
+        for (var i = 0; i < original.Children.Count; i++)
+        {
+            aliasCount += AssertAliasesPreserved(original.Children[i], clone.Children[i]);
+        }
+
+        return aliasCount;
+    }
+
+    // Enumerates the node-typed properties of a node, using the same reflection/exclusion rules as the dump.
+    private static IEnumerable<(string Name, IntermediateNode Node)> NodeProperties(IntermediateNode node)
+    {
+        foreach (var property in node.GetType()
+            .GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+            .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
+            .OrderBy(p => p.Name, StringComparer.Ordinal))
+        {
+            if (property.Name is "Children" or "Parent" or "DeclDocumentNode")
+            {
+                continue;
+            }
+
+            object? value;
+            try
+            {
+                value = property.GetValue(node);
+            }
+            catch
+            {
+                continue;
+            }
+
+            if (value is IntermediateNode childNode)
+            {
+                yield return (property.Name, childNode);
+            }
+        }
+    }
+
+    private static IntermediateNode GetPropertyValue(IntermediateNode node, string name)
+        => (IntermediateNode)node.GetType()
+            .GetProperty(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetValue(node)!;
+
+    private static int IndexOfReference(IntermediateNodeCollection children, IntermediateNode node)
+    {
+        for (var i = 0; i < children.Count; i++)
+        {
+            if (ReferenceEquals(children[i], node))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    // Collects the distinct node-kind names present in a tree, walking node-typed side references and
+    // Children, so a test can assert a document actually exercises a given kind.
+    private static HashSet<string> CollectKinds(IntermediateNode root)
+    {
+        var kinds = new HashSet<string>();
+        Collect(root);
+        return kinds;
+
+        void Collect(IntermediateNode node)
+        {
+            kinds.Add(node.GetType().Name);
+
+            foreach (var (_, child) in NodeProperties(node))
+            {
+                Collect(child);
+            }
+
+            foreach (var child in node.Children)
+            {
+                Collect(child);
+            }
+        }
     }
 
     // Runs the engine phases up to (but not including) tag-helper discovery, producing the lowered but
