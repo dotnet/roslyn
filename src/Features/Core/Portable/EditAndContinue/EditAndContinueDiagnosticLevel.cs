@@ -13,7 +13,7 @@ internal enum EditAndContinueDiagnosticLevel
 
     /// <summary>
     /// Adds extra validation that is normally not performed due to its impact on performance
-    /// and should only be used to when diagnosing issues with EnC.
+    /// and should only be used when diagnosing issues with EnC.
     /// </summary>
     Debug = 1,
 }

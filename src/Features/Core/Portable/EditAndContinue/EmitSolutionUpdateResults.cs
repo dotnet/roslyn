@@ -129,7 +129,7 @@ internal readonly struct EmitSolutionUpdateResults
     public required Solution? Solution { get; init; }
 
     /// <summary>
-    /// Action taked on the solution.
+    /// Action taken on the solution.
     /// </summary>
     public required SolutionAction SolutionAction { get; init; }
 

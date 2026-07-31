@@ -175,14 +175,6 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
         var committedSolution = Interlocked.Exchange(ref _pendingUpdatedSolution, null);
         Contract.ThrowIfNull(committedSolution);
 
-        try
-        {
-            SolutionCommitted?.Invoke(committedSolution);
-        }
-        catch (Exception e) when (FatalError.ReportAndCatch(e))
-        {
-        }
-
         CommittedSolution = committedSolution;
 
         try

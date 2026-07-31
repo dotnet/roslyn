@@ -9364,7 +9364,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     [Fact]
     public void PartialMember_DeleteInsert_AddFieldInitializer2()
         => EditAndContinueValidation.VerifySemantics(
-            editScripts: 
+            editScripts:
             [
                 GetTopEdits("""
                     partial class C
