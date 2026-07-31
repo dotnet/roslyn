@@ -172,8 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (member is MethodSymbol method)
             {
-                return method.IsExtensionBlockMember()
-                    ? method.RequiredContainingType.TypeParameters.Concat(method.TypeParameters)
+                return method.IsExtensionBlockMember(out var extension)
+                    ? extension.TypeParameters.Concat(method.TypeParameters)
                     : method.TypeParameters;
             }
 
@@ -192,9 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (member is MethodSymbol method)
             {
                 Dictionary<TypeParameterSymbol, int>? ordinals = null;
-                if (method.IsExtensionBlockMember() && method.Arity > 0 && method.RequiredContainingType.Arity > 0)
+                if (method.IsExtensionBlockMember(out var extension) && method.Arity > 0 && extension.Arity > 0)
                 {
-                    Debug.Assert(originalTypeParameters.Length == method.Arity + method.RequiredContainingType.Arity);
+                    Debug.Assert(originalTypeParameters.Length == method.Arity + extension.Arity);
 
                     // Since we're concatenating type parameters from the extension and from the method together
                     // we need to control the ordinals that are used

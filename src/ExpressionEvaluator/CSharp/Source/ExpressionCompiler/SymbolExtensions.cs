@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal static ImmutableArray<TypeParameterSymbol> GetAllTypeParameters(this MethodSymbol method)
         {
             var builder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
-            method.ContainingType.GetAllTypeParameters(builder);
+            method.RequiredContainingType.GetAllTypeParameters(builder);
             builder.AddRange(method.TypeParameters);
             return builder.ToImmutableAndFree();
         }

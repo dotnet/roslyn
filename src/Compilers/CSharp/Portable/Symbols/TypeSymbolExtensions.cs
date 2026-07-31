@@ -1691,8 +1691,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return code;
 
-            static bool wasConstructedForAnnotations([DisallowNull] NamedTypeSymbol? type)
+            static bool wasConstructedForAnnotations(NamedTypeSymbol namedType)
             {
+                var type = namedType;
                 do
                 {
                     var typeArguments = type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
@@ -1798,8 +1799,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Return the nearest type parameter with the given name in
         /// this type or any enclosing type.
         /// </summary>
-        internal static TypeParameterSymbol? FindEnclosingTypeParameter([DisallowNull] this NamedTypeSymbol? type, string name)
+        internal static TypeParameterSymbol? FindEnclosingTypeParameter(this NamedTypeSymbol namedType, string name)
         {
+            var type = namedType;
             do
             {
                 foreach (TypeParameterSymbol tpEnclosing in type.TypeParameters)

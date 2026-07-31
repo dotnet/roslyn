@@ -2142,9 +2142,7 @@ outerDefault:
             where TMember : Symbol
         {
             Debug.Assert(m1.Result.IsValid);
-            Debug.Assert(m1.Member.ContainingType is not null);
             Debug.Assert(m2.Result.IsValid);
-            Debug.Assert(m2.Member.ContainingType is not null);
             Debug.Assert(arguments != null);
 
             // SPEC:
@@ -2504,7 +2502,7 @@ outerDefault:
             // operator, the non-lifted one is better.
 
             // Otherwise: Position in interactive submission chain. The last definition wins.
-            if (m1.Member.ContainingType.TypeKind == TypeKind.Submission && m2.Member.ContainingType.TypeKind == TypeKind.Submission)
+            if (m1.Member.RequiredContainingType.TypeKind == TypeKind.Submission && m2.Member.RequiredContainingType.TypeKind == TypeKind.Submission)
             {
                 // script class is always defined in source:
                 var compilation1 = m1.Member.DeclaringCompilation;
@@ -2604,9 +2602,7 @@ outerDefault:
                 {
                     if (paramIndex == 0)
                     {
-                        ParameterSymbol? extensionParameter = extension.ExtensionParameter;
-                        Debug.Assert(extensionParameter is not null);
-                        return extensionParameter;
+                        return extension.RequiredExtensionParameter;
                     }
 
                     paramIndex--;

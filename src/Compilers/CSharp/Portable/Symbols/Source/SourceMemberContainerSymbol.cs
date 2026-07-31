@@ -1978,7 +1978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsClosed)
             {
                 // Ensure necessary attributes are present
-                var isClosedTypeAttributeCtor = (MethodSymbol?)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, location);
+                var isClosedTypeAttributeCtor = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, location);
                 _ = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, location);
 
                 // DerivedTypes property is optional but must have expected shape if present
@@ -2385,7 +2385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (method1 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying1 } &&
                 method2 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying2 } &&
                 underlying1.IsStatic == underlying2.IsStatic &&
-                ((object)underlying1.RequiredContainingType == underlying2.ContainingType ||
+                ((object)underlying1.RequiredContainingType == underlying2.RequiredContainingType ||
                 underlying1.RequiredContainingType.ExtensionGroupingName == underlying2.RequiredContainingType.ExtensionGroupingName) &&
                 diagnostics.DiagnosticBag?.AsEnumerableWithoutResolution().Any(
                     static (d, arg) =>

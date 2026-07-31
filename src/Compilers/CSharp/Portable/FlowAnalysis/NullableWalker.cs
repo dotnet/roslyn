@@ -7184,7 +7184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // check whether 'method', when called on this receiver, is an implementation of 'constructedMethod'.
                 for (var baseType = receiverType; baseType is object && method is object; baseType = baseType.BaseTypeNoUseSiteDiagnostics)
                 {
-                    var implementationMethod = (MethodSymbol?)baseType.FindImplementationForInterfaceMember(constructedMethod);
+                    var implementationMethod = baseType.FindImplementationForInterfaceMember(constructedMethod);
                     if (implementationMethod is null)
                     {
                         // we know no base type will implement this interface member either

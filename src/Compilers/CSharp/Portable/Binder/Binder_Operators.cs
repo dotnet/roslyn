@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(leftType.IsReferenceType);
 
                             leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
-                            leftConversion = CreateConversion(node, leftPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.RequiredContainingType.ExtensionParameter!.Type, diagnostics);
+                            leftConversion = CreateConversion(node, leftPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.RequiredContainingType.RequiredExtensionParameter.Type, diagnostics);
                         }
                     }
 
@@ -3609,7 +3609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(operandType.IsReferenceType);
 
                             operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operandType).MakeCompilerGenerated();
-                            operandConversion = CreateConversion(node, operandPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.RequiredContainingType.ExtensionParameter!.Type, diagnostics);
+                            operandConversion = CreateConversion(node, operandPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.RequiredContainingType.RequiredExtensionParameter.Type, diagnostics);
                         }
                     }
 

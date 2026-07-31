@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                     return null;
                 }
 
-                var enclosing = _underlying.RequiredContainingType.ContainingType;
+                var enclosing = _underlying.RequiredContainingType.RequiredContainingType;
                 var implementation = implDefinition.AsMember(enclosing);
                 if (implementation.Arity != 0)
                 {
