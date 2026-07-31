@@ -226,13 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.ForceComplete(locationOpt, filter, cancellationToken);
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
-        {
-            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
-
-            this.AssociatedField?.AfterAddingTypeMembersChecks(conversions, diagnostics);
-        }
-
         /// <summary>
         /// Accessor of a <see cref="SourceFieldLikeEventSymbol"/> which is a partial definition.
         /// </summary>

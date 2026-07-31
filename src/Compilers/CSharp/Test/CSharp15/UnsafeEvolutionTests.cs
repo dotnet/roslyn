@@ -14508,8 +14508,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(25, 16));
 
         AssertEx.Equal("void C.M()", comp.GetMember("C.M").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
-        AssertEx.Equal("safe extern void C.M()", comp.GetMember("C.M").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
-        AssertEx.Equal("public safe extern void C.M()", comp.GetMember("C.M").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
+        AssertEx.Equal("extern void C.M()", comp.GetMember("C.M").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+        AssertEx.Equal("public extern void C.M()", comp.GetMember("C.M").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers | SymbolDisplayMemberOptions.IncludeAccessibility)));
     }
 
     [Fact]

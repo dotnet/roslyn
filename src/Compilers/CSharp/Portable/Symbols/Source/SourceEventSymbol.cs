@@ -526,22 +526,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _modifiers; }
         }
 
-        internal sealed override bool RequiresSafeOrUnsafeKeyword(BindingDiagnosticBag? diagnostics)
-        {
-            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern)
-            {
-                if (diagnostics != null && !HasUnsafeModifier && !HasSafeModifier)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
-                        (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, GetFirstLocation()));
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
         private void CheckAccessibility(Location location, BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
         {
             ModifierUtils.CheckAccessibility(_modifiers, this, isExplicitInterfaceImplementation, diagnostics, location);
@@ -879,8 +863,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
-
             var compilation = DeclaringCompilation;
             var location = this.GetFirstLocation();
 
@@ -896,6 +878,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeWithAnnotations.NeedsNullableAttribute())
             {
                 compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, location));
             }
 
             if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)

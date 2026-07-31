@@ -109,26 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal LocalFunctionStatementSyntax Syntax => (LocalFunctionStatementSyntax)syntaxReferenceOpt.GetSyntax();
 
-        internal sealed override bool RequiresSafeOrUnsafeKeyword(BindingDiagnosticBag? diagnostics)
-        {
-            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern)
-            {
-                if (diagnostics != null && !HasUnsafeModifier && !HasSafeModifier)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
-                        Syntax.Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, Syntax.Identifier.GetLocation()));
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
         internal void GetDeclarationDiagnostics(BindingDiagnosticBag addTo)
         {
-            base.AfterAddingTypeMembersChecks(DeclaringCompilation.Conversions, addTo);
-
             // Force complete type parameters
             foreach (var typeParam in _typeParameters)
             {
@@ -150,6 +132,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetReturnTypeAttributes();
 
             var compilation = DeclaringCompilation;
+
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                addTo.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    Syntax.Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, Syntax.Identifier.GetLocation()));
+            }
 
             if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {

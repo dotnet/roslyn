@@ -133,8 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
-
             var compilation = DeclaringCompilation;
             var location = ErrorLocation;
 

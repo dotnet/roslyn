@@ -568,22 +568,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal sealed override bool RequiresSafeOrUnsafeKeyword(BindingDiagnosticBag? diagnostics)
-        {
-            if (ContainingModule.UseUpdatedMemorySafetyRules && AssociatedSymbol is null && IsExtern)
-            {
-                if (diagnostics != null && !HasUnsafeModifier && !HasSafeModifier)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
-                        Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, _location));
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
         internal override bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false)
         {
             if (IsExplicitInterfaceImplementation && _containingType.IsInterface)
@@ -1009,6 +993,12 @@ done:
             if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
+            }
+
+            if (ContainingModule.UseUpdatedMemorySafetyRules && AssociatedSymbol is null && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, _location));
             }
 
             if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
