@@ -770,6 +770,15 @@ internal sealed class CSharpOnTypeFormattingPass(
                 continue;
             }
 
+            if (owner is RazorMetaCodeSyntax { Parent: CSharpCodeBlockSyntax codeBlock } &&
+                owner == codeBlock.Children[^1] &&
+                codeBlock.Parent is RazorDirectiveBodySyntax)
+            {
+                // A code block directive's closing brace is Razor syntax, so use only its Razor/HTML indentation.
+                newIndentations[i] = razorDesiredIndentation;
+                continue;
+            }
+
             if (!lineStartIndentations.TryGetValue(lineStart, out var csharpDesiredIndentation))
             {
                 // Couldn't remap. This is probably a non-C# location.
