@@ -7219,27 +7219,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Current_Getter()
     {
-        CompileAndVerifyUnsafe(
-            lib: """
-                public class C
-                {
-                    public C GetEnumerator() => this;
-                    public bool MoveNext() => false;
-                    public int Current { unsafe get => 0; }
-                }
-                """,
-            caller: """
-                foreach (var x in new C()) { }
-                unsafe { foreach (var x in new C()) { } }
-                """,
-            expectedUnsafeSymbols: ["C.get_Current"],
-            expectedSafeSymbols: ["C", "C.Current"],
-            expectedDiagnostics:
-            [
-                // (1,1): error CS9362: 'C.Current.get' must be used in an unsafe context because it is marked as 'unsafe'
-                // foreach (var x in new C()) { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "foreach").WithArguments("C.Current.get").WithLocation(1, 1),
-            ]);
+        CreateCompilation("""
+            public class C
+            {
+                public C GetEnumerator() => this;
+                public bool MoveNext() => false;
+                public int Current { unsafe get => 0; }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (5,16): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.Current'. Instead, put that modifier on the property itself.
+            //     public int Current { unsafe get => 0; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "Current").WithArguments("C.Current").WithLocation(5, 16));
     }
 
     [Fact]
@@ -8091,7 +8083,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
 
-        // Both property and both accessors have unsafe - this is allowed
+        // Both property and both accessors have unsafe - this is disallowed
         CreateCompilation("""
             partial class C
             {
@@ -8100,7 +8092,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """,
             options: TestOptions.UnsafeReleaseDll)
-            .VerifyEmitDiagnostics();
+            .VerifyDiagnostics(
+            // (3,31): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P' and its accessor. Remove one of them.
+            //     public unsafe partial int P { unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P").WithArguments("C.P").WithLocation(3, 31));
 
         // Property has unsafe on both, but only one accessor has explicit unsafe - mismatch on accessor
         CreateCompilation("""
@@ -8149,6 +8144,137 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (4,35): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public unsafe partial int P { get => 0; set { } }
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 35));
+    }
+
+    [Fact]
+    public void Member_Accessors_ConflictingUnsafeSafeModifiers()
+    {
+        CreateCompilation("""
+            class C
+            {
+                unsafe int P1 { unsafe get => 0; set { } }
+                unsafe int P2 { get => 0; unsafe set { } }
+                safe int P3 { safe get => 0; set { } }
+                safe int P4 { get => 0; safe set { } }
+                unsafe int P5 { safe get => 0; set { } }
+                safe int P6 { unsafe get => 0; set { } }  
+                unsafe int P7 { safe get => 0; unsafe set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,16): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P1' and its accessor. Remove one of them.
+            //     unsafe int P1 { unsafe get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P1").WithArguments("C.P1").WithLocation(3, 16),
+            // (4,16): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P2' and its accessor. Remove one of them.
+            //     unsafe int P2 { get => 0; unsafe set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P2").WithArguments("C.P2").WithLocation(4, 16),
+            // (5,14): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P3' and its accessor. Remove one of them.
+            //     safe int P3 { safe get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P3").WithArguments("C.P3").WithLocation(5, 14),
+            // (6,14): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P4' and its accessor. Remove one of them.
+            //     safe int P4 { get => 0; safe set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P4").WithArguments("C.P4").WithLocation(6, 14),
+            // (7,16): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P5' and its accessor. Remove one of them.
+            //     unsafe int P5 { safe get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P5").WithArguments("C.P5").WithLocation(7, 16),
+            // (8,14): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P6' and its accessor. Remove one of them.
+            //     safe int P6 { unsafe get => 0; set { } }  
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P6").WithArguments("C.P6").WithLocation(8, 14),
+            // (9,16): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P7' and its accessor. Remove one of them.
+            //     unsafe int P7 { safe get => 0; unsafe set { } }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P7").WithArguments("C.P7").WithLocation(9, 16));
+
+        CreateCompilation("""
+            class C
+            {
+                int Q1 { unsafe get => 0; unsafe set { } }
+                int Q2 { safe get => 0; safe set { } }
+                int this[int i] { unsafe get => 0; unsafe set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.Q1'. Instead, put that modifier on the property itself.
+            //     int Q1 { unsafe get => 0; unsafe set { } }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "Q1").WithArguments("C.Q1").WithLocation(3, 9),
+            // (4,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.Q2'. Instead, put that modifier on the property itself.
+            //     int Q2 { safe get => 0; safe set { } }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "Q2").WithArguments("C.Q2").WithLocation(4, 9),
+            // (5,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.this[int]'. Instead, put that modifier on the property itself.
+            //     int this[int i] { unsafe get => 0; unsafe set { } }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "this").WithArguments("C.this[int]").WithLocation(5, 9));
+
+        CreateCompilation("""
+            class C
+            {
+                int S1 { unsafe get => 0; }
+                int S2 { safe get => 0; }
+                int S3 { unsafe set { } }
+                int this[int i] { safe get => 0; }
+                int S4 { unsafe safe get => 0; }
+                safe int S5 { get => 0; }
+                safe int S6 => 0;
+                safe int S7 { safe get => 0; }
+                safe int S8 { unsafe get => 0; }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.S1'. Instead, put that modifier on the property itself.
+            //     int S1 { unsafe get => 0; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "S1").WithArguments("C.S1").WithLocation(3, 9),
+            // (4,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.S2'. Instead, put that modifier on the property itself.
+            //     int S2 { safe get => 0; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "S2").WithArguments("C.S2").WithLocation(4, 9),
+            // (5,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.S3'. Instead, put that modifier on the property itself.
+            //     int S3 { unsafe set { } }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "S3").WithArguments("C.S3").WithLocation(5, 9),
+            // (6,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.this[int]'. Instead, put that modifier on the property itself.
+            //     int this[int i] { safe get => 0; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "this").WithArguments("C.this[int]").WithLocation(6, 9),
+            // (7,9): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'C.S4'. Instead, put that modifier on the property itself.
+            //     int S4 { unsafe safe get => 0; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "S4").WithArguments("C.S4").WithLocation(7, 9),
+            // (7,21): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
+            //     int S4 { unsafe safe get => 0; }
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(7, 21),
+            // (10,14): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.S7' and its accessor. Remove one of them.
+            //     safe int S7 { safe get => 0; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "S7").WithArguments("C.S7").WithLocation(10, 14),
+            // (11,14): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.S8' and its accessor. Remove one of them.
+            //     safe int S8 { unsafe get => 0; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "S8").WithArguments("C.S8").WithLocation(11, 14));
+
+        CreateCompilation("""
+            class C
+            {
+                unsafe int R1 { get => 0; set { } }
+                int R2 { safe get => 0; unsafe set { } }
+                int R3 { unsafe get => 0; safe set { } }
+                unsafe int R4 { get => 0; }
+                safe int R5 { get => 0; }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Member_Accessors_ConflictingUnsafeSafeModifiers_Override()
+    {
+        CreateCompilation("""
+            class B
+            {
+                public virtual int P1 { get => 0; unsafe set { } }
+            }
+            class C : B
+            {
+                public override int P1 { unsafe set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -8681,7 +8807,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
 
-        // Both indexer and both accessors have unsafe - this is allowed
+        // Both indexer and both accessors have unsafe - this is disallowed
         CreateCompilation("""
             partial class C
             {
@@ -8690,7 +8816,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """,
             options: TestOptions.UnsafeReleaseDll)
-            .VerifyEmitDiagnostics();
+            .VerifyDiagnostics(
+            // (3,31): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.this[int]' and its accessor. Remove one of them.
+            //     public unsafe partial int this[int i] { unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "this").WithArguments("C.this[int]").WithLocation(3, 31));
 
         // Indexer has unsafe on both, but only one accessor has explicit unsafe - mismatch on accessor
         CreateCompilation("""
@@ -8834,8 +8963,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E4").WithArguments("C.E4").WithLocation(15, 9));
     }
 
-    [Fact]
-    public void Member_Event_Accessors()
+    [Theory, CombinatorialData]
+    public void Member_Event_Accessors(bool updatedRules)
     {
         CreateCompilation("""
             public class C
@@ -8846,7 +8975,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public event System.Action E4 { add { } safe remove { } }
             }
             """,
-            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
             // (3,37): error CS1609: Modifiers cannot be placed on event accessor declarations
             //     public event System.Action E1 { unsafe add { } remove { } }
@@ -10290,18 +10419,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (22,45): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
             // public class  P([field: FieldOffset(0)] int x)
             Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 45),
-            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            // (30,27): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public const int F1 = 0;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
-            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static int F2 = 0;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
-            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static int P { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
-            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static event System.Action E;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("safe").WithLocation(30, 27));
 
         CreateCompilation([source, IsExternalInitTypeDefinition],
             options: TestOptions.ReleaseDll)
@@ -10312,18 +10432,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (22,45): error CS0625: 'P.<x>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
             // public class  P([field: FieldOffset(0)] int x)
             Diagnostic(ErrorCode.ERR_MissingStructOffset, "x").WithArguments("P.<x>P").WithLocation(22, 45),
-            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            // (30,27): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public const int F1 = 0;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
-            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static int F2 = 0;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
-            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static int P { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
-            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static event System.Action E;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("safe").WithLocation(30, 27));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84564")]
@@ -10461,35 +10572,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (22,21): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
             // public struct P(int x)
             Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 21),
-            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            // (30,27): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public const int F1 = 0;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
-            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static int F2 = 0;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
-            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static int P { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
-            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static event System.Action E;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("safe").WithLocation(30, 27));
 
         CreateCompilation(source,
             targetFramework: TargetFramework.Net110,
             options: TestOptions.ReleaseDll)
             .VerifyDiagnostics(
-            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            // (30,27): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public const int F1 = 0;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
-            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static int F2 = 0;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
-            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static int P { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
-            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static event System.Action E;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("safe").WithLocation(30, 27));
     }
 
     [Theory, CombinatorialData]
@@ -10557,16 +10650,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
-            .VerifyDiagnostics(
-            // (6,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public int F;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 5),
-            // (7,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public int P { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
-            // (8,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public event System.Action E;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5));
+            .VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -12872,14 +12956,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
     }
 
-    [Theory, CombinatorialData]
-    public void Extern_Property_SafeModifier([CombinatorialValues("", "safe")] string accessorModifier)
+    [Fact]
+    public void Extern_Property_SafeModifier()
     {
-        var libSource = $$"""
+        var libSource = """
             #pragma warning disable CS0626 // extern without attributes
             public class C
             {
-                safe public extern int P2 { {{accessorModifier}} set; }
+                safe public extern int P2 { set; }
             }
             """;
 
@@ -12933,7 +13017,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P3").WithArguments("C.P3.set").WithLocation(7, 1),
             // (9,1): error CS9362: 'C.P4.set' must be used in an unsafe context because it is marked as 'unsafe'
             // c.P4 = 0;
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P4").WithArguments("C.P4.set").WithLocation(9, 1));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P4").WithArguments("C.P4.set").WithLocation(9, 1),
+            // (14,30): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P1' and its accessor. Remove one of them.
+            //     public unsafe extern int P1 { get; private safe set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P1").WithArguments("C.P1").WithLocation(14, 30),
+            // (15,30): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P2' and its accessor. Remove one of them.
+            //     public unsafe extern int P2 { safe get; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P2").WithArguments("C.P2").WithLocation(15, 30),
+            // (16,30): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P3' and its accessor. Remove one of them.
+            //     public unsafe extern int P3 { safe get; set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P3").WithArguments("C.P3").WithLocation(16, 30),
+            // (17,28): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P4' and its accessor. Remove one of them.
+            //     public safe extern int P4 { get; unsafe set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P4").WithArguments("C.P4").WithLocation(17, 28));
     }
 
     [Fact]
@@ -13027,25 +13123,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public class C
                 {
                     unsafe public extern int P1 { set; }
-                    unsafe public extern int P2 { unsafe set; }
                 }
                 """,
             caller: """
                 var c = new C();
                 c.P1 = 0;
-                c.P2 = 0;
                 """,
             verify: Verification.Skipped,
-            expectedUnsafeSymbols: ["C.P1", "C.set_P1", "C.P2", "C.set_P2"],
+            expectedUnsafeSymbols: ["C.P1", "C.set_P1"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
             [
                 // (2,1): error CS9362: 'C.P1.set' must be used in an unsafe context because it is marked as 'unsafe'
                 // c.P1 = 0;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P1").WithArguments("C.P1.set").WithLocation(2, 1),
-                // (3,1): error CS9362: 'C.P2.set' must be used in an unsafe context because it is marked as 'unsafe'
-                // c.P2 = 0;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
             ]);
     }
 
@@ -13112,14 +13203,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
     }
 
-    [Theory, CombinatorialData]
-    public void Extern_Indexer_SafeModifier([CombinatorialValues("", "safe")] string accessorModifier)
+    [Fact]
+    public void Extern_Indexer_SafeModifier()
     {
-        var libSource = $$"""
+        var libSource = """
             #pragma warning disable CS0626 // extern without attributes
             public class C
             {
-                public safe extern int this[int i] { {{accessorModifier}} get; set; }
+                public safe extern int this[int i] { get; set; }
             }
             """;
 
@@ -13237,26 +13328,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 {
                     unsafe public extern int this[int i] { set; }
                 }
-                public class C2
-                {
-                    unsafe public extern int this[int i] { unsafe set; }
-                }
                 """,
             caller: """
                 new C1()[0] = 0;
-                new C2()[0] = 0;
                 """,
             verify: Verification.Skipped,
-            expectedUnsafeSymbols: ["C1.this[]", "C1.set_Item", "C2.this[]", "C2.set_Item"],
-            expectedSafeSymbols: ["C1", "C2"],
+            expectedUnsafeSymbols: ["C1.this[]", "C1.set_Item"],
+            expectedSafeSymbols: ["C1"],
             expectedDiagnostics:
             [
                 // (1,1): error CS9362: 'C1.this[int].set' must be used in an unsafe context because it is marked as 'unsafe'
                 // new C1()[0] = 0;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C1()[0]").WithArguments("C1.this[int].set").WithLocation(1, 1),
-                // (2,1): error CS9362: 'C2.this[int].set' must be used in an unsafe context because it is marked as 'unsafe'
-                // new C2()[0] = 0;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C2()[0]").WithArguments("C2.this[int].set").WithLocation(2, 1),
             ]);
     }
 
@@ -13840,15 +13923,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (1,7): warning CS8981: The type name 'safe' only contains lower-cased ascii characters. Such names may become reserved for the language.
             // class safe { }
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "safe").WithArguments("safe").WithLocation(1, 7),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe M1() => new safe();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
             // (5,10): error CS1520: Method must have a return type
             //     safe M1() => new safe();
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "M1").WithLocation(5, 10),
-            // (6,12): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     public safe M2() => new safe();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 12),
             // (6,17): error CS1520: Method must have a return type
             //     public safe M2() => new safe();
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "M2").WithLocation(6, 17)
@@ -13880,7 +13957,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 {
                     safe static extern void Local();
                 }
-                safe public extern int A { safe get; set; }
+                safe public extern int A { get; }
                 safe extern ~C();
             }
             """;
@@ -13918,11 +13995,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             //         safe static extern void Local();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(10, 9),
             // (12,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     safe public extern int A { safe get; set; }
+            //     safe public extern int A { get; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(12, 5),
-            // (12,32): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     safe public extern int A { safe get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(12, 32),
             // (13,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     safe extern ~C();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(13, 5));
@@ -13964,51 +14038,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(),
             targetFramework: TargetFramework.Net100)
             .VerifyDiagnostics(
-            // (3,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe void M();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(3, 5),
-            // (4,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe int P { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe event System.Action E;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,13): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     int A { safe get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 13),
-            // (10,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe void I1.M() { }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
-            // (11,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe int I1.P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(11, 5),
-            // (12,33): error CS0106: The modifier 'safe' is not valid for this item
-            //     safe event System.Action I1.E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("safe").WithLocation(12, 33),
-            // (13,16): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     int I1.A { safe get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(13, 16),
             // (20,40): error CS0106: The modifier 'extern' is not valid for this item
             //     safe extern event System.Action I1.E;
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("extern").WithLocation(20, 40),
-            // (20,40): error CS0106: The modifier 'safe' is not valid for this item
-            //     safe extern event System.Action I1.E;
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("safe").WithLocation(20, 40),
             // (20,40): error CS0071: An explicit interface implementation of an event must use event accessor syntax
             //     safe extern event System.Action I1.E;
             Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "E").WithLocation(20, 40),
+            // (21,12): error CS9397: Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer 'I3.I1.A'. Instead, put that modifier on the property itself.
+            //     int I1.A { safe extern get; safe extern set; }
+            Diagnostic(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, "A").WithArguments("I3.I1.A").WithLocation(21, 12),
             // (21,28): error CS0106: The modifier 'extern' is not valid for this item
             //     int I1.A { safe extern get; safe extern set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("extern").WithLocation(21, 28),
             // (21,45): error CS0106: The modifier 'extern' is not valid for this item
             //     int I1.A { safe extern get; safe extern set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(21, 45),
-            // (21,16): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     int I1.A { safe extern get; safe extern set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(21, 16),
-            // (21,33): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     int I1.A { safe extern get; safe extern set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(21, 33));
+            // (25,24): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'I4.I1.A' and its accessor. Remove one of them.
+            //     safe extern int I1.A { safe get; safe set; }
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "A").WithArguments("I4.I1.A").WithLocation(25, 24));
     }
 
     [Theory, CombinatorialData]
@@ -14043,60 +14090,142 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(
-            // (4,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public void M1() { }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public int P1 { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public int this[int i] { get => i; set { } }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 5),
-            // (7,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public event System.Action E1;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
-            // (8,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public C() { }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
-            // (9,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static C operator +(C x, C y) => x;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(9, 5),
-            // (10,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe public static explicit operator int(C c) => 0;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
-            // (11,5): error CS9388: The 'safe' modifier may only be used on extern members or fields in explicit or extended layout structs that are not marked 'unsafe'.
-            //     safe public int F;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(11, 5),
-            // (12,23): error CS0106: The modifier 'safe' is not valid for this item
-            //     safe public class NestedClass { }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "NestedClass").WithArguments("safe").WithLocation(12, 23),
-            // (13,24): error CS0106: The modifier 'safe' is not valid for this item
-            //     safe public struct NestedStruct { }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "NestedStruct").WithArguments("safe").WithLocation(13, 24),
-            // (14,27): error CS0106: The modifier 'safe' is not valid for this item
-            //     safe public interface INested { }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "INested").WithArguments("safe").WithLocation(14, 27),
             // (15,22): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public enum ENested { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "ENested").WithArguments("safe").WithLocation(15, 22),
-            // (16,31): error CS0106: The modifier 'safe' is not valid for this item
-            //     safe public delegate void D();
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("safe").WithLocation(16, 31),
-            // (19,9): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //         safe void Local() { }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(19, 9),
-            // (21,21): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     public int P2 { safe get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(21, 21),
-            // (22,36): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     public string this[string s] { safe get => s; set { } }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(22, 36),
-            // (23,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     safe ~C() { }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(23, 5),
-            // (24,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            // (24,27): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public const int CONST = 0;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(24, 5));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "CONST").WithArguments("safe").WithLocation(24, 27));
+    }
+
+    [Theory, CombinatorialData]
+    public void SafeModifier_Declarations_Types(bool allowUnsafe, bool updatedRules)
+    {
+        var source = """
+            safe class C;
+            safe struct S;
+            safe interface I;
+            safe delegate void D();
+            safe record R;
+            safe record struct RS;
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe))
+            .VerifyDiagnostics(
+            // (1,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // safe class C;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(1, 12),
+            // (2,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // safe struct S;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("updated memory safety rules").WithLocation(2, 13),
+            // (3,16): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // safe interface I;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "I").WithArguments("updated memory safety rules").WithLocation(3, 16),
+            // (4,20): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // safe delegate void D();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "D").WithArguments("updated memory safety rules").WithLocation(4, 20),
+            // (5,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // safe record R;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "R").WithArguments("updated memory safety rules").WithLocation(5, 13),
+            // (6,20): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // safe record struct RS;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "RS").WithArguments("updated memory safety rules").WithLocation(6, 20));
+
+        CreateCompilation("safe unsafe class C;", options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (1,19): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
+            // safe unsafe class C;
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "C").WithLocation(1, 19));
+    }
+
+    [Fact]
+    public void SafeModifier_Declarations_Accessors()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                #pragma warning disable CS0626 // extern without attributes
+
+                public class C
+                {
+                    public safe int P1 { get; set; }
+                    public int P2 { safe get; unsafe set; }
+                    public unsafe int P3 { get; set; }
+                    public int P4 { unsafe get; safe set; }
+                    public extern unsafe int P5 { get; set; }
+                    public extern safe int P6 { get; set; }
+                }
+                """,
+            caller: """
+                var c = new C();
+                c.P1 += 1;
+                c.P2 += 1;
+                c.P3 += 1;
+                c.P4 += 1;
+                c.P5 += 1;
+                c.P6 += 1;
+                """,
+            verify: Verification.FailsPEVerify,
+            expectedUnsafeSymbols: ["C.set_P2", "C.P3", "C.get_P3", "C.set_P3", "C.get_P4", "C.P5", "C.get_P5", "C.set_P5"],
+            expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1", "C.P2", "C.get_P2", "C.P4", "C.set_P4", "C.P6", "C.get_P6", "C.set_P6"],
+            expectedDiagnostics:
+            [
+                // (3,1): error CS9362: 'C.P2.set' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P2 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
+                // (4,1): error CS9362: 'C.P3.set' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P3 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P3").WithArguments("C.P3.set").WithLocation(4, 1),
+                // (4,1): error CS9362: 'C.P3.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P3 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P3").WithArguments("C.P3.get").WithLocation(4, 1),
+                // (5,1): error CS9362: 'C.P4.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P4 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P4").WithArguments("C.P4.get").WithLocation(5, 1),
+                // (6,1): error CS9362: 'C.P5.set' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P5 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P5").WithArguments("C.P5.set").WithLocation(6, 1),
+                // (6,1): error CS9362: 'C.P5.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // c.P5 += 1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P5").WithArguments("C.P5.get").WithLocation(6, 1),
+            ]);
+
+        var source = """
+            class C
+            {
+                unsafe int M() => 0;
+
+                public safe int P1
+                {
+                    get => M();
+                    set => M();
+                }
+
+                public unsafe int P2
+                {
+                    get => M();
+                    set => M();
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (7,16): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         get => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(7, 16),
+            // (8,16): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         set => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(8, 16),
+            // (13,16): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         get => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(13, 16),
+            // (14,16): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         set => M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M()").WithArguments("C.M()").WithLocation(14, 16));
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -14132,9 +14261,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (4,30): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe partial void M1() { }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M1").WithLocation(4, 30),
-            // (6,12): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
-            //     public safe partial void M2();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 12),
             // (7,25): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public partial void M2() { }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M2").WithLocation(7, 25),
@@ -14254,27 +14380,30 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (4,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            // (4,5): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     safe unsafe public extern void M1();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(4, 5),
+            // (5,5): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     safe unsafe public extern int P1 { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,33): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(5, 5),
+            // (6,28): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'C.P2' and its accessor. Remove one of them.
             //     public safe extern int P2 { safe unsafe get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 33),
-            // (7,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "P2").WithArguments("C.P2").WithLocation(6, 28),
+            // (6,33): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
+            //     public safe extern int P2 { safe unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(6, 33),
+            // (7,5): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     safe unsafe public static extern event System.Action E1;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
-            // (8,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(7, 5),
+            // (8,5): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     safe unsafe public extern C(int x);
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
-            // (9,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(8, 5),
+            // (9,5): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //     safe unsafe extern ~C();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(9, 5),
-            // (12,9): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(9, 5),
+            // (12,9): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
             //         safe unsafe static extern void Local1();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 9),
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(12, 9),
         };
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
@@ -14286,6 +14415,51 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 //     safe unsafe extern ~C();
                 Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(9, 10),
             ]);
+    }
+
+    [Theory, CombinatorialData]
+    public void SafeModifier_CompatMode(bool compilationReference)
+    {
+        var source1 = """
+            public static class C
+            {
+                public static safe void M(int* p) { }
+            }
+            """;
+
+        var ref1 = CreateCompilation(source1).VerifyEmitDiagnostics();
+
+        var source2 = """
+            C.M(null);
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,1): error CS9363: 'C.M(int*)' must be used in an unsafe context because it has pointers in its signature
+            // C.M(null);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "C.M(null)").WithArguments("C.M(int*)").WithLocation(1, 1),
+        };
+
+        CreateCompilation(source2, [AsReference(ref1, compilationReference)], options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, [AsReference(ref1, compilationReference)]).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void SafeModifier_CompatMode_SameAssembly()
+    {
+        var source = """
+            class C
+            {
+                safe void M1(int* p) { }
+                void M2() { M1(null); }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,17): error CS9363: 'C.M1(int*)' must be used in an unsafe context because it has pointers in its signature
+            //     void M2() { M1(null); }
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "M1(null)").WithArguments("C.M1(int*)").WithLocation(4, 17));
     }
 
     [Fact]
