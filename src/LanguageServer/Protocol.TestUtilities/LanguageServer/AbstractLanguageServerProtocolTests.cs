@@ -835,7 +835,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             return ReplaceTextAsync(documentUri, version, [.. rangeChanges]);
         }
 
-        public Task InsertTextAsync(DocumentUri documentUri, params (int Line, int Column, string Text)[] changes)
+        public Task InsertTextAsync(DocumentUri documentUri, params (int? Line, int? Column, string Text)[] changes)
         {
             return InsertTextAsync(documentUri, version: 0, changes);
         }
