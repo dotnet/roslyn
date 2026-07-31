@@ -136,7 +136,7 @@ public class IntermediateNodeCloneTest
                 continue;
             }
 
-            object value;
+            object? value;
             try
             {
                 value = property.GetValue(node);
@@ -172,7 +172,7 @@ public class IntermediateNodeCloneTest
         activePath.Remove(node);
     }
 
-    private static string Format(object value)
+    private static string Format(object? value)
     {
         switch (value)
         {
@@ -184,7 +184,7 @@ public class IntermediateNodeCloneTest
                 var items = enumerable.Cast<object>().Select(Format);
                 return "[" + string.Join(", ", items) + "]";
             default:
-                return value.ToString();
+                return value.ToString() ?? "null";
         }
     }
 }
