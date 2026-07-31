@@ -961,8 +961,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                 }
 
-                if (symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: { ContainingModule.UseUpdatedMemorySafetyRules: true } internalSymbol } &&
-                    internalSymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+                // unsafe is added only for new code (code that opts into unsafe evolution and uses the keyword to annotate caller-unsafe members)
+                if (symbol.RequiresUnsafe &&
+                    // https://github.com/dotnet/roslyn/issues/82546: use public API for this when available
+                    symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol.ContainingModule.UseUpdatedMemorySafetyRules: true })
                 {
                     AddKeyword(SyntaxKind.UnsafeKeyword);
                     AddSpace();
