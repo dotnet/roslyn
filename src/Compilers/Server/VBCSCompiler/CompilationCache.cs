@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// Only files that actually exist at the given paths are stored.
         /// Failures are logged but do not propagate as exceptions.
         /// </summary>
-        internal void TryStoreResult(
+        internal CompilationCacheStoreResult TryStoreResult(
             string dllName,
             string hashKey,
             CompilationOutputFiles outputFiles,
@@ -297,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ICompilerServerLogger logger)
         {
             string? stagingDir = null;
+            var result = CompilationCacheStoreResult.Failed;
             try
             {
                 var dllCacheDir = Path.Combine(_cachePath, dllName);
@@ -306,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 if (entryMutex is null)
                 {
                     logger.Log($"Cache store skipped because another writer is populating: {dllName} [{hashKey}]");
-                    return;
+                    return CompilationCacheStoreResult.SkippedRace;
                 }
 
                 var cacheDir = GetCacheEntryDirectory(dllName, hashKey);
@@ -314,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     // Another writer finished publishing this entry before we got here.
                     logger.Log($"Cache store skipped because entry already exists: {dllName} [{hashKey}]");
-                    return;
+                    return CompilationCacheStoreResult.SkippedExists;
                 }
 
                 // Populate a unique staging directory and publish it with a single rename so readers only
@@ -335,10 +336,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 TouchLastUsed(cacheDir, logger);
                 logger.Log($"Cache stored: {dllName} [{hashKey}]");
+                result = CompilationCacheStoreResult.Stored;
             }
             catch (Exception ex)
             {
                 logger.Log($"Cache store failed for {dllName} [{hashKey}]: {ex.Message}");
+                result = CompilationCacheStoreResult.Failed;
             }
             finally
             {
@@ -361,6 +364,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                 }
             }
+
+            return result;
 
             static void tryCopyOptional(string? sourcePath, string destPath)
             {

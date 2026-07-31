@@ -453,6 +453,68 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
+        public void TryStoreResult_ReturnsStored_ThenSkippedExists()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "Store.dll";
+            var deterministicKey = "the key";
+            var hashKey = CompilationCache.ComputeHashKey(deterministicKey);
+
+            var outputDir = Temp.CreateDirectory().Path;
+            var assemblyPath = Path.Combine(outputDir, dllName);
+            File.WriteAllBytes(assemblyPath, [1, 2, 3]);
+            var outputFiles = new CompilationOutputFiles { AssemblyPath = assemblyPath };
+
+            Assert.Equal(CompilationCacheStoreResult.Stored, cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, _logger));
+            Assert.Equal(CompilationCacheStoreResult.SkippedExists, cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, _logger));
+        }
+
+        [Fact]
+        public void TryStoreResult_ReturnsFailed_WhenAssemblyMissing()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+
+            var outputFiles = new CompilationOutputFiles { AssemblyPath = "/nonexistent/path/Util.dll" };
+
+            Assert.Equal(CompilationCacheStoreResult.Failed, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", _logger));
+        }
+
+        [Fact]
+        public void CompilationCacheTelemetry_HasData_OnlyWhenStatusSet()
+        {
+            var telemetry = new CompilationCacheTelemetry();
+            Assert.False(telemetry.HasData);
+
+            telemetry.Status = CompilationCacheStatus.Miss;
+            Assert.True(telemetry.HasData);
+        }
+
+        [Fact]
+        public void CompilationCacheTelemetry_ToTelemetryEvent_MapsFields()
+        {
+            var telemetry = new CompilationCacheTelemetry
+            {
+                Status = CompilationCacheStatus.Miss,
+                StoreResult = CompilationCacheStoreResult.Stored,
+                KeyComputeMilliseconds = 5,
+                RestoreMilliseconds = 6,
+                StoreMilliseconds = 7,
+            };
+
+            var telemetryEvent = telemetry.ToTelemetryEvent(LanguageNames.CSharp);
+
+            Assert.Equal(CompilationCacheTelemetry.EventName, telemetryEvent.EventName);
+            Assert.Equal("miss", telemetryEvent.Properties["cachestatus"]);
+            Assert.Equal("stored", telemetryEvent.Properties["storeresult"]);
+            Assert.Equal(LanguageNames.CSharp, telemetryEvent.Properties["language"]);
+            Assert.Equal("5", telemetryEvent.Properties["keycomputems"]);
+            Assert.Equal("6", telemetryEvent.Properties["restorems"]);
+            Assert.Equal("7", telemetryEvent.Properties["storems"]);
+        }
+
+        [Fact]
         public void LogCacheMiss_LogsNothing_WhenNoPriorEntries()
         {
             var cacheDir = Temp.CreateDirectory().Path;

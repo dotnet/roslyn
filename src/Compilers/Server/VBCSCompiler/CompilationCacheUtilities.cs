@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Diagnostics;
-
-using System;
-using System.IO;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
+            CompilationCacheTelemetry telemetry,
             CancellationToken cancellationToken,
             out string? deterministicKey,
             out string? hashKey)
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             var dllName = arguments.OutputFileName;
             var outputTimestampUtc = DateTime.UtcNow;
+            var keyStopwatch = Stopwatch.StartNew();
             try
             {
                 using var sourceLinkStream = arguments.SourceLink is not null
@@ -70,16 +72,26 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 logger.Log($"Failed to compute deterministic key, skipping cache: {ex.Message}");
                 return null;
             }
+            finally
+            {
+                telemetry.KeyComputeMilliseconds = keyStopwatch.ElapsedMilliseconds;
+            }
 
             hashKey = CompilationCache.ComputeHashKey(deterministicKey);
 
             var outputFiles = BuildOutputFiles(arguments, dllName);
-            if (cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger, outputTimestampUtc))
+            var restoreStopwatch = Stopwatch.StartNew();
+            var restored = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger, outputTimestampUtc);
+            telemetry.RestoreMilliseconds = restoreStopwatch.ElapsedMilliseconds;
+
+            if (restored)
             {
+                telemetry.Status = CompilationCacheStatus.Hit;
                 logger.Log($"Cache hit satisfied: {dllName} [{hashKey}]");
                 return CommonCompiler.Succeeded;
             }
 
+            telemetry.Status = CompilationCacheStatus.Miss;
             cache.LogCacheMiss(dllName, hashKey, deterministicKey, logger);
             return null;
         }
@@ -92,7 +104,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ICompilerServerLogger logger,
             CommandLineArguments arguments,
             string? deterministicKey,
-            string? hashKey)
+            string? hashKey,
+            CompilationCacheTelemetry telemetry)
         {
             if (cache is null || arguments.OutputFileName is null || deterministicKey is null || hashKey is null)
             {
@@ -101,7 +114,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             var dllName = arguments.OutputFileName;
             var outputFiles = BuildOutputFiles(arguments, dllName);
-            cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, logger);
+            var storeStopwatch = Stopwatch.StartNew();
+            telemetry.StoreResult = cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, logger);
+            telemetry.StoreMilliseconds = storeStopwatch.ElapsedMilliseconds;
         }
 
         private static CompilationOutputFiles BuildOutputFiles(CommandLineArguments arguments, string dllName)

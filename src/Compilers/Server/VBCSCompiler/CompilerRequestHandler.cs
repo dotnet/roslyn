@@ -153,11 +153,12 @@ Run Compilation for {request.RequestId}
                 TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
                 int returnCode = compiler.Run(output, cancellationToken);
                 var outputString = output.ToString();
+                var telemetryEvents = (compiler as ICompilerServerTelemetryProvider)?.GetTelemetryEvents();
                 Logger.Log(@$"End {request.RequestId} {request.Language} compiler run
 Return code: {returnCode}
 Output:
 {outputString}");
-                return new CompletedBuildResponse(returnCode, utf8output, outputString);
+                return new CompletedBuildResponse(returnCode, utf8output, outputString, telemetryEvents);
             }
             catch (Exception ex)
             {
