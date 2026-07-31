@@ -1522,6 +1522,11 @@
         <target state="translated">'Experimental' 属性への diagnosticId 引数は有効な識別子である必要があります</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyUnsafeMods">
+        <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="new">Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
         <target state="translated">'union' 宣言では、共用体メンバー プロバイダー インターフェイスを使用できません。</target>
@@ -2517,10 +2522,15 @@
         <target state="translated">ターゲット ランタイムは、拡張可能またはランタイム環境の既定の呼び出し規則をサポートしていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="translated">'safe' 修飾子は、'unsafe' としてマークされていないメンバーで、かつ 'extern' メンバー、または明示的レイアウトもしくは拡張レイアウトを持つ型のフィールドに類似したメンバーにのみ使用できます。</target>
-        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
+        <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
+        <target state="new">The 'safe' and 'unsafe' modifiers cannot be used together.</target>
+        <note>'safe' and 'unsafe' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_SamePropertyUnsafeAccessorMods">
+        <source>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</source>
+        <target state="new">Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>

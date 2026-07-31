@@ -1883,11 +1883,9 @@ next:;
             var fields = GetFieldsToEmit();
             foreach (var field in fields)
             {
-                if (field is SourceMemberFieldSymbol { AssociatedSymbol: null, HasSafeModifier: true } sourceField &&
-                    (!hasExplicitOrExtendedLayout || field.IsStatic || field.IsConst || sourceField.HasUnsafeModifier))
+                if (fieldsNeedSafeOrUnsafe && !field.IsStatic && !field.IsConst && !fieldHasUnsafeOrSafeModifier(field))
                 {
-                    diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                        sourceField.ModifiersTokenList.GetModifierLocation(SyntaxKind.SafeKeyword, field.GetFirstLocation()));
+                    diagnostics.Add(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, field.GetFirstLocation());
                 }
             }
 

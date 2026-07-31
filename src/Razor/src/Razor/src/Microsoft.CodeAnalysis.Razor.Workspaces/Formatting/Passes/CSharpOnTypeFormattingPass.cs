@@ -756,9 +756,17 @@ internal sealed class CSharpOnTypeFormattingPass(
             var line = context.SourceText.Lines[i];
             var lineStart = line.GetFirstNonWhitespacePosition() ?? line.Start;
             var lineStartSpan = new TextSpan(lineStart, 0);
-            if (!ShouldFormatLine(context, lineStartSpan, allowImplicitStatements: true))
+            if (!ShouldFormatLine(context, lineStartSpan, allowImplicitStatements: true, out var owner))
             {
                 // We don't care about this line as it lies in an area we don't want to format.
+                continue;
+            }
+
+            var razorDesiredIndentation = context.GetIndentationOffsetForLevel(indentations[i].IndentationLevel);
+            if (owner is CSharpTransitionSyntax { Parent: CSharpStatementSyntax })
+            {
+                // An explicit statement delimiter has no C# source mapping, so use only its Razor/HTML indentation.
+                newIndentations[i] = razorDesiredIndentation;
                 continue;
             }
 
@@ -820,7 +828,6 @@ internal sealed class CSharpOnTypeFormattingPass(
             }
 
             var effectiveCSharpDesiredIndentation = csharpDesiredIndentation - minCSharpIndentation;
-            var razorDesiredIndentation = context.GetIndentationOffsetForLevel(indentations[i].IndentationLevel);
             if (indentations[i].StartsInHtmlContext)
             {
                 // This is a non-C# line.
@@ -857,8 +864,8 @@ internal sealed class CSharpOnTypeFormattingPass(
     private static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements, out RazorSyntaxNode? foundOwner)
         => ShouldFormat(context, mappingSpan, new ShouldFormatOptions(allowImplicitStatements, isLineRequest: false), out foundOwner);
 
-    private static bool ShouldFormatLine(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)
-        => ShouldFormat(context, mappingSpan, new ShouldFormatOptions(allowImplicitStatements, isLineRequest: true), out _);
+    private static bool ShouldFormatLine(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements, out RazorSyntaxNode? foundOwner)
+        => ShouldFormat(context, mappingSpan, new ShouldFormatOptions(allowImplicitStatements, isLineRequest: true), out foundOwner);
 
     private static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, ShouldFormatOptions options, out RazorSyntaxNode? foundOwner)
     {
