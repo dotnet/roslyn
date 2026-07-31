@@ -265,6 +265,40 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
     }
 
     [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/7962")]
+    public async Task CloseCurly_DoesNotIndentPropertyAfterCursorAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @code {
+                        private void Current()
+                        {
+                            if(true)
+                            {
+                            }$$
+                        [Parameter] public int Value { get; set; }
+                        private void Later()
+                        {
+                        }
+                    }
+                    """,
+            expected: """
+                    @code {
+                        private void Current()
+                        {
+                            if (true)
+                            {
+                            }
+                        [Parameter] public int Value { get; set; }
+                        private void Later()
+                        {
+                        }
+                    }
+                    """,
+            triggerCharacter: '}');
+    }
+
+    [FormattingTestFact]
     public async Task CloseCurly_Property_SingleLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
