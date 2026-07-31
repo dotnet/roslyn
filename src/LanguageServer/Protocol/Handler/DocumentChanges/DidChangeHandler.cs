@@ -89,9 +89,9 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
 
     private static (ImmutableArray<TextDocumentContentChangePartial>, SourceText) GetUpdatedSourceTextAndChangesAfterFullTextReplacementHandled(SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>[] contentChanges, SourceText text)
     {
-        // Per the LSP spec, each content change can be either a TextDocumentContentChangeEvent or TextDocumentContentChangeFullReplacementEvent.
-        // The former is a range-based change while the latter is a full text replacement. If a TextDocumentContentChangeFullReplacementEvent is found,
-        // then make a full text replacement for that and return all subsequent changes as remaining range-based changes.
+        // Per the LSP spec, each content change is either a range-based change (TextDocumentContentChangePartial)
+        // or a full document text replacement (TextDocumentContentChangeWholeDocument). If a full replacement is found,
+        // apply it and return only the subsequent range-based changes to be processed normally.
         var lastFullTextChangeEventIndex = contentChanges.Length - 1;
         for (; lastFullTextChangeEventIndex >= 0; lastFullTextChangeEventIndex--)
         {
