@@ -246,6 +246,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember(FullName);
         var attribute = module.GetAttributes().SingleOrDefault(a => a.AttributeClass?.Name == Name);
 
+        Assert.Equal(attribute, module.GetPublicSymbol().GetAttributes().SingleOrDefault(a => a.AttributeClass?.Name == Name));
+
         if (expectedDefinition != AttributeDefinition.None)
         {
             Assert.NotNull(type);
@@ -362,9 +364,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             var symbolExpectedUnsafeMode = shouldBeUnsafe ? expectedUnsafeMode : CallerUnsafeMode.None;
             Assert.True(symbolExpectedUnsafeMode == symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty), $"Expected {symbol.GetType().Name} '{symbol.ToTestDisplayString()}' to have {nameof(CallerUnsafeMode)}.{symbolExpectedUnsafeMode} (got {symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty)}).");
 
+            var publicSymbol = symbol.GetPublicSymbol();
+            Assert.Equal(symbolExpectedUnsafeMode != CallerUnsafeMode.None, publicSymbol.RequiresUnsafe);
+
             var hasAttributeInGetAttributes = symbol.GetAttributes().Any(a => a.AttributeClass?.Name == Name);
             Assert.False(hasAttributeInGetAttributes,
                 $"Did not expect {symbol.GetType().Name} '{symbol.ToTestDisplayString()}' to have the attribute in GetAttributes().");
+
+            var hasAttributeInPublicGetAttributes = publicSymbol.GetAttributes().Any(a => a.AttributeClass?.Name == Name);
+            Assert.False(hasAttributeInPublicGetAttributes,
+                $"Did not expect {symbol.GetType().Name} '{symbol.ToTestDisplayString()}' to have the attribute in GetPublicSymbol().GetAttributes().");
 
             // For PE symbols, the attribute should be present in raw metadata when expected.
             if (module is PEModuleSymbol peModule)
@@ -15074,5 +15083,106 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PublicApi_RequiresUnsafe()
+    {
+        var source = """
+            public unsafe class C
+            {
+                unsafe public void M1() { }
+                public void M2() { }
+                unsafe safe public void M3() { }
+                public void M4(int* p) { }
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+        comp.VerifyDiagnostics(
+            // (1,21): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // public unsafe class C
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(1, 21),
+            // (5,12): error CS9388: The 'safe' and 'unsafe' modifiers cannot be used together.
+            //     unsafe safe public void M3() { }
+            Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(5, 12));
+
+        var m1 = comp.GetMember<MethodSymbol>("C.M1").GetPublicSymbol();
+        Assert.True(m1.RequiresUnsafe);
+
+        var m2 = comp.GetMember<MethodSymbol>("C.M2").GetPublicSymbol();
+        Assert.False(m2.RequiresUnsafe);
+
+        var m3 = comp.GetMember<MethodSymbol>("C.M3").GetPublicSymbol();
+        Assert.True(m3.RequiresUnsafe);
+
+        var m4 = comp.GetMember<MethodSymbol>("C.M4").GetPublicSymbol();
+        Assert.False(m4.RequiresUnsafe);
+
+        Assert.False(m1.ContainingAssembly.RequiresUnsafe);
+        Assert.False(m1.ContainingModule.RequiresUnsafe);
+        Assert.False(m1.ContainingType.RequiresUnsafe);
+
+        // Module has no attributes since it is the source symbol.
+        Assert.Empty(m1.ContainingModule.GetAttributes());
+
+        // https://github.com/dotnet/roslyn/issues/82546: we should add and test an API to obtain memory safety rules version of the module
+    }
+
+    [Fact]
+    public void PublicApi_RequiresUnsafe_CompatMode()
+    {
+        var source = """
+            public unsafe class C
+            {
+                public void M1(int* p) { }
+                public void M2() { }
+                unsafe public void M3() { }
+                safe public void M4(int* p) { }
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+        comp.VerifyEmitDiagnostics();
+
+        var m1 = comp.GetMember<MethodSymbol>("C.M1").GetPublicSymbol();
+        Assert.True(m1.RequiresUnsafe);
+
+        var m2 = comp.GetMember<MethodSymbol>("C.M2").GetPublicSymbol();
+        Assert.False(m2.RequiresUnsafe);
+
+        var m3 = comp.GetMember<MethodSymbol>("C.M3").GetPublicSymbol();
+        Assert.False(m3.RequiresUnsafe);
+
+        var m4 = comp.GetMember<MethodSymbol>("C.M4").GetPublicSymbol();
+        Assert.True(m4.RequiresUnsafe);
+
+        Assert.False(m1.ContainingAssembly.RequiresUnsafe);
+        Assert.False(m1.ContainingModule.RequiresUnsafe);
+        Assert.False(m1.ContainingType.RequiresUnsafe);
+
+        Assert.Empty(m1.ContainingModule.GetAttributes());
+
+        // https://github.com/dotnet/roslyn/issues/82546: we should add and test an API to obtain memory safety rules version of the module
+    }
+
+    [Theory, CombinatorialData]
+    public void PublicApi_RequiresUnsafe_VisualBasic(bool useMetadata)
+    {
+        var source = """
+            Public Class C
+                Public Sub M()
+                End Sub
+            End Class
+            """;
+
+        var sourceComp = CreateVisualBasicCompilation(source).VerifyDiagnostics();
+        var comp = useMetadata
+            ? CreateVisualBasicCompilation("", referencedAssemblies: [sourceComp.EmitToImageReference()])
+            : sourceComp;
+
+        comp.VerifyDiagnostics();
+        var method = comp.GetTypeByMetadataName("C")!.GetMember("M");
+        Assert.False(method.RequiresUnsafe);
     }
 }
