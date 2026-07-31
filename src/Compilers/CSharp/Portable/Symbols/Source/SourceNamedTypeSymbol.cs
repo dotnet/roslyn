@@ -1879,16 +1879,6 @@ next:;
         {
             base.AfterMembersChecks(diagnostics);
 
-            bool hasExplicitOrExtendedLayout = Layout.Kind == LayoutKind.Explicit || Layout.Kind == LayoutKind.Extended;
-            var fields = GetFieldsToEmit();
-            foreach (var field in fields)
-            {
-                if (fieldsNeedSafeOrUnsafe && !field.IsStatic && !field.IsConst && !fieldHasUnsafeOrSafeModifier(field))
-                {
-                    diagnostics.Add(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, field.GetFirstLocation());
-                }
-            }
-
             // Union type
             if (ShouldApplyUnionAttribute())
             {
