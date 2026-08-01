@@ -289,7 +289,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohost ImplementInterface positions members mid-@code-block with the decl/impl split; see https://github.com/dotnet/roslyn/issues/84609")]
+    [Fact]
     public async Task ImplementInterface_Explicitly_PartialBaseImplementations_AddsDerivedMembers()
     {
         await VerifyCodeActionAsync(
@@ -324,6 +324,9 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
                     int IBase.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
                     string IBase.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+                    string IDerived.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    int IDerived.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
                     event EventHandler IBase.Event1
                     {
@@ -337,10 +340,6 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
                             throw new NotImplementedException();
                         }
                     }
-
-                    int IDerived.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-                    string IDerived.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
                     event EventHandler IDerived.Event1
                     {
