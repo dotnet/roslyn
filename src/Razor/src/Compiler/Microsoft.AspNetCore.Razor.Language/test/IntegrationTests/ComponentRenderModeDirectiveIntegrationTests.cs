@@ -56,7 +56,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             Diagnostic(ErrorCode.ERR_BadArity, "TestComponent").WithArguments("Test.TestComponent<T>", "type", "1").WithLocation(13, 19));
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): rendermode lowering doesn't emit a #line directive on the synthesized attribute decoration in the decl half, so the resulting diagnostic points at the generated file instead of the @rendermode token. Track + fix before merging to main. See PR #83887.")]
+    [Fact]
     public void RenderMode_GenericComponent_CSharp10()
     {
         var csharpParseOptions = CSharpParseOptions.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp10);
@@ -69,17 +69,16 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
            """);
 
         CompileToAssembly(compilationResult,
-            // PROTOTYPE: this diagnostic should map back to the @rendermode directive in
-            // the source rather than the synthesized attribute decoration in the decl
-            // generated file. The decoration is added without a SourceSpan so the writer
-            // emits it without a #line directive. Track + fix before merging to main.
+            // @rendermode on a generic (@typeparam) component generates an attribute decoration that
+            // references the component without its type argument, plus a nested attribute type that needs
+            // generic-attribute support. This is a known limitation
+            // (https://github.com/dotnet/razor/issues/9683): the file-scoped attribute class generated for
+            // C# 11+ avoids it, but C# 10 still surfaces the raw C# errors against the generated code.
             //
-            // x:\dir\subdir\Test\TestComponent.cshtml.decl.g.cs(13,19): error CS0305: Using the generic type 'TestComponent<T>' requires 1 type arguments
-            //     [global::Test.TestComponent.__PrivateComponentRenderModeAttribute]
+            // x:\dir\subdir\Test\TestComponent.cshtml(13,19): error CS0305: Using the generic type 'TestComponent<T>' requires 1 type arguments
             Diagnostic(ErrorCode.ERR_BadArity, "TestComponent").WithArguments("Test.TestComponent<T>", "type", "1").WithLocation(13, 19),
-            // x:\dir\subdir\Test\TestComponent.cshtml(30,70): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
-            //         private sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "global::Microsoft.AspNetCore.Components.RenderModeAttribute").WithArguments("generic attributes", "11.0").WithLocation(30, 70));
+            // x:\dir\subdir\Test\TestComponent.cshtml(31,70): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "global::Microsoft.AspNetCore.Components.RenderModeAttribute").WithArguments("generic attributes", "11.0").WithLocation(31, 70));
     }
 
     [Fact]
@@ -238,7 +237,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         CompileToAssembly(compilationResult);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): rendermode lowering doesn't emit a #line directive on the synthesized `=> <expr>` arrow expression, so the diagnostic's line/column point inside the generated helper rather than at the user's @rendermode token. Track + fix before merging to main. See PR #83887.")]
+    [Fact]
     public void LanguageVersion_BreakingChange_8_0()
     {
         var compilationResult = CompileToCSharp("""
@@ -253,15 +252,15 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         Assert.Empty(compilationResult.RazorDiagnostics);
 
         CompileToAssembly(compilationResult,
-            // PROTOTYPE: the rendermode lowering doesn't emit a #line directive on the
-            // synthesized `=> <expr>` arrow expression, so this diagnostic's line/column
-            // point inside the generated helper rather than at the user's @rendermode
-            // token. Pre-existing limitation but worth fixing -- track + address before
-            // merging to main.
+            // On Razor < 11 the @rendermode expression isn't mapped back to source, so a diagnostic on the
+            // expression reports the generated line/column inside the synthesized ModeImpl helper rather
+            // than the @rendermode token. This can't be fixed retroactively for those language versions:
+            // changing the generated code now would make a newer compiler emit different output than the
+            // shipped VS tooling expects, which breaks hot reload. Mapping was only added for Razor 11+
+            // (dotnet/razor#12604).
             //
-            // x:\dir\subdir\Test\TestComponent.cshtml(24,101): error CS0103: The name 'Foo' does not exist in the current context
-            // private static IComponentRenderMode ModeImpl => Foo;
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(24, 101),
+            // x:\dir\subdir\Test\TestComponent.cshtml(25,101): error CS0103: The name 'Foo' does not exist in the current context
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(25, 101),
             // x:\dir\subdir\Test\TestComponent.cshtml(5,12): warning CS0414: The field 'TestComponent.rendermode' is assigned but its value is never used
             //     string rendermode = "Something";
             Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "rendermode").WithArguments("Test.TestComponent.rendermode").WithLocation(5, 12)
