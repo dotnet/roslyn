@@ -188,7 +188,7 @@ internal sealed class CSharpOnTypeFormattingPass(
             var typedCharacterLine = cleanedText.GetLinePosition(hostDocumentIndex).Line;
             if (typedCharacterLine == endLineInclusive + 1)
             {
-                endLineInclusive = typedCharacterLine;
+                endLineInclusive++;
             }
         }
         else if (linePositionSpanAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count - 1)
