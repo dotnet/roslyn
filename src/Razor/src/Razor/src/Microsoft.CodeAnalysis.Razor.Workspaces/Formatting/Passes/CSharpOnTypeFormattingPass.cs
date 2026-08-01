@@ -191,6 +191,8 @@ internal sealed class CSharpOnTypeFormattingPass(
                 endLineInclusive++;
             }
 
+            // The C# formatter can leave a following Razor-owned code block closing brace outside the changed range. Include
+            // that brace so its indentation is restored without expanding to arbitrary following lines.
             var nextLine = typedCharacterLine + 1;
             if (nextLine == endLineInclusive + 1 &&
                 nextLine < cleanedText.Lines.Count &&
