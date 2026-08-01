@@ -5680,8 +5680,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidPropertyReadOnlyMods" xml:space="preserve">
     <value>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</value>
   </data>
+  <data name="ERR_InvalidPropertyUnsafeMods" xml:space="preserve">
+    <value>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</value>
+  </data>
   <data name="ERR_DuplicatePropertyReadOnlyMods" xml:space="preserve">
     <value>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</value>
+  </data>
+  <data name="ERR_SamePropertyUnsafeAccessorMods" xml:space="preserve">
+    <value>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</value>
   </data>
   <data name="ERR_FieldLikeEventCantBeReadOnly" xml:space="preserve">
     <value>Field-like event '{0}' cannot be 'readonly'.</value>
@@ -8135,9 +8141,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</value>
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>
   </data>
-  <data name="ERR_SafeModifierUnsupportedTarget" xml:space="preserve">
-    <value>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</value>
-    <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
+  <data name="ERR_SafeModifierCannotBeUsedWithUnsafe" xml:space="preserve">
+    <value>The 'safe' and 'unsafe' modifiers cannot be used together.</value>
+    <comment>'safe' and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_ExternMemberRequiresUnsafeOrSafe" xml:space="preserve">
     <value>'extern' member must be marked 'unsafe' or 'safe'.</value>

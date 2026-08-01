@@ -190,6 +190,14 @@ internal sealed class CSharpOnTypeFormattingPass(
             {
                 endLineInclusive++;
             }
+
+            var nextLine = typedCharacterLine + 1;
+            if (nextLine == endLineInclusive + 1 &&
+                nextLine < cleanedText.Lines.Count &&
+                IsCodeBlockDirectiveClosingBrace(changedContext.CodeDocument, cleanedText, nextLine))
+            {
+                endLineInclusive++;
+            }
         }
         else if (linePositionSpanAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count - 1)
         {
@@ -211,6 +219,23 @@ internal sealed class CSharpOnTypeFormattingPass(
         // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
         return SourceTextDiffer.GetMinimalTextChanges(originalText, cleanedText, DiffKind.Char);
     }
+
+    private static bool IsCodeBlockDirectiveClosingBrace(RazorCodeDocument codeDocument, SourceText sourceText, int lineNumber)
+    {
+        var line = sourceText.Lines[lineNumber];
+        if (line.GetFirstNonWhitespacePosition() is not int firstNonWhitespacePosition)
+        {
+            return false;
+        }
+
+        var owner = codeDocument.GetRequiredSyntaxRoot().FindInnermostNode(firstNonWhitespacePosition, includeWhitespace: true);
+        return IsCodeBlockDirectiveClosingBrace(owner);
+    }
+
+    private static bool IsCodeBlockDirectiveClosingBrace(RazorSyntaxNode? owner)
+        => owner is RazorMetaCodeSyntax { Parent: CSharpCodeBlockSyntax codeBlock } &&
+            owner == codeBlock.Children[^1] &&
+            codeBlock.Parent is RazorDirectiveBodySyntax;
 
     /// <summary>
     /// Tracks a position from the original text into the text produced by applying <paramref name="changes"/>.
@@ -797,6 +822,13 @@ internal sealed class CSharpOnTypeFormattingPass(
             if (owner is CSharpTransitionSyntax { Parent: CSharpStatementSyntax })
             {
                 // An explicit statement delimiter has no C# source mapping, so use only its Razor/HTML indentation.
+                newIndentations[i] = razorDesiredIndentation;
+                continue;
+            }
+
+            if (IsCodeBlockDirectiveClosingBrace(owner))
+            {
+                // A code block directive's closing brace is Razor syntax, so use only its Razor/HTML indentation.
                 newIndentations[i] = razorDesiredIndentation;
                 continue;
             }
