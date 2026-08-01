@@ -5977,7 +5977,7 @@ class C
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/34984")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/35918")]
-        public void ConversionIsExplicit_UnsetConversionKind()
+        public void ForeachStatementInfo_ErrorCollectionType_NoConversions()
         {
             var source =
 @"class C1
@@ -6008,9 +6008,7 @@ class C2
             var foreachSymbolInfo = model.GetForEachStatementInfo(foreachSyntaxNode);
 
             Assert.Equal(Conversion.NoConversion, foreachSymbolInfo.CurrentConversion);
-            Assert.False(foreachSymbolInfo.CurrentConversion.Exists);
-            Assert.False(foreachSymbolInfo.CurrentConversion.IsExplicit);
-            Assert.False(foreachSymbolInfo.CurrentConversion.IsImplicit);
+            Assert.Equal(Conversion.NoConversion, foreachSymbolInfo.ElementConversion);
         }
 
         [Fact, WorkItem(29933, "https://github.com/dotnet/roslyn/issues/29933")]
