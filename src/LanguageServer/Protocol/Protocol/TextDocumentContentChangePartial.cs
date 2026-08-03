@@ -7,17 +7,18 @@ namespace Roslyn.LanguageServer.Protocol;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// Class which encapsulates a text document changed event.
+/// Class which encapsulates a partial text document changed event.
 /// <para>
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentContentChangeEvent">Language Server Protocol specification</see> for additional information.
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocumentContentChangePartial">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class TextDocumentContentChangeEvent
+internal sealed class TextDocumentContentChangePartial
 {
     /// <summary>
     /// Gets or sets the range of the text that was changed.
     /// </summary>
     [JsonPropertyName("range")]
+    [JsonRequired]
     public Range Range
     {
         get;
@@ -39,6 +40,7 @@ internal sealed class TextDocumentContentChangeEvent
     /// Gets or sets the new text of the range/document.
     /// </summary>
     [JsonPropertyName("text")]
+    [JsonRequired]
     public string Text
     {
         get;
