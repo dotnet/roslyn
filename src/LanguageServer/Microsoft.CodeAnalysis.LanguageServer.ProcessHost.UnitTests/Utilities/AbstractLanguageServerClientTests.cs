@@ -170,6 +170,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         {
             private readonly object _gate = new();
             private readonly List<WorkDoneProgress> _progressReports = [];
+            private readonly TaskCompletionSource<WorkDoneProgressReport> _progressSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
             private readonly TaskCompletionSource<WorkDoneProgressEnd> _endSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
             public string Token { get; } = token;
@@ -186,10 +187,16 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
                     if (progress is WorkDoneProgressBegin begin)
                         Title = begin.Title;
 
+                    if (progress is WorkDoneProgressReport report)
+                        _progressSource.TrySetResult(report);
+
                     if (progress is WorkDoneProgressEnd end)
                         _endSource.TrySetResult(end);
                 }
             }
+
+            public Task<WorkDoneProgressReport> WaitForProgressReportAsync()
+                => _progressSource.Task;
 
             public Task<WorkDoneProgressEnd> WaitForEndAsync()
                 => _endSource.Task;
