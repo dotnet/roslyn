@@ -297,7 +297,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ICompilerServerLogger logger)
         {
             string? stagingDir = null;
-            var result = CompilationCacheStoreResult.Failed;
             try
             {
                 var dllCacheDir = Path.Combine(_cachePath, dllName);
@@ -336,12 +335,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 TouchLastUsed(cacheDir, logger);
                 logger.Log($"Cache stored: {dllName} [{hashKey}]");
-                result = CompilationCacheStoreResult.Stored;
+                return CompilationCacheStoreResult.Stored;
             }
             catch (Exception ex)
             {
                 logger.Log($"Cache store failed for {dllName} [{hashKey}]: {ex.Message}");
-                result = CompilationCacheStoreResult.Failed;
+                return CompilationCacheStoreResult.Failed;
             }
             finally
             {
@@ -364,8 +363,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                 }
             }
-
-            return result;
 
             static void tryCopyOptional(string? sourcePath, string destPath)
             {
