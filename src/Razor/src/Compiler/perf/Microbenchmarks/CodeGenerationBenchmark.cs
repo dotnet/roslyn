@@ -37,7 +37,7 @@ public class CodeGenerationBenchmark
     public void CodeGeneration_Runtime_LargeStaticFile()
     {
         var codeDocument = ProjectEngine.Process(MSN);
-        var generated = codeDocument.GetRequiredImplCSharpDocument();
+        var generated = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
 
         if (generated.Diagnostics.Length > 0)
         {

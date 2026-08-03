@@ -284,18 +284,6 @@ public sealed partial class RazorCodeDocument
     internal RazorCSharpDocument GetRequiredCSharpDocument(bool declarationDocument)
         => GetCSharpDocument(declarationDocument).AssumeNotNull();
 
-#if SONICDEV
-    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
-#endif
-    internal RazorCSharpDocument? GetImplCSharpDocument()
-        => _csharpDocument;
-
-#if SONICDEV
-    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
-#endif
-    internal RazorCSharpDocument GetRequiredImplCSharpDocument()
-        => _csharpDocument.AssumeNotNull();
-
     internal RazorCodeDocument WithImplCSharpDocument(RazorCSharpDocument value)
     {
         Debug.Assert(value is not null);
@@ -305,12 +293,6 @@ public sealed partial class RazorCodeDocument
         }
         return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, value, _declCSharpDocument, _directiveTagHelperContributions, _unresolvedDocumentNode);
     }
-
-#if SONICDEV
-    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
-#endif
-    internal RazorCSharpDocument? GetDeclCSharpDocument()
-        => _declCSharpDocument;
 
     internal RazorCodeDocument WithDeclCSharpDocument(RazorCSharpDocument value)
     {
