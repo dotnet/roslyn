@@ -82,15 +82,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public CompilationCacheStoreResult StoreResult { get; set; }
         public long KeyComputeMilliseconds { get; set; }
         public long RestoreMilliseconds { get; set; }
-        public long StoreMilliseconds { get; set; }
+        public long? StoreMilliseconds { get; set; }
 
         /// <summary>
-        /// Wall-clock time spent compiling and emitting on a cache miss. This is the time a
-        /// corresponding cache hit would have saved, so it is the key signal for evaluating the
-        /// cache. Zero on a hit (no compilation ran) and on a miss whose compilation failed (the
-        /// result is never stored).
+        /// Wall-clock time spent compiling and emitting on a cache miss, or <see langword="null"/>
+        /// when no compilation ran (a cache hit) or the compilation failed (a failed result is never
+        /// stored). This is the time a corresponding cache hit would have saved.
         /// </summary>
-        public long CompileMilliseconds { get; set; }
+        public long? CompileMilliseconds { get; set; }
 
         private Stopwatch? _compileStopwatch;
 
@@ -139,9 +138,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 ["language"] = language,
                 ["keycomputems"] = KeyComputeMilliseconds.ToString(CultureInfo.InvariantCulture),
                 ["restorems"] = RestoreMilliseconds.ToString(CultureInfo.InvariantCulture),
-                ["storems"] = StoreMilliseconds.ToString(CultureInfo.InvariantCulture),
-                ["compilems"] = CompileMilliseconds.ToString(CultureInfo.InvariantCulture),
             };
+
+            if (StoreMilliseconds is { } storeMs)
+            {
+                properties["storems"] = storeMs.ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (CompileMilliseconds is { } compileMs)
+            {
+                properties["compilems"] = compileMs.ToString(CultureInfo.InvariantCulture);
+            }
 
             return new BuildTelemetryEvent(EventName, properties);
         }

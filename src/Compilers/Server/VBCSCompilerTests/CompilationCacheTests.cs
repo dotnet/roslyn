@@ -517,14 +517,38 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
+        public void CompilationCacheTelemetry_ToTelemetryEvent_OmitsCompileAndStore_OnHit()
+        {
+            var telemetry = new CompilationCacheTelemetry
+            {
+                Status = CompilationCacheStatus.Hit,
+                StoreResult = CompilationCacheStoreResult.None,
+                KeyComputeMilliseconds = 3,
+                RestoreMilliseconds = 4,
+                // No compilation ran and no store was attempted.
+                CompileMilliseconds = null,
+            };
+
+            var telemetryEvent = telemetry.ToTelemetryEvent(LanguageNames.CSharp);
+
+            Assert.Equal("hit", telemetryEvent.Properties["cachestatus"]);
+            Assert.Equal("none", telemetryEvent.Properties["storeresult"]);
+            Assert.Equal("3", telemetryEvent.Properties["keycomputems"]);
+            Assert.Equal("4", telemetryEvent.Properties["restorems"]);
+            Assert.False(telemetryEvent.Properties.ContainsKey("storems"));
+            Assert.False(telemetryEvent.Properties.ContainsKey("compilems"));
+        }
+
+        [Fact]
         public void CompilationCacheTelemetry_CompileTimer_RecordsElapsed()
         {
             var telemetry = new CompilationCacheTelemetry();
-            Assert.Equal(0, telemetry.CompileMilliseconds);
+            Assert.Null(telemetry.CompileMilliseconds);
 
             telemetry.StartCompileTimer();
             telemetry.StopCompileTimer();
 
+            Assert.NotNull(telemetry.CompileMilliseconds);
             Assert.True(telemetry.CompileMilliseconds >= 0);
         }
 
@@ -535,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             telemetry.StopCompileTimer();
 
-            Assert.Equal(0, telemetry.CompileMilliseconds);
+            Assert.Null(telemetry.CompileMilliseconds);
         }
 
         [Fact]
