@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Basic.Reference.Assemblies
-Imports ICSharpCode.Decompiler.IL
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
