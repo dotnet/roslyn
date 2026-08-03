@@ -164,6 +164,7 @@
       "certificate": "3PartySHA2",
       "strongName": null,
       "values": [
+        "Vsix\\VisualStudioSetup\\*\\e_sqlite3.dll",
         "Dlls\\Diagnostics\\Nerdbank.FullDuplexStream.dll",
         "Vsix\\VisualStudioSetup\\Mono.Cecil.dll",
         "Vsix\\VisualStudioSetup\\Mono.Cecil.Mdb.dll",
@@ -179,7 +180,6 @@
     }
   ],
   "exclude": [
-    "e_sqlite3.dll",
     "Humanizer.dll",
     "ICSharpCode.Decompiler.dll",
     "Microsoft.Build.Conversion.Core.dll",
