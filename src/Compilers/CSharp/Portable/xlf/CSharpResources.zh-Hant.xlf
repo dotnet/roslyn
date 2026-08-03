@@ -1524,7 +1524,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidPropertyUnsafeMods">
         <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
-        <target state="new">Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</target>
+        <target state="translated">無法同時在屬性或索引子 '{0}' 和其存取子上同時指定 'unsafe' 或 'safe' 修飾元。請移除其中一個。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
@@ -2524,12 +2524,12 @@
       </trans-unit>
       <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
         <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
-        <target state="new">The 'safe' and 'unsafe' modifiers cannot be used together.</target>
+        <target state="translated">'safe' 和 'unsafe' 修飾元不能一起使用。</target>
         <note>'safe' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_SamePropertyUnsafeAccessorMods">
         <source>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</source>
-        <target state="new">Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</target>
+        <target state="translated">無法在屬性或索引子 '{0}' 的所有存取子上指定相同的 'unsafe' or 'safe' 修飾元。請改在屬性自身上放置該修飾元。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
