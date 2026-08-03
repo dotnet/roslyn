@@ -188,6 +188,22 @@ public sealed class SharedMetadataReferenceCacheTests : TestBase
         Assert.NotSame(assemblyReference.GetMetadataId(), moduleReference.GetMetadataId());
     }
 
+    [ConditionalFact(typeof(UnixLikeOnly))]
+    public void PathsDifferingOnlyByCase_DoNotShareReferenceOnUnix()
+    {
+        var cache = new SharedMetadataReferenceCache();
+        var lowerCasePath = Path.Combine(TempRoot.Root, "reference.dll");
+        var upperCasePath = Path.Combine(TempRoot.Root, "REFERENCE.dll");
+        File.Copy(typeof(object).Assembly.Location, lowerCasePath);
+        File.Copy(typeof(Enumerable).Assembly.Location, upperCasePath);
+
+        var lowerCaseReference = GetReference(cache, lowerCasePath);
+        var upperCaseReference = GetReference(cache, upperCasePath);
+
+        Assert.NotSame(lowerCaseReference, upperCaseReference);
+        Assert.Equal(2, cache.GetTestAccessor().EntryCount);
+    }
+
     [Fact]
     public void ThrowingReference_IsSharedAndInvalidatedWhenFileCreated()
     {

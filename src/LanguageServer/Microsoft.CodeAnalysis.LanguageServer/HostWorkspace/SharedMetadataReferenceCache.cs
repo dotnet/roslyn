@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -172,19 +173,13 @@ internal sealed class SharedMetadataReferenceCache(int cleanupThreshold = 500)
 
         public bool Equals(CacheKey other)
             => _kind == other._kind
-                && string.Equals(_fullPath, other._fullPath, StringComparison.OrdinalIgnoreCase);
+                && PathUtilities.Comparer.Equals(_fullPath, other._fullPath);
 
         public override bool Equals(object? obj)
             => obj is CacheKey other && Equals(other);
 
         public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hash = StringComparer.OrdinalIgnoreCase.GetHashCode(_fullPath);
-                return (hash * 397) ^ (int)_kind;
-            }
-        }
+            => Hash.Combine((int)_kind, PathUtilities.Comparer.GetHashCode(_fullPath));
     }
 
     internal readonly struct TestAccessor(SharedMetadataReferenceCache cache)
