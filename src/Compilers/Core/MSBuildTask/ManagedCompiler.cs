@@ -747,8 +747,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
                 catch (Exception ex)
                 {
-                    // Telemetry must never fail the build.
-                    logger.Log($"Failed to log telemetry event '{telemetryEvent.EventName}': {ex}");
+                    logger.LogException(ex, $"Failed to log telemetry event '{telemetryEvent.EventName}'");
                 }
             }
         }
