@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../FileBasedProgramsResources.resx">
     <body>
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="EmptyTempPath">
         <source>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</source>
-        <target state="new">Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</target>
+        <target state="translated">無法判斷暫存 目錄路徑。考慮在 Windows 上或 Unix 上的本機應用程式資料資料資料夾上設定 TEMP 環境變數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ExperimentalFeatureDisabled">
         <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="new">This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</target>
+        <target state="translated">這是實驗性功能，將 MSBuild 屬性 '{0}' 設定為 'true' 以啟用它。</target>
         <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
       </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="IncludedFileNotFound">
         <source>File included via #:include directive (or Compile item) not found: {0}</source>
-        <target state="new">File included via #:include directive (or Compile item) not found: {0}</target>
+        <target state="translated">找不到透過 #:include 指示詞 (或 Compile 項目) 包含的檔案: {0}</target>
         <note>{Locked="#:include"}{Locked="Compile"}. {0} is file path.</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">
