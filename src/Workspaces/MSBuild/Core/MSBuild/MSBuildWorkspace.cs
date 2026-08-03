@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -220,13 +221,7 @@ public sealed class MSBuildWorkspace : Workspace
         return this.CurrentSolution;
     }
 
-    /// <summary>
-    /// Open a project file and all referenced projects.
-    /// </summary>
-    /// <param name="projectFilePath">The path to the project file to be opened. This may be an absolute path or a path relative to the
-    /// current working directory.</param>
-    /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
-    /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+    /// <inheritdoc cref="OpenProjectAsync(string, ILogger, IProgress{ProjectLoadProgress}, CancellationToken)"/>
 #pragma warning disable RS0026 // Special case to avoid ILogger type getting loaded in downstream clients
     public Task<Project> OpenProjectAsync(
 #pragma warning restore RS0026
@@ -241,8 +236,13 @@ public sealed class MSBuildWorkspace : Workspace
     /// <param name="projectFilePath">The path to the project file to be opened. This may be an absolute path or a path relative to the
     /// current working directory.</param>
     /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
-    /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results..</param>
+    /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
     /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+    /// <remarks>
+    /// Supports file-based apps too (just pass the path to the entry point C# file as <paramref name="projectFilePath"/>).
+    /// <paramref name="projectFilePath"/> is treated as a file-based app only if it does not have a recognized project file extension (see also <see cref="AssociateFileExtensionWithLanguage"/>),
+    /// it is a file that exists, and has either the <c>.cs</c> extension, or has the bytes <c>#!</c> (shebang) as the first two bytes of its content.
+    /// </remarks>
 #pragma warning disable RS0026 // Special case to avoid ILogger type getting loaded in downstream clients
     public async Task<Project> OpenProjectAsync(
 #pragma warning restore RS0026
@@ -355,12 +355,29 @@ public sealed class MSBuildWorkspace : Workspace
                     return;
                 }
 
-                if (_loader.ProjectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Log, out var languageName))
+                if (_loader.ProjectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Log, out var languageName, out var isFileBasedApp))
                 {
                     try
                     {
-                        var buildHost = _applyChangesBuildHostProcessManager.GetBuildHostWithFallbackAsync(projectPath, CancellationToken.None).Result;
-                        _applyChangesProjectFile = buildHost.LoadProjectFileAsync(projectPath, languageName, CancellationToken.None).Result;
+                        var preferredBuildHostKind = isFileBasedApp
+                            ? BuildHostProcessKind.NetCore
+                            : BuildHostProcessManager.GetKindForProject(projectPath);
+                        var (buildHost, _) = _applyChangesBuildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, CancellationToken.None).Result;
+
+                        if (isFileBasedApp)
+                        {
+                            var fileBasedProgramService = this.Services.GetRequiredService<IFileBasedProgramService>();
+                            _applyChangesProjectFile = FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
+                                buildHost,
+                                fileBasedProgramService,
+                                projectPath,
+                                (error) => Reporter.Report(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, error)),
+                                CancellationToken.None).Result;
+                        }
+                        else
+                        {
+                            _applyChangesProjectFile = buildHost.LoadProjectFileAsync(projectPath, languageName, CancellationToken.None).Result;
+                        }
                     }
                     catch (IOException exception)
                     {

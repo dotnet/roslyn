@@ -118,7 +118,7 @@
       "NonShipping"
     ],
     "vsBranch": "main",
-    "insertionCreateDraftPR": true,
+    "insertionCreateDraftPR": false,
     "insertionTitlePrefix": "[Main 18.11]"
   }
 }
