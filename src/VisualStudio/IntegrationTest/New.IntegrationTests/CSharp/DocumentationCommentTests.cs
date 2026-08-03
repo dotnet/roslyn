@@ -57,4 +57,34 @@ public sealed class DocumentationCommentTests : AbstractEditorTest
 
             """, assertCaretPosition: true, cancellationToken: HangMitigatingCancellationToken);
     }
+
+    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public async Task Paste_MultilineText()
+    {
+        await SetUpEditorAsync("""
+
+            class C
+            {
+                /// <summary>
+                /// $$
+                /// </summary>
+            }
+
+            """.ReplaceLineEndings("\r\n"), HangMitigatingCancellationToken);
+
+        await TestServices.Editor.PasteAsync(
+            "Line 1\r\nLine 2 with List<int> & value", HangMitigatingCancellationToken);
+
+        AssertEx.EqualOrDiff("""
+
+            class C
+            {
+                /// <summary>
+                /// Line 1
+                /// Line 2 with List<int> &amp; value
+                /// </summary>
+            }
+
+            """.ReplaceLineEndings("\r\n"), await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+    }
 }

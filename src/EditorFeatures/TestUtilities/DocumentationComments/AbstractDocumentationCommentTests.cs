@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -162,15 +163,23 @@ public abstract class AbstractDocumentationCommentTests
         editorOptions.SetOptionValue(DefaultOptions.NewLineCharacterOptionId, newLine);
         view.Options.SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionId, trimTrailingWhiteSpace);
 
-        if (testDocument.SelectedSpans.Any())
+        if (testDocument.SelectedSpans.Count > 1)
         {
-            var selectedSpan = testDocument.SelectedSpans[0];
-            var isReversed = selectedSpan.Start == startCaretPosition;
-
-            view.Selection.Select(new SnapshotSpan(view.TextSnapshot, selectedSpan.Start, selectedSpan.Length), isReversed);
+            view.SetMultiSelection(testDocument.SelectedSpans.Select(
+                span => new SnapshotSpan(view.TextSnapshot, span.Start, span.Length)));
         }
+        else
+        {
+            if (testDocument.SelectedSpans.Any())
+            {
+                var selectedSpan = testDocument.SelectedSpans[0];
+                var isReversed = selectedSpan.Start == startCaretPosition;
 
-        view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
+                view.Selection.Select(new SnapshotSpan(view.TextSnapshot, selectedSpan.Start, selectedSpan.Length), isReversed);
+            }
+
+            view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
+        }
 
         execute(
             workspace,

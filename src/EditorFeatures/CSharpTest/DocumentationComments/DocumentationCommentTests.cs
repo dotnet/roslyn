@@ -2464,6 +2464,26 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_ReplacesMultipleSelections()
+    {
+        VerifyPaste("""
+            /// <summary>Replace [|first|]</summary>
+            /// <remarks>Replace [|second|]$$</remarks>
+            class C
+            {
+            }
+            """.ReplaceLineEndings("\r\n"), "A & B\r\nLine 2", """
+            /// <summary>Replace A &amp; B
+            /// Line 2</summary>
+            /// <remarks>Replace A &amp; B
+            /// Line 2$$</remarks>
+            class C
+            {
+            }
+            """.ReplaceLineEndings("\r\n"));
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
     public void Paste_OutsideDocumentationCommentIsUnchanged()
     {
         VerifyPaste("""

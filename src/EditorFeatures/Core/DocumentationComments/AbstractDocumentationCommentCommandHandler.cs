@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -34,6 +33,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 {
     private static readonly Regex s_lineBreakWithWhitespaceRegex = new(
         @"(?<lineBreak>\r\n|\r|\n)(?<whitespace>[^\S\r\n]*)", RegexOptions.CultureInvariant);
+
+    private readonly record struct PasteContext(ITrackingSpan TrackingSpan, string Indentation, string LinePrefix);
 
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
@@ -151,16 +152,16 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
     public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        if (args.SubjectBuffer.IsInLspEditorContext())
-        {
+        if (!TryHandlePaste(args, nextHandler))
             nextHandler();
-            return;
-        }
+    }
 
+    private bool TryHandlePaste(PasteCommandArgs args, Action nextHandler)
+    {
         var subjectBuffer = args.SubjectBuffer;
         var snapshotBeforePaste = subjectBuffer.CurrentSnapshot;
         var textBeforePaste = snapshotBeforePaste.AsText();
-        var pasteContexts = new List<PasteContext>();
+        using var _ = PooledObjects.ArrayBuilder<PasteContext>.GetInstance(out var pasteContexts);
 
         foreach (var selection in args.TextView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer))
         {
@@ -169,11 +170,9 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         }
 
         if (pasteContexts.Count == 0)
-        {
-            nextHandler();
-            return;
-        }
+            return false;
 
+        // Include both the editor's normal paste and our follow-up adjustment in a single undo transaction.
         using var transaction = CaretPreservingEditTransaction.TryCreate(
             EditorFeaturesResources.Paste, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
@@ -202,6 +201,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
             edit.Cancel();
 
         transaction?.Complete();
+        return true;
     }
 
     public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
@@ -473,12 +473,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         return s_lineBreakWithWhitespaceRegex.Replace(escapedText, match =>
         {
             var whitespace = match.Groups["whitespace"].Value;
+
+            // Pasted text can repeat the target line's indentation after each line break. Remove that portion
+            // before adding the complete documentation-comment prefix so continuation lines are not over-indented.
             if (whitespace.StartsWith(indentation, StringComparison.Ordinal))
                 whitespace = whitespace[indentation.Length..];
 
             return match.Groups["lineBreak"].Value + linePrefix + whitespace;
         });
     }
-
-    private readonly record struct PasteContext(ITrackingSpan TrackingSpan, string Indentation, string LinePrefix);
 }
