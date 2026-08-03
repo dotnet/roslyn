@@ -190,6 +190,7 @@ The event carries these properties:
 | `keycomputems` | milliseconds spent computing the deterministic key |
 | `restorems` | milliseconds spent attempting to restore a cached result |
 | `storems` | milliseconds spent storing the result (0 on a hit) |
+| `compilems` | milliseconds spent compiling and emitting on a miss (0 on a hit; this is the time a hit would have saved) |
 
 ## Cache management
 

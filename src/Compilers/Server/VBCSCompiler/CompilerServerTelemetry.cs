@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
 
@@ -84,13 +85,42 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public long StoreMilliseconds { get; set; }
 
         /// <summary>
+        /// Wall-clock time spent compiling and emitting on a cache miss. This is the time a
+        /// corresponding cache hit would have saved, so it is the key signal for evaluating the
+        /// cache. Zero on a hit (no compilation ran) and on a miss whose compilation failed (the
+        /// result is never stored).
+        /// </summary>
+        public long CompileMilliseconds { get; set; }
+
+        private Stopwatch? _compileStopwatch;
+
+        /// <summary>
+        /// Starts measuring compilation time. Called when a cache miss is detected, immediately
+        /// before the normal compilation runs.
+        /// </summary>
+        public void StartCompileTimer() => _compileStopwatch = Stopwatch.StartNew();
+
+        /// <summary>
+        /// Records the elapsed compilation time. Called once the compilation has completed
+        /// successfully. No-op if the timer was never started.
+        /// </summary>
+        public void StopCompileTimer()
+        {
+            if (_compileStopwatch is not null)
+            {
+                CompileMilliseconds = _compileStopwatch.ElapsedMilliseconds;
+                _compileStopwatch = null;
+            }
+        }
+
+        /// <summary>
         /// True when the cache actually ran for this request and there is something to report.
         /// </summary>
         public bool HasData => Status != CompilationCacheStatus.None;
 
         public BuildTelemetryEvent ToTelemetryEvent(string language)
         {
-            var properties = new Dictionary<string, string>(6)
+            var properties = new Dictionary<string, string>(7)
             {
                 ["cachestatus"] = Status switch
                 {
@@ -110,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 ["keycomputems"] = KeyComputeMilliseconds.ToString(CultureInfo.InvariantCulture),
                 ["restorems"] = RestoreMilliseconds.ToString(CultureInfo.InvariantCulture),
                 ["storems"] = StoreMilliseconds.ToString(CultureInfo.InvariantCulture),
+                ["compilems"] = CompileMilliseconds.ToString(CultureInfo.InvariantCulture),
             };
 
             return new BuildTelemetryEvent(EventName, properties);
