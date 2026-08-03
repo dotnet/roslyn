@@ -252,6 +252,10 @@ function Make-BootstrapBuild() {
 }
 
 function Build-Artifacts() {
+    if ($sign -and (($signType -eq "real") -or ($signType -eq "test"))) {
+        Sign-NativeDependencies
+    }
+
     if ($buildCoreClr) {
         Run-MSBuild "Compilers.sln" -useDotnetBuild
     }
@@ -277,6 +281,15 @@ function Build-Artifacts() {
     if ($build -and (-not $skipBuildExtras) -and (-not $buildCoreClr)) {
         Build-InsertionItems
     }
+}
+
+# RoslynTools.SignTool treats every DLL as a managed assembly and verifies it with
+# CLR strong-name verification. Sign native dependencies before they are copied
+# into build outputs and VSIXes so the legacy tool can safely exclude them.
+function Sign-NativeDependencies() {
+    $packagesDir = (Get-PackagesDir).TrimEnd('\')
+    $args = "/t:SignNativeDependencies /p:SignType=$signType /p:PackagesDir=`"$packagesDir`""
+    Run-MSBuild "src\Tools\MicroBuild\SignNativeDependencies.proj" $args -logFileName "SignNativeDependencies" -parallel:$false
 }
 
 # Not all of our artifacts needed for signing are included inside Roslyn.sln. Need to
