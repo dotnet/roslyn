@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 internal static class ProjectDependencyHelper
 {
+    public const string UnknownVersion = "<unknown>";
+
     internal static bool NeedsRestore(ProjectFileInfo newProjectFileInfo, ProjectFileInfo? previousProjectFileInfo, ILogger logger)
     {
         if (previousProjectFileInfo is null)
@@ -94,7 +96,7 @@ internal static class ProjectDependencyHelper
             logger.LogError(e, string.Format(
                 LanguageServerResources.Failed_to_read_project_assets_file_0_version_1_2,
                 projectAssetsPath,
-                assetsFileVersion?.ToString() ?? "<unknown>",
+                assetsFileVersion?.ToString() ?? UnknownVersion,
                 e.Message));
             return true;
         }
