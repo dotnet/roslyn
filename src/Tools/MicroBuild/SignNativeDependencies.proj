@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="SignNativeDependencies" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\build\Targets\Packages.props" />
+  <Import Project="$(PackagesDir)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
+  <Import Project="$(PackagesDir)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
+
+  <PropertyGroup>
+    <SourceGearSqlite3PackageDir>$(PackagesDir)\SourceGear.Sqlite3\$(SourceGearSqlite3Version)</SourceGearSqlite3PackageDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SqliteX86 Include="$(SourceGearSqlite3PackageDir)\runtimes\win-x86\native\e_sqlite3.dll">
+      <Authenticode>3PartySHA2</Authenticode>
+    </SqliteX86>
+    <SqliteX64 Include="$(SourceGearSqlite3PackageDir)\runtimes\win-x64\native\e_sqlite3.dll">
+      <Authenticode>3PartySHA2</Authenticode>
+    </SqliteX64>
+  </ItemGroup>
+
+  <Target Name="ValidateNativeDependencies">
+    <Error Condition="'$(PackagesDir)' == ''" Text="PackagesDir must be specified." />
+    <Error Condition="'$(IntermediatesDirectory)' == ''" Text="IntermediatesDirectory must be specified." />
+    <Error Condition="!Exists('@(SqliteX86)')" Text="Native SQLite x86 dependency was not restored: @(SqliteX86)" />
+    <Error Condition="!Exists('@(SqliteX64)')" Text="Native SQLite x64 dependency was not restored: @(SqliteX64)" />
+  </Target>
+
+  <Target Name="SignNativeDependencies" DependsOnTargets="ValidateNativeDependencies">
+    <MakeDir Directories="$(IntermediatesDirectory)\x86;$(IntermediatesDirectory)\x64" />
+    <SignFiles Files="@(SqliteX86)"
+               BinariesDirectory="$(SourceGearSqlite3PackageDir)"
+               IntermediatesDirectory="$(IntermediatesDirectory)\x86"
+               Type="$(SignType)" />
+    <SignFiles Files="@(SqliteX64)"
+               BinariesDirectory="$(SourceGearSqlite3PackageDir)"
+               IntermediatesDirectory="$(IntermediatesDirectory)\x64"
+               Type="$(SignType)" />
+  </Target>
+</Project>
