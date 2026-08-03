@@ -6,6 +6,7 @@
 
   <PropertyGroup>
     <SourceGearSqlite3PackageDir>$(PackagesDir)\SourceGear.Sqlite3\$(SourceGearSqlite3Version)</SourceGearSqlite3PackageDir>
+    <NativeSigningIntermediates>$(SourceGearSqlite3PackageDir)\.signing</NativeSigningIntermediates>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,20 +20,20 @@
 
   <Target Name="ValidateNativeDependencies">
     <Error Condition="'$(PackagesDir)' == ''" Text="PackagesDir must be specified." />
-    <Error Condition="'$(IntermediatesDirectory)' == ''" Text="IntermediatesDirectory must be specified." />
     <Error Condition="!Exists('@(SqliteX86)')" Text="Native SQLite x86 dependency was not restored: @(SqliteX86)" />
     <Error Condition="!Exists('@(SqliteX64)')" Text="Native SQLite x64 dependency was not restored: @(SqliteX64)" />
   </Target>
 
   <Target Name="SignNativeDependencies" DependsOnTargets="ValidateNativeDependencies">
-    <MakeDir Directories="$(IntermediatesDirectory)\x86;$(IntermediatesDirectory)\x64" />
+    <MakeDir Directories="$(NativeSigningIntermediates)\x86;$(NativeSigningIntermediates)\x64" />
     <SignFiles Files="@(SqliteX86)"
                BinariesDirectory="$(SourceGearSqlite3PackageDir)"
-               IntermediatesDirectory="$(IntermediatesDirectory)\x86"
+               IntermediatesDirectory="$(NativeSigningIntermediates)\x86"
                Type="$(SignType)" />
     <SignFiles Files="@(SqliteX64)"
                BinariesDirectory="$(SourceGearSqlite3PackageDir)"
-               IntermediatesDirectory="$(IntermediatesDirectory)\x64"
+               IntermediatesDirectory="$(NativeSigningIntermediates)\x64"
                Type="$(SignType)" />
+    <RemoveDir Directories="$(NativeSigningIntermediates)" />
   </Target>
 </Project>

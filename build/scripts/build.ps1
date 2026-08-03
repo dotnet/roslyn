@@ -288,8 +288,7 @@ function Build-Artifacts() {
 # into build outputs and VSIXes so the legacy tool can safely exclude them.
 function Sign-NativeDependencies() {
     $packagesDir = (Get-PackagesDir).TrimEnd('\')
-    $intermediatesDir = Join-Path $binariesDir "Obj\NativeDependencySigning"
-    $args = "/t:SignNativeDependencies /p:SignType=$signType /p:PackagesDir=`"$packagesDir`" /p:IntermediatesDirectory=`"$intermediatesDir`""
+    $args = "/t:SignNativeDependencies /p:SignType=$signType /p:PackagesDir=`"$packagesDir`""
     Run-MSBuild "src\Tools\MicroBuild\SignNativeDependencies.proj" $args -logFileName "SignNativeDependencies" -parallel:$false
 }
 
