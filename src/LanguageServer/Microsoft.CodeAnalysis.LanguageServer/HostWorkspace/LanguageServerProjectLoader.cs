@@ -140,7 +140,9 @@ internal abstract class LanguageServerProjectLoader : IDisposable
             ReloadProjectsAsync,
             ProjectToLoad.Comparer,
             Listener,
-            CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
+            // We don't need a separate shutdown cancellation token here: Dispose() disposes the work queue, and that
+            // cancels any in-flight batch along with any work that hasn't started yet.
+            CancellationToken.None);
     }
 
     private static ImmutableDictionary<string, string> BuildAdditionalProperties(ServerConfiguration? serverConfiguration)
@@ -387,7 +389,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
 
             return projectRestorePath;
         }
-        catch (Exception e)
+        catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken)) // Cancellation is only expected when we're shutting down, in which case there's no reason to do a report.
         {
             // Since our LogDiagnosticsAsync helper takes DiagnosticLogItems, let's just make one for this
             var message = string.Format(LanguageServerResources.Exception_thrown_0, e);

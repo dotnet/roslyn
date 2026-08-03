@@ -137,6 +137,7 @@ public sealed class EmitSolutionUpdateResultsTests
 
         var data = new EmitSolutionUpdateResults.Data()
         {
+            SolutionAction = SolutionAction.None,
             Diagnostics = [.. diagnostics, .. rudeEdits],
             SyntaxError = syntaxError,
             ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, Updates: []),

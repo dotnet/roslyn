@@ -6,8 +6,8 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-// Verifies or updates the shared source files under `src/Features/CSharp/Portable/SyncedSource/FileBasedPrograms`
-// using files from dotnet/sdk at the commit specified in `src/Features/CSharp/Portable/SyncedSource/commitid.txt`.
+// Verifies or updates the shared source files under `src/Workspaces/CSharp/Portable/SyncedSource/FileBasedPrograms`
+// using files from dotnet/sdk at the commit specified in `src/Workspaces/CSharp/Portable/SyncedSource/commitid.txt`.
 //
 // Usage:
 //   dotnet run --file eng/ensure-sources-synced.cs
@@ -34,13 +34,13 @@ static async Task MainAsync(string[] args)
 
     var mode = ParseMode(args);
 
-    var commitIdPath = Path.Combine(root, "src", "Features", "CSharp", "Portable", "SyncedSource", "commitid.txt");
+    var commitIdPath = Path.Combine(root, "src", "Workspaces", "CSharp", "Portable", "SyncedSource", "commitid.txt");
     if (!File.Exists(commitIdPath)) throw new InvalidOperationException($"'{commitIdPath}' not found.");
 
     var sdkCommit = File.ReadAllText(commitIdPath).Trim();
     if (string.IsNullOrWhiteSpace(sdkCommit)) throw new InvalidOperationException($"'{commitIdPath}' is empty.");
 
-    var localSourceDir = Path.Combine(root, "src", "Features", "CSharp", "Portable", "SyncedSource", "FileBasedPrograms");
+    var localSourceDir = Path.Combine(root, "src", "Workspaces", "CSharp", "Portable", "SyncedSource", "FileBasedPrograms");
 
     var httpClient = CreateHttpClient();
 
@@ -54,6 +54,13 @@ static async Task MainAsync(string[] args)
             name.EndsWith(".resx", StringComparison.OrdinalIgnoreCase),
         mapRelativePath: static name => name).ConfigureAwait(false);
 
+    var commonFiles = await GetDirectoryFilesAsync(
+        httpClient,
+        sdkCommit,
+        githubDirectoryPath: "src/Common",
+        includeFile: static name => string.Equals(name, "MSBuildUtilities.cs", StringComparison.OrdinalIgnoreCase),
+        mapRelativePath: static name => name).ConfigureAwait(false);
+
     var editorConfigFiles = await GetDirectoryFilesAsync(
         httpClient,
         sdkCommit,
@@ -62,6 +69,7 @@ static async Task MainAsync(string[] args)
         mapRelativePath: static _ => ".editorconfig").ConfigureAwait(false);
 
     var sourcePackageFiles = sourceFiles
+        .Concat(commonFiles)
         .Concat(editorConfigFiles)
         .ToList();
     if (sourcePackageFiles.Count == 0) throw new InvalidOperationException("No source files found in dotnet/sdk.");
