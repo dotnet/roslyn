@@ -287,15 +287,6 @@ public sealed partial class RazorCodeDocument
 #if SONICDEV
     [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
 #endif
-    internal bool TryGetImplCSharpDocument([NotNullWhen(true)] out RazorCSharpDocument? result)
-    {
-        result = _csharpDocument;
-        return result is not null;
-    }
-
-#if SONICDEV
-    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
-#endif
     internal RazorCSharpDocument? GetImplCSharpDocument()
         => _csharpDocument;
 
