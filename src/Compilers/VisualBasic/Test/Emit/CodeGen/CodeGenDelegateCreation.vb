@@ -2456,10 +2456,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(c,
 <expected>
-BC42016: Implicit conversion from 'Func(Of ArgumentException, Exception)' to 'Func(Of Exception, Exception)'; this conversion may fail because 'Exception' is not derived from 'ArgumentException', as required for the 'In' generic parameter 'T' in 'Delegate Function Func(Of In T, Out TResult)(arg As T) As TResult'.
+BC42016: Implicit conversion from 'Func(Of ArgumentException, Exception)' to 'Func(Of Exception, Exception)'; this conversion may fail because 'Exception' is not derived from 'ArgumentException', as required for the 'In' generic parameter 'T' in 'Delegate Function Func(Of T, TResult)(arg As T) As TResult'.
         f = f2
             ~~
-BC42016: Implicit conversion from 'Func(Of ArgumentException, Exception)' to 'Func(Of Exception, ArgumentException)'; this conversion may fail because 'Exception' is not derived from 'ArgumentException', as required for the 'Out' generic parameter 'TResult' in 'Delegate Function Func(Of In T, Out TResult)(arg As T) As TResult'.
+BC42016: Implicit conversion from 'Func(Of ArgumentException, Exception)' to 'Func(Of Exception, ArgumentException)'; this conversion may fail because 'Exception' is not derived from 'ArgumentException', as required for the 'Out' generic parameter 'TResult' in 'Delegate Function Func(Of T, TResult)(arg As T) As TResult'.
         f1 = f2
              ~~
 </expected>)
@@ -2467,10 +2467,10 @@ BC42016: Implicit conversion from 'Func(Of ArgumentException, Exception)' to 'Fu
             c = c.WithOptions(c.Options.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(c,
 <expected>
-BC36755: 'Func(Of ArgumentException, Exception)' cannot be converted to 'Func(Of Exception, Exception)' because 'Exception' is not derived from 'ArgumentException', as required for the 'In' generic parameter 'T' in 'Delegate Function Func(Of In T, Out TResult)(arg As T) As TResult'.
+BC36755: 'Func(Of ArgumentException, Exception)' cannot be converted to 'Func(Of Exception, Exception)' because 'Exception' is not derived from 'ArgumentException', as required for the 'In' generic parameter 'T' in 'Delegate Function Func(Of T, TResult)(arg As T) As TResult'.
         f = f2
             ~~
-BC36754: 'Func(Of ArgumentException, Exception)' cannot be converted to 'Func(Of Exception, ArgumentException)' because 'Exception' is not derived from 'ArgumentException', as required for the 'Out' generic parameter 'TResult' in 'Delegate Function Func(Of In T, Out TResult)(arg As T) As TResult'.
+BC36754: 'Func(Of ArgumentException, Exception)' cannot be converted to 'Func(Of Exception, ArgumentException)' because 'Exception' is not derived from 'ArgumentException', as required for the 'Out' generic parameter 'TResult' in 'Delegate Function Func(Of T, TResult)(arg As T) As TResult'.
         f1 = f2
              ~~
 </expected>)
