@@ -2291,6 +2291,195 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             """, globalOptions: globalOptions);
     }
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_MultilineText()
+    {
+        VerifyPaste("""
+            /// <summary>
+            /// $$
+            /// </summary>
+            class C
+            {
+            }
+            """, "Line 1\r\nLine 2\r\nLine 3", """
+            /// <summary>
+            /// Line 1
+            /// Line 2
+            /// Line 3$$
+            /// </summary>
+            class C
+            {
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_MultilineText_LineFeed()
+    {
+        VerifyPaste(
+            """
+            /// <summary>
+            /// $$
+            /// </summary>
+            class C
+            {
+            }
+            """.ReplaceLineEndings("\n"),
+            "Line 1\nLine 2",
+            """
+            /// <summary>
+            /// Line 1
+            /// Line 2$$
+            /// </summary>
+            class C
+            {
+            }
+            """.ReplaceLineEndings("\n"),
+            newLine: "\n");
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_RemovesEditorIndentationFromContinuationLines()
+    {
+        VerifyPaste("""
+            class C
+            {
+                /// <summary>
+                /// $$
+                /// </summary>
+            }
+            """, "Line 1\r\n    Line 2\r\n    Line 3", """
+            class C
+            {
+                /// <summary>
+                /// Line 1
+                /// Line 2
+                /// Line 3$$
+                /// </summary>
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_PreservesBlankLinesAndContentIndentation()
+    {
+        VerifyPaste("""
+            class C
+            {
+                /// <summary>
+                /// $$
+                /// </summary>
+            }
+            """, "Line 1\r\n\r\n  Line 3", """
+            class C
+            {
+                /// <summary>
+                /// Line 1
+                ///#
+                ///   Line 3$$
+                /// </summary>
+            }
+            """.Replace("///#", "/// "));
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_EscapesTextButPreservesValidXmlElements()
+    {
+        VerifyPaste("""
+            /// $$
+            class C
+            {
+            }
+            """, "<summary>Use A & B.</summary>", """
+            /// <summary>Use A &amp; B.</summary>$$
+            class C
+            {
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_PreservesValidXmlEntities()
+    {
+        VerifyPaste("""
+            /// $$
+            class C
+            {
+            }
+            """, "A &amp; B", """
+            /// A &amp; B$$
+            class C
+            {
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_PreservesValidNumericXmlEntities()
+    {
+        VerifyPaste("""
+            /// $$
+            class C
+            {
+            }
+            """, "&#65; &#x41;", """
+            /// &#65; &#x41;$$
+            class C
+            {
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_EscapesInvalidNumericXmlEntities()
+    {
+        VerifyPaste("""
+            /// $$
+            class C
+            {
+            }
+            """, "&#0; &#xD800; &#x110000;", """
+            /// &amp;#0; &amp;#xD800; &amp;#x110000;$$
+            class C
+            {
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_ReplacesSelection()
+    {
+        VerifyPaste("""
+            /// <summary>Replace [|this|]$$</summary>
+            class C
+            {
+            }
+            """, "A & B\r\nLine 2", """
+            /// <summary>Replace A &amp; B
+            /// Line 2$$</summary>
+            class C
+            {
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_OutsideDocumentationCommentIsUnchanged()
+    {
+        VerifyPaste("""
+            // $$
+            class C
+            {
+            }
+            """, "A & B\r\nC", """
+            // A & B
+            C$$
+            class C
+            {
+            }
+            """);
+    }
+
     protected override char DocumentationCommentCharacter
     {
         get { return '/'; }

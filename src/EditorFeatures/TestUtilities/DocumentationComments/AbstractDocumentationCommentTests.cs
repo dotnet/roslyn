@@ -57,6 +57,23 @@ public abstract class AbstractDocumentationCommentTests
             useTabs, newLine, trimTrailingWhiteSpace, globalOptions);
     }
 
+    internal void VerifyPaste(string initialMarkup, string pastedText, string expectedMarkup, bool useTabs = false, string newLine = "\r\n", bool trimTrailingWhiteSpace = false, OptionsCollection globalOptions = null)
+    {
+        Verify(initialMarkup, expectedMarkup,
+            execute: (workspace, view, editorOperationsFactoryService) =>
+            {
+                var commandHandler = CreateCommandHandler(workspace);
+                var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
+                var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
+
+                commandHandler.ExecuteCommand(
+                    commandArgs,
+                    () => editorOperations.ReplaceSelection(pastedText),
+                    TestCommandExecutionContext.Create());
+            },
+            useTabs, newLine, trimTrailingWhiteSpace, globalOptions);
+    }
+
     internal void VerifyInsertCommentCommand(string initialMarkup, string expectedMarkup, bool useTabs = false, string newLine = "\r\n", bool trimTrailingWhiteSpace = false, OptionsCollection globalOptions = null)
     {
         Verify(initialMarkup, expectedMarkup,

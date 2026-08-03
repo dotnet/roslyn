@@ -3,10 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -25,9 +28,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     IChainedCommandHandler<TypeCharCommandArgs>,
     ICommandHandler<ReturnKeyCommandArgs>,
     ICommandHandler<InsertCommentCommandArgs>,
+    IChainedCommandHandler<PasteCommandArgs>,
     IChainedCommandHandler<OpenLineAboveCommandArgs>,
     IChainedCommandHandler<OpenLineBelowCommandArgs>
 {
+    private static readonly Regex s_lineBreakWithWhitespaceRegex = new(
+        @"(?<lineBreak>\r\n|\r|\n)(?<whitespace>[^\S\r\n]*)", RegexOptions.CultureInvariant);
+
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
@@ -161,6 +168,64 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
     public CommandState GetCommandState(ReturnKeyCommandArgs args)
         => CommandState.Unspecified;
+
+    public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextHandler)
+        => nextHandler();
+
+    public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
+    {
+        if (args.SubjectBuffer.IsInLspEditorContext())
+        {
+            nextHandler();
+            return;
+        }
+
+        var subjectBuffer = args.SubjectBuffer;
+        var snapshotBeforePaste = subjectBuffer.CurrentSnapshot;
+        var textBeforePaste = snapshotBeforePaste.AsText();
+        var pasteContexts = new List<PasteContext>();
+
+        foreach (var selection in args.TextView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer))
+        {
+            if (TryCreatePasteContext(textBeforePaste, selection, out var pasteContext))
+                pasteContexts.Add(pasteContext);
+        }
+
+        if (pasteContexts.Count == 0)
+        {
+            nextHandler();
+            return;
+        }
+
+        using var transaction = CaretPreservingEditTransaction.TryCreate(
+            EditorFeaturesResources.Paste, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+        nextHandler();
+
+        var snapshotAfterPaste = subjectBuffer.CurrentSnapshot;
+        using var edit = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
+        var hasChanges = false;
+
+        foreach (var pasteContext in pasteContexts)
+        {
+            var pastedSpan = pasteContext.TrackingSpan.GetSpan(snapshotAfterPaste);
+            var pastedText = pastedSpan.GetText();
+            var replacementText = PreparePastedText(pastedText, pasteContext.Indentation, pasteContext.LinePrefix);
+
+            if (pastedText == replacementText)
+                continue;
+
+            edit.Replace(pastedSpan.Span, replacementText);
+            hasChanges = true;
+        }
+
+        if (hasChanges)
+            edit.Apply();
+        else
+            edit.Cancel();
+
+        transaction?.Complete();
+    }
 
     public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
     {
@@ -393,4 +458,50 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
         return lineText.AsSpan(lineOffset).StartsWith(ExteriorTriviaText.AsSpan(), StringComparison.Ordinal);
     }
+
+    private bool TryCreatePasteContext(SourceText text, SnapshotSpan selection, out PasteContext pasteContext)
+    {
+        pasteContext = default;
+
+        var line = text.Lines.GetLineFromPosition(selection.Start.Position);
+        if (selection.End.Position > line.End)
+            return false;
+
+        var lineText = line.ToString();
+        var exteriorTriviaOffset = lineText.GetFirstNonWhitespaceOffset() ?? -1;
+        if (exteriorTriviaOffset < 0 ||
+            !lineText.AsSpan(exteriorTriviaOffset).StartsWith(ExteriorTriviaText.AsSpan(), StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var exteriorTriviaEnd = exteriorTriviaOffset + ExteriorTriviaText.Length;
+        if (selection.Start.Position < line.Start + exteriorTriviaEnd)
+            return false;
+
+        var prefixEnd = exteriorTriviaEnd;
+        while (prefixEnd < lineText.Length && char.IsWhiteSpace(lineText[prefixEnd]))
+            prefixEnd++;
+
+        pasteContext = new PasteContext(
+            selection.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive),
+            lineText[..exteriorTriviaOffset],
+            lineText[..prefixEnd]);
+        return true;
+    }
+
+    private static string PreparePastedText(string text, string indentation, string linePrefix)
+    {
+        var escapedText = DocumentationCommentSnippetHelpers.EscapePastedText(text);
+        return s_lineBreakWithWhitespaceRegex.Replace(escapedText, match =>
+        {
+            var whitespace = match.Groups["whitespace"].Value;
+            if (whitespace.StartsWith(indentation, StringComparison.Ordinal))
+                whitespace = whitespace[indentation.Length..];
+
+            return match.Groups["lineBreak"].Value + linePrefix + whitespace;
+        });
+    }
+
+    private readonly record struct PasteContext(ITrackingSpan TrackingSpan, string Indentation, string LinePrefix);
 }

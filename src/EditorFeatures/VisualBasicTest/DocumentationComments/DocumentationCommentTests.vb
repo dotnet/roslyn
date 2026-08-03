@@ -16,6 +16,37 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
     Public Class DocumentationCommentTests
         Inherits AbstractDocumentationCommentTests
 
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")>
+        Public Sub Paste_MultilineText()
+            VerifyPaste("
+''' <summary>
+''' $$
+''' </summary>
+Class C
+End Class
+", "Line 1" & vbCrLf & "Line 2", "
+''' <summary>
+''' Line 1
+''' Line 2$$
+''' </summary>
+Class C
+End Class
+")
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")>
+        Public Sub Paste_EscapesTextButPreservesValidXmlElements()
+            VerifyPaste("
+''' $$
+Class C
+End Class
+", "<summary>Use A & B.</summary>", "
+''' <summary>Use A &amp; B.</summary>$$
+Class C
+End Class
+")
+        End Sub
+
         Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(GetType(CommitConnectionListener))
 
         <WpfFact>
