@@ -3,7 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
 Imports Basic.Reference.Assemblies
+Imports ICSharpCode.Decompiler.IL
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -1171,6 +1173,102 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
     Public xz As X(Of Z)
            ~~
 </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TypeLayouts()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+                <compilation name="TypeLayouts">
+                    <file name="a.vb">
+                        <![CDATA[
+                        Imports System.Runtime.InteropServices
+
+                        Structure Struct
+                        End Structure
+
+                        <StructLayout(LayoutKind.Sequential)>
+                        Structure StructSequential
+                        End Structure
+
+                        <StructLayout(LayoutKind.Auto)>
+                        Structure StructAuto
+                        End Structure
+
+                        <StructLayout(LayoutKind.Explicit)>
+                        Structure StructExplicit
+                        End Structure
+
+                        <StructLayout(LayoutKind.Auto, Size:=5)>
+                        Structure StructWithSize
+                        End Structure
+
+                        <StructLayout(LayoutKind.Sequential, Pack:=4)>
+                        Structure StructWithPack
+                        End Structure
+
+                        <StructLayout(LayoutKind.Explicit, Size:=5, Pack:=4)>
+                        Structure StructWithSizeAndPack
+                        End Structure
+
+                        Class [Class]
+                        End Class
+
+                        <StructLayout(LayoutKind.Sequential)>
+                        Class ClassSequential
+                        End Class
+
+                        <StructLayout(LayoutKind.Auto)>
+                        Class ClassAuto
+                        End Class
+
+                        <StructLayout(LayoutKind.Explicit)>
+                        Class ClassExplicit
+                        End Class
+
+                        <StructLayout(LayoutKind.Explicit, Size:=5)>
+                        Class ClassWithSize
+                        End Class
+
+                        <StructLayout(LayoutKind.Auto, Pack:=4)>
+                        Class ClassWithPack
+                        End Class
+
+                        <StructLayout(LayoutKind.Sequential, Size:=5, Pack:=4)>
+                        Class ClassWithSizeAndPack
+                        End Class
+                        ]]>
+                    </file>
+                </compilation>)
+
+            Dim structType = compilation.GlobalNamespace.GetTypeMembers("Struct").First()
+            Dim structSequentialType = compilation.GlobalNamespace.GetTypeMembers("StructSequential").First()
+            Dim structAutoType = compilation.GlobalNamespace.GetTypeMembers("StructAuto").First()
+            Dim structExplicitType = compilation.GlobalNamespace.GetTypeMembers("StructExplicit").First()
+            Dim structWithSizeType = compilation.GlobalNamespace.GetTypeMembers("StructWithSize").First()
+            Dim structWithPackType = compilation.GlobalNamespace.GetTypeMembers("StructWithPack").First()
+            Dim structWithSizeAndPackType = compilation.GlobalNamespace.GetTypeMembers("StructWithSizeAndPack").First()
+            Dim classType = compilation.GlobalNamespace.GetTypeMembers("Class").First()
+            Dim classSequentialType = compilation.GlobalNamespace.GetTypeMembers("ClassSequential").First()
+            Dim classAutoType = compilation.GlobalNamespace.GetTypeMembers("ClassAuto").First()
+            Dim classExplicitType = compilation.GlobalNamespace.GetTypeMembers("ClassExplicit").First()
+            Dim classWithSizeType = compilation.GlobalNamespace.GetTypeMembers("ClassWithSize").First()
+            Dim classWithPackType = compilation.GlobalNamespace.GetTypeMembers("ClassWithPack").First()
+            Dim classWithSizeAndPackType = compilation.GlobalNamespace.GetTypeMembers("ClassWithSizeAndPack").First()
+
+            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), structType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Auto, 5, 0), structWithSizeType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classAutoType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 0), classExplicitType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Explicit, 5, 0), classWithSizeType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 4), classWithPackType.Layout)
+            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 5, 4), classWithSizeAndPackType.Layout)
         End Sub
 
         <Fact>

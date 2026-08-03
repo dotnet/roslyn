@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Type layout information (ClassLayout metadata and layout kind flags).
         ''' </summary>
-        Friend MustOverride ReadOnly Property Layout As TypeLayout
+        Friend MustOverride ReadOnly Property Layout As TypeLayout Implements INamedTypeSymbol.TypeLayout
 
         ''' <summary>
         ''' The default charset used for type marshalling. 

@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Type layout information.
     /// </summary>
-    internal readonly struct TypeLayout : IEquatable<TypeLayout>
+    public readonly struct TypeLayout : IEquatable<TypeLayout>
     {
         private readonly byte _kind;
-        private readonly short _alignment;
+        private readonly short _packingSize;
         private readonly int _size;
 
-        public TypeLayout(LayoutKind kind, int size, byte alignment)
+        internal TypeLayout(LayoutKind kind, int size, byte alignment)
         {
             Debug.Assert(size >= 0 && (int)kind >= 0 && (int)kind <= 3);
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
             _kind = (byte)(kind + 1);
 
             _size = size;
-            _alignment = alignment;
+            _packingSize = alignment;
         }
 
         /// <summary>
@@ -43,15 +43,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Field alignment (PackingSize field in metadata).
+        /// Packing size (PackingSize field in metadata).
         /// </summary>
-        public short Alignment
+        public short PackingSize
         {
-            get { return _alignment; }
+            get { return _packingSize; }
         }
 
         /// <summary>
-        /// Size of the type.
+        /// Size of the type (Size field in metadata).
         /// </summary>
         public int Size
         {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
         public bool Equals(TypeLayout other)
         {
             return _size == other._size
-                && _alignment == other._alignment
+                && _packingSize == other._packingSize
                 && _kind == other._kind;
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Hash.Combine(this.Size, this.Alignment), _kind);
+            return Hash.Combine(Hash.Combine(this.Size, this.PackingSize), _kind);
         }
     }
 }

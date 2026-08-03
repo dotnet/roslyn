@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -885,6 +886,113 @@ Goo();
             Assert.Equal("Y", structS.TypeParameters[1].Name);
             Assert.Equal("Z", structS.TypeParameters[2].Name);
             Assert.Equal(3, structS.TypeArguments().Length);
+        }
+
+        [Fact]
+        public void TypeLayouts()
+        {
+            var text =
+@"using System.Runtime.InteropServices;
+
+struct Struct
+{
+}
+
+[TypeLayout(LayoutKind.Sequential)]
+struct StructSequential
+{
+}
+
+[TypeLayout(LayoutKind.Auto)]
+struct StructAuto
+{
+}
+
+[TypeLayout(LayoutKind.Explicit)]
+struct StructExplicit
+{
+}
+
+[TypeLayout(LayoutKind.Auto, Size = 5)]
+struct StructWithSize
+{
+}
+
+[TypeLayout(LayoutKind.Sequential, Pack = 4)]
+struct StructWithPack
+{
+}
+
+[TypeLayout(LayoutKind.Explicit, Size = 5, Pack = 4)]
+struct StructWithSizeAndPack
+{
+}
+
+class Class
+{
+}
+
+[TypeLayout(LayoutKind.Sequential)]
+class ClassSequential
+{
+}
+
+[TypeLayout(LayoutKind.Auto)]
+class ClassAuto
+{
+}
+
+[TypeLayout(LayoutKind.Explicit)]
+class ClassExplicit
+{
+}
+
+[TypeLayout(LayoutKind.Explicit, Size = 5)]
+class ClassWithSize
+{
+}
+
+[TypeLayout(LayoutKind.Auto, Pack = 4)]
+class ClassWithPack
+{
+}
+
+[TypeLayout(LayoutKind.Sequential, Size = 5, Pack = 4)]
+class ClassWithSizeAndPack
+{
+}";
+
+            var comp = CreateCompilation(text);
+
+            var structType = comp.GlobalNamespace.GetTypeMembers("Struct").First();
+            var structSequentialType = comp.GlobalNamespace.GetTypeMembers("StructSequential").First();
+            var structAutoType = comp.GlobalNamespace.GetTypeMembers("StructAuto").First();
+            var structExplicitType = comp.GlobalNamespace.GetTypeMembers("StructExplicit").First();
+            var structWithSizeType = comp.GlobalNamespace.GetTypeMembers("StructWithSize").First();
+            var structWithPackType = comp.GlobalNamespace.GetTypeMembers("StructWithPack").First();
+            var structWithSizeAndPackType = comp.GlobalNamespace.GetTypeMembers("StructWithSizeAndPack").First();
+            var classType = comp.GlobalNamespace.GetTypeMembers("Class").First();
+            var classSequentialType = comp.GlobalNamespace.GetTypeMembers("ClassSequential").First();
+            var classAutoType = comp.GlobalNamespace.GetTypeMembers("ClassAuto").First();
+            var classExplicitType = comp.GlobalNamespace.GetTypeMembers("ClassExplicit").First();
+            var classWithSizeType = comp.GlobalNamespace.GetTypeMembers("ClassWithSize").First();
+            var classWithPackType = comp.GlobalNamespace.GetTypeMembers("ClassWithPack").First();
+            var classWithSizeAndPackType = comp.GlobalNamespace.GetTypeMembers("ClassWithSizeAndPack").First();
+
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Auto, 5, 0), structWithSizeType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classAutoType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), classExplicitType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 0), classWithSizeType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 4), classWithPackType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 5, 4), classWithSizeAndPackType.Layout);
         }
 
         [WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")]
