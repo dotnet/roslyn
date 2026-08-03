@@ -898,32 +898,32 @@ struct Struct
 {
 }
 
-[TypeLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential)]
 struct StructSequential
 {
 }
 
-[TypeLayout(LayoutKind.Auto)]
+[StructLayout(LayoutKind.Auto)]
 struct StructAuto
 {
 }
 
-[TypeLayout(LayoutKind.Explicit)]
+[StructLayout(LayoutKind.Explicit)]
 struct StructExplicit
 {
 }
 
-[TypeLayout(LayoutKind.Auto, Size = 5)]
+[StructLayout(LayoutKind.Auto, Size = 5)]
 struct StructWithSize
 {
 }
 
-[TypeLayout(LayoutKind.Sequential, Pack = 4)]
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
 struct StructWithPack
 {
 }
 
-[TypeLayout(LayoutKind.Explicit, Size = 5, Pack = 4)]
+[StructLayout(LayoutKind.Explicit, Size = 5, Pack = 4)]
 struct StructWithSizeAndPack
 {
 }
@@ -932,67 +932,71 @@ class Class
 {
 }
 
-[TypeLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential)]
 class ClassSequential
 {
 }
 
-[TypeLayout(LayoutKind.Auto)]
+[StructLayout(LayoutKind.Auto)]
 class ClassAuto
 {
 }
 
-[TypeLayout(LayoutKind.Explicit)]
+[StructLayout(LayoutKind.Explicit)]
 class ClassExplicit
 {
 }
 
-[TypeLayout(LayoutKind.Explicit, Size = 5)]
+[StructLayout(LayoutKind.Explicit, Size = 5)]
 class ClassWithSize
 {
 }
 
-[TypeLayout(LayoutKind.Auto, Pack = 4)]
+[StructLayout(LayoutKind.Auto, Pack = 4)]
 class ClassWithPack
 {
 }
 
-[TypeLayout(LayoutKind.Sequential, Size = 5, Pack = 4)]
+[StructLayout(LayoutKind.Sequential, Size = 5, Pack = 4)]
 class ClassWithSizeAndPack
 {
 }";
 
-            var comp = CreateCompilation(text);
+            var comp = (Compilation)CreateCompilation(text);
 
-            var structType = comp.GlobalNamespace.GetTypeMembers("Struct").First();
-            var structSequentialType = comp.GlobalNamespace.GetTypeMembers("StructSequential").First();
-            var structAutoType = comp.GlobalNamespace.GetTypeMembers("StructAuto").First();
-            var structExplicitType = comp.GlobalNamespace.GetTypeMembers("StructExplicit").First();
-            var structWithSizeType = comp.GlobalNamespace.GetTypeMembers("StructWithSize").First();
-            var structWithPackType = comp.GlobalNamespace.GetTypeMembers("StructWithPack").First();
-            var structWithSizeAndPackType = comp.GlobalNamespace.GetTypeMembers("StructWithSizeAndPack").First();
-            var classType = comp.GlobalNamespace.GetTypeMembers("Class").First();
-            var classSequentialType = comp.GlobalNamespace.GetTypeMembers("ClassSequential").First();
-            var classAutoType = comp.GlobalNamespace.GetTypeMembers("ClassAuto").First();
-            var classExplicitType = comp.GlobalNamespace.GetTypeMembers("ClassExplicit").First();
-            var classWithSizeType = comp.GlobalNamespace.GetTypeMembers("ClassWithSize").First();
-            var classWithPackType = comp.GlobalNamespace.GetTypeMembers("ClassWithPack").First();
-            var classWithSizeAndPackType = comp.GlobalNamespace.GetTypeMembers("ClassWithSizeAndPack").First();
+            var structType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("Struct");
+            var structSequentialType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructSequential");
+            var structAutoType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructAuto");
+            var structExplicitType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructExplicit");
+            var structWithSizeType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructWithSize");
+            var structWithPackType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructWithPack");
+            var structWithSizeAndPackType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructWithSizeAndPack");
+            var classType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("Class");
+            var classSequentialType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassSequential");
+            var classAutoType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassAuto");
+            var classExplicitType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassExplicit");
+            var classWithSizeType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassWithSize");
+            var classWithPackType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassWithPack");
+            var classWithSizeAndPackType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassWithSizeAndPack");
 
-            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Auto, 5, 0), structWithSizeType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classAutoType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), classExplicitType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 0), classWithSizeType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 4), classWithPackType.Layout);
-            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 5, 4), classWithSizeAndPackType.Layout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Auto, 5, 0), structWithSizeType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classAutoType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), classExplicitType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 0), classWithSizeType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 4), classWithPackType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 5, 4), classWithSizeAndPackType.TypeLayout);
+
+            Assert.Equal(LayoutKind.Sequential, classWithSizeAndPackType.TypeLayout.Kind);
+            Assert.Equal(5, classWithSizeAndPackType.TypeLayout.Size);
+            Assert.Equal(4, classWithSizeAndPackType.TypeLayout.PackingSize);
         }
 
         [WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")]
