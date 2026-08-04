@@ -1058,17 +1058,98 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int substringStart = skipSpace ? 4 : 3;
+            bool inCDataSection = false;
 
             for (int start = 0; start < text.Length;)
             {
                 int newLineLength;
                 int end = IndexOfNewLine(text, start, out newLineLength);
                 int trimStart = GetIndexOfFirstNonWhitespaceChar(text, start, end) + substringStart;
-                WriteSubStringLine(text, trimStart, end - trimStart);
+                WriteFormattedCommentLine(text, trimStart, end, ref inCDataSection);
                 start = end + newLineLength;
             }
         }
 
+        /// <summary>
+        /// Writes one physical documentation comment line while preserving authored
+        /// whitespace inside CDATA sections.
+        /// </summary>
+        private void WriteFormattedCommentLine(string text, int start, int end, ref bool inCDataSection)
+        {
+            const string CDataStartString = "<![CDATA[";
+            const string CDataEndString = "]]>";
+
+            int current = start;
+            bool wroteContent = false;
+
+            while (current < end)
+            {
+                if (inCDataSection)
+                {
+                    int cDataEnd = IndexOfXmlDelimiter(text, CDataEndString, current, end);
+                    int segmentEnd = cDataEnd < 0 ? end : cDataEnd + CDataEndString.Length;
+                    WriteSubStringLine(text, current, segmentEnd - current);
+                    wroteContent = true;
+                    current = segmentEnd;
+                    inCDataSection = cDataEnd < 0;
+                }
+                else
+                {
+                    if (!wroteContent)
+                    {
+                        Write(MakeIndent(_indentDepth));
+                        wroteContent = true;
+                    }
+
+                    int cDataStart = IndexOfXmlDelimiter(text, CDataStartString, current, end);
+                    int segmentEnd = cDataStart < 0 ? end : cDataStart + CDataStartString.Length;
+                    WriteSubStringLine(text, current, segmentEnd - current);
+                    current = segmentEnd;
+                    inCDataSection = cDataStart >= 0;
+                }
+            }
+
+            if (!wroteContent && !inCDataSection)
+            {
+                Write(MakeIndent(_indentDepth));
+            }
+
+            WriteLine();
+        }
+
+        private static int IndexOfXmlDelimiter(string text, string delimiter, int start, int end)
+        {
+            Debug.Assert(start >= 0 && start <= text.Length);
+            Debug.Assert(end >= start && end <= text.Length);
+            return text.IndexOf(delimiter, start, end - start, StringComparison.Ordinal);
+        }
+
+        private void WriteLine()
+        {
+            if (_temporaryStringBuilders?.Count > 0)
+            {
+                _temporaryStringBuilders.Peek().Pooled.Builder.AppendLine();
+            }
+            else
+            {
+                _writer?.WriteLine();
+            }
+        }
+
+        private void WriteSubStringLine(string message, int start, int length)
+        {
+            if (_temporaryStringBuilders?.Count > 0)
+            {
+                _temporaryStringBuilders.Peek().Pooled.Builder.Append(message, start, length);
+            }
+            else if (_writer != null)
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    _writer.Write(message[start + i]);
+                }
+            }
+        }
         /// <summary>
         /// Given the full text of a multi-line style documentation comment, broken into lines, strip off
         /// the comment punctuation (/**, */, etc) and add appropriate indentations.
@@ -1421,26 +1502,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _writer.Write(MakeIndent(_indentDepth));
                 _writer.WriteLine(message);
-            }
-        }
-
-        private void WriteSubStringLine(string message, int start, int length)
-        {
-            if (_temporaryStringBuilders?.Count > 0)
-            {
-                StringBuilder builder = _temporaryStringBuilders.Peek().Pooled.Builder;
-                builder.Append(MakeIndent(_indentDepth));
-                builder.Append(message, start, length);
-                builder.AppendLine();
-            }
-            else if (_writer != null)
-            {
-                _writer.Write(MakeIndent(_indentDepth));
-                for (int i = 0; i < length; i++)
-                {
-                    _writer.Write(message[start + i]);
-                }
-                _writer.WriteLine();
             }
         }
 
