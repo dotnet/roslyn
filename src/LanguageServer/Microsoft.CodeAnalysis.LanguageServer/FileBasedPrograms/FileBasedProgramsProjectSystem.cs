@@ -6,12 +6,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.ProjectSystem;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -28,9 +26,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
-    private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscellaneousFilesProjectProvider _canonicalProjectProvider;
-    private readonly DotnetCliHelper _dotnetCliHelper;
 
     /// <summary>
     /// Virtual (in-memory) projects don't exist on disk, so MSBuild worker nodes
@@ -40,7 +36,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
-        VirtualProjectXmlProvider projectXmlProvider,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
@@ -58,9 +53,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
-        _projectXmlProvider = projectXmlProvider;
         _canonicalProjectProvider = new CanonicalMiscellaneousFilesProjectProvider(lspServices.GetRequiredService<IHostWorkspaceProvider>(), loggerFactory);
-        _dotnetCliHelper = dotnetCliHelper;
 
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
@@ -328,7 +321,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             // For telemetry purposes, we will consider this file a file-based app, if we see that build artifacts exist for it in the default location.
             // This implies that the user used a command like `dotnet run app.cs` with it recently.
             var isFileBasedProgram = PathUtilities.IsAbsolute(documentPath)
-                && Directory.Exists(VirtualProjectXmlProvider.GetArtifactsPath(documentPath));
+                && _workspaceFactory.HostWorkspace.Services.GetService<IFileBasedProgramService>() is { } fileBasedProgramService
+                && Directory.Exists(fileBasedProgramService.GetArtifactsPath(documentPath));
 
             return new RemoteProjectLoadResult
             {
@@ -349,22 +343,14 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // Fall through to ordinary file-based app handling.
         Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
 
-        var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _dotnetCliHelper, _logger, localizeOutput: true, cancellationToken);
-        if (content is not var (virtualProjectContent, virtualProjectPath, diagnostics))
-        {
-            _logger.LogError("Failed to obtain virtual project for '{documentPath}' using dotnet run-api.", documentPath);
-            return null;
-        }
-
-        foreach (var diagnostic in diagnostics)
-        {
-            _logger.LogError($"{diagnostic.Location.Path}{diagnostic.Location.Span.Start}: {diagnostic.Message}");
-        }
-
-        virtualProjectPath ??= VirtualProjectXmlProvider.GetFallbackVirtualProjectPath(documentPath);
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
-        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
-        var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, documentPath, dotnetPath: null, cancellationToken);
+        var loadedFile = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
+            buildHost,
+            _workspaceFactory.HostWorkspace.Services.GetRequiredService<IFileBasedProgramService>(),
+            documentPath,
+            (error) => _logger.LogError(error),
+            cancellationToken);
 
         return new RemoteProjectLoadResult
         {

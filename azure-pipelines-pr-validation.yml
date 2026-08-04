@@ -224,6 +224,9 @@ extends:
             azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
             feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json
 
+        # Authenticate to DevDiv feeds
+        - task: NuGetAuthenticate@1
+
         # Needed because the build fails the NuGet Tools restore without it
         - task: UseDotNet@2
           displayName: 'Use .NET Core sdk'

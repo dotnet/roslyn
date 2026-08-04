@@ -2308,10 +2308,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp.VerifyDiagnostics(
-            // (11,25): hidden CS9335: The pattern is redundant.
-            //             D2 { Value: < 1 } => 4,
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "< 1").WithLocation(11, 25));
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -2802,6 +2799,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                     };
 
                 public int Match4(MyUnion u)
+            #line 205
                     => u switch
                     {
             #line 300
@@ -2815,15 +2813,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (100,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
             //         => u switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(100, 14),
-            // (200,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D1'.
-            //             D1 => 1,
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "D1").WithArguments("MyUnion", "D1").WithLocation(200, 13),
-            // (201,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
-            //             D2 => 2,
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(201, 13),
-            // (300,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
-            //             D2 => 2,
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(300, 13));
+            // (205,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1' is not covered.
+            //         => u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1").WithLocation(205, 14));
     }
 
     [Fact]
@@ -3001,21 +2993,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp = CreateCompilationWithIL(source2, ilSource, targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
-            // (100,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'MyUnion'.
-            //             MyUnion => 1
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "MyUnion").WithArguments("MyUnion", "MyUnion").WithLocation(100, 13),
-            // (200,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'object'.
-            //             object => 1
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("MyUnion", "object").WithLocation(200, 13),
-            // (300,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D1'.
-            //             D1 => 1,
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "D1").WithArguments("MyUnion", "D1").WithLocation(300, 13),
-            // (301,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
-            //             D2 => 2,
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(301, 13),
-            // (400,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
-            //             D2 => 2,
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(400, 13));
+            // (305,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1' is not covered.
+            //         => u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1").WithLocation(305, 14)
+            );
     }
 
     [Fact]
@@ -3085,10 +3066,18 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         D1 => 1,
                         D2 and string => 2,
                     };
+            
+                public int Match6(C c)
+            #line 400
+                    => c switch
+                    {
+                        D1 => 1,
+                        D2 and string => 2,
+                        D2 { Value: int } => 3,
+                    };
             }
             """;
 
-        // https://github.com/dotnet/roslyn/issues/83617: The pattern `int` suggested for line 300 is invalid. A pattern like `D2` or `D2 and int` should be suggested instead.
         var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (100,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'string'.
@@ -3100,9 +3089,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (200,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'int'.
             //             int => 3,
             Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("C", "int").WithLocation(200, 13),
-            // (300,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+            // (300,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2{ Value: int }' is not covered.
             //         => c switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(300, 14));
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2{ Value: int }").WithLocation(300, 14));
     }
 
     [Fact]
@@ -6854,15 +6843,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(100, 18),
-                // (200,19): hidden CS9335: The pattern is redundant.
-                //             F2 or Y => 3,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "Y").WithLocation(200, 19),
                 // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Y' is not covered.
                 //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(300, 18),
-                // (400,20): hidden CS9335: The pattern is redundant.
-                //             F1 and X => 1,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "X").WithLocation(400, 20)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Y").WithLocation(300, 18)
                 );
         }
     }
@@ -7291,6 +7274,55 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_ConstrainedUnionCaseType_03()
+    {
+        // Union case type is a type parameter constrained indirectly to closed type
+        var source1 = """
+            public closed class E;
+            public sealed class F1 : E;
+            public sealed class F2 : E;
+
+            public union U<T>(T);
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M9<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 400
+                        X => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1 + source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+
+        VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [3]
+[2]: leaf <arm> `Y => 1`
+[3]: leaf <default> `y switch
+        {
+            Y => 1,
+    #line 400
+            X => 2,
+        }`
+",
+forLowering: false);
+
+        comp.VerifyEmitDiagnostics(
+                // (400,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             X => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "X").WithLocation(400, 13)
+                );
+    }
+
+    [Fact]
     public void Exhaustiveness_BaseTypeArguments_Array_01()
     {
         var source1 = """
@@ -7690,5 +7722,78 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var c3 = comp.GetMember<NamedTypeSymbol>("C3");
         Assert.True(c3.IsClosed);
         Assert.True(c3.IsStatic);
+    }
+
+    [Fact]
+    public void ClosedUnion_01()
+    {
+        var src = @"
+[System.Runtime.CompilerServices.Union]
+closed class C1
+{
+    protected readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class C2() : C1(1)
+{
+}
+
+class C3() : C1("""")
+{
+}
+
+class Program
+{
+    static int Test1(C1 u)
+    {
+#line 100
+        return u switch 
+        {
+            int => 2
+        };
+    }   
+
+    static int Test2(C1 u)
+    {
+#line 200
+        return u switch 
+        {
+            int => 2,
+            string => 3, 
+        };
+    }   
+
+    static int Test3(C1 u)
+    {
+#line 300
+        return u switch 
+        {
+            C2 => 1,
+        };
+    }   
+
+    static int Test4(C1 u)
+    {
+#line 400
+        return u switch 
+        {
+            C2 => 1,
+            C3 => 2,
+        };
+    }   
+}
+";
+        var comp = CreateCompilation([src, UnionAttributeSource, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute]);
+        comp.VerifyDiagnostics(
+            // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+            //         return u switch 
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(100, 18),
+            // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C3' is not covered.
+            //         return u switch 
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C3").WithLocation(300, 18)
+            );
     }
 }

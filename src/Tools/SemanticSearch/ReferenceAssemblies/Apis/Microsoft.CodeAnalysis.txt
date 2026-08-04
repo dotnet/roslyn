@@ -1451,6 +1451,7 @@ Microsoft.CodeAnalysis.ISymbol.get_MetadataName
 Microsoft.CodeAnalysis.ISymbol.get_MetadataToken
 Microsoft.CodeAnalysis.ISymbol.get_Name
 Microsoft.CodeAnalysis.ISymbol.get_OriginalDefinition
+Microsoft.CodeAnalysis.ISymbol.get_RequiresUnsafe
 Microsoft.CodeAnalysis.ISymbolExtensions
 Microsoft.CodeAnalysis.ISymbolExtensions.GetConstructedReducedFrom(Microsoft.CodeAnalysis.IMethodSymbol)
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
@@ -1502,6 +1503,7 @@ Microsoft.CodeAnalysis.ITypeSymbol.get_NullableAnnotation
 Microsoft.CodeAnalysis.ITypeSymbol.get_OriginalDefinition
 Microsoft.CodeAnalysis.ITypeSymbol.get_SpecialType
 Microsoft.CodeAnalysis.ITypeSymbol.get_TypeKind
+Microsoft.CodeAnalysis.ITypeSymbol.get_UnionCaseTypes
 Microsoft.CodeAnalysis.ImportedNamespaceOrType
 Microsoft.CodeAnalysis.ImportedNamespaceOrType.get_DeclaringSyntaxReference
 Microsoft.CodeAnalysis.ImportedNamespaceOrType.get_NamespaceOrType

@@ -160,7 +160,6 @@ public class HtmlCodeActionProviderTest
             EndAbsoluteIndex: absoluteIndex,
             RazorLanguageKind.Html,
             codeDocument.Source.Text,
-            SupportsFileCreation: true,
             SupportsCodeActionResolve: true);
 
         return (context, workspace);
