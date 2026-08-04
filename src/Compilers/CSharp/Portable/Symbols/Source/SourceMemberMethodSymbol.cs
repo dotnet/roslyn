@@ -567,8 +567,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // TODO (tomat): sealed
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+#nullable enable
+        internal override bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false)
         {
             if (IsExplicitInterfaceImplementation && _containingType.IsInterface)
             {
@@ -582,21 +582,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // in NamedTypeSymbolAdapter.cs).
             return this.IsOverride ?
                 this.RequiresExplicitOverride(out _) :
-                !this.IsStatic && this.IsMetadataVirtual(ignoreInterfaceImplementationChanges ? IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges : IsMetadataVirtualOption.None);
+                !this.IsStatic && this.IsMetadataVirtual(context, ignoreInterfaceImplementationChanges);
         }
 
-        // TODO (tomat): sealed?
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        internal override bool IsMetadataVirtual(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false)
         {
-#if DEBUG
-            if (option == IsMetadataVirtualOption.ForceCompleteIfNeeded && !this.flags.IsMetadataVirtualLocked)
+            Debug.Assert(context is not null || ignoreInterfaceImplementationChanges);
+
+            if (!ignoreInterfaceImplementationChanges && context != (object)ContainingModule)
             {
                 this.ContainingSymbol.ForceComplete(locationOpt: null, filter: null, cancellationToken: CancellationToken.None);
             }
-#endif
 
-            return this.flags.IsMetadataVirtual(ignoreInterfaceImplementationChanges: option == IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges);
+            return this.flags.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
         }
+#nullable disable
 
         internal void EnsureMetadataVirtual()
         {
@@ -1001,19 +1001,11 @@ done:
                     Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, _location));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, _location),
                     modifyCompilation: true);
-            }
-
-            // Event accessors get modifiers from the event (and don't have their own modifiers),
-            // hence we skip this error here and report it only at the event symbol.
-            if (AssociatedSymbol is not SourceEventSymbol && HasSafeModifier && (!IsExtern || HasUnsafeModifier))
-            {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                    Modifiers.GetModifierLocation(SyntaxKind.SafeKeyword, _location));
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&

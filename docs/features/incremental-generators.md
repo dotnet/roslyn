@@ -108,7 +108,7 @@ enumerable is actually iterated over:
 **IEnumerable**:
 
 ```csharp
-    var squares = Enumerable.Range(1, 10).Select(i => i * 2); 
+    var squares = Enumerable.Range(1, 10).Select(i => i * i); 
 
     // the code inside select is not executed until we iterate the collection
     foreach (var square in squares) { ... }
@@ -338,9 +338,9 @@ public static partial class IncrementalValueSourceExtensions
           │  TSource  ├─────────────┼─────────────────┤     ┌─────────┐       ├──────────────►│  TResult   │
           │           │            .│                 │     │         │       │  .            │            │
           └───────────┘            .│                 └────►│ Result3 ├───────┤  .            └────────────┘
-             3 items               .│                       │         │       │  .               7 items
-       [Item1, Item2, Item3]       .│ selector(Item3)       └─────────┘       │  .  [Result1, Result2, Result3, Result4, 
-                                   .└─────────────────┐                       │  .      Result5, Result6, Result7 ]
+             3 items               .│                       │         │       │  .               6 items
+       [Item1, Item2, Item3]       .│ selector(Item3)       └─────────┘       │  .     [Result1, Result2, Result3, 
+                                   .└─────────────────┐                       │  .      Result4, Result5, Result6]
                                    .                  │     ┌─────────┐       │  .
                                    .                  │     │         │       │  .
                                    .                  ├────►│ Result4 ├───────┤  .

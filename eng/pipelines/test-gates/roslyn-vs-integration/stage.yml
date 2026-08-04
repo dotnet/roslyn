@@ -31,6 +31,9 @@ parameters:
 - name: testMachineRetention
   type: string
   default: 1:0:0:0
+- name: dartLabTemplatesRepositoryAlias
+  type: string
+  default: DartLabTemplates
 - name: roslynRepositoryAlias
   type: string
   default: self
@@ -39,7 +42,7 @@ parameters:
   default: ''
 
 stages:
-- template: /stages/visual-studio/agent.yml@DartLabTemplates
+- template: /stages/visual-studio/agent.yml@${{parameters.dartLabTemplatesRepositoryAlias}}
   parameters:
     name: RoslynVSIntegration
     displayName: Roslyn VS Integration

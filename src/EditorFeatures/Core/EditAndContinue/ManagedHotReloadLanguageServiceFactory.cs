@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 internal sealed class ManagedHotReloadLanguageServiceFactory : IEditAndContinueSolutionProvider
 {
     private readonly EditAndContinueSessionState _sessionState;
-    private readonly PdbMatchingSourceTextProvider _sourceTextProvider;
     private readonly IActiveStatementTrackingController _activeStatementTrackingController;
     private readonly IDiagnosticsRefresher _diagnosticRefresher;
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
@@ -32,13 +31,11 @@ internal sealed class ManagedHotReloadLanguageServiceFactory : IEditAndContinueS
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ManagedHotReloadLanguageServiceFactory(
         EditAndContinueSessionState sessionState,
-        PdbMatchingSourceTextProvider sourceTextProvider,
         IActiveStatementTrackingController activeStatementTrackingController,
         IDiagnosticsRefresher diagnosticRefresher,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _sessionState = sessionState;
-        _sourceTextProvider = sourceTextProvider;
         _activeStatementTrackingController = activeStatementTrackingController;
         _diagnosticRefresher = diagnosticRefresher;
         _listenerProvider = listenerProvider;
@@ -54,10 +51,15 @@ internal sealed class ManagedHotReloadLanguageServiceFactory : IEditAndContinueS
     /// Host-specific solution snapshot provider. In VS this is EditorHostSolutionProvider (from MEF)
     /// </param>
     /// <param name="workspaceProvider">Host's workspace provider used by the implementation to enqueue source generator updates.</param>
+    /// <param name="sourceTextProvider">
+    /// Per-host source text provider, observing the host's <see cref="WorkspaceKind.Host"/> workspace. Owned by the caller
+    /// (the per-server hot reload stack), which is responsible for disposing it when the host/server shuts down.
+    /// </param>
     public ManagedHotReloadLanguageService Create(
         IServiceBroker serviceBroker,
         ISolutionSnapshotProvider solutionSnapshotProvider,
-        IHostWorkspaceProvider workspaceProvider)
+        IHostWorkspaceProvider workspaceProvider,
+        PdbMatchingSourceTextProvider sourceTextProvider)
     {
         var debuggerServiceProxy = new ManagedHotReloadServiceProxy(serviceBroker);
         var logReporter = new EditAndContinueLogReporter(serviceBroker, _listenerProvider);
@@ -67,7 +69,7 @@ internal sealed class ManagedHotReloadLanguageServiceFactory : IEditAndContinueS
             workspaceProvider,
             debuggerServiceProxy,
             solutionSnapshotProvider,
-            _sourceTextProvider,
+            sourceTextProvider,
             _activeStatementTrackingController,
             logReporter,
             _diagnosticRefresher);

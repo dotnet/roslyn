@@ -59,70 +59,80 @@ namespace Microsoft.CodeAnalysis
 
             // create a mutable hashset of the new items we can check against
             var itemsSet = getPooledHashSet(inputItems.Length);
-            foreach (var item in inputItems)
+            NodeStateTable<T>.Builder? tableBuilder = null;
+
+            try
             {
-                var added = itemsSet.Add(item);
-                Debug.Assert(added);
-            }
-
-            var tableBuilder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
-
-            // We always have no inputs steps into an InputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
-            var noInputStepsStepInfo = tableBuilder.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;
-
-            if (previousTable is not null)
-            {
-                // When the item count is unchanged, instead of Remove+Add we can modify the removed item
-                // with a newly added item instead. This keeps the table the same size and avoids unnecessary
-                // downstream invalidation. The list of replacement items is computed lazily on first need
-                // so that pure reorders and identical inputs skip the work entirely.
-                var canReplace = inputItems.Length == previousTable.Count;
-                ImmutableArray<T> replacements = default;
-                int replacementIndex = 0;
-
-                foreach (var (oldItem, _, _, _) in previousTable)
+                foreach (var item in inputItems)
                 {
-                    if (itemsSet.Remove(oldItem))
-                    {
-                        // we're iterating the table, so know that it has entries
-                        var usedCache = tableBuilder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
-                        Debug.Assert(usedCache);
-                    }
-                    else if (canReplace)
-                    {
-                        if (replacements.IsDefault)
-                            replacements = getNewInputItems(inputItems, previousTable);
+                    var added = itemsSet.Add(item);
+                    Debug.Assert(added);
+                }
 
-                        // The old item was removed. Use the next pre-computed replacement to modify in place.
-                        var replacementItem = replacements[replacementIndex++];
-                        var removed = itemsSet.Remove(replacementItem);
-                        Debug.Assert(removed);
+                tableBuilder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
 
-                        var modified = tableBuilder.TryModifyEntry(replacementItem, elapsedTime, noInputStepsStepInfo, EntryState.Modified);
-                        Debug.Assert(modified);
-                    }
-                    else
+                // We always have no inputs steps into an InputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
+                var noInputStepsStepInfo = tableBuilder.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;
+
+                if (previousTable is not null)
+                {
+                    // When the item count is unchanged, instead of Remove+Add we can modify the removed item
+                    // with a newly added item instead. This keeps the table the same size and avoids unnecessary
+                    // downstream invalidation. The list of replacement items is computed lazily on first need
+                    // so that pure reorders and identical inputs skip the work entirely.
+                    var canReplace = inputItems.Length == previousTable.Count;
+                    ImmutableArray<T> replacements = default;
+                    int replacementIndex = 0;
+
+                    foreach (var (oldItem, _, _, _) in previousTable)
                     {
-                        var removed = tableBuilder.TryRemoveEntries(elapsedTime, noInputStepsStepInfo);
-                        Debug.Assert(removed);
+                        if (itemsSet.Remove(oldItem))
+                        {
+                            // we're iterating the table, so know that it has entries
+                            var usedCache = tableBuilder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
+                            Debug.Assert(usedCache);
+                        }
+                        else if (canReplace)
+                        {
+                            if (replacements.IsDefault)
+                                replacements = getNewInputItems(inputItems, previousTable);
+
+                            // The old item was removed. Use the next pre-computed replacement to modify in place.
+                            var replacementItem = replacements[replacementIndex++];
+                            var removed = itemsSet.Remove(replacementItem);
+                            Debug.Assert(removed);
+
+                            var modified = tableBuilder.TryModifyEntry(replacementItem, elapsedTime, noInputStepsStepInfo, EntryState.Modified);
+                            Debug.Assert(modified);
+                        }
+                        else
+                        {
+                            var removed = tableBuilder.TryRemoveEntries(elapsedTime, noInputStepsStepInfo);
+                            Debug.Assert(removed);
+                        }
                     }
                 }
-            }
 
-            // When the count is unchanged, every new item was consumed as either a cache hit or a
-            // replacement above, so itemsSet is empty and this loop is a no-op. Otherwise, any items
-            // remaining in itemsSet are genuinely new and need to be added.
-            Debug.Assert(previousTable is null || inputItems.Length != previousTable.Count || itemsSet.Count == 0);
-            foreach (var newItem in itemsSet)
+                // When the count is unchanged, every new item was consumed as either a cache hit or a
+                // replacement above, so itemsSet is empty and this loop is a no-op. Otherwise, any items
+                // remaining in itemsSet are genuinely new and need to be added.
+                Debug.Assert(previousTable is null || inputItems.Length != previousTable.Count || itemsSet.Count == 0);
+                foreach (var newItem in itemsSet)
+                {
+                    tableBuilder.AddEntry(newItem, EntryState.Added, elapsedTime, noInputStepsStepInfo, EntryState.Added);
+                }
+
+                var newTable = tableBuilder.ToImmutableAndFree();
+                tableBuilder = null;
+                this.LogTables(previousTable, newTable, inputItems);
+
+                return newTable;
+            }
+            finally
             {
-                tableBuilder.AddEntry(newItem, EntryState.Added, elapsedTime, noInputStepsStepInfo, EntryState.Added);
+                tableBuilder?.Free();
+                itemsSet.Free();
             }
-            itemsSet.Free();
-
-            var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(previousTable, newTable, inputItems);
-
-            return newTable;
 
             PooledHashSet<T> getPooledHashSet(int capacity)
             {

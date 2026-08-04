@@ -91,7 +91,7 @@
   </ItemGroup>
 
   <!-- Special target only consumed at VSIX creation time -->
-  
+
   <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
@@ -135,9 +135,7 @@
     <ProjectReference Include="..\..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
-    <ProjectReference Include="..\..\..\..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\..\..\Features\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj" />
-    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Extensions\Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Features\ExternalAccess\Core\Microsoft.CodeAnalysis.Features.ExternalAccess.csproj" />
     <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
   </ItemGroup>
 
@@ -183,13 +181,7 @@
     <ProjectReference Update="..\..\..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Update="..\..\..\..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj">
-      <Private>true</Private>
-    </ProjectReference>
-    <ProjectReference Update="..\..\..\..\..\Features\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj">
-      <Private>true</Private>
-    </ProjectReference>
-    <ProjectReference Update="..\..\..\..\..\Tools\ExternalAccess\Extensions\Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj">
+    <ProjectReference Update="..\..\..\..\..\Features\ExternalAccess\Core\Microsoft.CodeAnalysis.Features.ExternalAccess.csproj">
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Update="..\..\..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj">

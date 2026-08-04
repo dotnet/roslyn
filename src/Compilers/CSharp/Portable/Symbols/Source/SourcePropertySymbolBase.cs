@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -938,6 +939,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!IsExpressionBodied)
             {
+                bool hasSafetyModifierOnPropertyAndAccessor =
+                    ((_getMethod != null && (_getMethod.HasUnsafeModifier || _getMethod.HasSafeModifier)) ||
+                    (_setMethod != null && (_setMethod.HasUnsafeModifier || _setMethod.HasSafeModifier))) &&
+                    (this.HasUnsafeModifier || this.HasSafeModifier);
+                if (hasSafetyModifierOnPropertyAndAccessor)
+                {
+                    // Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessors. Remove one of them.
+                    diagnostics.Add(ErrorCode.ERR_InvalidPropertyUnsafeMods, Location, this);
+                }
+
                 bool hasGetAccessor = GetMethod is object;
                 bool hasSetAccessor = SetMethod is object;
 
@@ -959,6 +970,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (_getMethod.LocalDeclaredReadOnly && _setMethod.LocalDeclaredReadOnly)
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, Location, this);
+                    }
+                    else if (!hasSafetyModifierOnPropertyAndAccessor &&
+                        ((_getMethod.HasUnsafeModifier && _setMethod.HasUnsafeModifier && !_getMethod.HasSafeModifier && !_setMethod.HasSafeModifier) ||
+                        (_getMethod.HasSafeModifier && _setMethod.HasSafeModifier && !_getMethod.HasUnsafeModifier && !_setMethod.HasUnsafeModifier)))
+                    {
+                        // Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.
+                        diagnostics.Add(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, Location, this);
                     }
                     else if (this.IsAbstract)
                     {
@@ -1003,6 +1021,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (accessor.LocalDeclaredReadOnly)
                             {
                                 diagnostics.Add(ErrorCode.ERR_ReadOnlyModMissingAccessor, Location, this);
+                            }
+
+                            if (!hasSafetyModifierOnPropertyAndAccessor && (accessor.HasUnsafeModifier || accessor.HasSafeModifier))
+                            {
+                                // Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.
+                                diagnostics.Add(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, Location, this);
                             }
                         }
                     }
@@ -1056,17 +1080,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, GetFirstLocation()));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.UnsafeKeyword, GetFirstLocation()),
                     modifyCompilation: true);
-            }
-
-            if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
-            {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, GetFirstLocation()));
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
@@ -1447,7 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
@@ -1591,6 +1609,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // DynamicAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
+            }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 permitted: ReservedAttributes.NullableContextAttribute
                     | ReservedAttributes.NullablePublicOnlyAttribute
@@ -1645,10 +1667,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
-            }
-            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
-            {
-                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
             {

@@ -157,13 +157,13 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         // End-tag-only elements (e.g. </body> without matching <body>) should not match tag helpers.
         if (elementNode.StartTagNameSpan == null && !elementNode.IsSelfClosing && attributes.IsEmpty)
         {
-            TryAddMalformedEndTagDiagnostic(elementNode, tagName, binder, attributes, parent, tagHelperParent);
+            TryAddMalformedEndTagDiagnostic(elementNode, tagName, binder, attributes, parent, tagHelperParent, prefix);
 
             _resolver.ConvertToPlainElement(parent, index, elementNode);
             return;
         }
 
-        var (parentTagName, parentIsTagHelper) = GetParentTagInfo(parent, tagHelperParent);
+        var (parentTagName, parentIsTagHelper) = GetParentTagInfo(parent, tagHelperParent, prefix);
         var binding = binder.GetBinding(tagName, attributes, parentTagName, parentIsTagHelper);
         if (binding == null)
         {
@@ -493,7 +493,17 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         var allowedChildrenString = string.Join(", ", allowedNames.ToArray());
         var parentTagName = tagHelperNode.TagName;
 
-        foreach (var child in bodyNode.Children)
+        ValidateAllowedChildren(parentTagName, bodyNode.Children, in allowedNames, allowedChildrenString, prefix);
+    }
+
+    private static void ValidateAllowedChildren(
+        string parentTagName,
+        IntermediateNodeCollection children,
+        in PooledArrayBuilder<string> allowedNames,
+        string allowedChildrenString,
+        string prefix)
+    {
+        foreach (var child in children)
         {
             if (child is TagHelperIntermediateNode childTagHelper)
             {
@@ -534,11 +544,16 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                     }
                 }
             }
-            else if (child is CSharpExpressionIntermediateNode or CSharpCodeIntermediateNode)
+            else if (child is CSharpExpressionIntermediateNode)
             {
                 child.AddDiagnostic(
                     RazorDiagnosticFactory.CreateTagHelper_CannotHaveNonTagContent(
                         child.Source ?? SourceSpan.Undefined, parentTagName, allowedChildrenString));
+            }
+            else if (child is CSharpCodeIntermediateNode)
+            {
+                // Razor code blocks can contain markup children, so validate their children instead of the block itself.
+                ValidateAllowedChildren(parentTagName, child.Children, in allowedNames, allowedChildrenString, prefix);
             }
         }
     }
@@ -1056,19 +1071,22 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
     /// Returns the parent tag name and whether it's a tag helper, for use with the binder.
     /// Checks the explicit <paramref name="tagHelperParent"/> first (passed during body
     /// resolution), then falls back to checking if <paramref name="parent"/> is a tag helper node.
+    /// Tag helper IR stores tag names without the configured prefix, so the prefix is restored here
+    /// to match the binder's input contract.
     /// </summary>
     private static (string TagName, bool IsTagHelper) GetParentTagInfo(
         IntermediateNode parent,
-        TagHelperIntermediateNode tagHelperParent)
+        TagHelperIntermediateNode tagHelperParent,
+        string prefix)
     {
         if (tagHelperParent != null)
         {
-            return (tagHelperParent.TagName, true);
+            return (prefix + tagHelperParent.TagName, true);
         }
 
         if (parent is TagHelperIntermediateNode parentTh)
         {
-            return (parentTh.TagName, true);
+            return (prefix + parentTh.TagName, true);
         }
 
         return (null, false);
@@ -1085,9 +1103,10 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         TagHelperBinder binder,
         ImmutableArray<KeyValuePair<string, string>> attributes,
         IntermediateNode parent,
-        TagHelperIntermediateNode tagHelperParent)
+        TagHelperIntermediateNode tagHelperParent,
+        string prefix)
     {
-        var (endParentTagName, endParentIsTagHelper) = GetParentTagInfo(parent, tagHelperParent);
+        var (endParentTagName, endParentIsTagHelper) = GetParentTagInfo(parent, tagHelperParent, prefix);
         var endBinding = binder.GetBinding(tagName, attributes, endParentTagName, endParentIsTagHelper);
         if (endBinding == null)
         {

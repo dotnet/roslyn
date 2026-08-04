@@ -136,6 +136,8 @@ internal sealed class LoadedProject : IDisposable
     {
         _sourceFileCreatedOrDeletedChangeContext?.Dispose();
         _projectFileChangeContext?.Dispose();
+        _mostRecentProjectAssetsFileWatcher?.Dispose();
+        _assetsFileChangeContext.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
     }
@@ -252,14 +254,6 @@ internal sealed class LoadedProject : IDisposable
             document => _projectSystemProject.RemoveAnalyzerConfigFile(document.FilePath),
             "Project {0} now has {1} analyzer config file(s). ({2} added, {3} removed.)");
 
-        UpdateProjectSystemProjectCollection(
-            newProjectInfo.AdditionalDocuments.Where(TreatAsIsDynamicFile),
-            _mostRecentFileInfo?.AdditionalDocuments.Where(TreatAsIsDynamicFile),
-            DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddDynamicSourceFile(document.FilePath, folders: []),
-            document => _projectSystemProject.RemoveDynamicSourceFile(document.FilePath),
-            "Project {0} now has {1} dynamic file(s). ({2} added, {3} removed.)");
-
         WatchProjectAssetsFile(newProjectInfo);
 
         var needsRestore = ProjectDependencyHelper.NeedsRestore(newProjectInfo, _mostRecentFileInfo, logger);
@@ -323,12 +317,6 @@ internal sealed class LoadedProject : IDisposable
                     : null;
             _mostRecentProjectAssetsFileChecksum = default;
         }
-    }
-
-    private static bool TreatAsIsDynamicFile(DocumentFileInfo info)
-    {
-        var extension = Path.GetExtension(info.FilePath);
-        return extension is ".cshtml" or ".razor";
     }
 
     private sealed class DocumentFileInfoComparer : IEqualityComparer<DocumentFileInfo>

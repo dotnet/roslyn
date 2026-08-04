@@ -3913,7 +3913,7 @@ public struct S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
                 "(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -3952,7 +3952,7 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal(["(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Fact]
@@ -3992,7 +3992,7 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal(["(E.extension(S1).operator checked -(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Fact]
@@ -4043,7 +4043,7 @@ public struct S1;
                 "(E.extension(S1).operator true(S1), System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + trueName + "(S1 x))",
                 "(E.extension(S1).operator false, System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + falseName + "(S1 x))",
                 "(E.extension(S1).operator false(S1), System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + falseName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -4277,6 +4277,48 @@ class Program
 
             AssertEx.Equal("Extensions1.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
             AssertEx.Equal("Extensions2.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84538")]
+        public void Unary_075_Consumption_Checked([CombinatorialValues("struct", "class")] string typeKind)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+}
+
+public static class Extensions2
+{
+    extension(C1)
+    {
+        public static C1 operator checked -(C1 x)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public {{{typeKind}}} C1;
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var op1 = (MethodSymbol)comp1.GetTypeByMetadataName("Extensions1").GetTypeMember("").GetMembers().Single();
+            var op2 = (MethodSymbol)comp1.GetTypeByMetadataName("Extensions2").GetTypeMember("").GetMembers().Single();
+
+            Assert.NotEqual(OverloadResolution.PairedExtensionOperatorSignatureComparer.Instance.GetHashCode(op1),
+                            OverloadResolution.PairedExtensionOperatorSignatureComparer.Instance.GetHashCode(op2));
+            Assert.False(OverloadResolution.PairedExtensionOperatorSignatureComparer.Instance.Equals(op1, op2));
         }
 
         [Theory]
@@ -10187,7 +10229,7 @@ public struct S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
                 "(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -10226,7 +10268,7 @@ public struct S1;
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal(["(E.extension(ref S1).operator " + op + "(), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "())"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -10271,7 +10313,7 @@ public struct S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator checked " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
                 "(E.extension(S1).operator checked " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -10312,7 +10354,7 @@ public struct S1;
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal(["(E.extension(ref S1).operator checked " + op + "(), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "())"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -19369,7 +19411,7 @@ public struct S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator " + ToCRefOp(op) + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))",
                 "(E.extension(S1).operator " + ToCRefOp(op) + "(S1, S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -19414,7 +19456,7 @@ public struct S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator checked " + ToCRefOp(op) + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))",
                 "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1, S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -26934,7 +26976,7 @@ public class S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator " + ToCRefOp(op) + ", void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))",
                 "(E.extension(S1).operator " + ToCRefOp(op) + "(S1), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -26979,7 +27021,7 @@ public class S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator checked " + ToCRefOp(op) + ", void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))",
                 "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]

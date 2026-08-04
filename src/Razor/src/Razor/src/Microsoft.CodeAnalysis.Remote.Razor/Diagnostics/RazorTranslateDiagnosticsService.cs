@@ -91,6 +91,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
 
         var filteredDiagnostics = unmappedDiagnostics
             .Where(d =>
+                HasValidRange(d, sourceText) &&
                 !InRazorComment(d, sourceText, syntaxTree) &&
                 !InCSharpLiteral(d, sourceText, syntaxTree) &&
                 !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes) &&
@@ -99,6 +100,22 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
             .ToArray();
 
         return filteredDiagnostics;
+    }
+
+    /// <summary>
+    /// Checks that the diagnostic has a range whose start and end positions are within the source text.
+    /// Diagnostics with out-of-bounds ranges are stale (from a previous document version) and cannot be processed.
+    /// </summary>
+    private static bool HasValidRange(LspDiagnostic d, SourceText sourceText)
+    {
+        if (d.Range is not { } range)
+        {
+            // Null range is valid per LSP spec (file-level diagnostic)
+            return true;
+        }
+
+        return sourceText.IsValidPosition(range.Start.Line, range.Start.Character) &&
+            sourceText.IsValidPosition(range.End.Line, range.End.Character);
     }
 
     internal LspDiagnostic[] MapDiagnostics(
@@ -232,9 +249,10 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
             CSSErrorCodes.MissingOpeningBrace or
             CSSErrorCodes.MissingClassNameAfterDot or
             CSSErrorCodes.MissingSelectorAfterCombinator or
-            CSSErrorCodes.MissingPropertyName or
             CSSErrorCodes.MissingPropertyValue or
             CSSErrorCodes.MissingSelectorBeforeCombinatorCode => IsAtCSharpTransitionInStyleBlock(diagnostic, sourceText, syntaxTree),
+            CSSErrorCodes.MissingPropertyName => IsAtCSharpTransitionInStyleBlock(diagnostic, sourceText, syntaxTree) ||
+                IsOutsideAttributeAndStyleBlock(diagnostic, sourceText, syntaxTree),
             HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree),
             HtmlErrorCodes.InvalidNestingErrorCode => IsAnyFilteredInvalidNestingError(diagnostic, sourceText, syntaxTree),
             HtmlErrorCodes.MissingEndTagErrorCode => syntaxTree.Options.FileKind.IsComponent(), // Redundant with RZ9980 in Components
@@ -296,6 +314,20 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
             }
 
             return owner.FirstAncestorOrSelf<BaseMarkupElementSyntax>(static n => n.StartTag?.Name.Content == "style") is not null;
+        }
+
+        static bool IsOutsideAttributeAndStyleBlock(LspDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
+        {
+            if (!sourceText.TryGetAbsoluteIndex(diagnostic.Range.Start, out var absoluteIndex))
+            {
+                return false;
+            }
+
+            var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex);
+            return owner is not null &&
+                owner.FirstAncestorOrSelf<SyntaxNode>(static n =>
+                    n.IsAnyAttributeSyntax() ||
+                    n is BaseMarkupElementSyntax { StartTag.Name.Content: "style" }) is null;
         }
 
         // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,

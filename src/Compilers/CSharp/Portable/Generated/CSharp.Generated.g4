@@ -489,7 +489,7 @@ statement
   ;
 
 break_statement
-  : attribute_list* 'break' ';'
+  : attribute_list* 'break' identifier_name? ';'
   ;
 
 checked_statement
@@ -510,7 +510,7 @@ for_each_variable_statement
   ;
 
 continue_statement
-  : attribute_list* 'continue' ';'
+  : attribute_list* 'continue' identifier_name? ';'
   ;
 
 do_statement
@@ -788,6 +788,7 @@ expression
   | tuple_expression
   | type
   | type_of_expression
+  | unsafe_expression
   | with_expression
   ;
 
@@ -1153,6 +1154,10 @@ tuple_expression
 
 type_of_expression
   : 'typeof' '(' type ')'
+  ;
+
+unsafe_expression
+  : 'unsafe' '(' expression ')'
   ;
 
 with_expression

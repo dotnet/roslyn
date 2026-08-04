@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -59,13 +60,25 @@ internal sealed class ProjectBuildManager : IDisposable
     public string[] KnownCommandLineParserLanguages { get; }
 
     private readonly MSB.Evaluation.ProjectCollection _projectCollection;
-    private readonly MSBuildDiagnosticLogger _buildLogger = new()
-    {
-        Verbosity = MSB.Framework.LoggerVerbosity.Normal
-    };
+    private readonly MSBuildDiagnosticLogger _buildLogger = new() { Verbosity = MSB.Framework.LoggerVerbosity.Normal };
+    private readonly MSB.Execution.BuildParameters _buildParameters;
+
+    /// <summary>
+    /// An object used as a monitor to guard <see cref="_activeBuilds"/> and <see cref="_unloadedProjectsSinceLastCacheReset"/>.
+    /// For us to call <see cref="MSB.Execution.BuildManager.ResetCaches"/>; we need to end builds, call ResetCaches, and then begin build again.
+    /// This lets us easily count how many active builds there are, wait until that hits zero, and then block new builds from starting until
+    /// we're done with the reset.
+    ///
+    /// It's unclear if we could do a simpler approach taking advantage of the fact that EndBuild() will block on running builds, but it appears
+    /// submissions that aren't actually started will not get blocked for, which we need.
+    /// </summary>
+    private readonly object _activeBuildsLock = new object();
+    private int _activeBuilds;
+    private int _unloadedProjectsSinceLastCacheReset;
+
     private bool _disposed;
 
-    public ProjectBuildManager(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, ILogger? msbuildLogger = null)
+    public ProjectBuildManager(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, ILogger? msbuildLogger = null, int? maxNodeCount = null)
     {
         KnownCommandLineParserLanguages = knownCommandLineParserLanguages;
 
@@ -84,17 +97,24 @@ internal sealed class ProjectBuildManager : IDisposable
         // Pass empty loggers array to workaround LoggerException when passing binary logger to both evaluation and build. See https://github.com/dotnet/msbuild/issues/11867
         _projectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers: [], MSB.Evaluation.ToolsetDefinitionLocations.Default);
 
-        var buildParameters = new MSB.Execution.BuildParameters(_projectCollection)
+        _buildParameters = new MSB.Execution.BuildParameters(_projectCollection)
         {
             // The loggers are not inherited from the project collection, so specify both the
             // binlog logger and the _buildLogger for the build steps.
             Loggers = [.. loggers, _buildLogger],
+
             // If we have an additional logger and it's diagnostic, then we need to opt into task inputs globally, or otherwise
             // it won't get any log events. This logic matches https://github.com/dotnet/msbuild/blob/fa6710d2720dcf1230a732a8858ffe71bcdbe110/src/Build/Instance/ProjectInstance.cs#L2365-L2371
-            LogTaskInputs = msbuildLogger is not null && msbuildLogger.Verbosity == LoggerVerbosity.Diagnostic
+            LogTaskInputs = msbuildLogger is not null && msbuildLogger.Verbosity == LoggerVerbosity.Diagnostic,
+
+            // Disable node reuse so nodes don't live around once we're done
+            EnableNodeReuse = false
         };
 
-        MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
+        if (maxNodeCount is int nodeCount)
+            _buildParameters.MaxNodeCount = nodeCount;
+
+        MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(_buildParameters);
     }
 
     public async Task<(MSB.Evaluation.Project? project, DiagnosticLog log)> LoadProjectAsync(
@@ -121,7 +141,7 @@ internal sealed class ProjectBuildManager : IDisposable
             // is the default if we call the overload with just a stream.
             await stream.CopyToAsync(readStream, bufferSize: 81920, cancellationToken).ConfigureAwait(false);
             readStream.Position = 0;
-            return LoadProjectCore(path, readStream, log);
+            return LoadProjectCore(path, readStream, globalProperties: null, log);
         }
         catch (Exception e)
         {
@@ -131,7 +151,7 @@ internal sealed class ProjectBuildManager : IDisposable
     }
 
     private (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProjectCore(
-        string path, Stream readStream, DiagnosticLog log)
+        string path, Stream readStream, IDictionary<string, string>? globalProperties, DiagnosticLog log)
     {
         try
         {
@@ -152,7 +172,7 @@ internal sealed class ProjectBuildManager : IDisposable
 
             var project = new MSB.Evaluation.Project(
                 xml,
-                globalProperties: null,
+                globalProperties,
                 toolsVersion: null,
                 _projectCollection,
                 projectLoadSettings);
@@ -166,19 +186,55 @@ internal sealed class ProjectBuildManager : IDisposable
         }
     }
 
-    public (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProject(string path, Stream readStream)
+    public (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProject(string path, Stream readStream, IDictionary<string, string>? globalProperties)
     {
         Contract.ThrowIfTrue(_disposed);
 
         var log = new DiagnosticLog();
         try
         {
-            return LoadProjectCore(path, readStream, log);
+            return LoadProjectCore(path, readStream, globalProperties, log);
         }
         catch (Exception e)
         {
             log.Add(e, path);
             return (project: null, log);
+        }
+    }
+
+    public (MSB.Execution.ProjectInstance? projectInstance, DiagnosticLog log) LoadProjectInstance(string path, TextReader content, IDictionary<string, string>? additionalGlobalProperties)
+    {
+        Contract.ThrowIfTrue(_disposed);
+
+        var log = new DiagnosticLog();
+        try
+        {
+            using var xmlReader = XmlReader.Create(content, s_xmlReaderSettings);
+            var projectRootElement = MSB.Construction.ProjectRootElement.Create(xmlReader, _projectCollection);
+            projectRootElement.FullPath = path;
+
+            var mergedGlobalProperties = new Dictionary<string, string>(_projectCollection.GlobalProperties, StringComparer.OrdinalIgnoreCase);
+
+            if (additionalGlobalProperties != null)
+            {
+                foreach (var pair in additionalGlobalProperties)
+                {
+                    mergedGlobalProperties[pair.Key] = pair.Value;
+                }
+            }
+
+            var projectInstance = MSB.Execution.ProjectInstance.FromProjectRootElement(projectRootElement, new MSB.Definition.ProjectOptions
+            {
+                ProjectCollection = _projectCollection,
+                GlobalProperties = mergedGlobalProperties,
+            });
+
+            return (projectInstance, log);
+        }
+        catch (Exception e)
+        {
+            log.Add(e, path);
+            return (projectInstance: null, log);
         }
     }
 
@@ -285,7 +341,13 @@ internal sealed class ProjectBuildManager : IDisposable
             }
         }
 
-        var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, [.. targets]);
+        // Since we are doing parallel builds where the build may happen in another MSBuild node, we need to pass
+        // ProvideProjectStateAfterBuild to get that state back when we're done.
+        var buildRequestData = new MSB.Execution.BuildRequestData(
+            projectInstance,
+            [.. targets],
+            hostServices: null,
+            flags: MSB.Execution.BuildRequestDataFlags.ProvideProjectStateAfterBuild);
 
         var result = await BuildAsync(buildRequestData, log, cancellationToken).ConfigureAwait(false);
 
@@ -297,59 +359,40 @@ internal sealed class ProjectBuildManager : IDisposable
             }
         }
 
-        return projectInstance;
+        return result.ProjectStateAfterBuild ?? projectInstance;
     }
-
-    // this lock is static because we are using the default build manager, and there is only one per process
-    private static readonly SemaphoreSlim s_buildManagerLock = new(initialCount: 1);
 
     private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, DiagnosticLog log, CancellationToken cancellationToken)
     {
-        // only allow one build to use the default build manager at a time
-        using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        // MSBuild doesn't have a way to cancel a single submission, so we'll only check the token before we start. In practice this is fine --
+        // the RPC layer we use to call into the BuildHost doesn't support cancellation anyways so there's no reason to have lots of extra code.
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Before we start a build, record that one is running; this will block if we're currently clearing caches.
+        lock (_activeBuildsLock)
         {
-            return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, requestData, log, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    private Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, DiagnosticLog log, CancellationToken cancellationToken)
-    {
-        var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
-
-        // enable cancellation of build
-        CancellationTokenRegistration registration = default;
-        if (cancellationToken.CanBeCanceled)
-        {
-            registration = cancellationToken.Register(() =>
-            {
-                // Note: We only ever expect that a single submission is being built,
-                // even though we're calling CancelAllSubmissions(). If MSBuildWorkspace is
-                // ever updated to support parallel builds, we'll likely need to update this code.
-
-                taskSource.TrySetCanceled();
-                buildManager.CancelAllSubmissions();
-                registration.Dispose();
-            });
+            _activeBuilds++;
         }
 
-        // execute build async
-        int? submissionId = null;
+        BuildSubmission? submission = null;
+
         try
         {
+            submission = MSB.Execution.BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
+
             // The SubmissionId is assigned by PendBuildRequest and is the same SubmissionId that appears on the
             // BuildEventContext of every event raised while this submission builds.
-            var submission = buildManager.PendBuildRequest(requestData);
-            submissionId = submission.SubmissionId;
             _buildLogger.RegisterLog(submission.SubmissionId, log);
 
+            var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
+
+            // Start the job
             submission.ExecuteAsync(sub =>
             {
                 // when finished
                 try
                 {
-                    _buildLogger.UnregisterLog(sub.SubmissionId);
                     var result = sub.BuildResult;
-                    registration.Dispose();
                     taskSource.TrySetResult(result);
                 }
                 catch (Exception e)
@@ -357,15 +400,46 @@ internal sealed class ProjectBuildManager : IDisposable
                     taskSource.TrySetException(e);
                 }
             }, null);
+
+            return await taskSource.Task.ConfigureAwait(false);
         }
-        catch (Exception e)
+        finally
         {
-            if (submissionId is not null)
-                _buildLogger.UnregisterLog(submissionId.Value);
+            lock (_activeBuildsLock)
+            {
+                _activeBuilds--;
 
-            taskSource.SetException(e);
+                if (_activeBuilds == 0)
+                    Monitor.PulseAll(_activeBuildsLock);
+            }
+
+            // Ensure the log is cleaned up if it's still there no matter if we take an exceptional path or not
+            if (submission is not null)
+                _buildLogger.TryUnregisterLog(submission.SubmissionId);
         }
+    }
 
-        return taskSource.Task;
+    public void UnloadProject(MSB.Evaluation.Project project)
+    {
+        _projectCollection.UnloadProject(project);
+
+        lock (_activeBuildsLock)
+        {
+            // If we've unloaded a lot of projects since our last reset, let's just reset it. 500 is chosen with no evidence
+            // whatsoever.
+            if (++_unloadedProjectsSinceLastCacheReset >= 500)
+            {
+                _unloadedProjectsSinceLastCacheReset = 0;
+
+                // We need to wait until there are no active builds before we reset caches
+                while (_activeBuilds > 0)
+                    Monitor.Wait(_activeBuildsLock);
+
+                // No active builds, so clear caches
+                MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
+                MSB.Execution.BuildManager.DefaultBuildManager.ResetCaches();
+                MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(_buildParameters);
+            }
+        }
     }
 }

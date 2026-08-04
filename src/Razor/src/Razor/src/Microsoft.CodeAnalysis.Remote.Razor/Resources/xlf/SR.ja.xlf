@@ -124,12 +124,17 @@
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">
         <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="new">Attempted to visit a RazorMetaCode other than '{' or '}'.</target>
+        <target state="translated">'{' or '}' 以外の RazorMetaCode にアクセスしようとしました。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_type_0">
         <source>Unsupported type: '{0}'.</source>
         <target state="translated">サポートされていない型: '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Untested">
+        <source>Untested</source>
+        <target state="translated">未テスト</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_attributes">

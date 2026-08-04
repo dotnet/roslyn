@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -618,12 +619,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
-        // https://github.com/dotnet/roslyn/issues/82546: add a public API for this (probably just expose a bool)
+#nullable enable
+        // https://github.com/dotnet/roslyn/issues/82546: change terminology from "caller unsafe" to "requires unsafe"
         /// <summary>
-        /// Whether this member is considered unsafe under the updated memory safety rules.
-        /// See <see cref="CSharp.CallerUnsafeMode"/> for more details.
+        /// Whether this member is considered caller-unsafe.
+        /// See <see cref="CallerUnsafeMode"/> for more details.
         /// </summary>
-        internal abstract CallerUnsafeMode CallerUnsafeMode { get; }
+        internal abstract CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound);
+#nullable disable
 
         /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols
@@ -1539,6 +1542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExtensionMarkerAttribute = 1 << 15,
             MemorySafetyRulesAttribute = 1 << 16,
             IsClosedTypeAttribute = 1 << 17,
+            RequiresUnsafeAttribute = 1 << 18,
         }
 
         // https://github.com/dotnet/roslyn/issues/83627: Remove unnecessary 'permitted' flags from call sites of this method
@@ -1626,6 +1630,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((permitted & ReservedAttributes.IsClosedTypeAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsClosedTypeAttribute))
+            {
+            }
+            else if ((permitted & ReservedAttributes.RequiresUnsafeAttribute) == 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RequiresUnsafeAttribute))
             {
             }
             else

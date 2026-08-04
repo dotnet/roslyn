@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// <see cref="LspServices"/> instance by <see cref="LanguageServerWorkspaceFactoryServiceFactory"/> and
 /// disposed when the LSP server shuts down.
 /// </summary>
-internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspaceProvider
+internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspaceProvider, IDisposable
 {
     private readonly ILogger _logger;
     private readonly ImmutableArray<string> _solutionLevelAnalyzerPaths;
@@ -30,7 +30,6 @@ internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspa
     public LanguageServerWorkspaceFactory(
         HostServicesProvider hostServicesProvider,
         ILspServices lspServices,
-        IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
         ExtensionAssemblyManager extensionManager,
         IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
         ILoggerFactory loggerFactory)
@@ -69,8 +68,15 @@ internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspa
             miscellaneousFilesWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
         miscellaneousFilesWorkspace.ProjectSystemProjectFactory = MiscellaneousFilesWorkspaceProjectFactory;
 
+        // Register this server's Host and miscellaneous-files workspaces directly with its own registration
+        // service, rather than relying on the process-wide event listener (which, in the standalone server, only
+        // tracks the shared MetadataAsSource workspace). This keeps these per-server workspaces visible only to
+        // this server so concurrent daemon-mode servers stay isolated from one another.
+        var workspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
+        workspaceRegistrationService.Register(workspace);
+        workspaceRegistrationService.Register(miscellaneousFilesWorkspace);
+
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
-            DynamicFileInfoProviders: [.. dynamicFileInfoProviders],
             AnalyzerAssemblyRedirectors: [.. assemblyRedirectors]);
     }
 
@@ -81,6 +87,12 @@ internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspa
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
 
     Workspace IHostWorkspaceProvider.Workspace => HostWorkspace;
+
+    public void Dispose()
+    {
+        HostProjectFactory.Dispose();
+        MiscellaneousFilesWorkspaceProjectFactory.Dispose();
+    }
 
     private ImmutableArray<AnalyzerFileReference> CreateSolutionLevelAnalyzerReferences(IAnalyzerAssemblyLoaderProvider loaderProvider)
     {

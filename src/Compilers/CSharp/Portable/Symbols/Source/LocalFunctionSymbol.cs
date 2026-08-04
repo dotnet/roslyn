@@ -139,16 +139,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Syntax.Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, Syntax.Identifier.GetLocation()));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(addTo,
                     Syntax.Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, Syntax.Identifier.GetLocation()),
                     modifyCompilation: false);
             }
 
-            if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
+            if (HasSafeModifier && HasUnsafeModifier)
             {
-                addTo.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                addTo.Add(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe,
                     Syntax.Modifiers.GetModifierLocation(SyntaxKind.SafeKeyword, Syntax.Identifier.GetLocation()));
             }
 
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsExtern => (_declarationModifiers & DeclarationModifiers.Extern) != 0;
 
         internal override bool HasUnsafeModifier => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
-        protected override bool HasSafeModifier => (_declarationModifiers & DeclarationModifiers.Safe) != 0;
+        internal override bool HasSafeModifier => (_declarationModifiers & DeclarationModifiers.Safe) != 0;
         internal override bool CanBeCallerUnsafe => true;
 
         internal bool IsExpressionBodied => Syntax is { Body: null, ExpressionBody: object _ };
@@ -427,9 +427,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInitOnly => false;
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal override bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
 
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => false;
+        internal override bool IsMetadataVirtual(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

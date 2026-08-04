@@ -21,17 +21,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class LanguageServerWorkspaceFactoryServiceFactory(
     HostServicesProvider hostServicesProvider,
-    [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
     ExtensionAssemblyManager extensionManager,
-    [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
-    ILoggerFactory loggerFactory) : ILspServiceFactory
+    [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         => new LanguageServerWorkspaceFactory(
             hostServicesProvider,
             lspServices,
-            dynamicFileInfoProviders,
             extensionManager,
             assemblyRedirectors,
-            loggerFactory);
+            lspServices.GetRequiredService<ILoggerFactory>());
 }

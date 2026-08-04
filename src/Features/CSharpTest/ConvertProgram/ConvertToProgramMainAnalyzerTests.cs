@@ -71,6 +71,28 @@ public sealed class ConvertToProgramMainAnalyzerTests
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
         }.RunAsync();
 
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9550")]
+    public Task NotOfferedForFileBasedProgram()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            System.Console.WriteLine(0);
+            """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
+            SolutionTransforms =
+            {
+                static (solution, projectId) =>
+                {
+                    var project = solution.GetProject(projectId)!;
+                    var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+                    return solution.WithProjectParseOptions(projectId,
+                        parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]));
+                },
+            },
+        }.RunAsync();
+
     [Fact]
     public Task TestHeader1()
         => new VerifyCS.Test

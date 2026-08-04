@@ -61,13 +61,12 @@ internal sealed class WorkspaceProject : IWorkspaceProject
         }, cancellationToken);
     }
 
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     public Task AddDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
     {
-        return RunAndReportNFWAsync(() =>
-        {
-            foreach (var dynamicFilePath in dynamicFilePaths)
-                _project.AddDynamicSourceFile(dynamicFilePath, folders: []);
-        }, cancellationToken);
+        // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.
+        // The contract is retained because the project system still calls this method.
+        return Task.CompletedTask;
     }
 
     public Task AddMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken cancellationToken)
@@ -120,13 +119,12 @@ internal sealed class WorkspaceProject : IWorkspaceProject
         }, cancellationToken);
     }
 
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     public Task RemoveDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
     {
-        return RunAndReportNFWAsync(() =>
-        {
-            foreach (var dynamicFilePath in dynamicFilePaths)
-                _project.RemoveDynamicSourceFile(dynamicFilePath);
-        }, cancellationToken);
+        // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.
+        // The contract is retained because the project system still calls this method.
+        return Task.CompletedTask;
     }
 
     public Task RemoveMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken cancellationToken)

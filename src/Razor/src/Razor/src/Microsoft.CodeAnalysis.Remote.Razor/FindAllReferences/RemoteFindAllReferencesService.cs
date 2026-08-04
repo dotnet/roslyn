@@ -11,11 +11,11 @@ using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.FindAllReferences;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.FindAllReferences;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -132,7 +132,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                     referenceItem.DisplayPath = mappedUri.AbsolutePath;
                     referenceItem.DocumentName = mappedUri.AbsolutePath;
 
-                    var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(DocumentMappingService, context.GetSolutionQueryOperations(), mappedRange.Start.Line, mappedUri.GetDocumentFilePathFromUri(), cancellationToken).ConfigureAwait(false);
+                    var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(context.GetSolutionQueryOperations(), mappedRange.Start.Line, mappedUri.GetDocumentFilePathFromUri(), cancellationToken).ConfigureAwait(false);
                     referenceItem.Text = fixedResultText ?? referenceItem.Text;
                 }
             }

@@ -10,5 +10,4 @@ internal interface ITelemetryReporter : IDisposable
     void Log(string name, List<KeyValuePair<string, object?>> properties);
     void LogBlockStart(string eventName, int kind, int blockId);
     void LogBlockEnd(int blockId, List<KeyValuePair<string, object?>> properties, CancellationToken cancellationToken);
-    void ReportFault(string eventName, string description, int logLevel, bool forceDump, int processId, Exception exception);
 }

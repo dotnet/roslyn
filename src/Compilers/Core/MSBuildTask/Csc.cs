@@ -206,6 +206,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
 
+#if NETFRAMEWORK
+                // This branch only runs in the .NET Framework to .NET Core bridge task, which always
+                // executes on .NET Framework MSBuild where this assembly is deployed as loose files on
+                // disk. Assembly.Location is therefore valid here and unreachable from any single-file or
+                // native AOT host, so it does not need to satisfy the IL3000 single-file analyzer.
                 if (!NoConfig)
                 {
                     var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "csc.rsp");
@@ -214,6 +219,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         commandLine.AppendSwitchIfNotNull("@", rspFile);
                     }
                 }
+#else
+                // IsSdkFrameworkToCoreBridgeTask is only ever true on .NET Framework, so the bridge-only
+                // response file handling above is never reached on .NET Core.
+                Debug.Fail("The SDK framework-to-core bridge task only runs on .NET Framework MSBuild.");
+#endif
             }
 
             commandLine.AppendSwitchIfNotNull("/lib:", AdditionalLibPaths, ",");
@@ -409,7 +419,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                         // The alias called "global" is special.  It means that we don't
                         // give it an alias on the command-line.
-                        if (string.Compare("global", trimmedAlias, StringComparison.OrdinalIgnoreCase) == 0)
+                        if (string.Equals("global", trimmedAlias, StringComparison.OrdinalIgnoreCase))
                         {
                             appendGlobalReference(reference.ItemSpec);
                         }

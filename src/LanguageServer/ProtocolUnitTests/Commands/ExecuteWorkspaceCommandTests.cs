@@ -24,7 +24,7 @@ public sealed class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtoco
     protected override TestComposition Composition => base.Composition.AddParts(
             typeof(TestWorkspaceCommandHandler));
 
-    public ExecuteWorkspaceCommandTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    public ExecuteWorkspaceCommandTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 

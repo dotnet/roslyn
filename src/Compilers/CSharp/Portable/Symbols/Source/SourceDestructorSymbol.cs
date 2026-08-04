@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
-        protected sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
+        internal sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
         internal sealed override bool CanBeCallerUnsafe => false;
 
         public override ImmutableArray<ParameterSymbol> Parameters
@@ -141,6 +141,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Protected; // we mark destructors protected in the symbol table
 
+            if ((mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+                containingType.ContainingModule.UseUpdatedMemorySafetyRules)
+            {
+                diagnostics.Add(ErrorCode.ERR_UnsafeMeaningless,
+                    modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, location));
+            }
+
             return mods;
         }
 
@@ -161,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
         }
 
-        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        internal sealed override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return true;
         }
@@ -174,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return (object)this.ContainingType.BaseTypeNoUseSiteDiagnostics == null;
         }

@@ -182,6 +182,44 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
     }
 
     [Fact]
+    public async Task AddUsing_InjectDirective()
+    {
+        var input = """
+            @inject [||]StringBuilder Builder
+
+            <div></div>
+            """;
+
+        var expected = """
+            @using System.Text
+            @inject StringBuilder Builder
+
+            <div></div>
+            """;
+
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.AddImport);
+    }
+
+    [Fact]
+    public async Task AddUsing_InjectDirective_Legacy()
+    {
+        var input = """
+            @inject [||]StringBuilder Builder
+
+            <div></div>
+            """;
+
+        var expected = """
+            @using System.Text
+            @inject StringBuilder Builder
+
+            <div></div>
+            """;
+
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.AddImport, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     public async Task AddUsing()
     {
         var input = """

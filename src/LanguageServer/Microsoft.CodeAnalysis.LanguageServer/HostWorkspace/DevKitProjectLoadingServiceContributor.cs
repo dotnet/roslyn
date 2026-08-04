@@ -24,11 +24,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(DevKitProjectLoadingServiceContributor)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DevKitProjectLoadingServiceContributorFactory(
-    ILoggerFactory loggerFactory) : ILspServiceFactory
+internal sealed class DevKitProjectLoadingServiceContributorFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new DevKitProjectLoadingServiceContributor(lspServices, loggerFactory);
+        => new DevKitProjectLoadingServiceContributor(lspServices, lspServices.GetRequiredService<ILoggerFactory>());
 }
 
 internal sealed class DevKitProjectLoadingServiceContributor(

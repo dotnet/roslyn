@@ -249,6 +249,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_prefer_extended_property_pattern", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferExtendedPropertyPattern")},
         {"csharp_style_prefer_implicitly_typed_lambda_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferImplicitlyTypedLambdaExpression")},
         {"csharp_style_prefer_index_operator", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferIndexOperator")},
+        {"csharp_style_prefer_labeled_jump_statements", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferLabeledJumpStatements")},
         {"csharp_style_prefer_local_over_anonymous_function", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferLocalOverAnonymousFunction")},
         {"csharp_style_prefer_method_group_conversion", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferMethodGroupConversion")},
         {"csharp_style_prefer_not_pattern", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferNotPattern")},

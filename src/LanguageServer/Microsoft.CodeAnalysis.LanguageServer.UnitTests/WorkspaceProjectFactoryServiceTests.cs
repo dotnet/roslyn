@@ -17,7 +17,7 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
     public async Task CreateProjectAndBatch()
     {
         var loggerFactory = new LoggerFactory();
-        await using var testLspServer = await CreateLanguageServerAsync(includeDevKitComponents: false);
+        await using var testLspServer = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
 
         var workspaceFactory = testLspServer.GetRequiredLspService<LanguageServerWorkspaceFactory>();
         var serviceBrokerFactory = testLspServer.GetRequiredLspService<ServiceBrokerFactory>();

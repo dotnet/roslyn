@@ -576,6 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.CheckedExpression;
                 case SyntaxKind.UncheckedKeyword:
                     return SyntaxKind.UncheckedExpression;
+                case SyntaxKind.UnsafeKeyword:
+                    return SyntaxKind.UnsafeExpression;
                 case SyntaxKind.DefaultKeyword:
                     return SyntaxKind.DefaultExpression;
                 case SyntaxKind.TypeOfKeyword:

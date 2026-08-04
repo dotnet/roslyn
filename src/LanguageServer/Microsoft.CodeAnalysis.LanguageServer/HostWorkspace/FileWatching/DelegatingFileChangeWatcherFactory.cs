@@ -15,9 +15,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DelegatingFileChangeWatcherFactory(
-    ILoggerFactory loggerFactory,
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new DelegatingFileChangeWatcher(lspServices, loggerFactory, asynchronousOperationListenerProvider);
+        => new DelegatingFileChangeWatcher(lspServices, lspServices.GetRequiredService<ILoggerFactory>(), asynchronousOperationListenerProvider);
 }
