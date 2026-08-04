@@ -200,9 +200,20 @@ internal sealed partial class HtmlFormattingPass(
 
         ImmutableArray<TextChange> FilterOutNonWhitespaceChanges(ImmutableArray<TextChange> candidateChanges)
         {
+            if (candidateChanges.IsEmpty)
+            {
+                return candidateChanges;
+            }
+
             var changedText = originalText.WithChanges(candidateChanges);
-            using var validChanges = new PooledArrayBuilder<TextChange>();
+            using var validChanges = new PooledArrayBuilder<TextChange>(capacity: candidateChanges.Length);
+
             var positionDelta = 0;
+            var previousStart = -1;
+            foreach (var change in candidateChanges)
+            {
+                Debug.Assert(change.Span.Start >= previousStart);
+                previousStart = change.Span.Start;
             foreach (var change in candidateChanges)
             {
                 var replacementLength = change.NewText?.Length ?? 0;
