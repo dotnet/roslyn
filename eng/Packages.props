@@ -229,7 +229,7 @@
     <PackageVersion Include="System.Text.Encodings.Web" Version="$(SystemTextEncodingsWebVersion)" />
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <PackageVersion Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
-    <PackageVersion Include="System.Threading.Channels" Version="8.0.0" />
+    <PackageVersion Include="System.Threading.Channels" Version="10.0.10" />
 
     <PackageVersion Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
 
@@ -264,11 +264,11 @@
     <PackageVersion Include="Microsoft.VisualStudio.Cache" Version="17.3.26-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="17.9.36343-preview.3" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="17.8.36726" />
-    <PackageVersion Include="System.Management" Version="9.0.5" />
-    <PackageVersion Include="System.Drawing.Common" Version="10.0.8" />
+    <PackageVersion Include="System.Management" Version="10.0.10" />
+    <PackageVersion Include="System.Drawing.Common" Version="10.0.10" />
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
     <PackageVersion Include="Moq" Version="4.10.1" />
-    <PackageVersion Include="System.CodeDom" Version="10.0.8" />
+    <PackageVersion Include="System.CodeDom" Version="10.0.10" />
     <PackageVersion Include="InputSimulatorPlus" Version="1.0.7" />
     <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
@@ -292,8 +292,8 @@
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="Basic.CompilerLog.Util" Version="0.9.19" />
-    <!-- Update Microsoft.Bcl.Memory used by Basic.CompilerLog.Util to a non-vulnerable version. -->
-    <PackageVersion Include="Microsoft.Bcl.Memory" Version="9.0.14" />
+    <!-- Update Microsoft.Bcl.Memory used by Basic.CompilerLog.Util & BenchmarkDotNet to a non-vulnerable version. -->
+    <PackageVersion Include="Microsoft.Bcl.Memory" Version="10.0.10" />
     <PackageVersion Include="Basic.Reference.Assemblies.NetStandard20" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net20" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net40" Version="$(_BasicReferenceAssembliesVersion)" />
