@@ -252,6 +252,16 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         await waiter.ExpeditedWaitAsync();
     }
 
+    public async Task SetNewLineCharacterAsync(string newLine, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var textView = await GetActiveTextViewAsync(cancellationToken);
+        var editorOptionsFactory = await GetComponentModelServiceAsync<IEditorOptionsFactoryService>(cancellationToken);
+        var options = editorOptionsFactory.GetOptions(textView.TextBuffer);
+        options.SetOptionValue(DefaultOptions.NewLineCharacterOptionId, newLine);
+    }
+
     public async Task<ClassificationSpan[]> GetLightBulbPreviewClassificationsAsync(string menuText, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

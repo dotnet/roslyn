@@ -61,18 +61,55 @@ public abstract class AbstractDocumentationCommentTests
     internal void VerifyPaste(string initialMarkup, string pastedText, string expectedMarkup, bool useTabs = false, string newLine = "\r\n", bool trimTrailingWhiteSpace = false, OptionsCollection globalOptions = null)
     {
         Verify(initialMarkup, expectedMarkup,
-            execute: (workspace, view, editorOperationsFactoryService) =>
-            {
-                var commandHandler = CreateCommandHandler(workspace);
-                var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
-                var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
-
-                commandHandler.ExecuteCommand(
-                    commandArgs,
-                    () => editorOperations.ReplaceSelection(pastedText),
-                    TestCommandExecutionContext.Create());
-            },
+            execute: (workspace, view, editorOperationsFactoryService) => ExecutePaste(workspace, view, editorOperationsFactoryService, pastedText),
             useTabs, newLine, trimTrailingWhiteSpace, globalOptions);
+    }
+
+    internal void VerifyPasteAndUndo(
+        string initialMarkup,
+        string pastedText,
+        string expectedAfterPasteMarkup,
+        string expectedAfterFirstUndoMarkup,
+        string expectedAfterSecondUndoMarkup,
+        bool useTabs = false,
+        string newLine = "\r\n",
+        bool trimTrailingWhiteSpace = false,
+        OptionsCollection globalOptions = null)
+    {
+        Verify(
+            initialMarkup,
+            expectedAfterPasteMarkup,
+            execute: (workspace, view, editorOperationsFactoryService) => ExecutePaste(workspace, view, editorOperationsFactoryService, pastedText),
+            useTabs,
+            newLine,
+            trimTrailingWhiteSpace,
+            globalOptions,
+            afterVerification: (workspace, view) =>
+            {
+                var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);
+
+                history.Undo(count: 1);
+                AssertTextAndCaret(view, expectedAfterFirstUndoMarkup);
+
+                history.Undo(count: 1);
+                AssertTextAndCaret(view, expectedAfterSecondUndoMarkup);
+            });
+    }
+
+    private void ExecutePaste(
+        EditorTestWorkspace workspace,
+        IWpfTextView view,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        string pastedText)
+    {
+        var commandHandler = CreateCommandHandler(workspace);
+        var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
+        var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
+
+        commandHandler.ExecuteCommand(
+            commandArgs,
+            () => editorOperations.ReplaceSelection(pastedText),
+            TestCommandExecutionContext.Create());
     }
 
     internal void VerifyInsertCommentCommand(string initialMarkup, string expectedMarkup, bool useTabs = false, string newLine = "\r\n", bool trimTrailingWhiteSpace = false, OptionsCollection globalOptions = null)
@@ -145,7 +182,8 @@ public abstract class AbstractDocumentationCommentTests
         bool useTabs,
         string newLine,
         bool trimTrailingWhiteSpace,
-        OptionsCollection globalOptions)
+        OptionsCollection globalOptions,
+        Action<EditorTestWorkspace, IWpfTextView> afterVerification = null)
     {
         using var workspace = CreateTestWorkspace(initialMarkup);
         var testDocument = workspace.Documents.Single();
@@ -185,6 +223,13 @@ public abstract class AbstractDocumentationCommentTests
             workspace,
             view,
             workspace.GetService<IEditorOperationsFactoryService>());
+
+        AssertTextAndCaret(view, expectedMarkup);
+        afterVerification?.Invoke(workspace, view);
+    }
+
+    private static void AssertTextAndCaret(IWpfTextView view, string expectedMarkup)
+    {
         MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int _);
 
         var actual = view.TextSnapshot.GetText();

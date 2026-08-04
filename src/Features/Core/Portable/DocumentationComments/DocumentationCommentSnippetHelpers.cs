@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments;
 
 internal static class DocumentationCommentSnippetHelpers
 {
+    // Match each ampersand together with an optional complete named or numeric entity. This lets EscapePastedText
+    // preserve valid entities such as &amp; and &#x41;, while escaping bare, malformed, or invalid entities.
     private static readonly Regex s_xmlEntityRegex = new(
         @"&(?<entity>(?:amp|apos|gt|lt|quot|#(?<decimal>[0-9]+)|#[xX](?<hex>[0-9A-Fa-f]+));)?",
         RegexOptions.CultureInvariant);

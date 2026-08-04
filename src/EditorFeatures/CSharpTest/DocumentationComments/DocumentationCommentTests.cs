@@ -2313,29 +2313,23 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             """);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
-    public void Paste_MultilineText_LineFeed()
+    [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    [InlineData("\r\n", "\r\n", "\r\n")]
+    [InlineData("\n", "\r\n", "\n")]
+    [InlineData("\r\n", "\n", "\r")]
+    [InlineData("\n", "\r\n", "\u0085")]
+    [InlineData("\r\n", "\n", "\u2028")]
+    [InlineData("\n", "\r\n", "\u2029")]
+    public void Paste_MultilineText_LineEndings(string documentNewLine, string editorNewLine, string pastedNewLine)
     {
         VerifyPaste(
-            """
-            /// <summary>
-            /// $$
-            /// </summary>
-            class C
-            {
-            }
-            """.ReplaceLineEndings("\n"),
-            "Line 1\nLine 2",
-            """
-            /// <summary>
-            /// Line 1
-            /// Line 2$$
-            /// </summary>
-            class C
-            {
-            }
-            """.ReplaceLineEndings("\n"),
-            newLine: "\n");
+            JoinLines(documentNewLine, "/// <summary>", "/// $$", "/// </summary>", "class C", "{", "}"),
+            "Line 1" + pastedNewLine + "Line 2",
+            "/// <summary>" + documentNewLine +
+            "/// Line 1" + pastedNewLine +
+            "/// Line 2$$" + documentNewLine +
+            JoinLines(documentNewLine, "/// </summary>", "class C", "{", "}"),
+            newLine: editorNewLine);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
@@ -2466,21 +2460,113 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
     public void Paste_ReplacesMultipleSelections()
     {
-        VerifyPaste("""
-            /// <summary>Replace [|first|]</summary>
-            /// <remarks>Replace [|second|]$$</remarks>
-            class C
-            {
-            }
-            """.ReplaceLineEndings("\r\n"), "A & B\r\nLine 2", """
-            /// <summary>Replace A &amp; B
-            /// Line 2</summary>
-            /// <remarks>Replace A &amp; B
-            /// Line 2$$</remarks>
-            class C
-            {
-            }
-            """.ReplaceLineEndings("\r\n"));
+        VerifyPaste(
+            JoinLines("\r\n",
+                "/// <summary>Replace [|first|]</summary>",
+                "/// <remarks>Replace [|second|]$$</remarks>",
+                "class C",
+                "{",
+                "}"),
+            "A & B\r\nLine 2",
+            JoinLines("\r\n",
+                "/// <summary>Replace A &amp; B",
+                "/// Line 2</summary>",
+                "/// <remarks>Replace A &amp; B",
+                "/// Line 2$$</remarks>",
+                "class C",
+                "{",
+                "}"));
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_MixedEligibleAndIneligibleSelections()
+    {
+        VerifyPaste(
+            JoinLines("\r\n",
+                "/// <summary>Replace [|documentation|]</summary>",
+                "// Replace [|ordinary|]$$",
+                "class C",
+                "{",
+                "}"),
+            "A & B\r\nLine 2",
+            JoinLines("\r\n",
+                "/// <summary>Replace A &amp; B",
+                "/// Line 2</summary>",
+                "// Replace A & B",
+                "Line 2$$",
+                "class C",
+                "{",
+                "}"));
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_MultilineSelectionUsesNormalEditorBehavior()
+    {
+        VerifyPaste(
+            JoinLines("\r\n",
+                "/// <summary>[|first",
+                "/// second|]$$</summary>",
+                "class C",
+                "{",
+                "}"),
+            "A & B\r\nLine 2",
+            JoinLines("\r\n",
+                "/// <summary>A & B",
+                "Line 2$$</summary>",
+                "class C",
+                "{",
+                "}"));
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_SelectionOverlappingExteriorTriviaUsesNormalEditorBehavior()
+    {
+        VerifyPaste(
+            JoinLines("\r\n", "[|///|]$$ <summary>", "class C", "{", "}"),
+            "A & B\r\nLine 2",
+            JoinLines("\r\n", "A & B", "Line 2$$ <summary>", "class C", "{", "}"));
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_OnBlankLineUsesNormalEditorBehavior()
+    {
+        VerifyPaste(
+            JoinLines("\r\n", "$$", "class C", "{", "}"),
+            "A & B\r\nLine 2",
+            JoinLines("\r\n", "A & B", "Line 2$$", "class C", "{", "}"));
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public void Paste_UndoSmartAdjustmentThenNormalPaste()
+    {
+        var initialMarkup = JoinLines("\r\n",
+            "/// <summary>",
+            "/// $$",
+            "/// </summary>",
+            "class C",
+            "{",
+            "}");
+
+        VerifyPasteAndUndo(
+            initialMarkup,
+            "A & B\r\nLine 2",
+            JoinLines("\r\n",
+                "/// <summary>",
+                "/// A &amp; B",
+                "/// Line 2$$",
+                "/// </summary>",
+                "class C",
+                "{",
+                "}"),
+            JoinLines("\r\n",
+                "/// <summary>",
+                "/// A & B",
+                "Line 2$$",
+                "/// </summary>",
+                "class C",
+                "{",
+                "}"),
+            initialMarkup);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
@@ -2499,6 +2585,9 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             }
             """);
     }
+
+    private static string JoinLines(string newLine, params string[] lines)
+        => string.Join(newLine, lines);
 
     protected override char DocumentationCommentCharacter
     {

@@ -4,7 +4,6 @@
 
 using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -31,9 +30,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     IChainedCommandHandler<OpenLineAboveCommandArgs>,
     IChainedCommandHandler<OpenLineBelowCommandArgs>
 {
-    private static readonly Regex s_lineBreakWithWhitespaceRegex = new(
-        @"(?<lineBreak>\r\n|\r|\n)(?<whitespace>[^\S\r\n]*)", RegexOptions.CultureInvariant);
-
+    /// <param name="TrackingSpan">
+    /// The selection before the paste. Edge-inclusive tracking makes it cover the text inserted by the normal editor paste.
+    /// </param>
+    /// <param name="Indentation">The text before the exterior trivia. For example, the four spaces in <c>    /// text</c>.</param>
+    /// <param name="LinePrefix">
+    /// The text through the exterior trivia and its following whitespace. For example, <c>    /// </c> in <c>    /// text</c>.
+    /// </param>
     private readonly record struct PasteContext(ITrackingSpan TrackingSpan, string Indentation, string LinePrefix);
 
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
@@ -165,6 +168,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
         foreach (var selection in args.TextView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer))
         {
+            // Each caret is handled independently. An ineligible selection still receives the normal editor paste,
+            // while eligible selections in the same multi-caret operation receive the documentation-comment adjustment.
             if (TryCreatePasteContext(textBeforePaste, selection, out var pasteContext))
                 pasteContexts.Add(pasteContext);
         }
@@ -172,34 +177,36 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         if (pasteContexts.Count == 0)
             return false;
 
-        // Include both the editor's normal paste and our follow-up adjustment in a single undo transaction.
-        using var transaction = CaretPreservingEditTransaction.TryCreate(
-            EditorFeaturesResources.Paste, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService);
-
         nextHandler();
 
         var snapshotAfterPaste = subjectBuffer.CurrentSnapshot;
-        using var edit = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
-        var hasChanges = false;
+        using var __ = PooledObjects.ArrayBuilder<(Span span, string replacementText)>.GetInstance(out var replacements);
 
         foreach (var pasteContext in pasteContexts)
         {
+            // The tracking spans map the pre-paste selections to their inserted text. Collect every replacement
+            // against the same post-paste snapshot so adjusting one selection cannot invalidate the later spans.
             var pastedSpan = pasteContext.TrackingSpan.GetSpan(snapshotAfterPaste);
             var pastedText = pastedSpan.GetText();
             var replacementText = PreparePastedText(pastedText, pasteContext.Indentation, pasteContext.LinePrefix);
 
-            if (pastedText == replacementText)
-                continue;
-
-            edit.Replace(pastedSpan.Span, replacementText);
-            hasChanges = true;
+            if (pastedText != replacementText)
+                replacements.Add((pastedSpan.Span, replacementText));
         }
 
-        if (hasChanges)
-            edit.Apply();
-        else
-            edit.Cancel();
+        if (replacements.Count == 0)
+            return true;
 
+        // Keep the adjustment separate from the normal editor paste. The first Undo then removes our smart
+        // formatting and reveals the normal pasted text; a second Undo removes the paste itself.
+        using var transaction = CaretPreservingEditTransaction.TryCreate(
+            EditorFeaturesResources.Paste, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+        using var edit = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
+        foreach (var (span, replacementText) in replacements)
+            edit.Replace(span, replacementText);
+
+        edit.Apply();
         transaction?.Complete();
         return true;
     }
@@ -440,10 +447,14 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     {
         pasteContext = default;
 
+        // A continuation line reuses the prefix from the selection's line. A selection spanning more than one line
+        // has no single unambiguous prefix, so preserve the editor's normal paste behavior for that selection.
         var line = text.Lines.GetLineFromPosition(selection.Start.Position);
         if (selection.End.Position > line.End)
             return false;
 
+        // For a line such as "    /// text", capture "    " as indentation and "    /// " as the prefix.
+        // Blank lines and lines without this language's exterior trivia are not documentation-comment contexts.
         var lineText = line.ToString();
         var exteriorTriviaOffset = lineText.GetFirstNonWhitespaceOffset() ?? -1;
         if (exteriorTriviaOffset < 0 ||
@@ -453,9 +464,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         }
 
         var exteriorTriviaEnd = exteriorTriviaOffset + ExteriorTriviaText.Length;
+
+        // Replacing indentation or the exterior trivia itself could change the comment structure. In that case,
+        // leave the entire operation to the editor rather than applying documentation-comment formatting.
         if (selection.Start.Position < line.Start + exteriorTriviaEnd)
             return false;
 
+        // Preserve the exact whitespace already used after the exterior trivia instead of synthesizing a prefix.
         var prefixEnd = exteriorTriviaEnd;
         while (prefixEnd < lineText.Length && char.IsWhiteSpace(lineText[prefixEnd]))
             prefixEnd++;
@@ -470,16 +485,31 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     private static string PreparePastedText(string text, string indentation, string linePrefix)
     {
         var escapedText = DocumentationCommentSnippetHelpers.EscapePastedText(text);
-        return s_lineBreakWithWhitespaceRegex.Replace(escapedText, match =>
+        var sourceText = SourceText.From(escapedText);
+        if (sourceText.Lines.Count == 1)
+            return escapedText;
+
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+        builder.Append(sourceText.ToString(sourceText.Lines[0].SpanIncludingLineBreak));
+
+        for (var i = 1; i < sourceText.Lines.Count; i++)
         {
-            var whitespace = match.Groups["whitespace"].Value;
+            var line = sourceText.Lines[i];
+            var lineText = line.ToString();
+            var whitespaceLength = lineText.GetFirstNonWhitespaceOffset() ?? lineText.Length;
+            var whitespace = lineText[..whitespaceLength];
 
             // Pasted text can repeat the target line's indentation after each line break. Remove that portion
             // before adding the complete documentation-comment prefix so continuation lines are not over-indented.
             if (whitespace.StartsWith(indentation, StringComparison.Ordinal))
                 whitespace = whitespace[indentation.Length..];
 
-            return match.Groups["lineBreak"].Value + linePrefix + whitespace;
-        });
+            builder.Append(linePrefix);
+            builder.Append(whitespace);
+            builder.Append(lineText, whitespaceLength, lineText.Length - whitespaceLength);
+            builder.Append(sourceText.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak)));
+        }
+
+        return builder.ToString();
     }
 }

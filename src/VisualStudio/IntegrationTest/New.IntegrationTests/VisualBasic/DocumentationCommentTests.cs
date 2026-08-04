@@ -21,31 +21,128 @@ public sealed class DocumentationCommentTests : AbstractEditorTest
 
     protected override string LanguageName => LanguageNames.VisualBasic;
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
-    public async Task Paste_MultilineText()
+    [IdeTheory, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    [InlineData("\r\n", "\r\n", "\r\n")]
+    [InlineData("\n", "\r\n", "\n")]
+    [InlineData("\r\n", "\n", "\n")]
+    public async Task Paste_MultilineText(string documentNewLine, string editorNewLine, string pastedNewLine)
     {
-        await SetUpEditorAsync("""
-
-            Public Class C
-                ''' <summary>
-                ''' $$
-                ''' </summary>
-            End Class
-
-            """.ReplaceLineEndings("\r\n"), HangMitigatingCancellationToken);
+        await SetUpEditorAsync(
+            JoinLines(documentNewLine,
+                "",
+                "Public Class C",
+                "    ''' <summary>",
+                "    ''' $$",
+                "    ''' </summary>",
+                "End Class",
+                ""),
+            HangMitigatingCancellationToken);
+        await TestServices.Editor.SetNewLineCharacterAsync(editorNewLine, HangMitigatingCancellationToken);
 
         await TestServices.Editor.PasteAsync(
-            "Line 1\r\nLine 2 with A & B", HangMitigatingCancellationToken);
+            "Line 1" + pastedNewLine + "Line 2 with A & B", HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync("""
-
-            Public Class C
-                ''' <summary>
-                ''' Line 1
-                ''' Line 2 with A &amp; B$$
-                ''' </summary>
-            End Class
-
-            """.ReplaceLineEndings("\r\n"), assertCaretPosition: true, cancellationToken: HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(
+            "" + documentNewLine +
+            "Public Class C" + documentNewLine +
+            "    ''' <summary>" + documentNewLine +
+            "    ''' Line 1" + documentNewLine +
+            "    ''' Line 2 with A &amp; B" + documentNewLine +
+            "    ''' </summary>" + documentNewLine +
+            "End Class" + documentNewLine,
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
+
+    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public async Task Paste_RemovesEditorIndentationFromContinuationLines()
+    {
+        await SetUpEditorAsync(
+            JoinLines("\r\n",
+                "",
+                "Public Class C",
+                "    ''' <summary>",
+                "    ''' $$",
+                "    ''' </summary>",
+                "End Class",
+                ""),
+            HangMitigatingCancellationToken);
+
+        await TestServices.Editor.PasteAsync("Line 1\r\n    Line 2", HangMitigatingCancellationToken);
+
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n",
+                "",
+                "Public Class C",
+                "    ''' <summary>",
+                "    ''' Line 1",
+                "    ''' Line 2",
+                "    ''' </summary>",
+                "End Class",
+                ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+    }
+
+    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public async Task Paste_MixedEligibleAndIneligibleSelections()
+    {
+        await SetUpEditorAsync(
+            JoinLines("\r\n",
+                "",
+                "''' <summary>Replace {|selection:documentation|}</summary>",
+                "' Replace {|selection:ordinary|}",
+                "Public Class C",
+                "End Class",
+                ""),
+            HangMitigatingCancellationToken);
+
+        await TestServices.Editor.PasteAsync("A & B\r\nLine 2\r\nLine 3", HangMitigatingCancellationToken);
+
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n",
+                "",
+                "''' <summary>Replace A &amp; B",
+                "''' Line 2",
+                "''' Line 3</summary>",
+                "' Replace A & B",
+                "Line 2",
+                "Line 3",
+                "Public Class C",
+                "End Class",
+                ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+    }
+
+    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/17383")]
+    public async Task Paste_UndoSmartAdjustmentThenNormalPaste()
+    {
+        await SetUpEditorAsync(
+            JoinLines("\r\n",
+                "",
+                "''' <summary>",
+                "''' $$",
+                "''' </summary>",
+                "Public Class C",
+                "End Class",
+                ""),
+            HangMitigatingCancellationToken);
+
+        await TestServices.Editor.PasteAsync("A & B\r\nLine 2", HangMitigatingCancellationToken);
+
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n", "", "''' <summary>", "''' A &amp; B", "''' Line 2", "''' </summary>", "Public Class C", "End Class", ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n", "", "''' <summary>", "''' A & B", "Line 2", "''' </summary>", "Public Class C", "End Class", ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(
+            JoinLines("\r\n", "", "''' <summary>", "''' ", "''' </summary>", "Public Class C", "End Class", ""),
+            await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+    }
+
+    private static string JoinLines(string newLine, params string[] lines)
+        => string.Join(newLine, lines);
 }
