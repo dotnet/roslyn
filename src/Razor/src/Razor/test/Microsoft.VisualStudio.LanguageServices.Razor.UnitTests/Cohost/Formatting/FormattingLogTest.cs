@@ -70,6 +70,16 @@ public partial class FormattingLogTest(ITestOutputHelper testOutput) : DocumentF
         => Assert.NotNull(await GetFormattingEditsAsync());
 
     [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    public async Task PageForMultiGrid()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    public async Task PageForGrid()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
+    [Fact]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
     public async Task BoatsSectionRange092858221()
         => Assert.NotNull(await GetFormattingEditsAsync());
