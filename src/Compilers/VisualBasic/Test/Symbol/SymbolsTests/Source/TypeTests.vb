@@ -1183,63 +1183,84 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                         Imports System.Runtime.InteropServices
 
                         Structure Struct
+                            Public x As Integer
+                        End Structure
+
+                        Structure StructNoFields
                         End Structure
 
                         <StructLayout(LayoutKind.Sequential)>
                         Structure StructSequential
+                            Public x As Integer
                         End Structure
 
                         <StructLayout(LayoutKind.Auto)>
                         Structure StructAuto
+                            Public x As Integer
                         End Structure
 
                         <StructLayout(LayoutKind.Explicit)>
                         Structure StructExplicit
+                            Public x As Integer
                         End Structure
 
                         <StructLayout(LayoutKind.Auto, Size:=5)>
                         Structure StructWithSize
+                            Public x As Integer
                         End Structure
 
                         <StructLayout(LayoutKind.Sequential, Pack:=4)>
                         Structure StructWithPack
+                            Public x As Integer
                         End Structure
 
                         <StructLayout(LayoutKind.Explicit, Size:=5, Pack:=4)>
                         Structure StructWithSizeAndPack
+                            Public x As Integer
                         End Structure
 
                         Class [Class]
+                            Public x As Integer
+                        End Class
+
+                        Class ClassNoFields
                         End Class
 
                         <StructLayout(LayoutKind.Sequential)>
                         Class ClassSequential
+                            Public x As Integer
                         End Class
 
                         <StructLayout(LayoutKind.Auto)>
                         Class ClassAuto
+                            Public x As Integer
                         End Class
 
                         <StructLayout(LayoutKind.Explicit)>
                         Class ClassExplicit
+                            Public x As Integer
                         End Class
 
                         <StructLayout(LayoutKind.Explicit, Size:=5)>
                         Class ClassWithSize
+                            Public x As Integer
                         End Class
 
                         <StructLayout(LayoutKind.Auto, Pack:=4)>
                         Class ClassWithPack
+                            Public x As Integer
                         End Class
 
                         <StructLayout(LayoutKind.Sequential, Size:=5, Pack:=4)>
                         Class ClassWithSizeAndPack
+                            Public x As Integer
                         End Class
                         ]]>
                     </file>
                 </compilation>), Compilation)
 
             Dim structType = compilation.GlobalNamespace.GetMembers("Struct").OfType(Of INamedTypeSymbol)().First()
+            Dim structNoFieldsType = compilation.GlobalNamespace.GetMembers("StructNoFields").OfType(Of INamedTypeSymbol)().First()
             Dim structSequentialType = compilation.GlobalNamespace.GetMembers("StructSequential").OfType(Of INamedTypeSymbol)().First()
             Dim structAutoType = compilation.GlobalNamespace.GetMembers("StructAuto").OfType(Of INamedTypeSymbol)().First()
             Dim structExplicitType = compilation.GlobalNamespace.GetMembers("StructExplicit").OfType(Of INamedTypeSymbol)().First()
@@ -1247,6 +1268,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
             Dim structWithPackType = compilation.GlobalNamespace.GetMembers("StructWithPack").OfType(Of INamedTypeSymbol)().First()
             Dim structWithSizeAndPackType = compilation.GlobalNamespace.GetMembers("StructWithSizeAndPack").OfType(Of INamedTypeSymbol)().First()
             Dim classType = compilation.GlobalNamespace.GetMembers("Class").OfType(Of INamedTypeSymbol)().First()
+            Dim classNoFieldsType = compilation.GlobalNamespace.GetMembers("ClassNoFields").OfType(Of INamedTypeSymbol)().First()
             Dim classSequentialType = compilation.GlobalNamespace.GetMembers("ClassSequential").OfType(Of INamedTypeSymbol)().First()
             Dim classAutoType = compilation.GlobalNamespace.GetMembers("ClassAuto").OfType(Of INamedTypeSymbol)().First()
             Dim classExplicitType = compilation.GlobalNamespace.GetMembers("ClassExplicit").OfType(Of INamedTypeSymbol)().First()
@@ -1255,6 +1277,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
             Dim classWithSizeAndPackType = compilation.GlobalNamespace.GetMembers("ClassWithSizeAndPack").OfType(Of INamedTypeSymbol)().First()
 
             Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), structType.TypeLayout)
+            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 1, 0), structNoFieldsType.TypeLayout)
             Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.TypeLayout)
             Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.TypeLayout)
             Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.TypeLayout)
@@ -1262,6 +1285,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
             Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout)
             Assert.Equal(New TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout)
             Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout)
+            Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classNoFieldsType.TypeLayout)
             Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.TypeLayout)
             Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classAutoType.TypeLayout)
             Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 0), classExplicitType.TypeLayout)

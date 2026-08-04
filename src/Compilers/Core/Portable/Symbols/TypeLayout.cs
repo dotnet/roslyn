@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         {
             return _size == other._size
                 && _packingSize == other._packingSize
-                && _kind == other._kind;
+                && Kind == other.Kind;
         }
 
         public override bool Equals(object? obj)

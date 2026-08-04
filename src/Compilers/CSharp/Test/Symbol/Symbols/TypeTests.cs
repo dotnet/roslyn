@@ -896,75 +896,98 @@ Goo();
 
 struct Struct
 {
+    int x;
+}
+
+struct StructNoFields
+{
 }
 
 [StructLayout(LayoutKind.Sequential)]
 struct StructSequential
 {
+    int x;
 }
 
 [StructLayout(LayoutKind.Auto)]
 struct StructAuto
 {
+    int x;
 }
 
 [StructLayout(LayoutKind.Explicit)]
 struct StructExplicit
 {
+    int x;
 }
 
 [StructLayout(LayoutKind.Auto, Size = 5)]
 struct StructWithSize
 {
+    int x;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
 struct StructWithPack
 {
+    int x;
 }
 
 [StructLayout(LayoutKind.Explicit, Size = 5, Pack = 4)]
 struct StructWithSizeAndPack
 {
+    int x;
 }
 
 class Class
+{
+    int x;
+}
+
+class ClassNoFields
 {
 }
 
 [StructLayout(LayoutKind.Sequential)]
 class ClassSequential
 {
+    int x;
 }
 
 [StructLayout(LayoutKind.Auto)]
 class ClassAuto
 {
+    int x;
 }
 
 [StructLayout(LayoutKind.Explicit)]
 class ClassExplicit
 {
+    int x;
 }
 
 [StructLayout(LayoutKind.Explicit, Size = 5)]
 class ClassWithSize
 {
+    int x;
 }
 
 [StructLayout(LayoutKind.Auto, Pack = 4)]
 class ClassWithPack
 {
+    int x;
 }
 
 [StructLayout(LayoutKind.Sequential, Size = 5, Pack = 4)]
 class ClassWithSizeAndPack
 {
+    int x;
 }";
 
             var comp = (Compilation)CreateCompilation(text);
 
             var structType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("Struct");
+            var structNoFieldsType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructNoFields");
             var structSequentialType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructSequential");
             var structAutoType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructAuto");
             var structExplicitType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructExplicit");
@@ -972,6 +995,7 @@ class ClassWithSizeAndPack
             var structWithPackType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructWithPack");
             var structWithSizeAndPackType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("StructWithSizeAndPack");
             var classType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("Class");
+            var classNoFieldsType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassNoFields");
             var classSequentialType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassSequential");
             var classAutoType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassAuto");
             var classExplicitType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassExplicit");
@@ -979,7 +1003,8 @@ class ClassWithSizeAndPack
             var classWithPackType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassWithPack");
             var classWithSizeAndPackType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassWithSizeAndPack");
 
-            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 1, 0), structType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structNoFieldsType.TypeLayout);
             Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.TypeLayout);
             Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.TypeLayout);
             Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.TypeLayout);
@@ -987,6 +1012,7 @@ class ClassWithSizeAndPack
             Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout);
             Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout);
             Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classNoFieldsType.TypeLayout);
             Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.TypeLayout);
             Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classAutoType.TypeLayout);
             Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), classExplicitType.TypeLayout);
