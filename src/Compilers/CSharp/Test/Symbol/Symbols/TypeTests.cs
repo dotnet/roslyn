@@ -918,7 +918,7 @@ struct StructAuto
 [StructLayout(LayoutKind.Explicit)]
 struct StructExplicit
 {
-    int x;
+    [FieldOffset(0)] int x;
 }
 
 [StructLayout(LayoutKind.Auto, Size = 5)]
@@ -936,7 +936,7 @@ struct StructWithPack
 [StructLayout(LayoutKind.Explicit, Size = 5, Pack = 4)]
 struct StructWithSizeAndPack
 {
-    int x;
+    [FieldOffset(0)] int x;
 }
 
 class Class
@@ -963,13 +963,13 @@ class ClassAuto
 [StructLayout(LayoutKind.Explicit)]
 class ClassExplicit
 {
-    int x;
+    [FieldOffset(0)] int x;
 }
 
 [StructLayout(LayoutKind.Explicit, Size = 5)]
 class ClassWithSize
 {
-    int x;
+    [FieldOffset(0)] int x;
 }
 
 [StructLayout(LayoutKind.Auto, Pack = 4)]
@@ -1003,8 +1003,8 @@ class ClassWithSizeAndPack
             var classWithPackType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassWithPack");
             var classWithSizeAndPackType = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("ClassWithSizeAndPack");
 
-            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 1, 0), structType.TypeLayout);
-            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structNoFieldsType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structType.TypeLayout);
+            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 1, 0), structNoFieldsType.TypeLayout);
             Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.TypeLayout);
             Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.TypeLayout);
             Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.TypeLayout);
