@@ -46,6 +46,15 @@ internal sealed class LspWorkspaceRegistrationService : ILspService, IDisposable
         }
     }
 
+    /// <summary>
+    /// Registers a workspace owned by this server directly, rather than via the process-wide
+    /// <see cref="LspWorkspaceRegistrationEventListener"/>, so it is visible only to this server. Used by the
+    /// language server for its per-server Host and miscellaneous-files workspaces, keeping concurrent
+    /// (daemon-mode) servers isolated from one another.
+    /// </summary>
+    public void Register(Workspace workspace)
+        => OnWorkspaceRegistered(workspace);
+
     private void OnWorkspaceRegistered(Workspace workspace)
     {
         lock (_gate)

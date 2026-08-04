@@ -18,7 +18,7 @@ internal static class LanguageServerCommandLine
     /// Callback invoked with the parsed <see cref="ServerConfiguration"/> when the command is invoked.
     /// Tests can pass a callback that simply captures the configuration to validate parsing behavior.
     /// </param>
-    public static RootCommand CreateCommand(Func<ServerConfiguration, CancellationToken, Task> onParsedAsync)
+    public static RootCommand CreateCommand(Func<ServerConfiguration, CancellationToken, Task<int>> onParsedAsync)
     {
         var debugOption = new Option<bool>("--debug")
         {
@@ -121,6 +121,48 @@ internal static class LanguageServerCommandLine
             Required = false,
         };
 
+        var daemonOption = new Option<bool>("--daemon")
+        {
+            Description = "Run as a multi-client daemon that listens for connections on the pipe named by --pipe. " +
+                          "This is an internal option used by the roslyn-language-server thin client; end users and editors should not pass it directly.",
+            Required = false,
+            DefaultValueFactory = _ => false,
+        };
+
+        var daemonKeepAliveOption = new Option<int>("--daemonKeepAlive")
+        {
+            Description = "Seconds the daemon stays alive after its last client disconnects before exiting. " +
+                          "Zero exits immediately and -1 keeps the daemon alive indefinitely. Defaults to the env var " +
+                          $"'{DaemonKeepAliveEnvironmentVariable}' if set, otherwise {DefaultDaemonKeepAliveSeconds} seconds.",
+            Required = false,
+            DefaultValueFactory = argumentResult =>
+            {
+                if (!int.TryParse(Environment.GetEnvironmentVariable(DaemonKeepAliveEnvironmentVariable), out var value))
+                    return DefaultDaemonKeepAliveSeconds;
+
+                if (value >= -1)
+                    return value;
+
+                argumentResult.AddError(
+                    $"Invalid value '{value}' for {DaemonKeepAliveEnvironmentVariable}; expected -1 or a non-negative integer.");
+                return DefaultDaemonKeepAliveSeconds;
+            },
+            CustomParser = argumentResult =>
+            {
+                if (argumentResult.Tokens.Count == 1 &&
+                    int.TryParse(argumentResult.Tokens[0].Value, out var value) &&
+                    value >= -1)
+                {
+                    return value;
+                }
+
+                var valueText = argumentResult.Tokens.Count == 0 ? "" : argumentResult.Tokens[0].Value;
+                argumentResult.AddError(
+                    $"Invalid value '{valueText}' for --daemonKeepAlive; expected -1 or a non-negative integer.");
+                return DefaultDaemonKeepAliveSeconds;
+            },
+        };
+
         var rootCommand = new RootCommand()
         {
             debugOption,
@@ -137,9 +179,11 @@ internal static class LanguageServerCommandLine
             autoLoadProjectsOption,
             sourceGeneratorExecutionOption,
             clientProcessIdOption,
+            daemonOption,
+            daemonKeepAliveOption,
         };
 
-        rootCommand.SetAction((parseResult, cancellationToken) =>
+        rootCommand.SetAction(async (parseResult, cancellationToken) =>
         {
             var launchDebugger = parseResult.GetValue(debugOption);
             var logLevel = parseResult.GetValue(logLevelOption);
@@ -154,6 +198,8 @@ internal static class LanguageServerCommandLine
             var autoLoadProjects = parseResult.GetValue(autoLoadProjectsOption);
             var sourceGeneratorExecutionPreference = parseResult.GetValue(sourceGeneratorExecutionOption);
             var clientProcessId = parseResult.GetValue(clientProcessIdOption);
+            var isDaemon = parseResult.GetValue(daemonOption);
+            var daemonKeepAlive = ResolveDaemonKeepAlive(parseResult.GetValue(daemonKeepAliveOption));
 
             var serverConfiguration = new ServerConfiguration(
                 LaunchDebugger: launchDebugger,
@@ -168,11 +214,34 @@ internal static class LanguageServerCommandLine
                 ExtensionLogDirectory: extensionLogDirectory,
                 AutoLoadProjects: autoLoadProjects,
                 SourceGeneratorExecutionPreference: sourceGeneratorExecutionPreference,
-                ClientProcessId: clientProcessId);
+                ClientProcessId: clientProcessId,
+                IsDaemon: isDaemon,
+                DaemonKeepAlive: daemonKeepAlive);
 
-            return onParsedAsync(serverConfiguration, cancellationToken);
+            return await onParsedAsync(serverConfiguration, cancellationToken);
         });
 
         return rootCommand;
+    }
+
+    /// <summary>
+    /// The default amount of time a daemon stays alive after its last client disconnects.
+    /// </summary>
+    internal const int DefaultDaemonKeepAliveSeconds = 15 * 60;
+
+    /// <summary>
+    /// Environment variable that can override the daemon keepalive (in seconds) when the
+    /// <c>--daemonKeepAlive</c> option is not specified.
+    /// </summary>
+    internal const string DaemonKeepAliveEnvironmentVariable = "ROSLYN_LANGUAGE_SERVER_DAEMON_KEEPALIVE";
+
+    private static TimeSpan ResolveDaemonKeepAlive(int seconds)
+    {
+        return seconds switch
+        {
+            -1 => Timeout.InfiniteTimeSpan,
+            >= 0 => TimeSpan.FromSeconds(seconds),
+            _ => throw new ArgumentOutOfRangeException(nameof(seconds)),
+        };
     }
 }

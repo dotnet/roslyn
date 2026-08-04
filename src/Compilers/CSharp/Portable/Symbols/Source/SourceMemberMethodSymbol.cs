@@ -1008,14 +1008,6 @@ done:
                     modifyCompilation: true);
             }
 
-            // Event accessors get modifiers from the event (and don't have their own modifiers),
-            // hence we skip this error here and report it only at the event symbol.
-            if (AssociatedSymbol is not SourceEventSymbol && HasSafeModifier && (!IsExtern || HasUnsafeModifier))
-            {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                    Modifiers.GetModifierLocation(SyntaxKind.SafeKeyword, _location));
-            }
-
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 ShouldEmitNullableContextValue(out _))
             {

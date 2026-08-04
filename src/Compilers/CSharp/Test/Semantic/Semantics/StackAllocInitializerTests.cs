@@ -704,17 +704,18 @@ class Test
                 //         var q3 = from item in array let v = stackalloc    [ ] { 1, 2, 3 } select v;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(9, 45)
                 );
+
             CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8)
                 .VerifyDiagnostics(
-                // (7,75): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
+                // (7,37): error CS0828: Cannot assign 'Span<int>' to anonymous type property
                 //         var q1 = from item in array let v = stackalloc int[3] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select v").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(7, 75),
-                // (8,75): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let v = stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 37),
+                // (8,37): error CS0828: Cannot assign 'Span<int>' to anonymous type property
                 //         var q2 = from item in array let v = stackalloc int[ ] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select v").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(8, 75),
-                // (9,75): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let v = stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 37),
+                // (9,37): error CS0828: Cannot assign 'Span<int>' to anonymous type property
                 //         var q3 = from item in array let v = stackalloc    [ ] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select v").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(9, 75)
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let v = stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 37)
                 );
         }
 
