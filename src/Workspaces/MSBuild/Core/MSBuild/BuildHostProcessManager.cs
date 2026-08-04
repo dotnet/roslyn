@@ -129,11 +129,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             }
             catch (Exception e)
             {
-                // We failed to connect to the process, kill it if it's still around
-                if (!process.HasExited)
-                    process.Kill();
+                await buildHostProcess.DisposeAsync().ConfigureAwait(false);
 
-                buildHostProcess.LogProcessFailure();
                 throw new Exception($"The build host was started but we were unable to connect to it's pipe. The process exited with {process.ExitCode}. Process output:{Environment.NewLine}{buildHostProcess.GetBuildHostProcessOutput()}", innerException: e);
             }
 
@@ -493,41 +490,56 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         public event EventHandler? Disconnected;
 
+        /// <summary>
+        /// Shuts down the BuildHost process, ensuring the process is killed by the time this returns. This method is not expected to throw
+        /// expectations so callers don't have to deal with exceptions coming from broken BuildHosts.
+        /// </summary>
         public async ValueTask DisposeAsync()
         {
             // Ensure only one thing disposes; while we disconnect the process will go away, which will call us to do this again
             if (Interlocked.CompareExchange(ref _disposed, value: 1, comparand: 0) != 0)
                 return;
 
-            // We will call Shutdown in a try/catch; if the process has gone bad it's possible the connection is no longer functioning.
             try
             {
-                if (!_process.HasExited)
+                // If the process is already exited, then we simply have nothing left to do
+                if (_process.HasExited)
+                    return;
+
+                if (_buildHost is not null)
                 {
                     _logger?.LogTrace("Sending a Shutdown request to the BuildHost.");
-
                     await BuildHost.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
                 }
 
                 if (_rpcClient is not null)
                 {
                     _rpcClient.Shutdown();
-                    _logger?.LogTrace("Process shut down.");
-                }
-                else
-                {
-                    // We never successfully connected to the process, so just kill it
-                    _process.Kill();
-                    _logger?.LogTrace("Process killed since it was never connected");
+                    _logger?.LogTrace($"{nameof(RpcClient)} has been shut down.");
                 }
             }
             catch (Exception e)
             {
                 _logger?.LogError(e, "Exception while shutting down the BuildHost process.");
+            }
 
-                // Process may have gone bad, so not much else we can do.
-                LogProcessFailure();
-                _process.Kill();
+            // If the process is still around at this point, give it a little bit of time and then just kill it
+            if (!_process.HasExited)
+            {
+                try
+                {
+                    _process.WaitForExit(milliseconds: 500);
+
+                    if (!_process.HasExited)
+                    {
+                        LogProcessFailure();
+                        _process.Kill();
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger?.LogError(e, "Exception while trying to kill the BuildHost process.");
+                }
             }
         }
 
