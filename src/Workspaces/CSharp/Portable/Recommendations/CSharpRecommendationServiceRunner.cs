@@ -406,17 +406,20 @@ internal partial class CSharpRecommendationService
 
                     // Primary constructor parameters are returned by LookupStaticMembers, but are unusable in a static
                     // context. They can hide a namespace or type with the same name, so recover those candidates.
-                    if (symbols.Any(s => s is IParameterSymbol parameter && parameter.IsPrimaryConstructor(_cancellationToken)))
+                    using var _ = ArrayBuilder<ISymbol>.GetInstance(symbols.Length, out var staticSymbols);
+                    foreach (var symbol in symbols)
                     {
-                        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var namespaceOrTypeSymbols);
-                        foreach (var symbol in symbols)
+                        if (symbol is IParameterSymbol parameter && parameter.IsPrimaryConstructor(_cancellationToken))
                         {
-                            if (symbol is IParameterSymbol parameter && parameter.IsPrimaryConstructor(_cancellationToken))
-                                namespaceOrTypeSymbols.AddRange(semanticModel.LookupNamespacesAndTypes(position, name: parameter.Name));
+                            staticSymbols.AddRange(semanticModel.LookupNamespacesAndTypes(position, name: parameter.Name));
                         }
-
-                        symbols = [.. symbols, .. namespaceOrTypeSymbols];
+                        else
+                        {
+                            staticSymbols.Add(symbol);
+                        }
                     }
+
+                    symbols = staticSymbols.ToImmutableAndClear();
                 }
                 else
                 {
