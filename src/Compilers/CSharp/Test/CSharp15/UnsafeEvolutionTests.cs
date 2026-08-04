@@ -15222,7 +15222,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (10,17): error CS9396: Cannot await in context of a 'fixed' statement
+            // (10,17): error CS9398: Cannot await in context of a 'fixed' statement
             //                 await Task.Yield();
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(10, 17),
         };
@@ -15261,13 +15261,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (6,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         fixed (int* p = a)
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 16),
-            // (8,13): error CS9396: Cannot await in context of a 'fixed' statement
+            // (8,13): error CS9398: Cannot await in context of a 'fixed' statement
             //             await Task.Yield();
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(8, 13));
 
         var expectedDiagnostics = new[]
         {
-            // (8,13): error CS9396: Cannot await in context of a 'fixed' statement
+            // (8,13): error CS9398: Cannot await in context of a 'fixed' statement
             //             await Task.Yield();
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(8, 13),
         };
@@ -15304,13 +15304,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (6,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         fixed (byte* p = await GetAsync())
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "byte*").WithLocation(6, 16),
-            // (6,26): error CS9396: Cannot await in context of a 'fixed' statement
+            // (6,26): error CS9398: Cannot await in context of a 'fixed' statement
             //         fixed (byte* p = await GetAsync())
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 26));
 
         var expectedDiagnostics = new[]
         {
-            // (6,26): error CS9396: Cannot await in context of a 'fixed' statement
+            // (6,26): error CS9398: Cannot await in context of a 'fixed' statement
             //         fixed (byte* p = await GetAsync())
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 26),
         };
@@ -15347,19 +15347,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (6,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "byte*").WithLocation(6, 16),
-            // (6,27): error CS9396: Cannot await in context of a 'fixed' statement
+            // (6,27): error CS9398: Cannot await in context of a 'fixed' statement
             //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 27),
-            // (6,50): error CS9396: Cannot await in context of a 'fixed' statement
+            // (6,50): error CS9398: Cannot await in context of a 'fixed' statement
             //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 50));
 
         var expectedDiagnostics = new[]
         {
-            // (6,27): error CS9396: Cannot await in context of a 'fixed' statement
+            // (6,27): error CS9398: Cannot await in context of a 'fixed' statement
             //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 27),
-            // (6,50): error CS9396: Cannot await in context of a 'fixed' statement
+            // (6,50): error CS9398: Cannot await in context of a 'fixed' statement
             //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(6, 50),
         };
@@ -15400,13 +15400,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (7,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         fixed (int* p = a)
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 16),
-            // (10,13): error CS9396: Cannot await in context of a 'fixed' statement
+            // (10,13): error CS9398: Cannot await in context of a 'fixed' statement
             //             await f();
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(10, 13));
 
         var expectedDiagnostics = new[]
         {
-            // (10,13): error CS9396: Cannot await in context of a 'fixed' statement
+            // (10,13): error CS9398: Cannot await in context of a 'fixed' statement
             //             await f();
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(10, 13),
         };

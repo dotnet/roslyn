@@ -2505,10 +2505,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoBreakId = 9393,
         ERR_NoContinueId = 9394,
         ERR_ClosedBadDerivedTypesProperty = 9395,
-        ERR_BadAwaitInFixed = 9396,
 
         ERR_InvalidPropertyUnsafeMods = 9396,
         ERR_SamePropertyUnsafeAccessorMods = 9397,
+        ERR_BadAwaitInFixed = 9398,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
