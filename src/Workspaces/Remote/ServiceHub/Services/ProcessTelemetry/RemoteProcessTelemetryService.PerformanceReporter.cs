@@ -38,10 +38,19 @@ internal partial class RemoteProcessTelemetryService
                 ProcessWorkAsync,
                 AsynchronousOperationListenerProvider.NullListener);
 
-            _diagnosticAnalyzerPerformanceTracker.SnapshotAdded += (_, _) => _workQueue.AddWork();
+            _diagnosticAnalyzerPerformanceTracker.SnapshotAdded += OnSnapshotAdded;
         }
 
-        public void Dispose() => _workQueue.Dispose();
+        private void OnSnapshotAdded(object? sender, EventArgs e)
+        {
+            _workQueue.AddWork();
+        }
+
+        public void Dispose()
+        {
+            _diagnosticAnalyzerPerformanceTracker.SnapshotAdded -= OnSnapshotAdded;
+            _workQueue.Dispose();
+        }
 
         private async ValueTask ProcessWorkAsync(CancellationToken cancellationToken)
         {
