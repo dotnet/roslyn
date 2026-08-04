@@ -22,5 +22,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="IdeBenchmarks" />
+    <InternalsVisibleTo Include="IdeCoreBenchmarks" />
   </ItemGroup>
 </Project>
