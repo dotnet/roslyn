@@ -398,8 +398,8 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                <div>
                    Goodbye World
                </div>
-           |]    }
-           |]  }
+           |]    }|]
+             }
            </div>
 
            @functions[|
