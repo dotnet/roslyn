@@ -65,7 +65,7 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
             [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, expectedPath)],
             () =>
             {
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, text => message = text);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, Environment.GetEnvironmentVariable, text => message = text);
                 return true;
             });
 
