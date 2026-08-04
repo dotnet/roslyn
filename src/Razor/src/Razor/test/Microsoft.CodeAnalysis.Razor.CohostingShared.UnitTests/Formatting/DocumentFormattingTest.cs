@@ -8294,6 +8294,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
     public async Task IncompleteObjectCreation_UseTabs()
     {
         TestCode input = """
@@ -8310,7 +8311,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
         await RunFormattingTestAsync(
             input: input,
             htmlFormatted: input.Text,
-            expected: input.Text,
+            expected: """
+                @code {
+                	private void Method()
+                	{
+                		value = new object()
+
+
+                		other = true;
+                	}
+                }
+                """,
             insertSpaces: false);
     }
 
