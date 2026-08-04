@@ -16,7 +16,7 @@ public class RazorBenchmarks : AbstractBenchmark
     public GeneratorDriver Razor_Edit_Independent() => RunRazorBenchmark(Independent, "0.razor");
 
     [Benchmark]
-    public GeneratorDriver Razor_Edit_IndependentIgnorable() => RunRazorBenchmark(IndependentIgnorable, "\\0.razor");
+    public GeneratorDriver Razor_Edit_IndependentIgnorable() => RunRazorBenchmark(IndependentIgnorable, "0.razor");
 
     [Benchmark]
     public GeneratorDriver Razor_Remove_Independent() => RunRazorBenchmark(null, "0.razor");
