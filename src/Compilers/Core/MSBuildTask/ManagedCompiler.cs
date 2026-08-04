@@ -506,7 +506,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            using var innerLogger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+            using var innerLogger = new CompilerServerLogger(
+                $"MSBuild {Process.GetCurrentProcess().Id}",
+                loggingFilePath: null,
+                TaskEnvironment.GetEnvironmentVariable,
+                TaskEnvironment.GetFullPath);
             var logger = new TaskCompilerServerLogger(Log, innerLogger);
             return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
         }
@@ -553,7 +557,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // commandLineCommands (the parameter) may have been mucked with
                 // (to support using the dotnet cli)
                 var buildRequestArguments = GenerateCommandLineArgsList(responseFileCommands);
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(buildRequestArguments, logger.Log);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(
+                    buildRequestArguments,
+                    TaskEnvironment.GetEnvironmentVariable,
+                    logger.Log);
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     Language,
@@ -571,8 +578,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     buildRequest,
                     pipeName,
                     clientDirectory,
-                    logger: logger,
-                    cancellationToken: _sharedCompileCts.Token);
+                    TaskEnvironment.GetEnvironmentVariables(),
+                    logger,
+                    _sharedCompileCts.Token);
 
                 responseTask.Wait(_sharedCompileCts.Token);
 
@@ -628,12 +636,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private string CurrentDirectoryToUse()
         {
-            // ToolTask has a method for this. But it may return null. Use the process directory
-            // if ToolTask didn't override. MSBuild uses the process directory.
+            // ToolTask has a method for this. But it may return null. Use the task's project
+            // directory if ToolTask didn't override. This resolves against the task's execution environment.
             string workingDirectory = GetWorkingDirectory();
             if (string.IsNullOrEmpty(workingDirectory))
             {
-                workingDirectory = Directory.GetCurrentDirectory();
+                workingDirectory = TaskEnvironment.ProjectDirectory;
             }
             return workingDirectory;
         }
@@ -643,8 +651,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private string? LibDirectoryToUse()
         {
-            // First check the real environment.
-            string? libDirectory = Environment.GetEnvironmentVariable("LIB");
+            // First check the task environment.
+            string? libDirectory = TaskEnvironment.GetEnvironmentVariable("LIB");
 
             // Now go through additional environment variables.
             string[] additionalVariables = EnvironmentVariables;
@@ -1098,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             foreach (var item in taskItems)
             {
-                item.ItemSpec = Utilities.GetFullPathNoThrow(item.ItemSpec);
+                item.ItemSpec = Utilities.GetFullPathNoThrow(item.ItemSpec, TaskEnvironment);
             }
         }
 
@@ -1219,10 +1227,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             foreach (ITaskItem reference in References)
             {
-                if (!File.Exists(reference.ItemSpec))
+                var itemSpec = reference.ItemSpec;
+
+                if (string.IsNullOrEmpty(itemSpec) || !File.Exists(TaskEnvironment.GetFullPath(itemSpec)))
                 {
                     success = false;
-                    Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", reference.ItemSpec);
+                    Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", itemSpec);
                 }
             }
 

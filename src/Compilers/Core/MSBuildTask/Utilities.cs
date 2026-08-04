@@ -4,6 +4,7 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -114,6 +115,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             try
             {
                 path = Path.GetFullPath(path);
+            }
+            catch (Exception e) when (IsIoRelatedException(e)) { }
+            return path;
+        }
+
+        internal static string GetFullPathNoThrow(string path, TaskEnvironment taskEnvironment)
+        {
+            try
+            {
+                path = taskEnvironment.GetFullPath(path);
             }
             catch (Exception e) when (IsIoRelatedException(e)) { }
             return path;

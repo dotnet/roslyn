@@ -105,10 +105,26 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public bool IsLogging => _loggingStream is object;
 
+#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
         /// <summary>
-        /// Static class initializer that initializes logging.
+        /// Initializes logging using the supplied environment variable lookup and path absolutization.
         /// </summary>
-        public CompilerServerLogger(string identifier, string? loggingFilePath = null)
+        public CompilerServerLogger(
+            string identifier,
+            string? loggingFilePath = null)
+            : this(identifier, loggingFilePath, Environment.GetEnvironmentVariable, Path.GetFullPath)
+        {
+        }
+#endif
+
+        /// <summary>
+        /// Initializes logging using the supplied environment variable lookup and path absolutization.
+        /// </summary>
+        public CompilerServerLogger(
+            string identifier,
+            string? loggingFilePath,
+            Func<string, string?> getEnvironmentVariable,
+            Func<string, string> getFullPath)
         {
             _identifier = identifier;
 
@@ -116,14 +132,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 if (loggingFilePath is null)
                 {
-                    loggingFilePath = Environment.GetEnvironmentVariable(EnvironmentVariableName);
-                    // If the environment variable contains the path of a currently existing directory,
-                    // then use a process-specific name for the log file and put it in that directory.
-                    // Otherwise, assume that the environment variable specifies the name of the log file.
-                    if (Directory.Exists(loggingFilePath))
+                    loggingFilePath = getEnvironmentVariable(EnvironmentVariableName);
+                    if (!string.IsNullOrEmpty(loggingFilePath))
                     {
-                        var processId = Process.GetCurrentProcess().Id;
-                        loggingFilePath = Path.Combine(loggingFilePath, $"server.{processId}.log");
+                        loggingFilePath = getFullPath(loggingFilePath);
+
+                        // If the environment variable contains the path of a currently existing directory,
+                        // then use a process-specific name for the log file and put it in that directory.
+                        // Otherwise, assume that the environment variable specifies the name of the log file.
+                        if (Directory.Exists(loggingFilePath))
+                        {
+                            var processId = Process.GetCurrentProcess().Id;
+                            loggingFilePath = Path.Combine(loggingFilePath, $"server.{processId}.log");
+                        }
                     }
                 }
 

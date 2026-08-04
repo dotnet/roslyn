@@ -1,0 +1,8 @@
+P:System.Environment.CurrentDirectory
+M:System.Environment.GetEnvironmentVariable(System.String);
+M:System.Environment.GetEnvironmentVariables();
+M:System.Environment.GetCommandLineArgs();
+M:System.Environment.GetFolderPath();
+M:System.Environment.GetLogicalDrives();
+M:System.Environment.SetEnvironmentVariable();
+M:System.IO.Directory.GetCurrentDirectory();

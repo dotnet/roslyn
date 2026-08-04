@@ -133,7 +133,11 @@ public abstract class IntegrationTestBase : TestBase
     {
         var pipeName = Regex.Match(result.Output, @"Named pipe '([^']+)' connected").Groups[1].Value;
         AssertEx.Equal(sharedCompilationId, pipeName);
-        using var logger = new CompilerServerLogger("test");
+        using var logger = new CompilerServerLogger(
+            "test",
+            loggingFilePath: null,
+            Environment.GetEnvironmentVariable,
+            Path.GetFullPath);
         await BuildServerConnection.RunServerShutdownRequestAsync(
             pipeName,
             timeoutOverride: null,

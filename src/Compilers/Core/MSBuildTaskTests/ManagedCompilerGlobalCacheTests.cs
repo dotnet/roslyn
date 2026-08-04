@@ -25,7 +25,7 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
         var sourceFileName = visualBasic ? "test.vb" : "test.cs";
         var arguments = new List<string> { sourceFileName };
 
-        CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments);
+        CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, Environment.GetEnvironmentVariable);
 
         Assert.Single(arguments);
         Assert.Equal(sourceFileName, arguments[0]);
@@ -44,7 +44,7 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
             [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, expectedPath)],
             () =>
             {
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, Environment.GetEnvironmentVariable);
                 return true;
             });
 
@@ -65,7 +65,7 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
             [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, expectedPath)],
             () =>
             {
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, text => message = text);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, Environment.GetEnvironmentVariable, text => message = text);
                 return true;
             });
 
@@ -89,7 +89,7 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
             [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, quotedPath)],
             () =>
             {
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, text => message = text);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, Environment.GetEnvironmentVariable, text => message = text);
                 return true;
             });
 
@@ -182,7 +182,7 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
                 : [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, environmentCachePath)],
             () =>
             {
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, Environment.GetEnvironmentVariable);
                 return true;
             });
 
@@ -190,5 +190,6 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
             ? VisualBasicCommandLineParser.Default.Parse(arguments, Directory.GetCurrentDirectory(), sdkDirectory: null, additionalReferenceDirectories: null).ParseOptions.Features
             : CSharpCommandLineParser.Default.Parse(arguments, baseDirectory: Directory.GetCurrentDirectory(), sdkDirectory: null, additionalReferenceDirectories: null).ParseOptions.Features;
     }
+
 }
 #endif

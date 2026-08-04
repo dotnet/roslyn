@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
-    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK;MICROSOFT_CODEANALYSIS_MSBUILD_TASK</DefineConstants>
     <!--
       A .NET copy of this task assembly is included in the .NET SDK's Native AOT CLI, so it must be
       clean for trimming, AOT, and single-file publishing. IsAotCompatible (enabled only for the .NET
@@ -15,6 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AdditionalFiles Include="..\BannedSymbols.MSBuildMT.txt" />
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
   </ItemGroup>
 

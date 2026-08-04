@@ -194,12 +194,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         public static CompileOnServerFunc GetCompileOnServerFunc(ICompilerServerLogger logger) => (buildRequest, pipeName, cancellationToken) =>
-            BuildServerConnection.RunServerBuildRequestAsync(
+        {
+            return BuildServerConnection.RunServerBuildRequestAsync(
                 buildRequest,
                 pipeName,
                 GetClientDirectory(),
+                Environment.GetEnvironmentVariablesTyped(),
                 logger,
                 cancellationToken);
+        };
 
         /// <summary>
         /// Runs the provided compilation on the server.  If the compilation cannot be completed on the server then null
@@ -366,4 +369,5 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false).Skip(1);
         }
     }
+
 }
