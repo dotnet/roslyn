@@ -108,6 +108,7 @@ internal sealed partial class HtmlFormattingPass(
         // there could be one edit to replace the whole line.
         changes = SourceTextDiffer.GetMinimalTextChanges(originalText, formattedText, DiffKind.Char);
         changes = FilterChangesInUnsupportedSpans(changes, razorCommentSpans);
+        changes = FilterOutNonWhitespaceChanges(changes);
 
         // Re-apply the changes to get the new formatted text
         formattedText = originalText.WithChanges(changes);
@@ -194,6 +195,38 @@ internal sealed partial class HtmlFormattingPass(
                 return changes;
             }
 
+            return validChanges.ToImmutableAndClear();
+        }
+
+        ImmutableArray<TextChange> FilterOutNonWhitespaceChanges(ImmutableArray<TextChange> candidateChanges)
+        {
+            var changedText = originalText.WithChanges(candidateChanges);
+            using var validChanges = new PooledArrayBuilder<TextChange>();
+            var positionDelta = 0;
+            foreach (var change in candidateChanges)
+            {
+                var replacementLength = change.NewText?.Length ?? 0;
+                var changedStart = change.Span.Start + positionDelta;
+                var changedEnd = changedStart + replacementLength;
+                if (originalText.NonWhitespaceContentEquals(
+                    changedText,
+                    change.Span.Start,
+                    change.Span.End,
+                    changedStart,
+                    changedEnd))
+                {
+                    validChanges.Add(change);
+                }
+
+                positionDelta += replacementLength - change.Span.Length;
+            }
+
+            if (candidateChanges.Length == validChanges.Count)
+            {
+                return candidateChanges;
+            }
+
+            _logger.LogWarning("Ignoring non-whitespace changes returned by the HTML formatter.");
             return validChanges.ToImmutableAndClear();
         }
     }
