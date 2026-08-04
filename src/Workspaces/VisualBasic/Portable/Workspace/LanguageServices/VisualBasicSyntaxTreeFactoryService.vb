@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared ReadOnly _parseOptionsWithLatestLanguageVersion As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
 
         Public Sub New(syntaxTreeCache As ISyntaxTreeCacheService)
-            MyBase.New(LanguageNames.VisualBasic, syntaxTreeCache)
+            MyBase.New(syntaxTreeCache)
         End Sub
 
         Public Overloads Overrides Function GetDefaultParseOptions() As ParseOptions

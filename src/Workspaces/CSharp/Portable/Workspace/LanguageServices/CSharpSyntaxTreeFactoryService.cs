@@ -20,7 +20,7 @@ internal sealed partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTre
     private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
     public CSharpSyntaxTreeFactoryService(ISyntaxTreeCacheService syntaxTreeCache)
-        : base(LanguageNames.CSharp, syntaxTreeCache)
+        : base(syntaxTreeCache)
     {
     }
 

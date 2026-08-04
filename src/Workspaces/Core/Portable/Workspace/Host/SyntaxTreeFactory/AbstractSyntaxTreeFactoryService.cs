@@ -13,12 +13,10 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal abstract partial class AbstractSyntaxTreeFactoryService : ISyntaxTreeFactoryService
 {
-    private readonly string _language;
     private readonly ISyntaxTreeCacheService _syntaxTreeCache;
 
-    protected AbstractSyntaxTreeFactoryService(string language, ISyntaxTreeCacheService syntaxTreeCache)
+    protected AbstractSyntaxTreeFactoryService(ISyntaxTreeCacheService syntaxTreeCache)
     {
-        _language = language;
         _syntaxTreeCache = syntaxTreeCache;
     }
 
@@ -35,24 +33,15 @@ internal abstract partial class AbstractSyntaxTreeFactoryService : ISyntaxTreeFa
         if (_syntaxTreeCache is null)
             return ParseSyntaxTreeCore(filePath, options, text, cancellationToken);
 
-        var key = _syntaxTreeCache.CreateKey(_language, text, options);
-        if (_syntaxTreeCache.TryGetRoot(key, out var cachedRoot))
-        {
-            var cachedTree = CreateSyntaxTree(filePath, options, text, text.Encoding, text.ChecksumAlgorithm, cachedRoot);
-            _syntaxTreeCache.RefreshRoot(key, cachedTree.GetRoot(cancellationToken));
-            return cachedTree;
-        }
-
-        var parsedTree = ParseSyntaxTreeCore(filePath, options, text, cancellationToken);
-        var parsedRoot = parsedTree.GetRoot(cancellationToken);
-        var canonicalRoot = _syntaxTreeCache.GetOrAddRoot(key, parsedRoot);
-
-        if (canonicalRoot == parsedRoot)
-            return parsedTree;
-
-        var raceTree = CreateSyntaxTree(filePath, options, text, text.Encoding, text.ChecksumAlgorithm, canonicalRoot);
-        _syntaxTreeCache.RefreshRoot(key, raceTree.GetRoot(cancellationToken));
-        return raceTree;
+        return _syntaxTreeCache.GetOrCreateSyntaxTree(
+            text,
+            options,
+            static (state, cancellationToken) => state.service.ParseSyntaxTreeCore(
+                state.filePath, state.options, state.text, cancellationToken),
+            static (root, state) => state.service.CreateSyntaxTree(
+                state.filePath, state.options, state.text, state.text.Encoding, state.text.ChecksumAlgorithm, root),
+            (service: this, filePath, options, text),
+            cancellationToken);
     }
 
     protected abstract SyntaxTree ParseSyntaxTreeCore(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);

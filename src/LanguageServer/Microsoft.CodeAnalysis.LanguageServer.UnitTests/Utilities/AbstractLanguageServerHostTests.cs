@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.Pipelines;
@@ -35,7 +34,6 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
     /// watch it created once it shuts down (see <see cref="FileWatcherReleaseTracker"/>).
     /// </summary>
     private readonly FileWatcherReleaseTracker _fileWatcherReleaseTracker;
-    private readonly List<ExportProvider> _ownedExportProviders = [];
 
     internal static ServerConfiguration DefaultServerConfiguration => new(
         LaunchDebugger: false,
@@ -54,22 +52,13 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
     internal static ServerConfiguration ServerConfigurationWithoutDevKit => DefaultServerConfiguration with { DevKitDependencyPath = null };
 
-    protected virtual bool IncludeSyntaxTreeCache => true;
-    protected virtual bool UseSharedExportProviderCache => true;
-
     private protected virtual Task<ExportProvider> CreateExportProviderAsync(
         ServerConfiguration serverConfiguration,
         ILoggerFactory loggerFactory,
         ExtensionAssemblyManager extensionManager,
         IAssemblyLoader assemblyLoader)
     {
-        var provider = UseSharedExportProviderCache
-            ? LanguageServerTestComposition.GetSharedExportProvider(serverConfiguration, loggerFactory)
-            : LanguageServerTestComposition.CreateExportProviderForBenchmark(serverConfiguration, loggerFactory, IncludeSyntaxTreeCache);
-
-        if (!UseSharedExportProviderCache)
-            _ownedExportProviders.Add(provider);
-
+        var provider = LanguageServerTestComposition.GetSharedExportProvider(serverConfiguration, loggerFactory);
         return Task.FromResult(provider);
     }
 
@@ -124,19 +113,11 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
     public void Dispose()
     {
-        try
-        {
-            TempRoot.Dispose();
+        TempRoot.Dispose();
 
-            // The test's server(s) are disposed by the test body (via 'await using'), which releases their file watches on
-            // shutdown. Verify that actually happened so a watch-leaking test fails here rather than leaking into a later test.
-            _fileWatcherReleaseTracker.AssertWatchesReleased();
-        }
-        finally
-        {
-            foreach (var exportProvider in _ownedExportProviders)
-                exportProvider.Dispose();
-        }
+        // The test's server(s) are disposed by the test body (via 'await using'), which releases their file watches on
+        // shutdown. Verify that actually happened so a watch-leaking test fails here rather than leaking into a later test.
+        _fileWatcherReleaseTracker.AssertWatchesReleased();
     }
 
     /// <summary>
@@ -231,9 +212,6 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         internal T GetRequiredLspService<T>() where T : class
             => GetServerForLspServices().GetLspServices().GetRequiredService<T>();
-
-        internal Workspace GetHostWorkspace()
-            => GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
 
         internal async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths, CancellationToken cancellationToken)
         {

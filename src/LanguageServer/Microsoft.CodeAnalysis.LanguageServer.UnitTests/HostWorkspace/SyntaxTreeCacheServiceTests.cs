@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.HostWorkspace;
@@ -83,121 +84,100 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
     }
 
     [Fact]
-    public async Task ConcurrentPublicationConvergesOnOneRoot()
+    public async Task ConcurrentPublicationConvergesOnOneGreenRoot()
     {
-        var cache = new SyntaxTreeCacheService(maximumEntryCount: 10);
+        using var workspace = CreateCacheWorkspace(out var cache);
         var text = SourceText.From("class C { }");
-        var key = cache.CreateKey(LanguageNames.CSharp, text, CSharpParseOptions.Default);
 
-        var roots = await Task.WhenAll(
+        var trees = await Task.WhenAll(
             Enumerable.Range(0, 16).Select(_ => Task.Run(
-                () => cache.GetOrAddRoot(key, CSharpSyntaxTree.ParseText(text).GetRoot()))));
+                () => GetOrCreateTree(cache, text))));
 
-        var canonicalRoot = roots[0];
-        Assert.All(roots, root => Assert.Same(canonicalRoot, root));
-        Assert.Equal(1, cache.GetTestAccessor().EntryCount);
-        Assert.True(cache.GetTestAccessor().PublicationRaceCount > 0);
+        var canonicalRoot = trees[0].GetRoot();
+        Assert.All(trees, tree => Assert.True(canonicalRoot.IsIncrementallyIdenticalTo(tree.GetRoot())));
     }
 
     [Fact]
-    public void DeadRootsDoNotConsumeCapacity()
+    public void OlderLiveRootRemainsAvailableAfterNewerRootIsCollected()
     {
-        var cache = new SyntaxTreeCacheService(maximumEntryCount: 1);
-        var firstText = SourceText.From("class First { }");
-        var firstKey = cache.CreateKey(LanguageNames.CSharp, firstText, CSharpParseOptions.Default);
-        var weakRoot = AddRootWithoutRetainingIt(cache, firstKey, firstText);
-
-        CollectGarbage();
-        Assert.False(weakRoot.TryGetTarget(out _));
-
-        var secondText = SourceText.From("class Second { }");
-        var secondKey = cache.CreateKey(LanguageNames.CSharp, secondText, CSharpParseOptions.Default);
-        var secondRoot = CSharpSyntaxTree.ParseText(secondText).GetRoot();
-
-        Assert.Same(secondRoot, cache.GetOrAddRoot(secondKey, secondRoot));
-        Assert.False(cache.TryGetRoot(firstKey, out _));
-        Assert.True(cache.TryGetRoot(secondKey, out var cachedSecondRoot));
-        Assert.Same(secondRoot, cachedSecondRoot);
-        Assert.Equal(1, cache.GetTestAccessor().EntryCount);
-    }
-
-    [Fact]
-    public void DeadLookupReleasesCapacity()
-    {
-        var cache = new SyntaxTreeCacheService(maximumEntryCount: 1);
+        using var workspace = CreateCacheWorkspace(out var cache);
         var text = SourceText.From("class C { }");
-        var key = cache.CreateKey(LanguageNames.CSharp, text, CSharpParseOptions.Default);
-        var weakRoot = AddRootWithoutRetainingIt(cache, key, text);
+        var firstTree = GetOrCreateTree(cache, text);
+        var firstRoot = firstTree.GetRoot();
+        var secondRootReference = ObjectReference.CreateFromFactory(
+            static state =>
+            {
+                var root = GetOrCreateTree(state.cache, state.text).GetRoot();
+                Assert.True(state.expectedSharedRoot.IsIncrementallyIdenticalTo(root));
+                return root;
+            },
+            (cache, text, expectedSharedRoot: firstRoot));
 
-        CollectGarbage();
-        Assert.False(weakRoot.TryGetTarget(out _));
+        secondRootReference.AssertReleased();
 
-        Assert.False(cache.TryGetRoot(key, out _));
-        Assert.Equal(0, cache.GetTestAccessor().EntryCount);
+        var thirdRoot = GetOrCreateTree(cache, text).GetRoot();
+        Assert.True(firstRoot.IsIncrementallyIdenticalTo(thirdRoot));
     }
 
     [Fact]
-    public void LiveRootsEnforceCapacityLimit()
+    public void PeriodicCleanupReleasesDeadKeys()
     {
-        var cache = new SyntaxTreeCacheService(maximumEntryCount: 1);
-        var firstText = SourceText.From("class First { }");
-        var secondText = SourceText.From("class Second { }");
-        var firstKey = cache.CreateKey(LanguageNames.CSharp, firstText, CSharpParseOptions.Default);
-        var secondKey = cache.CreateKey(LanguageNames.CSharp, secondText, CSharpParseOptions.Default);
-        var firstRoot = CSharpSyntaxTree.ParseText(firstText).GetRoot();
-        var secondRoot = CSharpSyntaxTree.ParseText(secondText).GetRoot();
+        using var workspace = CreateCacheWorkspace(out var cache);
+        var firstOptionsReference = ObjectReference.CreateFromFactory(
+            static state =>
+            {
+                // The cache key strongly retains these unique options, so their lifetime lets this test observe
+                // whether periodic cleanup removed the entry after its weak roots died.
+                var options = CSharpParseOptions.Default.WithPreprocessorSymbols(Guid.NewGuid().ToString());
+                _ = GetOrCreateTree(state.cache, state.text, options);
+                return options;
+            },
+            (cache, text: SourceText.From("class First { }")));
+        firstOptionsReference.AssertHeld();
 
-        Assert.Same(firstRoot, cache.GetOrAddRoot(firstKey, firstRoot));
-        Assert.Same(secondRoot, cache.GetOrAddRoot(secondKey, secondRoot));
+        cache.GetTestAccessor().TriggerCleanupOnNextAddedRoot();
+        _ = GetOrCreateTree(cache, SourceText.From("class Second { }"));
 
-        Assert.True(cache.TryGetRoot(firstKey, out var cachedFirstRoot));
-        Assert.Same(firstRoot, cachedFirstRoot);
-        Assert.False(cache.TryGetRoot(secondKey, out _));
-        Assert.Equal(1, cache.GetTestAccessor().EntryCount);
-        Assert.Equal(1, cache.GetTestAccessor().AdmissionBypassCount);
+        firstOptionsReference.AssertReleased();
     }
 
     [Fact]
-    public void SaturatedCacheDoesNotScanForEveryAdmission()
+    public void DeadEntryIsReplaced()
     {
-        var cache = new SyntaxTreeCacheService(maximumEntryCount: 1);
-        var firstText = SourceText.From("class First { }");
-        var firstKey = cache.CreateKey(LanguageNames.CSharp, firstText, CSharpParseOptions.Default);
-        var firstRoot = CSharpSyntaxTree.ParseText(firstText).GetRoot();
-        Assert.Same(firstRoot, cache.GetOrAddRoot(firstKey, firstRoot));
-
-        for (var i = 0; i < 10; i++)
-        {
-            var text = SourceText.From($"class C{i} {{ }}");
-            var key = cache.CreateKey(LanguageNames.CSharp, text, CSharpParseOptions.Default);
-            var root = CSharpSyntaxTree.ParseText(text).GetRoot();
-            Assert.Same(root, cache.GetOrAddRoot(key, root));
-        }
-
-        var accessor = cache.GetTestAccessor();
-        Assert.Equal(1, accessor.CleanupCount);
-        Assert.Equal(10, accessor.AdmissionBypassCount);
-    }
-
-    [Fact]
-    public void CacheKeysIncludeLanguage()
-    {
-        var cache = new SyntaxTreeCacheService(maximumEntryCount: 2);
+        using var workspace = CreateCacheWorkspace(out var cache);
         var text = SourceText.From("class C { }");
-        var csharpKey = cache.CreateKey(LanguageNames.CSharp, text, CSharpParseOptions.Default);
-        var otherLanguageKey = cache.CreateKey("Other", text, CSharpParseOptions.Default);
-        var csharpRoot = CSharpSyntaxTree.ParseText(text).GetRoot();
-        var otherRoot = CSharpSyntaxTree.ParseText(text).GetRoot();
+        var rootReference = ObjectReference.CreateFromFactory(
+            static state => GetOrCreateTree(state.cache, state.text).GetRoot(),
+            (cache, text));
+        rootReference.AssertReleased();
 
-        Assert.Same(csharpRoot, cache.GetOrAddRoot(csharpKey, csharpRoot));
-        Assert.Same(otherRoot, cache.GetOrAddRoot(otherLanguageKey, otherRoot));
-        Assert.NotSame(csharpRoot, otherRoot);
+        var replacementRoot = GetOrCreateTree(cache, text).GetRoot();
+        var cachedReplacementRoot = GetOrCreateTree(cache, text).GetRoot();
+        Assert.True(replacementRoot.IsIncrementallyIdenticalTo(cachedReplacementRoot));
+    }
+
+    [Fact]
+    public void DifferentLanguagesDoNotShareGreenNodes()
+    {
+        using var workspace = CreateCacheWorkspace(out var cache);
+        var text = SourceText.From("class C { }");
+        var csharpRoot = GetOrCreateTree(cache, text).GetRoot();
+        var visualBasicRoot = GetOrCreateVisualBasicTree(cache, text).GetRoot();
+
+        Assert.False(csharpRoot.IsIncrementallyIdenticalTo(visualBasicRoot));
     }
 
     private HostServices GetLanguageServerHostServices()
     {
         var exportProvider = LanguageServerTestComposition.GetSharedExportProvider(ServerConfigurationWithoutDevKit, LoggerFactory);
         return exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
+    }
+
+    private AdhocWorkspace CreateCacheWorkspace(out SyntaxTreeCacheService cache)
+    {
+        var workspace = new AdhocWorkspace(GetLanguageServerHostServices(), WorkspaceKind.Host);
+        cache = (SyntaxTreeCacheService)workspace.Services.GetRequiredService<ISyntaxTreeCacheService>();
+        return workspace;
     }
 
     private static Document AddDocument(
@@ -221,19 +201,34 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
             documentId, Path.GetFileName(filePath), loader: loader, filePath: filePath));
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static WeakReference<SyntaxNode> AddRootWithoutRetainingIt(
-        SyntaxTreeCacheService cache, SyntaxTreeCacheKey key, SourceText text)
+    private static SyntaxTree GetOrCreateTree(
+        SyntaxTreeCacheService cache,
+        SourceText text,
+        CSharpParseOptions? options = null)
     {
-        var root = CSharpSyntaxTree.ParseText(text).GetRoot();
-        Assert.Same(root, cache.GetOrAddRoot(key, root));
-        return new(root);
+        options ??= CSharpParseOptions.Default;
+        return cache.GetOrCreateSyntaxTree(
+            text,
+            options,
+            static (state, _) => CSharpSyntaxTree.ParseText(state.text, state.options),
+            static (root, state) => CSharpSyntaxTree.Create((CSharpSyntaxNode)root, state.options),
+            (text, options),
+            CancellationToken.None);
     }
 
-    private static void CollectGarbage()
+    private static SyntaxTree GetOrCreateVisualBasicTree(
+        SyntaxTreeCacheService cache,
+        SourceText text,
+        VisualBasicParseOptions? options = null)
     {
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
+        options ??= VisualBasicParseOptions.Default;
+        return cache.GetOrCreateSyntaxTree(
+            text,
+            options,
+            static (state, _) => VisualBasicSyntaxTree.ParseText(state.text, state.options),
+            static (root, state) => VisualBasicSyntaxTree.Create((VisualBasicSyntaxNode)root, state.options),
+            (text, options),
+            CancellationToken.None);
     }
+
 }
