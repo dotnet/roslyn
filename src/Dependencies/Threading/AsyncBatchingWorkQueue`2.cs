@@ -142,7 +142,7 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
                 return;
 
             // Cancel all work in the queue; this .Cancel() should stop the work, but we'll call CancelExistingWork() too to ensure
-            // we've cleared out all items that haven't ran
+            // we've cleared out all items that haven't ran.
             CancelExistingWork();
             _entireQueueCancellationTokenSource.Cancel();
         }
@@ -151,6 +151,7 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
         // If we did this inside the lock, the callback might be blocked waiting for a call to Dispose() to release the lock, but the
         // caller of Dispose() would be blocked on that registration. If we could drop netstandard support, we could just call Unregister() instead.
         _externalCancellationTokenRegistration.Dispose();
+        _cancellationSeries.Dispose();
     }
 
     /// <summary>
@@ -161,6 +162,10 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
     {
         lock (_gate)
         {
+            // If we've previously disposed, we don't need to do anything further
+            if (_entireQueueCancellationTokenSource.IsCancellationRequested)
+                return;
+
             // Cancel out the current executing batch, and create a new token for the next batch.
             _nextBatchCancellationToken = _cancellationSeries.CreateNext();
 
