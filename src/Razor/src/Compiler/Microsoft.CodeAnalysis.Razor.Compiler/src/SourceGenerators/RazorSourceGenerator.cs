@@ -107,7 +107,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     {
                         RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
                         var declEngine = GetDeclarationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
-                        fallbackDecl = declEngine.Process(sourceItem, cancellationToken).GetRequiredImplCSharpDocument();
+                        fallbackDecl = declEngine.Process(sourceItem, cancellationToken).GetRequiredCSharpDocument(declarationDocument: false);
                         fallbackTypeName = typeName;
                         RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.FilePath);
                     }
@@ -129,7 +129,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var declSources = processedDocuments
                 .Select(static (item, _) =>
                 {
-                    var declCSharpDocument = item.document.CodeDocument.GetDeclCSharpDocument();
+                    var declCSharpDocument = item.document.CodeDocument.GetCSharpDocument(declarationDocument: true);
                     return (hintName: GetIdentifierFromPath(item.path), declCSharpDocument);
                 })
                 .Where(static item => item.declCSharpDocument is not null)
@@ -423,8 +423,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (
                         hintName: GetIdentifierFromPath(filePath),
                         codeDocument: document.CodeDocument,
-                        csharpDocument: document.CodeDocument.GetRequiredImplCSharpDocument(),
-                        declCSharpDocument: document.CodeDocument.GetDeclCSharpDocument());
+                        csharpDocument: document.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false),
+                        declCSharpDocument: document.CodeDocument.GetCSharpDocument(declarationDocument: true));
                 })
                 .WithLambdaComparer(static (a, b) =>
                 {

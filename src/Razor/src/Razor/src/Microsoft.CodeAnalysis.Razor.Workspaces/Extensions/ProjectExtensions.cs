@@ -37,14 +37,6 @@ internal static class ProjectExtensions
         return generatedDocuments.SingleOrDefault(d => d.HintName == hintName);
     }
 
-#if SONICDEV
-    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
-#endif
-    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentForRazorDocumentAsync(this Project project, TextDocument razorDocument, CancellationToken cancellationToken)
-    {
-        return (await TryGetSourceGeneratedDocumentsForRazorDocumentAsync(project, razorDocument, cancellationToken).ConfigureAwait(false))?.ImplDoc;
-    }
-
     /// <summary>
     /// Finds source generated documents by iterating through all of them. In OOP there are better options!
     /// </summary>
