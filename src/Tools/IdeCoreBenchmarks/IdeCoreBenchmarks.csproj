@@ -28,6 +28,11 @@
     <PackageReference Include="Microsoft.VisualStudio.Cache" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <!-- Exclude the Index and Range implementations since we inherit ones from M.CA.Workspace -->
+    <PackageReference Include="Microsoft.Bcl.Memory" ExcludeAssets="compile" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
