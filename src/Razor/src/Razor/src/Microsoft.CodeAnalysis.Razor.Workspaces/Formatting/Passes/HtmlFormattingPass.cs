@@ -214,8 +214,7 @@ internal sealed partial class HtmlFormattingPass(
             {
                 Debug.Assert(change.Span.Start >= previousStart);
                 previousStart = change.Span.Start;
-            foreach (var change in candidateChanges)
-            {
+
                 var replacementLength = change.NewText?.Length ?? 0;
                 var changedStart = change.Span.Start + positionDelta;
                 var changedEnd = changedStart + replacementLength;
