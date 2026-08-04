@@ -34,5 +34,5 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 | Path | Status | Purpose |
 |------|--------|---------|
 | `eng/` | Config / Generated | Arcade build engineering. `eng/common/` is DARC-synced — do not hand-edit. `eng/generate-compiler-code.cs` regenerates compiler code. |
-| `docs/` | Active | Contributor & design docs. New docs use kebab-case filenames in the right subdirectory. |
+| `docs/` | Active | Contributor & design docs. New docs use kebab-case filenames in the right subdirectory. Razor warning-wave diagnostics are tracked in `docs/razor/warning-levels.md`. |
 | Root | Config | Entry points & solution filters: `build.sh`/`Build.cmd`, `test.sh`/`Test.cmd`, `Roslyn.slnx`, `Compilers.slnf`, `Ide.slnf`, `Razor.slnf`, `global.json`, `Directory.*.props/targets`, `Directory.Packages.props`. |
