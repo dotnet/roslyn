@@ -205,6 +205,12 @@ internal sealed partial class HtmlFormattingPass(
                 return candidateChanges;
             }
 
+            // The character differ can split a collectively safe rewrite into changes that do not compare safely in isolation.
+            if (originalText.NonWhitespaceContentEquals(candidateChanges))
+            {
+                return candidateChanges;
+            }
+
             var changedText = originalText.WithChanges(candidateChanges);
             using var validChanges = new PooledArrayBuilder<TextChange>(capacity: candidateChanges.Length);
 
