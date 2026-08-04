@@ -8326,6 +8326,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
     public async Task IncompleteObjectCreation_UseSpaces()
     {
         TestCode input = """
