@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var mvid = AssemblyUtilities.ReadMvid(originalPath);
                 var length = new FileInfo(originalPath).Length;
-                return $"{Path.GetFileNameWithoutExtension(originalPath)}-{hexHash}-{mvid:N}-{length}-{Path.GetExtension(originalPath)}";
+                return $"{Path.GetFileNameWithoutExtension(originalPath)}-{hexHash}-{mvid:N}-{length}{Path.GetExtension(originalPath)}";
             }
             catch
             {
