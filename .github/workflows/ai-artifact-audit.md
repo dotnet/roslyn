@@ -18,6 +18,8 @@ network:
 safe-outputs:
   mentions: false
   allowed-github-references: []
+  noop:
+    report-as-issue: false
   create-issue:
     title-prefix: "[AI artifact audit] "
     max: 1
