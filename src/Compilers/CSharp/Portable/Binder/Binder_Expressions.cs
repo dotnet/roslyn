@@ -5866,8 +5866,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
 
-            // Member name map to report duplicate assignments to a field/property.
-            var memberNameMap = PooledHashSet<string>.GetInstance();
+            // Tracks each member name's first-seen initializer kind so the duplicate-member rules can
+            // be enforced: any number of compound assignments are permitted for the same
+            // field/property/event target, and if an `=` member initializer is present it shall
+            // appear in lexical order before any other member initializer for that target. The
+            // `target = { … }` (object/collection-initializer-valued) form is exclusive — no other
+            // initializer may target the same member. Indexer (ImplicitElementAccess) targets are
+            // unrestricted; ReportDuplicateObjectMemberInitializers filters them out before checking.
+            var memberNameMap = PooledDictionary<string, MemberInitializerKind>.GetInstance();
             foreach (var memberInitializer in initializerSyntax.Expressions)
             {
                 BoundExpression boundMemberInitializer = BindInitializerMemberAssignment(
@@ -5896,8 +5902,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (memberInitializer.Kind())
             {
                 case SyntaxKind.SimpleAssignmentExpression:
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
                     {
                         var initializer = (AssignmentExpressionSyntax)memberInitializer;
+                        SyntaxKind kind = initializer.Kind();
+                        bool isSimple = kind == SyntaxKind.SimpleAssignmentExpression;
+
+                        // Every non-simple form (the eleven compound operators plus `??=`) shares: the
+                        // feature gate, the "no nested-initializer RHS" restriction, and the
+                        // `BindValueKind.CompoundAssignment` value-kind check performed by
+                        // `BindObjectInitializerMember`. The specification diff targets ECMA-334 v7 whose
+                        // `assignment_operator` production pre-dates `??=`; we admit `??=` here because
+                        // the C# 8 null-coalescing-assignment proposal explicitly defines it to follow the
+                        // same compound-assignment semantic rules, plus the elide-if-non-null short-circuit.
+                        if (!isSimple)
+                        {
+                            MessageID.IDS_FeatureCompoundAssignmentInInitializer.CheckFeatureAvailability(diagnostics, initializer.OperatorToken);
+                        }
 
                         BoundExpression boundLeft = BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
 
@@ -5909,7 +5941,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                             bool isRef = refKind == RefKind.Ref;
                             var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(boundLeft) : BindValueKind.RValue;
 
-                            // Bind member initializer value, i.e. right part of assignment
+                            // Per spec, the compound_assignment_operator branch of member_initializer
+                            // admits only *expression*, not the nested-initializer form; the same
+                            // restriction applies to `??=`. The parser is permissive (it produces a
+                            // nested ObjectInitializerExpression / CollectionInitializerExpression on
+                            // the RHS), so we report the additional error here and return a bad
+                            // expression whose children are the bound left and the bound right
+                            // (preserving whatever semantic info IDE / semantic-model consumers can
+                            // glean about each side). The RHS is bound into a discarded diagnostic bag
+                            // because CS0747 is the primary diagnostic and cascading errors from
+                            // binding a malformed brace-list against the target type (e.g. CS1922) add
+                            // no information.
+                            if (!isSimple && initializer.Right is InitializerExpressionSyntax)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
+                                BoundExpression badRight = BindInitializerExpressionOrValue(
+                                    syntax: rhsExpr,
+                                    type: boundLeft.Type,
+                                    rhsKind,
+                                    typeSyntax: boundLeft.Syntax,
+                                    diagnostics: BindingDiagnosticBag.Discarded);
+                                return new BoundBadExpression(
+                                    initializer,
+                                    LookupResultKind.Empty,
+                                    symbols: [],
+                                    childBoundNodes: [boundLeft, badRight],
+                                    type: null,
+                                    hasErrors: true);
+                            }
+
                             BoundExpression boundRight = BindInitializerExpressionOrValue(
                                 syntax: rhsExpr,
                                 type: boundLeft.Type,
@@ -5918,7 +5978,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 diagnostics: diagnostics);
 
                             // Bind member initializer assignment expression
-                            return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
+                            return kind switch
+                            {
+                                SyntaxKind.SimpleAssignmentExpression =>
+                                    BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics),
+                                SyntaxKind.CoalesceAssignmentExpression =>
+                                    BindNullCoalescingAssignmentOperatorCore(initializer, boundLeft, boundRight, diagnostics),
+                                _ =>
+                                    BindCompoundAssignmentCore(initializer, boundLeft, boundRight, diagnostics),
+                            };
                         }
                         break;
                     }
@@ -5968,7 +6036,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxKind rhsKind = namedAssignment.Right.Kind();
             bool isRef = rhsKind is SyntaxKind.RefExpression;
             bool isRhsNestedInitializer = rhsKind is SyntaxKind.ObjectInitializerExpression or SyntaxKind.CollectionInitializerExpression;
-            BindValueKind valueKind = isRhsNestedInitializer ? BindValueKind.RValue : (isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable);
+            bool isCompound = namedAssignment.Kind() != SyntaxKind.SimpleAssignmentExpression;
+
+            // A compound member initializer `{ P op= v }` reads from and writes to the target, so it
+            // needs `BindValueKind.CompoundAssignment` rather than plain `Assignable`. Pre-validating
+            // at bind-member time lets the later call to `BindCompoundAssignmentCore` treat
+            // `BoundObjectInitializerMember` as an already-validated lvalue, matching how
+            // `BindAssignment` treats it for simple-assignment.
+            BindValueKind valueKind =
+                isRhsNestedInitializer ? BindValueKind.RValue :
+                isRef ? BindValueKind.RefAssignable :
+                isCompound ? BindValueKind.CompoundAssignment : BindValueKind.Assignable;
 
             return BindObjectInitializerMemberCommon(
                 leftSyntax, implicitReceiver, valueKind, isRhsNestedInitializer, diagnostics);
@@ -6185,6 +6263,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Pass the concrete member access through as UnderlyingAccess so downstream consumers
+            // (value-kind rechecks, event-assignment dispatch, compound/??= lowering) can delegate
+            // directly to the per-kind helpers instead of synthesizing a new access from the
+            // denormalized fields. The placeholder receiver on boundMember is the same implicitReceiver
+            // we just used for binding, so lowering's usual placeholder-substitution will handle it.
             return new BoundObjectInitializerMember(
                 leftSyntax,
                 boundMember.ExpressionSymbol,
@@ -6196,6 +6279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments,
                 resultKind,
                 accessorKind,
+                underlyingAccess: boundMember,
                 implicitReceiver.Type,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
@@ -6266,31 +6350,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToBadExpression(boundMember, (valueKind == BindValueKind.RValue) ? LookupResultKind.NotAValue : LookupResultKind.NotAVariable);
         }
 
-        private static void ReportDuplicateObjectMemberInitializers(BoundExpression boundMemberInitializer, HashSet<string> memberNameMap, BindingDiagnosticBag diagnostics)
+        private enum MemberInitializerKind
+        {
+            /// <summary>`=` (with non-nested RHS), `+= / -= / *= / …`, or event `+= / -=`.</summary>
+            SimpleOrCompound,
+
+            /// <summary>`target = { … }` — the object/collection-initializer-valued `=` form, which is exclusive.</summary>
+            NestedInitializer,
+        }
+
+        private static void ReportDuplicateObjectMemberInitializers(BoundExpression boundMemberInitializer, Dictionary<string, MemberInitializerKind> memberNameMap, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(memberNameMap != null);
 
-            // SPEC:    It is an error for an object initializer to include more than one member initializer for the same field or property.
+            // SPEC:    For any given field, property, or event target, any number of member initializers using a
+            // SPEC:    compound assignment operator are permitted for the same target. If present, an `=` member
+            // SPEC:    initializer shall appear in lexical order before any other member initializer for that
+            // SPEC:    target. No such restriction applies to indexer targets.
+            // SPEC:    A member_initializer of the first form (initializer_target '=' object_or_collection_initializer)
+            // SPEC:    is exclusive: it must be the only member_initializer in the enclosing member_initializer_list
+            // SPEC:    whose initializer_target designates the same field, property, or event.
 
-            if (!boundMemberInitializer.HasAnyErrors)
+            if (boundMemberInitializer.HasAnyErrors)
+                return;
+
+            if (boundMemberInitializer.Syntax is not AssignmentExpressionSyntax namedAssignment)
+                return;
+
+            // Only identifier-named targets participate in the duplicate rules. Indexer targets
+            // (`[args] = ...` / `[args] += ...`) are unrestricted.
+            if (namedAssignment.Left is not IdentifierNameSyntax memberNameSyntax)
+                return;
+
+            var memberName = memberNameSyntax.Identifier.ValueText;
+            bool isSimpleAssignment = namedAssignment.Kind() == SyntaxKind.SimpleAssignmentExpression;
+            bool isNestedInitializer = isSimpleAssignment && namedAssignment.Right is InitializerExpressionSyntax;
+            var currentKind = isNestedInitializer ? MemberInitializerKind.NestedInitializer : MemberInitializerKind.SimpleOrCompound;
+
+            if (memberNameMap.TryGetValue(memberName, out var existingKind))
             {
-                // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (7.17.1) to the field or property.
-
-                var memberInitializerSyntax = boundMemberInitializer.Syntax;
-
-                Debug.Assert(memberInitializerSyntax.Kind() == SyntaxKind.SimpleAssignmentExpression);
-                var namedAssignment = (AssignmentExpressionSyntax)memberInitializerSyntax;
-
-                var memberNameSyntax = namedAssignment.Left as IdentifierNameSyntax;
-                if (memberNameSyntax != null)
+                // Diagnose when:
+                // * either side is the exclusive `= { … }` form (first-form exclusivity rule), OR
+                // * the current is a simple `=` (the spec's "if present, `=` shall appear before any
+                //   other member initializer for that target" rule — both repeated `=` and
+                //   compound-then-`=` reach here as `isSimpleAssignment`).
+                // Compound-then-compound and `=`-then-compound fall through silently.
+                if (existingKind == MemberInitializerKind.NestedInitializer || isNestedInitializer || isSimpleAssignment)
                 {
-                    var memberName = memberNameSyntax.Identifier.ValueText;
-
-                    if (!memberNameMap.Add(memberName))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_MemberAlreadyInitialized, memberNameSyntax, memberName);
-                    }
+                    Error(diagnostics, ErrorCode.ERR_MemberAlreadyInitialized, memberNameSyntax, memberName);
                 }
+            }
+            else
+            {
+                memberNameMap.Add(memberName, currentKind);
             }
         }
 
