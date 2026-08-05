@@ -469,8 +469,7 @@ namespace Roslyn.Utilities
             static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
         }
 
-        /// <summary>Create a hard link to a file.</summary>
-        /// <seealso href="https://learn.microsoft.com/en-us/dotnet/api/system.io.file.createhardlink?view=net-11.0" />
+        /// <summary>Get number of hard links to a file.</summary>
 #if NET
         [SupportedOSPlatform("windows")]
 #endif
@@ -513,7 +512,7 @@ namespace Roslyn.Utilities
                 uint dwFlagsAndAttributes,
                 IntPtr hTemplateFile);
 
-            // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createhardlinkw
+            // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle
             [DllImport("Kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
             static extern bool GetFileInformationByHandle(SafeFileHandle handle, out ByHandleFileInformation fileInformation);
         }
