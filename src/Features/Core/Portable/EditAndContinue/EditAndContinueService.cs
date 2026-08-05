@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -43,6 +42,11 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     {
         public IEditAndContinueService Service { get; } = service;
     }
+
+    private static EditAndContinueDiagnosticLevel DiagnosticLevel
+        => byte.TryParse(Environment.GetEnvironmentVariable("Microsoft_CodeAnalysis_EditAndContinue_DiagnosticLevel"), out var level)
+            ? (EditAndContinueDiagnosticLevel)level
+            : EditAndContinueDiagnosticLevel.None;
 
     private static readonly string? s_logDir = GetLogDirectory();
 
@@ -156,7 +160,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, Log, AnalysisLog, reportDiagnostics);
+            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, Log, AnalysisLog, DiagnosticLevel, reportDiagnostics);
 
             lock (_debuggingSessions)
             {

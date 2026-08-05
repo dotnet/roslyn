@@ -6441,7 +6441,7 @@ class Driver
 
             var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics(
-                // (14,17): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                // (14,17): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //             Bar(__arglist(One(), await Two()));
                 Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "__arglist(One(), await Two())").WithArguments("TestCase.Run()").WithLocation(14, 17),
                 // (48,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.

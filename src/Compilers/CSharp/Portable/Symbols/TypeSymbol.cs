@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// TypeSymbol.Interfaces as the source of edge data, which has had cycles and infinitely
         /// long dependency cycles removed. Consequently, it is possible (and we do) use the
         /// simplest version of Tarjan's topological sorting algorithm.
-        protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
+        protected ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             var visited = new HashSet<NamedTypeSymbol>(SymbolEqualityComparer.ConsiderEverything);
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool IsReadOnly { get; }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
 
         public string ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
         {

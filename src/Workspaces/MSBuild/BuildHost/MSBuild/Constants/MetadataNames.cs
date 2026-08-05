@@ -13,4 +13,5 @@ internal static class MetadataNames
     public const string Name = nameof(Name);
     public const string ReferenceOutputAssembly = nameof(ReferenceOutputAssembly);
     public const string Version = nameof(Version);
+    public const string FileBasedProgramsFromRefDirective = nameof(FileBasedProgramsFromRefDirective);
 }
