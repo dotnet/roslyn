@@ -325,7 +325,7 @@ internal partial class CSharpTypeInferenceService
             }
 
             if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
-                argument.Parent.Parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
+                argument.Parent.Parent?.Parent is AssignmentExpressionSyntax &&
                 argument.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) &&
                 argument.Parent.Parent.Parent.Parent?.Parent is BaseObjectCreationExpressionSyntax objectCreation)
             {
@@ -1479,14 +1479,32 @@ internal partial class CSharpTypeInferenceService
                     return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType));
                 }
             }
-            else if (initializerExpression?.Parent is ObjectCreationExpressionSyntax objectCreation)
+            else if (initializerExpression?.Parent is BaseObjectCreationExpressionSyntax or WithExpressionSyntax)
             {
-                // new List<T> { Goo() } 
-                var types = GetTypes(objectCreation).Select(t => t.InferredType);
-                if (types.Any(t => t is INamedTypeSymbol))
+                // For object/`with` initializers (`new C { … }`, `new() { … }`, `r with { … }`):
+                // when the inferred-for expression is a compound member initializer
+                // (`Prop += rhs`, `Flags |= rhs`, …) the desired RHS type is the LHS member's
+                // type. This is reached as a fallback path — the primary
+                // `InferTypeInBinaryOrAssignmentExpression` `otherSide` heuristic already
+                // returns the LHS type when the LHS resolves cleanly.
+                if (expressionOpt is AssignmentExpressionSyntax assignment)
                 {
-                    return types.OfType<INamedTypeSymbol>().SelectMany(t =>
-                        GetCollectionElementType(t));
+                    var leftTypes = GetTypes(assignment.Left).Where(IsUsableTypeFunc);
+                    if (leftTypes.Any())
+                        return leftTypes;
+                }
+
+                // For a collection-style initializer (`new List<T> { Goo() }`) infer the first
+                // generic type argument as the element type. Only applies to object-creation
+                // (not `with`) — `with` doesn't admit collection initialization.
+                if (initializerExpression.Parent is ObjectCreationExpressionSyntax objectCreation)
+                {
+                    var types = GetTypes(objectCreation).Select(t => t.InferredType);
+                    if (types.Any(t => t is INamedTypeSymbol))
+                    {
+                        return types.OfType<INamedTypeSymbol>().SelectMany(t =>
+                            GetCollectionElementType(t));
+                    }
                 }
             }
             else if (initializerExpression.IsParentKind(SyntaxKind.SimpleAssignmentExpression))

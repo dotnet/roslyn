@@ -2903,7 +2903,9 @@ class C
         var x = new C          //-typeExpression: C
                                //-objectOrCollectionValuePlaceholder: C
         {
-            A =                //-objectInitializerMember: dynamic 
+            A =                //-objectOrCollectionValuePlaceholder: C
+                               //-propertyAccess: dynamic
+                               //-objectInitializerMember: dynamic 
                                //-objectOrCollectionValuePlaceholder: dynamic
             {                  
                 B =            //-dynamicObjectInitializerMember: dynamic 

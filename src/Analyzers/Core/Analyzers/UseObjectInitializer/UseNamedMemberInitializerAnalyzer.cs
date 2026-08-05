@@ -68,6 +68,14 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         return !this.SyntaxFacts.IsObjectCollectionInitializer(this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
     }
 
+    /// <summary>
+    /// Returns true if the language (and its current version) admits compound assignment forms
+    /// (`+=`, `-=`, `??=`, …) as <em>member initializers</em> in object/<c>with</c> initializers.
+    /// When true, a subsequent compound expression-statement targeting the initialized object is a
+    /// candidate for being folded into the initializer; when false, only `=` statements qualify.
+    /// </summary>
+    protected abstract bool SupportsCompoundAssignmentInInitializer(ParseOptions options);
+
     protected sealed override bool TryAddMatches(
         ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> preMatches,
         ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> postMatches,
@@ -75,7 +83,14 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         CancellationToken cancellationToken)
     {
         changesSemantics = false;
-        using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
+
+        // Per-name state for repeat-target handling. `target = { ... }` is exclusive (no further
+        // initializer for that target is permitted, per the spec's nested-init exclusivity rule);
+        // every other shape (`=` with non-init RHS, `+=`, `-=`, `??=`, event `+=`/`-=`, …) is
+        // "set but not exclusive" and admits one or more compound follow-ups (`= → +=`, `+= → +=`,
+        // event `+= h1 → += h2`, etc.). It does NOT admit a follow-up `=` (would either duplicate
+        // an `=` or violate the "= before any compound" ordering rule).
+        using var _1 = PooledDictionary<string, bool>.GetInstance(out var seenNames);
 
         var initializer = this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
         if (initializer != null)
@@ -84,11 +99,16 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
             {
                 if (this.SyntaxFacts.IsNamedMemberInitializer(init))
                 {
-                    this.SyntaxFacts.GetPartsOfNamedMemberInitializer(init, out var name, out _);
-                    seenNames.Add(this.SyntaxFacts.GetIdentifierOfIdentifierName(name).ValueText);
+                    this.SyntaxFacts.GetPartsOfNamedMemberInitializer(init, out var name, out var rhs);
+                    var nameText = this.SyntaxFacts.GetIdentifierOfIdentifierName(name).ValueText;
+                    var isExclusiveNested = this.SyntaxFacts.IsObjectMemberInitializer(rhs)
+                        || this.SyntaxFacts.IsObjectCollectionInitializer(rhs);
+                    seenNames[nameText] = isExclusiveNested;
                 }
             }
         }
+
+        var supportsCompound = this.SupportsCompoundAssignmentInInitializer(_objectCreationExpression.SyntaxTree.Options);
 
         foreach (var subsequentStatement in this.State.GetSubsequentStatements())
         {
@@ -97,7 +117,13 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
             if (subsequentStatement is not TAssignmentStatementSyntax statement)
                 break;
 
-            if (!this.SyntaxFacts.IsSimpleAssignmentStatement(statement))
+            // Subsequent compound expression-statements (`c.x += 1;`) are foldable only on languages
+            // that admit compound member initializers; otherwise the produced initializer would be
+            // syntactically invalid for the target language version.
+            var matches = supportsCompound
+                ? this.SyntaxFacts.IsAnyAssignmentStatement(statement)
+                : this.SyntaxFacts.IsSimpleAssignmentStatement(statement);
+            if (!matches)
                 break;
 
             this.SyntaxFacts.GetPartsOfAssignmentStatement(
@@ -161,12 +187,23 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
 
             // found a match!
             //
-            // If we see an assignment to the same property/field, we can't convert it
-            // to an initializer.
+            // For repeat-target folds: a subsequent `=` is never foldable (would either duplicate
+            // an `=` or violate the "= before any compound" ordering rule), and a subsequent
+            // compound (`+=`, `??=`, event `+=`/`-=`, …) is foldable iff the prior occurrence is
+            // not the exclusive `target = { ... }` form. Subsequent statements never produce a
+            // nested `= { ... }` (it isn't a statement form), so newly-folded entries are always
+            // recorded as non-exclusive.
             var name = this.SyntaxFacts.GetNameOfMemberAccessExpression(leftMemberAccess);
             var identifier = this.SyntaxFacts.GetIdentifierOfSimpleName(name);
-            if (!seenNames.Add(identifier.ValueText))
-                break;
+
+            if (seenNames.TryGetValue(identifier.ValueText, out var priorIsExclusiveNested))
+            {
+                var subsequentIsCompound = !this.SyntaxFacts.IsSimpleAssignmentStatement(statement);
+                if (priorIsExclusiveNested || !subsequentIsCompound)
+                    break;
+            }
+
+            seenNames[identifier.ValueText] = false;
 
             postMatches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
                 statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));
