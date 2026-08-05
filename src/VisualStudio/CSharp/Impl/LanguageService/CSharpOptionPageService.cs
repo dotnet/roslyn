@@ -26,7 +26,9 @@ internal sealed class CSharpOptionPageService : IOptionPageService
     public CSharpOptionPageService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
     {
         var shell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
+#pragma warning disable VSSDK008 // Avoid UI thread affinity in MEF Part construction; TODO: https://github.com/dotnet/roslyn/issues/84333
         ErrorHandler.ThrowOnFailure(shell.LoadPackage(Guids.CSharpPackageId, out var package));
+#pragma warning restore VSSDK008 // Avoid UI thread affinity in MEF Part construction
         _package = (CSharpPackage)package;
         _threadingContext = threadingContext;
     }

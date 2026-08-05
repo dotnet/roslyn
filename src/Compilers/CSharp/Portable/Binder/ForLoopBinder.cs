@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ForStatementSyntax _syntax;
 
         public ForLoopBinder(Binder enclosing, ForStatementSyntax syntax)
-            : base(enclosing)
+            : base(enclosing, syntax)
         {
             Debug.Assert(syntax != null);
             _syntax = syntax;

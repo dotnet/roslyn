@@ -378,10 +378,10 @@ class Program
 
             var expectedPreviewDiagnostics = new[]
             {
-                // (14,37): error CS9229: Unsafe code may not appear in this context
+                // (14,37): error CS9360: This operation may only be used in an unsafe context
                 //         System.Console.WriteLine(s.x[3]);
                 Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(14, 37),
-                // (18,40): error CS9229: Unsafe code may not appear in this context
+                // (18,40): error CS9360: This operation may only be used in an unsafe context
                 //         System.Console.WriteLine(a[0].x[3]);
                 Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(18, 40)
             };

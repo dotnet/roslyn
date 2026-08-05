@@ -9,12 +9,20 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 internal class FormattingLoggerFactory : IFormattingLoggerFactory
 {
     private const string LogDirEnvVar = "RazorFormattingLogPath";
-    private static string? BaseLogDir { get; } = Environment.GetEnvironmentVariable(LogDirEnvVar);
+    private static readonly string? s_environmentLogDirectory = Environment.GetEnvironmentVariable(LogDirEnvVar);
+
+    private string? _logDirectory = s_environmentLogDirectory;
+
+    public void SetLogDirectory(string? logDirectory)
+    {
+        _logDirectory = logDirectory ?? s_environmentLogDirectory;
+    }
 
     public IFormattingLogger? CreateLogger(string documentFilePath, string formattingType)
     {
         // If the env var isn't set, we do nothing
-        if (BaseLogDir == null)
+        var logDirectory = _logDirectory;
+        if (logDirectory == null)
         {
             return null;
         }
@@ -22,7 +30,7 @@ internal class FormattingLoggerFactory : IFormattingLoggerFactory
         // Folder format is <BaseLogDir>/<timestamp>_<type>_<filename>/
         var fileName = Path.GetFileName(documentFilePath).Replace(".", "_");
         var folder = $"{DateTime.Now:yyyyMMdd_HHmmssfff}_{formattingType}_{fileName}";
-        var logFolder = Path.Combine(BaseLogDir, folder);
+        var logFolder = Path.Combine(logDirectory, folder);
         if (Directory.Exists(logFolder))
         {
             // Ensure uniqueness in case of a clash, however unlikely
