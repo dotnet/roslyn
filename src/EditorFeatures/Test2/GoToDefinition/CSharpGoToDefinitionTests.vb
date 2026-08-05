@@ -3479,6 +3479,346 @@ class C
         End Function
 
         <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Keyword() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: while (true)
+        {
+            break$$ outer;
+        }[||]
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledContinue_Keyword() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: [||]while (true)
+        {
+            continue$$ outer;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_OuterLoop() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: while (true)
+        {
+            while (true)
+            {
+                break$$ outer;
+            }
+        }[||]
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Identifier() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        [|outer|]: while (true)
+        {
+            break ou$$ter;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledContinue_Identifier() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        [|outer|]: while (true)
+        {
+            continue ou$$ter;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Identifier_OuterLoop() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        [|outer|]: while (true)
+        {
+            while (true)
+            {
+                break ou$$ter;
+            }
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledContinue_Identifier_OuterLoop() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        [|outer|]: for (int i = 0; i < 10; i++)
+        {
+            while (true)
+            {
+                continue ou$$ter;
+            }
+        }
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_AtEndOfFile_WithBraces() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+outer: while (true)
+{
+    break$$ outer;
+}[||]
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_AtEndOfFile_WithoutBraces() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+outer: while (true)
+    break$$ outer;[||]
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_TargetOutsideLambda() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: while (true)
+        {
+            System.Action a = () => { bre$$ak outer; };
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, expectedResult:=False)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledContinue_Keyword_TargetOutsideLambda() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: while (true)
+        {
+            System.Action a = () => { cont$$inue outer; };
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, expectedResult:=False)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_TargetOutsideLocalFunction() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: while (true)
+        {
+            void local() { bre$$ak outer; }
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, expectedResult:=False)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Identifier_TargetOutsideLambda() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        [|outer|]: while (true)
+        {
+            System.Action a = () => { break ou$$ter; };
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledContinue_Identifier_TargetOutsideLambda() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        [|outer|]: while (true)
+        {
+            System.Action a = () => { continue ou$$ter; };
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Identifier_TargetOutsideLocalFunction() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        [|outer|]: while (true)
+        {
+            void local() { break ou$$ter; }
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
         Public Async Function ExtendedPropertyPattern_FirstPart() As Task
             Dim workspace =
 <Workspace>

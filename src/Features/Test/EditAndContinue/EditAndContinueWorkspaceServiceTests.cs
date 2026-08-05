@@ -2435,7 +2435,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<Diagnostic>();
-        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, EditAndContinueDiagnosticLevel.None, CancellationToken.None);
         Assert.Empty(diagnostics);
         Assert.Empty(projectDifferences.DeletedDocuments);
         AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], projectDifferences.ChangedOrAddedDocuments.Select(d => d.Id));
@@ -2465,7 +2465,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         AssertEx.Equal(documentKind == TextDocumentKind.Document ? new[] { documentId } : [],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, EditAndContinueDiagnosticLevel.None, CancellationToken.None);
         Assert.Empty(diagnostics);
         Assert.True(projectDifferences.IsEmpty);
 
@@ -2490,7 +2490,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, EditAndContinueDiagnosticLevel.None, CancellationToken.None);
         Assert.Empty(diagnostics);
         Assert.Empty(projectDifferences.DeletedDocuments);
         AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], projectDifferences.ChangedOrAddedDocuments.Select(d => d.Id));
@@ -2518,7 +2518,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         AssertEx.Equal([generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, EditAndContinueDiagnosticLevel.None, CancellationToken.None);
         Assert.Empty(diagnostics);
 
         if (documentKind == TextDocumentKind.Document)
@@ -2601,7 +2601,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         AssertEx.Empty(await EditSession.GetChangedDocumentsAsync(log, oldProject, project, CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<Diagnostic>();
-        await EditSession.GetProjectDifferencesAsync(log, oldProject, project, diffences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldProject, project, diffences, diagnostics, EditAndContinueDiagnosticLevel.None, CancellationToken.None);
         Assert.Contains("System.InvalidOperationException: Source generator failed", diagnostics.Single().GetMessage());
         AssertEx.Empty(diffences.ChangedOrAddedDocuments);
         AssertEx.Equal(["generated.cs"], diffences.DeletedDocuments.Select(d => d.Name));

@@ -532,6 +532,11 @@
         <target state="translated">'{0}' não implementa o membro de interface '{1}'. '{2}' não pode implementar '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBadDerivedTypesProperty">
+        <source>'System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes' must be an instance property with public get and set accessors, no parameters, and type 'System.Type[]'.</source>
+        <target state="translated">''System.Runtime.CompilerServices.IsClosedTypeAttribute.DerivedTypes'' deve ser uma propriedade de instância com acessadores públicos get e set, sem parâmetros e do tipo ''System.Type[]''.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
         <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
         <target state="translated">''{0}'': não é possível usar um tipo fechado ''{1}'' de outro assembly como um tipo base.</target>
@@ -718,8 +723,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="translated">Uma variável não pode ser declarada em um padrão 'not' ou 'or'.</target>
+        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
+        <target state="translated">Uma variável não pode ser declarada dentro de um padrão 'not' ou 'or', nem em uma correspondência de união que envolva a correspondência com a instância ou com seu valor subjacente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -839,7 +844,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
         <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</target>
+        <target state="translated">O campo em um tipo de layout explícito ou estendido deve ser marcado como 'unsafe' ou 'safe'.</target>
         <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
@@ -894,7 +899,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property or indexer access</source>
-        <target state="new">An expression tree may not contain an extension property or indexer access</target>
+        <target state="translated">Uma árvore de expressão não pode conter um acesso à propriedade de extensão ou ao indexador</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1517,6 +1522,11 @@
         <target state="translated">O argumento diagnosticId para o atributo 'Experimental' deve ser um identificador válido</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyUnsafeMods">
+        <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="translated">Não é possível especificar os modificadores 'unsafe' ou 'safe' na propriedade ou no indexador '{0}' e em seu acessador. Remova um deles.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
         <target state="translated">Uma declaração 'union' não pode usar uma interface de provedor de membro de união.</target>
@@ -1529,13 +1539,23 @@
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
         <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
-        <target state="new">A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</target>
+        <target state="translated">Um tipo de provedor de membro da união deve ter uma propriedade ''Value'' da instância do tipo ''object?'' ou ''object''. A propriedade deve ter um acessador get público.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">'{0}' não contém uma definição para '{1}' e nenhum método de extensão acessível '{1}' que aceite um primeiro argumento do tipo '{0}' pôde ser encontrado (você quis iterar sobre a coleção assíncrona usando 'await foreach'?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="translated">Não há nenhum loop envolvente nem instrução switch com o rótulo ''{0}'' para a instrução break</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="translated">Não há nenhum loop envolvente com o rótulo ''{0}'' para a instrução continue</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
@@ -2502,10 +2522,15 @@
         <target state="translated">O runtime de destino não dá suporte a convenções de chamada padrão extensíveis ou de ambiente de runtime.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
-        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
+        <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
+        <target state="translated">Os modificadores 'safe' e 'unsafe' não podem ser usados juntos.</target>
+        <note>'safe' and 'unsafe' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_SamePropertyUnsafeAccessorMods">
+        <source>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</source>
+        <target state="translated">Não é possível especificar o mesmo modificador 'unsafe' ou 'safe' em todos os acessadores de uma propriedade ou de um indexador '{0}'. Em vez disso, coloque esse modificador na própria propriedade.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
@@ -2848,8 +2873,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="translated">O método "{0}" usa um recurso que não é suportado pelo runtime assíncrono no momento. Recuse o método de runtime assíncrono atribuindo-o a "System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)".</target>
+        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="translated">O método "{0}" usa um recurso que não tem suporte do runtime assíncrono. Recuse o método de runtime assíncrono atribuindo-o a "System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2914,7 +2939,7 @@
       </trans-unit>
       <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
         <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
-        <target state="new">'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</target>
+        <target state="translated">''GetClosedDerivedTypeInfo()'' só pode ser chamado quando ''IsClosed'' for ''true''.</target>
         <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
@@ -2927,11 +2952,6 @@
         <target state="translated">A diretiva using apareceu anteriormente como using global</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="translated">O padrão é redundante.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">O padrão é muito complexo para analisar a redundância.</target>
@@ -2940,11 +2960,6 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">O padrão é muito complexo para analisar a redundância.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="translated">O padrão é redundante.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -3019,7 +3034,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensionIndexers">
         <source>extension indexers</source>
-        <target state="new">extension indexers</target>
+        <target state="translated">indexadores de extensão</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
@@ -3085,6 +3100,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">membro da instância em 'nameof'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="translated">break e continue rotulados</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -6015,12 +6035,7 @@
         <target state="translated">O parâmetro não foi lido. Você esqueceu de usá-lo para inicializar a propriedade com esse nome?</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">O modificador 'unsafe' não tem efeito aqui, segundo as regras de segurança de memória atuais.</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
+      <trans-unit id="ERR_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
         <target state="translated">O modificador 'unsafe' não tem efeito aqui, segundo as regras de segurança de memória atuais.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>

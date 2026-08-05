@@ -28,7 +28,7 @@
   <ItemGroup>
     <!-- These references need to be deployed to the vsix subfolder containing servicehub bits for .Net Core -->
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" />
+    <PackageReference Include="SQLite3MC.PCLRaw.bundle" />
     <!--
       Following packages are being referenced to: 
         - exclude BCL library from the dependencies we need to deploy as part of Roslyn vsix.
@@ -244,7 +244,7 @@
       <!-- Exclude dummy build outputs compiled for this setup project -->
       <_VsixItem Remove="@(_VsixItem)" Condition="$([MSBuild]::ValueOrDefault('%(FileName)', '').StartsWith('$(TargetName)'))" />
 
-      <!-- the only assembly we need under runtime folder (runtimes\win-x64\native\e_sqlite3.dll) is handled by the vsix project directly -->
+      <!-- The only native library we need under the runtimes folder (sqlite3mc.dll) is handled by the architecture-specific VSIX project directly. -->
       <_VsixItem Remove="@(_VsixItem)" Condition="$([MSBuild]::ValueOrDefault('%(FullPath)', '').StartsWith('$(PublishDir)runtimes'))" />
 
       <_VsixItem Remove="@(_RuntimeLibraryPathsInPublishDir)" Condition="'$(_ExcludeRuntimeLibraries)' == 'true'" />

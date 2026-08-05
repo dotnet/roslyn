@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -91,4 +92,14 @@ internal static class IDocumentMappingServiceExtensions
         csharpPosition = result ? csharpLinePosition.ToPosition() : null;
         return result;
     }
+
+    public static bool IsInStringLiteral(
+        this IDocumentMappingService service,
+        RazorCSharpDocument csharpDocument,
+        SyntaxNode csharpSyntaxRoot,
+        int razorIndex,
+        bool multilineOnly)
+        => service.TryMapToCSharpDocumentPosition(csharpDocument, razorIndex, out _, out var csharpIndex) &&
+            csharpSyntaxRoot.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
+            csharpNode.IsStringLiteral(multilineOnly);
 }

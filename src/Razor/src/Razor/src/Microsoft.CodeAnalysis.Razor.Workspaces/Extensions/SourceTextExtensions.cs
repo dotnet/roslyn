@@ -263,6 +263,32 @@ internal static class SourceTextExtensions
     public static TextSpan GetTextSpan(this SourceText text, LinePositionSpan span)
         => text.GetTextSpan(span.Start, span.End);
 
+    public static bool TryGetTextSpan(this SourceText text, LinePositionSpan span, out TextSpan textSpan)
+        => text.TryGetTextSpan(span.Start, span.End, out textSpan);
+
+    public static bool TryGetTextSpan(this SourceText text, LinePosition start, LinePosition end, out TextSpan textSpan)
+        => text.TryGetTextSpan(start.Line, start.Character, end.Line, end.Character, out textSpan);
+
+    public static bool TryGetTextSpan(this SourceText text, int startLine, int startCharacter, int endLine, int endCharacter, out TextSpan textSpan)
+    {
+        textSpan = default;
+
+        if (!text.TryGetAbsoluteIndex(startLine, startCharacter, out var start) ||
+            !text.TryGetAbsoluteIndex(endLine, endCharacter, out var end))
+        {
+            return false;
+        }
+
+        var length = end - start;
+        if (length < 0)
+        {
+            return false;
+        }
+
+        textSpan = new TextSpan(start, length);
+        return true;
+    }
+
     public static TextSpan GetTextSpan(this SourceText text, int startLine, int startCharacter, int endLine, int endCharacter)
     {
         var start = GetAbsoluteIndex(text, startLine, startCharacter, "Start");
