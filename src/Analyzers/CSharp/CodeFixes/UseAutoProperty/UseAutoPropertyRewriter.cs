@@ -44,10 +44,12 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider
             {
                 if (node.Parent is AssignmentExpressionSyntax
                     {
-                        Parent: InitializerExpressionSyntax { RawKind: (int)SyntaxKind.ObjectInitializerExpression }
+                        Parent: InitializerExpressionSyntax { RawKind: (int)SyntaxKind.ObjectInitializerExpression or (int)SyntaxKind.WithInitializerExpression }
                     } assignment && assignment.Left == node)
                 {
-                    // `new X { fieldName = ... }` gets rewritten to `new X { propName = ... }`
+                    // `new X { fieldName = … }` and `r with { fieldName = … }` get rewritten to use
+                    // the property name. Compound forms (`fieldName += …`) flow through this same
+                    // branch and round-trip with the operator preserved.
                     return _propertyIdentifierName.WithTriviaFrom(node);
                 }
 

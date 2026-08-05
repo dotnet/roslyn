@@ -246,6 +246,82 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
     }
 
     [Fact]
+    public async Task HidePreviouslyTyped_NestedInitializer()
+    {
+        // `value = { … }` exclusively binds the slot under the spec's nested-init exclusivity rule,
+        // so completion correctly hides `value` for any subsequent member entry.
+        var markup = """
+            class C
+            {
+                public C nested {set; get; }
+                public int otherValue;
+            }
+
+            class D
+            {
+                void goo()
+                {
+                   C goo = new C { nested = { otherValue = 1 }, o$$
+                }
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "nested");
+        await VerifyItemExistsAsync(markup, "otherValue");
+    }
+
+    [Fact]
+    public async Task DoNotHidePreviouslyTypedCompound()
+    {
+        // After a compound member initializer (`value += 3,`) the spec still admits another compound
+        // for `value` (`value += 5`) and likewise an event slot (`Click += h1, Click += h2`) is the
+        // canonical way to wire multiple handlers. Completion must therefore keep `value` available so
+        // those legitimate stacked-compound cases don't regress.
+        var markup = """
+            class C
+            {
+                public int value {set; get; }
+                public int otherValue;
+            }
+
+            class D
+            {
+                void goo()
+                {
+                   C goo = new C { value += 3, o$$
+                }
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "value");
+        await VerifyItemExistsAsync(markup, "otherValue");
+    }
+
+    [Fact]
+    public async Task DoNotHidePreviouslyTypedNullCoalesceCompound()
+    {
+        // Same rationale as DoNotHidePreviouslyTypedCompound but for `??=`.
+        var markup = """
+            class C
+            {
+                public string value {set; get; }
+                public int otherValue;
+            }
+
+            class D
+            {
+                void goo()
+                {
+                   C goo = new C { value ??= "x", o$$
+                }
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "value");
+        await VerifyItemExistsAsync(markup, "otherValue");
+    }
+
+    [Fact]
     public Task NotInEqualsValue()
         => VerifyNoItemsExistAsync("""
             class C 

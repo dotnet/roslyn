@@ -1894,6 +1894,30 @@ public sealed partial class QualifyMemberAccessTests : AbstractCSharpDiagnosticP
             """,
             CodeStyleOptions2.QualifyFieldAccess);
 
+    [Fact]
+    public Task DoNotReportToQualify_InWithInitializer_Property()
+        => TestMissingAsyncWithOption(
+            """
+            public record C(string Other)
+            {
+                public string Foo { get; init; }
+                public C Bar(C c) => c with { [|Foo|] = string.Empty };
+            }
+            """,
+            CodeStyleOptions2.QualifyPropertyAccess);
+
+    [Fact]
+    public Task DoNotReportToQualify_InWithInitializer_Compound()
+        => TestMissingAsyncWithOption(
+            """
+            public record C(string Other)
+            {
+                public int Foo { get; init; }
+                public C Bar(C c) => c with { [|Foo|] += 1 };
+            }
+            """,
+            CodeStyleOptions2.QualifyPropertyAccess);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26893")]
     public Task DoNotReportToQualify_IfInAttribute1()
         => TestMissingAsyncWithOption(
