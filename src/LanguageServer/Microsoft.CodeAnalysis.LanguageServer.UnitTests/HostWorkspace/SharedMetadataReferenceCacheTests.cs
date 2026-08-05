@@ -75,7 +75,7 @@ public sealed class SharedMetadataReferenceCacheTests : TestBase
     public void ChangedTimestamp_DoesNotShareReference()
     {
         var cache = new SharedMetadataReferenceCache();
-        var path = Path.Combine(TempRoot.Root, Guid.NewGuid().ToString() + ".dll");
+        var path = Path.Combine(Temp.CreateDirectory().Path, "reference.dll");
         var timestamp = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         File.Copy(typeof(object).Assembly.Location, path);
         File.SetLastWriteTimeUtc(path, timestamp);
@@ -95,7 +95,7 @@ public sealed class SharedMetadataReferenceCacheTests : TestBase
     public void ChangedTimestamp_InvalidatesAllPropertyVariants()
     {
         var cache = new SharedMetadataReferenceCache();
-        var path = Path.Combine(TempRoot.Root, Guid.NewGuid().ToString() + ".dll");
+        var path = Path.Combine(Temp.CreateDirectory().Path, "reference.dll");
         var timestamp = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var defaultProperties = MetadataReferenceProperties.Assembly;
         var aliasedProperties = defaultProperties.WithAliases(["global", "MyAlias"]);
@@ -144,35 +144,39 @@ public sealed class SharedMetadataReferenceCacheTests : TestBase
     public void CleanupRemovesDeadEntries()
     {
         var cache = new SharedMetadataReferenceCache(cleanupThreshold: 2);
+
+        // Add an entry, then release its only strong reference so it is eligible for cleanup.
         var reference = ObjectReference.CreateFromFactory(
             () => GetReference(cache, typeof(object).Assembly.Location));
         reference.AssertReleased();
 
+        // Adding a second, live entry reaches the cleanup threshold.
         var liveReference = GetReference(cache, typeof(Enumerable).Assembly.Location);
 
+        // Cleanup should remove the dead entry and retain only the live entry.
         Assert.Equal(1, cache.GetTestAccessor().EntryCount);
         Assert.NotEmpty(((AssemblyMetadata)liveReference.GetMetadata()).GetModules());
-        GC.KeepAlive(liveReference);
     }
 
     [Fact]
     public void ChangedFileReplacesPreviousVersion()
     {
         var cache = new SharedMetadataReferenceCache();
-        var path = Path.Combine(TempRoot.Root, Guid.NewGuid().ToString() + ".dll");
+        var path = Path.Combine(Temp.CreateDirectory().Path, "reference.dll");
+        var otherPath = typeof(Enumerable).Assembly.Location;
         var timestamp = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         File.Copy(typeof(object).Assembly.Location, path);
         File.SetLastWriteTimeUtc(path, timestamp);
 
         var firstReference = GetReference(cache, path);
-        var otherReference = GetReference(cache, typeof(Enumerable).Assembly.Location);
+        var otherReference = GetReference(cache, otherPath);
         Assert.Same(firstReference, GetReference(cache, path));
 
         File.Copy(typeof(Uri).Assembly.Location, path, overwrite: true);
         File.SetLastWriteTimeUtc(path, timestamp.AddSeconds(1));
 
         Assert.NotSame(firstReference, GetReference(cache, path));
-        Assert.Same(otherReference, GetReference(cache, typeof(Enumerable).Assembly.Location));
+        Assert.Same(otherReference, GetReference(cache, otherPath));
     }
 
     [Fact]
@@ -192,10 +196,11 @@ public sealed class SharedMetadataReferenceCacheTests : TestBase
     public void PathsDifferingOnlyByCase_DoNotShareReferenceOnUnix()
     {
         var cache = new SharedMetadataReferenceCache();
-        var lowerCasePath = Path.Combine(TempRoot.Root, "reference.dll");
-        var upperCasePath = Path.Combine(TempRoot.Root, "REFERENCE.dll");
+        var directory = Temp.CreateDirectory();
+        var lowerCasePath = Path.Combine(directory.Path, "reference.dll");
+        var upperCasePath = Path.Combine(directory.Path, "REFERENCE.dll");
         File.Copy(typeof(object).Assembly.Location, lowerCasePath);
-        File.Copy(typeof(Enumerable).Assembly.Location, upperCasePath);
+        File.Copy(typeof(object).Assembly.Location, upperCasePath);
 
         var lowerCaseReference = GetReference(cache, lowerCasePath);
         var upperCaseReference = GetReference(cache, upperCasePath);
@@ -208,7 +213,7 @@ public sealed class SharedMetadataReferenceCacheTests : TestBase
     public void ThrowingReference_IsSharedAndInvalidatedWhenFileCreated()
     {
         var cache = new SharedMetadataReferenceCache();
-        var path = Path.Combine(TempRoot.Root, Guid.NewGuid().ToString() + ".dll");
+        var path = Path.Combine(Temp.CreateDirectory().Path, "reference.dll");
 
         var firstReference = cache.GetReference(
             path, MetadataReferenceProperties.Assembly, CreateReference);

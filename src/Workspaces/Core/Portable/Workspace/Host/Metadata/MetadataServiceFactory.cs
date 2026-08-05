@@ -23,6 +23,7 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
     {
         private readonly IDocumentationProviderService _documentationProviderService;
         private readonly IMetadataReferenceCacheService _metadataReferenceCacheService;
+        private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _createReference;
 
         public MetadataService(
             IDocumentationProviderService documentationProviderService,
@@ -30,11 +31,12 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
         {
             _documentationProviderService = documentationProviderService;
             _metadataReferenceCacheService = metadataReferenceCacheService;
+            _createReference = CreateReference;
         }
 
         public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             => _metadataReferenceCacheService.GetReference(
-                resolvedPath, properties, CreateReference);
+                resolvedPath, properties, _createReference);
 
         private PortableExecutableReference CreateReference(
             string path, MetadataReferenceProperties properties)
@@ -47,6 +49,7 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
             }
             catch (IOException e)
             {
+                // Store failed references in the cache so that the behavior stays consistent once we observe the failure.
                 return new ThrowingExecutableReference(path, properties, documentationProvider, e);
             }
         }

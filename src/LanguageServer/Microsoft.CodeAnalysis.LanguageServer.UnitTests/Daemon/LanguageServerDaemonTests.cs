@@ -130,6 +130,31 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         ClearProjects(closingWorkspace);
         uniqueReference.AssertReleased();
         sharedReference.AssertHeld();
+
+        // Keep reference creation in a separate stack frame so the GC can collect references after this returns.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void CreateMetadataLifetimeReferences(
+            Workspace closingWorkspace,
+            Workspace survivorWorkspace,
+            string sharedPath,
+            string uniquePath,
+            out ObjectReference<PortableExecutableReference> sharedReference,
+            out ObjectReference<PortableExecutableReference> uniqueReference)
+        {
+            var survivorSharedReference = survivorWorkspace.Services.GetRequiredService<IMetadataService>()
+                .GetReference(sharedPath, MetadataReferenceProperties.Assembly);
+            var closingMetadataService = closingWorkspace.Services.GetRequiredService<IMetadataService>();
+            var closingSharedReference = closingMetadataService.GetReference(sharedPath, MetadataReferenceProperties.Assembly);
+            var closingUniqueReference = closingMetadataService.GetReference(uniquePath, MetadataReferenceProperties.Assembly);
+
+            Assert.Same(survivorSharedReference, closingSharedReference);
+
+            AddProjectWithReferences(survivorWorkspace, "Survivor", [survivorSharedReference]);
+            AddProjectWithReferences(closingWorkspace, "Closing", [closingSharedReference, closingUniqueReference]);
+
+            sharedReference = ObjectReference.Create(survivorSharedReference);
+            uniqueReference = ObjectReference.Create(closingUniqueReference);
+        }
     }
 
     // If one client's server faults (e.g. the client process crashes and abruptly drops its connection), the daemon
@@ -315,30 +340,6 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         => workspaceFactory.HostWorkspace.SetCurrentSolution(
             solution => solution.AddProject(projectName, projectName, LanguageNames.CSharp).Solution,
             WorkspaceChangeKind.ProjectAdded);
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void CreateMetadataLifetimeReferences(
-        Workspace closingWorkspace,
-        Workspace survivorWorkspace,
-        string sharedPath,
-        string uniquePath,
-        out ObjectReference<PortableExecutableReference> sharedReference,
-        out ObjectReference<PortableExecutableReference> uniqueReference)
-    {
-        var survivorSharedReference = survivorWorkspace.Services.GetRequiredService<IMetadataService>()
-            .GetReference(sharedPath, MetadataReferenceProperties.Assembly);
-        var closingMetadataService = closingWorkspace.Services.GetRequiredService<IMetadataService>();
-        var closingSharedReference = closingMetadataService.GetReference(sharedPath, MetadataReferenceProperties.Assembly);
-        var closingUniqueReference = closingMetadataService.GetReference(uniquePath, MetadataReferenceProperties.Assembly);
-
-        Assert.Same(survivorSharedReference, closingSharedReference);
-
-        AddProjectWithReferences(survivorWorkspace, "Survivor", [survivorSharedReference]);
-        AddProjectWithReferences(closingWorkspace, "Closing", [closingSharedReference, closingUniqueReference]);
-
-        sharedReference = ObjectReference.Create(survivorSharedReference);
-        uniqueReference = ObjectReference.Create(closingUniqueReference);
-    }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void ClearProjects(Workspace workspace)

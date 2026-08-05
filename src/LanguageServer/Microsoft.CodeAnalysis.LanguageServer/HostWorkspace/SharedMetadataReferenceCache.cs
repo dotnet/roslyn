@@ -56,10 +56,10 @@ internal sealed class SharedMetadataReferenceCache(int cleanupThreshold = 500)
             return;
         }
 
-        foreach (var (key, referenceSet) in _referenceSets)
+        foreach (var pair in _referenceSets)
         {
-            if (referenceSet.TryMarkRemovedIfNoLiveReferences())
-                _referenceSets.TryRemove(new KeyValuePair<CacheKey, ReferenceSet>(key, referenceSet));
+            if (pair.Value.TryMarkRemovedIfNoLiveReferences())
+                _referenceSets.TryRemove(pair);
         }
     }
 
@@ -89,7 +89,7 @@ internal sealed class SharedMetadataReferenceCache(int cleanupThreshold = 500)
                 DateTime timestamp;
                 try
                 {
-                    timestamp = File.GetLastWriteTimeUtc(fullPath);
+                    timestamp = FileUtilities.GetFileTimeStamp(fullPath);
                 }
                 catch (Exception e) when (IOUtilities.IsNormalIOException(e))
                 {

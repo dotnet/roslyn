@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -63,7 +63,7 @@ public class LanguageServerDaemonBenchmarks
             _secondServer.OpenProjectsAsync(
                 ImmutableArray.Create(_secondWorkspace.GetFullPath(_secondWorkspace.Content.LoadPath!)),
                 CancellationToken.None));
-        _processMemoryDelta = ProcessMemorySnapshot.Capture(_benchmarkProcess).Subtract(memoryBeforeLoad);
+        _processMemoryDelta = ProcessMemorySnapshot.Capture(_benchmarkProcess) - memoryBeforeLoad;
     }
 
     [IterationCleanup]
@@ -126,7 +126,7 @@ public class LanguageServerDaemonBenchmarks
             return new(process.PrivateMemorySize64, process.WorkingSet64);
         }
 
-        internal ProcessMemorySnapshot Subtract(ProcessMemorySnapshot earlier)
-            => new(PrivateBytes - earlier.PrivateBytes, WorkingSetBytes - earlier.WorkingSetBytes);
+        public static ProcessMemorySnapshot operator -(ProcessMemorySnapshot later, ProcessMemorySnapshot earlier)
+            => new(later.PrivateBytes - earlier.PrivateBytes, later.WorkingSetBytes - earlier.WorkingSetBytes);
     }
 }
