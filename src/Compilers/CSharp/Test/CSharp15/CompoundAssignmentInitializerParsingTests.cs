@@ -581,6 +581,39 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
 
     #region Object-vs-collection classification
 
+    [Fact]
+    public void Classifier_RangeExpressionAfterIdentifierIsCollectionInitializer()
+    {
+        UsingExpression("""new Goo { start..end }""");
+
+        N(SyntaxKind.ObjectCreationExpression);
+        {
+            N(SyntaxKind.NewKeyword);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "Goo");
+            }
+            N(SyntaxKind.CollectionInitializerExpression);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "start");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "end");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
     [Theory, MemberData(nameof(CompoundOperators))]
     public void Classifier_IndexerCompoundMembersAreObjectInitializer(SyntaxKind operatorTokenKind)
     {

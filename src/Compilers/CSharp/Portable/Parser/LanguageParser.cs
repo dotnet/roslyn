@@ -11799,17 +11799,18 @@ done:
             // an attribute.
 
             var token1 = this.PeekToken(peekIndex);
-            var token1Kind = token1.ContextualKind;
+            var token2 = this.PeekToken(peekIndex + 1);
 
             // Merge two consecutive dots into a DotDotToken
-            if (IsAtDotDotToken())
+            if (IsAtDotDotToken(token1, token2))
                 return (SyntaxKind.DotDotToken, SyntaxKind.RangeExpression);
 
             // check for >>, >>=, >>> or >>>=
             //
             // In all those cases, update token1Kind to be the merged token kind.  It will then be handled by the code below.
+            var token1Kind = token1.ContextualKind;
             if (token1Kind == SyntaxKind.GreaterThanToken
-                && this.PeekToken(peekIndex + 1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
+                && token2.Kind is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken
                 && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
             {
                 if (token2.Kind == SyntaxKind.GreaterThanToken)
@@ -11841,10 +11842,10 @@ done:
             if (IsExpectedAssignmentOperator(token1Kind))
                 return (token1Kind, SyntaxFacts.GetAssignmentExpression(token1Kind));
 
-            if (token1Kind == SyntaxKind.SwitchKeyword && this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenBraceToken)
+            if (token1Kind == SyntaxKind.SwitchKeyword && token2.Kind == SyntaxKind.OpenBraceToken)
                 return (token1Kind, SyntaxKind.SwitchExpression);
 
-            if (token1Kind == SyntaxKind.WithKeyword && this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenBraceToken)
+            if (token1Kind == SyntaxKind.WithKeyword && token2.Kind == SyntaxKind.OpenBraceToken)
                 return (token1Kind, SyntaxKind.WithExpression);
 
             // Something that doesn't expand the current expression we're looking at.  Bail out and see if we
