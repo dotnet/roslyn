@@ -16195,6 +16195,22 @@ _ = 42[null];
 E.get_Item(42, null);
 """;
         var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp.VerifyDiagnostics(
+            // (1,5): error CS9363: 'E.extension(int).this[int*].get' must be used in an unsafe context because it has pointers in its signature
+            // _ = 42[null];
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "42[null]").WithArguments("E.extension(int).this[int*].get").WithLocation(1, 5),
+            // (2,1): error CS9363: 'E.get_Item(int, int*)' must be used in an unsafe context because it has pointers in its signature
+            // E.get_Item(42, null);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.get_Item(42, null)").WithArguments("E.get_Item(int, int*)").WithLocation(2, 1));
+
+        src = """
+unsafe
+{
+    _ = 42[null];
+    E.get_Item(42, null);
+}
+""";
+        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics();
 
         // Compared with non-extension indexers
@@ -16214,6 +16230,18 @@ public unsafe class C
 _ = new C()[null];
 """;
         comp = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp.VerifyDiagnostics(
+            // (1,5): error CS9363: 'C.this[int*].get' must be used in an unsafe context because it has pointers in its signature
+            // _ = new C()[null];
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new C()[null]").WithArguments("C.this[int*].get").WithLocation(1, 5));
+
+        src = """
+unsafe
+{
+    _ = new C()[null];
+}
+""";
+        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics();
     }
 
@@ -16290,7 +16318,8 @@ unsafe { c[0] = c[0]; }
 unsafe { E.get_Item(c, 0); E.set_Item(c, 0, 0); }
 """;
 
-        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (2,1): error CS9363: 'E.extension(C<int*[]>).this[int].set' must be used in an unsafe context because it has pointers in its signature
             // c[0] = c[0];
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c[0]").WithArguments("E.extension(C<int*[]>).this[int].set").WithLocation(2, 1),
@@ -16302,10 +16331,12 @@ unsafe { E.get_Item(c, 0); E.set_Item(c, 0, 0); }
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.get_Item(c, 0)").WithArguments("E.get_Item(C<int*[]>, int)").WithLocation(3, 1),
             // (3,19): error CS9363: 'E.set_Item(C<int*[]>, int, int)' must be used in an unsafe context because it has pointers in its signature
             // E.get_Item(c, 0); E.set_Item(c, 0, 0);
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.set_Item(c, 0, 0)").WithArguments("E.set_Item(C<int*[]>, int, int)").WithLocation(3, 19));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.set_Item(c, 0, 0)").WithArguments("E.set_Item(C<int*[]>, int, int)").WithLocation(3, 19),
+        };
 
-        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
-        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -22403,12 +22434,6 @@ public static class E
             // 0.cs(3,5): error CS8518: An expression of type 'object' can never match the provided pattern.
             // _ = o is { Length: -1 }; // 1
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "o is { Length: -1 }").WithArguments("object").WithLocation(3, 5),
-            // 0.cs(4,20): hidden CS9335: The pattern is redundant.
-            // _ = o is { Length: -1 or 1 }; // 2
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "-1").WithLocation(4, 20),
-            // 0.cs(5,10): hidden CS9335: The pattern is redundant.
-            // _ = o is { Length: -1 } or { Length: 1 }; // 3
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Length: -1 }").WithLocation(5, 10),
             // 0.cs(7,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             // _ = o switch // 4
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 7),
@@ -22474,12 +22499,6 @@ public static class E
             // 0.cs(3,5): error CS8518: An expression of type 'int?' can never match the provided pattern.
             // _ = i is { Length: -1 }; // 1
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is { Length: -1 }").WithArguments("int?").WithLocation(3, 5),
-            // 0.cs(4,20): hidden CS9335: The pattern is redundant.
-            // _ = i is { Length: -1 or 1 }; // 2
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "-1").WithLocation(4, 20),
-            // 0.cs(5,10): hidden CS9335: The pattern is redundant.
-            // _ = i is { Length: -1 } or { Length: 1 }; // 3
-            Diagnostic(ErrorCode.HDN_RedundantPattern, "{ Length: -1 }").WithLocation(5, 10),
             // 0.cs(7,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             // _ = i switch // 4
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 7),

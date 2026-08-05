@@ -139,6 +139,44 @@ namespace MyApp.Pages
             Assert.Equal(2, result.GeneratedSources.Length);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/7421")]
+        public async Task SourceGenerator_RazorComment_AdjacentCommentsInCodeBlock()
+        {
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Views/Home/Index.cshtml"] = """
+                    @if (true)
+                    {
+                        using (Html.BeginForm("Action", "Controller", new
+                        {
+                        },
+                                FormMethod.Post,
+                                false,
+                                new
+                                {
+                                    @class = ""
+                    @*                @class = ""
+                    *@@*                @class = ""
+                    *@            }))
+                        {
+                        }
+                    }
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
+
+            // Act
+            var result = RunGenerator(compilation!, ref driver);
+
+            // Assert
+            Assert.Empty(result.Diagnostics);
+            var generatedSource = Assert.Single(result.GeneratedSources).SourceText.ToString();
+            Assert.DoesNotContain("@*", generatedSource);
+            Assert.DoesNotContain("*@", generatedSource);
+        }
+
         [Fact]
         public async Task SourceGeneratorEvents_RazorFiles_Works()
         {

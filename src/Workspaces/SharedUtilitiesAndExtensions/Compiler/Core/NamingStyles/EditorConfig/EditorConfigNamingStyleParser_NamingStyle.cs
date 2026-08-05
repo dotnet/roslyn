@@ -4,47 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.EditorConfig.Parsing;
-using Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 internal static partial class EditorConfigNamingStyleParser
 {
-    internal static bool TryGetNamingStyle(
-        Section section,
-        string namingRuleName,
-        IReadOnlyDictionary<string, string> entries,
-        IReadOnlyDictionary<string, TextLine> lines,
-        [NotNullWhen(true)] out NamingScheme? namingScheme)
-    {
-        if (TryGetStyleProperties(
-            namingRuleName,
-            entries,
-            out var specification,
-            out var prefix,
-            out var suffix,
-            out var wordSeparator,
-            out var capitalization) &&
-            capitalization.Value.HasValue)
-        {
-            namingScheme = new NamingScheme(
-                OptionName: new(section, specification.GetSpan(lines), specification.Value),
-                Prefix: new(section, prefix.GetSpan(lines), prefix.Value),
-                Suffix: new(section, suffix.GetSpan(lines), suffix.Value),
-                WordSeparator: new(section, wordSeparator.GetSpan(lines), wordSeparator.Value),
-                Capitalization: new(section, capitalization.GetSpan(lines), capitalization.Value.Value));
-
-            return true;
-        }
-
-        namingScheme = null;
-        return false;
-    }
-
     private static bool TryGetNamingStyle(
         string namingRuleName,
         IReadOnlyDictionary<string, string> entries,

@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Class:
                     case TypeKind.Submission:
                         allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
-                            | DeclarationModifiers.Unsafe | DeclarationModifiers.Closed;
+                            | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe | DeclarationModifiers.Closed;
 
                         if (!this.IsRecord)
                         {
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         break;
                     case TypeKind.Struct:
-                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
+                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
 
                         if (!this.IsRecordStruct && !this.IsUnionDeclaration)
                         {
@@ -347,10 +347,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         break;
                     case TypeKind.Interface:
-                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
                         break;
                     case TypeKind.Delegate:
-                        allowedModifiers |= DeclarationModifiers.Unsafe;
+                        allowedModifiers |= DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
                         break;
                 }
             }
@@ -387,11 +387,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_SealedStaticClass, GetFirstLocation(), this);
             }
 
-            if (!modifierErrors &&
-                (mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+            if ((mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
                 this.ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                diagnostics.Add(ErrorCode.WRN_UnsafeMeaningless, GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_UnsafeMeaningless, GetFirstLocation());
             }
 
             switch (typeKind)
@@ -1979,8 +1978,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsClosed)
             {
                 // Ensure necessary attributes are present
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, GetFirstLocation());
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
+                var isClosedTypeAttributeCtor = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, location);
+                _ = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, location);
+
+                // DerivedTypes property is optional but must have expected shape if present
+                var wellKnownDerivedTypesProperty = (PropertySymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes);
+                if (wellKnownDerivedTypesProperty is not null)
+                {
+                    Binder.ReportUseSite(wellKnownDerivedTypesProperty, diagnostics, location);
+
+                    if (wellKnownDerivedTypesProperty is not
+                        {
+                            GetMethod.DeclaredAccessibility: Accessibility.Public,
+                            SetMethod.DeclaredAccessibility: Accessibility.Public
+                        })
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
+                    }
+                }
+                else if (isClosedTypeAttributeCtor is not null)
+                {
+                    foreach (var derivedTypesSymbol in isClosedTypeAttributeCtor.ContainingType.GetMembers("DerivedTypes"))
+                    {
+                        if (derivedTypesSymbol.Kind == SymbolKind.Property)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ClosedBadDerivedTypesProperty, location);
+                        }
+                    }
+                }
             }
 
             var baseType = BaseTypeNoUseSiteDiagnostics;
@@ -2083,12 +2108,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsUnionType)
             {
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null, ref discardedUseSiteInfo) is null)
+                if (UnionFactoryMethods(ref discardedUseSiteInfo).IsEmpty)
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
                 }
 
-                if (Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(this) is null)
+                if (this.UnionValuePropertyNoUseSiteDiagnostics() is null)
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingUnionValueProperty, location);
                 }
@@ -2118,10 +2143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected virtual void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
         {
-            foreach (var member in GetMembers())
-            {
-                member.AfterTypeMembersCompletedChecks(diagnostics);
-            }
         }
 
         private void CheckMemberNamesDistinctFromType(BindingDiagnosticBag diagnostics)

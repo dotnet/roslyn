@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
@@ -34,46 +33,55 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         LspServerLaunchOptions launchOptions,
         ClientCapabilities? clientCapabilities = null)
     {
-        var projectDirectory = TempRoot.CreateDirectory();
-        var annotatedLocations = new Dictionary<string, IList<LSP.Location>>();
-
-        foreach (var (relativePath, file) in workspaceContent.Files)
-        {
-            var filePath = GetFullPath(projectDirectory.Path, relativePath);
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-            await File.WriteAllTextAsync(filePath, file.Content);
-
-            if (Path.GetExtension(relativePath).Equals(".cs", StringComparison.OrdinalIgnoreCase))
-            {
-                var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
-                var text = SourceText.From(file.Content);
-
-                AddAnnotatedLocations(annotatedLocations, GetAnnotatedLocations(documentUri, text, file.MarkupSpans));
-            }
-        }
-
-        if (workspaceContent.ShouldRestore)
-        {
-            foreach (var projectPath in workspaceContent.Files.Keys.Where(static path => PathUtilities.GetExtension(path) == ".csproj"))
-                ProcessUtilities.Run("dotnet", $"restore --project \"{GetFullPath(projectDirectory.Path, projectPath)}\"");
-        }
+        var workspace = MaterializedLspWorkspace.Create(TempRoot, workspaceContent, CancellationToken.None);
 
         var workDoneProgressTarget = new WorkDoneProgressTarget();
 
         // Create server and open the project
-        var lspClient = await TestLspClient.CreateAsync(
-            clientCapabilities ?? new ClientCapabilities(),
-            ExtensionLogsDirectory.Path,
-            launchOptions,
-            LoggerFactory,
-            workspaceContent,
-            projectDirectory.Path,
-            workDoneProgressTarget,
-            locations: annotatedLocations);
+        var effectiveClientCapabilities = clientCapabilities ?? new ClientCapabilities();
+        TestLspClient lspClient = (launchOptions.DaemonMode, launchOptions.UseNamedPipe) switch
+        {
+            (DaemonMode: true, UseNamedPipe: true) => await TestLspClient.CreateDaemonPipeAsync(
+                effectiveClientCapabilities,
+                ExtensionLogsDirectory.Path,
+                launchOptions,
+                LoggerFactory,
+                workspaceContent,
+                workspace.RootPath,
+                workDoneProgressTarget,
+                locations: workspace.AnnotatedLocations),
+            (DaemonMode: true, UseNamedPipe: false) => await TestLspClient.CreateDaemonStdioAsync(
+                effectiveClientCapabilities,
+                ExtensionLogsDirectory.Path,
+                launchOptions,
+                LoggerFactory,
+                workspaceContent,
+                workspace.RootPath,
+                workDoneProgressTarget,
+                locations: workspace.AnnotatedLocations),
+            (DaemonMode: false, UseNamedPipe: true) => await TestLspClient.CreateSingleServerPipeAsync(
+                effectiveClientCapabilities,
+                ExtensionLogsDirectory.Path,
+                launchOptions,
+                LoggerFactory,
+                workspaceContent,
+                workspace.RootPath,
+                workDoneProgressTarget,
+                locations: workspace.AnnotatedLocations),
+            (DaemonMode: false, UseNamedPipe: false) => await TestLspClient.CreateSingleServerStdioAsync(
+                effectiveClientCapabilities,
+                ExtensionLogsDirectory.Path,
+                launchOptions,
+                LoggerFactory,
+                workspaceContent,
+                workspace.RootPath,
+                workDoneProgressTarget,
+                locations: workspace.AnnotatedLocations),
+        };
 
         if (workspaceContent.LoadPath is not null)
         {
-            var fullLoadPath = GetFullPath(projectDirectory.Path, workspaceContent.LoadPath);
+            var fullLoadPath = workspace.GetFullPath(workspaceContent.LoadPath);
             switch (PathUtilities.GetExtension(workspaceContent.LoadPath))
             {
                 case ".sln":
@@ -92,19 +100,6 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         }
 
         return lspClient;
-
-        static string GetFullPath(string workspaceRootPath, string relativePath)
-            => PathUtilities.CombinePathsUnchecked(workspaceRootPath, relativePath);
-
-        static void AddAnnotatedLocations(Dictionary<string, IList<LSP.Location>> locations, Dictionary<string, IList<LSP.Location>> locationsToAdd)
-        {
-            foreach (var (name, newLocations) in locationsToAdd)
-            {
-                var locationsForName = locations.GetValueOrDefault(name, []);
-                locationsForName.AddRange(newLocations);
-                locations[name] = [.. locationsForName.Distinct()];
-            }
-        }
     }
 
     internal sealed class WorkDoneProgressTarget
@@ -175,6 +170,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         {
             private readonly object _gate = new();
             private readonly List<WorkDoneProgress> _progressReports = [];
+            private readonly TaskCompletionSource<WorkDoneProgressReport> _progressSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
             private readonly TaskCompletionSource<WorkDoneProgressEnd> _endSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
             public string Token { get; } = token;
@@ -191,10 +187,16 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
                     if (progress is WorkDoneProgressBegin begin)
                         Title = begin.Title;
 
+                    if (progress is WorkDoneProgressReport report)
+                        _progressSource.TrySetResult(report);
+
                     if (progress is WorkDoneProgressEnd end)
                         _endSource.TrySetResult(end);
                 }
             }
+
+            public Task<WorkDoneProgressReport> WaitForProgressReportAsync()
+                => _progressSource.Task;
 
             public Task<WorkDoneProgressEnd> WaitForEndAsync()
                 => _endSource.Task;
@@ -211,33 +213,6 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         private readonly record struct ProgressReportParams(
             [property: System.Text.Json.Serialization.JsonPropertyName("token")] string Token,
             [property: System.Text.Json.Serialization.JsonPropertyName("value")] WorkDoneProgress Value);
-    }
-
-    private protected static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(DocumentUri codeUri, SourceText text, ImmutableDictionary<string, ImmutableArray<TextSpan>> spanMap)
-    {
-        var locations = new Dictionary<string, IList<LSP.Location>>();
-        foreach (var (name, spans) in spanMap)
-        {
-            var locationsForName = locations.GetValueOrDefault(name, []);
-            locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, codeUri)));
-
-            // Linked files will return duplicate annotated Locations for each document that links to the same file.
-            // Since the test output only cares about the actual file, make sure we de-dupe before returning.
-            locations[name] = [.. locationsForName.Distinct()];
-        }
-
-        return locations;
-
-        static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, DocumentUri documentUri)
-        {
-            var location = new LSP.Location
-            {
-                DocumentUri = documentUri,
-                Range = ProtocolConversions.TextSpanToRange(span, text),
-            };
-
-            return location;
-        }
     }
 
     private protected static TextDocumentIdentifier CreateTextDocumentIdentifier(DocumentUri uri, ProjectId? projectContext = null)
