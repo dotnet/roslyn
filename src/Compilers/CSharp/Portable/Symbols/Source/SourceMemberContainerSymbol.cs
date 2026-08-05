@@ -3797,22 +3797,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>? builder = null;
-                string? firstFilePath = null;
+
+                // Report the error on every compilation unit with top-level statements, rather than only on the
+                // ones following the first, so that each diagnostic navigates to a file that has to be fixed.
+                bool reportMultipleUnits = declaration.Declarations.Count(static d => d.IsSimpleProgram) > 1;
 
                 foreach (var singleDecl in declaration.Declarations)
                 {
                     if (singleDecl.IsSimpleProgram)
                     {
-                        if (builder is null)
+                        builder ??= ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
+
+                        if (reportMultipleUnits)
                         {
-                            builder = ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
-                            firstFilePath = singleDecl.NameLocation.SourceTree?.FilePath ?? "";
-                        }
-                        else
-                        {
-                            Debug.Assert(firstFilePath is not null);
-                            Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements,
-                                singleDecl.NameLocation, firstFilePath);
+                            Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, singleDecl.NameLocation);
                         }
 
                         builder.Add(new SynthesizedSimpleProgramEntryPointSymbol(this, singleDecl, diagnostics));
