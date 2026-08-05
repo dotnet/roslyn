@@ -50,28 +50,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterSymbol inlineArrayParameter = inlineArrayHelperMethod.Parameters[0];
             Debug.Assert(inlineArrayParameter.RefKind is RefKind.Ref or RefKind.In);
 
-            // For reference, the following code is used by Unsafe.IsNullRef helper:
+            // The following IL is generated for bound nodes below:
             //
             //      ldarg.0
-            //      ldc.i4.0
-            //      conv.u
-            //      ceq
-            //      ret
+            //      ldind.u1
+            //      pop
             //
-            // Bound nodes below generate similar code.
 
-            // Note that IL doesn't refer to 'object' or 'bool' type, but we need them for the bound nodes. 
-            // We do not care if the types are bad or missing though.
+            // We assume that the ldind.u1 instruction throws for a null ref.
+            // Note that IL doesn't refer to 'byte' type, but we need it for the bound nodes. 
+            // We do not care if the type is bad or missing though.
+            // Note, we have to cheat with BoundParameter.Type below to force ldind.u1 instruction in IL.
 
-            // if (<inlineArrayRef> is null ref) throw null;
-            TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(inlineArrayParameter.Type));
-            return f.If(
-                f.Binary(
-                    BinaryOperatorKind.Equal,
-                    f.Compilation.GetSpecialType(SpecialType.System_Boolean),
-                    new BoundAddressOfOperator(f.Syntax, f.Parameter(inlineArrayParameter), isManaged: true, pointerType),
-                    f.Null(pointerType)),
-                f.Throw(f.Null(f.Compilation.GetSpecialType(SpecialType.System_Object))));
+            return f.ExpressionStatement(new BoundParameter(f.Syntax, inlineArrayParameter, f.Compilation.GetSpecialType(SpecialType.System_Byte)) { WasCompilerGenerated = true });
         }
     }
 }

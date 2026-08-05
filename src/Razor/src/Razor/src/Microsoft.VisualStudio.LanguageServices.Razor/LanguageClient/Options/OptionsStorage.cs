@@ -109,6 +109,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
             GetEnum(SettingsNames.Snippets, SnippetSetting.All),
             GetEnum(SettingsNames.LogLevel, LogLevel.Warning),
             GetBool(SettingsNames.FormatOnPaste, defaultValue: true),
+            GetBool(SettingsNames.ShowAllCSharpCodeActions, defaultValue: false),
             _taskListDescriptors);
 
     public bool GetBool(string name, bool defaultValue)

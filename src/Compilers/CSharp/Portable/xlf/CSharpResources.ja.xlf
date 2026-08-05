@@ -723,8 +723,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="translated">'not' または 'or' パターンの中で変数を宣言することはできません。</target>
+        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
+        <target state="translated">変数は、'not' または 'or' パターン内、またはインスタンスかその基になる値のいずれかとの照合を行うユニオン マッチングでは宣言できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -1520,6 +1520,11 @@
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">'Experimental' 属性への diagnosticId 引数は有効な識別子である必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyUnsafeMods">
+        <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="translated">プロパティまたはインデクサー '{0}' とそのアクセサーの両方で修飾子 'unsafe' または 'safe' を指定することはできません。いずれかを削除してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
@@ -2517,10 +2522,15 @@
         <target state="translated">ターゲット ランタイムは、拡張可能またはランタイム環境の既定の呼び出し規則をサポートしていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="translated">'safe' 修飾子は、'unsafe' としてマークされていないメンバーで、かつ 'extern' メンバー、または明示的レイアウトもしくは拡張レイアウトを持つ型のフィールドに類似したメンバーにのみ使用できます。</target>
-        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
+        <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
+        <target state="translated">修飾子 'safe' と 'unsafe' を同時に使用することはできません。</target>
+        <note>'safe' and 'unsafe' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_SamePropertyUnsafeAccessorMods">
+        <source>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</source>
+        <target state="translated">プロパティまたはインデクサー '{0}' のすべてのアクセサーに同じ修飾子 'unsafe' または 'safe' を指定することはできません。代わりに、その修飾子はプロパティ自体に指定してください。</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
@@ -2942,11 +2952,6 @@
         <target state="translated">using ディレクティブは、以前に global using として使用されています</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="translated">パターンは冗長です。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">パターンが複雑すぎるため、冗長性を分析する必要があります。</target>
@@ -2955,11 +2960,6 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">パターンが複雑すぎるため、冗長性を分析する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="translated">パターンは冗長です。</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -6030,12 +6030,7 @@
         <target state="translated">パラメーターが未読のため、この名前のプロパティを初期化するために使用していることを確認する必要がある</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless">
-        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">現在のメモリ安全性規則においては、'unsafe' 修飾子による影響はありません。</target>
-        <note>'unsafe' is a keyword, should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="WRN_UnsafeMeaningless_Title">
+      <trans-unit id="ERR_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
         <target state="translated">現在のメモリ安全性規則においては、'unsafe' 修飾子による影響はありません。</target>
         <note>'unsafe' is a keyword, should not be localized.</note>

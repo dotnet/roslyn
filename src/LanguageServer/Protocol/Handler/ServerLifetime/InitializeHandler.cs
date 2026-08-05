@@ -23,9 +23,6 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         var clientCapabilities = request.Capabilities;
         clientCapabilitiesManager.SetInitializeParams(request);
 
-        if (request.ProcessId is int clientProcessId && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
-            context.Logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
-
         var lspServices = context.GetRequiredService<ILspServices>();
         var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
         var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities, lspServices);
