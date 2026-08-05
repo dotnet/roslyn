@@ -11,8 +11,10 @@ using System.IO;
 using System.IO.Hashing;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -221,17 +223,22 @@ namespace Microsoft.CodeAnalysis
                         // Delete the oldest files which exceed this limit.
                         const int maxUnlinkedCount = 200;
                         var filesToEvict = Directory.EnumerateFiles(CacheDirectory)
-                            .Where(file =>
+                            .Select(file =>
                             {
                                 Debug.Assert(PlatformInformation.IsWindows);
-                                return FileUtilities.CountHardLinks(file) == 1;
+                                return (file, fileInformationOpt: TryGetWindowsFileInformation(file));
                             })
-                            .OrderByDescending(File.GetLastWriteTimeUtc)
+                            .Where(pair => pair.fileInformationOpt is { NumberOfLinks: 1 })
+                            .OrderByDescending(pair =>
+                            {
+                                var creationTime = pair.fileInformationOpt!.Value.CreationTime;
+                                return (long)creationTime.dwHighDateTime << 32 | (uint)creationTime.dwLowDateTime;
+                            })
                             .Skip(maxUnlinkedCount);
 
-                        foreach (var file in filesToEvict)
+                        foreach (var pair in filesToEvict)
                         {
-                            File.Delete(file);
+                            File.Delete(pair.file);
                         }
                     }
                 }
@@ -362,7 +369,7 @@ namespace Microsoft.CodeAnalysis
                         try { File.Delete(cachePath); } catch { }
                         File.Copy(originalPath, shadowCopyPath);
                     }
-                    else if (!FileUtilities.TryCreateHardLink(cachePath, shadowCopyPath))
+                    else if (!TryCreateHardLink(cachePath, shadowCopyPath))
                     {
                         File.Copy(originalPath, shadowCopyPath);
                     }
@@ -376,7 +383,7 @@ namespace Microsoft.CodeAnalysis
                     if (cachePath is not null)
                     {
                         Directory.CreateDirectory(CacheDirectory);
-                        FileUtilities.TryCreateHardLink(shadowCopyPath, cachePath);
+                        TryCreateHardLink(shadowCopyPath, cachePath);
                     }
                 }
             }
@@ -471,6 +478,80 @@ namespace Microsoft.CodeAnalysis
             {
                 // There are many reasons this could fail. Ignore it and keep going.
             }
+        }
+
+        /// <summary>Create a hard link to a file.</summary>
+        /// <seealso href="https://learn.microsoft.com/en-us/dotnet/api/system.io.file.createhardlink?view=net-11.0" />
+#if NET
+        [SupportedOSPlatform("windows")]
+#endif
+        private static bool TryCreateHardLink(string path, string pathToTarget)
+        {
+            return CreateHardLink(pathToTarget, path, IntPtr.Zero);
+
+            // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createhardlinkw
+            [DllImport("Kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+        }
+
+        /// <summary>Get number of hard links to a file.</summary>
+#if NET
+        [SupportedOSPlatform("windows")]
+#endif
+        private static ByHandleFileInformation? TryGetWindowsFileInformation(string path)
+        {
+            // https://learn.microsoft.com/en-us/windows/win32/fileio/file-access-rights-constants
+            const uint FILE_READ_ATTRIBUTES = 0x0080;
+
+            // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew
+            const uint FILE_SHARE_READ = 0x00000001;
+            const uint FILE_SHARE_WRITE = 0x00000002;
+            const uint FILE_SHARE_DELETE = 0x00000004;
+            const uint OPEN_EXISTING = 3;
+
+            using var handle = CreateFileW(
+                lpFileName: path,
+                dwDesiredAccess: FILE_READ_ATTRIBUTES,
+                dwShareMode: FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                lpSecurityAttributes: IntPtr.Zero,
+                dwCreationDisposition: OPEN_EXISTING,
+                dwFlagsAndAttributes: 0,
+                hTemplateFile: IntPtr.Zero);
+
+            if (!GetFileInformationByHandle(handle, out var fileInformation))
+                return null;
+
+            return fileInformation;
+
+            // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew
+            [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            static extern SafeFileHandle CreateFileW(
+                string lpFileName,
+                uint dwDesiredAccess,
+                uint dwShareMode,
+                IntPtr lpSecurityAttributes,
+                uint dwCreationDisposition,
+                uint dwFlagsAndAttributes,
+                IntPtr hTemplateFile);
+
+            // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle
+            [DllImport("Kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            static extern bool GetFileInformationByHandle(SafeFileHandle handle, out ByHandleFileInformation fileInformation);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ByHandleFileInformation
+        {
+            public uint FileAttributes;
+            public System.Runtime.InteropServices.ComTypes.FILETIME CreationTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastAccessTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastWriteTime;
+            public uint VolumeSerialNumber;
+            public uint FileSizeHigh;
+            public uint FileSizeLow;
+            public uint NumberOfLinks;
+            public uint FileIndexHigh;
+            public uint FileIndexLow;
         }
     }
 }
