@@ -442,4 +442,13 @@ internal static class ComponentDiagnosticFactory
     {
         return RazorDiagnostic.Create(RenderModeAttribute_ComponentDeclaredRenderMode, source, component);
     }
+
+    public static readonly RazorDiagnosticDescriptor UnknownComponentParameter =
+        new($"{DiagnosticPrefix}10025",
+            "The component '{0}' does not have a parameter named '{1}'.",
+            RazorDiagnosticSeverity.Warning,
+            warningLevel: 11);
+
+    public static RazorDiagnostic Create_UnknownComponentParameter(SourceSpan? source, string component, string parameter)
+        => RazorDiagnostic.Create(UnknownComponentParameter, source, component, parameter);
 }

@@ -379,6 +379,7 @@ internal partial class DefaultTagHelperResolutionPhase
             {
                 AttributeName = attributeName,
                 AttributeStructure = unresolvedAttr.AttributeStructure,
+                AttributeNameSpan = unresolvedAttr.AttributeNameSpan,
             };
 
             if (!unresolvedAttr.IsMinimized && unresolvedAttr.AsTagHelperAttribute is HtmlAttributeIntermediateNode fallbackAttr)
@@ -928,6 +929,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 {
                     AttributeName = attributeName,
                     AttributeStructure = InferAttributeStructure(htmlAttr),
+                    AttributeNameSpan = attributeNameSpan,
                 };
 
                 thHtml.Children.AddRange(htmlAttr.Children);
