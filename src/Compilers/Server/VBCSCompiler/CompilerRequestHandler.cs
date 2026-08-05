@@ -72,7 +72,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ClientDirectory = clientDirectory;
             SdkDirectory = sdkDirectory;
             Logger = logger;
-            AnalyzerAssemblyLoader = Microsoft.CodeAnalysis.AnalyzerAssemblyLoader.CreateNonLockingLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
+            AnalyzerAssemblyLoader = Microsoft.CodeAnalysis.AnalyzerAssemblyLoader.CreateNonLockingLoader(
+                Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"),
+                Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader-cache"));
         }
 
         public bool TryCreateCompiler(in RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)

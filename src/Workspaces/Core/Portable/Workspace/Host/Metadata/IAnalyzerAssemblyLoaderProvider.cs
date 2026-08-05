@@ -53,6 +53,7 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
     public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
         => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
                 Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
+            Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader-cache"),
                 _assemblyPathResolvers,
                 _assemblyResolvers));
 #else
@@ -69,6 +70,7 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
     public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
         => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
                 Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
+            Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader-cache"),
                 pathResolvers: default));
 #endif
 

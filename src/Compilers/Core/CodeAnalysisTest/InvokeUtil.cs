@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver];
                     break;
                 case AnalyzerTestKind.ShadowLoad:
-                    pathResolvers = [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path)];
+                    pathResolvers = [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path, tempRoot.CreateDirectory().Path)];
                     assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver];
                     break;
                 default:
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             pathResolvers = kind switch
             {
                 AnalyzerTestKind.LoadDirect => pathResolvers,
-                AnalyzerTestKind.ShadowLoad => [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path)],
+                AnalyzerTestKind.ShadowLoad => [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path, tempRoot.CreateDirectory().Path)],
                 _ => throw ExceptionUtilities.Unreachable(),
             };
 

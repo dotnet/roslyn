@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public Exception LoadAnalyzer(string shadowPath, string analyzerPath)
         {
-            var loader = AnalyzerAssemblyLoader.CreateNonLockingLoader(shadowPath, []);
+            var loader = AnalyzerAssemblyLoader.CreateNonLockingLoader(shadowPath, shadowPath + "-cache", []);
             Exception analyzerLoadException = null;
             var analyzerRef = new AnalyzerFileReference(analyzerPath, loader);
             analyzerRef.AnalyzerLoadFailed += (s, e) => analyzerLoadException = e.Exception;

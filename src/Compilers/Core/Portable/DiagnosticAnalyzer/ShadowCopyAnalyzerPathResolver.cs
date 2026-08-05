@@ -74,29 +74,37 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal int CopyCount => CopyMap.Count;
 
-        public ShadowCopyAnalyzerPathResolver(string baseDirectory)
+        public ShadowCopyAnalyzerPathResolver(string baseDirectory, string cacheDirectory)
         {
             if (baseDirectory is null)
             {
                 throw new ArgumentNullException(nameof(baseDirectory));
             }
 
-            // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
-            // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
-            // effect
             if (!Path.IsPathRooted(baseDirectory))
             {
                 throw new ArgumentException($"Must be a full path: {baseDirectory}", nameof(baseDirectory));
             }
 
+            if (cacheDirectory is null)
+            {
+                throw new ArgumentNullException(nameof(cacheDirectory));
+            }
+
+            if (!Path.IsPathRooted(cacheDirectory))
+            {
+                throw new ArgumentException($"Must be a full path: {cacheDirectory}", nameof(cacheDirectory));
+            }
+
             BaseDirectory = baseDirectory;
+            CacheDirectory = cacheDirectory;
+
             var shadowDirectoryName = Guid.NewGuid().ToString("N").ToLowerInvariant();
 
             // The directory is deliberately _not_ created at this point. It will only be created when the first
             // request comes in. This avoids creating unnecessary directories when no analyzers are loaded 
             // via the shadow layer.
             ShadowDirectory = Path.Combine(BaseDirectory, shadowDirectoryName);
-            CacheDirectory = Path.Combine(BaseDirectory, "cache");
             Mutex = new Mutex(initiallyOwned: false, name: shadowDirectoryName);
             DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
         }
@@ -128,9 +136,6 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var subDirectory in subDirectories)
                 {
-                    if (subDirectory == CacheDirectory)
-                        continue;
-
                     string name = Path.GetFileName(subDirectory).ToLowerInvariant();
                     Mutex? mutex = null;
                     try

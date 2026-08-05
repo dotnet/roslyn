@@ -405,6 +405,7 @@ namespace Microsoft.CodeAnalysis
         /// will be the base directory where shadow copy assemblies are stored. </param>
         internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(
             string windowsShadowPath,
+            string windowsCachePath,
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default,
             ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default,
             System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null)
@@ -432,7 +433,7 @@ namespace Microsoft.CodeAnalysis
             // Program Files are not expected to change and so locking is not a concern. But for everything else
             // we want to avoid locking and use shadow copy.
             return new AnalyzerAssemblyLoader(
-                [.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsShadowPath)],
+                [.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsShadowPath, windowsCachePath)],
                 [.. assemblyResolvers, DiskResolver.Instance],
                 compilerLoadContext);
         }
@@ -445,8 +446,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
         /// will be the base directory where shadow copy assemblies are stored. </param>
+        /// <param name="windowsCachePath">Path for cached shadow copy assemblies on Windows.
+        /// This should be on the same volume as <paramref name="windowsShadowPath"/>.
+        /// Otherwise, the loader will still function but caching will not work. </param>
         internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(
             string windowsShadowPath,
+            string windowsCachePath,
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default)
         {
             CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsShadowPath);
@@ -456,7 +461,7 @@ namespace Microsoft.CodeAnalysis
             // developers for the lifetime of VBCSCompiler, Visual Studio, VS Code, etc ... Places like 
             // Program Files are not expected to change and so locking is not a concern. But for everything else
             // we want to avoid locking and use shadow copy.
-            return new AnalyzerAssemblyLoader([.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsShadowPath)]);
+            return new AnalyzerAssemblyLoader([.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsShadowPath, windowsCachePath)]);
         }
 #endif
     }

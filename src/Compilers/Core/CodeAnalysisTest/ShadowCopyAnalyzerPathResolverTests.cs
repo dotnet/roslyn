@@ -22,7 +22,7 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
     public ShadowCopyAnalyzerPathResolverTests()
     {
         TempRoot = new TempRoot();
-        PathResolver = new ShadowCopyAnalyzerPathResolver(TempRoot.CreateDirectory().Path);
+        PathResolver = new ShadowCopyAnalyzerPathResolver(TempRoot.CreateDirectory().Path, TempRoot.CreateDirectory().Path);
     }
 
     public void Dispose()

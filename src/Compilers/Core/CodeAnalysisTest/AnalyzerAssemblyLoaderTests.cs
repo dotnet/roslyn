@@ -1658,7 +1658,7 @@ Delta.2: Test D2
             {
                 AnalyzerTestKind.LoadStream => new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver], alc),
                 AnalyzerTestKind.LoadDirect => new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc),
-                AnalyzerTestKind.ShadowLoad => new AnalyzerAssemblyLoader([new ShadowCopyAnalyzerPathResolver(Temp.CreateDirectory().Path)], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc),
+                AnalyzerTestKind.ShadowLoad => new AnalyzerAssemblyLoader([new ShadowCopyAnalyzerPathResolver(Temp.CreateDirectory().Path, Temp.CreateDirectory().Path)], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind)
             };
 
