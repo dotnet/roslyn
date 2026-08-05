@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -143,6 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyOverriddenOrHiddenMembers;
             }
         }
+
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingProperty.GetCallerUnsafeMode(fieldsBeingBound);
 
         private ImmutableArray<ParameterSymbol> SubstituteParameters()
         {

@@ -5552,6 +5552,49 @@ class C
             });
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26084")]
+        public void StaticTypeImport_Enum()
+        {
+            var source = @"
+using static ConsoleApplication1.MyEnumType;
+
+namespace ConsoleApplication1
+{
+    public enum MyEnumType
+    {
+        thing1,
+        thing2,
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            var value = thing1;
+        }
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "ConsoleApplication1.Program.Main");
+                ResultProperties resultProperties;
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("thing2", out resultProperties, out error, testData);
+                Assert.Null(error);
+                Assert.Equal(DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (ConsoleApplication1.MyEnumType V_0) //value
+  IL_0000:  ldc.i4.1
+  IL_0001:  ret
+}");
+            });
+        }
+
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
         public void NonStateMachineTypeParameter()
         {

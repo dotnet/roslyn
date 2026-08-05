@@ -1,0 +1,27 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [60] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (2:0,2 [60] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    var content = new Test.SlotContent("from variable");\n
+                Component - (67:4,0 [24] x:\dir\subdir\Test\TestComponent.cshtml) - Slot
+                    ComponentAttribute - (82:4,15 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Content - Content - AttributeStructure.DoubleQuotes
+                        HtmlContent - (82:4,15 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (82:4,15 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - hello
+                HtmlContent - (91:4,24 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (91:4,24 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (93:5,0 [41] x:\dir\subdir\Test\TestComponent.cshtml) - Slot
+                    ComponentAttribute - (108:5,15 [22] x:\dir\subdir\Test\TestComponent.cshtml) - Content - Content - AttributeStructure.DoubleQuotes
+                        HtmlContent - (108:5,15 [22] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (108:5,15 [22] x:\dir\subdir\Test\TestComponent.cshtml) - Html - new Test.SlotContent()
+                HtmlContent - (134:5,41 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (134:5,41 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (136:6,0 [27] x:\dir\subdir\Test\TestComponent.cshtml) - Slot
+                    ComponentAttribute - (151:6,15 [8] x:\dir\subdir\Test\TestComponent.cshtml) - Content - Content - AttributeStructure.DoubleQuotes
+                        CSharpExpression - (152:6,16 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (152:6,16 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - content

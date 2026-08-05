@@ -618,6 +618,13 @@ Done:
             End Get
         End Property
 
+        Private ReadOnly Property ITypeSymbol_UnionCaseTypes As ImmutableArray(Of ITypeSymbol) Implements ITypeSymbol.UnionCaseTypes
+            Get
+                ' VB does not have Unions
+                Return ImmutableArray(Of ITypeSymbol).Empty
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeSymbol_IsClosed As Boolean Implements ITypeSymbol.IsClosed
             Get
                 Return False

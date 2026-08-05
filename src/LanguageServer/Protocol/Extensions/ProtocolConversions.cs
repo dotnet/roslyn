@@ -394,7 +394,7 @@ internal static partial class ProtocolConversions
     public static TextChange TextEditToTextChange(LSP.TextEdit edit, SourceText oldText)
         => new(RangeToTextSpan(edit.Range, oldText), edit.NewText);
 
-    public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangeEvent changeEvent, SourceText text)
+    public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangePartial changeEvent, SourceText text)
         => new(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
 
     public static LSP.Position LinePositionToPosition(LinePosition linePosition)

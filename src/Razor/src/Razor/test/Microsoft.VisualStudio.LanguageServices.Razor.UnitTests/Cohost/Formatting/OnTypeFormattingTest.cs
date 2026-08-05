@@ -53,6 +53,51 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
     }
 
     [FormattingTestFact]
+    public async Task CloseCurly_ExplicitStatement_PreservesOpeningBraceAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @(booleanValue ?@<br /> : @<br />)
+
+                    @{
+                        if (false)
+                        {
+                            // false
+                        }
+                        else
+                        {
+                            // true
+                        }$$
+                    }
+
+                    @code
+                    {
+                        private bool booleanValue = true;
+                    }
+                    """,
+            expected: """
+                    @(booleanValue ?@<br /> : @<br />)
+
+                    @{
+                        if (false)
+                        {
+                            // false
+                        }
+                        else
+                        {
+                            // true
+                        }
+                    }
+
+                    @code
+                    {
+                        private bool booleanValue = true;
+                    }
+                    """,
+            triggerCharacter: '}');
+    }
+
+    [FormattingTestFact]
     public async Task FormatsIfStatementInComponent()
     {
         await RunOnTypeFormattingTestAsync(
@@ -212,6 +257,62 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             expected: """
                     @code {
                         public void Foo
+                        {
+                        }
+                    }
+                    """,
+            triggerCharacter: '}');
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/7962")]
+    public async Task CloseCurly_DoesNotIndentPropertyAfterCursorAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @code {
+                        private void Current()
+                        {
+                            if(true)
+                            {
+                            }$$
+                        [Parameter] public int Value { get; set; }
+                        private void Later()
+                        {
+                        }
+                    }
+                    """,
+            expected: """
+                    @code {
+                        private void Current()
+                        {
+                            if (true)
+                            {
+                            }
+                        [Parameter] public int Value { get; set; }
+                        private void Later()
+                        {
+                        }
+                    }
+                    """,
+            triggerCharacter: '}');
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12627")]
+    public async Task CloseCurly_Method_RestoresCodeBlockClosingBraceAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @code {
+                        private void Test()
+                        {
+                        }$$
+                        }
+                    """,
+            expected: """
+                    @code {
+                        private void Test()
                         {
                         }
                     }

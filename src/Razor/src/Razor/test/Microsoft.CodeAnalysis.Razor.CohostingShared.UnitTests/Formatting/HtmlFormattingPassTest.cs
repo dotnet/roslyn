@@ -68,6 +68,100 @@ public class HtmlFormattingPassTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    public async Task KeepEditWithEquivalentNonWhitespaceContent()
+    {
+        TestCode input = """
+            <script>
+                [|var x=2;|]
+            </script>
+            """;
+        var document = CreateProjectAndRazorDocument(input.Text);
+        var sourceText = SourceText.From(input.Text);
+        var change = new TextChange(input.Span, "var x = 2;");
+
+        var edits = await GetHtmlFormattingEditsAsync(document, change);
+
+        AssertEx.EqualOrDiff(
+            sourceText.WithChanges(change).ToString(),
+            sourceText.WithChanges(edits).ToString());
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    public async Task KeepMultipleWhitespaceEditsWithLengthChanges()
+    {
+        TestCode input = """
+            <script>
+                var first=1;
+                var second  = 2;
+                var third=3;
+            </script>
+            """;
+        var document = CreateProjectAndRazorDocument(input.Text);
+        var sourceText = SourceText.From(input.Text);
+        ImmutableArray<TextChange> changes =
+        [
+            new(sourceText.Lines[1].Span, "    var first = 1;"),
+            new(sourceText.Lines[2].Span, "    var second=2;"),
+            new(sourceText.Lines[3].Span, "    var third = 3;"),
+        ];
+
+        var edits = await GetHtmlFormattingEditsAsync(document, changes);
+
+        AssertEx.EqualOrDiff(
+            sourceText.WithChanges(changes).ToString(),
+            sourceText.WithChanges(edits).ToString());
+    }
+
+    [Theory]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    [InlineData("AAAA", "BBBBBBBB")]
+    [InlineData("BBBBBBBB", "AAAA")]
+    public async Task KeepWhitespaceOnlyEditsAroundFilteredLengthChangingEdit(string original, string replacement)
+    {
+        TestCode input = $$"""
+            <script>
+                var first=1;
+                {{original}}
+                var third  =  3;
+            </script>
+            """;
+        var document = CreateProjectAndRazorDocument(input.Text);
+        var sourceText = SourceText.From(input.Text);
+
+        var firstLine = sourceText.Lines[1];
+        var firstEquals = firstLine.Start + sourceText.ToString(firstLine.Span).IndexOf('=');
+        var insertSpaceBeforeFirstEquals = new TextChange(new(firstEquals, 0), " ");
+        var insertSpaceAfterFirstEquals = new TextChange(new(firstEquals + 1, 0), " ");
+
+        var unsafeChange = new TextChange(sourceText.Lines[2].Span, $"    {replacement}");
+
+        var thirdLine = sourceText.Lines[3];
+        var thirdEquals = thirdLine.Start + sourceText.ToString(thirdLine.Span).IndexOf('=');
+        var removeSpaceBeforeThirdEquals = new TextChange(new(thirdEquals - 1, 1), "");
+        var removeSpaceAfterThirdEquals = new TextChange(new(thirdEquals + 1, 1), "");
+
+        var edits = await GetHtmlFormattingEditsAsync(
+            document,
+            insertSpaceBeforeFirstEquals,
+            insertSpaceAfterFirstEquals,
+            unsafeChange,
+            removeSpaceBeforeThirdEquals,
+            removeSpaceAfterThirdEquals);
+
+        AssertEx.EqualOrDiff(
+            $$"""
+            <script>
+                var first = 1;
+                {{original}}
+                var third = 3;
+            </script>
+            """,
+            sourceText.WithChanges(edits).ToString());
+    }
+
+    [Fact]
     public async Task FilterOutHtmlEdits()
     {
         TestCode input = """

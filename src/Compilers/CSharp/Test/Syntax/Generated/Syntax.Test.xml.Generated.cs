@@ -380,10 +380,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.GotoStatement(SyntaxKind.GotoStatement, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.GotoKeyword), null, null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static Syntax.InternalSyntax.BreakStatementSyntax GenerateBreakStatement()
-            => InternalSyntaxFactory.BreakStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.BreakKeyword), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            => InternalSyntaxFactory.BreakStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.BreakKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static Syntax.InternalSyntax.ContinueStatementSyntax GenerateContinueStatement()
-            => InternalSyntaxFactory.ContinueStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.ContinueKeyword), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            => InternalSyntaxFactory.ContinueStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.ContinueKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static Syntax.InternalSyntax.ReturnStatementSyntax GenerateReturnStatement()
             => InternalSyntaxFactory.ReturnStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.ReturnKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
@@ -2227,6 +2227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.BreakKeyword, node.BreakKeyword.Kind);
+            Assert.Null(node.Name);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
 
             AttachAndCheckDiagnostics(node);
@@ -2239,6 +2240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.ContinueKeyword, node.ContinueKeyword.Kind);
+            Assert.Null(node.Name);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
 
             AttachAndCheckDiagnostics(node);
@@ -10862,10 +10864,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.GotoStatement(SyntaxKind.GotoStatement, new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.GotoKeyword), default(SyntaxToken), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static BreakStatementSyntax GenerateBreakStatement()
-            => SyntaxFactory.BreakStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.BreakKeyword), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            => SyntaxFactory.BreakStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.BreakKeyword), default(IdentifierNameSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static ContinueStatementSyntax GenerateContinueStatement()
-            => SyntaxFactory.ContinueStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            => SyntaxFactory.ContinueStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.ContinueKeyword), default(IdentifierNameSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static ReturnStatementSyntax GenerateReturnStatement()
             => SyntaxFactory.ReturnStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.ReturnKeyword), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
@@ -12709,8 +12711,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.BreakKeyword, node.BreakKeyword.Kind());
+            Assert.Null(node.Name);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
-            var newNode = node.WithAttributeLists(node.AttributeLists).WithBreakKeyword(node.BreakKeyword).WithSemicolonToken(node.SemicolonToken);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithBreakKeyword(node.BreakKeyword).WithName(node.Name).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
 
@@ -12721,8 +12724,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.ContinueKeyword, node.ContinueKeyword.Kind());
+            Assert.Null(node.Name);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
-            var newNode = node.WithAttributeLists(node.AttributeLists).WithContinueKeyword(node.ContinueKeyword).WithSemicolonToken(node.SemicolonToken);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithContinueKeyword(node.ContinueKeyword).WithName(node.Name).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
 

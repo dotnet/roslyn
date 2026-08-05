@@ -527,9 +527,6 @@
   <data name="File_scoped" xml:space="preserve">
     <value>File scoped</value>
   </data>
-  <data name="Prefer_extended_property_pattern" xml:space="preserve">
-    <value>Prefer extended property pattern</value>
-  </data>
   <data name="Collapse_usings_on_file_open" xml:space="preserve">
     <value>Collapse usings on file open</value>
   </data>
@@ -556,9 +553,6 @@
   </data>
   <data name="CancelQueryCommandToolTip" xml:space="preserve">
     <value>Cancel (Escape)</value>
-  </data>
-  <data name="Prefer_implicitly_typed_lambda_expression" xml:space="preserve">
-    <value>Prefer implicitly typed lambda expression</value>
   </data>
   <data name="Always_add_using" xml:space="preserve">
     <value>Always add using</value>
