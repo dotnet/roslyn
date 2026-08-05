@@ -584,9 +584,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void Classifier_RangeExpressionAfterIdentifierIsCollectionInitializer()
     {
-        // IsNamedMemberInitializer looks one token past the identifier when asking whether
-        // the following tokens form an expression operator. Ensure that the `..` lookup
-        // honors that offset and does not treat this as a named member initializer.
         UsingExpression("""new Goo { start..end }""");
 
         N(SyntaxKind.ObjectCreationExpression);
