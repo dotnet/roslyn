@@ -654,6 +654,12 @@ internal abstract class LanguageServerProjectLoader : IDisposable
                 ReportProgressAsync,
                 listener ?? AsynchronousOperationListenerProvider.NullListener,
                 CancellationToken.None);
+
+            reporter.Report(new LSP.WorkDoneProgressReport
+            {
+                Message = string.Format(LanguageServerResources.Loading_0_projects, totalItems),
+                Percentage = 0,
+            });
         }
 
         public void OnItemProcessed()
