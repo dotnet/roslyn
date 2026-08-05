@@ -11802,7 +11802,7 @@ done:
             var token1Kind = token1.ContextualKind;
 
             // Merge two consecutive dots into a DotDotToken
-            if (IsAtDotDotToken())
+            if (IsAtDotDotToken(token1, this.PeekToken(peekIndex + 1)))
                 return (SyntaxKind.DotDotToken, SyntaxKind.RangeExpression);
 
             // check for >>, >>=, >>> or >>>=
