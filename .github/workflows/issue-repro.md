@@ -3,6 +3,7 @@ name: Issue Reproduction Assistant
 description: Propose and assess a minimal reproduction for a reported Roslyn issue.
 
 on:
+  roles: [admin, maintain, write, triage]
   label_command:
     name: needs-repro
     events: [issues]
