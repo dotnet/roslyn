@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         TryParseDisplayClassOrLambdaName(displayClassName, out int suffixIndex, out char idSeparator, out bool isDisplayClass, out bool _, out bool hasDebugIds) &&
                         isDisplayClass &&
                         hasDebugIds &&
-                        CommonGeneratedNames.TryParseDebugIds(displayClassName.AsSpan(suffixIndex), idSeparator, isMethodIdOptional: false, out var parsedMethodId, out var parsedEntityId) &&
+                        WellKnownGeneratedNames.TryParseDebugIds(displayClassName.AsSpan(suffixIndex), idSeparator, isMethodIdOptional: false, out var parsedMethodId, out var parsedEntityId) &&
                         parsedMethodId == methodId)
                     {
                         builder.Add(parsedEntityId);
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         DebugId parsedEntityId = default;
                         if (hasDebugIds)
                         {
-                            if (!CommonGeneratedNames.TryParseDebugIds(memberName.AsSpan(suffixIndex), idSeparator, isMethodIdOptional: containingDisplayClassId.HasValue, out parsedMethodId, out parsedEntityId))
+                            if (!WellKnownGeneratedNames.TryParseDebugIds(memberName.AsSpan(suffixIndex), idSeparator, isMethodIdOptional: containingDisplayClassId.HasValue, out parsedMethodId, out parsedEntityId))
                             {
                                 // name is not well-formed
                                 continue;
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (TryParseDisplayClassOrLambdaName(displayClassName, out int suffixIndex, out char idSeparator, out bool isDisplayClass, out _, out bool hasDebugIds) &&
                     isDisplayClass &&
                     hasDebugIds &&
-                    CommonGeneratedNames.TryParseDebugIds(displayClassName.AsSpan(suffixIndex), idSeparator, isMethodIdOptional: false, out var parsedMethodId, out var parsedEntityId) &&
+                    WellKnownGeneratedNames.TryParseDebugIds(displayClassName.AsSpan(suffixIndex), idSeparator, isMethodIdOptional: false, out var parsedMethodId, out var parsedEntityId) &&
                     parsedMethodId == methodId)
                 {
                     id = parsedEntityId;

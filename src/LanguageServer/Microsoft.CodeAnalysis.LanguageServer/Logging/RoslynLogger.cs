@@ -31,10 +31,6 @@ internal sealed class RoslynLogger : ILogger
     {
         Contract.ThrowIfTrue(_instance is not null);
 
-        FatalError.ErrorReporterHandler handler = ReportFault;
-        FatalError.SetHandlers(handler, nonFatalHandler: handler);
-        FatalError.CopyHandlersTo(typeof(Compilation).Assembly);
-
         if (reporter is not null && telemetryLevel is not null)
         {
             reporter.InitializeSession(telemetryLevel, sessionId, isDefaultSession: true);
@@ -51,45 +47,6 @@ internal sealed class RoslynLogger : ILogger
         else
         {
             Logger.SetLogger(AggregateLogger.Create(currentLogger, _instance));
-        }
-    }
-
-    private static void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
-    {
-        try
-        {
-            if (exception is OperationCanceledException { InnerException: { } oceInnerException })
-            {
-                ReportFault(oceInnerException, severity, forceDump);
-                return;
-            }
-
-            if (exception is AggregateException aggregateException)
-            {
-                // We (potentially) have multiple exceptions; let's just report each of them
-                foreach (var innerException in aggregateException.Flatten().InnerExceptions)
-                    ReportFault(innerException, severity, forceDump);
-
-                return;
-            }
-
-            // Copy locally, as otherwise if we report a fault during shutdown we might also null reference (and then fatally crash the process)
-            var telemetryReporter = _telemetryReporter;
-            if (telemetryReporter is not null)
-            {
-                var eventName = GetEventName(FunctionId.NonFatalWatson);
-                var description = GetDescription(exception);
-                var currentProcess = Process.GetCurrentProcess();
-                telemetryReporter.ReportFault(eventName, description, (int)severity, forceDump, currentProcess.Id, exception);
-            }
-        }
-        catch (OutOfMemoryException)
-        {
-            FailFast.OnFatalException(exception);
-        }
-        catch (Exception e)
-        {
-            FailFast.OnFatalException(e);
         }
     }
 
@@ -175,47 +132,6 @@ internal sealed class RoslynLogger : ILogger
     private static bool IgnoreReporting(LogMessage logMessage)
         => _telemetryReporter is null ||
            logMessage.LogLevel < LogLevel.Information;
-
-    private static string GetDescription(Exception exception)
-    {
-        const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
-
-        // Be resilient to failing here.  If we can't get a suitable name, just fall back to the standard name we
-        // used to report.
-        try
-        {
-            // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
-            var frames = new StackTrace(exception).GetFrames();
-
-            // On the .NET Framework, GetFrames() can return null even though it's not documented as such.
-            // At least one case here is if the exception's stack trace itself is null.
-            if (frames != null)
-            {
-                foreach (var frame in frames)
-                {
-                    var method = frame?.GetMethod();
-                    var methodName = method?.Name;
-                    if (methodName == null)
-                        continue;
-
-                    var declaringTypeName = method?.DeclaringType?.FullName;
-                    if (declaringTypeName == null)
-                        continue;
-
-                    if (!declaringTypeName.StartsWith(CodeAnalysisNamespace))
-                        continue;
-
-                    return declaringTypeName + "." + methodName;
-                }
-            }
-        }
-        catch
-        {
-        }
-
-        // If we couldn't get a stack, do this
-        return exception.Message;
-    }
 
     private const string EventPrefix = "vs/ide/vbcs/";
     private const string PropertyPrefix = "vs.ide.vbcs.";

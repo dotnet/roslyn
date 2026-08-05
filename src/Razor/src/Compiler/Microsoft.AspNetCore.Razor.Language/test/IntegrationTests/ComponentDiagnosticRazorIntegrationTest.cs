@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Globalization;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -87,6 +88,39 @@ namespace Test
                 Assert.Equal(1, item.Span.LineIndex);
                 Assert.Equal(0, item.Span.CharacterIndex);
             });
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7271")]
+    public void Component_RazorCommentInStartTagAttributeArea_IsIgnored()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter] public string Parameter1 { get; set; }
+                    [Parameter] public bool Parameter2 { get; set; }
+                    [Parameter] public string Parameter3 { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent Parameter1="SomeValue"
+                Parameter2="@true" @* NOTE: this does not work! *@
+                Parameter3="SomeOtherValue" />
+            """);
+
+        // Assert
+        Assert.Empty(generated.RazorDiagnostics);
+        Assert.DoesNotContain("NOTE: this does not work", generated.Code);
+        Assert.Equal(3, generated.Code.Split(
+            new[] { "AddComponentParameter" },
+            global::System.StringSplitOptions.None).Length - 1);
     }
 
     [Fact]

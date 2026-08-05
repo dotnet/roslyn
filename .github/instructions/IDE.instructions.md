@@ -1,5 +1,5 @@
 ---
-applyTo: "src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures,VisualStudio}/**/*.{cs,vb}"
+applyTo: "src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures,VisualStudio,LanguageServer}/**/*.{cs,vb}"
 ---
 
 # Roslyn IDE Development Guide
@@ -11,7 +11,8 @@ Roslyn uses a **layered service architecture** built on MEF (Managed Extensibili
 - **Workspaces** (`src/Workspaces/`): Core abstractions — `Workspace`, `Solution`, `Project`, `Document`
 - **Features** (`src/Features/`): Language-agnostic IDE features (refactoring, navigation, completion)
 - **Analyzers** (`src/Analyzers/`): IDE diagnostic analyzers and code fixes (IDE0xxx diagnostics)
-- **LanguageServer** (`src/LanguageServer/`): Shared LSP protocol implementation and Roslyn LSP executable
+- **CodeStyle** (`src/CodeStyle/`): Code-style analyzer packaging shared with the command-line
+- **LanguageServer** (`src/LanguageServer/`): Shared LSP protocol implementation and Roslyn LSP executable (`roslyn-language-server`)
 - **EditorFeatures** (`src/EditorFeatures/`): VS Editor integration and text manipulation
 - **VisualStudio** (`src/VisualStudio/`): Visual Studio-specific implementations
 
@@ -48,26 +49,15 @@ public MyService(IDependency dependency) { }
 - For localizable strings: `new LocalizableResourceString(nameof(FeaturesResources.Some_string), FeaturesResources.ResourceManager, typeof(FeaturesResources))`
 - After modifying `.resx` files, run `dotnet msbuild <path to csproj> /t:UpdateXlf` to update `.xlf` localization files
 
-## Testing Patterns
+## Analyzers & Code Fixes (IDE0xxx)
 
-### Test Workspace (MEF-dependent tests)
-```csharp
-[UseExportProvider]
-public class MyTests
-{
-    [Fact]
-    public async Task TestSomething()
-    {
-        var workspace = EditorTestWorkspace.CreateCSharp("class C { }");
-        var document = workspace.Documents.Single();
-    }
-}
-```
+- IDE code-style analyzers inherit from `AbstractBuiltInCodeStyleDiagnosticAnalyzer` — not raw `DiagnosticAnalyzer`
+- Always provide a `FixAllProvider` for code fixes (typically `WellKnownFixAllProviders.BatchFixer`)
+- Diagnostic ID constants live in `src/Analyzers/Core/Analyzers/IDEDiagnosticIds.cs`
 
-### Test Conventions
-- Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) for test source code
-- Keep tests focused — avoid unnecessary intermediary assertions
-- Use `[UseExportProvider]` for any test that depends on MEF services
+## Out-of-Process (OOP) Services
+
+- ServiceHub components live under `src/Workspaces/Remote/` and have special deployment considerations for .NET Core vs .NET Framework — keep both targets in mind when changing remote services
 
 ## Key Development Patterns
 
@@ -111,4 +101,3 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`
 - **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
-- **Test failures often indicate MEF composition issues** — check export attributes

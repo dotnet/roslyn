@@ -26,12 +26,69 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                     {
                         {|hint:try{|textspan:
                         {$$
-                        }
+                        }|}|}
                         catch 
                         {
                         }
                         finally
                         {
+                        }
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+
+    [Fact]
+    public Task TestCatchClause1()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        try
+                        {
+                        }
+                        {|hint:catch{|textspan:
+                        {$$
+                        }|}|}
+                        finally
+                        {
+                        }
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+
+    [Fact]
+    public Task TestCatchClause2()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        try
+                        {
+                        }
+                        {|hint:catch (System.Exception e){|textspan:
+                        {$$
+                        }|}|}
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+
+    [Fact]
+    public Task TestFinallyClause1()
+        => VerifyBlockSpansAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        try
+                        {
+                        }
+                        {|hint:finally{|textspan:
+                        {$$
                         }|}|}
                     }
                 }

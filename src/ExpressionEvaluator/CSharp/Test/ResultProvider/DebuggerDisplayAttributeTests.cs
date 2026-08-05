@@ -554,6 +554,39 @@ class B : A<int> { }
                 EvalResult("b", "Type={B}", "B", "b", DkmEvaluationResultFlags.None));
         }
 
+        [Fact]
+        public void SynthesizedCollections()
+        {
+            // synthesized collection types should be generated with [DebuggerDisplay("Count = {...}")]
+            var source = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        IEnumerable<int> x = [1];
+        IEnumerable<int> y = [2, 3];
+        IEnumerable<int> z = [.. x];
+    }
+}
+";
+            var assembly = GetAssembly(source);
+            var types = assembly.GetTypes();
+            VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlySingleElementList`1")), 1, 1, "<>z__ReadOnlySingleElementList<int>");
+            VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlyArray`1")), new int[] { 2, 3 }, 2, "<>z__ReadOnlyArray<int>");
+            VerifySynthesizedType(types.First(t => t.Name.Equals("<>z__ReadOnlyList`1")), new List<int>() { 1 }, 1, "<>z__ReadOnlyList<int>");
+
+            void VerifySynthesizedType<T>(Type genericType, T ctorArgs, int expectedCount, string expectedInstantiatedType)
+            {
+                var constructedType = genericType.MakeGenericType(typeof(int));
+                var value = CreateDkmClrValue(constructedType.Instantiate(ctorArgs), constructedType, evalFlags: DkmEvaluationResultFlags.None);
+                var result = FormatResult("x", value);
+                Verify(result,
+                    EvalResult("x", $"Count = {expectedCount}", expectedInstantiatedType, "x", DkmEvaluationResultFlags.Expandable));
+            }
+        }
+
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016895")]
         public void RootVersusInternal()
         {

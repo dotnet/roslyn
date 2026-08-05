@@ -182,6 +182,16 @@
         <target state="translated">Uyarı</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_ShowAllCSharpCodeActionsDescription">
+        <source>Show all C# code actions in Razor files. These actions are untested in Razor and may introduce syntax errors when applied. If this happens, please report a bug.</source>
+        <target state="translated">Razor dosyalarındaki tüm C# kod eylemlerini gösterin. Bu eylemler Razor'da test edilmedi ve uygulandıklarında söz dizimi hatalarına neden olabilir. Bu durum oluşursa lütfen bir hata bildirin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ShowAllCSharpCodeActionsDisplayName">
+        <source>Show all C# code actions</source>
+        <target state="translated">Tüm C# kod eylemlerini göster</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_SnippetsAll">
         <source>All</source>
         <target state="translated">Tümü</target>

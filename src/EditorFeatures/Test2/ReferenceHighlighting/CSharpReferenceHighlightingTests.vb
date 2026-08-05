@@ -1225,5 +1225,78 @@ class Test
                     </Project>
                 </Workspace>, testHost)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestLabeledBreak(testHost As TestHost) As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+                        <Document>
+                            class C
+                            {
+                                void M()
+                                {
+                                    {|Definition:outer|}: while (true)
+                                    {
+                                        while (true)
+                                        {
+                                            break {|Reference:$$outer|};
+                                        }
+                                    }
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestLabeledContinue(testHost As TestHost) As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+                        <Document>
+                            class C
+                            {
+                                void M()
+                                {
+                                    {|Definition:$$outer|}: while (true)
+                                    {
+                                        while (true)
+                                        {
+                                            continue {|Reference:outer|};
+                                        }
+                                    }
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestLabeledBreakAndContinue(testHost As TestHost) As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+                        <Document>
+                            class C
+                            {
+                                void M()
+                                {
+                                    {|Definition:$$outer|}: while (true)
+                                    {
+                                        while (true)
+                                        {
+                                            break {|Reference:outer|};
+                                            continue {|Reference:outer|};
+                                        }
+                                    }
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, testHost)
+        End Function
     End Class
 End Namespace
