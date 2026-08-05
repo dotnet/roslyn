@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Hashing;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -34,6 +37,8 @@ namespace Microsoft.CodeAnalysis
 
         internal string ShadowDirectory { get; }
 
+        internal string CacheDirectory { get; }
+
         /// <summary>
         /// As long as this mutex is alive, other instances of this type will not try to clean
         /// up the shadow directory.
@@ -41,8 +46,6 @@ namespace Microsoft.CodeAnalysis
         private Mutex Mutex { get; }
 
         internal Task DeleteLeftoverDirectoriesTask { get; }
-
-        private readonly bool _useHardLinks;
 
         /// <summary>
         /// This is a counter that is incremented each time a new shadow sub directory is created to ensure they 
@@ -93,20 +96,9 @@ namespace Microsoft.CodeAnalysis
             // request comes in. This avoids creating unnecessary directories when no analyzers are loaded 
             // via the shadow layer.
             ShadowDirectory = Path.Combine(BaseDirectory, shadowDirectoryName);
+            CacheDirectory = Path.Combine(BaseDirectory, "cache");
             Mutex = new Mutex(initiallyOwned: false, name: shadowDirectoryName);
             DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
-
-            if (PlatformInformation.IsWindows)
-            {
-                if (bool.TryParse(Environment.GetEnvironmentVariable("ROSLYN_SHADOW_HARD_LINKS"), out var result))
-                    _useHardLinks = result;
-                else
-                    _useHardLinks = true; // default
-            }
-            else
-            {
-                _useHardLinks = false;
-            }
         }
 
         private void DeleteLeftoverDirectories()
@@ -136,6 +128,9 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var subDirectory in subDirectories)
                 {
+                    if (subDirectory == CacheDirectory)
+                        continue;
+
                     string name = Path.GetFileName(subDirectory).ToLowerInvariant();
                     Mutex? mutex = null;
                     try
@@ -189,10 +184,62 @@ namespace Microsoft.CodeAnalysis
                         mutex?.Dispose();
                     }
                 }
+
+                pruneCacheIfNeeded();
             }
             finally
             {
                 s_directoryCleanupStates[BaseDirectory] = DirectoryCleanupState.Completed;
+            }
+
+            void pruneCacheIfNeeded()
+            {
+                if (!PlatformInformation.IsWindows)
+                    return;
+
+                using var cacheMutex = new Mutex(initiallyOwned: false, name: $"RoslynShadowCopyCache-{HashToHex(CacheDirectory)}");
+                bool lockTaken = false;
+                try
+                {
+                    try
+                    {
+                        lockTaken = cacheMutex.WaitOne(millisecondsTimeout: 0);
+                    }
+                    catch (AbandonedMutexException)
+                    {
+                        lockTaken = true;
+                    }
+
+                    if (lockTaken)
+                    {
+                        // Permit up to 200 unlinked files (not hard-linked to a specific shadow loader directory).
+                        // Delete the oldest files which exceed this limit.
+                        const int maxUnlinkedCount = 200;
+                        var filesToEvict = Directory.EnumerateFiles(CacheDirectory)
+                            .Where(file =>
+                            {
+                                Debug.Assert(PlatformInformation.IsWindows);
+                                return FileUtilities.CountHardLinks(file) == 1;
+                            })
+                            .OrderByDescending(File.GetLastWriteTimeUtc)
+                            .Skip(maxUnlinkedCount);
+
+                        foreach (var file in filesToEvict)
+                        {
+                            File.Delete(file);
+                        }
+                    }
+                }
+                catch
+                {
+                    // If something goes wrong we will leave it to the next run to clean up.
+                    // Just swallow the exception and move on.
+                }
+                finally
+                {
+                    if (lockTaken)
+                        cacheMutex.ReleaseMutex();
+                }
             }
         }
 
@@ -202,22 +249,6 @@ namespace Microsoft.CodeAnalysis
         {
             var analyzerShadowDir = GetAnalyzerShadowDirectory(originalAnalyzerPath);
             var analyzerShadowPath = Path.Combine(analyzerShadowDir, Path.GetFileName(originalAnalyzerPath));
-
-            if (_useHardLinks)
-            {
-                // Optimization for AV scanners.
-                // On Windows, we can allow loading from the original path, which might be in the nuget cache, in a build artifacts directory, etc.,
-                // while also allowing delete/overwrite of the file, by hard linking the file to the shadow location, and loading from the original location.
-                // Using the original path allows the AV scanner to reuse a cached scan result.
-                // TODO2: assumptions need to be verified, e.g. profiling shadow copy perf before/after the change.
-                Debug.Assert(PlatformInformation.IsWindows);
-                Directory.CreateDirectory(analyzerShadowDir);
-                if (FileUtilities.TryCreateHardLink(originalAnalyzerPath, analyzerShadowPath))
-                {
-                    return originalAnalyzerPath;
-                }
-            }
-
             ShadowCopyFile(originalAnalyzerPath, analyzerShadowPath);
             return analyzerShadowPath;
         }
@@ -284,7 +315,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(AnalyzerAssemblyLoader.GeneratedPathComparer.Equals(shadowCopyPath, task.Result));
             }
 
-            static void copyFile(string originalPath, string shadowCopyPath)
+            void copyFile(string originalPath, string shadowCopyPath)
             {
                 var directory = Path.GetDirectoryName(shadowCopyPath);
                 if (directory is null)
@@ -298,10 +329,98 @@ namespace Microsoft.CodeAnalysis
                 // emulates not having the shadow copy layer
                 if (File.Exists(originalPath))
                 {
-                    File.Copy(originalPath, shadowCopyPath);
+                    linkFromCacheOrFallbackToCopy(originalFilePath, shadowCopyPath);
                     ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
                 }
             }
+
+            // Optimization for antivirus scanning on Windows:
+            // - Shadow copied files are hard-linked to/from a cache directory if possible.
+            // - We continue to use per-session 'ShadowDirectory' for ease of implementing correct loading semantics and cleanup.
+            // - Hard linking a file from the cache instead of copying it is empirically observed to reduce time spent running AV scans when loading assemblies.
+            void linkFromCacheOrFallbackToCopy(string originalPath, string shadowCopyPath)
+            {
+                var cachePath = Path.Combine(CacheDirectory, GetCacheKey(originalPath));
+                if (File.Exists(cachePath))
+                {
+                    // File is already present in cache. First try to hard-link from cache to the shadow copy path. Failing that just copy from the original path.
+                    if (!PlatformInformation.IsWindows || !haveMatchingMvidAndSize(originalPath, cachePath) || !FileUtilities.TryCreateHardLink(cachePath, shadowCopyPath))
+                        File.Copy(originalPath, shadowCopyPath);
+                }
+                else
+                {
+                    // File not in cache. Copy it to the shadow copy path, then try to hard link it to the cache.
+                    // If the hard linking fails for some reason, that isn't a functional problem.
+                    // It usually means we lost a race to cache the same file, or that the current volume doesn't support hard links (e.g. Dev Drive).
+                    File.Copy(originalPath, shadowCopyPath);
+                    if (PlatformInformation.IsWindows)
+                    {
+                        Directory.CreateDirectory(CacheDirectory);
+                        FileUtilities.TryCreateHardLink(shadowCopyPath, cachePath);
+                    }
+                }
+            }
+
+            bool haveMatchingMvidAndSize(string originalPath, string cachePath)
+            {
+                // Sometimes differing assemblies will have same mvid, e.g. before and after Ready2Run compilation.
+                // To defend against this, we require both length and mvid match in order to use the cached file.
+                var originalInfo = new FileInfo(originalPath);
+                var cacheInfo = new FileInfo(cachePath);
+                try
+                {
+                    if (originalInfo.Length != cacheInfo.Length)
+                        return false;
+
+                    return AssemblyUtilities.ReadMvid(originalPath) == AssemblyUtilities.ReadMvid(cachePath);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        private static string HashToHex(string value)
+        {
+            Span<byte> hash = stackalloc byte[16];
+            int bytesWritten = XxHash128.Hash(MemoryMarshal.AsBytes(value.AsSpan()), hash);
+            Debug.Assert(bytesWritten == hash.Length);
+
+            return hashToHex(hash);
+
+            // See also 'PrivateImplementationDetails.HashToHex'
+            static string hashToHex(ReadOnlySpan<byte> hash)
+            {
+#if NET10_0_OR_GREATER
+                return string.Create(hash.Length * 2, hash, (destination, hash) => toHex(hash, destination));
+#else
+                char[] c = new char[hash.Length * 2];
+                toHex(hash, c);
+                return new string(c);
+#endif
+
+                static void toHex(ReadOnlySpan<byte> source, Span<char> destination)
+                {
+                    int i = 0;
+                    foreach (var b in source)
+                    {
+                        destination[i++] = hexchar(b >> 4);
+                        destination[i++] = hexchar(b & 0xF);
+                    }
+                }
+
+                static char hexchar(int x) => (char)((x <= 9) ? (x + '0') : (x + ('a' - 10)));
+            }
+        }
+
+        private static string GetCacheKey(string originalPath)
+        {
+            // Key format: (original filename) + (file path hash) + (mvid)
+            var hexHash = HashToHex(originalPath);
+            var mvid = AssemblyUtilities.ReadMvid(originalPath);
+
+            return $"{Path.GetFileNameWithoutExtension(originalPath)}-{hexHash}-{mvid:N}{Path.GetExtension(originalPath)}";
         }
 
         private static void ClearReadOnlyFlagOnFiles(string directoryPath)
