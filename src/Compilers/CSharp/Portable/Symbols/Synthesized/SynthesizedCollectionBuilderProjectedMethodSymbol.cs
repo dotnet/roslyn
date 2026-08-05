@@ -66,7 +66,7 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     /// <summary>
     /// Similarly to <see cref="ObsoleteAttributeData"/>, we report caller-unsafe errors on the <see cref="UnderlyingMethod"/> instead.
     /// </summary>
-    internal override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+    internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
 
     // Note: it is very intentional that we return empty arrays for Type arguments/parameters.  Consider a
     // hypothetical signature like:

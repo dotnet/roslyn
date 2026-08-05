@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Visit a boolean condition expression.
         /// </summary>
         /// <param name="node"></param>
-        protected void VisitCondition(BoundExpression node)
+        protected virtual void VisitCondition(BoundExpression node)
         {
             Visit(node);
             AdjustConditionalState(node);

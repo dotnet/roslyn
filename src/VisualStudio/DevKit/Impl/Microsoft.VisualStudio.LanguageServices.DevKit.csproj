@@ -24,6 +24,7 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\HotReloadLoggerProxy.cs" Link="EditAndContinue\HotReloadLoggerProxy.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\Shared\*.cs" LinkBase="Logging" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\PdbSourceDocument\AbstractSourceLinkService.cs" />
+    <Compile Include="..\..\Core\Def\Watson\FaultReporter.cs" Link="Logging\FaultReporter.cs" />
   </ItemGroup>
 
   <ItemGroup>

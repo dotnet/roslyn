@@ -12,7 +12,7 @@ internal static class CSharpSyntaxNodeExtensions
 {
     extension(SyntaxNode node)
     {
-        internal bool IsStringLiteral(bool multilineOnly = false)
+        internal bool IsStringLiteral(bool multilineOnly)
         {
             if (node is not (InterpolatedStringTextSyntax or LiteralExpressionSyntax
                 {
