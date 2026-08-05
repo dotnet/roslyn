@@ -210,7 +210,11 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                     {
                         if (parent.Children[j] is UnresolvedElementIntermediateNode promotedElement)
                         {
-                            ResolveElement(parent, j, promotedElement, binder, prefix, usedHelpers, in context);
+                            // Forward tagHelperParent: the promoted siblings live in the same
+                            // container as this StartTagOnly element, so they share its parent-tag
+                            // context. Dropping it would break bindings that depend on the parent
+                            // (e.g. RequireParentTag or component child-content matching).
+                            ResolveElement(parent, j, promotedElement, binder, prefix, usedHelpers, in context, tagHelperParent);
                         }
                         else
                         {

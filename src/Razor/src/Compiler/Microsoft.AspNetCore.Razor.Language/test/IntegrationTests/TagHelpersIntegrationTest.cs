@@ -294,6 +294,10 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
             node => Assert.Equal("alpha", node.TagName),
             node => Assert.Equal("beta", node.TagName),
             node => Assert.Equal("gamma", node.TagName));
+
+        // They are siblings, not nested: each WithoutEndTag helper promoted its body out, so
+        // none of them contains another tag helper.
+        Assert.All(tagHelperNodes, node => Assert.Empty(node.FindDescendantNodes<TagHelperIntermediateNode>()));
     }
 
     [Fact]
@@ -359,6 +363,17 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
             node => Assert.Equal("alpha", node.TagName),
             node => Assert.Equal("beta", node.TagName));
 
+        // Structure: wrapper genuinely contains alpha/beta/bold, while the WithoutEndTag helpers
+        // stay flat -- their bodies were promoted out, so none nests another tag helper.
+        Assert.Collection(tagHelperNodes[0].FindDescendantNodes<TagHelperIntermediateNode>(),
+            node => Assert.Equal("alpha", node.TagName),
+            node => Assert.Equal("beta", node.TagName),
+            node => Assert.Equal("bold", node.TagName));
+        Assert.Empty(tagHelperNodes[1].FindDescendantNodes<TagHelperIntermediateNode>()); // alpha inside wrapper
+        Assert.Empty(tagHelperNodes[2].FindDescendantNodes<TagHelperIntermediateNode>()); // beta inside wrapper
+        Assert.Empty(tagHelperNodes[4].FindDescendantNodes<TagHelperIntermediateNode>()); // alpha at top level
+        Assert.Empty(tagHelperNodes[5].FindDescendantNodes<TagHelperIntermediateNode>()); // beta at top level
+
         // The real HTML elements must survive as literal markup, never bound as tag helpers.
         var generatedCode = codeDocument.GetRequiredCSharpDocument().Text.ToString();
         Assert.Contains("<section>", generatedCode);
@@ -366,12 +381,63 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         Assert.Contains("plain html", generatedCode);
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/68193")]
+    public void PromotedStartTagOnlySibling_BindsUsingParentTagHelperContext()
+    {
+        // `child` is a WithoutEndTag helper that only matches when its parent is `wrapper`. The
+        // parser nests it under the preceding WithoutEndTag helper `lead` (<lead><child>), so it
+        // is reached only after `lead` promotes it to a sibling inside wrapper's body. That
+        // re-resolution must carry wrapper as the parent-tag context, otherwise the
+        // RequireParentTag("wrapper") rule can't match and `child` silently fails to bind.
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "wrapper",
+                typeName: "WrapperTagHelper",
+                assemblyName: "TestAssembly"),
+            CreateTagHelperDescriptor(
+                tagName: "lead",
+                typeName: "LeadTagHelper",
+                assemblyName: "TestAssembly",
+                tagStructure: TagStructure.WithoutEndTag),
+            CreateTagHelperDescriptor(
+                tagName: "child",
+                typeName: "ChildTagHelper",
+                assemblyName: "TestAssembly",
+                tagStructure: TagStructure.WithoutEndTag,
+                parentTag: "wrapper"),
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+            @addTagHelper *, TestAssembly
+            <wrapper>
+            <lead>
+            <child>
+            </wrapper>
+            """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert: child binds because the promoted sibling was resolved with wrapper as its
+        // parent-tag context.
+        var documentNode = codeDocument.GetRequiredDocumentNode();
+        var tagHelperNodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
+        Assert.Collection(tagHelperNodes,
+            node => Assert.Equal("wrapper", node.TagName),
+            node => Assert.Equal("lead", node.TagName),
+            node => Assert.Equal("child", node.TagName));
+    }
+
     private static TagHelperDescriptor CreateTagHelperDescriptor(
         string tagName,
         string typeName,
         string assemblyName,
         IEnumerable<Action<BoundAttributeDescriptorBuilder>>? attributes = null,
-        TagStructure tagStructure = TagStructure.Unspecified)
+        TagStructure tagStructure = TagStructure.Unspecified,
+        string? parentTag = null)
     {
         var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
         builder.SetTypeName(typeName, typeNamespace: null, typeNameIdentifier: null);
@@ -384,9 +450,15 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
             }
         }
 
-        builder.TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder
-            .RequireTagName(tagName)
-            .RequireTagStructure(tagStructure));
+        builder.TagMatchingRuleDescriptor(ruleBuilder =>
+        {
+            ruleBuilder.RequireTagName(tagName).RequireTagStructure(tagStructure);
+
+            if (parentTag != null)
+            {
+                ruleBuilder.RequireParentTag(parentTag);
+            }
+        });
 
         var descriptor = builder.Build();
 
