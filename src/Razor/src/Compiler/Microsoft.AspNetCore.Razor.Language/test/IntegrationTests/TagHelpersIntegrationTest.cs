@@ -431,6 +431,47 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
             node => Assert.Equal("child", node.TagName));
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/68193")]
+    public void PromotedWithoutEndTagTagHelpers_Baseline()
+    {
+        // Full-IR structural baseline for the promotion scenario: a nestable helper containing
+        // consecutive WithoutEndTag helpers plus a normal one, followed by a second WithoutEndTag
+        // helper whose parser-nested body wraps real HTML and another helper. The .ir.txt baseline
+        // captures the exact tree shape, proving the promoted helpers become siblings (not nested)
+        // and that the real HTML survives as markup.
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "wrapper",
+                typeName: "WrapperTagHelper",
+                assemblyName: "TestAssembly"),
+            CreateTagHelperDescriptor(
+                tagName: "bold",
+                typeName: "BoldTagHelper",
+                assemblyName: "TestAssembly"),
+            CreateTagHelperDescriptor(
+                tagName: "alpha",
+                typeName: "AlphaTagHelper",
+                assemblyName: "TestAssembly",
+                tagStructure: TagStructure.WithoutEndTag),
+            CreateTagHelperDescriptor(
+                tagName: "beta",
+                typeName: "BetaTagHelper",
+                assemblyName: "TestAssembly",
+                tagStructure: TagStructure.WithoutEndTag),
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = CreateProjectItemFromFile();
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode());
+    }
+
     private static TagHelperDescriptor CreateTagHelperDescriptor(
         string tagName,
         string typeName,
