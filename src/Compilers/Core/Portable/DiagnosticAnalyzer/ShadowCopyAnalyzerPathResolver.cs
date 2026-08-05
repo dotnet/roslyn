@@ -223,13 +223,13 @@ namespace Microsoft.CodeAnalysis
                         // Delete the oldest files which exceed this limit.
                         const int maxUnlinkedCount = 200;
                         var filesToEvict = Directory.EnumerateFiles(CacheDirectory)
-                            .Select(file =>
+                            .Select(static file =>
                             {
                                 Debug.Assert(PlatformInformation.IsWindows);
                                 return (file, fileInformationOpt: TryGetWindowsFileInformation(file));
                             })
-                            .Where(pair => pair.fileInformationOpt is { NumberOfLinks: 1 })
-                            .OrderByDescending(pair =>
+                            .Where(static pair => pair.fileInformationOpt is { NumberOfLinks: 1 })
+                            .OrderByDescending(static pair =>
                             {
                                 var creationTime = pair.fileInformationOpt!.Value.CreationTime;
                                 return (long)creationTime.dwHighDateTime << 32 | (uint)creationTime.dwLowDateTime;
