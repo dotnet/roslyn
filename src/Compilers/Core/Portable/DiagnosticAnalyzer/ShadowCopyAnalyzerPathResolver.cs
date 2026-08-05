@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
                         // Delete the oldest files which exceed this limit.
                         const int maxUnlinkedCount = 200;
                         var filesToEvict = Directory.EnumerateFiles(CacheDirectory)
-                            .Where(file =>
+                            .Where(static file =>
                             {
                                 Debug.Assert(PlatformInformation.IsWindows);
                                 return FileUtilities.CountHardLinks(file) == 1;
