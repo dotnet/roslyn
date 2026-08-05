@@ -142,6 +142,132 @@ namespace Test
             diagnostic.GetMessage(CultureInfo.CurrentCulture));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7650")]
+    public void UnboundDirectiveAttribute_OnElement_Level10_DoesNotReportWarning()
+    {
+        // Arrange & Act
+        var generated = CompileToCSharp(
+            """<div @unknown="value"></div>""",
+            configuration: Configuration with { RazorWarningLevel = 10 });
+
+        // Assert
+        Assert.Empty(generated.RazorDiagnostics);
+        Assert.Contains("AddMarkupContent", generated.Code);
+        Assert.Contains("""<div @unknown=\"value\"></div>""", generated.Code);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7650")]
+    public void UnboundDirectiveAttribute_OnElement_Level11_ReportsWarning()
+    {
+        // Arrange & Act
+        var generated = CompileToCSharp(
+            """<div @unknown="value"></div>""",
+            configuration: Configuration with { RazorWarningLevel = 11 });
+
+        // Assert
+        AssertUnboundDirectiveAttributeDiagnostic(Assert.Single(generated.RazorDiagnostics), "@unknown");
+        Assert.Contains("AddMarkupContent", generated.Code);
+        Assert.Contains("""<div @unknown=\"value\"></div>""", generated.Code);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7650")]
+    public void UnboundDirectiveAttribute_OnComponent_Level10_DoesNotReportWarning()
+    {
+        // Arrange
+        AddTestComponent();
+
+        // Act
+        var generated = CompileToCSharp(
+            """<MyComponent @unknown="value" />""",
+            configuration: Configuration with { RazorWarningLevel = 10 });
+
+        // Assert
+        Assert.Empty(generated.RazorDiagnostics);
+        Assert.Contains("AddComponentParameter", generated.Code);
+        Assert.Contains("\"@unknown\"", generated.Code);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7650")]
+    public void UnboundDirectiveAttribute_OnComponent_Level11_ReportsWarning()
+    {
+        // Arrange
+        AddTestComponent();
+
+        // Act
+        var generated = CompileToCSharp(
+            """<MyComponent @unknown="value" />""",
+            configuration: Configuration with { RazorWarningLevel = 11 });
+
+        // Assert
+        AssertUnboundDirectiveAttributeDiagnostic(Assert.Single(generated.RazorDiagnostics), "@unknown");
+        Assert.Contains("AddComponentParameter", generated.Code);
+        Assert.Contains("\"@unknown\"", generated.Code);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/razor/issues/7650")]
+    [InlineData("@onclickx=\"true\"", "@onclickx")]
+    [InlineData("@onclick:unknown=\"true\"", "@onclick:unknown")]
+    [InlineData("@ref:suppressField", "@ref:suppressField")]
+    public void UnboundDirectiveAttribute_MalformedOrNearMatch_ReportsWarning(string attribute, string attributeName)
+    {
+        // Arrange & Act
+        var generated = CompileToCSharp(
+            $"""
+            @using Microsoft.AspNetCore.Components.Web
+            <div {attribute}></div>
+            """,
+            configuration: Configuration with { RazorWarningLevel = 11 });
+
+        // Assert
+        AssertUnboundDirectiveAttributeDiagnostic(Assert.Single(generated.RazorDiagnostics), attributeName);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/razor/issues/7650")]
+    [InlineData("<div @@unknown=\"value\"></div>")]
+    [InlineData("<div @@unknown></div>")]
+    public void UnboundDirectiveAttribute_EscapedName_DoesNotReportWarning(string content)
+    {
+        // Arrange & Act
+        var generated = CompileToCSharp(
+            content,
+            configuration: Configuration with { RazorWarningLevel = 11 });
+
+        // Assert
+        Assert.Empty(generated.RazorDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7650")]
+    public void UnboundDirectiveAttribute_OnEscapedElement_DoesNotReportWarning()
+    {
+        // Arrange & Act
+        var generated = CompileToCSharp(
+            """<!div @unknown="value"></!div>""",
+            configuration: Configuration with { RazorWarningLevel = 11 });
+
+        // Assert
+        Assert.Empty(generated.RazorDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7650")]
+    public void UnboundDirectiveAttribute_AlreadyBoundDirectives_DoNotReportWarning()
+    {
+        // Arrange & Act
+        var generated = CompileToCSharp(
+            """
+            @using Microsoft.AspNetCore.Components.Web
+            <div @onclick="HandleClick"
+                 @onclick:preventDefault="true"
+                 @ref="element"
+                 @key="key"
+                 @attributes="attributes"></div>
+            <input @bind="value" />
+            """,
+            configuration: Configuration with { RazorWarningLevel = 11 });
+
+        // Assert
+        Assert.Empty(generated.RazorDiagnostics);
+    }
+
     [Fact]
     public void Component_StartsWithLowerCase_ReportsError()
     {
@@ -514,4 +640,28 @@ namespace Test
             StringSplitOptions.None).Length - 1);
     }
 
+    private void AddTestComponent()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyComponent : ComponentBase
+            {
+                [Parameter]
+                public string Value { get; set; }
+            }
+            """));
+    }
+
+    private static void AssertUnboundDirectiveAttributeDiagnostic(RazorDiagnostic diagnostic, string attributeName)
+    {
+        Assert.Equal("RZ10028", diagnostic.Id);
+        Assert.Equal(RazorDiagnosticSeverity.Warning, diagnostic.Severity);
+        Assert.Equal(
+            $"The attribute '{attributeName}' could not be bound to any directive attribute.",
+            diagnostic.GetMessage(CultureInfo.CurrentCulture));
+        Assert.Equal(attributeName.Length, diagnostic.Span.Length);
+    }
 }
