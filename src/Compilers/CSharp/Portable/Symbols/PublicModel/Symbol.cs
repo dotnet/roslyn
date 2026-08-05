@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
@@ -244,6 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool ISymbol.IsExtern => UnderlyingSymbol.IsExtern;
 
         bool ISymbol.IsImplicitlyDeclared => UnderlyingSymbol.IsImplicitlyDeclared;
+
+        bool ISymbol.RequiresUnsafe => UnderlyingSymbol.GetCallerUnsafeMode(ConsList<Symbols.FieldSymbol>.Empty) != CallerUnsafeMode.None;
 
         bool ISymbol.CanBeReferencedByName => UnderlyingSymbol.CanBeReferencedByName;
 

@@ -1,0 +1,91 @@
+﻿RazorDocument - [0..296)::296 - [@if (true)LF{LF    using (Html.BeginForm("Action", "Controller", newLF    {LF    },LF            FormMethod.Post,LF            false,LF            newLF            {LF                @class = ""LF@*                @class = ""LF*@@*                @class = ""LF*@            }))LF    {LF    }LF}LF]
+    MarkupBlock - [0..296)::296
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..296)::296
+            CSharpTransition - [0..1)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [1..196)::195 - [if (true)LF{LF    using (Html.BeginForm("Action", "Controller", newLF    {LF    },LF            FormMethod.Post,LF            false,LF            newLF            {LF                @class = ""LF] - Gen<Stmt>
+                Keyword;[if];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                Keyword;[true];
+                RightParenthesis;[)];
+                NewLine;[LF];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[    ];
+                Keyword;[using];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                Identifier;[Html];
+                Dot;[.];
+                Identifier;[BeginForm];
+                LeftParenthesis;[(];
+                StringLiteral;["Action"];
+                Comma;[,];
+                Whitespace;[ ];
+                StringLiteral;["Controller"];
+                Comma;[,];
+                Whitespace;[ ];
+                Keyword;[new];
+                NewLine;[LF];
+                Whitespace;[    ];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[    ];
+                RightBrace;[}];
+                Comma;[,];
+                NewLine;[LF];
+                Whitespace;[            ];
+                Identifier;[FormMethod];
+                Dot;[.];
+                Identifier;[Post];
+                Comma;[,];
+                NewLine;[LF];
+                Whitespace;[            ];
+                Keyword;[false];
+                Comma;[,];
+                NewLine;[LF];
+                Whitespace;[            ];
+                Keyword;[new];
+                NewLine;[LF];
+                Whitespace;[            ];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[                ];
+                Identifier;[@class];
+                Whitespace;[ ];
+                Assign;[=];
+                Whitespace;[ ];
+                StringLiteral;[""];
+                NewLine;[LF];
+            RazorComment - [196..229)::33
+                RazorCommentTransition;[@];
+                RazorCommentStar;[*];
+                RazorCommentLiteral;[                @class = ""LF];
+                RazorCommentStar;[*];
+                RazorCommentTransition;[@];
+            CSharpStatementLiteral - [229..229)::0 - [] - Gen<Stmt>
+                Marker;[];
+            RazorComment - [229..262)::33
+                RazorCommentTransition;[@];
+                RazorCommentStar;[*];
+                RazorCommentLiteral;[                @class = ""LF];
+                RazorCommentStar;[*];
+                RazorCommentTransition;[@];
+            CSharpStatementLiteral - [262..296)::34 - [            }))LF    {LF    }LF}LF] - Gen<Stmt>
+                Whitespace;[            ];
+                RightBrace;[}];
+                RightParenthesis;[)];
+                RightParenthesis;[)];
+                NewLine;[LF];
+                Whitespace;[    ];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[    ];
+                RightBrace;[}];
+                NewLine;[LF];
+                RightBrace;[}];
+                NewLine;[LF];
+    EndOfFile;[];

@@ -26,11 +26,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SourceGear.Sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="$(PkgSourceGear_Sqlite3)\runtimes\win-arm64\native\e_sqlite3.dll">
-      <Link>e_sqlite3.dll</Link>
+    <Content Include="$(PkgSQLite3MC_PCLRaw_lib)\runtimes\win-arm64\native\sqlite3mc.dll">
+      <Link>sqlite3mc.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <Visible>false</Visible>

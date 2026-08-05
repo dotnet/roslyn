@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool LocalDeclaredReadOnly => (DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
 
         internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
-        protected sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
+        internal sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
         internal sealed override bool CanBeCallerUnsafe => true;
 
         /// <summary>
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (LocalDeclaredReadOnly && _property.HasReadOnlyModifier)
             {
-                // Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessors.
+                // Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessors. Remove one of them.
                 diagnostics.Add(ErrorCode.ERR_InvalidPropertyReadOnlyMods, location, _property);
             }
             else if (LocalDeclaredReadOnly && IsStatic)

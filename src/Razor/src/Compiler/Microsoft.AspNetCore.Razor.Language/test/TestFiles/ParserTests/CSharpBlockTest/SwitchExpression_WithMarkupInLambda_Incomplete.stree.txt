@@ -1,0 +1,56 @@
+﻿RazorDocument - [0..107)::107 - [@{LF    var val = value switchLF    {LF        1 => (__builder) =>LF        {LF            <span>incomplete]
+    MarkupBlock - [0..107)::107
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..107)::107
+            CSharpStatement - [0..107)::107
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..107)::106
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..107)::105
+                        CSharpStatementLiteral - [2..77)::75 - [LF    var val = value switchLF    {LF        1 => (__builder) =>LF        {] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[val];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Identifier;[value];
+                            Whitespace;[ ];
+                            Keyword;[switch];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            LeftBrace;[{];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                            NumericLiteral;[1];
+                            Whitespace;[ ];
+                            CSharpOperator;[=>];
+                            Whitespace;[ ];
+                            LeftParenthesis;[(];
+                            Identifier;[__builder];
+                            RightParenthesis;[)];
+                            Whitespace;[ ];
+                            CSharpOperator;[=>];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                            LeftBrace;[{];
+                        CSharpStatementLiteral - [77..79)::2 - [LF] - Gen<Stmt>
+                            NewLine;[LF];
+                        MarkupBlock - [79..107)::28
+                            MarkupTextLiteral - [79..91)::12 - [            ] - Gen<Markup>
+                                Whitespace;[            ];
+                            MarkupElement - [91..107)::16
+                                MarkupStartTag - [91..97)::6 - [<span>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[span];
+                                    CloseAngle;[>];
+                                MarkupTextLiteral - [97..107)::10 - [incomplete] - Gen<Markup>
+                                    Text;[incomplete];
+                    RazorMetaCode - [107..107)::0 - Gen<None>
+                        RightBrace;[<Missing>];
+    EndOfFile;[];

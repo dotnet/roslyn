@@ -204,6 +204,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ITypeSymbol.IsUnion => UnderlyingTypeSymbol is Symbols.NamedTypeSymbol { IsUnionType: true };
 
+        ImmutableArray<ITypeSymbol> ITypeSymbol.UnionCaseTypes
+        {
+            get
+            {
+                if (UnderlyingTypeSymbol is not Symbols.NamedTypeSymbol { IsUnionType: true } namedType)
+                {
+                    return ImmutableArray<ITypeSymbol>.Empty;
+                }
+
+                return namedType.UnionCaseTypesNoUseSiteDiagnostics.GetPublicSymbols();
+            }
+        }
+
         bool ITypeSymbol.IsClosed => UnderlyingTypeSymbol is Symbols.NamedTypeSymbol { IsClosed: true };
 
         ClosedDerivedTypeInfo ITypeSymbol.GetClosedDerivedTypeInfo(CancellationToken cancellationToken)
