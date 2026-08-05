@@ -555,14 +555,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         var siblings = containingSymbol.GetMembers();
                         foreach (var sibling in siblings)
                         {
-                            if (sibling.IsImplicitlyDeclared)
-                            {
-                                if (sibling is not IMethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.PropertyGet or MethodKind.PropertySet })
-                                {
-                                    continue;
-                                }
-                            }
-                            else if (!IsTrackedAPI(sibling, cancellationToken))
+                            if (!IsTrackedAPI(sibling, cancellationToken))
                             {
                                 continue;
                             }
@@ -910,6 +903,17 @@ start:
 
                 for (var current = symbol; current != null; current = current.ContainingType)
                 {
+                    // Types marked with '[Microsoft.CodeAnalysis.Embedded]' (as well as their members) are an
+                    // implementation detail that gets embedded into consuming assemblies. They should not be tracked
+                    // as APIs. This also gives authors an opt-out for internal API tracking: applying the attribute to
+                    // an internal type excludes it (and its members) from tracking. We intentionally only inspect named
+                    // types as we walk up the containing-type chain (for perf and because the compiler only emits this
+                    // attribute on types); this is a deliberate restriction, not a claim about the attribute's targets.
+                    if (current is INamedTypeSymbol namedType && HasEmbeddedAttribute(namedType))
+                    {
+                        return false;
+                    }
+
                     switch (current.DeclaredAccessibility)
                     {
                         case Accessibility.Protected:
@@ -925,6 +929,34 @@ start:
                 }
 
                 return true;
+            }
+
+            private static bool HasEmbeddedAttribute(INamedTypeSymbol symbol)
+            {
+                foreach (var attribute in symbol.GetAttributes())
+                {
+                    // Match 'Microsoft.CodeAnalysis.EmbeddedAttribute' by name rather than by symbol identity, since the
+                    // attribute is typically embedded (and hence duplicated) across assemblies, which makes a
+                    // well-known-type lookup ambiguous.
+                    if (attribute.AttributeClass is
+                        {
+                            Name: "EmbeddedAttribute",
+                            ContainingNamespace:
+                            {
+                                Name: "CodeAnalysis",
+                                ContainingNamespace:
+                                {
+                                    Name: "Microsoft",
+                                    ContainingNamespace.IsGlobalNamespace: true,
+                                },
+                            },
+                        })
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private bool CanTypeBeExtended(ITypeSymbol type)

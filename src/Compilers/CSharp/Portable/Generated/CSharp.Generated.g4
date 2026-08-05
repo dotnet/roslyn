@@ -489,7 +489,7 @@ statement
   ;
 
 break_statement
-  : attribute_list* 'break' ';'
+  : attribute_list* 'break' identifier_name? ';'
   ;
 
 checked_statement
@@ -510,7 +510,7 @@ for_each_variable_statement
   ;
 
 continue_statement
-  : attribute_list* 'continue' ';'
+  : attribute_list* 'continue' identifier_name? ';'
   ;
 
 do_statement

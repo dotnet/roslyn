@@ -24,10 +24,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]
 internal sealed class ExtractToCssCodeActionResolver(
-    LanguageServerFeatureOptions languageServerFeatureOptions,
     IFileSystem fileSystem) : IRazorCodeActionResolver
 {
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IFileSystem _fileSystem = fileSystem;
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToCss;
@@ -43,7 +41,7 @@ internal sealed class ExtractToCssCodeActionResolver(
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var cssFilePath = $"{FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath())}.css";
-        var cssFileUri = LspFactory.CreateFilePathUri(cssFilePath, _languageServerFeatureOptions);
+        var cssFileUri = LspFactory.CreateFilePathUri(cssFilePath);
 
         var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 

@@ -313,8 +313,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureStaticMembersInInterfaces = MessageBase + 12861,
         IDS_FeatureClosedClasses = MessageBase + 12862,
         IDS_FeatureExtensionIndexers = MessageBase + 12863,
-
-        IDS_FeatureCompoundAssignmentInInitializer = MessageBase + 12864,
+        IDS_FeatureLabeledBreakContinue = MessageBase + 12864,
+        IDS_FeatureCompoundAssignmentInInitializer = MessageBase + 12865,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -500,6 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUnions:
                 case MessageID.IDS_FeatureStaticMembersInInterfaces:
                 case MessageID.IDS_FeatureClosedClasses: // semantic check
+                case MessageID.IDS_FeatureLabeledBreakContinue:
                 case MessageID.IDS_FeatureExtensionIndexers:
                 case MessageID.IDS_FeatureCompoundAssignmentInInitializer:
                     return LanguageVersion.Preview;

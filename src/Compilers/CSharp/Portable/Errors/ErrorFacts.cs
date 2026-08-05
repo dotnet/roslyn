@@ -210,10 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
-                case ErrorCode.WRN_UnsafeMeaningless:
-                    // Warning level 11 is exclusively for warnings introduced in the compiler
-                    // shipped with dotnet 11 (C# 15) and that can be reported for pre-existing code.
-                    return 11;
                 case ErrorCode.WRN_UnassignedInternalRefField:
                     // Warning level 10 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 10 (C# 14) and that can be reported for pre-existing code.
@@ -642,7 +638,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
                 or ErrorCode.ERR_RefLocalAcrossAwait
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
-                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_NonTaskMainCantBeAsync
                 or ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported
                 or ErrorCode.ERR_EncUpdateFailedMissingSymbol
@@ -2004,7 +1999,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_AutoSetterCantBeReadOnly
                 or ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly
                 or ErrorCode.ERR_InvalidPropertyReadOnlyMods
+                or ErrorCode.ERR_InvalidPropertyUnsafeMods
                 or ErrorCode.ERR_DuplicatePropertyReadOnlyMods
+                or ErrorCode.ERR_SamePropertyUnsafeAccessorMods
                 or ErrorCode.ERR_FieldLikeEventCantBeReadOnly
                 or ErrorCode.ERR_PartialMemberReadOnlyDifference
                 or ErrorCode.ERR_ReadOnlyModMissingAccessor
@@ -2542,13 +2539,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed
                 or ErrorCode.ERR_MemberNameSameAsExtendedType
                 or ErrorCode.ERR_FeatureNotAvailableInVersion14
+                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_ExtensionBlockCollision
                 or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
                 or ErrorCode.ERR_AttributeCannotBeAppliedManually
                 or ErrorCode.ERR_BadSpreadInCatchFilter
                 or ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch
                 or ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
-                or ErrorCode.HDN_RedundantPattern
                 or ErrorCode.WRN_RedundantPattern
                 or ErrorCode.HDN_RedundantPatternStackGuard
                 or ErrorCode.ERR_BadVisBaseType
@@ -2587,7 +2584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InstanceCtorWithOneParameterInUnion
                 or ErrorCode.ERR_UnionConstructorCallsDefaultConstructor
                 or ErrorCode.ERR_UnsafeConstructorConstraint
-                or ErrorCode.WRN_UnsafeMeaningless
+                or ErrorCode.ERR_UnsafeMeaningless
                 or ErrorCode.ERR_RequiresUnsafeAttributeInSource
                 or ErrorCode.ERR_ClosedTypeNameDisallowed
                 or ErrorCode.ERR_ClosedSealedStatic
@@ -2597,10 +2594,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_MissingUnionCaseTypes
                 or ErrorCode.ERR_MissingUnionValueProperty
                 or ErrorCode.ERR_MemberProviderInUnionDeclaration
-                or ErrorCode.ERR_SafeModifierUnsupportedTarget
+                or ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
                 or ErrorCode.ERR_PartialMemberSafeDifference
                 or ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe
+                or ErrorCode.ERR_NoBreakId
+                or ErrorCode.ERR_NoContinueId
+                or ErrorCode.ERR_ClosedBadDerivedTypesProperty
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
