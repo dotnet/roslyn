@@ -652,7 +652,8 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             var attribute = new ComponentAttributeIntermediateNode(node);
 
             // A splat cannot make an explicitly unmatched attribute valid.
-            if (!_component.Component.AcceptsUnmatchedAttributes())
+            if (!node.IsDirectiveAttributeCandidate &&
+                !_component.Component.AcceptsUnmatchedAttributes())
             {
                 attribute.AddDiagnostic(ComponentDiagnosticFactory.Create_UnknownComponentParameter(
                     node.AttributeNameSpan,

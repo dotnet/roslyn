@@ -473,4 +473,13 @@ internal static class ComponentDiagnosticFactory
         string changeAttribute,
         string component)
         => RazorDiagnostic.Create(BindAttribute_MissingChangeAttribute, source, attribute, changeAttribute, component);
+
+    public static readonly RazorDiagnosticDescriptor UnboundDirectiveAttribute =
+        new($"{DiagnosticPrefix}10028",
+            "The attribute '{0}' could not be bound to any directive attribute.",
+            RazorDiagnosticSeverity.Warning,
+            warningLevel: 11);
+
+    public static RazorDiagnostic Create_UnboundDirectiveAttribute(SourceSpan? source, string attribute)
+        => RazorDiagnostic.Create(UnboundDirectiveAttribute, source, attribute);
 }
