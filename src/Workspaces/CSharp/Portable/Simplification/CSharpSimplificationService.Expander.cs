@@ -864,8 +864,8 @@ internal partial class CSharpSimplificationService
             {
                 if (parent.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression)
                 {
-                    return currentNode.Kind() == SyntaxKind.SimpleAssignmentExpression &&
-                        object.Equals(((AssignmentExpressionSyntax)currentNode).Left, identifierName);
+                    return currentNode is AssignmentExpressionSyntax assignment &&
+                        object.Equals(assignment.Left, identifierName);
                 }
                 else if (parent is ExpressionSyntax)
                 {

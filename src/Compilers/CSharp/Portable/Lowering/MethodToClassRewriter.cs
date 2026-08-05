@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.AccessorKind, receiverType, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.AccessorKind, node.UnderlyingAccess, receiverType, type);
         }
 
         private static bool BaseReferenceInReceiverWasRewritten([NotNullWhen(true)] BoundExpression? originalReceiver, [NotNullWhen(true)] BoundExpression? rewrittenReceiver)
