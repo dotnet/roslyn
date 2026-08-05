@@ -15,13 +15,33 @@ namespace Microsoft.CodeAnalysis.Host;
 internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new MetadataService(workspaceServices.GetRequiredService<IDocumentationProviderService>());
+        => new MetadataService(
+            workspaceServices.GetRequiredService<IDocumentationProviderService>(),
+            workspaceServices.GetRequiredService<IMetadataReferenceCacheService>());
 
-    internal sealed class MetadataService(IDocumentationProviderService documentationProviderService) : IMetadataService
+    private sealed class MetadataService : IMetadataService
     {
-        private readonly MetadataReferenceCache _metadataCache = new((path, properties) =>
+        private readonly IDocumentationProviderService _documentationProviderService;
+        private readonly IMetadataReferenceCacheService _metadataReferenceCacheService;
+        private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _createReference;
+
+        public MetadataService(
+            IDocumentationProviderService documentationProviderService,
+            IMetadataReferenceCacheService metadataReferenceCacheService)
         {
-            var documentationProvider = documentationProviderService.GetDocumentationProvider(path);
+            _documentationProviderService = documentationProviderService;
+            _metadataReferenceCacheService = metadataReferenceCacheService;
+            _createReference = CreateReference;
+        }
+
+        public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
+            => _metadataReferenceCacheService.GetReference(
+                resolvedPath, properties, _createReference);
+
+        private PortableExecutableReference CreateReference(
+            string path, MetadataReferenceProperties properties)
+        {
+            var documentationProvider = _documentationProviderService.GetDocumentationProvider(path);
 
             try
             {
@@ -32,10 +52,7 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
                 // Store failed references in the cache so that the behavior stays consistent once we observe the failure.
                 return new ThrowingExecutableReference(path, properties, documentationProvider, e);
             }
-        });
-
-        public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
-            => (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
+        }
 
         private sealed class ThrowingExecutableReference(string resolvedPath, MetadataReferenceProperties properties, DocumentationProvider documentationProvider, IOException exception)
             : PortableExecutableReference(properties, resolvedPath)
