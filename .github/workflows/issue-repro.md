@@ -99,13 +99,16 @@ Follow this protocol exactly when the issue is eligible:
    - C#: `src/Compilers/CSharp/csc/AnyCpu/csc.csproj`
    - Visual Basic: `src/Compilers/VisualBasic/vbc/AnyCpu/vbc.csproj`
 
-   Target `Release` and `net10.0`. Restore only that project if required, then
-   build it once with `--no-restore`. Cap restore and build at 20 minutes each.
-   Never build a solution or unrelated project.
-7. Use the checked-out compiler at
-   `artifacts/bin/csc/Release/net10.0/csc.dll` or
-   `artifacts/bin/vbc/Release/net10.0/vbc.dll` to compile the same candidate with
-   the same references and options. Capture the command, exit code, stdout, and
+   Read the current product TFM from the `NetRoslyn` property defined in
+   `eng/targets/TargetFrameworks.props`. Evaluate it with MSBuild rather than
+   parsing or hardcoding the XML value. `NetRoslynSourceBuild` is guaranteed to
+   include this TFM. Target `Release` and the evaluated TFM. Restore only that
+   project if required, then build it once with `--no-restore`. Cap restore and
+   build at 20 minutes each. Never build a solution or unrelated project.
+7. After the build, evaluate the compiler project's `TargetPath` with
+   `Configuration=Release` and the selected `TargetFramework`. Use that compiler
+   path to compile the same candidate with the same references and options.
+   Capture the selected TFM, compiler path, command, exit code, stdout, and
    stderr.
 8. If the reported behavior requires executing the produced program, run it only
    after successful compilation, with a generated runtime configuration matching
