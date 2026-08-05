@@ -340,12 +340,27 @@ namespace Microsoft.CodeAnalysis
             // - Hard linking a file from the cache instead of copying it is empirically observed to reduce time spent running AV scans when loading assemblies.
             void linkFromCacheOrFallbackToCopy(string originalPath, string shadowCopyPath)
             {
-                var cachePath = Path.Combine(CacheDirectory, GetCacheKey(originalPath));
+                if (!PlatformInformation.IsWindows)
+                {
+                    File.Copy(originalPath, shadowCopyPath);
+                    return;
+                }
+
+                var cachePath = TryGetCacheKey(originalPath) is { } cacheKey
+                    ? Path.Combine(CacheDirectory, cacheKey)
+                    : null;
                 if (File.Exists(cachePath))
                 {
-                    // File is already present in cache. First try to hard-link from cache to the shadow copy path. Failing that just copy from the original path.
-                    if (!PlatformInformation.IsWindows || !haveMatchingMvidAndSize(originalPath, cachePath) || !FileUtilities.TryCreateHardLink(cachePath, shadowCopyPath))
+                    // File is already present in cache. If it matches original, then hard-link from cache to shadow copy path. Failing that just copy from the original path.
+                    if (!cacheEntryMatches(originalPath, cachePath))
+                    {
+                        try { File.Delete(cachePath); } catch { }
                         File.Copy(originalPath, shadowCopyPath);
+                    }
+                    else if (!FileUtilities.TryCreateHardLink(cachePath, shadowCopyPath))
+                    {
+                        File.Copy(originalPath, shadowCopyPath);
+                    }
                 }
                 else
                 {
@@ -353,7 +368,7 @@ namespace Microsoft.CodeAnalysis
                     // If the hard linking fails for some reason, that isn't a functional problem.
                     // It usually means we lost a race to cache the same file, or that the current volume doesn't support hard links (e.g. Dev Drive).
                     File.Copy(originalPath, shadowCopyPath);
-                    if (PlatformInformation.IsWindows)
+                    if (cachePath is not null)
                     {
                         Directory.CreateDirectory(CacheDirectory);
                         FileUtilities.TryCreateHardLink(shadowCopyPath, cachePath);
@@ -361,10 +376,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            bool haveMatchingMvidAndSize(string originalPath, string cachePath)
+            bool cacheEntryMatches(string originalPath, string cachePath)
             {
-                // Sometimes differing assemblies will have same mvid, e.g. before and after Ready2Run compilation.
-                // To defend against this, we require both length and mvid match in order to use the cached file.
                 var originalInfo = new FileInfo(originalPath);
                 var cacheInfo = new FileInfo(cachePath);
                 try
@@ -414,13 +427,20 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static string GetCacheKey(string originalPath)
+        private static string? TryGetCacheKey(string originalPath)
         {
-            // Key format: (original filename) + (file path hash) + (mvid)
+            // Key format: (original filename) + (file path hash) + (mvid) + (original file length)
             var hexHash = HashToHex(originalPath);
-            var mvid = AssemblyUtilities.ReadMvid(originalPath);
-
-            return $"{Path.GetFileNameWithoutExtension(originalPath)}-{hexHash}-{mvid:N}{Path.GetExtension(originalPath)}";
+            try
+            {
+                var mvid = AssemblyUtilities.ReadMvid(originalPath);
+                var length = new FileInfo(originalPath).Length;
+                return $"{Path.GetFileNameWithoutExtension(originalPath)}-{hexHash}-{mvid:N}-{length}-{Path.GetExtension(originalPath)}";
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static void ClearReadOnlyFlagOnFiles(string directoryPath)
