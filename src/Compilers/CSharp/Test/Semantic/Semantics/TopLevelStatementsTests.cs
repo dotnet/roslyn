@@ -10273,7 +10273,6 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(1, 1)
                 );
 
-            // The first file is reported as well, so that every file that has to be fixed carries a diagnostic.
             AssertEx.Equal(["Program.cs", "Startup.cs"], comp.GetDiagnostics().Select(d => d.Location.SourceTree.FilePath));
         }
 
@@ -10286,7 +10285,6 @@ partial class Program
             GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: DefaultParseOptions);
             driver.RunGeneratorsAndUpdateCompilation(comp, out var outputCompilation, out _);
 
-            // The generated file gets a diagnostic too, even though the user cannot edit it.
             outputCompilation.VerifyDiagnostics(
                 // (1,1): error CS8802: Only one compilation unit can have top-level statements.
                 // System.Console.Write(1);

@@ -3798,8 +3798,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>? builder = null;
 
-                // Report the error on every compilation unit with top-level statements, rather than only on the
-                // ones following the first, so that each diagnostic navigates to a file that has to be fixed.
                 bool reportMultipleUnits = declaration.Declarations.Count(static d => d.IsSimpleProgram) > 1;
 
                 foreach (var singleDecl in declaration.Declarations)
