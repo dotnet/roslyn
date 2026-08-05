@@ -1,0 +1,5 @@
+﻿Source Location: (12:0,12 [19] x:\dir\subdir\Test\TestComponent.cshtml)
+|"~/images/logo.png"|
+Generated Location: (829:23,0 [19] )
+|"~/images/logo.png"|
+
