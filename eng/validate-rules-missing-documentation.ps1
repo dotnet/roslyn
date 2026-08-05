@@ -13,8 +13,7 @@ try {
   $prepareMachine = $ci
 
   $projectFilePath = Join-Path $RepoRoot "src\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj"
-  $env:DOTNET_ROLL_FORWARD_TO_PRERELEASE = "1"
-  Exec-DotNet "--roll-forward major build $projectFilePath -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
+  Exec-DotNet "build $projectFilePath -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
 }
 catch {
   Write-Host $_
