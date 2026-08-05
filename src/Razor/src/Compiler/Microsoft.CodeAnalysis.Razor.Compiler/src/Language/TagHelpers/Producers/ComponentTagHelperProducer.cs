@@ -311,6 +311,11 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
                 builder.AcceptsStringLiteral = true;
             }
 
+            if (property.GetAttributes().Any(static a => a.HasFullName(ComponentsApi.AssetPathAttribute.MetadataName)))
+            {
+                builder.AcceptsAssetPath = true;
+            }
+
             pb.SetMetadata(builder.Build());
 
             var xml = property.GetDocumentationCommentXml();
