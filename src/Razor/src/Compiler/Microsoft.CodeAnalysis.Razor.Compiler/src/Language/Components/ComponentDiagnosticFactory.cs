@@ -451,4 +451,26 @@ internal static class ComponentDiagnosticFactory
 
     public static RazorDiagnostic Create_UnknownComponentParameter(SourceSpan? source, string component, string parameter)
         => RazorDiagnostic.Create(UnknownComponentParameter, source, component, parameter);
+
+    public static readonly RazorDiagnosticDescriptor BindAttribute_MissingTarget =
+        new($"{DiagnosticPrefix}10026",
+            "The bind attribute '{0}' does not match any parameter on component '{1}'.",
+            RazorDiagnosticSeverity.Warning,
+            warningLevel: 11);
+
+    public static RazorDiagnostic CreateBindAttribute_MissingTarget(SourceSpan? source, string attribute, string component)
+        => RazorDiagnostic.Create(BindAttribute_MissingTarget, source, attribute, component);
+
+    public static readonly RazorDiagnosticDescriptor BindAttribute_MissingChangeAttribute =
+        new($"{DiagnosticPrefix}10027",
+            "The bind attribute '{0}' requires a matching change parameter named '{1}' on component '{2}'.",
+            RazorDiagnosticSeverity.Warning,
+            warningLevel: 11);
+
+    public static RazorDiagnostic CreateBindAttribute_MissingChangeAttribute(
+        SourceSpan? source,
+        string attribute,
+        string changeAttribute,
+        string component)
+        => RazorDiagnostic.Create(BindAttribute_MissingChangeAttribute, source, attribute, changeAttribute, component);
 }
