@@ -46,6 +46,13 @@ their original sub-tree layout
   state does not contain the user's C# formatting preferences, so do not reconstruct them OOP.
   Resolve the options at the public handler boundary and keep downstream product parameters
   non-null.
+- **Runtime-declared attribute lists**: When the runtime declares a set the compiler must read
+  (e.g. `[EventHandler]`, `[AcceptsAssetPath]`), it applies the attributes to a public type with
+  a well-known name (`EventHandlers`, `AssetPathAttributes`). A `TagHelperProducer` under
+  `Language/TagHelpers/Producers/` keys off that type name (`IsCandidateType`) and emits carrier
+  `TagHelperDescriptor`s whose descriptor-level metadata carries the parsed values. A later
+  optimization pass reads the full discovered set via `ITagHelperFeature.GetTagHelpers()` (not the
+  document's in-scope tag helpers, which are namespace-scoped) and filters by metadata kind.
 - **Visual Studio options**: Register Razor Advanced settings in
   `Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json`, localize
   their UI text in `VSPackage.resx`, read them through `OptionsStorage`, and add remotely consumed
