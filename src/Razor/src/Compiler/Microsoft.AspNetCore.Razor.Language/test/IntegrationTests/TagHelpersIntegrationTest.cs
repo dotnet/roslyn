@@ -248,11 +248,130 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         Assert.NotEmpty(contribution.ContributedTagHelpers);
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/68193")]
+    public void ConsecutiveWithoutEndTagTagHelpers_AllBind()
+    {
+        // The HTML parser nests consecutive unclosed tags (`<alpha><beta><gamma>` becomes
+        // alpha > beta > gamma). Each of these is a WithoutEndTag tag helper, so all three
+        // must still bind as siblings rather than only the first.
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "alpha",
+                typeName: "AlphaTagHelper",
+                assemblyName: "TestAssembly",
+                tagStructure: TagStructure.WithoutEndTag),
+            CreateTagHelperDescriptor(
+                tagName: "beta",
+                typeName: "BetaTagHelper",
+                assemblyName: "TestAssembly",
+                tagStructure: TagStructure.WithoutEndTag),
+            CreateTagHelperDescriptor(
+                tagName: "gamma",
+                typeName: "GammaTagHelper",
+                assemblyName: "TestAssembly",
+                tagStructure: TagStructure.WithoutEndTag),
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+            @addTagHelper *, TestAssembly
+            <head>
+            <alpha>
+            <beta>
+            <gamma>
+            </head>
+            """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert
+        var documentNode = codeDocument.GetRequiredDocumentNode();
+        var tagHelperNodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
+        Assert.Collection(tagHelperNodes,
+            node => Assert.Equal("alpha", node.TagName),
+            node => Assert.Equal("beta", node.TagName),
+            node => Assert.Equal("gamma", node.TagName));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/68193")]
+    public void MixedNestedStartTagOnlyAndHtmlTagHelpers_AllResolveCorrectly()
+    {
+        // A deliberately tangled mix: a nestable tag helper (wrapper) containing consecutive
+        // WithoutEndTag helpers (alpha, beta) and a normal one (bold), followed by a second
+        // WithoutEndTag helper whose parser-nested body wraps a real HTML element (<div>) and
+        // yet another WithoutEndTag helper. Every tag helper must bind, real HTML (<section>,
+        // <div>) must stay markup, and document order must be preserved.
+        // Note: custom (non-void) tag names are required -- the HTML parser self-terminates
+        // real void elements like <input>/<br>, which wouldn't exercise the nesting-promotion path.
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "wrapper",
+                typeName: "WrapperTagHelper",
+                assemblyName: "TestAssembly"),
+            CreateTagHelperDescriptor(
+                tagName: "bold",
+                typeName: "BoldTagHelper",
+                assemblyName: "TestAssembly"),
+            CreateTagHelperDescriptor(
+                tagName: "alpha",
+                typeName: "AlphaTagHelper",
+                assemblyName: "TestAssembly",
+                tagStructure: TagStructure.WithoutEndTag),
+            CreateTagHelperDescriptor(
+                tagName: "beta",
+                typeName: "BetaTagHelper",
+                assemblyName: "TestAssembly",
+                tagStructure: TagStructure.WithoutEndTag),
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+            @addTagHelper *, TestAssembly
+            <section>
+            <wrapper>
+            <alpha>
+            <beta>
+            <bold>text</bold>
+            </wrapper>
+            <alpha>
+            <div>plain html</div>
+            <beta>
+            </section>
+            """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert: every tag helper binds, in document order, with the WithoutEndTag helpers
+        // promoted to siblings rather than swallowing what follows them.
+        var documentNode = codeDocument.GetRequiredDocumentNode();
+        var tagHelperNodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
+        Assert.Collection(tagHelperNodes,
+            node => Assert.Equal("wrapper", node.TagName),
+            node => Assert.Equal("alpha", node.TagName),
+            node => Assert.Equal("beta", node.TagName),
+            node => Assert.Equal("bold", node.TagName),
+            node => Assert.Equal("alpha", node.TagName),
+            node => Assert.Equal("beta", node.TagName));
+
+        // The real HTML elements must survive as literal markup, never bound as tag helpers.
+        var generatedCode = codeDocument.GetRequiredCSharpDocument().Text.ToString();
+        Assert.Contains("<section>", generatedCode);
+        Assert.Contains("<div>", generatedCode);
+        Assert.Contains("plain html", generatedCode);
+    }
+
     private static TagHelperDescriptor CreateTagHelperDescriptor(
         string tagName,
         string typeName,
         string assemblyName,
-        IEnumerable<Action<BoundAttributeDescriptorBuilder>>? attributes = null)
+        IEnumerable<Action<BoundAttributeDescriptorBuilder>>? attributes = null,
+        TagStructure tagStructure = TagStructure.Unspecified)
     {
         var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
         builder.SetTypeName(typeName, typeNamespace: null, typeNameIdentifier: null);
@@ -265,7 +384,9 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
             }
         }
 
-        builder.TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder.RequireTagName(tagName));
+        builder.TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder
+            .RequireTagName(tagName)
+            .RequireTagStructure(tagStructure));
 
         var descriptor = builder.Build();
 

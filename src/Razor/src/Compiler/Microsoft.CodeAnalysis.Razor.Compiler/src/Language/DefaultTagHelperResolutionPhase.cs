@@ -197,6 +197,27 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                 {
                     parent.Children.Insert(insertIdx++, elementNode.Children[i]);
                 }
+
+                // The promoted nodes were parsed as body children of this element because the
+                // HTML parser nests unclosed tags (e.g. `<a><b><c>` becomes a > b > c). Now that
+                // this element is bound as StartTagOnly, they are siblings that may themselves be
+                // tag helpers. The outer walker iterates in reverse and won't revisit these
+                // newly inserted positions, so resolve them here (in reverse, since resolving a
+                // promoted StartTagOnly sibling can insert further siblings after it).
+                for (var j = insertIdx - 1; j > index; j--)
+                {
+                    if (j < parent.Children.Count)
+                    {
+                        if (parent.Children[j] is UnresolvedElementIntermediateNode promotedElement)
+                        {
+                            ResolveElement(parent, j, promotedElement, binder, prefix, usedHelpers, in context);
+                        }
+                        else
+                        {
+                            ResolveElements(parent.Children[j], binder, prefix, usedHelpers, in context);
+                        }
+                    }
+                }
             }
         }
     }
