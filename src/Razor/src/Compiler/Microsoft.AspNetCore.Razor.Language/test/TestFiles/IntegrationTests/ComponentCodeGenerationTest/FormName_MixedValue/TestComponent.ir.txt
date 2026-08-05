@@ -29,5 +29,3 @@
                             LazyIntermediateToken - (117:1,73 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x
                         HtmlContent - (118:1,74 [4] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (118:1,74 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  end
-            CSharpCode - (140:2,7 [18] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (140:2,7 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    int x = 1;\n

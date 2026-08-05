@@ -1,0 +1,3 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddMarkupContent("\r\n")
+[0002] OpenComponent<global::Test2.MyComponent2>()

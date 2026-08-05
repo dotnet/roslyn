@@ -136,7 +136,7 @@ public sealed class CSharpPreviewLanguageFeaturesIntegrationTest_Legacy : Integr
             codeDocument);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -164,7 +164,7 @@ public sealed class CSharpPreviewLanguageFeaturesIntegrationTest_Legacy : Integr
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }

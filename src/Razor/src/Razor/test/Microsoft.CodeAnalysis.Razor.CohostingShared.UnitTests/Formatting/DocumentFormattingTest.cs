@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -121,6 +121,76 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </PageTitle>
                 </PageTitle>
                 """");
+    }
+
+    [Fact]
+    public async Task MultilineRawStringLiteral_CodeBlock()
+    {
+        await RunFormattingTestAsync(
+            input: """"
+                <div></div>
+                @code
+                {
+                    private string _x = """
+                        <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+
+                        <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                        <Title>Aanmaak scherm</Title>
+                        <Body>
+                            <label>Vul hier een tekst in</label>
+                            <input @bind=_createItem />
+                        </Body>
+                        <Footer>
+                            <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                            <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                        </Footer>
+                        </FCBS5Modal>
+                        """;
+                }
+                """",
+            htmlFormatted: """"
+                <div></div>
+                @code
+                {
+                    private string _x = """
+                        <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+                
+                        <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                        <Title>Aanmaak scherm</Title>
+                        <Body>
+                        <label>Vul hier een tekst in</label>
+                        <input @bind=_createItem />
+                        </Body>
+                        <Footer>
+                        <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                        <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                        </Footer>
+                        </FCBS5Modal>
+                        """;
+                }
+                """",
+            expected: """"
+                <div></div>
+                @code
+                {
+                    private string _x = """
+                        <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+                
+                        <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                        <Title>Aanmaak scherm</Title>
+                        <Body>
+                            <label>Vul hier een tekst in</label>
+                            <input @bind=_createItem />
+                        </Body>
+                        <Footer>
+                            <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                            <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                        </Footer>
+                        </FCBS5Modal>
+                        """;
+                }
+                """",
+            validateHtmlFormattedMatchesWebTools: false);
     }
 
     [Fact]
