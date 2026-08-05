@@ -482,4 +482,12 @@ internal static class ComponentDiagnosticFactory
 
     public static RazorDiagnostic Create_UnboundDirectiveAttribute(SourceSpan? source, string attribute)
         => RazorDiagnostic.Create(UnboundDirectiveAttribute, source, attribute);
+
+    public static readonly RazorDiagnosticDescriptor AssetPath_NonStringParameter =
+        new($"{DiagnosticPrefix}10030",
+            "[AssetPath] on parameter '{0}' has no effect because its type is not 'string'; '~/' asset-path expansion applies only to string parameters.",
+            RazorDiagnosticSeverity.Warning);
+
+    public static RazorDiagnostic CreateAssetPath_NonStringParameter(SourceSpan? source, string parameter)
+        => RazorDiagnostic.Create(AssetPath_NonStringParameter, source, parameter);
 }
