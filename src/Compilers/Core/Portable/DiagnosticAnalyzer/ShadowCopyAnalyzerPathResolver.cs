@@ -19,11 +19,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-#if NET
-    [SupportedOSPlatform("windows")]
-#endif
     internal sealed class ShadowCopyAnalyzerPathResolver : IAnalyzerPathResolver
     {
+        private const string DirectoryVersion = "v1";
+
         private enum DirectoryCleanupState
         {
             InProgress,
@@ -80,7 +79,10 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal int CopyCount => CopyMap.Count;
 
-        public ShadowCopyAnalyzerPathResolver(string baseDirectory, string cacheDirectory)
+#if NET
+        [SupportedOSPlatform("windows")]
+#endif
+        public ShadowCopyAnalyzerPathResolver(string baseDirectory)
         {
             if (!PlatformInformation.IsWindows)
             {
@@ -97,18 +99,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException($"Must be a full path: {baseDirectory}", nameof(baseDirectory));
             }
 
-            if (cacheDirectory is null)
-            {
-                throw new ArgumentNullException(nameof(cacheDirectory));
-            }
-
-            if (!Path.IsPathRooted(cacheDirectory))
-            {
-                throw new ArgumentException($"Must be a full path: {cacheDirectory}", nameof(cacheDirectory));
-            }
-
-            BaseDirectory = baseDirectory;
-            CacheDirectory = cacheDirectory;
+            var versionDirectory = Path.Combine(baseDirectory, DirectoryVersion);
+            BaseDirectory = Path.Combine(versionDirectory, "shadow");
+            CacheDirectory = Path.Combine(versionDirectory, "cache");
 
             var shadowDirectoryName = Guid.NewGuid().ToString("N").ToLowerInvariant();
 

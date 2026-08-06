@@ -401,16 +401,15 @@ namespace Microsoft.CodeAnalysis
         /// Return an <see cref="IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is
         /// most appropriate for the current platform.
         /// </summary>
-        /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
-        /// will be the base directory where shadow copy assemblies are stored. </param>
+        /// <param name="windowsBasePath">A shadow copy path will be created on Windows and this value
+        /// will be the base directory where shadow copy assemblies and cached files are stored. </param>
         internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(
-            string windowsShadowPath,
-            string windowsCachePath,
+            string windowsBasePath,
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default,
             ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default,
             System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null)
         {
-            CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsShadowPath);
+            CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsBasePath);
             pathResolvers = pathResolvers.NullToEmpty();
             assemblyResolvers = assemblyResolvers.NullToEmpty();
 
@@ -433,7 +432,7 @@ namespace Microsoft.CodeAnalysis
             // Program Files are not expected to change and so locking is not a concern. But for everything else
             // we want to avoid locking and use shadow copy.
             return new AnalyzerAssemblyLoader(
-                [.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsShadowPath, windowsCachePath)],
+                [.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsBasePath)],
                 [.. assemblyResolvers, DiskResolver.Instance],
                 compilerLoadContext);
         }
@@ -444,24 +443,20 @@ namespace Microsoft.CodeAnalysis
         /// Return an <see cref="IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is
         /// most appropriate for the current platform.
         /// </summary>
-        /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
-        /// will be the base directory where shadow copy assemblies are stored. </param>
-        /// <param name="windowsCachePath">Path for cached shadow copy assemblies on Windows.
-        /// This should be on the same volume as <paramref name="windowsShadowPath"/>.
-        /// Otherwise, the loader will still function but caching will not work. </param>
+        /// <param name="windowsBasePath">A shadow copy path will be created on Windows and this value
+        /// will be the base directory where shadow copy assemblies and cached files are stored. </param>
         internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(
-            string windowsShadowPath,
-            string windowsCachePath,
+            string windowsBasePath,
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default)
         {
-            CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsShadowPath);
+            CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsBasePath);
             pathResolvers = pathResolvers.NullToEmpty();
 
             // The goal here is to avoid locking files on disk that are reasonably expected to be changed by 
             // developers for the lifetime of VBCSCompiler, Visual Studio, VS Code, etc ... Places like 
             // Program Files are not expected to change and so locking is not a concern. But for everything else
             // we want to avoid locking and use shadow copy.
-            return new AnalyzerAssemblyLoader([.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsShadowPath, windowsCachePath)]);
+            return new AnalyzerAssemblyLoader([.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsBasePath)]);
         }
 #endif
     }

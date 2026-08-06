@@ -10,8 +10,7 @@ internal static class OmnisharpAnalyzerAssemblyLoaderFactory
 {
     public static IAnalyzerAssemblyLoader CreateShadowCopyAnalyzerAssemblyLoader()
     {
-        var baseDirectory = Path.Combine(Path.GetTempPath(), "CodeAnalysis", "OmnisharpAnalyzerShadowCopies");
-        var cacheDirectory = Path.Combine(Path.GetTempPath(), "CodeAnalysis", "OmnisharpAnalyzerShadowCopies-cache");
-        return AnalyzerAssemblyLoader.CreateNonLockingLoader(baseDirectory, cacheDirectory);
+        var baseDirectory = Path.Combine(Path.GetTempPath(), "CodeAnalysis", "OmnisharpAnalyzerPathResolver");
+        return AnalyzerAssemblyLoader.CreateNonLockingLoader(baseDirectory);
     }
 }

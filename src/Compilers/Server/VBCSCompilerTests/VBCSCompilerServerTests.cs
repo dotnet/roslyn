@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         public class StartupTests : VBCSCompilerServerTests
         {
-            [Fact]
+            [ConditionalFact(typeof(WindowsOnly))]
             [WorkItem(217709, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/217709")]
             public async Task ShadowCopyAnalyzerAssemblyLoaderMissingDirectory()
             {
                 var baseDirectory = Path.Combine(Path.GetTempPath(), TestBase.GetUniqueName());
-                var shadowResolver = new ShadowCopyAnalyzerPathResolver(baseDirectory, baseDirectory + "-cache");
+                var shadowResolver = new ShadowCopyAnalyzerPathResolver(baseDirectory);
                 var task = shadowResolver.DeleteLeftoverDirectoriesTask;
                 await task;
                 Assert.False(task.IsFaulted);

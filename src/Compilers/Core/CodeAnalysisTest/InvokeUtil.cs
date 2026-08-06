@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -54,7 +55,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver];
                     break;
                 case AnalyzerTestKind.ShadowLoad:
-                    pathResolvers = [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path, tempRoot.CreateDirectory().Path)];
+                    Debug.Assert(PlatformInformation.IsWindows);
+                    pathResolvers = [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path)];
                     assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver];
                     break;
                 default:
@@ -225,9 +227,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             pathResolvers = kind switch
             {
                 AnalyzerTestKind.LoadDirect => pathResolvers,
-                AnalyzerTestKind.ShadowLoad => [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path, tempRoot.CreateDirectory().Path)],
+                AnalyzerTestKind.ShadowLoad => addShadowCopyResolver(),
                 _ => throw ExceptionUtilities.Unreachable(),
             };
+
+            IAnalyzerPathResolver[] addShadowCopyResolver()
+            {
+                Debug.Assert(PlatformInformation.IsWindows);
+                return [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path)];
+            }
 
             var loader = new AnalyzerAssemblyLoader(pathResolvers.ToImmutableArray());
 
