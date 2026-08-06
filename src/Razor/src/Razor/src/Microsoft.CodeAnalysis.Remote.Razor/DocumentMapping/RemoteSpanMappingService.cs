@@ -9,7 +9,8 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentExcerpt;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -33,13 +34,13 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
     private readonly ITelemetryReporter _telemetryReporter = args.ExportProvider.GetExportedValue<ITelemetryReporter>();
     private readonly IRazorEditService _razorEditService = args.ExportProvider.GetExportedValue<IRazorEditService>();
 
-    public ValueTask<RemoteExcerptResult?> TryExcerptAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId generatedDocumentId, TextSpan span, RazorExcerptMode mode, RazorClassificationOptionsWrapper options, CancellationToken cancellationToken)
+    public ValueTask<RemoteExcerptResult?> TryExcerptAsync(RazorSolutionWrapper solutionInfo, DocumentId generatedDocumentId, TextSpan span, ExcerptMode mode, ClassificationOptions options, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             solution => TryExcerptAsync(solution, generatedDocumentId, span, mode, options, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<RemoteExcerptResult?> TryExcerptAsync(Solution solution, DocumentId generatedDocumentId, TextSpan span, RazorExcerptMode mode, RazorClassificationOptionsWrapper options, CancellationToken cancellationToken)
+    private async ValueTask<RemoteExcerptResult?> TryExcerptAsync(Solution solution, DocumentId generatedDocumentId, TextSpan span, ExcerptMode mode, ClassificationOptions options, CancellationToken cancellationToken)
     {
         var generatedDocument = await solution.GetSourceGeneratedDocumentAsync(generatedDocumentId, cancellationToken).ConfigureAwait(false);
         if (generatedDocument is null)
@@ -66,12 +67,12 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         var razorDocumentSpan = razorDocumentText.GetTextSpan(mappedSpan.LinePositionSpan);
 
         // First compute the range of text we want to we to display relative to the primary document.
-        var excerptSpan = DocumentExcerptHelper.ChooseExcerptSpan(razorDocumentText, razorDocumentSpan, mode);
+        var excerptSpan = RazorDocumentExcerptHelper.ChooseExcerptSpan(razorDocumentText, razorDocumentSpan, mode);
 
         // Then we'll classify the spans based on the primary document, since that's the coordinate
         // space that our output mappings use.
         var mappingsSortedByOriginal = codeDocument.GetRequiredCSharpDocument().SourceMappingsSortedByOriginal;
-        var classifiedSpans = await DocumentExcerptHelper.ClassifyPreviewAsync(
+        var classifiedSpans = await RazorDocumentExcerptHelper.ClassifyPreviewAsync(
             excerptSpan,
             generatedDocument,
             mappingsSortedByOriginal,
@@ -81,13 +82,13 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         return new RemoteExcerptResult(razorDocument.Id, razorDocumentSpan, excerptSpan, classifiedSpans.ToImmutable(), span);
     }
 
-    public ValueTask<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId generatedDocumentId, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<RemoteMappedSpanResult>> MapSpansAsync(RazorSolutionWrapper solutionInfo, DocumentId generatedDocumentId, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
        => RunServiceAsync(
             solutionInfo,
             solution => MapSpansAsync(solution, generatedDocumentId, spans, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Solution solution, DocumentId generatedDocumentId, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+    private async ValueTask<ImmutableArray<RemoteMappedSpanResult>> MapSpansAsync(Solution solution, DocumentId generatedDocumentId, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
         var razorDocument = await TryGetRazorDocumentForGeneratedDocumentIdAsync(generatedDocumentId, solution, cancellationToken).ConfigureAwait(false);
         if (razorDocument is null)
@@ -101,7 +102,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         return await MapSpansAsync(documentSnapshot, codeDocument, spans, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(RemoteDocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<RemoteMappedSpanResult>> MapSpansAsync(RemoteDocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
         var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var csharpSyntaxNode = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -115,7 +116,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
             ? classDecl.Identifier.Span
             : default;
 
-        using var results = new PooledArrayBuilder<RazorMappedSpanResult>();
+        using var results = new PooledArrayBuilder<RemoteMappedSpanResult>();
 
         foreach (var span in spans)
         {
@@ -176,13 +177,13 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         return false;
     }
 
-    public ValueTask<ImmutableArray<RazorMappedEditResult>> MapTextChangesAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId generatedDocumentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<RemoteMappedEditResult>> MapTextChangesAsync(RazorSolutionWrapper solutionInfo, DocumentId generatedDocumentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             solution => MapTextChangesAsync(solution, generatedDocumentId, changes, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<ImmutableArray<RazorMappedEditResult>> MapTextChangesAsync(Solution solution, DocumentId generatedDocumentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+    private async ValueTask<ImmutableArray<RemoteMappedEditResult>> MapTextChangesAsync(Solution solution, DocumentId generatedDocumentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
         try
         {
@@ -203,9 +204,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
                 return [];
             }
 
-            var razorSource = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            return [new RazorMappedEditResult() { FilePath = documentSnapshot.FilePath, TextChanges = [.. textChanges] }];
+            return [new RemoteMappedEditResult() { FilePath = documentSnapshot.FilePath, TextChanges = [.. textChanges] }];
         }
         catch (Exception ex)
         {
@@ -227,7 +226,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
 
     private async Task<TextDocument?> TryGetRazorDocumentForGeneratedDocumentAsync(SourceGeneratedDocument generatedDocument, CancellationToken cancellationToken)
     {
-        var identity = RazorGeneratedDocumentIdentity.Create(generatedDocument);
+        var identity = generatedDocument.Identity;
         if (!identity.IsRazorSourceGeneratedDocument())
         {
             return null;

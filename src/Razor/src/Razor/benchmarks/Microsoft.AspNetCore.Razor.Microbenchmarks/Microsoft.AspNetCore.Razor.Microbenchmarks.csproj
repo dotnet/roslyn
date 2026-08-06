@@ -14,6 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\..\..\Dependencies\Contracts\Index.cs" Link="LanguageSupport\Index.cs" />
+    <Compile Include="..\..\..\..\..\Dependencies\Contracts\Range.cs" Link="LanguageSupport\Range.cs" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
   </ItemGroup>
@@ -21,8 +23,6 @@
   <ItemGroup>
     <None Remove=".gitignore" />
     <None Remove="BenchmarkDotNet.Artifacts\**" />
-
-    <Compile Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
 
     <Compile Remove="Resources\**\*.*" />
     <None Remove="Resources\**\*.*" />

@@ -54,6 +54,14 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     private readonly ITextFactoryService _textFactory;
 
     /// <summary>
+    /// When <see langword="true"/>, all allocations get their own dedicated memory mapped file instead of being
+    /// packed into shared blocks via the bump-pointer allocator. This avoids the fragmentation problem where a
+    /// single surviving handle keeps an entire shared block alive, which can exhaust virtual address space in
+    /// x86 processes during long-running test hosts.
+    /// </summary>
+    private readonly bool _forceSingleFile;
+
+    /// <summary>
     /// The synchronization object for accessing the memory mapped file related fields (indicated in the remarks
     /// of each field).
     /// </summary>
@@ -88,10 +96,11 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     private long _offset;
 
     [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-    private TemporaryStorageService(IWorkspaceThreadingService? workspaceThreadingService, ITextFactoryService textFactory)
+    private TemporaryStorageService(IWorkspaceThreadingService? workspaceThreadingService, ITextFactoryService textFactory, bool forceSingleFile)
     {
         _workspaceThreadingService = workspaceThreadingService;
         _textFactory = textFactory;
+        _forceSingleFile = forceSingleFile;
     }
 
     ITemporaryStorageTextHandle ITemporaryStorageServiceInternal.WriteToTemporaryStorage(SourceText text, CancellationToken cancellationToken)
@@ -197,14 +206,23 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     /// <remarks>
     /// <para>"Small" requests are fulfilled from oversized memory mapped files which support several individual
     /// storage units. Larger requests are allocated in their own memory mapped files.</para>
+    /// <para>When <see cref="_forceSingleFile"/> is set, all requests get their own dedicated memory mapped file
+    /// to avoid the fragmentation problem where a single surviving handle keeps an entire shared block alive.</para>
     /// </remarks>
     /// <param name="size">The size of the shared storage block to allocate.</param>
     /// <returns>A <see cref="MemoryMappedInfo"/> describing the allocated block.</returns>
     private MemoryMappedInfo CreateTemporaryStorage(long size)
     {
-        // Larger blocks are allocated separately
-        if (size >= SingleFileThreshold)
-            return MemoryMappedInfo.CreateNew(CreateUniqueName(size), size: size);
+        // Larger blocks are always allocated separately. When _forceSingleFile is set, all blocks are allocated
+        // separately to avoid the fragmentation problem where one surviving handle in a shared block keeps the
+        // entire block mapped — exhausting virtual address space in x86 processes.
+        if (_forceSingleFile || size >= SingleFileThreshold)
+        {
+            var name = CreateUniqueName(size);
+            // MemoryMappedFile requires a capacity of at least 1 byte.
+            var memoryMappedFile = MemoryMappedFile.CreateNew(name, Math.Max(size, 1));
+            return new MemoryMappedInfo(memoryMappedFile, name, offset: 0, size: size);
+        }
 
         lock (_gate)
         {

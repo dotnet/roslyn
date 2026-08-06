@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
@@ -11,19 +10,19 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 internal interface IRemoteDebugInfoService
 {
     ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         LinePosition position,
         CancellationToken cancellationToken);
 
     ValueTask<string[]?> ResolveProximityExpressionsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         LinePosition position,
         CancellationToken cancellationToken);
 
     ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         LinePositionSpan span,
         CancellationToken cancellationToken);

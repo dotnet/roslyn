@@ -7,6 +7,21 @@
         <target state="translated">값은 null이거나 빈 문자열일 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Baseline_Newly_Available">
+        <source>🆕 Newly available across major browsers{0}</source>
+        <target state="translated">🆕 주요 브라우저에서 새로 사용 가능{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Since">
+        <source> (Baseline since {0})</source>
+        <target state="translated"> ({0} 이후 기준)</target>
+        <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Widely_Available">
+        <source>✅ Widely available across major browsers{0}</source>
+        <target state="translated">✅ 주요 브라우저에서 널리 사용 가능{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
       <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
         <source>{0} (and req'd attributes...)</source>
         <target state="translated">{0}(및 필수 특성...)</target>
@@ -89,6 +104,11 @@
         <target state="translated">Razor 언어 서비스가 제대로 구성되지 않았습니다. 언어 서비스 '{0}'이(가) 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="MDN_Reference">
+        <source>MDN Reference</source>
+        <target state="translated">MDN 참조</target>
+        <note>Link text for MDN documentation URL in HTML completion tooltips</note>
+      </trans-unit>
       <trans-unit id="Not_Available_In">
         <source>Not available in</source>
         <target state="translated">에서 사용할 수 없음</target>
@@ -117,11 +137,6 @@
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
         <target state="translated">"완료된 항목 다시 트리거"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">''{' or '}' 이외의 RazorMetaCode를 방문하려고 했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">

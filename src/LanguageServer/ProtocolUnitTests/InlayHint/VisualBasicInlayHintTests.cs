@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint;
 
 public sealed class VisualBasicInlayHintTests : AbstractInlayHintTests
 {
-    public VisualBasicInlayHintTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    public VisualBasicInlayHintTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 

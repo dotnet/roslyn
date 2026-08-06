@@ -3,14 +3,13 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.SpellCheck;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed partial class RemoteSpellCheckService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteSpellCheckService
+internal sealed class RemoteSpellCheckService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteSpellCheckService
 {
     internal sealed class Factory : FactoryBase<IRemoteSpellCheckService>
     {
@@ -20,7 +19,7 @@ internal sealed partial class RemoteSpellCheckService(in ServiceArgs args) : Raz
 
     private readonly ISpellCheckService _spellCheckService = args.ExportProvider.GetExportedValue<ISpellCheckService>();
 
-    public ValueTask<int[]> GetSpellCheckRangeTriplesAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken)
+    public ValueTask<int[]> GetSpellCheckRangeTriplesAsync(RazorSolutionWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,

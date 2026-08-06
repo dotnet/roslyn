@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
@@ -65,7 +66,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
 
         var codeBehindUri = LspFactory.CreateFilePathUri(codeBehindPath);
 
-        var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(codeBehindUri) };
+        var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = codeBehindUri };
 
         var classLocationLineSpan = classDecl.GetLocation().GetLineSpan();
         var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -78,7 +79,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             character: 0,
             eventHandler);
 
-        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri, edit, cancellationToken).ConfigureAwait(false);
+        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri.GetRequiredSystemUri(), edit, cancellationToken).ConfigureAwait(false);
 
         var codeBehindTextDocEdit = new TextDocumentEdit()
         {
@@ -135,7 +136,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             DocumentChanges = new[] {
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri },
                     Edits = [code.Source.Text.GetTextEdit(razorChange)],
                 }
             }

@@ -34,7 +34,8 @@ internal interface IBuildHost
     /// contain paths (which can have escaping issues) or could be quite large (which could run into length limits).
     /// </summary>
     /// <param name="knownCommandLineParserLanguages">Languages whose command line parser we understand (ICommandLineParserService).</param>
-    void ConfigureGlobalState(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, string? binlogPath);
+    /// <param name="maxNodeCount">The maximum number of MSBuild nodes that may build concurrently, or <see langword="null"/> to use MSBuild's default. Builds submitted in parallel can run in parallel up to this limit.</param>
+    void ConfigureGlobalState(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, string? binlogPath, int? maxNodeCount);
 
     Task<int> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken);
 
@@ -42,8 +43,18 @@ internal interface IBuildHost
     /// Permits loading a project file which only exists in-memory, for example, for file-based program scenarios.
     /// </summary>
     /// <param name="projectFilePath">A path to a project file which may or may not exist on disk. Note that an extension that is known by MSBuild, such as .csproj or .vbproj, should be used here.</param>
+    /// <param name="physicalFilePath">The original C# file path.</param>
     /// <param name="projectContent">The project file XML content.</param>
-    int LoadProject(string projectFilePath, string projectContent, string languageName);
+    /// <returns>A handle to the loaded project (<see cref="IProjectFile"/>).</returns>
+    int LoadProject(string projectFilePath, string? physicalFilePath, string projectContent, string languageName, IDictionary<string, string>? globalProperties);
+
+    /// <summary>
+    /// Permits loading a project instance which only exists in-memory, for example, for file-based program scenarios.
+    /// </summary>
+    /// <param name="projectFilePath">A path to a project file which may or may not exist on disk.</param>
+    /// <param name="projectContent">The project file XML content.</param>
+    /// <returns>A handle to the loaded project instance (<see cref="IProjectInstance"/>).</returns>
+    int LoadProjectInstance(string projectFilePath, string projectContent, IDictionary<string, string>? additionalGlobalProperties);
 
     Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken);
     Task ShutdownAsync();

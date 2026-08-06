@@ -132,10 +132,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MemberBindingExpressionSyntax:
                         case BaseExpressionColonSyntax:
                         case NameEqualsSyntax:
-                        case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
                         case TypeParameterConstraintClauseSyntax:
                         case AliasQualifiedNameSyntax:
                             // These nodes do not have anything interesting for us
+                            return false;
+
+                        case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
+                        case BreakStatementSyntax:
+                        case ContinueStatementSyntax:
+                            // Any identifier children of these statements refer to a label, not a
+                            // value, so they aren't candidates for being a value reference to a
+                            // primary-constructor parameter.
                             return false;
 
                         case AttributeListSyntax:

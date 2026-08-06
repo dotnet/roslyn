@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -133,6 +134,44 @@ Integer
 
             Dim typeName = SyntaxFactory.ParseTypeName("", options:=parseOptions)
             Assert.Same(parseOptions, typeName.SyntaxTree.Options)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+        Public Sub MultiLineFunctionLambdaExpression_UsesEndFunctionStatement()
+            Dim header = SyntaxFactory.FunctionLambdaHeader()
+            Dim lambda = SyntaxFactory.MultiLineFunctionLambdaExpression(header, SyntaxFactory.EndFunctionStatement())
+
+            Assert.Equal(SyntaxKind.MultiLineFunctionLambdaExpression, lambda.Kind())
+            Assert.Equal(SyntaxKind.FunctionLambdaHeader, lambda.SubOrFunctionHeader.Kind())
+            Assert.Equal(SyntaxKind.EndFunctionStatement, lambda.EndSubOrFunctionStatement.Kind())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+        Public Sub MultiLineSubLambdaExpression_UsesEndSubStatement()
+            Dim header = SyntaxFactory.SubLambdaHeader()
+            Dim lambda = SyntaxFactory.MultiLineSubLambdaExpression(header, SyntaxFactory.EndSubStatement())
+
+            Assert.Equal(SyntaxKind.MultiLineSubLambdaExpression, lambda.Kind())
+            Assert.Equal(SyntaxKind.SubLambdaHeader, lambda.SubOrFunctionHeader.Kind())
+            Assert.Equal(SyntaxKind.EndSubStatement, lambda.EndSubOrFunctionStatement.Kind())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+        Public Sub SingleLineFunctionLambdaExpression_UsesFunctionLambdaHeader()
+            Dim header = SyntaxFactory.FunctionLambdaHeader()
+            Dim lambda = SyntaxFactory.SingleLineFunctionLambdaExpression(header, SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)))
+
+            Assert.Equal(SyntaxKind.SingleLineFunctionLambdaExpression, lambda.Kind())
+            Assert.Equal(SyntaxKind.FunctionLambdaHeader, lambda.SubOrFunctionHeader.Kind())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+        Public Sub SingleLineSubLambdaExpression_UsesSubLambdaHeader()
+            Dim header = SyntaxFactory.SubLambdaHeader()
+            Dim lambda = SyntaxFactory.SingleLineSubLambdaExpression(header, SyntaxFactory.EmptyStatement())
+
+            Assert.Equal(SyntaxKind.SingleLineSubLambdaExpression, lambda.Kind())
+            Assert.Equal(SyntaxKind.SubLambdaHeader, lambda.SubOrFunctionHeader.Kind())
         End Sub
     End Class
 End Namespace

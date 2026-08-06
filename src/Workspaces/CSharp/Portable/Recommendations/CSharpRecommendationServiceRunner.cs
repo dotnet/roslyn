@@ -296,13 +296,39 @@ internal partial class CSharpRecommendationService
 
         private ImmutableArray<ISymbol> GetSymbolsForLabelContext()
         {
-            var allLabels = _context.SemanticModel.LookupLabels(_context.LeftToken.SpanStart);
+            var token = _context.TargetToken;
+            var allLabels = _context.SemanticModel.LookupLabels(token.SpanStart);
+
+            if (token.IsKind(SyntaxKind.BreakKeyword) || token.IsKind(SyntaxKind.ContinueKeyword))
+            {
+                var position = token.SpanStart;
+                return allLabels.WhereAsArray(
+                    static (label, arg) => IsValidBreakOrContinueTargetLabel(label, arg.position, arg.isBreak, arg.cancellationToken),
+                    (position, isBreak: token.IsKind(SyntaxKind.BreakKeyword), cancellationToken: _cancellationToken));
+            }
 
             // Exclude labels (other than 'default') that come from case switch statements
 
             return allLabels
                 .WhereAsArray(label => label.DeclaringSyntaxReferences.First().GetSyntax(_cancellationToken)
                     .Kind() is SyntaxKind.LabeledStatement or SyntaxKind.DefaultSwitchLabel);
+        }
+
+        private static bool IsValidBreakOrContinueTargetLabel(ISymbol label, int position, bool isBreak, CancellationToken cancellationToken)
+        {
+            var declaringSyntax = label.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(cancellationToken);
+            if (declaringSyntax is not LabeledStatementSyntax labeledStatement)
+                return false;
+
+            if (!labeledStatement.Span.Contains(position))
+                return false;
+
+            var statement = labeledStatement.Statement;
+            if (isBreak && statement is SwitchStatementSyntax)
+                return true;
+
+            return statement is ForStatementSyntax or ForEachStatementSyntax or ForEachVariableStatementSyntax
+                or WhileStatementSyntax or DoStatementSyntax;
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForTypeOrNamespaceContext()
@@ -373,9 +399,35 @@ internal partial class CSharpRecommendationService
             }
             else
             {
-                symbols = contextNode.IsInStaticContext()
-                    ? semanticModel.LookupStaticMembers(_context.LeftToken.SpanStart)
-                    : semanticModel.LookupSymbols(_context.LeftToken.SpanStart);
+                if (contextNode.IsInStaticContext())
+                {
+                    var position = _context.LeftToken.SpanStart;
+                    symbols = semanticModel.LookupStaticMembers(position);
+
+                    // Primary constructor parameters are returned by LookupStaticMembers, but are unusable in a static
+                    // context. They can hide a namespace or type with the same name, so recover those candidates.
+                    if (!_context.IsInstanceContext)
+                    {
+                        using var _ = ArrayBuilder<ISymbol>.GetInstance(symbols.Length, out var staticSymbols);
+                        foreach (var symbol in symbols)
+                        {
+                            if (symbol is IParameterSymbol parameter && parameter.IsPrimaryConstructor(_cancellationToken))
+                            {
+                                staticSymbols.AddRange(semanticModel.LookupNamespacesAndTypes(position, name: parameter.Name));
+                            }
+                            else
+                            {
+                                staticSymbols.Add(symbol);
+                            }
+                        }
+
+                        symbols = staticSymbols.ToImmutableAndClear();
+                    }
+                }
+                else
+                {
+                    symbols = semanticModel.LookupSymbols(_context.LeftToken.SpanStart);
+                }
 
                 symbols = FilterOutUncapturableParameters(symbols, contextNode);
             }
