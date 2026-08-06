@@ -22,6 +22,12 @@ per-layer files (load only the one for your area):
 **Description:** These are produced by generators or external sync (DARC/Arcade); manual edits are overwritten or break builds.
 **Workaround:** Edit the source (XML/`.resx`), then regenerate (`dotnet run --file eng/generate-compiler-code.cs`, or `/t:UpdateXlf` for `.xlf`). Never edit `eng/common` by hand.
 
+## BuildValidator cannot replay post-compilation assembly weaving
+
+**Affected area:** assemblies modified after `CoreCompile`
+**Description:** BuildValidator reconstructs an assembly from its embedded compilation metadata. It cannot reproduce IL changes made afterward by tools such as BenchmarkDotNet's assembly weaver.
+**Workaround:** Add narrowly scoped assembly exclusions to `eng/test-rebuild.ps1`; do not disable required post-compilation processing merely to make rebuild validation pass.
+
 ## TODO / PROTOTYPE comments are CI-gated
 
 **Affected area:** whole repo, PRs targeting `main`
