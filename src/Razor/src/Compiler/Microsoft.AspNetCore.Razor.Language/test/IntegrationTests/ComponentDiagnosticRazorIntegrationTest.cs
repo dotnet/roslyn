@@ -421,6 +421,102 @@ namespace Test
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/11114")]
+    public void Component_MultipleUnknownParameters_Warn()
+    {
+        AddGenericComponentWithKnownParameter();
+
+        const string content = """<MyComponent TValue="string" FirstUnknown="value" SecondUnknown="value" />""";
+
+        var generated = CompileToCSharp(
+            content,
+            configuration: Configuration with { RazorWarningLevel = 11 });
+
+        Assert.Collection(
+            generated.RazorDiagnostics,
+            diagnostic => AssertDiagnostic(diagnostic, "FirstUnknown"),
+            diagnostic => AssertDiagnostic(diagnostic, "SecondUnknown"));
+        Assert.Contains("\"FirstUnknown\"", generated.Code);
+        Assert.Contains("\"SecondUnknown\"", generated.Code);
+        Assert.Equal(2, generated.Code.Split(
+            ["AddComponentParameter"],
+            StringSplitOptions.None).Length - 1);
+
+        void AssertDiagnostic(RazorDiagnostic diagnostic, string parameterName)
+        {
+            Assert.Equal("RZ10025", diagnostic.Id);
+            Assert.Equal(RazorDiagnosticSeverity.Warning, diagnostic.Severity);
+            Assert.Equal(11, diagnostic.WarningLevel);
+            Assert.Equal(
+                $"The component 'MyComponent' does not have a parameter named '{parameterName}'.",
+                diagnostic.GetMessage(CultureInfo.CurrentCulture));
+            var parameterIndex = content.IndexOf(parameterName, StringComparison.Ordinal);
+            Assert.NotNull(diagnostic.Span.FilePath);
+            Assert.Equal(parameterIndex, diagnostic.Span.AbsoluteIndex);
+            Assert.Equal(parameterIndex, diagnostic.Span.CharacterIndex);
+            Assert.Equal(parameterName.Length, diagnostic.Span.Length);
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11114")]
+    public void Component_KnownAndUnknownParameters_Warns()
+    {
+        AddGenericComponentWithKnownParameter();
+
+        const string content = """<MyComponent TValue="string" Known="known" Unknown="unknown" />""";
+
+        var generated = CompileToCSharp(
+            content,
+            configuration: Configuration with { RazorWarningLevel = 11 });
+
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
+        Assert.Equal("RZ10025", diagnostic.Id);
+        Assert.Equal(
+            "The component 'MyComponent' does not have a parameter named 'Unknown'.",
+            diagnostic.GetMessage(CultureInfo.CurrentCulture));
+        Assert.Contains("\"Unknown\"", generated.Code);
+        Assert.Equal(2, generated.Code.Split(
+            ["AddComponentParameter"],
+            StringSplitOptions.None).Length - 1);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11114")]
+    public void Component_KnownAndMultipleUnknownParameters_Warn()
+    {
+        AddGenericComponentWithKnownParameter();
+
+        const string content = """<MyComponent TValue="string" Known="known" FirstUnknown="first" SecondUnknown="second" />""";
+
+        var generated = CompileToCSharp(
+            content,
+            configuration: Configuration with { RazorWarningLevel = 11 });
+
+        Assert.Collection(
+            generated.RazorDiagnostics,
+            diagnostic => AssertDiagnostic(diagnostic, "FirstUnknown"),
+            diagnostic => AssertDiagnostic(diagnostic, "SecondUnknown"));
+        Assert.Contains("\"FirstUnknown\"", generated.Code);
+        Assert.Contains("\"SecondUnknown\"", generated.Code);
+        Assert.Equal(3, generated.Code.Split(
+            ["AddComponentParameter"],
+            StringSplitOptions.None).Length - 1);
+
+        void AssertDiagnostic(RazorDiagnostic diagnostic, string parameterName)
+        {
+            Assert.Equal("RZ10025", diagnostic.Id);
+            Assert.Equal(RazorDiagnosticSeverity.Warning, diagnostic.Severity);
+            Assert.Equal(11, diagnostic.WarningLevel);
+            Assert.Equal(
+                $"The component 'MyComponent' does not have a parameter named '{parameterName}'.",
+                diagnostic.GetMessage(CultureInfo.CurrentCulture));
+            var parameterIndex = content.IndexOf(parameterName, StringComparison.Ordinal);
+            Assert.NotNull(diagnostic.Span.FilePath);
+            Assert.Equal(parameterIndex, diagnostic.Span.AbsoluteIndex);
+            Assert.Equal(parameterIndex, diagnostic.Span.CharacterIndex);
+            Assert.Equal(parameterName.Length, diagnostic.Span.Length);
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11114")]
     public void Component_KnownParameter_WithDifferentCasing_DoesNotWarn()
     {
         AdditionalSyntaxTrees.Add(Parse("""
