@@ -14,11 +14,13 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Resources;
+using Microsoft.CodeAnalysis.Remote.Razor.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
@@ -26,7 +28,6 @@ using Xunit;
 using Xunit.Abstractions;
 using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 using RoslynConditionalFact = Roslyn.Test.Utilities.ConditionalFactAttribute;
-using Microsoft.CodeAnalysis.LanguageServer;
 
 #if !VSCODE
 using Microsoft.VisualStudio.ProjectSystem;
@@ -268,6 +269,73 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    public async Task CSharpClassMembersInExplicitStatement()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                @{
+                    DateTime.$$
+                }
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = ".",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"],
+            itemToResolve: "Now",
+            expectedResolvedItemDescription: "DateTime DateTime.Now { get; }",
+            expected: """
+                This is a Razor document.
+            
+                @{
+                    DateTime.Now
+                }
+            
+                The end.
+                """);
+    }
+
+    [Fact]
+    public async Task CSharpClassMembersInExplicitStatement_Legacy()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @page
+
+                @{
+                    DateTime.$$
+                }
+
+                <div></div>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = ".",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"],
+            itemToResolve: "Now",
+            expectedResolvedItemDescription: "DateTime DateTime.Now { get; }",
+            expected: """
+                @page
+            
+                @{
+                    DateTime.Now
+                }
+            
+                <div></div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/8442")]
     public async Task CSharpClassMembersInComponentParameterWithoutLeadingAt()
     {
@@ -285,7 +353,16 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = ".",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
+            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"],
+            itemToResolve: "Now",
+            expectedResolvedItemDescription: "DateTime DateTime.Now { get; }",
+            expected: """
+                This is a Razor document.
+            
+                <EditForm Model="DateTime.Now"></EditForm>
+            
+                The end.
+                """);
     }
 
     [Fact]
@@ -306,7 +383,16 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerCharacter = ".",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
+            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"],
+            itemToResolve: "Now",
+            expectedResolvedItemDescription: "DateTime DateTime.Now { get; }",
+            expected: """
+                This is a Razor document.
+            
+                <EditForm Model="@DateTime.Now"></EditForm>
+            
+                The end.
+                """);
     }
 
     [Fact]

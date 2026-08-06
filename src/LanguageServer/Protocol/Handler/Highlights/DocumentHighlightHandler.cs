@@ -46,24 +46,19 @@ internal sealed class DocumentHighlightsHandler : ILspServiceDocumentRequestHand
         if (document == null)
             return null;
 
-        var position = ProtocolConversions.PositionToLinePosition(request.Position);
-        return await GetHighlightsAsync(_globalOptions, _highlightingService, document, position, cancellationToken).ConfigureAwait(false);
-    }
-
-    internal static async Task<DocumentHighlight[]?> GetHighlightsAsync(IGlobalOptionService globalOptions, IHighlightingService highlightingService, Document document, LinePosition linePosition, CancellationToken cancellationToken)
-    {
+        var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
         // First check if this is a keyword that needs highlighting.
-        var keywordHighlights = await GetKeywordHighlightsAsync(highlightingService, document, text, position, cancellationToken).ConfigureAwait(false);
+        var keywordHighlights = await GetKeywordHighlightsAsync(document, text, position, cancellationToken).ConfigureAwait(false);
         if (keywordHighlights.Any())
         {
             return [.. keywordHighlights];
         }
 
         // Not a keyword, check if it is a reference that needs highlighting.
-        var referenceHighlights = await GetReferenceHighlightsAsync(globalOptions, document, text, position, cancellationToken).ConfigureAwait(false);
+        var referenceHighlights = await GetReferenceHighlightsAsync(document, text, position, cancellationToken).ConfigureAwait(false);
         if (referenceHighlights.Any())
         {
             return [.. referenceHighlights];
@@ -73,12 +68,12 @@ internal sealed class DocumentHighlightsHandler : ILspServiceDocumentRequestHand
         return [];
     }
 
-    private static async Task<ImmutableArray<DocumentHighlight>> GetKeywordHighlightsAsync(IHighlightingService highlightingService, Document document, SourceText text, int position, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<DocumentHighlight>> GetKeywordHighlightsAsync(Document document, SourceText text, int position, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var keywordSpans = new List<TextSpan>();
-        highlightingService.AddHighlights(root, position, keywordSpans, cancellationToken);
+        _highlightingService.AddHighlights(root, position, keywordSpans, cancellationToken);
 
         return keywordSpans.SelectAsArray(highlight => new DocumentHighlight
         {
@@ -87,10 +82,10 @@ internal sealed class DocumentHighlightsHandler : ILspServiceDocumentRequestHand
         });
     }
 
-    private static async Task<ImmutableArray<DocumentHighlight>> GetReferenceHighlightsAsync(IGlobalOptionService globalOptions, Document document, SourceText text, int position, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<DocumentHighlight>> GetReferenceHighlightsAsync(Document document, SourceText text, int position, CancellationToken cancellationToken)
     {
         var documentHighlightService = document.GetRequiredLanguageService<IDocumentHighlightsService>();
-        var options = globalOptions.GetHighlightingOptions(document.Project.Language);
+        var options = _globalOptions.GetHighlightingOptions(document.Project.Language);
         var highlights = await documentHighlightService.GetDocumentHighlightsAsync(
             document,
             position,

@@ -1,0 +1,25 @@
+﻿Source Location: (201:10,1 [277] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+  [Parameter]
+  public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+  [Parameter]
+  public bool Collapsed { get; set; }
+  string ActionText { get => Collapsed ? "Expand" : "Collapse"; }
+  void Toggle()
+  {
+    Collapsed = !Collapsed;
+  }
+|
+Generated Location: (559:18,0 [277] )
+|
+  [Parameter]
+  public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+  [Parameter]
+  public bool Collapsed { get; set; }
+  string ActionText { get => Collapsed ? "Expand" : "Collapse"; }
+  void Toggle()
+  {
+    Collapsed = !Collapsed;
+  }
+|
+

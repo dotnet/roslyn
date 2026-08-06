@@ -19,17 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(5,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public static unsafe int SizeOf<T>()
-        where T : unmanaged
-        => sizeof(T);
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591
