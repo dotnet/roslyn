@@ -148,4 +148,140 @@ public sealed class CSharpUseNullConditionalAwaitTests
                 }
             }
             """);
+
+    [Fact]
+    public Task IfStatement_IsNotNullPattern()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    {|IDE0420:if|} (t is not null)
+                        await t;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    await? t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task IfStatement_NullOnLeft()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    {|IDE0420:if|} (null != t)
+                        await t;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    await? t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Ternary_NotEquals()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return {|IDE0420:t|} != null ? await t : null;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return await? t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Ternary_Equals_Reversed()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return {|IDE0420:t|} == null ? null : await t;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return await? t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Ternary_ConfigureAwait()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return {|IDE0420:t|} != null ? await t.ConfigureAwait(false) : null;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return await? t?.ConfigureAwait(false);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Ternary_NotWhenNullBranchIsNotNull()
+        => TestMissingAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int> M(Task<int> t, int fallback)
+                {
+                    return t != null ? await t : fallback;
+                }
+            }
+            """);
 }
