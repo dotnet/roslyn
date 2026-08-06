@@ -413,31 +413,7 @@ namespace Microsoft.CodeAnalysis
             int bytesWritten = XxHash128.Hash(MemoryMarshal.AsBytes(value), hash);
             Debug.Assert(bytesWritten == hash.Length);
 
-            return hashToHex(hash);
-
-            // See also 'PrivateImplementationDetails.HashToHex'
-            static string hashToHex(ReadOnlySpan<byte> hash)
-            {
-#if NET10_0_OR_GREATER
-                return string.Create(hash.Length * 2, hash, (destination, hash) => toHex(hash, destination));
-#else
-                char[] c = new char[hash.Length * 2];
-                toHex(hash, c);
-                return new string(c);
-#endif
-
-                static void toHex(ReadOnlySpan<byte> source, Span<char> destination)
-                {
-                    int i = 0;
-                    foreach (var b in source)
-                    {
-                        destination[i++] = hexchar(b >> 4);
-                        destination[i++] = hexchar(b & 0xF);
-                    }
-                }
-
-                static char hexchar(int x) => (char)((x <= 9) ? (x + '0') : (x + ('a' - 10)));
-            }
+            return HexUtilities.ToHexStringLower(hash);
         }
 
         private static string? TryGetCacheKey(string originalPath)
