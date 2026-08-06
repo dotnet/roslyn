@@ -782,6 +782,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
                 && IsAsciiLetterOrDigit(value[i + 2]))
             {
                 var end = i + 3;
+                // Keep adjacent encoded bytes in one match so multi-byte UTF-8 sequences are decoded together.
+                // For example, %E2%82%AC is the three-byte encoding of €; decoding each %XX separately would fail.
                 while (end <= value.Length - 3
                     && value[end] == '%'
                     && IsAsciiLetterOrDigit(value[end + 1])
@@ -814,6 +816,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         }
         catch
         {
+            // A contiguous %XX run may represent one multi-byte UTF-8 sequence, so it is decoded as a whole first.
+            // If that fails, preserve the first %XX literally and retry the remainder so any valid suffix still decodes.
             result.Length = originalLength;
             if (value.Length > 3)
             {
