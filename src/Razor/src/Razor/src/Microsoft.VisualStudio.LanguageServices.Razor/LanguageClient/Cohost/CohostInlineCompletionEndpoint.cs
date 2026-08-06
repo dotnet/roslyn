@@ -103,7 +103,7 @@ internal sealed class CohostInlineCompletionEndpoint(
 
         if (result.Range is not null)
         {
-            var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
+            var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
             var options = RazorFormattingOptions.From(
                 formattingOptions,
                 _clientSettingsManager.GetClientSettings().AdvancedSettings.CodeBlockBraceOnNextLine,

@@ -71,7 +71,6 @@ internal sealed class CSharpOnTypeFormattingPass(
             }
 
             var indentationOptions = CSharpFormatter.GetIndentationOptions(
-                document.Project.Solution.Services,
                 context.Options,
                 AutoFormattingOptions.Default,
                 FormattingOptions2.IndentStyle.Smart);
