@@ -1124,6 +1124,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             }
             else
             {
+                // The fragment is the final component, so after its '#' delimiter no character can introduce
+                // another URI component. The minimally encoded form can therefore preserve it verbatim.
                 res.Append(fragment);
             }
         }
