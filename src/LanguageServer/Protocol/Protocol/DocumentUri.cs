@@ -77,8 +77,9 @@ internal sealed record class DocumentUri(string UriString)
 
             try
             {
-                // We purposefully use the ToString(skipEncoding: true) overload here to avoid issues when the UriString contains
-                // an encoded drive letter part (e.g. `file:///c%3A/`) which breaks System.Uri parsing.
+                // Use ParsedDocumentUri rather than UriString to ensure the value has been validated and normalized. We purposefully
+                // use ToString(skipEncoding: true) to avoid issues when UriString contains an encoded drive letter part
+                // (e.g. `file:///c%3A/`) which breaks System.Uri parsing.
                 return new Uri(parsedDocumentUri.ToString(skipEncoding: true));
             }
             catch (UriFormatException)
