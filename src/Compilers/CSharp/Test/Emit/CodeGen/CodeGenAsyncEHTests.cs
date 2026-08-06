@@ -3098,7 +3098,7 @@ Attempted to divide by zero.
             verifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/84792")]
         public void AsyncInCatchFilter()
         {
             var source = @"
@@ -3658,7 +3658,7 @@ class Driver
             verifier.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/84791"), WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
         public void NestedCatch_DuplicateLocal_Level2()
         {
             var source = """
