@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis
 
         internal string ShadowDirectory { get; }
 
+        /// <summary>Shared cache for shadow copied assemblies. Used to amortize cost of antivirus scans.</summary>
         internal string CacheDirectory { get; }
 
         /// <summary>
