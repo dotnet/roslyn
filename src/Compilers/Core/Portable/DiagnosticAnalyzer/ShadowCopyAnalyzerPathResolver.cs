@@ -19,6 +19,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+#if NET
+    [SupportedOSPlatform("windows")]
+#endif
     internal sealed class ShadowCopyAnalyzerPathResolver : IAnalyzerPathResolver
     {
         private enum DirectoryCleanupState
@@ -78,6 +81,11 @@ namespace Microsoft.CodeAnalysis
 
         public ShadowCopyAnalyzerPathResolver(string baseDirectory, string cacheDirectory)
         {
+            if (!PlatformInformation.IsWindows)
+            {
+                throw new InvalidOperationException("ShadowCopyAnalyzerPathResolver is only supported on Windows.");
+            }
+
             if (baseDirectory is null)
             {
                 throw new ArgumentNullException(nameof(baseDirectory));
@@ -201,9 +209,6 @@ namespace Microsoft.CodeAnalysis
 
             void pruneCacheIfNeeded()
             {
-                if (!PlatformInformation.IsWindows)
-                    return;
-
                 using var cacheMutex = new Mutex(initiallyOwned: false, name: $"RoslynShadowCopyCache-{HashToHex(CacheDirectory)}");
                 bool lockTaken = false;
                 try
@@ -223,11 +228,7 @@ namespace Microsoft.CodeAnalysis
                         // Delete the oldest files which exceed this limit.
                         const int maxUnlinkedCount = 200;
                         var filesToEvict = Directory.EnumerateFiles(CacheDirectory)
-                            .Select(static file =>
-                            {
-                                Debug.Assert(PlatformInformation.IsWindows);
-                                return (file, fileInformationOpt: TryGetWindowsFileInformation(file));
-                            })
+                            .Select(static file => (file, fileInformationOpt: TryGetWindowsFileInformation(file)))
                             .Where(static pair => pair.fileInformationOpt is { NumberOfLinks: 1 })
                             .OrderByDescending(static pair =>
                             {
@@ -236,6 +237,8 @@ namespace Microsoft.CodeAnalysis
                             })
                             .Skip(maxUnlinkedCount);
 
+                        // Note: it's expected that 'pruneCacheIfNeeded()' and 'linkFromCacheOrFallbackToCopy()' can run concurrently.
+                        // If pruning deletes a file that linking was attempting to use, linking is expected to fall back gracefully to copying.
                         foreach (var pair in filesToEvict)
                         {
                             File.Delete(pair.file);
@@ -311,7 +314,7 @@ namespace Microsoft.CodeAnalysis
                 // This thread won and we need to do the copy.
                 try
                 {
-                    copyFile(originalFilePath, shadowCopyPath);
+                    copyFile(this, originalFilePath, shadowCopyPath);
                     tcs.SetResult(shadowCopyPath);
                 }
                 catch (Exception ex)
@@ -327,7 +330,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(AnalyzerAssemblyLoader.GeneratedPathComparer.Equals(shadowCopyPath, task.Result));
             }
 
-            void copyFile(string originalPath, string shadowCopyPath)
+            static void copyFile(ShadowCopyAnalyzerPathResolver @this, string originalPath, string shadowCopyPath)
             {
                 var directory = Path.GetDirectoryName(shadowCopyPath);
                 if (directory is null)
@@ -341,7 +344,7 @@ namespace Microsoft.CodeAnalysis
                 // emulates not having the shadow copy layer
                 if (File.Exists(originalPath))
                 {
-                    linkFromCacheOrFallbackToCopy(originalFilePath, shadowCopyPath);
+                    linkFromCacheOrFallbackToCopy(@this, originalPath, shadowCopyPath);
                     ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
                 }
             }
@@ -350,16 +353,10 @@ namespace Microsoft.CodeAnalysis
             // - Shadow copied files are hard-linked to/from a cache directory if possible.
             // - We continue to use per-session 'ShadowDirectory' for ease of implementing correct loading semantics and cleanup.
             // - Hard linking a file from the cache instead of copying it is empirically observed to reduce time spent running AV scans when loading assemblies.
-            void linkFromCacheOrFallbackToCopy(string originalPath, string shadowCopyPath)
+            static void linkFromCacheOrFallbackToCopy(ShadowCopyAnalyzerPathResolver @this, string originalPath, string shadowCopyPath)
             {
-                if (!PlatformInformation.IsWindows)
-                {
-                    File.Copy(originalPath, shadowCopyPath);
-                    return;
-                }
-
                 var cachePath = TryGetCacheKey(originalPath) is { } cacheKey
-                    ? Path.Combine(CacheDirectory, cacheKey)
+                    ? Path.Combine(@this.CacheDirectory, cacheKey)
                     : null;
                 if (File.Exists(cachePath))
                 {
@@ -382,13 +379,13 @@ namespace Microsoft.CodeAnalysis
                     File.Copy(originalPath, shadowCopyPath);
                     if (cachePath is not null)
                     {
-                        Directory.CreateDirectory(CacheDirectory);
+                        Directory.CreateDirectory(@this.CacheDirectory);
                         TryCreateHardLink(shadowCopyPath, cachePath);
                     }
                 }
             }
 
-            bool cacheEntryMatches(string originalPath, string cachePath)
+            static bool cacheEntryMatches(string originalPath, string cachePath)
             {
                 var originalInfo = new FileInfo(originalPath);
                 var cacheInfo = new FileInfo(cachePath);
@@ -406,10 +403,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static string HashToHex(string value)
+        private static string HashToHex(ReadOnlySpan<char> value)
         {
             Span<byte> hash = stackalloc byte[16];
-            int bytesWritten = XxHash128.Hash(MemoryMarshal.AsBytes(value.AsSpan()), hash);
+            int bytesWritten = XxHash128.Hash(MemoryMarshal.AsBytes(value), hash);
             Debug.Assert(bytesWritten == hash.Length);
 
             return hashToHex(hash);
@@ -441,7 +438,7 @@ namespace Microsoft.CodeAnalysis
 
         private static string? TryGetCacheKey(string originalPath)
         {
-            // Key format: (original filename) + (file path hash) + (mvid) + (original file length)
+            // Key format: (original filename) + (file path hash) + (mvid) + (original file length) + (original file extension)
             var hexHash = HashToHex(originalPath);
             try
             {
@@ -482,9 +479,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Create a hard link to a file.</summary>
         /// <seealso href="https://learn.microsoft.com/en-us/dotnet/api/system.io.file.createhardlink?view=net-11.0" />
-#if NET
-        [SupportedOSPlatform("windows")]
-#endif
         private static bool TryCreateHardLink(string path, string pathToTarget)
         {
             return CreateHardLink(pathToTarget, path, IntPtr.Zero);
@@ -495,9 +489,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>Get number of hard links to a file.</summary>
-#if NET
-        [SupportedOSPlatform("windows")]
-#endif
         private static ByHandleFileInformation? TryGetWindowsFileInformation(string path)
         {
             // https://learn.microsoft.com/en-us/windows/win32/fileio/file-access-rights-constants
