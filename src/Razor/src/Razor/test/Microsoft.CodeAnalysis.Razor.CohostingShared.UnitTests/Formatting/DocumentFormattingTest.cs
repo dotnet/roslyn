@@ -8333,6 +8333,60 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
+    public async Task IncompleteObjectCreation_UseTabs()
+    {
+        TestCode input = """
+            @code {
+                private void Method()
+                {
+                    value = new object()
+
+                    other = true;
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input.Text,
+            expected: """
+                @code {
+                	private void Method()
+                	{
+                		value = new object()
+
+
+                		other = true;
+                	}
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
+    public async Task IncompleteObjectCreation_UseSpaces()
+    {
+        TestCode input = """
+            @code {
+                private void Method()
+                {
+                    value = new object()
+
+                    other = true;
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input.Text,
+            expected: input.Text,
+            insertSpaces: true);
+    }
+
+    [Fact]
     public async Task MultipleCodeBlockDirectives()
     {
         await RunFormattingTestAsync(
