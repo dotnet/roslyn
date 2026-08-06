@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="generate_documentation">
         <source>generate documentation</source>
-        <target state="new">generate documentation</target>
+        <target state="translated">generar documentación</target>
         <note>Accept action shown on the documentation-comment chip, e.g. "Tab to generate documentation".</note>
       </trans-unit>
       <trans-unit id="Generate_summary_with_Copilot">

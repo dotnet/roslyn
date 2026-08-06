@@ -3,8 +3,8 @@
     <!-- Versions used by several individual references below -->
     <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.26059.1</MicrosoftCodeAnalysisTestingVersion>
     <_BasicReferenceAssembliesVersion>1.8.8</_BasicReferenceAssembliesVersion>
-    <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
-    <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
+    <!-- CodeStyleAnalyzerVersion should be updated together with version of SDK in global.json -->
+    <CodeStyleAnalyzerVersion>5.6.0</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>18.9.179</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>9.0.0-rc.2.24462.10</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>

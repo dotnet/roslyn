@@ -1302,6 +1302,45 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    public async Task IgnoresHtmlFormatterChangesToNonWhitespaceInScript()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <script>
+                    @if (showGrid)
+                    {
+                        <text>
+                            const ids = grid.getIds();
+                        </text>
+                    }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (showGrid)
+                    {
+                    <text>
+                    t ids = grid.getIds();
+                    </text>
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    @if (showGrid)
+                    {
+                        <text>
+                              const ids = grid.getIds();
+                        </text>
+                    }
+                </script>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
     public async Task Section_Scripts_ThreeScriptTags()
     {
         await RunFormattingTestAsync(
@@ -8291,6 +8330,60 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """);
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
+    public async Task IncompleteObjectCreation_UseTabs()
+    {
+        TestCode input = """
+            @code {
+                private void Method()
+                {
+                    value = new object()
+
+                    other = true;
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input.Text,
+            expected: """
+                @code {
+                	private void Method()
+                	{
+                		value = new object()
+
+
+                		other = true;
+                	}
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
+    public async Task IncompleteObjectCreation_UseSpaces()
+    {
+        TestCode input = """
+            @code {
+                private void Method()
+                {
+                    value = new object()
+
+                    other = true;
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input.Text,
+            expected: input.Text,
+            insertSpaces: true);
     }
 
     [Fact]

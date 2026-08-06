@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../FileBasedProgramsResources.resx">
     <body>
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="EmptyTempPath">
         <source>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</source>
-        <target state="new">Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</target>
+        <target state="translated">Impossible de déterminer un chemin d’accès pour le répertoire temporaire. Nous vous recommandons de configurer la variable d’environnement TEMP sous Windows ou le dossier des données d’application locale sous Unix.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExperimentalFeatureDisabled">
         <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="new">This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</target>
+        <target state="translated">Il s’agit d’une fonctionnalité expérimentale, définissez la propriété MSBuild « {0} » sur « true » pour l’activer.</target>
         <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
       </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="IncludedFileNotFound">
         <source>File included via #:include directive (or Compile item) not found: {0}</source>
-        <target state="new">File included via #:include directive (or Compile item) not found: {0}</target>
+        <target state="translated">Fichier inclus via la directive #:include (ou élément Compile) introuvable : {0}</target>
         <note>{Locked="#:include"}{Locked="Compile"}. {0} is file path.</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">
