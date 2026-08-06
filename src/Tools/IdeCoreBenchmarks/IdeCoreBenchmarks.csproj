@@ -36,6 +36,8 @@
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <!-- Workspaces.MSBuild embeds Contracts privately (it's not a transitive reference), so reference it directly to deploy it next to MSBuildWorkspace at runtime. An extern alias prevents ambiguity between shared projects linked to both Workspace and BuildHost. -->
+    <ProjectReference Include="..\..\Workspaces\MSBuild\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="Contracts" />
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
@@ -49,11 +51,31 @@
     <ProjectReference Include="..\AnalyzerRunner\AnalyzerRunner.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetRoslyn)'">
+    <ProjectReference Include="..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj" />
+    <ProjectReference Include="..\..\LanguageServer\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Compile Remove="LanguageServer\**\*.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <!-- These aren't used by the build, but it allows the tool to locate dependencies of the built-in analyzers. -->
     <ProjectReference Include="..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
+  </ItemGroup>
+
+  <!-- Microsoft.CodeAnalysis.LanguageServer only targets .NET, so its assets reader is linked in (rather
+       than referenced) and benchmarked on .NET only. ProjectAssetsReaderBenchmarks.cs is guarded to match.
+       The Using items mirror the global usings the linked file relies on in its own project. -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
+    <PackageReference Include="NuGet.ProjectModel" />
+    <Compile Include="..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\HostWorkspace\ProjectAssetsReader.cs" Link="Lsp\ProjectAssetsReader.cs" />
+    <Using Include="System" />
+    <Using Include="System.IO" />
+    <Using Include="Roslyn.Utilities" />
   </ItemGroup>
 
 </Project>

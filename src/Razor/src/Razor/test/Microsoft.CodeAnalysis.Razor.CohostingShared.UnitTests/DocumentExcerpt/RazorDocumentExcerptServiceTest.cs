@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Xunit;
 using Xunit.Abstractions;
@@ -32,8 +32,8 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
         var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
-        var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var options = ClassificationOptions.Default;
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, ExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -110,8 +110,8 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
         var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
-        var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var options = ClassificationOptions.Default;
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, ExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -163,8 +163,8 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
         var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
-        var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var options = ClassificationOptions.Default;
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, ExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -270,8 +270,8 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
         var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
-        var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
+        var options = ClassificationOptions.Default;
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, ExcerptMode.Tooltip, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -374,8 +374,8 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
         var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
-        var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var options = ClassificationOptions.Default;
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, ExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -448,8 +448,8 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
         var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
-        var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
+        var options = ClassificationOptions.Default;
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, ExcerptMode.Tooltip, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -557,8 +557,8 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
         var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
-        var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
+        var options = ClassificationOptions.Default;
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, ExcerptMode.Tooltip, options, DisposalToken);
 
         // Assert
         // Verifies that the right part of the primary document will be highlighted.

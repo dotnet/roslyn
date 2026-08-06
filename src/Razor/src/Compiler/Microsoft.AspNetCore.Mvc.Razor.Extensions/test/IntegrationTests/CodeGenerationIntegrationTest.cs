@@ -113,6 +113,22 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         Assert.NotEmpty(compiled.CodeDocument.GetCSharpDocument().Diagnostics);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7421")]
+    public void RazorComment_AdjacentCommentsInCodeBlock()
+    {
+        // Arrange
+        var projectItem = CreateProjectItemFromFile();
+
+        // Act
+        var compiled = CompileToCSharp(projectItem);
+
+        // Assert
+        AssertSyntaxTreeMatchesBaseline(compiled.CodeDocument);
+        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertLinePragmas(compiled.CodeDocument);
+    }
+
     [Fact]
     public void InheritsViewModel()
     {
@@ -1038,7 +1054,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         _configuration = _configuration with { LanguageVersion = RazorLanguageVersion.Parse(razorLangVersion) };
 
         BaseCompilation = BaseCompilation.WithOptions(BaseCompilation.Options.WithNullableContextOptions(
-            nullableContextEnabled ? NullableContextOptions.Enable: NullableContextOptions.Disable));
+            nullableContextEnabled ? NullableContextOptions.Enable : NullableContextOptions.Disable));
 
         AddCSharpSyntaxTree("""
             namespace TestNamespace;

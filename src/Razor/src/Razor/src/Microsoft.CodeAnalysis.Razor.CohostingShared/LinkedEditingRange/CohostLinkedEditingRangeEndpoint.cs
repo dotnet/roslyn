@@ -1,15 +1,15 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.LinkedEditingRange;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -28,6 +28,11 @@ internal sealed class CohostLinkedEditingRangeEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker)
     : AbstractCohostDocumentEndpoint<LinkedEditingRangeParams, LinkedEditingRanges?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
+    // The regex below excludes characters that can never be valid in a TagHelper name.
+    // This is loosely based off logic from the Razor compiler:
+    // https://github.com/dotnet/aspnetcore/blob/9da42b9fab4c61fe46627ac0c6877905ec845d5a/src/Razor/Microsoft.AspNetCore.Razor.Language/src/Legacy/HtmlTokenizer.cs
+    public static readonly string WordPattern = @"!?[^ <>!\/\?\[\]=""\\@" + Environment.NewLine + "]+";
+
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
 
     protected override bool MutatesSolutionState => false;
@@ -63,7 +68,7 @@ internal sealed class CohostLinkedEditingRangeEndpoint(
             return new LinkedEditingRanges
             {
                 Ranges = [span1.ToRange(), span2.ToRange()],
-                WordPattern = LinkedEditingRangeHelper.WordPattern
+                WordPattern = WordPattern
             };
         }
 

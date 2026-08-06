@@ -42,7 +42,7 @@ internal sealed class WrapAttributesCodeActionResolver : IRazorCodeActionResolve
 
         var tde = new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri },
             Edits = edits.ToArray()
         };
 

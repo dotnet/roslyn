@@ -1,11 +1,12 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 internal interface IRazorSemanticTokensRefreshQueue : ILspService
 {
@@ -16,7 +17,7 @@ internal interface IRazorSemanticTokensRefreshQueue : ILspService
     /// This MUST be called synchronously from an IOnInitialized handler, to avoid dual initialization when
     /// Roslyn and Razor both support semantic tokens
     /// </remarks>
-    void Initialize(string clientCapabilitiesString);
+    void Initialize(VSInternalClientCapabilities clientCapabilities);
 
     Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken);
 }

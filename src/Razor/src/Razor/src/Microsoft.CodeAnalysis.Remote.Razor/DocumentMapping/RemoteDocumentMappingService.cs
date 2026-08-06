@@ -5,7 +5,6 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -75,7 +74,7 @@ internal sealed class RemoteDocumentMappingService(
         return (generatedDocumentUri, generatedDocumentRange);
     }
 
-    private static async Task<LinePositionSpan?> TryGetCSharpClassDeclarationSpanAsync(RazorGeneratedDocumentIdentity identity, Project project, CancellationToken cancellationToken)
+    private static async Task<LinePositionSpan?> TryGetCSharpClassDeclarationSpanAsync(SourceGeneratedDocumentIdentity identity, Project project, CancellationToken cancellationToken)
     {
         var generatedDocument = await project.TryGetCSharpDocumentForGeneratedDocumentAsync(identity, cancellationToken).ConfigureAwait(false);
         if (generatedDocument is null)

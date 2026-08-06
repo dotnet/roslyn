@@ -1,9 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
@@ -57,7 +58,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                     {
                         TextDocument = new()
                         {
-                            DocumentUri = new(FileUri($"File1.razor{LanguageServerConstants.HtmlVirtualDocumentSuffix}"))
+                            DocumentUri = FileUri($"File1.razor{LanguageServerConstants.HtmlVirtualDocumentSuffix}")
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), htmlTag)]
                     }
@@ -129,7 +130,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                     {
                         TextDocument = new()
                         {
-                            DocumentUri = new(FileUri("File1.razor.g.html"))
+                            DocumentUri = FileUri("File1.razor.g.html")
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), htmlTag)]
                     }
@@ -238,7 +239,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             expected: """<Component RequiredParameter="" />""");
     }
 
-    private async Task VerifyUriPresentationAsync(string input, Uri[] uris, string? expected, WorkspaceEdit? htmlResponse = null, (string fileName, string contents)[]? additionalFiles = null)
+    private async Task VerifyUriPresentationAsync(string input, DocumentUri[] uris, string? expected, WorkspaceEdit? htmlResponse = null, (string fileName, string contents)[]? additionalFiles = null)
     {
         TestFileMarkupParser.GetSpan(input, out input, out var span);
         var document = CreateProjectAndRazorDocument(input, additionalFiles: additionalFiles);
@@ -255,7 +256,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                 DocumentUri = document.GetURI()
             },
             Range = sourceText.GetRange(span),
-            Uris = uris
+            Uris = [.. uris.Select(u => u.GetRequiredSystemUri())]
         };
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);

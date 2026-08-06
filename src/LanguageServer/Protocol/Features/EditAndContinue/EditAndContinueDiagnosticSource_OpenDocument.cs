@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -13,24 +13,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal static partial class EditAndContinueDiagnosticSource
 {
-    private sealed class OpenDocumentSource(Document document) : AbstractDocumentDiagnosticSource<Document>(document)
+    private sealed class OpenDocumentSource(Document document, IEditAndContinueSessionTracker sessionTracker) : AbstractDocumentDiagnosticSource<Document>(document)
     {
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
-            => GetDiagnosticsAsync(Document, cancellationToken);
+            => GetDiagnosticsAsync(Document, sessionTracker, cancellationToken);
 
-        public static async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Document document, IEditAndContinueSessionTracker sessionTracker, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var services = solution.Services;
 
             // Do not report EnC diagnostics for a non-host workspace, or if Hot Reload/EnC session is not active.
-            if (solution.WorkspaceKind != WorkspaceKind.Host ||
-                services.GetService<IEditAndContinueWorkspaceService>()?.SessionTracker is not { IsSessionActive: true } sessionStateTracker)
+            if (solution.WorkspaceKind != WorkspaceKind.Host || !sessionTracker.IsSessionActive)
             {
                 return [];
             }
 
-            var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics.WhereAsArray(static (data, id) => data.DocumentId == id, document.Id);
+            var applyDiagnostics = sessionTracker.ApplyChangesDiagnostics.WhereAsArray(static (data, id) => data.DocumentId == id, document.Id);
 
             var proxy = new RemoteEditAndContinueServiceProxy(services);
             var spanLocator = services.GetService<IActiveStatementSpanLocator>();
@@ -45,9 +44,9 @@ internal static partial class EditAndContinueDiagnosticSource
         }
     }
 
-    public static IDiagnosticSource CreateOpenDocumentSource(Document document)
-        => new OpenDocumentSource(document);
+    public static IDiagnosticSource CreateOpenDocumentSource(Document document, IEditAndContinueSessionTracker encSessionTracker)
+        => new OpenDocumentSource(document, encSessionTracker);
 
-    internal static Task<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
-        => OpenDocumentSource.GetDiagnosticsAsync(document, cancellationToken);
+    internal static Task<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Document document, IEditAndContinueSessionTracker encSessionTracker, CancellationToken cancellationToken)
+        => OpenDocumentSource.GetDiagnosticsAsync(document, encSessionTracker, cancellationToken);
 }

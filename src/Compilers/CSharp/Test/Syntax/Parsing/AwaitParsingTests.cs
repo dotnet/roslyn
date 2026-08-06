@@ -762,6 +762,46 @@ async () => await unchecked { };
         }
 
         [Fact]
+        public void AwaitUnsafeExpression()
+        {
+            UsingNode("async () => await unsafe(m());");
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.AsyncKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.AwaitExpression);
+                {
+                    N(SyntaxKind.AwaitKeyword);
+                    N(SyntaxKind.UnsafeExpression);
+                    {
+                        N(SyntaxKind.UnsafeKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "m");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void AwaitParenthesizedExpression()
         {
             UsingNode(@"

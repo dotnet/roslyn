@@ -1,0 +1,26 @@
+﻿Source Location: (102:5,2 [227] x:\dir\subdir\Test\TestComponent.razor)
+|
+    System.Linq.Expressions.Expression<System.Func<int>> named = () => Sum(first: 1, second: 2);
+    System.Linq.Expressions.Expression<System.Func<int>> optional = () => Sum();
+    _ = named.Body;
+    _ = optional.Body;
+|
+Generated Location: (734:21,0 [227] )
+|
+    System.Linq.Expressions.Expression<System.Func<int>> named = () => Sum(first: 1, second: 2);
+    System.Linq.Expressions.Expression<System.Func<int>> optional = () => Sum();
+    _ = named.Body;
+    _ = optional.Body;
+|
+
+Source Location: (7:0,7 [88] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public static int Sum(int first = 0, int second = 0)
+        => first + second;
+|
+Generated Location: (1141:35,0 [88] )
+|
+    public static int Sum(int first = 0, int second = 0)
+        => first + second;
+|
+

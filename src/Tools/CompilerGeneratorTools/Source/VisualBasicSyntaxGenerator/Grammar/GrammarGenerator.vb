@@ -66,7 +66,12 @@ Friend Class GrammarGenerator
                 ' Then we see if there are children that having a matching number of kinds. When
                 ' this happens, it's the case that each kind the child could be corresponds 1:1
                 ' with all the different sub-kinds of hte production.
-                Dim correspondingChildren = structureNode.Children.Where(
+                '
+                ' Note: children inherited from base structures participate here too.  Without
+                ' them the specialized productions would be missing the base structure's children
+                ' entirely (for example the header of a multi-line lambda).
+                Dim allChildren = GetAllChildrenOfStructure(structureNode)
+                Dim correspondingChildren = allChildren.Where(
                     Function(c)
                         Dim childKinds = TryCast(c.ChildKind, List(Of ParseNodeKind))
                         Return childKinds IsNot Nothing AndAlso childKinds.Count = structureNode.NodeKinds.Count
@@ -84,7 +89,7 @@ Friend Class GrammarGenerator
                     For i = 0 To structureNode.NodeKinds.Count - 1
                         Dim nodeKind = structureNode.NodeKinds(i)
                         Dim local_i = i
-                        Dim mappedChildren = structureNode.Children.Select(
+                        Dim mappedChildren = allChildren.Select(
                         Function(c)
                             If correspondingChildren.Contains(c) Then
                                 Return c.WithChildKind(
@@ -95,12 +100,23 @@ Friend Class GrammarGenerator
                             Return c
                         End Function).ToList()
 
-                        ' We then emit a production for the child kind.
-                        _rules.Add(nodeKind.Name, New List(Of Production)())
-                        _rules(nodeKind.Name).Add(HandleChildren(structureNode, mappedChildren))
+                        Dim kindProduction = HandleChildren(structureNode, mappedChildren)
 
-                        ' And then point the top level production at each of these child productions.
-                        _rules(structureNode.Name).Add(RuleReference(nodeKind.Name))
+                        ' A node-kind can have the same name as its structure minus the 'Syntax'
+                        ' suffix (ResumeStatement in ResumeStatementSyntax, for example).  Both
+                        ' names emit as the same grammar rule, so giving the specialization its
+                        ' own rule would define that rule twice.  Fold it into the structure's
+                        ' rule instead.
+                        If RuleReference(nodeKind.Name).Text = RuleReference(structureNode.Name).Text Then
+                            _rules(structureNode.Name).Add(kindProduction)
+                        Else
+                            ' We then emit a production for the child kind.
+                            _rules.Add(nodeKind.Name, New List(Of Production)())
+                            _rules(nodeKind.Name).Add(kindProduction)
+
+                            ' And then point the top level production at each of these child productions.
+                            _rules(structureNode.Name).Add(RuleReference(nodeKind.Name))
+                        End If
                     Next
                 End If
             End If
@@ -203,7 +219,7 @@ Friend Class GrammarGenerator
     End Function
 
     Private Function HandleList(structureNode As ParseNodeStructure, child As ParseNodeChild) As Production
-        Return HandleChildKind(structureNode, child, child.ChildKind).Suffix("*")
+        Return HandleChildKind(structureNode, child, child.ChildKind).Suffix(If(child.MinCount = 0, "*", "+"))
     End Function
 
     Private Function HandleChildKind(structureNode As ParseNodeStructure,
@@ -286,13 +302,8 @@ Friend Class GrammarGenerator
 
     Private Function HandleNodeKind(nodeKind As ParseNodeKind) As Production
         If Not String.IsNullOrEmpty(nodeKind.TokenText) Then
-            If nodeKind.TokenText = "\" Then
-                Return New Production("'\\'")
-            ElseIf nodeKind.TokenText = "'" Then
-                Return New Production("'\''")
-            Else
-                Return New Production("'" + nodeKind.TokenText + "'")
-            End If
+            Dim tokenText = nodeKind.TokenText.Replace("\", "\\").Replace("'", "\'")
+            Return New Production("'" + tokenText + "'")
         End If
 
         If nodeKind.Name = "EmptyToken" Then

@@ -357,6 +357,157 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")>
+        Public Async Function AwaitInEventHandlerMethod() As Task
+            Dim initial =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Private Event Click As EventHandler
+
+    Private Sub OnClick(sender As Object, e As EventArgs)
+        [|Await Task.Delay(1)|]
+    End Sub
+
+    Private Sub Hookup()
+        AddHandler Click, AddressOf OnClick
+    End Sub
+End Class
+</File>
+            Dim expected =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Private Event Click As EventHandler
+
+    {|Warning:Private Async Function OnClickAsync(sender As Object, e As EventArgs) As Task
+        Await Task.Delay(1)
+    End Function|}
+
+    Private Sub Hookup()
+        AddHandler Click, AddressOf OnClickAsync
+    End Sub
+End Class
+</File>
+
+            Await TestActionCountAsync(initial.Value, 2)
+            Await TestAsync(initial, expected)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")>
+        Public Async Function AwaitInMethodAssignedToDelegateVariable_Warns() As Task
+            Dim initial =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Private Sub DoWork()
+        [|Await Task.Delay(1)|]
+    End Sub
+
+    Private Sub Hookup()
+        Dim a As Action = AddressOf DoWork
+    End Sub
+End Class
+</File>
+            Dim expected =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    {|Warning:Private Async Function DoWorkAsync() As Task
+        Await Task.Delay(1)
+    End Function|}
+
+    Private Sub Hookup()
+        Dim a As Action = AddressOf DoWorkAsync
+    End Sub
+End Class
+</File>
+
+            Await TestAsync(initial, expected)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")>
+        Public Async Function AwaitInMethodInvokedDirectly_NoWarning() As Task
+            Dim initial =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Private Sub DoWork()
+        [|Await Task.Delay(1)|]
+    End Sub
+
+    Private Sub Use()
+        DoWork()
+    End Sub
+End Class
+</File>
+            Dim expected =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function DoWorkAsync() As Task
+        Await Task.Delay(1)
+    End Function
+
+    Private Sub Use()
+        DoWorkAsync()
+    End Sub
+End Class
+</File>
+
+            Await TestAsync(initial, expected)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")>
+        Public Async Function AwaitInNonVoidMethodUsedAsDelegate_Warns() As Task
+            Dim initial =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Private Function GetValue() As Integer
+        [|Await Task.Delay(1)|]
+        Return 1
+    End Function
+
+    Private Sub Hookup()
+        Dim f As Func(Of Integer) = AddressOf GetValue
+    End Sub
+End Class
+</File>
+            Dim expected =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    {|Warning:Private Async Function GetValueAsync() As Task(Of Integer)
+        Await Task.Delay(1)
+        Return 1
+    End Function|}
+
+    Private Sub Hookup()
+        Dim f As Func(Of Integer) = AddressOf GetValueAsync
+    End Sub
+End Class
+</File>
+
+            Await TestAsync(initial, expected)
+        End Function
+
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6477")>
         Public Async Function TestNullNodeCrash() As Task
             Dim initial =

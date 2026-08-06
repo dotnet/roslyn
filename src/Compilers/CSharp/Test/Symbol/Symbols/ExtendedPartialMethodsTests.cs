@@ -1154,8 +1154,6 @@ public partial class C
                 var type = module.ContainingAssembly.GetTypeByMetadataName("C");
                 var method = type.GetMember<MethodSymbol>("M1");
 
-                // note: we're opting to give the same answer for 'IsExtern' on both partial method declarations 
-                // because 'IsExtern' is true when the method is round tripped from metadata.
                 Assert.True(method.IsExtern);
                 if (method.PartialImplementationPart is MethodSymbol implementation)
                 {
@@ -1260,7 +1258,7 @@ partial class C
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            Assert.False(method.IsAsync);
+            Assert.True(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
 
@@ -1281,7 +1279,7 @@ partial class C
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            Assert.False(method.IsAsync);
+            Assert.True(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
 
@@ -1310,7 +1308,7 @@ partial class C
 
             var method = (MethodSymbol)verifier.Compilation.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            Assert.False(method.IsAsync);
+            Assert.True(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
 
@@ -1412,6 +1410,82 @@ partial class C
                 // (7,24): error CS8794: Partial method 'C.M()' must have accessibility modifiers because it has a non-void return type.
                 //     async partial Task M()
                 Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("C.M()").WithLocation(7, 24));
+        }
+
+        [Fact]
+        public void Iterator_01()
+        {
+            const string text = @"
+using System.Collections.Generic;
+
+partial class C
+{
+    internal partial IEnumerable<int> M();
+    internal partial IEnumerable<int> M()
+    {
+        yield return 1;
+        yield return 2;
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+
+            var method = (MethodSymbol)comp.GetMembers("C.M")[0];
+            Assert.True(method.IsPartialDefinition());
+            Assert.True(method.IsIterator);
+            Assert.True(method.PartialImplementationPart.IsIterator);
+        }
+
+        [Fact]
+        public void Iterator_02()
+        {
+            const string text = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+partial class C
+{
+    internal partial IAsyncEnumerable<int> M();
+    internal partial async IAsyncEnumerable<int> M()
+    {
+        await Task.Yield();
+        yield return 1;
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { text, AsyncStreamsTypes }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+
+            var method = (MethodSymbol)comp.GetMembers("C.M")[0];
+            Assert.True(method.IsPartialDefinition());
+            Assert.True(method.IsAsync);
+            Assert.True(method.IsIterator);
+            Assert.True(method.PartialImplementationPart.IsAsync);
+            Assert.True(method.PartialImplementationPart.IsIterator);
+        }
+
+        [Fact]
+        public void Iterator_03()
+        {
+            // Definition-only partial method is not an iterator
+            const string text = @"
+using System.Collections.Generic;
+
+partial class C
+{
+    internal partial IEnumerable<int> M();
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,39): error CS8793: Partial method 'C.M()' must have an implementation part because it has accessibility modifiers.
+                //     internal partial IEnumerable<int> M();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments("C.M()").WithLocation(6, 39));
+
+            var method = (MethodSymbol)comp.GetMembers("C.M")[0];
+            Assert.True(method.IsPartialDefinition());
+            Assert.False(method.IsIterator);
         }
 
         [Fact]

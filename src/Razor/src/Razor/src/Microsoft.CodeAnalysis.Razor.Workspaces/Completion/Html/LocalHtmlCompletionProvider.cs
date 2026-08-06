@@ -583,10 +583,14 @@ internal static partial class LocalHtmlCompletionProvider
         // draggable=""="". This matches the behavior of the external HTML language server.
         var existingAttributeHasValue = owner is MarkupAttributeBlockSyntax or MarkupTagHelperAttributeSyntax or MarkupTagHelperDirectiveAttributeSyntax;
 
-        using var _ = ListPool<VSInternalCompletionItem>.GetPooledObject(out var items);
+        using var _1 = ListPool<VSInternalCompletionItem>.GetPooledObject(out var items);
 
-        AddAttributeItems(items, elementAttributes, expandedPrefix, existingAttributeHasValue, attrRange);
-        AddAttributeItems(items, globalAttributes, expandedPrefix, existingAttributeHasValue, attrRange);
+        // Track seen attribute names so that element-specific attributes take precedence
+        // over globals with the same name (which may have different values/semantics).
+        using var _2 = SpecializedPools.StringHashSet.OrdinalIgnoreCase.GetPooledObject(out var seenNames);
+
+        AddAttributeItems(items, elementAttributes, expandedPrefix, existingAttributeHasValue, attrRange, seenNames);
+        AddAttributeItems(items, globalAttributes, expandedPrefix, existingAttributeHasValue, attrRange, seenNames);
 
         // Add synthetic group items only when no group is expanded
         if (expandedPrefix == null)
@@ -613,7 +617,8 @@ internal static partial class LocalHtmlCompletionProvider
         ImmutableArray<HtmlAttributeInfo> attributes,
         string? expandedPrefix,
         bool existingAttributeHasValue,
-        LspRange range)
+        LspRange range,
+        HashSet<string> seenNames)
     {
         foreach (var attr in attributes)
         {
@@ -626,6 +631,11 @@ internal static partial class LocalHtmlCompletionProvider
             // If a group IS expanded, only include items from that group
             if (expandedPrefix != null &&
                 !attr.Name.StartsWith(expandedPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!seenNames.Add(attr.Name))
             {
                 continue;
             }
@@ -712,23 +722,57 @@ internal static partial class LocalHtmlCompletionProvider
     }
 
     /// <summary>
-    /// Creates a <see cref="MarkupContent"/> documentation tooltip from a description and/or URL.
+    /// Creates a <see cref="MarkupContent"/> documentation tooltip from a description, URL, and baseline status.
     /// </summary>
-    internal static MarkupContent CreateDocumentation(string? description, string? documentationUrl)
+    internal static MarkupContent CreateDocumentation(MarkupKind documentationKind, string? description, string? documentationUrl, string? baseline = null, string? baselineYear = null)
     {
-        var value = description;
+        using var _ = StringBuilderPool.GetPooledObject(out var sb);
+
+        if (description is { Length: > 0 })
+        {
+            sb.Append(description);
+        }
+
+        // Baseline availability status
+        if (baseline is { Length: > 0 })
+        {
+            if (sb.Length > 0)
+            {
+                sb.Append("\n\n");
+            }
+
+            var sinceText = baselineYear is { Length: > 0 } ? SR.FormatBaseline_Since(baselineYear) : "";
+            if (baseline == "high")
+            {
+                sb.Append(SR.FormatBaseline_Widely_Available(sinceText));
+            }
+            else if (baseline == "low")
+            {
+                sb.Append(SR.FormatBaseline_Newly_Available(sinceText));
+            }
+        }
 
         if (documentationUrl is { Length: > 0 })
         {
-            value = description is { Length: > 0 }
-                ? $"{description}\n\n[HTML reference]({documentationUrl})"
-                : $"[HTML reference]({documentationUrl})";
+            if (sb.Length > 0)
+            {
+                sb.Append("\n\n");
+            }
+
+            if (documentationKind == MarkupKind.Markdown)
+            {
+                sb.Append($"[{SR.MDN_Reference}]({documentationUrl})");
+            }
+            else
+            {
+                sb.Append($"{SR.MDN_Reference}: {documentationUrl}");
+            }
         }
 
         return new MarkupContent
         {
-            Kind = MarkupKind.Markdown,
-            Value = value ?? "",
+            Kind = documentationKind,
+            Value = sb.ToString(),
         };
     }
 

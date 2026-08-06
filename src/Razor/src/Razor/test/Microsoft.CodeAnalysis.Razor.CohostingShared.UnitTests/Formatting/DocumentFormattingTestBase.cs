@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -39,7 +39,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         bool allowDiagnostics = false,
         bool debugAssertsEnabled = true,
         bool validateHtmlFormattedMatchesWebTools = true,
-        RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null,
+        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null,
         (string fileName, string contents)[]? additionalFiles = null)
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind, inGlobalNamespace: inGlobalNamespace, additionalFiles: additionalFiles);
@@ -55,7 +55,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
             //Assert.False(csharpDocument.Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, csharpDocument.Diagnostics));
         }
 
-        csharpSyntaxFormattingOptions ??= RazorCSharpSyntaxFormattingOptions.Default;
+        csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
 
         var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
         var accessor = formattingService.GetTestAccessor();
@@ -109,7 +109,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         AssertEx.EqualOrDiff(expected, finalText.ToString());
     }
 
-    private protected async Task<TextEdit[]?> GetFormattingEditsAsync(TextDocument document, TextEdit[]? htmlEdits, TextSpan span, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, bool insertSpaces, int tabSize, RazorCSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+    private protected async Task<TextEdit[]?> GetFormattingEditsAsync(TextDocument document, TextEdit[]? htmlEdits, TextSpan span, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, bool insertSpaces, int tabSize, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
     {
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);
 
@@ -130,7 +130,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
        TextDocument document,
        IHtmlRequestInvoker requestInvoker,
        IClientSettingsManager clientSettingsManager,
-       RazorCSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+       CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
     {
         if (span.IsEmpty)
         {

@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -42,7 +42,7 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            PredefinedCodeFixProviderNames.GenerateVariable,
             codeActionIndex: FieldActionIndex,
             makeDiagnosticsRequest: true);
     }
@@ -75,7 +75,7 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            PredefinedCodeFixProviderNames.GenerateVariable,
             codeActionIndex: ReadonlyFieldActionIndex,
             makeDiagnosticsRequest: true);
     }
@@ -97,7 +97,7 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            PredefinedCodeFixProviderNames.GenerateVariable,
             codeActionIndex: FieldActionIndex,
             makeDiagnosticsRequest: true);
     }
@@ -145,7 +145,7 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
                     }
                     """)
             ],
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateVariable,
             codeActionIndex: FieldActionIndex,
             makeDiagnosticsRequest: true);
     }
@@ -176,7 +176,7 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            PredefinedCodeFixProviderNames.GenerateVariable,
             makeDiagnosticsRequest: true);
     }
 
@@ -201,7 +201,7 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            PredefinedCodeFixProviderNames.GenerateVariable,
             codeActionIndex: FieldActionIndex,
             fileKind: RazorFileKind.Legacy,
             makeDiagnosticsRequest: true);

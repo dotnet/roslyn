@@ -1,0 +1,16 @@
+﻿Source Location: (100:5,4 [5] x:\dir\subdir\Test\TestComponent.razor)
+|Value|
+Generated Location: (805:22,24 [5] )
+|Value|
+
+Source Location: (7:0,7 [84] x:\dir\subdir\Test\TestComponent.razor)
+|
+    #:package Newtonsoft.Json@13.0.3
+    private static readonly int Value = 1;
+|
+Generated Location: (1045:33,0 [84] )
+|
+    #:package Newtonsoft.Json@13.0.3
+    private static readonly int Value = 1;
+|
+

@@ -27,7 +27,7 @@ namespace IdeBenchmarks.Lsp
 
         private LSP.CompletionList? _list;
 
-        public LspCompletionSerializationBenchmarks() : base(null)
+        public LspCompletionSerializationBenchmarks() : base(NoOpTestOutputHelper.Instance)
         {
         }
 
