@@ -49,17 +49,13 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     private readonly struct FileComponentOffsets
     {
-        public int AuthorityStart { get; }
-        public int AuthorityLength { get; }
-        public int PathStart { get; }
-        public int PathLength { get; }
+        public System.Range Authority { get; }
+        public System.Range Path { get; }
 
-        public FileComponentOffsets(int authorityStart, int authorityLength, int pathStart, int pathLength)
+        public FileComponentOffsets(System.Range authority, System.Range path)
         {
-            AuthorityStart = authorityStart;
-            AuthorityLength = authorityLength;
-            PathStart = pathStart;
-            PathLength = pathLength;
+            Authority = authority;
+            Path = path;
         }
     }
 
@@ -162,10 +158,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     private static Components ParseFileComponents(string formatted, FileComponentOffsets offsets)
     {
-        var authority = offsets.AuthorityLength == 0
-            ? string.Empty
-            : PercentDecode(formatted.Substring(offsets.AuthorityStart, offsets.AuthorityLength));
-        var path = PercentDecode(formatted.Substring(offsets.PathStart, offsets.PathLength));
+        var authority = PercentDecode(formatted[offsets.Authority]);
+        var path = PercentDecode(formatted[offsets.Path]);
         return CreateComponents("file", authority, path, string.Empty, string.Empty, string.Empty, strict: false);
     }
 
@@ -917,7 +911,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         }
 
         // Save canonical component ranges so Authority and Path can be materialized lazily.
-        offsets = new FileComponentOffsets(authorityStart, authorityLength, pathStart, result.Length - pathStart);
+        offsets = new FileComponentOffsets(authorityStart..(authorityStart + authorityLength), pathStart..result.Length);
         return result.ToString();
     }
 
