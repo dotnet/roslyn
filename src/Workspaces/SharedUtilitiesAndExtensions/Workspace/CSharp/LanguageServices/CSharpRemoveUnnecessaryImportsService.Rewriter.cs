@@ -278,5 +278,13 @@ internal sealed partial class CSharpRemoveUnnecessaryImportsService
             // Avoid recursing into a struct declaration
             return node;
         }
+
+#if !OLDER_ROSLYN
+        public override SyntaxNode VisitUnionDeclaration(UnionDeclarationSyntax node)
+        {
+            // Avoid recursing into a union declaration
+            return node;
+        }
+#endif
     }
 }

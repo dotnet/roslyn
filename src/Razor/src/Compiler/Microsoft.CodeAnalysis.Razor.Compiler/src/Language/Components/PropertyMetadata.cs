@@ -16,6 +16,7 @@ public sealed record PropertyMetadata() : MetadataObject(MetadataKind.Property)
     public bool IsDelegateWithAwaitableResult { get; init; }
     public bool IsGenericTyped { get; init; }
     public bool IsInitOnlyProperty { get; init; }
+    public bool AcceptsStringLiteral { get; init; }
 
     internal override bool HasDefaultValue => Equals(Default);
 
@@ -28,6 +29,7 @@ public sealed record PropertyMetadata() : MetadataObject(MetadataKind.Property)
         builder.Append(IsDelegateWithAwaitableResult);
         builder.Append(IsGenericTyped);
         builder.Append(IsInitOnlyProperty);
+        builder.Append(AcceptsStringLiteral);
     }
 
     public ref struct Builder
@@ -39,6 +41,7 @@ public sealed record PropertyMetadata() : MetadataObject(MetadataKind.Property)
         public bool IsDelegateWithAwaitableResult { get; set; }
         public bool IsGenericTyped { get; set; }
         public bool IsInitOnlyProperty { get; set; }
+        public bool AcceptsStringLiteral { get; set; }
 
         public readonly PropertyMetadata Build()
             => new()
@@ -50,6 +53,7 @@ public sealed record PropertyMetadata() : MetadataObject(MetadataKind.Property)
                 IsDelegateWithAwaitableResult = IsDelegateWithAwaitableResult,
                 IsGenericTyped = IsGenericTyped,
                 IsInitOnlyProperty = IsInitOnlyProperty,
+                AcceptsStringLiteral = AcceptsStringLiteral,
             };
     }
 }

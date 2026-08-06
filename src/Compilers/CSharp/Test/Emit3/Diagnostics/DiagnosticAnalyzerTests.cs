@@ -4213,7 +4213,6 @@ class Derived(int a) : Base(a);";
 
         [Theory, CombinatorialData]
         [WorkItem(67084, "https://github.com/dotnet/roslyn/issues/67084")]
-        [ValidatePooledObjects(LeakReason = "OperationCanceledException propagates without freeing DiagnosticBag")]
         internal async Task TestCancellationDuringDiagnosticComputation(AnalyzerRegisterActionKind actionKind)
         {
             var compilation = CreateCompilation(@"

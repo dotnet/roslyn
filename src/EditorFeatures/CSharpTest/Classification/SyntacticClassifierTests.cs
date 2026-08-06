@@ -2740,6 +2740,52 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
+    public Task ExtensionBlockIndexer_01(TestHost testHost)
+        => TestAsync(
+            """
+            static class E
+            {
+                extension(int i)
+                {
+                    public int this[int j] { get => i + j; set { } }
+                }
+            }
+            """,
+            testHost,
+            [new CSharpParseOptions(LanguageVersion.Preview)],
+            Keyword("static"),
+            Keyword("class"),
+            Class("E"),
+            Static("E"),
+            Punctuation.OpenCurly,
+            Keyword("extension"),
+            Punctuation.OpenParen,
+            Keyword("int"),
+            Parameter("i"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Keyword("public"),
+            Keyword("int"),
+            Keyword("this"),
+            Punctuation.OpenBracket,
+            Keyword("int"),
+            Parameter("j"),
+            Punctuation.CloseBracket,
+            Punctuation.OpenCurly,
+            Keyword("get"),
+            Operators.EqualsGreaterThan,
+            Identifier("i"),
+            Operators.Plus,
+            Identifier("j"),
+            Punctuation.Semicolon,
+            Keyword("set"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
     public Task AttributeTargetSpecifiersOnField(TestHost testHost)
         => TestInClassAsync(
             """

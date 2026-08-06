@@ -161,6 +161,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return;
                     }
 
+                    if (basePrintMethod.IsAbstract)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AbstractBaseRecordImplementation, GetFirstLocation(), this, basePrintMethod);
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
                     var basePrintCall = F.Call(receiver: F.Base(ContainingType.BaseTypeNoUseSiteDiagnostics), basePrintMethod, builder);
                     if (printableMembers.IsEmpty)
                     {

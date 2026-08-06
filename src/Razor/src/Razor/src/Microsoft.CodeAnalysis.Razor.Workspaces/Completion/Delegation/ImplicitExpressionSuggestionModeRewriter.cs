@@ -8,19 +8,26 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
 /// <summary>
-/// Clears <see cref="Roslyn.LanguageServer.Protocol.VSInternalCompletionList.SuggestionMode"/> for C# completions
-/// at the top level of implicit Razor expressions.
+/// Manages completion behavior for C# completions at the top level of implicit Razor expressions.
 /// </summary>
 /// <remarks>
-/// In implicit expressions (e.g., <c>@h</c>), the Razor compiler generates C# like
-/// <c>__builder.AddContent(seq, h)</c>. Because <c>RenderTreeBuilder.AddContent</c> has a
-/// <c>RenderFragment</c> (delegate) overload, Roslyn's suggestion-mode completion provider detects
-/// a potential lambda context and enables suggestion mode. This is a false positive at the top level
-/// of an implicit expression—users almost always intend to reference an identifier, not start a lambda.
+/// This rewriter handles two cases:
+///
+/// 1. **At the @ transition** (cursor immediately after <c>@</c>): clears all commit characters
+///    and sets <c>IsIncomplete = true</c>. This prevents characters like <c>{</c> from committing a
+///    completion item when the user intends <c>@{</c> (a code block). The <c>IsIncomplete</c> flag
+///    ensures the client re-queries on the next keystroke, restoring normal commit behavior.
+///
+/// 2. **At the top level of the implicit expression** (e.g., <c>@h|</c>): clears false-positive
+///    <see cref="Roslyn.LanguageServer.Protocol.VSInternalCompletionList.SuggestionMode"/>. In implicit
+///    expressions, the Razor compiler generates C# like <c>__builder.AddContent(seq, h)</c>. Because
+///    <c>RenderTreeBuilder.AddContent</c> has a <c>RenderFragment</c> (delegate) overload, Roslyn's
+///    suggestion-mode completion provider detects a potential lambda context and enables suggestion mode.
+///    This is a false positive—users almost always intend to reference an identifier, not start a lambda.
 ///
 /// However, implicit expressions can contain nested method calls with balanced parentheses
 /// (e.g., <c>@items.Where(x =&gt; x.Name)</c>), where suggestion mode from the inner method's
-/// delegate parameter is legitimate. This rewriter only clears suggestion mode when the cursor is
+/// delegate parameter is legitimate. Case 2 only clears suggestion mode when the cursor is
 /// at the top level of the implicit expression (not inside parentheses).
 /// </remarks>
 internal class ImplicitExpressionSuggestionModeRewriter : IDelegatedCSharpCompletionResponseRewriter
@@ -32,11 +39,6 @@ internal class ImplicitExpressionSuggestionModeRewriter : IDelegatedCSharpComple
         Position projectedPosition,
         RazorCompletionOptions completionOptions)
     {
-        if (!completionList.SuggestionMode)
-        {
-            return completionList;
-        }
-
         // The cursor is positioned right after the last typed character.  For example, in @h|
         // the host document index points at the character after 'h', which is typically the
         // start of the next token (e.g., '<' in '</div>').  To find the token the user is
@@ -49,6 +51,23 @@ internal class ImplicitExpressionSuggestionModeRewriter : IDelegatedCSharpComple
         var owner = codeDocument
             .GetRequiredSyntaxRoot()
             .FindInnermostNode(hostDocumentIndex - 1);
+
+        // Check if cursor is immediately after the @ transition in an implicit expression.
+        // FindInnermostNode at the @ position returns the CSharpTransitionSyntax whose parent is
+        // the implicit expression. We clear commit characters to prevent characters like '{' from
+        // committing (the user may intend @{ for a code block). We also mark the list incomplete
+        // so the client re-queries on the next keystroke, restoring normal commit behavior.
+        if (owner is CSharpTransitionSyntax { Parent: CSharpImplicitExpressionSyntax })
+        {
+            completionList.IsIncomplete = true;
+            ClearCommitCharacters(completionList);
+            return completionList;
+        }
+
+        if (!completionList.SuggestionMode)
+        {
+            return completionList;
+        }
 
         var implicitExpression = owner is { Parent: CSharpCodeBlockSyntax { Parent: CSharpImplicitExpressionBodySyntax { Parent: CSharpImplicitExpressionSyntax expr } } }
             ? expr
@@ -91,5 +110,26 @@ internal class ImplicitExpressionSuggestionModeRewriter : IDelegatedCSharpComple
         }
 
         return depth > 0;
+    }
+
+    /// <summary>
+    /// Clears all commit characters from the completion list to prevent unwanted commits
+    /// at the @ transition position. This is necessary for VS Code (which ignores SuggestionMode)
+    /// and also prevents commit characters from firing in VS IDE.
+    /// </summary>
+    private static void ClearCommitCharacters(RazorVSInternalCompletionList completionList)
+    {
+        completionList.CommitCharacters = null;
+
+        if (completionList.ItemDefaults is { } itemDefaults)
+        {
+            itemDefaults.CommitCharacters = null;
+        }
+
+        foreach (var item in completionList.Items)
+        {
+            item.CommitCharacters = null;
+            item.VsCommitCharacters = null;
+        }
     }
 }

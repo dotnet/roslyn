@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     string twoLetterPrefix = originalBaseAddress.Substring(0, 2);
 
                     if (
-                         (0 == String.Compare(twoLetterPrefix, "0x", StringComparison.OrdinalIgnoreCase)) ||
-                         (0 == String.Compare(twoLetterPrefix, "&h", StringComparison.OrdinalIgnoreCase))
+                         string.Equals(twoLetterPrefix, "0x", StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(twoLetterPrefix, "&h", StringComparison.OrdinalIgnoreCase)
                        )
                     {
                         // The incoming string is already in hex format ... we just need to
@@ -390,6 +390,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
 
+#if NETFRAMEWORK
+                // This branch only runs in the .NET Framework to .NET Core bridge task, which always
+                // executes on .NET Framework MSBuild where this assembly is deployed as loose files on
+                // disk. Assembly.Location is therefore valid here and unreachable from any single-file or
+                // native AOT host, so it does not need to satisfy the IL3000 single-file analyzer.
                 if (!NoConfig)
                 {
                     var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "vbc.rsp");
@@ -398,6 +403,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         commandLine.AppendSwitchIfNotNull("@", rspFile);
                     }
                 }
+#else
+                // IsSdkFrameworkToCoreBridgeTask is only ever true on .NET Framework, so the bridge-only
+                // response file handling above is never reached on .NET Core.
+                Debug.Fail("The SDK framework-to-core bridge task only runs on .NET Framework MSBuild.");
+#endif
             }
 
             commandLine.AppendSwitchIfNotNull("/baseaddress:", this.GetBaseAddressInHex());
@@ -459,22 +469,22 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", this.PreferredUILang);
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", this._store, "HighEntropyVA");
 
-            if (0 == String.Compare(this.VBRuntimePath, this.VBRuntime, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(this.VBRuntimePath, this.VBRuntime, StringComparison.OrdinalIgnoreCase))
             {
                 commandLine.AppendSwitchIfNotNull("/vbruntime:", this.VBRuntimePath);
             }
             else if (this.VBRuntime != null)
             {
                 string vbRuntimeSwitch = this.VBRuntime;
-                if (0 == String.Compare(vbRuntimeSwitch, "EMBED", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(vbRuntimeSwitch, "EMBED", StringComparison.OrdinalIgnoreCase))
                 {
                     commandLine.AppendSwitch("/vbruntime*");
                 }
-                else if (0 == String.Compare(vbRuntimeSwitch, "NONE", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(vbRuntimeSwitch, "NONE", StringComparison.OrdinalIgnoreCase))
                 {
                     commandLine.AppendSwitch("/vbruntime-");
                 }
-                else if (0 == String.Compare(vbRuntimeSwitch, "DEFAULT", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(vbRuntimeSwitch, "DEFAULT", StringComparison.OrdinalIgnoreCase))
                 {
                     commandLine.AppendSwitch("/vbruntime+");
                 }
@@ -489,8 +499,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                    (this.Verbosity != null) &&
 
                    (
-                      (0 == String.Compare(this.Verbosity, "quiet", StringComparison.OrdinalIgnoreCase)) ||
-                      (0 == String.Compare(this.Verbosity, "verbose", StringComparison.OrdinalIgnoreCase))
+                      string.Equals(this.Verbosity, "quiet", StringComparison.OrdinalIgnoreCase) ||
+                      string.Equals(this.Verbosity, "verbose", StringComparison.OrdinalIgnoreCase)
                    )
                 )
             {
@@ -511,7 +521,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/win32resource:", this.Win32Resource);
 
             // Special case for "Sub Main" (See VSWhidbey 381254)
-            if (0 != String.Compare("Sub Main", this.MainEntryPoint, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals("Sub Main", this.MainEntryPoint, StringComparison.OrdinalIgnoreCase))
             {
                 commandLine.AppendSwitchIfNotNull("/main:", this.MainEntryPoint);
             }
@@ -616,9 +626,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // Validate that the "Verbosity" parameter is one of "quiet", "normal", or "verbose".
             if (this.Verbosity != null)
             {
-                if ((0 != String.Compare(Verbosity, "normal", StringComparison.OrdinalIgnoreCase)) &&
-                    (0 != String.Compare(Verbosity, "quiet", StringComparison.OrdinalIgnoreCase)) &&
-                    (0 != String.Compare(Verbosity, "verbose", StringComparison.OrdinalIgnoreCase)))
+                if (!string.Equals(Verbosity, "normal", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(Verbosity, "quiet", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(Verbosity, "verbose", StringComparison.OrdinalIgnoreCase))
                 {
                     Log.LogErrorWithCodeFromResources("Vbc_EnumParameterHasInvalidValue", "Verbosity", this.Verbosity, "Quiet, Normal, Verbose");
                     return false;

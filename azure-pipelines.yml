@@ -34,9 +34,7 @@ pr:
       - azure-pipelines-integration-scouting.yml
       - azure-pipelines-official.yml
       - azure-pipelines-pr-validation.yml
-      - CODE-OF-CONDUCT.md
-      - CONTRIBUTING.md
-      - README.md
+      - '*.md'
 
 variables:
   # This value is conditionally overriden by the variable group DotNet-HelixApi-Access.
@@ -207,18 +205,6 @@ stages:
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
   jobs:
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - template: eng/pipelines/test-windows-job.yml
-      parameters:
-        testRunName: 'Test Windows Desktop Debug 32'
-        jobName: Test_Windows_Desktop_Debug_32
-        testArtifactName: Transport_Artifacts_Windows_Debug
-        configuration: Debug
-        testArguments: -testDesktop -testArch x86
-        helixQueueName: $(HelixWindowsVsQueueName)
-        helixApiAccessToken: $(HelixApiAccessToken)
-        poolParameters: ${{ parameters.windowsPool }}
-
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows Desktop Debug 64'
@@ -236,28 +222,28 @@ stages:
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
   jobs:
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows Desktop Release 32'
-      jobName: Test_Windows_Desktop_Release_32
-      testArtifactName: Transport_Artifacts_Windows_Release
-      configuration: Release
-      testArguments: -testDesktop -testArch x86
-      helixQueueName: $(HelixWindowsVsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
-
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
       parameters:
-        testRunName: 'Test Windows Desktop Release 64'
-        jobName: Test_Windows_Desktop_Release_64
+        testRunName: 'Test Windows Desktop Release 32'
+        jobName: Test_Windows_Desktop_Release_32
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
-        testArguments: -testDesktop -testArch x64
+        testArguments: -testDesktop -testArch x86
         helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
+
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows Desktop Release 64'
+      jobName: Test_Windows_Desktop_Release_64
+      testArtifactName: Transport_Artifacts_Windows_Release
+      configuration: Release
+      testArguments: -testDesktop -testArch x64
+      helixQueueName: $(HelixWindowsVsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.windowsPool }}
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -494,6 +480,9 @@ stages:
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
+      - powershell: eng/validate-benchmarks.ps1 -configuration Release -ci
+        displayName: Validate Benchmarks
+
       - script: dotnet build-server shutdown
         displayName: Shutdown Build Server
         continueOnError: true
@@ -597,7 +586,7 @@ stages:
 
   - job: Correctness_Analyzers
     pool: ${{ parameters.ubuntuPool }}
-    timeoutInMinutes: 35
+    timeoutInMinutes: 40
     variables:
       - template: eng/pipelines/variables-build.yml
         parameters:

@@ -17,25 +17,33 @@ internal readonly struct ProjectInstanceReader
     public readonly MSB.Evaluation.Project? Project;
     public readonly MSB.Execution.ProjectInstance _projectInstance;
 
+    private readonly string _projectFullPath;
     private readonly string _projectDirectory;
 
     public string Language { get; }
 
+    /// <param name="physicalFilePath">
+    /// The original C# file path if this corresponds to a virtual project.
+    /// </param>
     public ProjectInstanceReader(
         string language,
         ProjectCommandLineProvider? commandLineReader,
         MSB.Execution.ProjectInstance projectInstance,
-        MSB.Evaluation.Project? project)
+        MSB.Evaluation.Project? project,
+        string? physicalFilePath = null)
     {
         Language = language;
         _commandLineProvider = commandLineReader;
         _projectInstance = projectInstance;
         Project = project;
-        _projectDirectory = PathUtilities.EnsureTrailingSeparator(PathUtilities.GetDirectoryName(_projectInstance.FullPath));
-    }
 
-    public string FilePath
-        => _projectInstance.FullPath;
+        // The ProjectInstance we get from BuildResult.ProjectStateAfterBuild returns a limited ProjectInstance that
+        // only has MSBuild properties and items available; in this case the ProjectInstance.FullPath will be an empty string.
+        // Since in the out-of-process build case we will still have the project evaluation, we can get the full path from there.
+        _projectFullPath = physicalFilePath ?? Project?.FullPath ?? _projectInstance.FullPath;
+        Contract.ThrowIfTrue(string.IsNullOrEmpty(_projectFullPath));
+        _projectDirectory = PathUtilities.EnsureTrailingSeparator(PathUtilities.GetDirectoryName(_projectFullPath));
+    }
 
     public ProjectFileInfo CreateProjectFileInfo()
     {
@@ -117,7 +125,7 @@ internal readonly struct ProjectInstanceReader
         return new ProjectFileInfo()
         {
             Language = Language,
-            FilePath = _projectInstance.FullPath,
+            FilePath = _projectFullPath,
             OutputFilePath = outputFilePath,
             OutputRefFilePath = outputRefFilePath,
             GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,

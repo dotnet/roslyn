@@ -1841,6 +1841,31 @@ public sealed class NavigateToTests : AbstractNavigateToTests
         });
     }
 
+    [Theory, CombinatorialData]
+    public async Task FindExtensionBlockIndexer_01(TestHost testHost, Composition composition)
+    {
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            static class C
+            {
+                extension(int i)
+                {
+                    public int this[int j] => i + j;
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            var item = (await _aggregator.GetItemsAsync("this")).Single();
+            VerifyNavigateToResultItem(item, "this", "[|this|][int]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
+        });
+    }
+
     #region Pre-filter integration tests
     // These tests verify that the NavigateToSearchInfo pre-filter (hump bigrams, trigram filter,
     // length bitset, and the split fuzzy/non-fuzzy signal) correctly allows matches through the

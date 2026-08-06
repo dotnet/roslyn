@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.ProjectSystem.VS;
 using Microsoft.VisualStudio.Razor.Extensions;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
 using Microsoft.VisualStudio.Razor.Telemetry;
@@ -37,10 +38,7 @@ internal class SnippetService
     {
         {
             s_CSharpLanguageId,
-            ImmutableHashSet.Create(
-                "~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
-                "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
-                "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while")
+            ImmutableHashSet.Create(CohostInlineCompletionEndpoint.GetBuiltInCSharpSnippetTriggers())
         },
         {
             s_HtmlLanguageId,

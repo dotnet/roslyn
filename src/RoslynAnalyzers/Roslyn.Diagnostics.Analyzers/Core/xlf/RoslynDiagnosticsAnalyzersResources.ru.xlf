@@ -258,9 +258,9 @@
         <note />
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterDescription">
-        <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.</source>
-        <target state="translated">Методы в интерфейсах, наследуемых от IRemoteJsonService, не должны содержать параметров типа RazorPinnedSolutionInfoWrapper или DocumentId, так как они не поддерживают сериализацию JSON.</target>
-        <note>{Locked="IRemoteJsonService"}{Locked="RazorPinnedSolutionInfoWrapper"}{Locked="DocumentId"}{Locked="JSON"}</note>
+        <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorSolutionWrapper or DocumentId as they are not JSON serializable.</source>
+        <target state="translated">Методы в интерфейсах, наследуемых от IRemoteJsonService, не должны содержать параметры типа RazorSolutionWrapper или DocumentId, так как они не поддерживают сериализацию JSON.</target>
+        <note>{Locked="IRemoteJsonService"}{Locked="RazorSolutionWrapper"}{Locked="DocumentId"}{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterMessage">
         <source>Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</source>

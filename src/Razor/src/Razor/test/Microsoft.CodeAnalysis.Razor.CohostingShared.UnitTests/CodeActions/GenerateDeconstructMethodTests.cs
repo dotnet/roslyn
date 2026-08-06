@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -42,7 +42,7 @@ public class GenerateDeconstructMethodTests(ITestOutputHelper testOutputHelper) 
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod,
+            PredefinedCodeFixProviderNames.GenerateDeconstructMethod,
             makeDiagnosticsRequest: true);
     }
 
@@ -71,7 +71,7 @@ public class GenerateDeconstructMethodTests(ITestOutputHelper testOutputHelper) 
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod,
+            PredefinedCodeFixProviderNames.GenerateDeconstructMethod,
             makeDiagnosticsRequest: true);
     }
 
@@ -123,7 +123,7 @@ public class GenerateDeconstructMethodTests(ITestOutputHelper testOutputHelper) 
                     }
                     """)
             ],
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateDeconstructMethod,
             makeDiagnosticsRequest: true);
     }
 }

@@ -5,6 +5,7 @@ using System;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeAssert;
 
@@ -315,6 +316,74 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
                 c1 => Html(Environment.NewLine, c1)));
     }
 
+    [Fact, WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/3210")]
+    public void Lower_TagHelperWithAllowedChildren_AllowsChildTagHelpersInsideCSharpBlock()
+    {
+        // Arrange
+        var contactListTagHelper = CreateTagHelperDescriptorWithAllowedChild(
+            tagName: "my-contact-list",
+            typeName: "ContactListTagHelper",
+            assemblyName: "TestAssembly",
+            allowedChildTag: "my-contact");
+
+        var contactTagHelper = CreateTagHelperDescriptor(
+            tagName: "my-contact",
+            typeName: "ContactTagHelper",
+            assemblyName: "TestAssembly");
+
+        var codeDocument = ProjectEngine.CreateCodeDocument(
+            """
+            @addTagHelper *, TestAssembly
+            <my-contact-list>
+                @foreach (var contact in Model)
+                {
+                    <my-contact></my-contact>
+                }
+            </my-contact-list>
+            """,
+            [contactListTagHelper, contactTagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        var documentNode = processor.GetDocumentNode();
+
+        // Assert
+        Assert.Empty(documentNode.GetAllDiagnostics());
+    }
+
+    [Fact]
+    public void Lower_TagHelperWithAllowedChildren_ReportsInvalidChildInsideCSharpBlock()
+    {
+        // Arrange
+        var contactListTagHelper = CreateTagHelperDescriptorWithAllowedChild(
+            tagName: "my-contact-list",
+            typeName: "ContactListTagHelper",
+            assemblyName: "TestAssembly",
+            allowedChildTag: "my-contact");
+
+        var codeDocument = ProjectEngine.CreateCodeDocument(
+            """
+            @addTagHelper *, TestAssembly
+            <my-contact-list>
+                @foreach (var contact in Model)
+                {
+                    <div></div>
+                }
+            </my-contact-list>
+            """,
+            [contactListTagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        var documentNode = processor.GetDocumentNode();
+
+        // Assert
+        var diagnostic = Assert.Single(documentNode.GetAllDiagnostics());
+        Assert.Equal("RZ2009", diagnostic.Id);
+    }
+
     [Fact]
     public void Lower_TagHelpersWithBoundAttribute()
     {
@@ -475,6 +544,20 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
         }
 
         builder.TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder.RequireTagName(tagName));
+
+        return builder.Build();
+    }
+
+    private static TagHelperDescriptor CreateTagHelperDescriptorWithAllowedChild(
+        string tagName,
+        string typeName,
+        string assemblyName,
+        string allowedChildTag)
+    {
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
+        builder.SetTypeName(typeName, typeNamespace: null, typeNameIdentifier: null);
+        builder.TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder.RequireTagName(tagName));
+        builder.AllowChildTag(allowedChildTag);
 
         return builder.Build();
     }

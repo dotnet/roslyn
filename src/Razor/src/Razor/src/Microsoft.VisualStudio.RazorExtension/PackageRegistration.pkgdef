@@ -31,11 +31,14 @@
 "RazorNestedFile"="HierSingleSelectionName:\.razor\."
 "CshtmlNestedFile"="HierSingleSelectionName:\.cshtml\."
 
-// The language-service registration is duplicated in Microsoft.VisualStudio.RazorExtension.Custom.pkgdef.
+// The Razor language also has a separate Languages\Language Services\Razor registration in
+// Microsoft.VisualStudio.RazorExtension.Custom.pkgdef.
 [$RootKey$\Services\{4513FA64-5B72-4B58-9D4C-1D3C81996C2C}]
 @="{13b72f58-279e-49e0-a56d-296be02f0805}"
-"Name"="Razor Language Service"
-"IsAsyncQueryable"=dword:00000001
+"Name"="RazorLanguageService"
+"IsAsyncQueryable"=dword:00000000
+"IsCacheable"=dword:00000000
+"IsFreeThreaded"=dword:00000000
 
 // [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
 [$RootKey$\ToolWindows\{28080d9c-0842-4155-9e7d-3b9e6d64bb29}]

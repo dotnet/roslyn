@@ -1,0 +1,10 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+            CSharpCode - (52:2,12 [260] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                LazyIntermediateToken - (52:2,12 [260] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    public readonly struct Measurement\n    {\n        private readonly int _value;\n    \n        public Measurement(int value)\n        {\n            _value = value;\n        }\n    \n        public readonly int GetValue()\n            => _value;\n    }\n

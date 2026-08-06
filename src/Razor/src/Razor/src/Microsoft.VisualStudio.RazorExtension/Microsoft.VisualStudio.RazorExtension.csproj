@@ -8,10 +8,10 @@
     <StartArguments>/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log</StartArguments>
 
     <!-- Required to place the vsix in the right location by WTE MSI -->
-    <ExtensionInstallationRoot>$(RazorExtensionInstallationRoot)</ExtensionInstallationRoot>
-    <ExtensionInstallationFolder>$(RazorExtensionInstallationFolderBase)</ExtensionInstallationFolder>
-    <IsProductComponent>true</IsProductComponent>
-    <VisualStudioInsertionComponent>$(RazorVisualStudioInsertionComponent)</VisualStudioInsertionComponent>
+    <ExtensionInstallationRoot Condition="'$(RazorExtensionInstallationRoot)' != ''">$(RazorExtensionInstallationRoot)</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder Condition="'$(RazorExtensionInstallationRoot)' != ''">$(RazorExtensionInstallationFolderBase)</ExtensionInstallationFolder>
+    <IsProductComponent>$(RazorIsProductComponent)</IsProductComponent>
+    <VisualStudioInsertionComponent Condition="'$(RazorVisualStudioInsertionComponent)' != ''">$(RazorVisualStudioInsertionComponent)</VisualStudioInsertionComponent>
 
     <!-- Don't automatically include dependencies -->
     <IncludePackageReferencesInVSIXContainer>false</IncludePackageReferencesInVSIXContainer>
@@ -175,18 +175,22 @@
 
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
       <AdditionalProperties>TargetFramework=$(NetFxVS)</AdditionalProperties>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
 
     <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj">
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj">
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <NgenPriority>2</NgenPriority>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
     <ProjectReference Include="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
       <Name>Microsoft.CodeAnalysis.Razor.Compiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>

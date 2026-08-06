@@ -224,6 +224,8 @@ internal static class IDEDiagnosticIds
     public const string RemoveUnnecessaryAsyncModifier = "IDE0390";
     public const string RemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverride = "IDE0391";
 
+    public const string UseLabeledJumpStatementDiagnosticId = "IDE0410";
+
     public const string UseNullConditionalAwait = "IDE0420";
 
     // Analyzer error Ids
