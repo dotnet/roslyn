@@ -27,7 +27,7 @@ internal class AddImportChunkGenerator : SpanChunkGenerator
 
     public override string ToString()
     {
-        return "Import:" + Namespace + ";";
+        return "Import: " + Namespace + ";";
     }
 
     public override bool Equals(object obj)

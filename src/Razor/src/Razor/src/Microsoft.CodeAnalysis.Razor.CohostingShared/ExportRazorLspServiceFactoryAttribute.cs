@@ -5,7 +5,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.LanguageServer;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+namespace Microsoft.CodeAnalysis.Razor.CohostingShared;
 
 #pragma warning disable RS0030 // Do not use banned APIs
 [AttributeUsage(AttributeTargets.Class), MetadataAttribute]

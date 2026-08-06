@@ -1,0 +1,18 @@
+@page "/test"
+
+<h3>Test Page</h3>
+
+                   <p>Current count: @count</p>
+
+    <button @onclick="IncrementCount">Click me</button>
+@* asdfasdf
+asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf asdfasdfasdfasdf any code or text here which is longer REMOVE asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf*@
+
+@code {
+private int count = 0;
+
+private void IncrementCount()
+         {
+                             count++;
+                        }
+}

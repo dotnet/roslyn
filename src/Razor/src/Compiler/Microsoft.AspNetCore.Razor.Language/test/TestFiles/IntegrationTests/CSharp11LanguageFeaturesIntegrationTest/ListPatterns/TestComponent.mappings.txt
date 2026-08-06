@@ -1,0 +1,25 @@
+﻿Source Location: (2:0,2 [70] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var values = new[] { 1, 2, 3 };
+    _ = values is [1, .., 3];
+|
+Generated Location: (733:21,0 [70] )
+|
+    var values = new[] { 1, 2, 3 };
+    _ = values is [1, .., 3];
+|
+
+Source Location: (78:5,1 [30] x:\dir\subdir\Test\TestComponent.razor)
+|if (values is [1, .., 3])
+{
+|
+Generated Location: (934:31,0 [30] )
+|if (values is [1, .., 3])
+{
+|
+
+Source Location: (128:8,0 [1] x:\dir\subdir\Test\TestComponent.razor)
+|}|
+Generated Location: (1157:41,0 [1] )
+|}|
+

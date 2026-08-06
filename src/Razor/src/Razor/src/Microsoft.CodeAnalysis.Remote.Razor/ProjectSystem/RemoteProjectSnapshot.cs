@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
@@ -149,7 +148,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         return await generatorResult.GetRequiredSourceGeneratedDocumentForRazorFilePathAsync(documentSnapshot.FilePath, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<RazorCodeDocument?> TryGetCodeDocumentForGeneratedDocumentAsync(RazorGeneratedDocumentIdentity identity, CancellationToken cancellationToken)
+    public async Task<RazorCodeDocument?> TryGetCodeDocumentForGeneratedDocumentAsync(SourceGeneratedDocumentIdentity identity, CancellationToken cancellationToken)
     {
         Debug.Assert(identity.DocumentId.ProjectId == _project.Id, "Generated document does not belong to this project.");
         var hintName = identity.HintName;
@@ -170,7 +169,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
             : null;
     }
 
-    public async Task<TextDocument?> TryGetRazorDocumentForGeneratedDocumentAsync(RazorGeneratedDocumentIdentity identity, CancellationToken cancellationToken)
+    public async Task<TextDocument?> TryGetRazorDocumentForGeneratedDocumentAsync(SourceGeneratedDocumentIdentity identity, CancellationToken cancellationToken)
     {
         Debug.Assert(identity.DocumentId.ProjectId == _project.Id, "Generated document does not belong to this project.");
         var hintName = identity.HintName;

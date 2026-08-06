@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
@@ -20,12 +21,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// Also creates the <see cref="ProjectInitializationHandler"/> with the actual service broker instance
 /// so it can subscribe to the remote project initialization status service.
 /// </summary>
-[Export(typeof(IServiceBrokerInitializer)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(DevKitProjectLoadingServiceContributor)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DevKitProjectLoadingServiceContributorFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new DevKitProjectLoadingServiceContributor(lspServices, lspServices.GetRequiredService<ILoggerFactory>());
+}
+
 internal sealed class DevKitProjectLoadingServiceContributor(
-    LanguageServerWorkspaceFactory workspaceFactory,
-    ILoggerFactory loggerFactory) : IServiceBrokerInitializer
+    LspServices lspServices,
+    ILoggerFactory loggerFactory) : IServiceBrokerInitializer, ILspService
 {
     public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>
     {
@@ -38,8 +45,11 @@ internal sealed class DevKitProjectLoadingServiceContributor(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             async (moniker, options, innerServiceBroker, cancellationToken) =>
             {
-                var projectInitializationHandler = new ProjectInitializationHandler(innerServiceBroker, loggerFactory);
-                var service = new WorkspaceProjectFactoryService(workspaceFactory, projectInitializationHandler, loggerFactory);
+                var workspaceFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
+                var targetFrameworkManager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
+                var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+                var projectInitializationHandler = new ProjectInitializationHandler(clientLanguageServerManager, innerServiceBroker, loggerFactory);
+                var service = new WorkspaceProjectFactoryService(workspaceFactory, targetFrameworkManager, projectInitializationHandler, loggerFactory);
                 await service.InitializeAsync(cancellationToken);
                 return service;
             });

@@ -858,7 +858,6 @@ class C3
 
         [Theory, CombinatorialData]
         [WorkItem(46950, "https://github.com/dotnet/roslyn/issues/46950")]
-        [ValidatePooledObjects(LeakReason = "OperationCanceledException propagates without freeing DiagnosticBag")]
         public async Task TestGetAnalyzerSyntaxDiagnosticsWithCancellation(bool concurrent)
         {
             var source = @"class C { }";

@@ -125,7 +125,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         var source = InAsyncMethod("await? t;", $"{type} t");
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
-            // (7,14): error CS9388: 'await?' cannot be applied to an operand of non-nullable value type '<type>'.
+            // (7,14): error CS9398: 'await?' cannot be applied to an operand of non-nullable value type '<type>'.
             //         await? t;
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments(displayName).WithLocation(7, 14));
     }
@@ -160,7 +160,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
-            // (21,14): error CS9388: 'await?' cannot be applied to an operand of non-nullable value type 'MyAwaitable'.
+            // (21,14): error CS9398: 'await?' cannot be applied to an operand of non-nullable value type 'MyAwaitable'.
             //         await? t;
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("MyAwaitable").WithLocation(21, 14));
     }
@@ -180,7 +180,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
-            // (6,14): error CS9388: 'await?' cannot be applied to an operand of non-nullable value type 'T'.
+            // (6,14): error CS9398: 'await?' cannot be applied to an operand of non-nullable value type 'T'.
             //         await? t;
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("T").WithLocation(6, 14));
     }
@@ -200,7 +200,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
-            // (6,14): error CS9388: 'await?' cannot be applied to an operand of non-nullable value type 'T'.
+            // (6,14): error CS9398: 'await?' cannot be applied to an operand of non-nullable value type 'T'.
             //         await? t;
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("T").WithLocation(6, 14));
     }
@@ -740,7 +740,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         var source = InAsyncMethod("await? t.ConfigureAwait(false);", "Task t");
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
-            // (7,14): error CS9388: 'await?' cannot be applied to an operand of non-nullable value type 'ConfiguredTaskAwaitable'.
+            // (7,14): error CS9398: 'await?' cannot be applied to an operand of non-nullable value type 'ConfiguredTaskAwaitable'.
             //         await? t.ConfigureAwait(false);
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("System.Runtime.CompilerServices.ConfiguredTaskAwaitable").WithLocation(7, 14));
     }
@@ -981,7 +981,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     {
         // `where T : notnull` does NOT imply `T` is a reference type — it could be a struct.
         // Per the operand-nullability rule, only a *known* non-nullable value type is
-        // rejected with CS9388; a type parameter that isn't known to be a value type passes,
+        // rejected with CS9398; a type parameter that isn't known to be a value type passes,
         // and the missing-GetAwaiter diagnostic is what surfaces.
         var source = """
             using System.Threading.Tasks;

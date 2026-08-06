@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Mapping;
 
@@ -514,6 +515,186 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                     public int NewCounter { get; set; } 
                 }
                 """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13202")]
+    public Task GeneratedBuildRenderTree_SignatureChange_IsNotAdded()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                        if ({|map1:awa|})
+                        {
+                        }
+                    }
+                }
+                """,
+            razorSource: """
+                @if({|map1:awa|})
+                {
+                }
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override async Task BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                        if (await)
+                        {
+                        }
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                @if(await)
+                {
+                }
+                """);
+
+    [Fact]
+    public Task UserBuildRenderTreeOverload_IsAdded()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                    }
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                    }
+
+                    private void BuildRenderTree(int value)
+                    {
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code {
+                    private void BuildRenderTree(int value)
+                    {
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task Component_UserExecuteAsync_IsAdded()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                    }
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                    }
+
+                    private void ExecuteAsync()
+                    {
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code {
+                    private void ExecuteAsync()
+                    {
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task Legacy_UserBuildRenderTree_IsAdded()
+        => TestAsync(
+            csharpSource: """
+                class MyPage : RazorPage
+                {
+                    public override async Task ExecuteAsync()
+                    {
+                    }
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyPage : RazorPage
+                {
+                    public override async Task ExecuteAsync()
+                    {
+                    }
+
+                    private void BuildRenderTree(int __builder)
+                    {
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @functions {
+                    private void BuildRenderTree(int __builder)
+                    {
+                    }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task GeneratedExecuteAsync_SignatureChange_IsNotAdded()
+        => TestAsync(
+            csharpSource: """
+                class MyPage : RazorPage
+                {
+                    public override void ExecuteAsync()
+                    {
+                        if ({|map1:awa|})
+                        {
+                        }
+                    }
+                }
+                """,
+            razorSource: """
+                @if({|map1:awa|})
+                {
+                }
+                """,
+            newCSharpSource: """
+                class MyPage : RazorPage
+                {
+                    public override async Task ExecuteAsync()
+                    {
+                        if (await)
+                        {
+                        }
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                @if(await)
+                {
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
 
     [Fact]
     public Task NewMethod_ExpressionBodied()
@@ -1974,15 +2155,18 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         TestCode csharpSource,
         TestCode razorSource,
         string newCSharpSource,
-        string expectedRazorSource)
+        string expectedRazorSource,
+        RazorFileKind? fileKind = null)
     {
         var csharpSpans = csharpSource.NamedSpans;
         var razorSpans = razorSource.NamedSpans;
 
         AssertEx.SetEqual(csharpSpans.Keys.OrderAsArray(), razorSpans.Keys.OrderAsArray());
 
-        var csharpPath = @"C:\path\to\document.razor.g.cs";
-        var razorPath = @"C:\path\to\document.razor";
+        var razorPath = fileKind == RazorFileKind.Legacy
+            ? @"C:\path\to\document.cshtml"
+            : @"C:\path\to\document.razor";
+        var csharpPath = razorPath + ".g.cs";
         var csharpSourceText = SourceText.From(csharpSource.Text);
         var razorSourceText = SourceText.From(razorSource.Text);
 
@@ -2016,7 +2200,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         var changes = GetChanges(csharpSource.Text, newCSharpSource);
         Assert.NotEmpty(changes);
 
-        var document = CreateProjectAndRazorDocument(razorSource.Text, documentFilePath: razorPath);
+        var document = CreateProjectAndRazorDocument(razorSource.Text, fileKind, documentFilePath: razorPath);
 
         var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
         var codeDocument = await snapshotManager.GetSnapshot(document).GetGeneratedOutputAsync(DisposalToken);

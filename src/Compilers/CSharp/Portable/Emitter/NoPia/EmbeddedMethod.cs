@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Cci = Microsoft.Cci;
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataNewSlot();
+                return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataNewSlot(TypeManager.ModuleBeingBuilt.SourceModule);
             }
         }
 
@@ -123,7 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataFinal;
+                bool isMetadataFinal = UnderlyingMethod.AdaptedMethodSymbol.IsMetadataFinal;
+
+                Debug.Assert(!isMetadataFinal);
+                return isMetadataFinal;
             }
         }
 
@@ -139,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataVirtual();
+                return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataVirtual(TypeManager.ModuleBeingBuilt.SourceModule);
             }
         }
 

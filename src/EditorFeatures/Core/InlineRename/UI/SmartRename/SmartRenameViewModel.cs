@@ -162,10 +162,18 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
         SetupTelemetry();
 
-        this.SupportsAutomaticSuggestions = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
+        // The Editor.AutoSmartRenameSuggestions feature flag is the default value for whether
+        // suggestions are fetched automatically, not a mode gate. Always enable automatic
+        // mode so the toggle button persists the user's choice; the feature flag is used
+        // as the fallback default for IsAutomaticSuggestionsEnabled below.
+        this.SupportsAutomaticSuggestions = true;
         this.IsUsingSemanticContext = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsContext);
-        // Use existing "CollapseSuggestionsPanel" option (true if user does not wish to get suggestions automatically) to honor user's choice.
-        this.IsAutomaticSuggestionsEnabled = this.SupportsAutomaticSuggestions && !_globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
+        // When the user has toggled the setting, honor their stored preference.
+        // Otherwise fall back to the feature flag as the default.
+        var collapseSuggestionsPanel = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
+        this.IsAutomaticSuggestionsEnabled = collapseSuggestionsPanel.HasValue
+            ? !collapseSuggestionsPanel.Value
+            : _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
         if (this.IsAutomaticSuggestionsEnabled)
         {
             this.FetchSuggestions(isAutomaticOnInitialization: true);

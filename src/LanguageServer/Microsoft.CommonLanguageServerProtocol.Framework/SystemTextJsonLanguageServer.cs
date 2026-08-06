@@ -15,8 +15,8 @@ using StreamJsonRpc;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
-    JsonRpc jsonRpc, JsonSerializerOptions options, ILspLogger logger, AbstractTypeRefResolver? typeRefResolver = null)
-    : AbstractLanguageServer<TRequestContext>(jsonRpc, logger, typeRefResolver)
+    JsonRpc jsonRpc, JsonSerializerOptions options, AbstractTypeRefResolver? typeRefResolver = null)
+    : AbstractLanguageServer<TRequestContext>(jsonRpc, typeRefResolver)
 {
     /// <summary>
     /// JsonSerializer options used by streamjsonrpc (and for serializing / deserializing the requests to streamjsonrpc).
@@ -87,12 +87,12 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
         /// serialize-then-reserialize round-trip that <see cref="JsonSerializer.SerializeToElement(object?, Type, JsonSerializerOptions?)"/>
         /// would otherwise cause (object → byte[] → JsonDocument → JsonElement → wire bytes).
         /// </remarks>
-        private async Task<object?> ExecuteRequestAsync(JsonElement? request, CancellationToken cancellationToken = default)
+        private Task<object?> ExecuteRequestAsync(JsonElement? request, CancellationToken cancellationToken = default)
         {
             var queue = target.GetRequestExecutionQueue();
             var lspServices = target.GetLspServices();
 
-            return await InvokeAsync(queue, request, lspServices, cancellationToken).ConfigureAwait(false);
+            return InvokeAsync(queue, request, lspServices, cancellationToken);
         }
     }
 }

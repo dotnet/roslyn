@@ -4,7 +4,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -19,7 +18,7 @@ internal sealed class RemoteHtmlDocumentService(in ServiceArgs args) : RazorDocu
     }
 
     public ValueTask<string?> GetHtmlDocumentTextAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(

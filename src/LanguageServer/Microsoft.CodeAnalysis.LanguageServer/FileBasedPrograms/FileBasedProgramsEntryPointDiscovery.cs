@@ -5,14 +5,14 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.IO.Enumeration;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -31,16 +30,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [ExportLspServiceFactory(typeof(FileBasedProgramsEntryPointDiscovery), ProtocolConstants.RoslynLspLanguagesContract)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionService globalOptionService, IAsynchronousOperationListenerProvider listenerProvider, ILoggerFactory loggerFactory) : ILspServiceFactory
+internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionService globalOptionService, IAsynchronousOperationListenerProvider listenerProvider) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new FileBasedProgramsEntryPointDiscovery(globalOptionService, listenerProvider.GetListener(FeatureAttribute.Workspace), loggerFactory, lspServices);
+        return new FileBasedProgramsEntryPointDiscovery(
+            globalOptionService,
+            listenerProvider.GetListener(FeatureAttribute.Workspace),
+            lspServices.GetRequiredService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>(),
+            lspServices.GetRequiredService<ILoggerFactory>(),
+            lspServices);
     }
 }
 
 internal sealed partial class FileBasedProgramsEntryPointDiscovery(
-    IGlobalOptionService globalOptionService, IAsynchronousOperationListener listener, ILoggerFactory loggerFactory, LspServices lspServices) : ILspService, IOnInitialized
+    IGlobalOptionService globalOptionService,
+    IAsynchronousOperationListener listener,
+    IFileBasedProgramService fileBasedProgramService,
+    ILoggerFactory loggerFactory,
+    LspServices lspServices) : ILspService, IOnInitialized
 {
     private static readonly StringComparer s_pathComparer = StringComparer.OrdinalIgnoreCase;
 
@@ -114,7 +122,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         // Discovery pass done. Find and delete old caches.
         IOUtilities.PerformIO(() =>
         {
-            using var enumerator = new OldCacheEnumerator();
+            using var enumerator = new OldCacheEnumerator(fileBasedProgramService);
             while (enumerator.MoveNext())
             {
                 IOUtilities.PerformIO(() => Directory.Delete(enumerator.Current, recursive: true));
@@ -122,8 +130,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         });
     }
 
-    private sealed class OldCacheEnumerator() : FileSystemEnumerator<string>(
-        directory: VirtualProjectXmlProvider.GetDiscoveryCacheRootDirectory(),
+    private sealed class OldCacheEnumerator(IFileBasedProgramService fileBasedProgramService) : FileSystemEnumerator<string>(
+        directory: fileBasedProgramService.GetDiscoveryCacheRootDirectory(),
         options: new() { RecurseSubdirectories = false })
     {
         // Yield cache directories that have not been modified in 30 days (indicates they are stale and should be deleted)
@@ -140,7 +148,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     internal ImmutableArray<string> FindEntryPoints(string workspaceFolder)
     {
         var stopwatch = SharedStopwatch.StartNew();
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(workspaceFolder);
+        var cacheDirectory = fileBasedProgramService.GetDiscoveryCacheDirectory(workspaceFolder);
         var cacheFilePath = Path.Join(cacheDirectory, "cache.json");
         Cache? cache = null;
         try
@@ -240,7 +248,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         public DateTimeOffset CreatedOrModifiedTimeUtc { get; } = createdOrModifiedTimeUtc;
     }
 
-    private class DirectoryEnumerator(string directory) : FileSystemEnumerator<CsFileInfo>(directory)
+    private class DirectoryEnumerator(string directory) : FileSystemEnumerator<CsFileInfo>(directory, new EnumerationOptions { RecurseSubdirectories = false, IgnoreInaccessible = true })
     {
         private CsFileKind GetKind(ref FileSystemEntry entry)
         {
@@ -292,8 +300,18 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 // On NTFS, the directory timestamps we observe when enumerating can be stale when files are added/deleted from a directory.
                 // If we find the timestamps were old enough (i.e. we entered this block),
                 // we still need to `new DirectoryInfo()` again and force the timestamps to update if needed.
-                var directoryInfo = new DirectoryInfo(directory);
-                var newCreatedOrModifiedTimeUtc = Max(directoryInfo.CreationTimeUtc, directoryInfo.LastWriteTimeUtc);
+                DateTimeOffset newCreatedOrModifiedTimeUtc;
+                try
+                {
+                    var directoryInfo = new DirectoryInfo(directory);
+                    newCreatedOrModifiedTimeUtc = Max(directoryInfo.CreationTimeUtc, directoryInfo.LastWriteTimeUtc);
+                }
+                catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
+                {
+                    logger.LogWarning("Skipping directory '{Directory}' during file-based app discovery due to I/O exception: {ExceptionMessage}", directory, ex.Message);
+                    return;
+                }
+
                 if (newCreatedOrModifiedTimeUtc < cache.LastWalkTimeUtc && cache.DirectoriesContainingCsproj.BinarySearch(directory, s_pathComparer) >= 0)
                 {
                     // Our info about this directory is up to date, and we know it contains a csproj, so bail out before enumerating its files.
@@ -304,6 +322,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 createdOrModifiedTimeUtc = Max(createdOrModifiedTimeUtc, newCreatedOrModifiedTimeUtc);
             }
 
+            // The DirectoryEnumerator uses IgnoreInaccessible = true, so it will silently skip
+            // directories/files which we don't have permission to access during enumeration.
             using var currentDirectoryItems = TemporaryArray<CsFileInfo>.Empty;
             using var enumerator = new DirectoryEnumerator(directory);
             while (enumerator.MoveNext())

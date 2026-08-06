@@ -19,7 +19,7 @@ internal sealed class LocalHtmlCompletionResolveContext(
 {
     internal static readonly LocalHtmlCompletionResolveContext Empty = new([], []);
 
-    public bool TryGetResolveData(string label, CompletionItemKind kind, [NotNullWhen(true)] out string? description, [NotNullWhen(true)] out string? documentationUrl)
+    public bool TryGetResolveData(string label, CompletionItemKind kind, [NotNullWhen(true)] out string? description, [NotNullWhen(true)] out string? documentationUrl, [NotNullWhen(true)] out string? baseline, [NotNullWhen(true)] out string? baselineYear)
     {
         if (kind == CompletionItemKind.Element)
         {
@@ -27,13 +27,15 @@ internal sealed class LocalHtmlCompletionResolveContext(
             {
                 description = elementInfo.Description;
                 documentationUrl = elementInfo.DocumentationUrl;
+                baseline = elementInfo.Baseline;
+                baselineYear = elementInfo.BaselineDate;
                 return true;
             }
         }
         else
         {
-            if (TryFindAttribute(elementAttributes, label, out description, out documentationUrl) ||
-                TryFindAttribute(globalAttributes, label, out description, out documentationUrl))
+            if (TryFindAttribute(elementAttributes, label, out description, out documentationUrl, out baseline, out baselineYear) ||
+                TryFindAttribute(globalAttributes, label, out description, out documentationUrl, out baseline, out baselineYear))
             {
                 return true;
             }
@@ -41,11 +43,13 @@ internal sealed class LocalHtmlCompletionResolveContext(
 
         description = null;
         documentationUrl = null;
+        baseline = null;
+        baselineYear = null;
         return false;
     }
 
     private static bool TryFindAttribute(ImmutableArray<HtmlAttributeInfo> attributes, string name,
-        [NotNullWhen(true)] out string? description, [NotNullWhen(true)] out string? documentationUrl)
+        [NotNullWhen(true)] out string? description, [NotNullWhen(true)] out string? documentationUrl, [NotNullWhen(true)] out string? baseline, [NotNullWhen(true)] out string? baselineYear)
     {
         foreach (var attr in attributes)
         {
@@ -53,12 +57,16 @@ internal sealed class LocalHtmlCompletionResolveContext(
             {
                 description = attr.Description;
                 documentationUrl = attr.DocumentationUrl;
+                baseline = attr.Baseline;
+                baselineYear = attr.BaselineDate;
                 return true;
             }
         }
 
         description = null;
         documentationUrl = null;
+        baseline = null;
+        baselineYear = null;
         return false;
     }
 }

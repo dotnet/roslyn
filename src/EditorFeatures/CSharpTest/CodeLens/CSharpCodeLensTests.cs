@@ -446,4 +446,83 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTest
                 </Project>
             </Workspace>
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84020")]
+    public Task TestExtensionBlockMethod_StaticFormCall()
+        => RunCountTest("""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" LanguageVersion="Preview">
+                    <Document FilePath="CurrentDocument.cs"><![CDATA[
+            public static class C
+            {
+                extension(object x)
+                {
+                    {|1: void M()
+                    {
+                    }|}
+                }
+
+                static void Caller()
+                {
+                    M(new object());
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84020")]
+    public Task TestExtensionBlockMethod_InstanceFormCall()
+        => RunCountTest("""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" LanguageVersion="Preview">
+                    <Document FilePath="CurrentDocument.cs"><![CDATA[
+            public static class C
+            {
+                extension(object x)
+                {
+                    {|1: void M()
+                    {
+                    }|}
+                }
+
+                static void Caller()
+                {
+                    new object().M();
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84020")]
+    public Task TestExtensionBlockMethod_MixedCalls()
+        => RunCountTest("""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" LanguageVersion="Preview">
+                    <Document FilePath="CurrentDocument.cs"><![CDATA[
+            public static class C
+            {
+                extension(object x)
+                {
+                    {|2: void M()
+                    {
+                    }|}
+                }
+
+                static void Caller()
+                {
+                    M(new object());
+                    new object().M();
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
 }

@@ -144,9 +144,6 @@ dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
 file_header_template = Licensed to the .NET Foundation under one or more agreements.\nThe .NET Foundation licenses this file to you under the MIT license.\nSee the LICENSE file in the project root for more information.
 
-# RS0016: Only enable if API files are present
-dotnet_public_api_analyzer.require_api_files = true
-
 # IDE0055: Fix formatting
 # Workaround for https://github.com/dotnet/roslyn/issues/70570
 dotnet_diagnostic.IDE0055.severity = warning

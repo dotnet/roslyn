@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
@@ -27,7 +26,7 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
     private readonly ICodeActionResolveService _codeActionResolveService = args.ExportProvider.GetExportedValue<ICodeActionResolveService>();
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
 
-    public ValueTask<CodeActionRequestInfo> GetCodeActionRequestInfoAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, VSCodeActionParams request, CancellationToken cancellationToken)
+    public ValueTask<CodeActionRequestInfo> GetCodeActionRequestInfoAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, VSCodeActionParams request, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
@@ -57,7 +56,7 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
         return new CodeActionRequestInfo(languageKind, csharpRequest);
     }
 
-    public ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, VSCodeActionParams request, RazorVSInternalCodeAction[] delegatedCodeActions, CancellationToken cancellationToken)
+    public ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, VSCodeActionParams request, RazorVSInternalCodeAction[] delegatedCodeActions, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
@@ -73,7 +72,7 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
         return await _codeActionsService.GetCodeActionsAsync(request, context.Snapshot, delegatedCodeActions, generatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
     }
 
-    public ValueTask<CodeAction> ResolveCodeActionAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, CodeAction request, CodeAction? delegatedCodeAction, CancellationToken cancellationToken)
+    public ValueTask<CodeAction> ResolveCodeActionAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, CodeAction request, CodeAction? delegatedCodeAction, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
