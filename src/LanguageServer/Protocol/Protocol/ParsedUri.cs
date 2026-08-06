@@ -839,6 +839,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         {
             // A contiguous %XX run may represent one multi-byte UTF-8 sequence, so it is decoded as a whole first.
             // If that fails, preserve the first %XX literally and retry the remainder so any valid suffix still decodes.
+            // This intentionally matches vscode-uri: because it peels from the front without locating the invalid byte,
+            // a failure near the end can leave valid preceding escapes encoded (for example, %41%A0 remains %41%A0).
             result.Length = originalLength;
             if (value.Length > 3)
             {
