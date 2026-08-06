@@ -65,6 +65,7 @@ Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerat
 - Language services are exported **per-language** (`[ExportLanguageService(..., LanguageNames.CSharp), Shared]`), never shared across C#/VB.
 - No `TODO`/`TODO2` comments — track follow-ups as linked GitHub issues in code; existing `TODO2`s are only a frozen enforcement baseline. No `PROTOTYPE` comments in PRs to `main`.
 - Update `PublicAPI.Unshipped.txt` for public API changes. Never hand-edit generated code or `eng/common`.
+- It is acceptable to have async methods with no awaits. CS1998 is not active for this repository.
 
 Full conventions: `.github/memory/CONVENTIONS.md` and `.github/instructions/{Compiler,IDE,Razor}.instructions.md`.
 
