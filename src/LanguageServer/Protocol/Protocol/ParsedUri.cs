@@ -614,6 +614,11 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         };
     }
 
+    /// <summary>
+    /// Produces canonical URI component encoding for <see cref="ToString()"/>. Characters permitted by the
+    /// component type are preserved, while reserved, disallowed ASCII, and non-ASCII characters are percent-encoded.
+    /// Returns the original string without allocating when every character is already permitted.
+    /// </summary>
     private static string EncodeURIComponentFast(string uriComponent, bool isPath, bool isAuthority)
     {
         var pos = 0;
@@ -632,6 +637,11 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         return result.ToString();
     }
 
+    /// <summary>
+    /// Appends <paramref name="value"/> beginning at <paramref name="start"/>, preserving characters permitted
+    /// by the component type and percent-encoding everything else. Used by <see cref="EncodeURIComponentFast"/>
+    /// after its unchanged prefix and by file formatting after drive-letter normalization.
+    /// </summary>
     private static void AppendEncoded(StringBuilder result, string value, int start, bool isPath, bool isAuthority)
     {
         for (var pos = start; pos < value.Length; pos++)
@@ -650,6 +660,10 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
                 continue;
             }
 
+            // Allowed URI characters were appended unchanged above, and reserved characters with predefined escapes
+            // were handled by the table. Anything remaining, including disallowed ASCII and non-ASCII characters,
+            // must therefore be UTF-8 percent-encoded. Encode consecutive characters together so surrogate pairs
+            // such as 😀 produce one valid UTF-8 sequence instead of replacement characters.
             var nativeEnd = pos + 1;
             while (nativeEnd < value.Length
                 && !IsEncodingAllowed(value[nativeEnd], isPath, isAuthority)
@@ -692,6 +706,11 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             || (isAuthority && ch == ']')
             || (isAuthority && ch == ':');
 
+    /// <summary>
+    /// Performs the minimal encoding required by <see cref="ToString(bool)"/> when encoding is skipped.
+    /// All characters are preserved except <c>?</c> and <c>#</c>, which must remain escaped so they cannot
+    /// introduce query or fragment delimiters.
+    /// </summary>
     private static string EncodeURIComponentMinimal(string path, bool isPath, bool isAuthority)
     {
         StringBuilder? res = null;
