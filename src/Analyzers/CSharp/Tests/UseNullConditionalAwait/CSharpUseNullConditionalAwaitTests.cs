@@ -504,4 +504,179 @@ public sealed class CSharpUseNullConditionalAwaitTests
             }
             """,
             LanguageVersion.CSharp14);
+
+    [Fact]
+    public Task IfStatement_InvocationChainEndingInConfigureAwait()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class Holder
+            {
+                public Task GetTask() => Task.CompletedTask;
+            }
+
+            class C
+            {
+                async Task M(Holder holder)
+                {
+                    {|IDE0420:if|} (holder != null)
+                        await holder.GetTask().ConfigureAwait(false);
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class Holder
+            {
+                public Task GetTask() => Task.CompletedTask;
+            }
+
+            class C
+            {
+                async Task M(Holder holder)
+                {
+                    await? holder?.GetTask().ConfigureAwait(false);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Ternary_IsNotNullPattern()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return {|IDE0420:t|} is not null ? await t : null;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return await? t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Ternary_IsNullPattern()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return {|IDE0420:t|} is null ? null : await t;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return await? t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Ternary_LogicalNot()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return {|IDE0420:!|}(t == null) ? await t : null;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return await? t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Ternary_ParenthesizedBranches()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return {|IDE0420:t|} != (null) ? (await (t)) : (null);
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t)
+                {
+                    return await? (t);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task IfStatement_NotWhenConditionChecksForNull()
+        => TestMissingAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    if (t is null)
+                        await t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task Ternary_NotWhenAwaitedReceiverDiffers()
+        => TestMissingAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int?> M(Task<int> t, Task<int> other)
+                {
+                    return t != null ? await other : null;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotWhenAwaitIsAlreadyNullConditional()
+        => TestMissingAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    if (t != null)
+                        await? t;
+                }
+            }
+            """);
 }
