@@ -1,0 +1,18 @@
+﻿Source Location: (2:0,2 [97] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var values = new[] { 1, 2, 3, 4 };
+    var slice = values[1..^1];
+    _ = slice.Length;
+|
+Generated Location: (733:21,0 [97] )
+|
+    var values = new[] { 1, 2, 3, 4 };
+    var slice = values[1..^1];
+    _ = slice.Length;
+|
+
+Source Location: (105:6,1 [13] x:\dir\subdir\Test\TestComponent.razor)
+|values[1..^1]|
+Generated Location: (989:32,24 [13] )
+|values[1..^1]|
+

@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
+            Friend Overrides Function IsMetadataNewSlot() As Boolean
                 Return False
             End Function
 

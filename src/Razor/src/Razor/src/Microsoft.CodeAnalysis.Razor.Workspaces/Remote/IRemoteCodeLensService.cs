@@ -3,20 +3,19 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteCodeLensService : IRemoteJsonService
 {
     ValueTask<LspCodeLens[]?> GetCodeLensAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         TextDocumentIdentifier textDocumentIdentifier,
         CancellationToken cancellationToken);
 
     ValueTask<LspCodeLens?> ResolveCodeLensAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         LspCodeLens codeLens,
         CancellationToken cancellationToken);

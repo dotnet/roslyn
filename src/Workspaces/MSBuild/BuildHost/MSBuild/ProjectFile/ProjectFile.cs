@@ -17,6 +17,7 @@ internal sealed class ProjectFile(
     string language,
     MSB.Evaluation.Project? project,
     ProjectBuildManager buildManager,
+    RpcServer server,
     DiagnosticLog log) :
 #if NETFRAMEWORK
     MarshalByRefObject, // We need this object to pass across the AppDomain boundary when on .NET Framework
@@ -27,6 +28,11 @@ internal sealed class ProjectFile(
 
     public string FilePath
         => project?.FullPath ?? string.Empty;
+
+    /// <summary>
+    /// The original C# file path if this corresponds to a virtual project.
+    /// </summary>
+    public string? PhysicalFilePath { get; init; }
 
     public DiagnosticLogItem[] GetDiagnosticLogItems()
         => [.. log];
@@ -46,7 +52,7 @@ internal sealed class ProjectFile(
         var projectInstances = await buildManager.BuildProjectInstancesAsync(project, log, cancellationToken).ConfigureAwait(false);
 
         return projectInstances.Select(
-            instance => new ProjectInstanceReader(language, _commandLineProvider, instance, project).CreateProjectFileInfo()).ToArray();
+            instance => new ProjectInstanceReader(language, _commandLineProvider, instance, project, PhysicalFilePath).CreateProjectFileInfo()).ToArray();
     }
 
     public void AddDocument(string filePath, string? logicalPath = null)
@@ -131,12 +137,12 @@ internal sealed class ProjectFile(
         var fileName = Path.GetFileNameWithoutExtension(filePath);
 
         // check for short name match
-        item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, shortAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
+        item = references.FirstOrDefault(it => string.Equals(it.EvaluatedInclude, shortAssemblyName, StringComparison.OrdinalIgnoreCase));
         if (item is not null)
             return item;
 
         // check for full name match
-        item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, fullAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
+        item = references.FirstOrDefault(it => string.Equals(it.EvaluatedInclude, fullAssemblyName, StringComparison.OrdinalIgnoreCase));
         if (item is not null)
             return item;
 
@@ -216,7 +222,7 @@ internal sealed class ProjectFile(
                                    || PathUtilities.PathsEqual(it.EvaluatedInclude, projectFilePath));
 
         // try to find by project name
-        item ??= references.First(it => string.Compare(projectName, it.GetMetadataValue(MetadataNames.Name), StringComparison.OrdinalIgnoreCase) == 0);
+        item ??= references.First(it => string.Equals(projectName, it.GetMetadataValue(MetadataNames.Name), StringComparison.OrdinalIgnoreCase));
 
         return item;
     }
@@ -258,5 +264,13 @@ internal sealed class ProjectFile(
         }
 
         project.Save();
+    }
+
+    public void Dispose()
+    {
+        server.RemoveTarget(this);
+
+        if (project is not null)
+            buildManager.UnloadProject(project);
     }
 }

@@ -520,14 +520,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' This method indicates whether or not the runtime will regard the method
         ''' as newslot (as indicated by the presence of the "newslot" modifier in the
         ''' signature).
-        ''' WARN WARN WARN: We won't have a final value for this until declaration
-        ''' diagnostics have been computed for all <see cref="SourceMemberContainerTypeSymbol"/>s,
-        ''' so pass ignoringInterfaceImplementationChanges: True if you need a value sooner
-        ''' and aren't concerned about tweaks made to satisfy interface implementation 
-        ''' requirements.
-        ''' NOTE: Not ignoring changes can only result in a value that is more true.
         ''' </summary>
-        Friend Overridable Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
+        Friend Overridable Function IsMetadataNewSlot() As Boolean
             If Me.IsOverrides Then
                 Return OverrideHidingHelper.RequiresExplicitOverride(Me)
             Else
@@ -535,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Private ReadOnly Property IMethodSymbolInternal_IsMetadataNewSlot As Boolean Implements IMethodSymbolInternal.IsMetadataNewSlot
+        Private ReadOnly Property IMethodSymbolInternal_IsMetadataNewSlotIgnoringInterfaceImplementationChanges As Boolean Implements IMethodSymbolInternal.IsMetadataNewSlotIgnoringInterfaceImplementationChanges
             Get
                 Return IsMetadataNewSlot()
             End Get

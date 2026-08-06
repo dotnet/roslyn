@@ -7,7 +7,6 @@
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <!-- Disable 'CS0436' ambiguous type warnings due to transitive reference to Microsoft.CodeAnalysis.AnalyzerUtilities.dll coming from Features package reference. -->
     <NoWarn>$(NoWarn);CS0436</NoWarn>
-    <SQLitePCLRawVersion>1.1.2</SQLitePCLRawVersion>
     <VersionPrefix>$(MetricsVersionPrefix)</VersionPrefix>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
   </PropertyGroup>
@@ -29,12 +28,10 @@
     <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="$(MicrosoftBuildVersionForMetrics)" ExcludeAssets="Runtime" />
     <PackageReference Include="System.Text.Json" VersionOverride="$(SystemTextJsonVersionForMetrics)" />
 
-    <PackageReference Include="SQLitePCLRaw.bundle_green" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.core" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.linux" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.osx" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3.net45" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.core" VersionOverride="$(SQLitePCLRawCoreVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLite3MC.PCLRaw.bundle" VersionOverride="$(SQLite3MCPCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLite3MC.PCLRaw.lib" VersionOverride="$(SQLite3MCPCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLite3MC.PCLRaw.provider" VersionOverride="$(SQLite3MCPCLRawVersion)" ExcludeAssets="All" />
 
     <PackageReference Include="System.Memory" />
   </ItemGroup>

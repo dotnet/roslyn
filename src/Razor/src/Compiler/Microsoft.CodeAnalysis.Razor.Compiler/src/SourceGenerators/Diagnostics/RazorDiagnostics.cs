@@ -107,9 +107,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var span = razorDiagnostic.Span;
 
             Location location;
-            if (span == SourceSpan.Undefined)
+            if (span == SourceSpan.Undefined || span.FilePath is null)
             {
-                // TextSpan.Empty
+                // Location.Create requires a non-null file path; fall back to Location.None when the span lacks one.
                 location = Location.None;
             }
             else

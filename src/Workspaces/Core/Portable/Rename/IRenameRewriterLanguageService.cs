@@ -139,7 +139,7 @@ internal abstract class AbstractRenameRewriterLanguageService : IRenameRewriterL
             var prop = (IPropertySymbol)symbol;
 
             var conflictingParameter = prop.Parameters.FirstOrDefault(
-                param => string.Compare(param.Name, newPropertyName, StringComparison.OrdinalIgnoreCase) == 0);
+                param => string.Equals(param.Name, newPropertyName, StringComparison.OrdinalIgnoreCase));
 
             if (conflictingParameter != null)
             {

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -20,8 +21,6 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
-
-using Rename = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers.Rename;
 
 public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
@@ -248,6 +247,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
     {
         return composition
             .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingService))
+            .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingServiceWrapper))
             .AddParts(typeof(ExportableRemoteServiceInvoker));
     }
 
@@ -358,11 +358,8 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
         var razorDocumentAfterRename = solution.GetAdditionalDocument(razorDocument.Id).AssumeNotNull();
         var razorText = await razorDocumentAfterRename.GetTextAsync(DisposalToken);
 
-        foreach (var change in changes)
-        {
-            Assert.Equal(razorDocument.FilePath, change.FilePath);
-            razorText = razorText.WithChanges(change.TextChanges);
-        }
+        Assert.All(changes, change => Assert.Equal(razorDocument.FilePath, change.MappedFilePath));
+        razorText = razorText.WithChanges(changes.Select(change => change.TextChange));
 
         AssertEx.EqualOrDiff(expectedRazorFile, razorText.ToString());
     }
@@ -374,7 +371,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
         var invoker = LocalExportProvider.AssumeNotNull().GetExportedValue<ExportableRemoteServiceInvoker>();
         invoker.SetInvoker(RemoteServiceInvoker);
 
-        var workspaceEdit = await Rename.GetRenameEditAsync(renameDocument, renamePosition, newName, DisposalToken);
+        var workspaceEdit = await RenameHandler.GetRenameEditAsync(renameDocument, renamePosition, newName, allowRenamesInRazorSourceGeneratedDocuments: true, DisposalToken);
         Assert.NotNull(workspaceEdit);
 
         var csharpSourceText = await csharpDocument.GetTextAsync(DisposalToken);

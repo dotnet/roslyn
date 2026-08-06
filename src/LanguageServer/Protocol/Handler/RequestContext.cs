@@ -233,7 +233,7 @@ internal readonly struct RequestContext
         CancellationToken cancellationToken)
     {
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-        var documentChangeTracker = mutatesSolutionState ? (IDocumentChangeTracker)lspWorkspaceManager : new NonMutatingDocumentChangeTracker();
+        var documentChangeTracker = mutatesSolutionState ? (IDocumentChangeTracker)lspWorkspaceManager : NonMutatingDocumentChangeTracker.Instance;
 
         // Retrieve the current LSP tracked text as of this request.
         // This is safe as all creation of request contexts cannot happen concurrently.

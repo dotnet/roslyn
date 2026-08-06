@@ -3,7 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -23,7 +23,7 @@ internal sealed class RemoteDataTipRangeService(in ServiceArgs args) : RazorDocu
     private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
     public ValueTask<RemoteResponse<VSInternalDataTip?>> GetDataTipRangeAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
         CancellationToken cancellationToken)
@@ -51,7 +51,7 @@ internal sealed class RemoteDataTipRangeService(in ServiceArgs args) : RazorDocu
 
         var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        var csharpResult = await ExternalAccess.Razor.Cohost.Handlers.DataTipRange.GetDataTipRangeAsync(generatedDocument, csharpPosition, cancellationToken).ConfigureAwait(false);
+        var csharpResult = await DataTipRangeHandler.GetDataTipRangeAsync(generatedDocument, csharpPosition, cancellationToken).ConfigureAwait(false);
         if (csharpResult?.ExpressionRange is null)
         {
             return NoFurtherHandling;

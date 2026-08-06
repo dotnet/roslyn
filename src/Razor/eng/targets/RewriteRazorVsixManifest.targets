@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Target Name="RewriteRazorVsixManifest"
+          AfterTargets="FindSourceVsixManifest"
+          Condition="'$(CreateVsixContainer)' == 'true' and '@(SourceVsixManifest)' != '' and '$(RazorVsixInstallationAttributes)' != ''">
+    <PropertyGroup>
+      <_RazorVsixManifestPath>$(IntermediateOutputPath)source.extension.razor.g.vsixmanifest</_RazorVsixManifestPath>
+      <_RazorVsixSourceManifest>@(SourceVsixManifest)</_RazorVsixSourceManifest>
+      <_RazorVsixDefaultInstallationElement>&lt;Installation AllUsers=&quot;true&quot; Experimental=&quot;true&quot;&gt;</_RazorVsixDefaultInstallationElement>
+      <_RazorVsixInstallationElement>&lt;Installation $(RazorVsixInstallationAttributes)&gt;</_RazorVsixInstallationElement>
+    </PropertyGroup>
+
+    <Copy SourceFiles="$(_RazorVsixSourceManifest)" DestinationFiles="$(_RazorVsixManifestPath)" />
+
+    <WriteLinesToFile
+      File="$(_RazorVsixManifestPath)"
+      Lines="$([System.IO.File]::ReadAllText('$(_RazorVsixManifestPath)').Replace('$(_RazorVsixDefaultInstallationElement)', '$(_RazorVsixInstallationElement)'))"
+      Overwrite="true"
+      Encoding="UTF-8"
+      WriteOnlyWhenDifferent="true" />
+
+    <ItemGroup>
+      <FileWrites Include="$(_RazorVsixManifestPath)" />
+      <SourceVsixManifest Remove="@(SourceVsixManifest)" />
+      <SourceVsixManifest Include="$(_RazorVsixManifestPath)" />
+    </ItemGroup>
+  </Target>
+</Project>

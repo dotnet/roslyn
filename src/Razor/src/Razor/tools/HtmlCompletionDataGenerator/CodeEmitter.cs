@@ -165,6 +165,12 @@ internal static class CodeEmitter
         sb.AppendLine("    /// <summary>URL to the element's specification or reference documentation.</summary>");
         sb.AppendLine("    public string DocumentationUrl { get; }");
         sb.AppendLine();
+        sb.AppendLine("    /// <summary>Baseline availability level: \"high\" (widely available) or \"low\" (newly available), or empty.</summary>");
+        sb.AppendLine("    public string Baseline { get; }");
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>The year the feature reached baseline status, or empty.</summary>");
+        sb.AppendLine("    public string BaselineDate { get; }");
+        sb.AppendLine();
         sb.AppendLine("    /// <summary>Element-specific attributes. Does not include global attributes.</summary>");
         sb.AppendLine("    public ImmutableArray<HtmlAttributeInfo> Attributes { get; }");
         sb.AppendLine();
@@ -206,6 +212,8 @@ internal static class CodeEmitter
         sb.AppendLine("    public HtmlElementInfo(");
         sb.AppendLine("        string name,");
         sb.AppendLine("        string documentationUrl,");
+        sb.AppendLine("        string baseline = \"\",");
+        sb.AppendLine("        string baselineDate = \"\",");
         sb.AppendLine("        ImmutableArray<HtmlAttributeInfo> attributes = default,");
         sb.AppendLine("        ImmutableArray<string> allowedChildren = default,");
         sb.AppendLine("        bool isTransparentContent = false,");
@@ -217,6 +225,8 @@ internal static class CodeEmitter
         sb.AppendLine("        Name = name;");
         sb.AppendLine("        Description = HtmlDescriptions.GetElementDescription(name);");
         sb.AppendLine("        DocumentationUrl = documentationUrl;");
+        sb.AppendLine("        Baseline = baseline;");
+        sb.AppendLine("        BaselineDate = baselineDate;");
         sb.AppendLine("        Attributes = attributes.IsDefault ? [] : attributes;");
         sb.AppendLine("        AllowedChildren = allowedChildren.IsDefault ? [] : allowedChildren;");
         sb.AppendLine("        IsTransparentContent = isTransparentContent;");
@@ -280,6 +290,12 @@ internal static class CodeEmitter
         sb.AppendLine("    /// <summary>URL to the attribute's specification or reference documentation.</summary>");
         sb.AppendLine("    public string DocumentationUrl { get; }");
         sb.AppendLine();
+        sb.AppendLine("    /// <summary>Baseline availability level: \"high\" (widely available) or \"low\" (newly available), or empty.</summary>");
+        sb.AppendLine("    public string Baseline { get; }");
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>The year the feature reached baseline status, or empty.</summary>");
+        sb.AppendLine("    public string BaselineDate { get; }");
+        sb.AppendLine();
         sb.AppendLine("    /// <summary>");
         sb.AppendLine("    /// Known valid values for this attribute (from XSD enumerations).");
         sb.AppendLine("    /// Empty if the attribute accepts freeform values.");
@@ -298,14 +314,16 @@ internal static class CodeEmitter
         sb.AppendLine();
         sb.AppendLine("    /// <summary>");
         sb.AppendLine("    /// When true, this attribute's value completion is owned by an external provider.");
-        sb.AppendLine("    /// Sources: file-path attributes (vs:preferredextensions), multivalue attributes");
-        sb.AppendLine("    /// (vs:multivalue), and CSS-related attributes (class, style).");
+        sb.AppendLine("    /// Sources: URI attributes (xsd:anyURI), multivalue attributes");
+        sb.AppendLine("    /// (vs:multivalue), and hardcoded attributes (class, style, id).");
         sb.AppendLine("    /// </summary>");
         sb.AppendLine("    public bool HasExternalCompletion { get; }");
         sb.AppendLine();
         sb.AppendLine("    public HtmlAttributeInfo(");
         sb.AppendLine("        string name,");
         sb.AppendLine("        string documentationUrl = \"\",");
+        sb.AppendLine("        string baseline = \"\",");
+        sb.AppendLine("        string baselineDate = \"\",");
         sb.AppendLine("        ImmutableArray<string> values = default,");
         sb.AppendLine("        bool isBoolean = false,");
         sb.AppendLine("        HtmlAttributeKind kind = HtmlAttributeKind.Default,");
@@ -314,6 +332,8 @@ internal static class CodeEmitter
         sb.AppendLine("        Name = name;");
         sb.AppendLine("        Description = HtmlDescriptions.GetAttributeDescription(name);");
         sb.AppendLine("        DocumentationUrl = documentationUrl;");
+        sb.AppendLine("        Baseline = baseline;");
+        sb.AppendLine("        BaselineDate = baselineDate;");
         sb.AppendLine("        Values = values.IsDefault ? [] : values;");
         sb.AppendLine("        IsBoolean = isBoolean;");
         sb.AppendLine("        Kind = kind;");
@@ -534,8 +554,8 @@ internal static class CodeEmitter
     {
         var url = GetUrl(attr.DescriptionId, schema);
         var valuesExpr = GetValuesExpression(attr, sharedValueMap, uniqueValueMap);
-        // key format: name|url|valuesExpr|boolean|event|icon|filePath
-        return $"{attr.Name}|{url}|{valuesExpr}|{attr.IsBoolean}|{attr.IsEvent}|{attr.Icon ?? ""}|{attr.HasExternalCompletion}";
+        // key format: name|url|valuesExpr|boolean|event|icon|hasExternalCompletion|baseline|baselineDate
+        return $"{attr.Name}|{url}|{valuesExpr}|{attr.IsBoolean}|{attr.IsEvent}|{attr.Icon ?? ""}|{attr.HasExternalCompletion}|{attr.Baseline}|{attr.BaselineDate}";
     }
 
     private static string GetValuesExpression(AttributeData attr, Dictionary<string, string> sharedValueArrayMap, Dictionary<string, string> uniqueValueArrayMap)
@@ -580,8 +600,10 @@ internal static class CodeEmitter
             var isEvent = bool.Parse(parts[4]);
             var icon = parts.Length > 5 ? parts[5] : "";
             var hasExternalCompletion = parts.Length > 6 && bool.Parse(parts[6]);
+            var baseline = parts.Length > 7 ? parts[7] : "";
+            var baselineDate = parts.Length > 8 ? parts[8] : "";
 
-            sb.AppendLine($"        internal static readonly HtmlAttributeInfo {fieldName} = new({BuildAttrCtorArgs(name, url, valuesExpr, isBoolean, isEvent, icon, hasExternalCompletion)});");
+            sb.AppendLine($"        internal static readonly HtmlAttributeInfo {fieldName} = new({BuildAttrCtorArgs(name, url, baseline, baselineDate, valuesExpr, isBoolean, isEvent, icon, hasExternalCompletion)});");
         }
         sb.AppendLine("    }");
         sb.AppendLine("}");
@@ -655,8 +677,10 @@ internal static class CodeEmitter
             var isEvent = bool.Parse(parts[4]);
             var icon = parts.Length > 5 ? parts[5] : "";
             var hasExternalCompletion = parts.Length > 6 && bool.Parse(parts[6]);
+            var baseline = parts.Length > 7 ? parts[7] : "";
+            var baselineDate = parts.Length > 8 ? parts[8] : "";
 
-            sb.AppendLine($"        internal static readonly HtmlAttributeInfo {fieldName} = new({BuildAttrCtorArgs(name, url, valuesExpr, isBoolean, isEvent, icon, hasExternalCompletion)});");
+            sb.AppendLine($"        internal static readonly HtmlAttributeInfo {fieldName} = new({BuildAttrCtorArgs(name, url, baseline, baselineDate, valuesExpr, isBoolean, isEvent, icon, hasExternalCompletion)});");
         }
         sb.AppendLine("    }");
         sb.AppendLine("}");
@@ -682,11 +706,15 @@ internal static class CodeEmitter
     {
         var descId = element.DescriptionId;
         var url = GetUrl(descId, schema);
+        var baseline = element.Baseline;
+        var baselineDate = element.BaselineDate;
         var isTransparent = element.AllowedChildren.Count == 1 && element.AllowedChildren[0] == "*";
         var hasChildren = element.AllowedChildren.Count > 0 && !isTransparent;
 
         // Build the list of trailing optional parameters
         var trailingParams = new List<string>();
+        if (baseline != "") trailingParams.Add($"baseline: {EscapeString(baseline)}");
+        if (baselineDate != "") trailingParams.Add($"baselineDate: {EscapeString(baselineDate)}");
         if (hasChildren)
         {
             var childrenExpr = GetChildrenExpression(element, schema, sharedGroupMap, uniqueGroupMap);
@@ -716,41 +744,27 @@ internal static class CodeEmitter
 
         sb.AppendLine($"        new HtmlElementInfo(");
         sb.AppendLine($"            {EscapeString(element.Name)},");
-        sb.AppendLine($"            {EscapeString(url)},");
 
         // Attributes parameter — use field reference if available, omit when empty
         var attrExpr = GetElementAttrExpression(element, schema, sharedValueMap, uniqueValueMap, attrInstanceMap, uniqueAttrMap, sharedElemAttrMap, uniqueElemAttrMap);
 
-        if (attrExpr != null && trailingParams.Count == 0)
+        if (attrExpr != null)
         {
-            sb.AppendLine($"            {attrExpr}),");
+            trailingParams.Insert(0, $"attributes: {attrExpr}");
         }
-        else if (attrExpr != null)
+
+        if (trailingParams.Count == 0)
         {
-            sb.AppendLine($"            {attrExpr},");
-            for (int i = 0; i < trailingParams.Count; i++)
-            {
-                var suffix = i == trailingParams.Count - 1 ? ")," : ",";
-                sb.AppendLine($"            {trailingParams[i]}{suffix}");
-            }
-        }
-        else if (trailingParams.Count > 0)
-        {
-            for (int i = 0; i < trailingParams.Count; i++)
-            {
-                var suffix = i == trailingParams.Count - 1 ? ")," : ",";
-                sb.AppendLine($"            {trailingParams[i]}{suffix}");
-            }
+            // Only name and url — close the constructor
+            sb.AppendLine($"            {EscapeString(url)}),");
         }
         else
         {
-            // No attributes, no trailing — remove trailing comma from url line
-            var nl = Environment.NewLine;
-            var trailing = $",{nl}";
-            if (sb.ToString().EndsWith(trailing))
+            sb.AppendLine($"            {EscapeString(url)},");
+            for (int i = 0; i < trailingParams.Count; i++)
             {
-                sb.Length -= trailing.Length;
-                sb.AppendLine("),");
+                var suffix = i == trailingParams.Count - 1 ? ")," : ",";
+                sb.AppendLine($"            {trailingParams[i]}{suffix}");
             }
         }
     }
@@ -775,16 +789,18 @@ internal static class CodeEmitter
 
         // Fallback: inline (shouldn't happen if maps are complete)
         var url = GetUrl(attr.DescriptionId, schema);
+        var baseline = attr.Baseline;
+        var baselineDate = attr.BaselineDate;
         var valuesExpr = GetValuesExpression(attr, sharedValueMap, uniqueValueMap);
 
-        sb.AppendLine($"{indent}new({BuildAttrCtorArgs(attr.Name, url, valuesExpr, attr.IsBoolean, attr.IsEvent, attr.Icon ?? "", attr.HasExternalCompletion)}),");
+        sb.AppendLine($"{indent}new({BuildAttrCtorArgs(attr.Name, url, baseline, baselineDate, valuesExpr, attr.IsBoolean, attr.IsEvent, attr.Icon ?? "", attr.HasExternalCompletion)}),");
     }
 
     /// <summary>
     /// Builds the constructor argument string, omitting trailing default values.
-    /// Order: name, description="", documentationUrl="", values=default, isBoolean=false, kind=HtmlAttributeKind.Default
+    /// Order: name, documentationUrl="", baseline="", baselineDate="", values=default, isBoolean=false, kind=HtmlAttributeKind.Default
     /// </summary>
-    private static string BuildAttrCtorArgs(string name, string url, string valuesExpr, bool isBoolean, bool isEvent, string icon, bool hasExternalCompletion)
+    private static string BuildAttrCtorArgs(string name, string url, string baseline, string baselineDate, string valuesExpr, bool isBoolean, bool isEvent, string icon, bool hasExternalCompletion)
     {
         var kind = isEvent ? "Event"
             : icon == "aria16.png" ? "Aria"
@@ -797,6 +813,8 @@ internal static class CodeEmitter
         var hasUrl = url != "";
 
         if (hasUrl) args.Add($"documentationUrl: {EscapeString(url)}");
+        if (baseline != "") args.Add($"baseline: {EscapeString(baseline)}");
+        if (baselineDate != "") args.Add($"baselineDate: {EscapeString(baselineDate)}");
         if (hasValues) args.Add($"values: {valuesExpr}");
         if (isBoolean) args.Add("isBoolean: true");
         if (kind != null) args.Add($"kind: HtmlAttributeKind.{kind}");
@@ -982,10 +1000,10 @@ internal static class CodeEmitter
         sb.AppendLine("            typeof(HtmlDescriptions).Assembly);");
         sb.AppendLine();
         sb.AppendLine("    internal static string GetElementDescription(string elementName)");
-        sb.AppendLine("        => s_resourceManager.GetString($\"HtmlElement_{elementName}\") ?? \"\";");
+        sb.AppendLine("        => (s_resourceManager.GetString($\"HtmlElement_{elementName}\") ?? \"\").Replace(\"\\r\\n\", \"\\n\");");
         sb.AppendLine();
         sb.AppendLine("    internal static string GetAttributeDescription(string attributeName)");
-        sb.AppendLine("        => s_resourceManager.GetString($\"HtmlAttribute_{attributeName}\") ?? \"\";");
+        sb.AppendLine("        => (s_resourceManager.GetString($\"HtmlAttribute_{attributeName}\") ?? \"\").Replace(\"\\r\\n\", \"\\n\");");
         sb.AppendLine("}");
 
         return sb.ToString();
@@ -1373,7 +1391,9 @@ internal static class CodeEmitter
                     var isEvent = bool.Parse(attrParts[4]);
                     var icon = attrParts.Length > 5 ? attrParts[5] : "";
                     var hasExternalCompletion = attrParts.Length > 6 && bool.Parse(attrParts[6]);
-                    sb.AppendLine($"{indent}    new({BuildAttrCtorArgs(name, url, valuesExpr, isBoolean, isEvent, icon, hasExternalCompletion)}),");
+                    var baseline = attrParts.Length > 7 ? attrParts[7] : "";
+                    var baselineDate = attrParts.Length > 8 ? attrParts[8] : "";
+                    sb.AppendLine($"{indent}    new({BuildAttrCtorArgs(name, url, baseline, baselineDate, valuesExpr, isBoolean, isEvent, icon, hasExternalCompletion)}),");
                     break;
             }
         }

@@ -32,7 +32,7 @@ internal sealed class SortAndConsolidateUsingsCodeActionResolver : IRazorCodeAct
         {
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(documentContext.Uri) },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentContext.Uri },
                 Edits = [.. edits],
             }
         };

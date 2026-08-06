@@ -1,14 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -20,6 +18,7 @@ using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Moq;
 using Roslyn.LanguageServer.Protocol;
 using Xunit;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
@@ -33,7 +32,7 @@ public class HtmlCodeActionResolverTest
         TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out _, out var span);
 
         var documentPath = TestProjectData.SomeProjectComponentFile1.FilePath;
-        var documentUri = new Uri(documentPath);
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
         var (context, sourceText, workspace) = CreateDocumentContext(documentUri, documentPath, contents);
         using var workspaceLifetime = workspace;
 
@@ -62,7 +61,7 @@ public class HtmlCodeActionResolverTest
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier
                         {
-                            DocumentUri = new(new Uri(documentPath + ".html")),
+                            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath + ".html"),
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                     }
@@ -77,14 +76,14 @@ public class HtmlCodeActionResolverTest
         Assert.NotNull(action.Edit);
         var documentEdits = action.Edit.EnumerateTextDocumentEdits().ToArray();
         Assert.NotEmpty(documentEdits);
-        Assert.Equal(documentUri, documentEdits[0].TextDocument.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(documentUri, documentEdits[0].TextDocument.DocumentUri);
 
         var text = SourceText.From(contents);
         var changed = text.WithChanges(documentEdits[0].Edits.Select(e => text.GetTextChange((TextEdit)e)));
         Assert.Equal("Goo @(DateTime.Now) Bar", changed.ToString());
     }
 
-    private static (RemoteDocumentContext Context, SourceText SourceText, AdhocWorkspace Workspace) CreateDocumentContext(Uri documentUri, string filePath, string text)
+    private static (RemoteDocumentContext Context, SourceText SourceText, AdhocWorkspace Workspace) CreateDocumentContext(DocumentUri documentUri, string filePath, string text)
     {
         var sourceText = SourceText.From(text);
 

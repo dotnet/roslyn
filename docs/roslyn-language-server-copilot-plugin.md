@@ -4,7 +4,7 @@ The `roslyn-language-server` is a .NET tool that provides C# language intelligen
 
 ## Quick Start
 
-For this repository specifically, the `dotnet` skill from the `dotnet-skills` marketplace is checked in at `.github/copilot/settings.json`, which includes the appropriate `lsp.json`.  The `.vscode/settings.json` points the server at `Roslyn.slnx`. That means opening this repo in Copilot CLI is enough to have the C# LSP configured automatically.
+For this repository specifically, the `dotnet` skill from the `dotnet-agent-skills` marketplace is checked in at `.github/copilot/settings.json`, which includes the appropriate `lsp.json`.  The `.vscode/settings.json` points the server at `Roslyn.slnx`. That means opening this repo in Copilot CLI is enough to have the C# LSP configured automatically.
 
 ### Install the plugin
 
