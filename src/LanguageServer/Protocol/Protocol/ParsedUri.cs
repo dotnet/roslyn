@@ -949,7 +949,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
                     result.Append('/');
                 }
 
-                result.Append((char)(path[driveLetterIndex] + ('a' - 'A')));
+                result.Append(char.ToLowerInvariant(path[driveLetterIndex]));
                 AppendEncoded(result, path, driveLetterIndex + 1, isPath: true, isAuthority: false);
             }
             else
@@ -1093,7 +1093,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
                 var code = path[1];
                 if (code >= 'A' && code <= 'Z')
                 {
-                    path = "/" + (char)(code + 32) + ":" + path.Substring(3);
+                    path = "/" + char.ToLowerInvariant(code) + ":" + path.Substring(3);
                 }
             }
             else if (path.Length >= 2 && path[1] == ':')
@@ -1101,7 +1101,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
                 var code = path[0];
                 if (code >= 'A' && code <= 'Z')
                 {
-                    path = (char)(code + 32) + ":" + path.Substring(2);
+                    path = char.ToLowerInvariant(code) + ":" + path.Substring(2);
                 }
             }
 
