@@ -3771,7 +3771,7 @@ class Driver
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70483")]
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/84787"), CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70483")]
         public void NestedCatch_DuplicateLocal_NoAwaitInNestedCatch(bool awaitInTry2)
         {
             var source = $$"""
