@@ -34,6 +34,7 @@ internal sealed class CSharpUseNullConditionalAwaitDiagnosticAnalyzer()
                 return;
 
             context.RegisterSyntaxNodeAction(AnalyzeIfStatement, SyntaxKind.IfStatement);
+            context.RegisterSyntaxNodeAction(AnalyzeConditionalExpression, SyntaxKind.ConditionalExpression);
         });
     }
 
@@ -72,6 +73,51 @@ internal sealed class CSharpUseNullConditionalAwaitDiagnosticAnalyzer()
             option.Notification,
             context.Options,
             additionalLocations: [ifStatement.GetLocation()],
+            properties: null));
+    }
+
+    private void AnalyzeConditionalExpression(SyntaxNodeAnalysisContext context)
+    {
+        var option = context.GetCSharpAnalyzerOptions().PreferNullConditionalAwait;
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+            return;
+
+        var conditionalExpression = (ConditionalExpressionSyntax)context.Node;
+        if (conditionalExpression.ContainsDirectives)
+            return;
+
+        // Has to be `a != null ? await E : null` or `a == null ? null : await E` (the null-branch is `null`,
+        // the other branch awaits `a`).
+        if (!UseNullConditionalAwaitHelpers.TryGetNullCheckOperand(conditionalExpression.Condition, out var conditionOperand, out var isEquals))
+            return;
+
+        var (awaitBranch, nullBranch) = isEquals
+            ? (conditionalExpression.WhenFalse, conditionalExpression.WhenTrue)
+            : (conditionalExpression.WhenTrue, conditionalExpression.WhenFalse);
+
+        if (!nullBranch.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression))
+            return;
+
+        if (awaitBranch.WalkDownParentheses() is not AwaitExpressionSyntax { QuestionToken.RawKind: 0 } awaitExpression)
+            return;
+
+        var match = UseNullConditionalAwaitHelpers.GetReceiverMatch(
+            context.SemanticModel, conditionOperand, awaitExpression.Expression, context.CancellationToken);
+        if (match is null)
+            return;
+
+        // `await? E` produces `T?`. If the conditional is typed as a non-nullable value type, rewriting would
+        // change its type, so bail (mirrors the use-null-propagation guard).
+        var type = context.SemanticModel.GetTypeInfo(conditionalExpression, context.CancellationToken).Type;
+        if (type is { IsValueType: true } and not INamedTypeSymbol { ConstructedFrom.SpecialType: SpecialType.System_Nullable_T })
+            return;
+
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            Descriptor,
+            conditionalExpression.GetFirstToken().GetLocation(),
+            option.Notification,
+            context.Options,
+            additionalLocations: [conditionalExpression.GetLocation()],
             properties: null));
     }
 }

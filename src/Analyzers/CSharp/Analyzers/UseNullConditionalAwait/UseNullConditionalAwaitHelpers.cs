@@ -13,22 +13,87 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullConditionalAwait;
 internal static class UseNullConditionalAwaitHelpers
 {
     /// <summary>
-    /// Matches a non-null check and returns the checked operand: <c>a != null</c> or <c>null != a</c>.
+    /// Matches a non-null check and returns the checked operand: <c>a != null</c>, <c>null != a</c>,
+    /// or <c>a is not null</c>. Used by the if-statement form, where the awaited expression only runs
+    /// when the operand is known to be non-null.
     /// </summary>
     public static bool TryGetNotNullCheckOperand(
         ExpressionSyntax condition, [NotNullWhen(true)] out ExpressionSyntax? operand)
+        => TryGetNullCheckOperand(condition, out operand, out var isEquals) && !isEquals;
+
+    /// <summary>
+    /// Matches a null or non-null check and returns the checked operand along with which sense the
+    /// check has. <paramref name="isEquals"/> is <see langword="true"/> for <c>a == null</c> /
+    /// <c>a is null</c> and <see langword="false"/> for <c>a != null</c> / <c>a is not null</c>.
+    /// Leading <c>!</c> flips the sense; parentheses are seen through on both the condition and the
+    /// operand.
+    /// </summary>
+    public static bool TryGetNullCheckOperand(
+        ExpressionSyntax condition, [NotNullWhen(true)] out ExpressionSyntax? operand, out bool isEquals)
     {
         operand = null;
+        isEquals = false;
 
-        if (condition.WalkDownParentheses() is BinaryExpressionSyntax(SyntaxKind.NotEqualsExpression) binary)
+        condition = condition.WalkDownParentheses();
+
+        // `!(...)` flips the sense of the inner check.
+        if (condition is PrefixUnaryExpressionSyntax(SyntaxKind.LogicalNotExpression) logicalNot)
         {
-            if (binary.Right.IsKind(SyntaxKind.NullLiteralExpression))
-                operand = binary.Left.WalkDownParentheses();
-            else if (binary.Left.IsKind(SyntaxKind.NullLiteralExpression))
-                operand = binary.Right.WalkDownParentheses();
+            if (!TryGetNullCheckOperand(logicalNot.Operand, out operand, out isEquals))
+                return false;
+
+            isEquals = !isEquals;
+            return true;
+        }
+
+        switch (condition)
+        {
+            case BinaryExpressionSyntax(SyntaxKind.EqualsExpression) equals:
+                isEquals = true;
+                operand = GetNullComparisonOperand(equals);
+                break;
+
+            case BinaryExpressionSyntax(SyntaxKind.NotEqualsExpression) notEquals:
+                isEquals = false;
+                operand = GetNullComparisonOperand(notEquals);
+                break;
+
+            // `a is null` / `a is not null`.
+            case IsPatternExpressionSyntax { Pattern: var pattern } isPattern when TryGetConstantNullPatternSense(pattern, out isEquals):
+                operand = isPattern.Expression.WalkDownParentheses();
+                break;
         }
 
         return operand != null;
+    }
+
+    private static ExpressionSyntax? GetNullComparisonOperand(BinaryExpressionSyntax binary)
+    {
+        if (binary.Right.IsKind(SyntaxKind.NullLiteralExpression))
+            return binary.Left.WalkDownParentheses();
+
+        if (binary.Left.IsKind(SyntaxKind.NullLiteralExpression))
+            return binary.Right.WalkDownParentheses();
+
+        return null;
+    }
+
+    /// <summary>
+    /// Recognizes the <c>null</c> / <c>not null</c> patterns (and <c>not not null</c>, etc.), returning
+    /// whether the pattern tests for equality with null.
+    /// </summary>
+    private static bool TryGetConstantNullPatternSense(PatternSyntax pattern, out bool isEquals)
+    {
+        isEquals = true;
+
+        while (pattern is UnaryPatternSyntax(SyntaxKind.NotPattern) notPattern)
+        {
+            isEquals = !isEquals;
+            pattern = notPattern.Pattern;
+        }
+
+        return pattern is ConstantPatternSyntax constant &&
+            constant.Expression.IsKind(SyntaxKind.NullLiteralExpression);
     }
 
     /// <summary>

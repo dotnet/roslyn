@@ -42,30 +42,62 @@ internal sealed class CSharpUseNullConditionalAwaitCodeFixProvider() : SyntaxEdi
 
         foreach (var diagnostic in diagnostics)
         {
-            var ifStatement = (IfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-
-            var statement = ifStatement.Statement is BlockSyntax { Statements: [var single] } ? single : ifStatement.Statement;
-            if (statement is not ExpressionStatementSyntax { Expression: AwaitExpressionSyntax awaitExpression })
-                continue;
-
-            if (!UseNullConditionalAwaitHelpers.TryGetNotNullCheckOperand(ifStatement.Condition, out var conditionOperand))
-                continue;
-
-            var match = UseNullConditionalAwaitHelpers.GetReceiverMatch(
-                semanticModel, conditionOperand, awaitExpression.Expression, cancellationToken);
-            if (match is null)
-                continue;
-
-            // Bare receiver (`await a`) keeps its operand; otherwise splice a `?.` at the receiver.
-            var newOperand = match == awaitExpression.Expression.WalkDownParentheses()
-                ? awaitExpression.Expression
-                : SpliceConditionalAccess(awaitExpression.Expression, match);
-
-            var newAwait = CreateNullConditionalAwait(awaitExpression, newOperand);
-            var newStatement = ExpressionStatement(newAwait).WithTriviaFrom(ifStatement);
-
-            editor.ReplaceNode(ifStatement, newStatement);
+            var node = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            if (node is IfStatementSyntax ifStatement)
+                FixIfStatement(editor, semanticModel, ifStatement, cancellationToken);
+            else if (node is ConditionalExpressionSyntax conditionalExpression)
+                FixConditionalExpression(editor, semanticModel, conditionalExpression, cancellationToken);
         }
+    }
+
+    private static void FixIfStatement(
+        SyntaxEditor editor, SemanticModel semanticModel, IfStatementSyntax ifStatement, CancellationToken cancellationToken)
+    {
+        var statement = ifStatement.Statement is BlockSyntax { Statements: [var single] } ? single : ifStatement.Statement;
+        if (statement is not ExpressionStatementSyntax { Expression: AwaitExpressionSyntax awaitExpression })
+            return;
+
+        if (!UseNullConditionalAwaitHelpers.TryGetNotNullCheckOperand(ifStatement.Condition, out var conditionOperand))
+            return;
+
+        var newAwait = TryCreateNullConditionalAwait(semanticModel, awaitExpression, conditionOperand, cancellationToken);
+        if (newAwait is null)
+            return;
+
+        editor.ReplaceNode(ifStatement, ExpressionStatement(newAwait).WithTriviaFrom(ifStatement));
+    }
+
+    private static void FixConditionalExpression(
+        SyntaxEditor editor, SemanticModel semanticModel, ConditionalExpressionSyntax conditionalExpression, CancellationToken cancellationToken)
+    {
+        if (!UseNullConditionalAwaitHelpers.TryGetNullCheckOperand(conditionalExpression.Condition, out var conditionOperand, out var isEquals))
+            return;
+
+        var awaitBranch = isEquals ? conditionalExpression.WhenFalse : conditionalExpression.WhenTrue;
+        if (awaitBranch.WalkDownParentheses() is not AwaitExpressionSyntax awaitExpression)
+            return;
+
+        var newAwait = TryCreateNullConditionalAwait(semanticModel, awaitExpression, conditionOperand, cancellationToken);
+        if (newAwait is null)
+            return;
+
+        editor.ReplaceNode(conditionalExpression, newAwait.WithTriviaFrom(conditionalExpression));
+    }
+
+    private static AwaitExpressionSyntax? TryCreateNullConditionalAwait(
+        SemanticModel semanticModel, AwaitExpressionSyntax awaitExpression, ExpressionSyntax conditionOperand, CancellationToken cancellationToken)
+    {
+        var match = UseNullConditionalAwaitHelpers.GetReceiverMatch(
+            semanticModel, conditionOperand, awaitExpression.Expression, cancellationToken);
+        if (match is null)
+            return null;
+
+        // Bare receiver (`await a`) keeps its operand; otherwise splice a `?.` at the receiver.
+        var newOperand = match == awaitExpression.Expression.WalkDownParentheses()
+            ? awaitExpression.Expression
+            : SpliceConditionalAccess(awaitExpression.Expression, match);
+
+        return CreateNullConditionalAwait(awaitExpression, newOperand);
     }
 
     private static ExpressionSyntax SpliceConditionalAccess(ExpressionSyntax operand, ExpressionSyntax match)
