@@ -583,7 +583,9 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     private delegate string Encoder(string uriComponent, bool isPath, bool isAuthority);
 
     /// <summary>
-    /// Encode table for reserved characters: https://tools.ietf.org/html/rfc3986#section-2.2
+    /// Returns predefined escapes for common reserved ASCII characters:
+    /// https://tools.ietf.org/html/rfc3986#section-2.2. This avoids the UTF-8 conversion and temporary
+    /// allocations required by the general encoding path; other disallowed characters use that fallback.
     /// </summary>
     private static string? GetEncodeTableEntry(char ch)
     {
