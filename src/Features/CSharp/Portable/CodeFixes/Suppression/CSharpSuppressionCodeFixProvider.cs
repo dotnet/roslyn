@@ -56,7 +56,7 @@ internal sealed class CSharpSuppressionCodeFixProvider : AbstractSuppressionCode
         var pragmaDirective = PragmaWarningDirectiveTrivia(disableOrRestoreKeyword, ids, true);
         pragmaDirective = (PragmaWarningDirectiveTriviaSyntax)formatNode(pragmaDirective, cancellationToken);
         var pragmaDirectiveTrivia = Trivia(pragmaDirective);
-        var endOfLineTrivia = CarriageReturnLineFeed;
+        var endOfLineTrivia = EndOfLine(Environment.NewLine);
         var triviaList = TriviaList(pragmaDirectiveTrivia);
 
         var title = includeTitle ? diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture) : null;

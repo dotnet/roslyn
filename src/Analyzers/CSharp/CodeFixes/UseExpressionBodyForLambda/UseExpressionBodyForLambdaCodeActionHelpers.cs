@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,7 +72,7 @@ internal static class UseExpressionBodyForLambdaCodeActionHelpers
         // statements to it.  So make a multi-line block so that things are formatted properly
         // for them to do so.
         return lambdaExpression.WithBody(Block(
-            OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed),
+            OpenBraceToken.WithAppendedTrailingTrivia(ElasticEndOfLine(Environment.NewLine)),
             [statement],
             CloseBraceToken));
     }

@@ -338,7 +338,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                     if (lastFieldOrProperty >= 0)
                     {
                         constructorDeclaration = constructorDeclaration
-                            .WithPrependedLeadingTrivia(ElasticCarriageReturnLineFeed);
+                            .WithPrependedLeadingTrivia(ElasticEndOfLine(Environment.NewLine));
 
                         return currentTypeDeclaration.WithMembers(
                             currentTypeDeclaration.Members.Insert(lastFieldOrProperty + 1, constructorDeclaration));

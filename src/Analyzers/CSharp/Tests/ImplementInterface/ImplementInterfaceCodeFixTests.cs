@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -582,7 +582,7 @@ public sealed class ImplementInterfaceCodeFixTests
             }
             """);
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Theory]
     [CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
     public Task TestMethodWhenClassBracesAreMissing2(
         [CombinatorialValues(0, 1)] int behavior)
@@ -3058,7 +3058,7 @@ public sealed class ImplementInterfaceCodeFixTests
             }
             """, index: 1);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestImplementEventThroughExplicitMember()
         => TestInRegularAndScriptAsync(
 @"interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event System.EventHandler IGoo.E { add { } remove { } } } class HasCanGoo : {|CS0535:IGoo|} { CanGoo canGoo; }",
@@ -6071,7 +6071,7 @@ class B : IGoo
             }
             """, index: 3);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
     public Task TestDoNotImplementDisposePatternForLocallyDefinedIDisposable()
         => TestWithAllCodeStyleOptionsOffAsync(

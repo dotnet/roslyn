@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -376,7 +377,7 @@ internal sealed class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvide
         if (firstMemberTrivia is [(kind: SyntaxKind.EndOfLineTrivia), ..])
             return node;
 
-        var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));
+        var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.EndOfLine(Environment.NewLine)));
         return node.ReplaceNode(firstMember, newFirstMember);
     }
 

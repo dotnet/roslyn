@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -141,8 +142,8 @@ internal sealed partial class CSharpMetadataAsSourceService : AbstractMetadataAs
         return
         [
             Trivia(NullableDirectiveTrivia(Token(keyword), isActive: enable)),
-            ElasticCarriageReturnLineFeed,
-            ElasticCarriageReturnLineFeed,
+            ElasticEndOfLine(Environment.NewLine),
+            ElasticEndOfLine(Environment.NewLine),
         ];
     }
 

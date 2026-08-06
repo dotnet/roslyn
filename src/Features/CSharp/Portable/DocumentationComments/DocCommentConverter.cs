@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -59,7 +60,7 @@ internal sealed class DocCommentConverter : CSharpSyntaxRewriter
                     if (commentLines.Count > 0)
                     {
                         newLeadingTrivia.Add(SyntaxFactory.Comment("//"));
-                        newLeadingTrivia.Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                        newLeadingTrivia.Add(SyntaxFactory.ElasticEndOfLine(Environment.NewLine));
 
                         newLeadingTrivia.AddRange(commentLines);
                     }
@@ -95,7 +96,7 @@ internal sealed class DocCommentConverter : CSharpSyntaxRewriter
                 yield return SyntaxFactory.Comment("//");
             }
 
-            yield return SyntaxFactory.ElasticCarriageReturnLineFeed;
+            yield return SyntaxFactory.ElasticEndOfLine(Environment.NewLine);
         }
     }
 }

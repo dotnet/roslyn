@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -63,7 +64,7 @@ internal sealed partial class CSharpIsAndCastCheckCodeFixProvider() : SyntaxEdit
 
         var trivia = localDeclaration.GetLeadingTrivia().Concat(localDeclaration.GetTrailingTrivia())
                                      .Where(t => t.IsSingleOrMultiLineComment())
-                                     .SelectMany(t => ImmutableArray.Create(SyntaxFactory.Space, t, SyntaxFactory.ElasticCarriageReturnLineFeed))
+                                     .SelectMany(t => ImmutableArray.Create(SyntaxFactory.Space, t, SyntaxFactory.ElasticEndOfLine(Environment.NewLine)))
                                      .ToImmutableArray();
 
         editor.RemoveNode(localDeclaration);

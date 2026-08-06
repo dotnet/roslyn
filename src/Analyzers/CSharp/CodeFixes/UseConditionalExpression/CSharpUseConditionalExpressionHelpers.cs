@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -35,7 +36,7 @@ internal static class CSharpUseConditionalExpressionHelpers
 
         var finalConditional = conditional
             .WithColonToken(ColonToken.WithPrependedLeadingTrivia(ifStatement.Else.ElseKeyword.LeadingTrivia))
-            .WithWhenTrue(conditional.WhenTrue.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+            .WithWhenTrue(conditional.WhenTrue.WithAppendedTrailingTrivia(SyntaxFactory.ElasticEndOfLine(Environment.NewLine)));
         return (finalConditional, makeMultiLine: true);
     }
 }

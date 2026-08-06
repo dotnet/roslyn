@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1541,7 +1541,7 @@ public sealed partial class UseCollectionInitializerTests
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
     public Task TestInTopLevelStatements()
         => TestInRegularAndScriptAsync(
             """
@@ -1560,7 +1560,7 @@ public sealed partial class UseCollectionInitializerTests
 
             """, OutputKind.ConsoleApplication);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/71245")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71245")]
     public Task TestCollectionExpressionArgument1()
         => TestInRegularAndScriptAsync(
             """

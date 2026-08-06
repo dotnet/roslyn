@@ -148,7 +148,7 @@ internal sealed class UseSimpleUsingStatementCodeFixProvider() : SyntaxEditorBas
                 if (!usingHasEndOfLineTrivia)
                 {
                     var newFirstStatement = statements.First()
-                        .WithPrependedLeadingTrivia(ElasticCarriageReturnLineFeed);
+                        .WithPrependedLeadingTrivia(ElasticEndOfLine(Environment.NewLine));
                     statements = statements.Replace(statements.First(), newFirstStatement);
                 }
 
