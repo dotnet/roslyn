@@ -203,8 +203,160 @@ public sealed class ParsedUriTests
         Assert.Equal("key=value%26with%2Bcharacters", uri.RawQuery);
     }
 
+    [Theory]
+    [InlineData("/relative/path")]
+    [InlineData("?query")]
+    [InlineData("#fragment")]
+    public void Parse_StrictWithoutScheme_Throws(string input)
+        => Assert.Throws<UriFormatException>(() => ParsedUri.Parse(input, strict: true));
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("\0scheme")]
+    [InlineData("%scheme")]
+    public void IsValidScheme_InvalidFirstCharacter_ReturnsFalse(string scheme)
+        => Assert.False(ParsedUri.IsValidScheme(scheme));
+
+    [Theory]
+    [InlineData("scheme+extension")]
+    [InlineData("scheme.extension")]
+    [InlineData("scheme-extension")]
+    [InlineData("scheme_123")]
+    [InlineData("0scheme")]
+    public void IsValidScheme_ValidCharacters_ReturnsTrue(string scheme)
+        => Assert.True(ParsedUri.IsValidScheme(scheme));
+
+    [Theory]
+    [InlineData("scheme/extension")]
+    [InlineData("scheme:extension")]
+    [InlineData("scheme`extension")]
+    [InlineData("scheme{extension")]
+    public void IsValidScheme_InvalidSubsequentCharacter_ReturnsFalse(string scheme)
+        => Assert.False(ParsedUri.IsValidScheme(scheme));
+
+    [Fact]
+    public void ToString_False_ReturnsEncodedString()
+    {
+        var uri = ParsedUri.Parse("custom:/path with spaces");
+
+        Assert.Equal("custom:/path%20with%20spaces", uri.ToString(skipEncoding: false));
+    }
+
+    [Fact]
+    public void Equality_ReferenceNullSchemeAndObjectCases()
+    {
+        var uri = ParsedUri.Parse("custom:/path");
+        var sameValue = ParsedUri.Parse("CUSTOM:/path");
+        ParsedUri? nullUri = null;
+
+        Assert.True(uri.Equals(uri));
+        Assert.False(uri.Equals(nullUri));
+        Assert.False(uri.Equals(ParsedUri.Parse("other:/path")));
+        Assert.True(uri.Equals((object)sameValue));
+        Assert.False(uri.Equals(new object()));
+        Assert.False(uri.Equals((object?)null));
+        Assert.True(nullUri == null);
+        Assert.False(nullUri == uri);
+        Assert.True(nullUri != uri);
+    }
+
+    [Theory]
+    [InlineData("custom:/path", false)]
+    [InlineData("file:/", false)]
+    [InlineData("file:/ab", false)]
+    [InlineData("file:/1:", false)]
+    [InlineData("file:/a:", true)]
+    [InlineData("file://server/share", true)]
+    public void IsUncOrDosPath_Cases(string input, bool expected)
+        => Assert.Equal(expected, ParsedUri.Parse(input).IsUncOrDosPath);
+
     public static TheoryData<UriCase> ParseCases => new()
     {
+        new("/relative/path")
+        {
+            Scheme = "file",
+            Path = "/relative/path",
+            ExpectedToString = "file:///relative/path",
+        },
+        new("?query")
+        {
+            Scheme = "file",
+            Path = "/",
+            Query = "query",
+            ExpectedToString = "file:///?query",
+            SkipFsPathRoundTrip = true,
+        },
+        new("#fragment")
+        {
+            Scheme = "file",
+            Path = "/",
+            Fragment = "fragment",
+            ExpectedToString = "file:///#fragment",
+            SkipFsPathRoundTrip = true,
+        },
+        new("custom:/path?%2F%3F%2A")
+        {
+            Scheme = "custom",
+            Path = "/path",
+            Query = "/?*",
+            ExpectedToString = "custom:/path?%2F%3F%2A",
+        },
+        new("custom:/path?%41%GG")
+        {
+            Scheme = "custom",
+            Path = "/path",
+            Query = "A%GG",
+            ExpectedToString = "custom:/path?A%25GG",
+        },
+        new("custom:/path?%GG")
+        {
+            Scheme = "custom",
+            Path = "/path",
+            Query = "%GG",
+            ExpectedToString = "custom:/path?%25GG",
+        },
+        new("custom:/path?%G0%g0")
+        {
+            Scheme = "custom",
+            Path = "/path",
+            Query = "%G0%g0",
+            ExpectedToString = "custom:/path?%25G0%25g0",
+        },
+        new("custom:/path?%@0")
+        {
+            Scheme = "custom",
+            Path = "/path",
+            Query = "%@0",
+            ExpectedToString = "custom:/path?%25%400",
+        },
+        new("custom:/path?%[0")
+        {
+            Scheme = "custom",
+            Path = "/path",
+            Query = "%[0",
+            ExpectedToString = "custom:/path?%25%5B0",
+        },
+        new("custom:/path?%/0")
+        {
+            Scheme = "custom",
+            Path = "/path",
+            Query = "%/0",
+            ExpectedToString = "custom:/path?%25%2F0",
+        },
+        new("custom:/path?%{0")
+        {
+            Scheme = "custom",
+            Path = "/path",
+            Query = "%{0",
+            ExpectedToString = "custom:/path?%25%7B0",
+        },
+        new("custom:/path?%A0%41")
+        {
+            Scheme = "custom",
+            Path = "/path",
+            Query = "%A0A",
+            ExpectedToString = "custom:/path?%25A0A",
+        },
         new("http:/api/files/test.me?t=1234")
         {
             Scheme = "http",
@@ -443,6 +595,38 @@ public sealed class ParsedUriTests
 
     public static TheoryData<UriCase> FileCases => new()
     {
+        new("")
+        {
+            Scheme = "file",
+            Path = "/",
+            ExpectedToString = "file:///",
+            WindowsFsPath = @"\",
+            UnixFsPath = "/",
+        },
+        new("/1:/Path")
+        {
+            Scheme = "file",
+            Path = "/1:/Path",
+            ExpectedToString = "file:///1%3A/Path",
+            WindowsFsPath = @"\1:\Path",
+            UnixFsPath = "/1:/Path",
+        },
+        new("/[:/Path")
+        {
+            Scheme = "file",
+            Path = "/[:/Path",
+            ExpectedToString = "file:///%5B%3A/Path",
+            WindowsFsPath = @"\[:\Path",
+            UnixFsPath = "/[:/Path",
+        },
+        new("/C:/Path")
+        {
+            Scheme = "file",
+            Path = "/c:/Path",
+            ExpectedToString = "file:///c%3A/Path",
+            WindowsFsPath = @"c:\Path",
+            UnixFsPath = "c:/Path",
+        },
         new("c:/win/path")
         {
             Scheme = "file",
@@ -830,6 +1014,8 @@ public sealed class ParsedUriTests
         new("file://sh%c3%a4res/path", "file://sh%C3%A4res/path"),
         new("file://some/%.txt", "file://some/%25.txt"),
         new("file://some/%A0.txt", "file://some/%25A0.txt"),
+        new("custom:/1:/Path", "custom:/1%3A/Path"),
+        new("custom:1:/Path", "custom:1%3A/Path"),
     };
 
     public static TheoryData<EqualityCase> EqualityCases => new()
@@ -857,6 +1043,8 @@ public sealed class ParsedUriTests
         new("http://Example.com/path", "http://example.com/path", true),
         new("http://User@Example.com/path", "http://User@example.com/path", true),
         new("http://User@example.com/path", "http://user@example.com/path", false),
+        new("http://user@example.com/path", "http://example.com/path", false),
+        new("http://user@example.com/path", "http://user@example.com:80/path", false),
         // Encoded vs unencoded in fragments.
         new("http://example.com/path#frag%20ment", "http://example.com/path#frag ment", true),
         // Double-encoded percent: %25 decodes to %, which is different from a literal %.

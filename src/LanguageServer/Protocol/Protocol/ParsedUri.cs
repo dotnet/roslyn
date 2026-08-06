@@ -6,6 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Roslyn.LanguageServer.Protocol;
@@ -125,7 +126,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             }
 
             var components = GetComponents();
-            fsPath = UriToFsPath(components.Scheme, components.Authority, components.Path, keepDriveLetterCasing: false);
+            fsPath = UriToFsPath(components.Scheme, components.Authority, components.Path);
             return Interlocked.CompareExchange(ref _fsPath, fsPath, null) ?? fsPath;
         }
     }
@@ -149,9 +150,13 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             return components;
         }
 
-        components = _fileComponentOffsets is { } offsets
-            ? ParseFileComponents(_formatted!, offsets)
-            : ParseComponents(_formatted!, strict: false);
+        // The parsed constructor initializes components eagerly, so reaching here means the file constructor
+        // initialized both the formatted URI and its component offsets.
+        var offsets = _fileComponentOffsets;
+        Contract.ThrowIfNull(offsets);
+        var formatted = _formatted;
+        Contract.ThrowIfNull(formatted);
+        components = ParseFileComponents(formatted, offsets.Value);
         return Interlocked.CompareExchange(ref _components, components, null) ?? components;
     }
 
@@ -308,10 +313,6 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             {
                 authority = path.Substring(2, index - 2);
                 path = path.Substring(index);
-                if (path.Length == 0)
-                {
-                    path = "/";
-                }
             }
         }
 
@@ -402,11 +403,11 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         // Scheme is always case-insensitive. Other components are case-insensitive only for UNC/DOS paths.
         var compareComponentsIgnoreCase = IsUncOrDosPath;
         var componentComparer = compareComponentsIgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
-        var schemeHash = StringComparer.OrdinalIgnoreCase.GetHashCode(Scheme ?? string.Empty);
-        var authorityHash = GetAuthorityHashCode(Authority ?? string.Empty, compareComponentsIgnoreCase);
-        var pathHash = componentComparer.GetHashCode(Path ?? string.Empty);
-        var queryHash = componentComparer.GetHashCode(Query ?? string.Empty);
-        var fragmentHash = componentComparer.GetHashCode(Fragment ?? string.Empty);
+        var schemeHash = StringComparer.OrdinalIgnoreCase.GetHashCode(Scheme);
+        var authorityHash = GetAuthorityHashCode(Authority, compareComponentsIgnoreCase);
+        var pathHash = componentComparer.GetHashCode(Path);
+        var queryHash = componentComparer.GetHashCode(Query);
+        var fragmentHash = componentComparer.GetHashCode(Fragment);
 
 #if NET
         return HashCode.Combine(schemeHash, authorityHash, pathHash, queryHash, fragmentHash);
@@ -489,15 +490,16 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     private static void ValidateUri(Components uri, bool strict)
     {
-        // scheme, must be set in strict mode
-        if (uri.Scheme.Length == 0 && strict)
+        // SchemeFix supplies the file scheme for non-strict parsing, so only strict parsing can preserve an empty scheme.
+        if (uri.Scheme.Length == 0)
         {
+            Contract.ThrowIfFalse(strict);
             throw new UriFormatException(
                 $"[UriError]: Scheme is missing: {{scheme: \"\", authority: \"{uri.Authority}\", path: \"{uri.Path}\", query: \"{uri.Query}\", fragment: \"{uri.Fragment}\"}}");
         }
 
         // scheme, https://tools.ietf.org/html/rfc3986#section-3.1
-        if (uri.Scheme.Length > 0 && !IsValidScheme(uri.Scheme))
+        if (!IsValidScheme(uri.Scheme))
         {
             throw new UriFormatException("[UriError]: Scheme contains illegal characters.");
         }
@@ -507,11 +509,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         {
             if (uri.Authority.Length > 0)
             {
-                if (uri.Path[0] != '/')
-                {
-                    throw new UriFormatException(
-                        "[UriError]: If a URI contains an authority component, then the path component must either be empty or begin with a slash (\"/\") character");
-                }
+                // Component parsing guarantees that a nonempty path following an authority begins with a slash.
+                Contract.ThrowIfFalse(uri.Path[0] == '/');
             }
             else
             {
@@ -849,13 +848,17 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             result.Append(s_strictUtf8.GetString(bytes, 0, byteCount));
         }
 
-        return result?.ToString() ?? str;
+        // PercentDecode only calls this method with a nonempty candidate, so the loop always produces a result.
+        Contract.ThrowIfNull(result);
+        return result.ToString();
     }
 
     private static int HexToInt(char ch)
     {
-        if (ch >= '0' && ch <= '9') return ch - '0';
-        if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
+        // TryFindEncodedAsHex only includes percent-encoded candidates whose digits are ASCII letters or digits.
+        Contract.ThrowIfFalse(IsAsciiLetterOrDigit(ch));
+        if (ch <= '9') return ch - '0';
+        if (ch <= 'F') return ch - 'A' + 10;
         if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
         return -1;
     }
@@ -964,7 +967,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     /// <summary>
     /// Compute fsPath for the given URI components.
     /// </summary>
-    private static string UriToFsPath(string scheme, string authority, string path, bool keepDriveLetterCasing)
+    private static string UriToFsPath(string scheme, string authority, string path)
     {
         string value;
         if (authority.Length > 0 && path.Length > 1 && IsFileScheme(scheme))
@@ -978,15 +981,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             && IsLetter(path[1])
             && path[2] == ':')
         {
-            if (!keepDriveLetterCasing)
-            {
-                // windows drive letter: file:///c:/far/boo
-                value = char.ToLowerInvariant(path[1]) + path.Substring(2);
-            }
-            else
-            {
-                value = path.Substring(1);
-            }
+            // windows drive letter: file:///c:/far/boo
+            value = char.ToLowerInvariant(path[1]) + path.Substring(2);
         }
         else
         {
