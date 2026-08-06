@@ -31,7 +31,7 @@ internal static class SourceGeneratedDocumentUri
 
     public static DocumentUri Create(SourceGeneratedDocumentIdentity identity)
     {
-#pragma warning disable RS0030 // Do not use banned APIs
+#pragma warning disable RS0030 // Do not use banned APIs - EscapeDataString just escapes a string to be compatible with a URI and is safe to use.
         var hintPath = Uri.EscapeDataString(identity.HintName);
         var projectId = identity.DocumentId.ProjectId.Id.ToString(GuidFormat);
         var documentId = identity.DocumentId.Id.ToString(GuidFormat);
