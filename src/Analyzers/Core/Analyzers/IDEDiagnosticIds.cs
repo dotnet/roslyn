@@ -226,6 +226,8 @@ internal static class IDEDiagnosticIds
 
     public const string UseLabeledJumpStatementDiagnosticId = "IDE0410";
 
+    public const string UseNullConditionalAwait = "IDE0420";
+
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";
     public const string AnalyzerDependencyConflictId = "IDE1002";

@@ -329,6 +329,12 @@
   <data name="Null_check_can_be_clarified" xml:space="preserve">
     <value>Null check can be clarified</value>
   </data>
+  <data name="Use_null_conditional_await" xml:space="preserve">
+    <value>Use null-conditional await</value>
+  </data>
+  <data name="Null_conditional_await_can_be_used" xml:space="preserve">
+    <value>Null-conditional await can be used</value>
+  </data>
   <data name="Convert_to_file_scoped_namespace" xml:space="preserve">
     <value>Convert to file-scoped namespace</value>
     <comment>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
