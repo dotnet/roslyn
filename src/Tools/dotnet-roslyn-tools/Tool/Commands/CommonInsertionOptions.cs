@@ -211,7 +211,15 @@ internal static class CommonInsertionOptions
 
         if (pullRequestId > 0)
         {
-            logger.LogInformation("Insertion PR: https://dev.azure.com/devdiv/DevDiv/_git/VS/pullrequest/{PullRequestId}", pullRequestId);
+            var pullRequestUrl = $"https://dev.azure.com/devdiv/DevDiv/_git/VS/pullrequest/{pullRequestId}";
+            logger.LogInformation("Insertion PR: {PullRequestUrl}", pullRequestUrl);
+
+            if (string.Equals(Environment.GetEnvironmentVariable("TF_BUILD"), "True", StringComparison.OrdinalIgnoreCase))
+            {
+                var summaryFile = Path.GetTempFileName();
+                File.WriteAllText(summaryFile, $"[View insertion pull request {pullRequestId}]({pullRequestUrl})");
+                Console.WriteLine($"##vso[task.uploadsummary]{summaryFile}");
+            }
         }
 
         return 0;
