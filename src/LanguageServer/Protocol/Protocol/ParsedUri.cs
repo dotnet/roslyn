@@ -621,7 +621,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     /// component type are preserved, while reserved, disallowed ASCII, and non-ASCII characters are percent-encoded.
     /// Returns the original string without allocating when every character is already permitted.
     /// </summary>
-    private static string EncodeURIComponentFast(string uriComponent, bool isPath, bool isAuthority)
+    private static string EncodeURIComponentCanonical(string uriComponent, bool isPath, bool isAuthority)
     {
         var pos = 0;
         while (pos < uriComponent.Length && IsEncodingAllowed(uriComponent[pos], isPath, isAuthority))
@@ -641,7 +641,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     /// <summary>
     /// Appends <paramref name="value"/> beginning at <paramref name="start"/>, preserving characters permitted
-    /// by the component type and percent-encoding everything else. Used by <see cref="EncodeURIComponentFast"/>
+    /// by the component type and percent-encoding everything else. Used by <see cref="EncodeURIComponentCanonical"/>
     /// after its unchanged prefix and by file formatting after drive-letter normalization.
     /// </summary>
     private static void AppendEncoded(StringBuilder result, string value, int start, bool isPath, bool isAuthority)
@@ -916,7 +916,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         // "//server/share/file" becomes "file://server".
         var result = new StringBuilder("file://", 7 + authority.Length + path.Length + 8);
         var authorityStart = result.Length;
-        AppendFormattedAuthority(result, authority, EncodeURIComponentFast);
+        AppendFormattedAuthority(result, authority, EncodeURIComponentCanonical);
         var authorityLength = result.Length - authorityStart;
 
         var pathStart = result.Length;
@@ -1061,9 +1061,9 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     /// </summary>
     private static string AsFormatted(Components components, bool skipEncoding)
     {
-        Encoder encoder = !skipEncoding
-            ? EncodeURIComponentFast
-            : EncodeURIComponentMinimal;
+        Encoder encoder = skipEncoding
+            ? EncodeURIComponentMinimal
+            : EncodeURIComponentCanonical;
 
         var res = new StringBuilder();
         var scheme = components.Scheme;
@@ -1120,7 +1120,7 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             res.Append('#');
             if (!skipEncoding)
             {
-                res.Append(EncodeURIComponentFast(fragment, false, false));
+                res.Append(EncodeURIComponentCanonical(fragment, false, false));
             }
             else
             {
