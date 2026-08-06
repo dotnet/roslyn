@@ -48,8 +48,6 @@ try {
   # BenchmarkDotNet 0.16 weaves benchmark assemblies after CoreCompile, which BuildValidator cannot replay.
   " --exclude net10.0\Benchmarks.dll" +
   " --exclude net472\IdeBenchmarks.exe" +
-  " --exclude net10.0\IdeCoreBenchmarks.dll" +
-  " --exclude net472\IdeCoreBenchmarks.exe" +
   " --exclude net10.0\Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.dll" +
   " --exclude net10.0\Microsoft.AspNetCore.Razor.Microbenchmarks.dll" +
   " --exclude net472\Microsoft.AspNetCore.Razor.Microbenchmarks.exe" +

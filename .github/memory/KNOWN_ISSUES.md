@@ -28,6 +28,12 @@ per-layer files (load only the one for your area):
 **Description:** BuildValidator reconstructs an assembly from its embedded compilation metadata. It cannot reproduce IL changes made afterward by tools such as BenchmarkDotNet's assembly weaver.
 **Workaround:** Add narrowly scoped assembly exclusions to `eng/test-rebuild.ps1`; do not disable required post-compilation processing merely to make rebuild validation pass.
 
+## IdeCoreBenchmarks requires BenchmarkDotNet 0.15 and .NET 10
+
+**Affected area:** `src/Tools/IdeCoreBenchmarks`
+**Description:** `Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers` implements the BenchmarkDotNet 0.15 exporter contract and fails to load with BenchmarkDotNet 0.16. BenchmarkDotNet 0.15 does not recognize a .NET 11 host, so the net10 benchmark executable must not use Roslyn's normal major-version roll-forward policy.
+**Workaround:** Keep the local BenchmarkDotNet 0.15 package overrides and `LatestPatch` runtimeconfig generation in `IdeCoreBenchmarks.csproj`. Benchmark validation must also override CI's ambient `DOTNET_ROLL_FORWARD=LatestMajor` for this project because environment variables take precedence over runtimeconfig settings.
+
 ## TODO / PROTOTYPE comments are CI-gated
 
 **Affected area:** whole repo, PRs targeting `main`
