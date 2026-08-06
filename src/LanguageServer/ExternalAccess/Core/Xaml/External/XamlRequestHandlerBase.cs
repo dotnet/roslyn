@@ -34,7 +34,7 @@ internal abstract class XamlRequestHandlerBase<TRequest, TResponse> : ILspServic
 #pragma warning restore CS0618
     }
 
-    [Obsolete("Override GetDocumentUri instead.")]
+    [Obsolete("Override GetDocumentUri instead. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
     public virtual Uri GetTextDocumentUri(TRequest request)
         => throw new NotImplementedException();
 

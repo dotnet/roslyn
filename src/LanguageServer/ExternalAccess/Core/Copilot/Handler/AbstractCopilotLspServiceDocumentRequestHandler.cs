@@ -16,7 +16,7 @@ internal abstract class AbstractCopilotLspServiceDocumentRequestHandler<TRequest
 {
     public abstract Task<TResponse> HandleRequestAsync(TRequest request, CopilotRequestContext context, CancellationToken cancellationToken);
 
-    [Obsolete("Override GetDocumentUri instead.")]
+    [Obsolete("Override GetDocumentUri instead. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
     public virtual Uri GetTextDocumentUri(TRequest request)
         => throw new NotImplementedException();
 

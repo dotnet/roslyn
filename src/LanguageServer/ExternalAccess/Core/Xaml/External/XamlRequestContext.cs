@@ -28,7 +28,7 @@ internal struct XamlRequestContext
     [Obsolete("Use ClientCapabilities instead.")]
     public readonly IClientCapabilityProvider ClientCapabilityProvider => new ClientCapabilityProvider(_context.GetRequiredClientCapabilities());
 
-    [Obsolete("Use overload that takes a DocumentUri instead of Uri. This method will be removed in a future version.")]
+    [Obsolete("Use overload that takes a DocumentUri instead of Uri. This method will be removed in a future version. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
     public object ToCachedResolveData(object data, Uri uri)
     {
         return ToCachedResolveData(data, new DocumentUri(uri));
@@ -41,7 +41,7 @@ internal struct XamlRequestContext
         return ResolveDataConversions.ToCachedResolveData(data, uri, resolveDataCache);
     }
 
-    [Obsolete("Use FromCachedResolveDataDocumentUri instead. This method will be removed in a future version.")]
+    [Obsolete("Use FromCachedResolveDataDocumentUri instead. This method will be removed in a future version. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
     public (object? data, Uri? uri) FromCachedResolveData(object? lspData)
     {
         var (data, documentUri) = FromCachedResolveDataDocumentUri(lspData);

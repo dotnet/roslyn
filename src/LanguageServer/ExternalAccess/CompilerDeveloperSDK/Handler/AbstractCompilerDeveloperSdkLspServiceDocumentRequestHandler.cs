@@ -16,7 +16,7 @@ internal abstract class AbstractCompilerDeveloperSdkLspServiceDocumentRequestHan
     public abstract bool RequiresLSPSolution { get; }
     public abstract Task<TResponse> HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken);
 
-    [Obsolete("Override GetDocumentUri instead.")]
+    [Obsolete("Override GetDocumentUri instead. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
     public virtual Uri GetTextDocumentIdentifier(TRequest request)
         => throw new NotImplementedException();
 

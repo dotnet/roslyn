@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
 internal static class ConversionHelpers
 {
-    [Obsolete("Use CreateAbsoluteDocumentUri instead. This method will be removed in a future version.")]
+    [Obsolete("Use CreateAbsoluteDocumentUri instead. This method will be removed in a future version. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
     public static Uri CreateAbsoluteUri(string absolutePath)
         => ProtocolConversions.CreateAbsoluteUri(absolutePath);
 

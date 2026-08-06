@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 /// </remarks>
 internal interface IResolveCachedDataService
 {
-    [Obsolete("Use overload that takes a DocumentUri instead of Uri. This method will be removed in a future version.")]
+    [Obsolete("Use overload that takes a DocumentUri instead of Uri. This method will be removed in a future version. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
     object ToResolveData(object data, Uri uri);
-    [Obsolete("Use FromResolveDataDocumentUri instead. This method will be removed in a future version.")]
+    [Obsolete("Use FromResolveDataDocumentUri instead. This method will be removed in a future version. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
     (object? data, Uri? uri) FromResolveData(object? resolveData);
 
     object ToResolveData(object data, DocumentUri uri);

@@ -19,7 +19,7 @@ internal sealed record class DocumentUri(string UriString)
 {
     private Optional<ParsedUri?> _parsedUri;
 
-    [Obsolete("Use the constructor taking ParsedUri instead.")]
+    [Obsolete("Use the constructor taking ParsedUri instead. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
     public DocumentUri(Uri parsedUri) : this(parsedUri.AbsoluteUri)
     {
     }
@@ -64,7 +64,7 @@ internal sealed record class DocumentUri(string UriString)
     /// <remarks>
     /// A new <see cref="System.Uri"/> instance is created from <see cref="ParsedDocumentUri"/> on each access.
     /// </remarks>
-    [Obsolete("Use ParsedDocUri instead.")]
+    [Obsolete("Use ParsedDocUri instead. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
     public Uri? ParsedUri
     {
         get

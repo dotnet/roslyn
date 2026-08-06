@@ -69,7 +69,7 @@ internal static partial class Extensions
         return false;
     }
 
-    [Obsolete("Use GetRequiredParsedUri instead. This method will be removed in a future version.")]
+    [Obsolete("Use GetRequiredParsedUri instead. This method will be removed in a future version. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
     public static Uri GetRequiredLegacySystemUri(this DocumentUri documentUri)
     {
 #pragma warning disable RS0030 // Intentional for backwards compatibility.
