@@ -158,8 +158,9 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     private static Components ParseFileComponents(string formatted, FileComponentOffsets offsets)
     {
-        var authority = PercentDecode(formatted[offsets.Authority]);
-        var path = PercentDecode(formatted[offsets.Path]);
+        var formattedSpan = formatted.AsSpan();
+        var authority = PercentDecode(formattedSpan[offsets.Authority]);
+        var path = PercentDecode(formattedSpan[offsets.Path]);
         return CreateComponents("file", authority, path, string.Empty, string.Empty, string.Empty, strict: false);
     }
 
@@ -270,11 +271,11 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         }
 
         var scheme = schemeLength == 0 ? string.Empty : value.Substring(0, schemeLength);
-        var authority = authorityLength == 0 ? string.Empty : PercentDecode(value.Substring(authorityStart, authorityLength));
-        var path = PercentDecode(pathLength == 0 ? string.Empty : value.Substring(pathStart, pathLength));
+        var authority = authorityLength == 0 ? string.Empty : PercentDecode(span.Slice(authorityStart, authorityLength));
+        var path = PercentDecode(pathLength == 0 ? string.Empty : span.Slice(pathStart, pathLength));
         var rawQuery = queryLength == 0 ? string.Empty : value.Substring(queryStart, queryLength);
         var query = PercentDecode(rawQuery);
-        var fragment = fragmentLength == 0 ? string.Empty : PercentDecode(value.Substring(fragmentStart, fragmentLength));
+        var fragment = fragmentLength == 0 ? string.Empty : PercentDecode(span.Slice(fragmentStart, fragmentLength));
         return CreateComponents(scheme, authority, path, query, rawQuery, fragment, strict);
     }
 
@@ -722,25 +723,53 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
 
     #region Decoding
 
-    private static string PercentDecode(string str)
+    private static string PercentDecode(string value)
     {
-        if (!TryFindEncodedAsHex(str, startIndex: 0, out var matchStart, out var matchLength))
+        var span = value.AsSpan();
+        if (!TryFindEncodedAsHex(span, startIndex: 0, out var matchStart, out var matchLength))
         {
-            return str;
+            return value;
         }
 
-        var result = new StringBuilder(str.Length);
+        return PercentDecode(span, matchStart, matchLength);
+    }
+
+    private static string PercentDecode(ReadOnlySpan<char> value)
+    {
+        if (!TryFindEncodedAsHex(value, startIndex: 0, out var matchStart, out var matchLength))
+        {
+            return value.ToString();
+        }
+
+        return PercentDecode(value, matchStart, matchLength);
+    }
+
+    private static string PercentDecode(ReadOnlySpan<char> value, int matchStart, int matchLength)
+    {
+        var result = new StringBuilder(value.Length);
         var position = 0;
         do
         {
-            result.Append(str, position, matchStart - position);
-            result.Append(DecodeURIComponentGraceful(str.Substring(matchStart, matchLength)));
+            Append(result, value.Slice(position, matchStart - position));
+            DecodeURIComponentGraceful(value.Slice(matchStart, matchLength), result);
             position = matchStart + matchLength;
         }
-        while (TryFindEncodedAsHex(str, position, out matchStart, out matchLength));
+        while (TryFindEncodedAsHex(value, position, out matchStart, out matchLength));
 
-        result.Append(str, position, str.Length - position);
+        Append(result, value[position..]);
         return result.ToString();
+    }
+
+    private static void Append(StringBuilder builder, ReadOnlySpan<char> value)
+    {
+#if NET
+        builder.Append(value);
+#else
+        for (var i = 0; i < value.Length; i++)
+        {
+            builder.Append(value[i]);
+        }
+#endif
     }
 
     private static bool TryFindEncodedAsHex(
@@ -778,21 +807,25 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     private static bool IsAsciiLetterOrDigit(char ch)
         => ch is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or >= '0' and <= '9';
 
-    private static string DecodeURIComponentGraceful(string str)
+    private static void DecodeURIComponentGraceful(ReadOnlySpan<char> value, StringBuilder result)
     {
+        var originalLength = result.Length;
+
         try
         {
-            return DecodeURIComponent(str);
+            DecodeURIComponent(value, result);
         }
         catch
         {
-            if (str.Length > 3)
+            result.Length = originalLength;
+            if (value.Length > 3)
             {
-                return str.Substring(0, 3) + DecodeURIComponentGraceful(str.Substring(3));
+                Append(result, value[..3]);
+                DecodeURIComponentGraceful(value[3..], result);
             }
             else
             {
-                return str;
+                Append(result, value);
             }
         }
     }
@@ -803,18 +836,17 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     /// Decodes a percent-encoded string using UTF-8, equivalent to JavaScript's decodeURIComponent.
     /// Throws on invalid UTF-8 sequences, matching JavaScript's behavior.
     /// </summary>
-    private static string DecodeURIComponent(string str)
+    private static void DecodeURIComponent(ReadOnlySpan<char> value, StringBuilder result)
     {
-        var bytes = new byte[str.Length / 3];
+        var bytes = new byte[value.Length / 3];
         var byteCount = 0;
-        StringBuilder? result = null;
 
-        for (var i = 0; i < str.Length;)
+        for (var i = 0; i < value.Length;)
         {
-            if (str[i] == '%' && i + 2 < str.Length)
+            if (value[i] == '%' && i + 2 < value.Length)
             {
-                var hi = HexToInt(str[i + 1]);
-                var lo = HexToInt(str[i + 2]);
+                var hi = HexToInt(value[i + 1]);
+                var lo = HexToInt(value[i + 2]);
                 if (hi >= 0 && lo >= 0)
                 {
                     bytes[byteCount++] = (byte)((hi << 4) | lo);
@@ -826,25 +858,18 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             // Flush any accumulated bytes
             if (byteCount > 0)
             {
-                result ??= new StringBuilder();
                 result.Append(s_strictUtf8.GetString(bytes, 0, byteCount));
                 byteCount = 0;
             }
 
-            result ??= new StringBuilder();
-            result.Append(str[i]);
+            result.Append(value[i]);
             i++;
         }
 
         if (byteCount > 0)
         {
-            result ??= new StringBuilder();
             result.Append(s_strictUtf8.GetString(bytes, 0, byteCount));
         }
-
-        // PercentDecode only calls this method with a nonempty candidate, so the loop always produces a result.
-        Contract.ThrowIfNull(result);
-        return result.ToString();
     }
 
     private static int HexToInt(char ch)
