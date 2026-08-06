@@ -421,6 +421,51 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedResolvedItemDescription: "(awaitable) Task ComponentBase.SetParametersAsync(ParameterView parameters)");
     }
 
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    public async Task CSharpOverrideMethods_UsesCSharpFormattingOptions()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <div></div>
+
+                @code {
+                    public override $$
+                }
+
+                The end.
+                """,
+            expected: """
+                @using System.Threading.Tasks
+                This is a Razor document.
+
+                <div></div>
+
+                @code {
+                    public override Task SetParametersAsync(ParameterView parameters)
+                    {
+                    return base.SetParametersAsync(parameters);
+                    }
+                }
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["Equals(object? obj)", "GetHashCode()", "SetParametersAsync(ParameterView parameters)", "ToString()"],
+            itemToResolve: "SetParametersAsync(ParameterView parameters)",
+            expectedResolvedItemDescription: "(awaitable) Task ComponentBase.SetParametersAsync(ParameterView parameters)",
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
+            {
+                Indentation = CSharpSyntaxFormattingOptions.Default.Indentation & ~IndentationPlacement.BlockContents
+            });
+    }
+
     // Tests MarkupTransitionCompletionItemProvider
     [Fact]
     public async Task CSharpMarkupTransitionAndTagHelpersInCodeBlock()
