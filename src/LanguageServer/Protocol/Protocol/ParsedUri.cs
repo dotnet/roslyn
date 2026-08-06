@@ -154,14 +154,14 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         Contract.ThrowIfNull(formatted);
         components = ParseFileComponents(formatted, offsets.Value);
         return Interlocked.CompareExchange(ref _components, components, null) ?? components;
-    }
 
-    private static Components ParseFileComponents(string formatted, FileComponentOffsets offsets)
-    {
-        var formattedSpan = formatted.AsSpan();
-        var authority = PercentDecode(formattedSpan[offsets.Authority]);
-        var path = PercentDecode(formattedSpan[offsets.Path]);
-        return CreateComponents("file", authority, path, string.Empty, string.Empty, string.Empty, strict: false);
+        static Components ParseFileComponents(string formatted, FileComponentOffsets offsets)
+        {
+            var formattedSpan = formatted.AsSpan();
+            var authority = PercentDecode(formattedSpan[offsets.Authority]);
+            var path = PercentDecode(formattedSpan[offsets.Path]);
+            return CreateComponents("file", authority, path, string.Empty, string.Empty, string.Empty, strict: false);
+        }
     }
 
     private static Components CreateComponents(string scheme, string authority, string path, string query, string rawQuery, string fragment, bool strict)
@@ -536,10 +536,10 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         }
 
         return true;
-    }
 
-    private static bool IsValidSchemeCharacter(char ch)
-        => ch is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or >= '0' and <= '9' or '_';
+        static bool IsValidSchemeCharacter(char ch)
+            => ch is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or >= '0' and <= '9' or '_';
+    }
 
     private static string SchemeFix(string scheme, bool strict)
     {
@@ -661,6 +661,19 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
             result.Append(PercentEncodeString(value.Substring(pos, nativeEnd - pos)));
             pos = nativeEnd - 1;
         }
+
+        static string PercentEncodeString(string value)
+        {
+            var bytes = Encoding.UTF8.GetBytes(value);
+            var sb = new StringBuilder(bytes.Length * 3);
+            foreach (var b in bytes)
+            {
+                sb.Append('%');
+                sb.Append(b.ToString("X2"));
+            }
+
+            return sb.ToString();
+        }
     }
 
     private static bool IsEncodingAllowed(char ch, bool isPath, bool isAuthority)
@@ -701,22 +714,6 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         }
 
         return res != null ? res.ToString() : path;
-    }
-
-    /// <summary>
-    /// Percent-encodes a string using UTF-8, equivalent to JavaScript's encodeURIComponent.
-    /// </summary>
-    private static string PercentEncodeString(string value)
-    {
-        var bytes = Encoding.UTF8.GetBytes(value);
-        var sb = new StringBuilder(bytes.Length * 3);
-        foreach (var b in bytes)
-        {
-            sb.Append('%');
-            sb.Append(b.ToString("X2"));
-        }
-
-        return sb.ToString();
     }
 
     #endregion
@@ -870,16 +867,16 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
         {
             result.Append(s_strictUtf8.GetString(bytes, 0, byteCount));
         }
-    }
 
-    private static int HexToInt(char ch)
-    {
-        // TryFindEncodedAsHex only includes percent-encoded candidates whose digits are ASCII letters or digits.
-        Contract.ThrowIfFalse(IsAsciiLetterOrDigit(ch));
-        if (ch <= '9') return ch - '0';
-        if (ch <= 'F') return ch - 'A' + 10;
-        if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
-        return -1;
+        static int HexToInt(char ch)
+        {
+            // TryFindEncodedAsHex only includes percent-encoded candidates whose digits are ASCII letters or digits.
+            Contract.ThrowIfFalse(IsAsciiLetterOrDigit(ch));
+            if (ch <= '9') return ch - '0';
+            if (ch <= 'F') return ch - 'A' + 10;
+            if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
+            return -1;
+        }
     }
 
     #endregion
