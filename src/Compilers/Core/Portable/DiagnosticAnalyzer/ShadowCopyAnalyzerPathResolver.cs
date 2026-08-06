@@ -227,6 +227,9 @@ namespace Microsoft.CodeAnalysis
                     {
                         // Permit up to 200 unlinked files (not hard-linked to a specific shadow loader directory).
                         // Delete the oldest files which exceed this limit.
+                        // Note: this value was chosen arbitrarily, based on speculation that ordinary solutions use perhaps a few dozen analyzer assemblies,
+                        // and that a user would likely be working on several different solutions/worktrees regularly.
+                        // The value can and should be adjusted in future based on empirical measurements.
                         const int maxUnlinkedCount = 200;
                         var filesToEvict = Directory.EnumerateFiles(CacheDirectory)
                             .Select(static file => (file, fileInformationOpt: TryGetWindowsFileInformation(file)))
