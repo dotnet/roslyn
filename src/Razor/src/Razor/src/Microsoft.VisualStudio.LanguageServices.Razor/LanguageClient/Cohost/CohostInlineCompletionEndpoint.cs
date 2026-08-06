@@ -72,7 +72,12 @@ internal sealed class CohostInlineCompletionEndpoint(
     protected override Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)
         => HandleRequestAsync(context, razorDocument, request.Position.ToLinePosition(), request.Options, cancellationToken);
 
-    private async Task<VSInternalInlineCompletionList?> HandleRequestAsync(RequestContext? context, TextDocument razorDocument, LinePosition linePosition, FormattingOptions formattingOptions, CancellationToken cancellationToken)
+    private async Task<VSInternalInlineCompletionList?> HandleRequestAsync(
+        RequestContext? context,
+        TextDocument razorDocument,
+        LinePosition linePosition,
+        FormattingOptions formattingOptions,
+        CancellationToken cancellationToken)
     {
         var requestInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteInlineCompletionService, InlineCompletionRequestInfo?>(
             razorDocument.Project.Solution,
@@ -98,7 +103,12 @@ internal sealed class CohostInlineCompletionEndpoint(
 
         if (result.Range is not null)
         {
-            var options = RazorFormattingOptions.From(formattingOptions, _clientSettingsManager.GetClientSettings().AdvancedSettings.CodeBlockBraceOnNextLine, _clientSettingsManager.GetClientSettings().AdvancedSettings.AttributeIndentStyle);
+            var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
+            var options = RazorFormattingOptions.From(
+                formattingOptions,
+                _clientSettingsManager.GetClientSettings().AdvancedSettings.CodeBlockBraceOnNextLine,
+                _clientSettingsManager.GetClientSettings().AdvancedSettings.AttributeIndentStyle,
+                csharpSyntaxFormattingOptions);
             var span = result.Range.ToLinePositionSpan();
             var formattedInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteInlineCompletionService, FormattedInlineCompletionInfo?>(
                 razorDocument.Project.Solution,
