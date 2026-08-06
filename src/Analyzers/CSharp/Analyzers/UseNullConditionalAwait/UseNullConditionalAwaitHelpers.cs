@@ -69,11 +69,14 @@ internal static class UseNullConditionalAwaitHelpers
 
     private static ExpressionSyntax? GetNullComparisonOperand(BinaryExpressionSyntax binary)
     {
-        if (binary.Right.IsKind(SyntaxKind.NullLiteralExpression))
-            return binary.Left.WalkDownParentheses();
+        var left = binary.Left.WalkDownParentheses();
+        var right = binary.Right.WalkDownParentheses();
 
-        if (binary.Left.IsKind(SyntaxKind.NullLiteralExpression))
-            return binary.Right.WalkDownParentheses();
+        if (right.IsKind(SyntaxKind.NullLiteralExpression))
+            return left;
+
+        if (left.IsKind(SyntaxKind.NullLiteralExpression))
+            return right;
 
         return null;
     }

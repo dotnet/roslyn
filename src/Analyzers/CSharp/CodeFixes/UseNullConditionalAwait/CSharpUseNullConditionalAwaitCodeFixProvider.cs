@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseNullConditionalAwait;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -54,7 +56,7 @@ internal sealed class CSharpUseNullConditionalAwaitCodeFixProvider() : SyntaxEdi
         SyntaxEditor editor, SemanticModel semanticModel, IfStatementSyntax ifStatement, CancellationToken cancellationToken)
     {
         var statement = ifStatement.Statement is BlockSyntax { Statements: [var single] } ? single : ifStatement.Statement;
-        if (statement is not ExpressionStatementSyntax { Expression: AwaitExpressionSyntax awaitExpression })
+        if (statement is not ExpressionStatementSyntax { Expression: AwaitExpressionSyntax awaitExpression } expressionStatement)
             return;
 
         if (!UseNullConditionalAwaitHelpers.TryGetNotNullCheckOperand(ifStatement.Condition, out var conditionOperand))
@@ -64,8 +66,26 @@ internal sealed class CSharpUseNullConditionalAwaitCodeFixProvider() : SyntaxEdi
         if (newAwait is null)
             return;
 
-        editor.ReplaceNode(ifStatement, ExpressionStatement(newAwait).WithTriviaFrom(ifStatement));
+        var newStatement = expressionStatement.WithExpression(newAwait);
+        if (newStatement.GetLeadingTrivia().Any(IsRegularComment))
+        {
+            newStatement = newStatement
+                .WithPrependedLeadingTrivia(ifStatement.GetLeadingTrivia())
+                .WithAdditionalAnnotations(Formatter.Annotation);
+        }
+        else
+        {
+            newStatement = newStatement.WithLeadingTrivia(ifStatement.GetLeadingTrivia());
+        }
+
+        if (!newStatement.GetTrailingTrivia().Any(IsRegularComment))
+            newStatement = newStatement.WithTrailingTrivia(ifStatement.GetTrailingTrivia());
+
+        editor.ReplaceNode(ifStatement, newStatement);
     }
+
+    private static bool IsRegularComment(SyntaxTrivia trivia)
+        => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
 
     private static void FixConditionalExpression(
         SyntaxEditor editor, SemanticModel semanticModel, ConditionalExpressionSyntax conditionalExpression, CancellationToken cancellationToken)
