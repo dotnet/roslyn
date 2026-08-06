@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -27,6 +28,7 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver(IDocumentMapp
     public async Task<CodeAction> ResolveAsync(
         RemoteDocumentContext documentContext,
         CodeAction codeAction,
+        RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
