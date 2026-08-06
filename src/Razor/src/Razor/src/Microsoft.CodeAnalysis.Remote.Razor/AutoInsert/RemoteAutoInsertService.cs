@@ -1,10 +1,13 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+using Microsoft.CodeAnalysis.BraceCompletion;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -16,6 +19,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteAutoInsertTextEdit?>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -36,7 +40,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferHtmlInAttributeValuesDocumentPositionInfoStrategy.Instance;
 
     public ValueTask<Response> GetAutoInsertTextEditAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         LinePosition linePosition,
         string character,
@@ -141,12 +145,23 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
         var generatedDocument = await remoteDocumentContext.Snapshot
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
+        var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+        var services = generatedDocument.Project.Solution.Services.ExportProvider
+            .GetExports<IBraceCompletionService, LanguageMetadata>()
+            .SelectAsArray(
+                predicate: s => s.Metadata.Language == LanguageNames.CSharp,
+                selector: s => s.Value);
+        var csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions
+            ?? throw new InvalidOperationException("C# syntax formatting options were not provided for auto insert.");
 
-        var autoInsertResponseItem = await OnAutoInsert.GetOnAutoInsertResponseAsync(
+        var autoInsertResponseItem = await OnAutoInsertHandler.GetOnAutoInsertResponseAsync(
+            globalOptions,
+            services,
             generatedDocument,
             mappedPosition,
             character,
-            options.ToLspFormattingOptions(),
+            csharpSyntaxFormattingOptions,
+            includeNewLineBraceFormatting: true,
             cancellationToken
         ).ConfigureAwait(false);
 

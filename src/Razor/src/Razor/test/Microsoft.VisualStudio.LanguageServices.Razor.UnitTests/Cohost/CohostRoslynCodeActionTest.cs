@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Settings;
@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -58,7 +57,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                     }
                 }
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+            codeActionName: PredefinedCodeFixProviderNames.GenerateMethod);
 
     [Fact]
     public async Task GenerateMethod_NoCodeBlock_CodeBlockBraceOnNextLine()
@@ -100,7 +99,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                     }
                 }
                 """,
-                codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+                codeActionName: PredefinedCodeFixProviderNames.GenerateMethod);
     }
 
     [Fact]
@@ -148,7 +147,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
 
                 The end.
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+            codeActionName: PredefinedCodeFixProviderNames.GenerateMethod);
 
     [Fact]
     public Task GenerateMethod_ExistingCodeBlock_UsesTabsWhenConfigured()
@@ -198,7 +197,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
 
                 The end.
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+            codeActionName: PredefinedCodeFixProviderNames.GenerateMethod);
     }
 
     [Fact]
@@ -237,7 +236,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                     }
                 }
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod);
+            codeActionName: PredefinedCodeFixProviderNames.GenerateDeconstructMethod);
 
     [Fact]
     public Task GenerateProperty_NoCodeBlock()
@@ -271,7 +270,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                     public object NewProperty { get; internal set; }
                 }
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateVariable,
             childActionIndex: 2);
 
     [Fact]
@@ -311,7 +310,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                     }
                 }
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateConstructor,
             childActionIndex: 0);
 
     [Fact]
@@ -359,7 +358,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
 
                 The end.
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateConstructor,
             childActionIndex: 0);
 
     [Fact]
@@ -397,7 +396,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                     }
                 }
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateType,
             childActionIndex: 0);
 
     [Fact]
@@ -439,7 +438,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                     }
                 }
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateType,
             childActionIndex: 0);
     }
 
@@ -487,7 +486,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
 
                 The end.
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateType,
             childActionIndex: 0);
 
     [Fact]
@@ -542,7 +541,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
 
                 The end.
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateType,
             childActionIndex: 0);
 
     [Fact]
@@ -586,7 +585,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
 
                 The end.
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateVariable,
             childActionIndex: 2);
 
     [Fact]
@@ -621,7 +620,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                     internal object newField;
                 }
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateVariable,
             childActionIndex: 0);
 
     [Fact]
@@ -664,13 +663,14 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
  
                  The end.
                  """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateVariable,
             childActionIndex: 0);
 
     private protected override TestComposition ConfigureLocalComposition(TestComposition composition)
     {
         return composition
             .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingService))
+            .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingServiceWrapper))
             .AddParts(typeof(ExportableRemoteServiceInvoker));
     }
 
@@ -709,7 +709,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
         // Roslyn code actions, resolving them, and applying edits through our span mapping service. The main test coverage this gives us is
         // use of the edit service without going through our formatter, which otherwise hides a lot of sins :)
 
-        var codeActions = await ExternalHandlers.CodeActions.GetCodeActionsAsync(csharpDocument, request, supportsVSExtensions: true, DisposalToken);
+        var codeActions = await CohostCodeActionsEndpoint.TestAccessor.GetCodeActionsAsync(csharpDocument, request, supportsVSExtensions: true, DisposalToken);
 
         Assert.NotEmpty(codeActions);
 
@@ -732,7 +732,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
             codeAction = JsonSerializer.Deserialize<CodeAction>(nestedActions[childActionIndex]).AssumeNotNull();
         }
 
-        var resolvedCodeAction = await ExternalHandlers.CodeActions.ResolveCodeActionAsync(csharpDocument, codeAction, [], DisposalToken);
+        var resolvedCodeAction = await CohostCodeActionsResolveEndpoint.TestAccessor.ResolveCodeActionAsync(csharpDocument, codeAction, [], DisposalToken);
 
         var workspaceEdit = resolvedCodeAction.Edit.AssumeNotNull();
 
@@ -753,11 +753,8 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
         var changes = await mappingService.GetMappedTextChangesAsync(generatedDoc, modifiedGeneratedDoc, DisposalToken);
 
         var razorText = await razorDocument.GetTextAsync(DisposalToken);
-        foreach (var change in changes)
-        {
-            Assert.Equal(razorDocument.FilePath, change.FilePath);
-            razorText = razorText.WithChanges(change.TextChanges);
-        }
+        Assert.All(changes, change => Assert.Equal(razorDocument.FilePath, change.MappedFilePath));
+        razorText = razorText.WithChanges(changes.Select(change => change.TextChange));
 
         AssertEx.EqualOrDiff(expectedRazorFile.Text, razorText.ToString());
     }

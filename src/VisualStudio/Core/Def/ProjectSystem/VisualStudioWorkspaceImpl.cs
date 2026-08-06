@@ -142,7 +142,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
 
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
-            this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps, _threadingContext.DisposalToken);
+            this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps);
 
         _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
         _solutionClosingContext.UIContextChanged += SolutionClosingContext_UIContextChanged;
@@ -801,7 +801,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         foreach (var folder in folders)
         {
             var items = GetAllItems(project.ProjectItems);
-            var folderItem = items.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Compare(p.Name, folder) == 0);
+            var folderItem = items.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Name, folder));
             if (folderItem == null || folderItem.Kind != EnvDTE.Constants.vsProjectItemKindPhysicalFile)
             {
                 yield return folder;
@@ -1457,6 +1457,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             // if we don't unsubscribe, it will leak our workspace object which can cause memory leaks in tests that create a whole MEF container
             // per test.
             _solutionClosingContext?.UIContextChanged -= SolutionClosingContext_UIContextChanged;
+
+            ProjectSystemProjectFactory.Dispose();
         }
 
         base.Dispose(finalize);

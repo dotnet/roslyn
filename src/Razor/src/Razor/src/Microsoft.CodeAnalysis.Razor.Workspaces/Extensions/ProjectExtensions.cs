@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
@@ -43,7 +42,7 @@ internal static class ProjectExtensions
         return discoveryService.GetTagHelpers(compilation, Options, cancellationToken);
     }
 
-    public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentForGeneratedDocumentAsync(this Project project, RazorGeneratedDocumentIdentity identity, CancellationToken cancellationToken)
+    public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentForGeneratedDocumentAsync(this Project project, SourceGeneratedDocumentIdentity identity, CancellationToken cancellationToken)
     {
         Debug.Assert(identity.DocumentId.ProjectId == project.Id, "Generated document URI does not belong to this project.");
         var hintName = identity.HintName;

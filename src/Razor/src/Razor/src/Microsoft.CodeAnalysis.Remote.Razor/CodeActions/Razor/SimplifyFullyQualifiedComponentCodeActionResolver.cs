@@ -36,7 +36,7 @@ internal sealed class SimplifyFullyQualifiedComponentCodeActionResolver : IRazor
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var text = codeDocument.Source.Text;
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri };
 
         // Check if we need to add a using directive.
         // We check the tag helpers available in the document to see if the simple component name

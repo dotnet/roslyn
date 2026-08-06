@@ -1,0 +1,38 @@
+﻿Source Location: (2:0,2 [79] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var counter = new Counter();
+    counter += 1;
+    _ = counter.Value;
+|
+Generated Location: (733:21,0 [79] )
+|
+    var counter = new Counter();
+    counter += 1;
+    _ = counter.Value;
+|
+
+Source Location: (93:6,7 [191] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public class Counter
+    {
+        public int Value { get; private set; }
+    
+        public void operator +=(int value)
+        {
+            Value += value;
+        }
+    }
+|
+Generated Location: (993:34,0 [191] )
+|
+    public class Counter
+    {
+        public int Value { get; private set; }
+    
+        public void operator +=(int value)
+        {
+            Value += value;
+        }
+    }
+|
+

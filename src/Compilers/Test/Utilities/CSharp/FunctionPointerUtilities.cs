@@ -78,10 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.False(symbol.HasDeclarativeSecurity);
                 Assert.False(symbol.RequiresSecurityObject);
                 Assert.False(symbol.IsDeclaredReadOnly);
-                Assert.False(symbol.IsMetadataNewSlot(true));
-                Assert.False(symbol.IsMetadataNewSlot(false));
-                Assert.False(symbol.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges));
-                Assert.False(symbol.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.None));
+                Assert.False(symbol.IsMetadataNewSlot(context: null, ignoreInterfaceImplementationChanges: true));
+                Assert.False(symbol.IsMetadataNewSlot(context: symbol.ContainingModule));
+                Assert.False(symbol.IsMetadataVirtual(context: null, ignoreInterfaceImplementationChanges: true));
+                Assert.False(symbol.IsMetadataVirtual(context: symbol.ContainingModule));
 
                 Assert.Equal(symbol.IsVararg, symbol.CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments));
 

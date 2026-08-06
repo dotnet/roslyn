@@ -11,5 +11,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal interface ILspServiceLoggerFactory
 {
-    Task<AbstractLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken);
+    Task<ILspLogger> CreateLoggerAsync(WellKnownLspServerKinds serverKind, JsonRpc jsonRpc, CancellationToken cancellationToken);
 }

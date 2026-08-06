@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -43,7 +44,7 @@ public partial class MSBuildProjectLoader
         _diagnosticReporter = diagnosticReporter;
         _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_diagnosticReporter)]);
         _pathResolver = new PathResolver(_diagnosticReporter);
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(diagnosticReporter);
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(diagnosticReporter, solutionServices.GetService<IFileBasedProgramService>());
 
         Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -259,10 +260,11 @@ public partial class MSBuildProjectLoader
             ? new BinLogPathProvider(fileName)
             : null;
 
-        var buildHostProcessManager = new BuildHostProcessManager(_knownCommandLineParserLanguages, Properties, binLogPathProvider, _loggerFactory);
+        var buildHostProcessManager = new BuildHostProcessManager(_knownCommandLineParserLanguages, Properties, binLogPathProvider, loggerFactory: _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
         var projectFileProvider = new BuildHostProjectFileInfoProvider(
+            _solutionServices,
             buildHostProcessManager,
             _projectFileExtensionRegistry,
             _diagnosticReporter,

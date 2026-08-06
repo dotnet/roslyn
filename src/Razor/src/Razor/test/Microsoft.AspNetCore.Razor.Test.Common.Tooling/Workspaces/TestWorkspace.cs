@@ -9,10 +9,10 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 
@@ -50,7 +50,7 @@ public static class TestWorkspace
 
     private static void AddAnalyzersToWorkspace(Workspace workspace)
     {
-        var analyzerLoader = RazorTestAnalyzerLoader.CreateAnalyzerAssemblyLoader();
+        var analyzerLoader = TestAnalyzerAssemblyLoader.LoadFromFile;
 
         var analyzerPaths = new DirectoryInfo(AppContext.BaseDirectory).GetFiles("*.dll")
             .Where(f => f.Name.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal) && !f.Name.Contains("LanguageServer") && !f.Name.Contains("Test.Utilities"))

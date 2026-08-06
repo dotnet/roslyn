@@ -112,6 +112,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return;
                     }
 
+                    if (baseEquals.IsAbstract)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AbstractBaseRecordImplementation, GetFirstLocation(), this, baseEquals);
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
                     // There are base record types.
                     // The definition of the method is as follows, and baseEquals
                     // is the corresponding method on the nearest base record type to

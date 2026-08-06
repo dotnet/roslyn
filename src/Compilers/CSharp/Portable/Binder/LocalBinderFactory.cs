@@ -492,7 +492,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitConstructorInitializer(ConstructorInitializerSyntax node)
         {
-            var binder = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
+            var flags = BinderFlags.ConstructorInitializer;
+
+            if (node.Parent is ConstructorDeclarationSyntax { Modifiers: var modifiers } && modifiers.Any(SyntaxKind.UnsafeKeyword))
+            {
+                flags |= BinderFlags.UnsafeRegion;
+            }
+
+            var binder = _enclosing.WithAdditionalFlags(flags);
             AddToMap(node, binder);
             VisitConstructorInitializerArgumentList(node, node.ArgumentList, binder);
         }
@@ -670,6 +677,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitCheckedExpression(CheckedExpressionSyntax node)
         {
             Binder binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedExpression);
+            AddToMap(node, binder);
+            Visit(node.Expression, binder);
+        }
+
+        public override void VisitUnsafeExpression(UnsafeExpressionSyntax node)
+        {
+            Binder binder = _enclosing.WithAdditionalFlags(BinderFlags.UnsafeRegion);
             AddToMap(node, binder);
             Visit(node.Expression, binder);
         }

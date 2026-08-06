@@ -43,6 +43,7 @@ using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
+    [ValidatePooledObjects(WaitForOutstandingObjectsToBeFreed = true)]
     public class CommandLineTests : CommandLineTestBase
     {
 #if NET
@@ -12106,7 +12107,7 @@ class C
             result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
             AssertEx.Equal(
-                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
+                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".8", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
         }
 
@@ -12774,7 +12775,6 @@ class C
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
-        [ValidatePooledObjects(Skip = "AnalyzerDriver async continuations may not complete before pool validation")]
         public void TestSuppression_CompilerSyntaxParseError_SuppressWarningCaughtDuringParsingStage(bool skipAnalyzers)
         {
             const string SourceCode = @"

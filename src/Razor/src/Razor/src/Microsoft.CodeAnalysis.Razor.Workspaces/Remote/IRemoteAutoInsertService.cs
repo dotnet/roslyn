@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 internal interface IRemoteAutoInsertService
 {
     ValueTask<Response> GetAutoInsertTextEditAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         LinePosition position,
         string character,

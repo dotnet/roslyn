@@ -9,14 +9,18 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal sealed class DefaultTagHelperDescriptorFactory(bool includeDocumentation, bool excludeHidden)
+internal sealed class DefaultTagHelperDescriptorFactory(Compilation compilation, bool includeDocumentation, bool excludeHidden)
 {
     private const string TagHelperNameEnding = "TagHelper";
 
+    private readonly Compilation _compilation = compilation;
     private readonly bool _excludeHidden = excludeHidden;
     private readonly bool _includeDocumentation = includeDocumentation;
 
@@ -203,6 +207,16 @@ internal sealed class DefaultTagHelperDescriptorFactory(bool includeDocumentatio
 
         builder.TypeName = property.Type.GetFullName();
         builder.PropertyName = property.Name;
+
+        if (_compilation.CanConvertStringLiteral(property.Type))
+        {
+            var metadata = new PropertyMetadata.Builder
+            {
+                AcceptsStringLiteral = true
+            };
+
+            builder.SetMetadata(metadata.Build());
+        }
 
         var hasPublicSetter = HasPublicSetter(property);
 

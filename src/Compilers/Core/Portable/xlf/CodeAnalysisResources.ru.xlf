@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="CompilationNotAvailableInPreCompilationPhase">
         <source>The compilation is not available during the pre-compilation phase, so {0} cannot be used as an input to a pre-compilation source output.</source>
-        <target state="new">The compilation is not available during the pre-compilation phase, so {0} cannot be used as an input to a pre-compilation source output.</target>
+        <target state="translated">Компиляция недоступна на этапе предварительной компиляции, поэтому {0} не может быть использован в качестве входных данных для выходных данных исходного кода предварительной компиляции.</target>
         <note>{0}: the name of the provider that requires the compilation, e.g. CompilationProvider</note>
       </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
@@ -300,7 +300,7 @@
       </trans-unit>
       <trans-unit id="SyntaxProvidersNotAvailableInPreCompilationPhase">
         <source>Syntax-based providers (e.g. SyntaxProvider, ForAttributeWithMetadataName) cannot be used as inputs to a pre-compilation source output, because the compilation has not yet been built.</source>
-        <target state="new">Syntax-based providers (e.g. SyntaxProvider, ForAttributeWithMetadataName) cannot be used as inputs to a pre-compilation source output, because the compilation has not yet been built.</target>
+        <target state="translated">Поставщики на основе синтаксиса (например, SyntaxProvider, ForAttributeWithMetadataName) не могут использоваться в качестве входных данных для генерации исходного кода на этапе предварительной компиляции, поскольку компиляция еще не была построена.</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">

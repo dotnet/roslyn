@@ -4,11 +4,11 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.LinkedEditingRange;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -32,6 +32,34 @@ public class CohostLinkedEditingRangeEndpointTest(ITestOutputHelper testOutputHe
             """;
 
         await VerifyLinkedEditingRangeAsync(input);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13203")]
+    public async Task Html_StartAndEndTagNamesMissing_RequestFromStartTag_ReturnsLinkedEditingRanges()
+    {
+        await VerifyLinkedEditingRangeAsync("<[|$$|]></[||]>");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13203")]
+    public async Task Html_StartAndEndTagNamesMissing_RequestFromEndTag_ReturnsLinkedEditingRanges()
+    {
+        await VerifyLinkedEditingRangeAsync("<[||]></[|$$|]>");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13203")]
+    public async Task Html_OnlyStartTagNameMissing_DoesNotReturnLinkedEditingRanges()
+    {
+        await VerifyLinkedEditingRangeAsync("<$$></div>");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13203")]
+    public async Task Html_OnlyEndTagNameMissing_DoesNotReturnLinkedEditingRanges()
+    {
+        await VerifyLinkedEditingRangeAsync("<div></$$>");
     }
 
     [Theory]
@@ -181,7 +209,7 @@ public class CohostLinkedEditingRangeEndpointTest(ITestOutputHelper testOutputHe
         }
 
         Assert.NotNull(result);
-        Assert.Equal(LinkedEditingRangeHelper.WordPattern, result.WordPattern);
+        Assert.Equal(CohostLinkedEditingRangeEndpoint.WordPattern, result.WordPattern);
         Assert.Equal(spans[0], sourceText.GetTextSpan(result.Ranges[0]));
         Assert.Equal(spans[1], sourceText.GetTextSpan(result.Ranges[1]));
     }
