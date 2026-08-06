@@ -32,12 +32,13 @@ public sealed class CSharpUseNullConditionalAwaitTests
         }.RunAsync();
 
     private static Task TestMissingAsync(
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode)
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        LanguageVersion languageVersion = LanguageVersion.Preview)
         => new VerifyCS.Test
         {
             TestCode = testCode,
             FixedCode = testCode,
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = languageVersion,
         }.RunAsync();
 
     [Fact]
@@ -284,4 +285,223 @@ public sealed class CSharpUseNullConditionalAwaitTests
                 }
             }
             """);
+
+    [Fact]
+    public Task IfStatement_LogicalNot()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    {|IDE0420:if|} (!(t == null))
+                        await t;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    await? t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task IfStatement_ParenthesizedReceiver()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    {|IDE0420:if|} (((t)) != (null))
+                        await (t);
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    await? (t);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task IfStatement_MemberAccess()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class Holder
+            {
+                public Task Task { get; }
+            }
+
+            class C
+            {
+                async Task M(Holder holder)
+                {
+                    {|IDE0420:if|} (holder != null)
+                        await holder.Task;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class Holder
+            {
+                public Task Task { get; }
+            }
+
+            class C
+            {
+                async Task M(Holder holder)
+                {
+                    await? holder?.Task;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task IfStatement_ElementAccess()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task[] tasks)
+                {
+                    {|IDE0420:if|} (tasks != null)
+                        await tasks[0];
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task[] tasks)
+                {
+                    await? tasks?[0];
+                }
+            }
+            """);
+
+    [Fact]
+    public Task IfStatement_PreservesLeadingComments()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    // Before if
+                    {|IDE0420:if|} (t != null)
+                        // Before await
+                        await t;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    // Before if
+                    // Before await
+                    await? t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task IfStatement_PreservesTrailingComment()
+        => TestAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    {|IDE0420:if|} (t != null)
+                    {
+                        await t; // After await
+                    }
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    await? t; // After await
+                }
+            }
+            """);
+
+    [Fact]
+    public Task IfStatement_NotWithMultipleStatements()
+        => TestMissingAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    if (t != null)
+                    {
+                        await t;
+                        await t;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task IfStatement_NotWithDirective()
+        => TestMissingAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    if (t != null)
+                    {
+            #if DEBUG
+                        await t;
+            #endif
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotBeforeCSharp15()
+        => TestMissingAsync(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task t)
+                {
+                    if (t != null)
+                        await t;
+                }
+            }
+            """,
+            LanguageVersion.CSharp14);
 }
