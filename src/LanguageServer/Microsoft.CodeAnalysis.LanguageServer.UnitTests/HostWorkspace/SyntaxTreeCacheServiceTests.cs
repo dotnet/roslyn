@@ -84,6 +84,38 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
     }
 
     [Fact]
+    public void NonDaemonBypassesCache()
+    {
+        using var workspace = CreateCacheWorkspace(out var cache, isDaemon: false);
+        var text = SourceText.From("class C { }");
+        var options = CSharpParseOptions.Default;
+        var counts = new int[2];
+
+        SyntaxTree GetTree()
+            => cache.GetOrCreateSyntaxTree(
+                text,
+                options,
+                static (state, _) =>
+                {
+                    state.counts[0]++;
+                    return CSharpSyntaxTree.ParseText(state.text, state.options);
+                },
+                static (root, state) =>
+                {
+                    state.counts[1]++;
+                    return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, state.options);
+                },
+                (text, options, counts),
+                CancellationToken.None);
+
+        _ = GetTree();
+        _ = GetTree();
+
+        Assert.Equal(2, counts[0]);
+        Assert.Equal(0, counts[1]);
+    }
+
+    [Fact]
     public async Task ConcurrentPublicationConvergesOnOneGreenRoot()
     {
         using var workspace = CreateCacheWorkspace(out var cache);
@@ -167,15 +199,16 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
         Assert.False(csharpRoot.IsIncrementallyIdenticalTo(visualBasicRoot));
     }
 
-    private HostServices GetLanguageServerHostServices()
+    private HostServices GetLanguageServerHostServices(bool isDaemon = true)
     {
-        var exportProvider = LanguageServerTestComposition.GetSharedExportProvider(ServerConfigurationWithoutDevKit, LoggerFactory);
+        var serverConfiguration = ServerConfigurationWithoutDevKit with { IsDaemon = isDaemon };
+        var exportProvider = LanguageServerTestComposition.GetSharedExportProvider(serverConfiguration, LoggerFactory);
         return exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
     }
 
-    private AdhocWorkspace CreateCacheWorkspace(out SyntaxTreeCacheService cache)
+    private AdhocWorkspace CreateCacheWorkspace(out SyntaxTreeCacheService cache, bool isDaemon = true)
     {
-        var workspace = new AdhocWorkspace(GetLanguageServerHostServices(), WorkspaceKind.Host);
+        var workspace = new AdhocWorkspace(GetLanguageServerHostServices(isDaemon), WorkspaceKind.Host);
         cache = (SyntaxTreeCacheService)workspace.Services.GetRequiredService<ISyntaxTreeCacheService>();
         return workspace;
     }

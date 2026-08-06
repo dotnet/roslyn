@@ -32,6 +32,7 @@ internal sealed class SyntaxTreeCacheService : ISyntaxTreeCacheService
 {
     private const int DefaultCleanupInterval = 10_000;
 
+    private readonly bool _isDaemon;
     private readonly ConcurrentDictionary<CacheKey, CacheEntry> _entries = [];
 
     private int _addedRoots;
@@ -39,8 +40,9 @@ internal sealed class SyntaxTreeCacheService : ISyntaxTreeCacheService
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SyntaxTreeCacheService()
+    public SyntaxTreeCacheService(ServerConfiguration serverConfiguration)
     {
+        _isDaemon = serverConfiguration.IsDaemon;
     }
 
     public SyntaxTree GetOrCreateSyntaxTree<TArg>(
@@ -51,6 +53,9 @@ internal sealed class SyntaxTreeCacheService : ISyntaxTreeCacheService
         TArg arg,
         CancellationToken cancellationToken)
     {
+        if (!_isDaemon)
+            return parseSyntaxTree(arg, cancellationToken);
+
         var key = new CacheKey(Checksum.From(text.GetContentHash()), options);
         while (true)
         {
