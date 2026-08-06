@@ -1239,8 +1239,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         Assert.Equal(2, result.GeneratedSources.Length);
     }
 
-    // PROTOTYPE(sonic): remove this Skip (and the limitation) before merging to main -- see the issue below.
-    [Fact(Skip = "PROTOTYPE(sonic): fallback component nested-delegate metadata is lost by fast discovery; see https://github.com/dotnet/roslyn/issues/84646")]
+    [Fact(Skip = "Fallback component nested-delegate metadata is lost by fast discovery; see https://github.com/dotnet/roslyn/issues/84646")]
     public async Task Component_BindValue_NestedDelegateInFallbackComponent()
     {
         // Known limitation of the decl/impl split: a split (fast-path) component whose ValueChanged
