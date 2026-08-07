@@ -227,15 +227,6 @@ extends:
         # Authenticate to DevDiv feeds
         - task: NuGetAuthenticate@1
 
-        # Needed because the build fails the NuGet Tools restore without it
-        - task: UseDotNet@2
-          displayName: 'Use .NET Core sdk'
-          inputs:
-            packageType: sdk
-            useGlobalJson: true
-            includePreviewVersions: true
-            workingDirectory: '$(Build.SourcesDirectory)'
-
         - task: MicroBuildSigningPlugin@4
           inputs:
             signType: test

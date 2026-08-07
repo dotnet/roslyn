@@ -317,14 +317,6 @@ extends:
             version: 3.1.28
             installationPath: '$(Build.SourcesDirectory)\.dotnet'
 
-        # Needed because the build fails the NuGet Tools restore without it
-        - task: UseDotNet@2
-          displayName: 'Use .NET Core sdk'
-          inputs:
-            packageType: sdk
-            useGlobalJson: true
-            workingDirectory: '$(Build.SourcesDirectory)'
-
         - task: MicroBuildSigningPlugin@4
           inputs:
             signType: ${{ parameters.SignType }}
