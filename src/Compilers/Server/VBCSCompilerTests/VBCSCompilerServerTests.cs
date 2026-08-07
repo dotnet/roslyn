@@ -7,9 +7,11 @@
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public async Task ShadowCopyAnalyzerAssemblyLoaderMissingDirectory()
             {
                 var baseDirectory = Path.Combine(Path.GetTempPath(), TestBase.GetUniqueName());
+                Debug.Assert(PlatformInformation.IsWindows);
                 var shadowResolver = new ShadowCopyAnalyzerPathResolver(baseDirectory);
                 var task = shadowResolver.DeleteLeftoverDirectoriesTask;
                 await task;
