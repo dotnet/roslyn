@@ -8,13 +8,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Hashing;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class ShadowCopyAnalyzerPathResolver : IAnalyzerPathResolver
     {
+        private const string DirectoryVersion = "v1";
+
         private enum DirectoryCleanupState
         {
             InProgress,
@@ -32,6 +40,9 @@ namespace Microsoft.CodeAnalysis
         internal string BaseDirectory { get; }
 
         internal string ShadowDirectory { get; }
+
+        /// <summary>Shared cache for shadow copied assemblies. Used to amortize cost of antivirus scans.</summary>
+        internal string CacheDirectory { get; }
 
         /// <summary>
         /// As long as this mutex is alive, other instances of this type will not try to clean
@@ -68,22 +79,30 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal int CopyCount => CopyMap.Count;
 
+#if NET
+        [SupportedOSPlatform("windows")]
+#endif
         public ShadowCopyAnalyzerPathResolver(string baseDirectory)
         {
+            if (!PlatformInformation.IsWindows)
+            {
+                throw new InvalidOperationException("ShadowCopyAnalyzerPathResolver is only supported on Windows.");
+            }
+
             if (baseDirectory is null)
             {
                 throw new ArgumentNullException(nameof(baseDirectory));
             }
 
-            // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
-            // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
-            // effect
             if (!Path.IsPathRooted(baseDirectory))
             {
                 throw new ArgumentException($"Must be a full path: {baseDirectory}", nameof(baseDirectory));
             }
 
-            BaseDirectory = baseDirectory;
+            var versionDirectory = Path.Combine(baseDirectory, DirectoryVersion);
+            BaseDirectory = Path.Combine(versionDirectory, "shadow");
+            CacheDirectory = Path.Combine(versionDirectory, "cache");
+
             var shadowDirectoryName = Guid.NewGuid().ToString("N").ToLowerInvariant();
 
             // The directory is deliberately _not_ created at this point. It will only be created when the first
@@ -174,10 +193,65 @@ namespace Microsoft.CodeAnalysis
                         mutex?.Dispose();
                     }
                 }
+
+                pruneCacheIfNeeded();
             }
             finally
             {
                 s_directoryCleanupStates[BaseDirectory] = DirectoryCleanupState.Completed;
+            }
+
+            void pruneCacheIfNeeded()
+            {
+                using var cacheMutex = new Mutex(initiallyOwned: false, name: $"RoslynShadowCopyCache-{HashToHex(CacheDirectory)}");
+                bool lockTaken = false;
+                try
+                {
+                    try
+                    {
+                        lockTaken = cacheMutex.WaitOne(millisecondsTimeout: 0);
+                    }
+                    catch (AbandonedMutexException)
+                    {
+                        lockTaken = true;
+                    }
+
+                    if (lockTaken)
+                    {
+                        // Permit up to 200 unlinked files (not hard-linked to a specific shadow loader directory).
+                        // Delete the oldest files which exceed this limit.
+                        // Note: this value was chosen arbitrarily, based on speculation that ordinary solutions use perhaps a few dozen analyzer assemblies,
+                        // and that a user would likely be working on several different solutions/worktrees regularly.
+                        // The value can and should be adjusted in future based on empirical measurements.
+                        const int maxUnlinkedCount = 200;
+                        var filesToEvict = Directory.EnumerateFiles(CacheDirectory)
+                            .Select(static file => (file, fileInformationOpt: TryGetWindowsFileInformation(file)))
+                            .Where(static pair => pair.fileInformationOpt is { NumberOfLinks: 1 })
+                            .OrderByDescending(static pair =>
+                            {
+                                var creationTime = pair.fileInformationOpt!.Value.CreationTime;
+                                return (long)creationTime.dwHighDateTime << 32 | (uint)creationTime.dwLowDateTime;
+                            })
+                            .Skip(maxUnlinkedCount);
+
+                        // Note: it's expected that 'pruneCacheIfNeeded()' and 'linkFromCacheOrFallbackToCopy()' can run concurrently.
+                        // If pruning deletes a file that linking was attempting to use, linking is expected to fall back gracefully to copying.
+                        foreach (var pair in filesToEvict)
+                        {
+                            File.Delete(pair.file);
+                        }
+                    }
+                }
+                catch
+                {
+                    // If something goes wrong we will leave it to the next run to clean up.
+                    // Just swallow the exception and move on.
+                }
+                finally
+                {
+                    if (lockTaken)
+                        cacheMutex.ReleaseMutex();
+                }
             }
         }
 
@@ -237,7 +311,7 @@ namespace Microsoft.CodeAnalysis
                 // This thread won and we need to do the copy.
                 try
                 {
-                    copyFile(originalFilePath, shadowCopyPath);
+                    copyFile(this, originalFilePath, shadowCopyPath);
                     tcs.SetResult(shadowCopyPath);
                 }
                 catch (Exception ex)
@@ -253,7 +327,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(AnalyzerAssemblyLoader.GeneratedPathComparer.Equals(shadowCopyPath, task.Result));
             }
 
-            static void copyFile(string originalPath, string shadowCopyPath)
+            static void copyFile(ShadowCopyAnalyzerPathResolver @this, string originalPath, string shadowCopyPath)
             {
                 var directory = Path.GetDirectoryName(shadowCopyPath);
                 if (directory is null)
@@ -267,9 +341,87 @@ namespace Microsoft.CodeAnalysis
                 // emulates not having the shadow copy layer
                 if (File.Exists(originalPath))
                 {
-                    File.Copy(originalPath, shadowCopyPath);
+                    linkFromCacheOrFallbackToCopy(@this, originalPath, shadowCopyPath);
                     ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
                 }
+            }
+
+            // Optimization for antivirus scanning on Windows:
+            // - Shadow copied files are hard-linked to/from a cache directory if possible.
+            // - We continue to use per-session 'ShadowDirectory' for ease of implementing correct loading semantics and cleanup.
+            // - Hard linking a file from the cache instead of copying it is empirically observed to reduce time spent running AV scans when loading assemblies.
+            static void linkFromCacheOrFallbackToCopy(ShadowCopyAnalyzerPathResolver @this, string originalPath, string shadowCopyPath)
+            {
+                var cachePath = TryGetCacheKey(originalPath) is { } cacheKey
+                    ? Path.Combine(@this.CacheDirectory, cacheKey)
+                    : null;
+                if (File.Exists(cachePath))
+                {
+                    // File is already present in cache. If it matches original, then hard-link from cache to shadow copy path. Failing that just copy from the original path.
+                    if (!cacheEntryMatches(originalPath, cachePath))
+                    {
+                        try { File.Delete(cachePath); } catch { }
+                        File.Copy(originalPath, shadowCopyPath);
+                    }
+                    else if (!TryCreateHardLink(cachePath, shadowCopyPath))
+                    {
+                        File.Copy(originalPath, shadowCopyPath);
+                    }
+                }
+                else
+                {
+                    // File not in cache. Copy it to the shadow copy path, then try to hard link it to the cache.
+                    // If the hard linking fails for some reason, that isn't a functional problem.
+                    // It usually means we lost a race to cache the same file, or that the current volume doesn't support hard links (e.g. Dev Drive).
+                    File.Copy(originalPath, shadowCopyPath);
+                    if (cachePath is not null)
+                    {
+                        Directory.CreateDirectory(@this.CacheDirectory);
+                        TryCreateHardLink(shadowCopyPath, cachePath);
+                    }
+                }
+            }
+
+            static bool cacheEntryMatches(string originalPath, string cachePath)
+            {
+                var originalInfo = new FileInfo(originalPath);
+                var cacheInfo = new FileInfo(cachePath);
+                try
+                {
+                    if (originalInfo.Length != cacheInfo.Length)
+                        return false;
+
+                    return AssemblyUtilities.ReadMvid(originalPath) == AssemblyUtilities.ReadMvid(cachePath);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        private static string HashToHex(ReadOnlySpan<char> value)
+        {
+            Span<byte> hash = stackalloc byte[16];
+            int bytesWritten = XxHash128.Hash(MemoryMarshal.AsBytes(value), hash);
+            Debug.Assert(bytesWritten == hash.Length);
+
+            return HexUtilities.ToHexStringLower(hash);
+        }
+
+        private static string? TryGetCacheKey(string originalPath)
+        {
+            // Key format: (original filename) + (file path hash) + (mvid) + (original file length) + (original file extension)
+            var hexHash = HashToHex(originalPath);
+            try
+            {
+                var mvid = AssemblyUtilities.ReadMvid(originalPath);
+                var length = new FileInfo(originalPath).Length;
+                return $"{Path.GetFileNameWithoutExtension(originalPath)}-{hexHash}-{mvid:N}-{length}{Path.GetExtension(originalPath)}";
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -296,6 +448,74 @@ namespace Microsoft.CodeAnalysis
             {
                 // There are many reasons this could fail. Ignore it and keep going.
             }
+        }
+
+        /// <summary>Create a hard link to a file.</summary>
+        /// <seealso href="https://learn.microsoft.com/en-us/dotnet/api/system.io.file.createhardlink?view=net-11.0" />
+        private static bool TryCreateHardLink(string path, string pathToTarget)
+        {
+            return CreateHardLink(pathToTarget, path, IntPtr.Zero);
+
+            // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createhardlinkw
+            [DllImport("Kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+        }
+
+        /// <summary>Get number of hard links to a file.</summary>
+        private static ByHandleFileInformation? TryGetWindowsFileInformation(string path)
+        {
+            // https://learn.microsoft.com/en-us/windows/win32/fileio/file-access-rights-constants
+            const uint FILE_READ_ATTRIBUTES = 0x0080;
+
+            // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew
+            const uint FILE_SHARE_READ = 0x00000001;
+            const uint FILE_SHARE_WRITE = 0x00000002;
+            const uint FILE_SHARE_DELETE = 0x00000004;
+            const uint OPEN_EXISTING = 3;
+
+            using var handle = CreateFileW(
+                lpFileName: path,
+                dwDesiredAccess: FILE_READ_ATTRIBUTES,
+                dwShareMode: FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                lpSecurityAttributes: IntPtr.Zero,
+                dwCreationDisposition: OPEN_EXISTING,
+                dwFlagsAndAttributes: 0,
+                hTemplateFile: IntPtr.Zero);
+
+            if (!GetFileInformationByHandle(handle, out var fileInformation))
+                return null;
+
+            return fileInformation;
+
+            // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew
+            [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            static extern SafeFileHandle CreateFileW(
+                string lpFileName,
+                uint dwDesiredAccess,
+                uint dwShareMode,
+                IntPtr lpSecurityAttributes,
+                uint dwCreationDisposition,
+                uint dwFlagsAndAttributes,
+                IntPtr hTemplateFile);
+
+            // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle
+            [DllImport("Kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            static extern bool GetFileInformationByHandle(SafeFileHandle handle, out ByHandleFileInformation fileInformation);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ByHandleFileInformation
+        {
+            public uint FileAttributes;
+            public System.Runtime.InteropServices.ComTypes.FILETIME CreationTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastAccessTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME LastWriteTime;
+            public uint VolumeSerialNumber;
+            public uint FileSizeHigh;
+            public uint FileSizeLow;
+            public uint NumberOfLinks;
+            public uint FileIndexHigh;
+            public uint FileIndexLow;
         }
     }
 }
