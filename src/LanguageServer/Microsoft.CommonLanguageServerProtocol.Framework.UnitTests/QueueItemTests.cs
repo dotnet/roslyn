@@ -39,7 +39,7 @@ public sealed class QueueItemTests
         {
             await queueItem.StartRequestAsync<object?, object?>(
                 request: null,
-                context: 1,
+                requestContextInfo: new(1),
                 ThrowLocalRpcExceptionMethodHandler.Instance,
                 CancellationToken.None);
         });

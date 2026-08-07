@@ -19,7 +19,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
         _lspServices = lspServices;
     }
 
-    public override Task<RequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+    public override async Task<RequestContextInfo<RequestContext>> CreateRequestContextAsync<TRequestParam>(QueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -68,7 +68,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {methodHandler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
         }
 
-        return RequestContext.CreateAsync(
+        var requestContext = await RequestContext.CreateAsync(
             methodHandler.MutatesSolutionState,
             requiresLSPSolution,
             textDocumentIdentifier,
@@ -78,6 +78,8 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             _lspServices,
             logger,
             queueItem.MethodName,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
+
+        return new RequestContextInfo<RequestContext>(requestContext);
     }
 }
