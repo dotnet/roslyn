@@ -239,7 +239,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
         var rewrittenResponse = DelegatedCompletionHelper.RewriteHtmlResponse(result, razorCompletionOptions);
 
-        var resolutionContext = new DelegatedCompletionResolutionContext(RazorLanguageKind.Html, rewrittenResponse.Data ?? rewrittenResponse.ItemDefaults?.Data, ProvisionalTextEdit: null);
+        var resolutionContext = new DelegatedCompletionResolutionContext(RazorLanguageKind.Html, rewrittenResponse.Data ?? rewrittenResponse.ItemDefaults?.Data, ProvisionalTextEdit: null, InDeclDocument: false);
         var resultId = _completionListCache.Add(rewrittenResponse, resolutionContext);
         rewrittenResponse.SetResultId(resultId, _clientCapabilitiesService.ClientCapabilities);
 

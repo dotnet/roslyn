@@ -1,0 +1,3 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        ClassDeclaration -  - public partial - TestComponent -  -  - TItem, TItem2

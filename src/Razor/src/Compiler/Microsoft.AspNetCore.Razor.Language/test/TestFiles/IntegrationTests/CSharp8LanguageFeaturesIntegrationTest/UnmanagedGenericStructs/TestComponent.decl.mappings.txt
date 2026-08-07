@@ -1,0 +1,13 @@
+﻿Source Location: (7:0,7 [96] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public static unsafe int SizeOf<T>()
+        where T : unmanaged
+        => sizeof(T);
+|
+Generated Location: (556:18,0 [96] )
+|
+    public static unsafe int SizeOf<T>()
+        where T : unmanaged
+        => sizeof(T);
+|
+

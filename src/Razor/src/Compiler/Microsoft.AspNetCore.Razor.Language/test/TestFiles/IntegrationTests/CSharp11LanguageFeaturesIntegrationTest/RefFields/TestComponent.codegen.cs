@@ -19,25 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(13,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public ref struct ValueRef
-    {
-        private ref int _value;
-    
-        public ValueRef(ref int value)
-        {
-            _value = ref value;
-        }
-    
-        public ref int Value => ref _value;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591
