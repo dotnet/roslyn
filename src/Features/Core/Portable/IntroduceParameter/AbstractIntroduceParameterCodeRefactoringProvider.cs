@@ -169,25 +169,19 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
 
         var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
         var arguments = syntaxFacts.GetArgumentsOfArgumentList(argumentList);
+        var suppliedParameters = BitVector.Create(method.Parameters.Length);
+
+        foreach (var argument in arguments)
+        {
+            var argumentParameter = semanticFacts.FindParameterForArgument(
+                semanticModel, argument, allowUncertainCandidates: true, allowParams: true, cancellationToken);
+            if (argumentParameter is not null)
+                suppliedParameters[argumentParameter.Ordinal] = true;
+        }
 
         foreach (var parameter in method.Parameters)
         {
-            if (parameter.IsOptional || parameter.IsParams)
-                continue;
-
-            var supplied = false;
-            foreach (var argument in arguments)
-            {
-                var argumentParameter = semanticFacts.FindParameterForArgument(
-                    semanticModel, argument, allowUncertainCandidates: true, allowParams: true, cancellationToken);
-                if (argumentParameter?.Ordinal == parameter.Ordinal)
-                {
-                    supplied = true;
-                    break;
-                }
-            }
-
-            if (!supplied)
+            if (!parameter.IsOptional && !parameter.IsParams && !suppliedParameters[parameter.Ordinal])
                 return true;
         }
 

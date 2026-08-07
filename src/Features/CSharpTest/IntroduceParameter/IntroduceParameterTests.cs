@@ -1088,10 +1088,13 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82049")]
     public Task TestMissingWithMissingRequiredArgument()
-        => TestMissingAsync("""
-            void M(int a, int b)
+        => TestMissingInRegularAndScriptAsync("""
+            class C
             {
-                M([|1|]);
+                void M(int a, int b)
+                {
+                    M([|1|]);
+                }
             }
             """);
 
