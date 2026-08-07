@@ -5,7 +5,6 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
@@ -35,10 +34,12 @@ internal class RazorDocumentClosedEndpoint(IHtmlDocumentSynchronizer htmlDocumen
         // ParsedUri can be null when the URI string from the client isn't parseable by System.Uri.
         // This is safe to skip because HtmlDocumentSynchronizer only tracks documents that were
         // opened with a valid URI (via TrySynchronizeAsync), so there's no entry to remove.
-        if (textDocument.DocumentUri.GetSystemUri() is Uri parsedUri)
+#pragma warning disable CS0618 // Type or member is obsolete - https://github.com/dotnet/roslyn/issues/84785
+        if (textDocument.DocumentUri.ParsedUri is Uri parsedUri)
         {
             _htmlDocumentSynchronizer.DocumentRemoved(parsedUri, cancellationToken);
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         return SpecializedTasks.Default<VoidResult>();
     }
