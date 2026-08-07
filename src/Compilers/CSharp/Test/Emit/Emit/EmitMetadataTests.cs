@@ -3249,7 +3249,6 @@ public class Child : Parent, IParent
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
                         <Module>
                         EmbeddedAttribute
-                        NullableContextAttribute
                         RefSafetyRulesAttribute
                         Program
                         """, module.TypeNames.Join("\n"));
@@ -3303,7 +3302,6 @@ public class Child : Parent, IParent
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
                         <Module>
                         EmbeddedAttribute
-                        NullableContextAttribute
                         RefSafetyRulesAttribute
                         Program
                         <PrivateImplementationDetails>
@@ -3323,7 +3321,7 @@ public class Child : Parent, IParent
                 }
                 """);
 
-            var offset = ExecutionConditionUtil.IsUnix ? "00002890" : "000028E8";
+            var offset = ExecutionConditionUtil.IsUnix ? "00002890" : "00002850";
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", $$"""
                 .class private auto ansi sealed '<PrivateImplementationDetails>'
                 	extends [mscorlib]System.Object
@@ -3347,7 +3345,7 @@ public class Child : Parent, IParent
                 		.method private hidebysig specialname rtspecialname static 
                 			void .cctor () cil managed 
                 		{
-                			// Method begins at RVA 0x2098
+                			// Method begins at RVA 0x2089
                 			// Code size 17 (0x11)
                 			.maxstack 8
                 			IL_0000: ldsflda valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=5' '<PrivateImplementationDetails>'::'185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969'
@@ -3369,7 +3367,7 @@ public class Child : Parent, IParent
                 			int32 length
                 		) cil managed 
                 	{
-                		// Method begins at RVA 0x208a
+                		// Method begins at RVA 0x207b
                 		// Code size 13 (0xd)
                 		.maxstack 8
                 		IL_0000: call class [mscorlib]System.Text.Encoding [mscorlib]System.Text.Encoding::get_UTF8()
