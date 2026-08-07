@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -121,6 +121,76 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </PageTitle>
                 </PageTitle>
                 """");
+    }
+
+    [Fact]
+    public async Task MultilineRawStringLiteral_CodeBlock()
+    {
+        await RunFormattingTestAsync(
+            input: """"
+                <div></div>
+                @code
+                {
+                    private string _x = """
+                        <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+
+                        <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                        <Title>Aanmaak scherm</Title>
+                        <Body>
+                            <label>Vul hier een tekst in</label>
+                            <input @bind=_createItem />
+                        </Body>
+                        <Footer>
+                            <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                            <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                        </Footer>
+                        </FCBS5Modal>
+                        """;
+                }
+                """",
+            htmlFormatted: """"
+                <div></div>
+                @code
+                {
+                    private string _x = """
+                        <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+                
+                        <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                        <Title>Aanmaak scherm</Title>
+                        <Body>
+                        <label>Vul hier een tekst in</label>
+                        <input @bind=_createItem />
+                        </Body>
+                        <Footer>
+                        <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                        <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                        </Footer>
+                        </FCBS5Modal>
+                        """;
+                }
+                """",
+            expected: """"
+                <div></div>
+                @code
+                {
+                    private string _x = """
+                        <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+                
+                        <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                        <Title>Aanmaak scherm</Title>
+                        <Body>
+                            <label>Vul hier een tekst in</label>
+                            <input @bind=_createItem />
+                        </Body>
+                        <Footer>
+                            <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                            <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                        </Footer>
+                        </FCBS5Modal>
+                        """;
+                }
+                """",
+            validateHtmlFormattedMatchesWebTools: false);
     }
 
     [Fact]
@@ -1299,6 +1369,45 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 }
                 """,
             fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    public async Task IgnoresHtmlFormatterChangesToNonWhitespaceInScript()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <script>
+                    @if (showGrid)
+                    {
+                        <text>
+                            const ids = grid.getIds();
+                        </text>
+                    }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (showGrid)
+                    {
+                    <text>
+                    t ids = grid.getIds();
+                    </text>
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    @if (showGrid)
+                    {
+                        <text>
+                              const ids = grid.getIds();
+                        </text>
+                    }
+                </script>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false);
     }
 
     [Fact]
@@ -7183,6 +7292,136 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    public async Task ExplicitStatement_ShiftedOpeningBrace()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                            @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            htmlFormatted: """
+                @(booleanValue ?@
+                <br /> : @
+                <br />)
+
+                            @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            expected: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """);
+    }
+
+    [Fact]
+    public async Task ExplicitStatement_AlreadyFormatted()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            htmlFormatted: """
+                @(booleanValue ?@
+                <br /> : @
+                <br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """,
+            expected: """
+                @(booleanValue ?@<br /> : @<br />)
+
+                @{
+                    if (false)
+                    {
+                        // false
+                    }
+                    else
+                    {
+                        // true
+                    }
+                }
+
+                @code
+                {
+                    private bool booleanValue = true;
+                }
+                """);
+    }
+
+    [Fact]
     public async Task Formats_NonCodeBlockDirectives()
     {
         await RunFormattingTestAsync(
@@ -8161,6 +8400,60 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """);
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
+    public async Task IncompleteObjectCreation_UseTabs()
+    {
+        TestCode input = """
+            @code {
+                private void Method()
+                {
+                    value = new object()
+
+                    other = true;
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input.Text,
+            expected: """
+                @code {
+                	private void Method()
+                	{
+                		value = new object()
+
+
+                		other = true;
+                	}
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
+    public async Task IncompleteObjectCreation_UseSpaces()
+    {
+        TestCode input = """
+            @code {
+                private void Method()
+                {
+                    value = new object()
+
+                    other = true;
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input.Text,
+            expected: input.Text,
+            insertSpaces: true);
     }
 
     [Fact]
@@ -11335,7 +11628,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13121")]
-    public async Task MultilineExplicitExpressionInAttribute_DoesNotShiftRight()
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_IsStable()
     {
         var code = """
             <MyComponent Show="@_bool1"
@@ -11352,7 +11645,230 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13121")]
-    public async Task MultilineExplicitExpressionInAttribute_DoesNotShiftRight_IndentByOne()
+    public async Task NestedMultilineExplicitExpressionInSecondAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                                       "bar " +
+                                       "baz")" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInFirstAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1",
+                                          "string2",
+                                          "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedSingleLineCollectionExpressionInFirstAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1", "string2", "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInFirstAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent String="@("foo " +
+                                       "bar " +
+                                       "baz")"
+                             Show="@_bool1" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInSecondAttribute_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Show="@_bool1"
+                              Strings="@(["string1",
+                                          "string2",
+                                          "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_IsStable()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                                      "string2",
+                                      "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_IsStable_IndentByOne()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                                      "string2",
+                                      "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_IsStable_IndentByTwo()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                                      "string2",
+                                      "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInNonSelfClosingElement_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent String="@("foo " +
+                                       "bar " +
+                                       "baz")">
+                    <span>Content</span>
+                </MyComponent>
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInNonSelfClosingElement_IsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1",
+                                          "string2",
+                                          "string3"])">
+                    <span>Content</span>
+                </MyComponent2>
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMixedMultilineExplicitAndCollectionExpressions_AreStable()
+    {
+        var code = """
+            <div>
+                <MyComponent String="@("foo " +
+                                       "bar " +
+                                       "baz")"
+                             Strings="@(["string1",
+                                         "string2",
+                                         "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMixedMultilineCollectionAndExplicitExpressions_AreStable()
+    {
+        var code = """
+            <div>
+                <MyComponent Strings="@(["string1",
+                                         "string2",
+                                         "string3"])"
+                             String="@("foo " +
+                                       "bar " +
+                                       "baz")" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_IsStable_IndentByOne()
     {
         var code = """
             <MyComponent Show="@_bool1"
@@ -11375,7 +11891,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13121")]
-    public async Task MultilineExplicitExpressionInAttribute_DoesNotShiftRight_IndentByTwo()
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_IsStable_IndentByTwo()
     {
         var code = """
             <MyComponent Show="@_bool1"
@@ -11391,6 +11907,584 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                              String="@("foo " +
                             "bar " +
                             "baz")" />
+                """,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <MyComponent Show="@_bool1"
+                String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            expected: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                             "bar " +
+                             "baz")" />
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <MyComponent Show="@_bool1"
+                         String="@("foo " +
+                         "bar " +
+                         "baz")" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInSecondAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent Show="@_bool1"
+                String="@("foo " +
+                "bar " +
+                "baz")" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent Show="@_bool1"
+                                 String="@("foo " +
+                "bar " +
+                "baz")" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent Show="@_bool1"
+                                 String="@("foo " +
+                                 "bar " +
+                                 "baz")" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInSecondAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                             "bar " +
+                             "baz")" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInFirstAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent2 Strings="@(["string1",
+                "string2",
+                "string3"])" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent2 Strings="@(["string1",
+                "string2",
+                "string3"])" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent2 Strings="@(["string1",
+                              "string2",
+                              "string3"])" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInFirstAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1",
+                          "string2",
+                          "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedSingleLineCollectionExpressionInFirstAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent2 Strings="@(["string1", "string2", "string3"])" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent2 Strings="@(["string1", "string2", "string3"])" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent2 Strings="@(["string1", "string2", "string3"])" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInFirstAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent String="@("foo " +
+                "bar " +
+                "baz")"
+                Show="@_bool1" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent String="@("foo " +
+                "bar " +
+                "baz")"
+                                 Show="@_bool1" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent String="@("foo " +
+                                 "bar " +
+                                 "baz")"
+                                 Show="@_bool1" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInFirstAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent String="@("foo " +
+                             "bar " +
+                             "baz")"
+                             Show="@_bool1" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInSecondAttribute_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent2 Show="@_bool1"
+                Strings="@(["string1",
+                "string2",
+                "string3"])" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent2 Show="@_bool1"
+                                  Strings="@(["string1",
+                "string2",
+                "string3"])" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent2 Show="@_bool1"
+                                  Strings="@(["string1",
+                              "string2",
+                              "string3"])" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInSecondAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Show="@_bool1"
+                              Strings="@(["string1",
+                          "string2",
+                          "string3"])" />
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormatsUnindentedInput()
+    {
+        var input = """
+            <MyComponent2 Strings="@(["string1",
+            "string2",
+            "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input,
+            expected: """
+                <MyComponent2 Strings="@(["string1",
+                              "string2",
+                              "string3"])" />
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormattedOutputIsStable()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                          "string2",
+                          "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormatsUnindentedInput_IndentByOne()
+    {
+        var input = """
+            <MyComponent2 Strings="@(["string1",
+            "string2",
+            "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input,
+            expected: """
+                <MyComponent2 Strings="@(["string1",
+                    "string2",
+                    "string3"])" />
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormattedOutputIsStable_IndentByOne()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                "string2",
+                "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormatsUnindentedInput_IndentByTwo()
+    {
+        var input = """
+            <MyComponent2 Strings="@(["string1",
+            "string2",
+            "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: input,
+            htmlFormatted: input,
+            expected: """
+                <MyComponent2 Strings="@(["string1",
+                        "string2",
+                        "string3"])" />
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineCollectionExpressionInFirstAttribute_FormattedOutputIsStable_IndentByTwo()
+    {
+        var code = """
+            <MyComponent2 Strings="@(["string1",
+                    "string2",
+                    "string3"])" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInNonSelfClosingElement_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent String="@("foo " +
+                "bar " +
+                "baz")">
+                <span>Content</span>
+                </MyComponent>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent String="@("foo " +
+                "bar " +
+                "baz")">
+                        <span>Content</span>
+                    </MyComponent>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent String="@("foo " +
+                                 "bar " +
+                                 "baz")">
+                        <span>Content</span>
+                    </MyComponent>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineExplicitExpressionInNonSelfClosingElement_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent String="@("foo " +
+                             "bar " +
+                             "baz")">
+                    <span>Content</span>
+                </MyComponent>
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInNonSelfClosingElement_FormatsUnindentedInput()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <MyComponent2 Strings="@(["string1",
+                "string2",
+                "string3"])">
+                <span>Content</span>
+                </MyComponent2>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <MyComponent2 Strings="@(["string1",
+                "string2",
+                "string3"])">
+                        <span>Content</span>
+                    </MyComponent2>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <MyComponent2 Strings="@(["string1",
+                          "string2",
+                          "string3"])">
+                        <span>Content</span>
+                    </MyComponent2>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task NestedMultilineCollectionExpressionInNonSelfClosingElement_FormattedOutputIsStable()
+    {
+        var code = """
+            <div>
+                <MyComponent2 Strings="@(["string1",
+                      "string2",
+                      "string3"])">
+                    <span>Content</span>
+                </MyComponent2>
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormatsUnindentedInput_IndentByOne()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <MyComponent Show="@_bool1"
+                String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            expected: """
+                <MyComponent Show="@_bool1"
+                    String="@("foo " +
+                    "bar " +
+                    "baz")" />
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormattedOutputIsStable_IndentByOne()
+    {
+        var code = """
+            <MyComponent Show="@_bool1"
+                String="@("foo " +
+                "bar " +
+                "baz")" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                    "bar " +
+                    "baz")" />
+                """,
+            expected: code,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormatsUnindentedInput_IndentByTwo()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <MyComponent Show="@_bool1"
+                String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                "bar " +
+                "baz")" />
+                """,
+            expected: """
+                <MyComponent Show="@_bool1"
+                        String="@("foo " +
+                        "bar " +
+                        "baz")" />
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13121")]
+    public async Task TopLevelMultilineExplicitExpressionInSecondAttribute_FormattedOutputIsStable_IndentByTwo()
+    {
+        var code = """
+            <MyComponent Show="@_bool1"
+                    String="@("foo " +
+                    "bar " +
+                    "baz")" />
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                <MyComponent Show="@_bool1"
+                             String="@("foo " +
+                        "bar " +
+                        "baz")" />
                 """,
             expected: code,
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo);

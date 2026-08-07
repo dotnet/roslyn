@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -136,7 +136,7 @@ public sealed class CSharpPreviewLanguageFeaturesIntegrationTest_Legacy : Integr
             codeDocument);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -164,7 +164,81 @@ public sealed class CSharpPreviewLanguageFeaturesIntegrationTest_Legacy : Integr
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
+        AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/9856")]
+    public void ExtensionIndexers()
+    {
+        AddCSharpSyntaxTree("""
+            public sealed class TextValue
+            {
+                public TextValue(string value)
+                {
+                    Value = value;
+                }
+
+                public string Value { get; }
+            }
+
+            public static class TextValueExtensions
+            {
+                extension(TextValue value)
+                {
+                    public char this[int index] => value.Value[index];
+                }
+            }
+            """);
+
+        var generated = CompileToCSharp("""
+            @inherits global::LegacyTemplateBase
+
+            @{
+                var value = new TextValue("Razor");
+                _ = value[0];
+            }
+
+            <p>@(new TextValue("Razor")[1])</p>
+            """,
+            path: DefaultLegacyFileName);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false));
+        AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/9875")]
+    public void LabeledBreakAndContinue()
+    {
+        var generated = CompileToCSharp("""
+            @inherits global::LegacyTemplateBase
+
+            @{
+                var count = 0;
+            outer:
+                while (true)
+                {
+                    count++;
+                    <p>Iteration @count</p>
+
+                    if (count == 1)
+                    {
+                        continue outer;
+                    }
+
+                    break outer;
+                }
+            }
+            """,
+            path: DefaultLegacyFileName);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false));
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }

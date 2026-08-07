@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -35,6 +36,45 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
     }
 
     [ConditionalFact(typeof(IsEnglishLocal))]
+    public Task OneProperty_WithMarkup()
+    {
+        return VerifyCodeLensAsync("""
+            @code {
+                public RenderFragment [|{|Position0:|}Property|] => @<div></div>;
+            }
+            """,
+            expectedTitles: ["0 references"]);
+    }
+
+    [ConditionalFact(typeof(IsEnglishLocal))]
+    public Task OneMethod_WithMarkup()
+    {
+        return VerifyCodeLensAsync("""
+            @code {
+                public RenderFragment [|{|Position0:|}Method|]() => @<div></div>;
+            }
+            """,
+            expectedTitles: ["0 references"]);
+    }
+
+    [ConditionalFact(typeof(IsEnglishLocal))]
+    public Task OneMethod_Legacy()
+    {
+        return VerifyCodeLensAsync("""
+            <div></div>
+
+            @functions {
+                public void [|{|Position0:|}Method|]()
+                {
+                    // This is a method
+                }
+            }
+            """,
+            expectedTitles: ["0 references"],
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task TwoMethods()
     {
         return VerifyCodeLensAsync("""
@@ -56,6 +96,28 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
     }
 
     [ConditionalFact(typeof(IsEnglishLocal))]
+    public Task TwoMethods_Legacy()
+    {
+        return VerifyCodeLensAsync("""
+            <div></div>
+
+            @functions {
+                public void [|{|Position0:|}Method|]()
+                {
+                    Method2();
+                }
+
+                public void [|{|Position1:|}Method2|]()
+                {
+                    // This is another method
+                }
+            }
+            """,
+            expectedTitles: ["0 references", "1 reference"],
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task UsageInRazor()
     {
         return VerifyCodeLensAsync("""
@@ -73,9 +135,28 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             expectedTitles: ["1 reference"]);
     }
 
-    private async Task VerifyCodeLensAsync(TestCode input, string[] expectedTitles)
+    [ConditionalFact(typeof(IsEnglishLocal))]
+    public Task UsageInRazor_Legacy()
     {
-        var document = CreateProjectAndRazorDocument(input.Text);
+        return VerifyCodeLensAsync("""
+            <div></div>
+
+            @Method()
+
+            @functions {
+                public string [|{|Position0:|}Method|]()
+                {
+                    return "Hello, World!";
+                }
+            }
+            """,
+            expectedTitles: ["1 reference"],
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    private async Task VerifyCodeLensAsync(TestCode input, string[] expectedTitles, RazorFileKind? fileKind = null)
+    {
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind);
         var inputText = SourceText.From(input.Text);
 
         var endpoint = new CohostCodeLensEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
@@ -89,6 +170,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
         Assert.NotNull(result);
+        Assert.Equal(expectedTitles.Length, result.Length);
         foreach (var (codeLens, i) in result.Select((l, i) => (l, i)))
         {
             Assert.Contains(inputText.GetTextSpan(codeLens.Range), input.Spans);

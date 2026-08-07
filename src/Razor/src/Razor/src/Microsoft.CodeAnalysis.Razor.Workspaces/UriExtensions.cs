@@ -12,11 +12,8 @@ namespace Microsoft.CodeAnalysis.Razor;
 internal static class UriExtensions
 {
     public static Uri GetRequiredSystemUri(this DocumentUri uri)
-        => GetSystemUri(uri).AssumeNotNull();
-
-    public static Uri? GetSystemUri(this DocumentUri uri)
 #pragma warning disable CS0618 // Type or member is obsolete - TODO - tracking issue for Razor URI
-        => uri.ParsedUri;
+        => uri.ParsedUri.AssumeNotNull();
 #pragma warning restore CS0618 // Type or member is obsolete
 
     public static Uri CreateSystemUri(this TextDocument document)

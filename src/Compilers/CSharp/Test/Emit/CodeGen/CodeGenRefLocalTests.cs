@@ -158,6 +158,249 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84548")]
+        public void Reassignment_01()
+        {
+            var source = @"
+class Program
+{
+    static void M(object[] a)
+    {
+        ref object rl = ref a[0];
+        M2(rl = ref a[0]);
+    }
+
+    static void M2(object p1)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyIL("Program.M", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (object& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""object""
+  IL_0008:  stloc.0
+  IL_0009:  ldarg.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldelema    ""object""
+  IL_0010:  dup
+  IL_0011:  stloc.0
+  IL_0012:  ldind.ref
+  IL_0013:  call       ""void Program.M2(object)""
+  IL_0018:  nop
+  IL_0019:  ret
+}
+");
+
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            verifier.VerifyIL("Program.M", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""object""
+  IL_0007:  pop
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldelema    ""object""
+  IL_000f:  ldind.ref
+  IL_0010:  call       ""void Program.M2(object)""
+  IL_0015:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84548")]
+        public void Reassignment_02()
+        {
+            var source = @"
+class Program
+{
+    static void M(object[] a)
+    {
+        ref readonly object rl = ref a[0];
+        M2(rl = ref a[0]);
+    }
+
+    static void M2(object p1)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll, verify: Verification.Fails);
+            verifier.VerifyIL("Program.M", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (object& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  readonly.
+  IL_0005:  ldelema    ""object""
+  IL_000a:  stloc.0
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  readonly.
+  IL_000f:  ldelema    ""object""
+  IL_0014:  dup
+  IL_0015:  stloc.0
+  IL_0016:  ldind.ref
+  IL_0017:  call       ""void Program.M2(object)""
+  IL_001c:  nop
+  IL_001d:  ret
+}
+");
+
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: Verification.Fails);
+            verifier.VerifyIL("Program.M", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (object& V_0) //rl
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""object""
+  IL_0009:  stloc.0
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  readonly.
+  IL_000e:  ldelema    ""object""
+  IL_0013:  dup
+  IL_0014:  stloc.0
+  IL_0015:  ldind.ref
+  IL_0016:  call       ""void Program.M2(object)""
+  IL_001b:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84548")]
+        public void Reassignment_03()
+        {
+            var source = @"
+class Program
+{
+    static void M(object[] a)
+    {
+        ref object rl = ref a[0];
+        M2(ref (rl = ref a[0]));
+    }
+
+    static void M2(ref object p1)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyIL("Program.M", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (object& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""object""
+  IL_0008:  stloc.0
+  IL_0009:  ldarg.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldelema    ""object""
+  IL_0010:  dup
+  IL_0011:  stloc.0
+  IL_0012:  call       ""void Program.M2(ref object)""
+  IL_0017:  nop
+  IL_0018:  ret
+}
+");
+
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            verifier.VerifyIL("Program.M", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""object""
+  IL_0007:  pop
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldelema    ""object""
+  IL_000f:  call       ""void Program.M2(ref object)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84548")]
+        public void Reassignment_04()
+        {
+            var source = @"
+class Program
+{
+    static void M(object[] a)
+    {
+        ref object rl = ref a[0];
+        M2(ref (rl = ref a[0]));
+    }
+
+    static void M2(ref readonly object p1)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyIL("Program.M", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (object& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""object""
+  IL_0008:  stloc.0
+  IL_0009:  ldarg.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldelema    ""object""
+  IL_0010:  dup
+  IL_0011:  stloc.0
+  IL_0012:  call       ""void Program.M2(ref readonly object)""
+  IL_0017:  nop
+  IL_0018:  ret
+}
+");
+
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            verifier.VerifyIL("Program.M", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""object""
+  IL_0007:  pop
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldelema    ""object""
+  IL_000f:  call       ""void Program.M2(ref readonly object)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
         public void ReassignmentWithReorderParameters()
         {
             var verifier = CompileAndVerify(@"

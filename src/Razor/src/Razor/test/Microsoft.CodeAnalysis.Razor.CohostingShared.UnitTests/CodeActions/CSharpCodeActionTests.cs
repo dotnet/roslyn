@@ -46,6 +46,55 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
     }
 
     [Fact]
+    public async Task InvertIf_ExplicitStatement()
+    {
+        var input = """
+            @(booleanValue ?@<br /> : @<br />)
+
+            @{
+                [||]if (true)
+                {
+                    // true
+                }
+                else
+                {
+                    // false
+                }
+            }
+
+            @code
+            {
+                private bool booleanValue = true;
+            }
+            """;
+
+        var expected = """
+            @(booleanValue ?@<br /> : @<br />)
+
+            @{
+                if (false)
+                {
+                    // false
+                }
+                else
+                {
+                    // true
+                }
+            }
+
+            @code
+            {
+                private bool booleanValue = true;
+            }
+            """;
+
+        var advancedSettings = ClientSettingsManager.GetClientSettings().AdvancedSettings;
+        ClientSettingsManager.Update(advancedSettings with { ShowAllCSharpCodeActions = true });
+
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.InvertIf);
+    }
+
+    [Fact]
     public async Task GenerateConstructor()
     {
         var input = """

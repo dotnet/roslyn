@@ -261,6 +261,7 @@
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests/Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj" />
+    <Project Path="src/LanguageServer/roslyn-language-server/roslyn-language-server.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework.Example/Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework.UnitTests/Microsoft.CommonLanguageServerProtocol.Framework.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/Microsoft.CommonLanguageServerProtocol.Framework.Package.csproj" />
@@ -272,7 +273,6 @@
   <Folder Name="/LanguageServer/ExternalAccess/">
     <Project Path="src/LanguageServer/ExternalAccess/CompilerDeveloperSDK/Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/Copilot/Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj" />
-    <Project Path="src/LanguageServer/ExternalAccess/TestDiscovery/Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/Core/Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/VisualDiagnostics/Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/Xaml/Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />

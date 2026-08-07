@@ -52,8 +52,7 @@ internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspa
 
         var fileChangeWatcher = lspServices.GetRequiredService<IFileChangeWatcher>();
         HostProjectFactory = new ProjectSystemProjectFactory(
-            workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { },
-            CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
+            workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { });
         workspace.ProjectSystemProjectFactory = HostProjectFactory;
 
         // https://github.com/dotnet/roslyn/issues/78560: Move this workspace creation to 'FileBasedProgramsWorkspaceProviderFactory'.
@@ -65,8 +64,16 @@ internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspa
         miscellaneousFilesWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(analyzerReferences), WorkspaceChangeKind.SolutionChanged);
 
         MiscellaneousFilesWorkspaceProjectFactory = new ProjectSystemProjectFactory(
-            miscellaneousFilesWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
+            miscellaneousFilesWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { });
         miscellaneousFilesWorkspace.ProjectSystemProjectFactory = MiscellaneousFilesWorkspaceProjectFactory;
+
+        // Register this server's Host and miscellaneous-files workspaces directly with its own registration
+        // service, rather than relying on the process-wide event listener (which, in the standalone server, only
+        // tracks the shared MetadataAsSource workspace). This keeps these per-server workspaces visible only to
+        // this server so concurrent daemon-mode servers stay isolated from one another.
+        var workspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
+        workspaceRegistrationService.Register(workspace);
+        workspaceRegistrationService.Register(miscellaneousFilesWorkspace);
 
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             AnalyzerAssemblyRedirectors: [.. assemblyRedirectors]);

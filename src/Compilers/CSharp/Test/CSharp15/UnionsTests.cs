@@ -4,10 +4,13 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -74,6 +77,7 @@ sealed class C4 : C1
             NamedTypeSymbol s1 = comp.GetTypeByMetadataName("S1");
             Assert.True(s1.IsUnionType);
             Assert.True(s1.GetPublicSymbol().IsUnion);
+            AssertEx.SequenceEqual(["System.Int32"], s1.GetPublicSymbol().UnionCaseTypes.ToTestDisplayStrings());
             Assert.True(comp.GetTypeByMetadataName("C1").IsUnionType);
             Assert.True(comp.GetTypeByMetadataName("C2").IsUnionType);
             Assert.False(comp.GetTypeByMetadataName("C4").IsUnionType);
@@ -81,8 +85,18 @@ sealed class C4 : C1
             NamedTypeSymbol i1 = comp.GetTypeByMetadataName("I1");
             Assert.False(i1.IsUnionType);
             Assert.False(i1.GetPublicSymbol().IsUnion);
+            Assert.Empty(i1.GetPublicSymbol().UnionCaseTypes);
             Assert.False(comp.GetTypeByMetadataName("S2").IsUnionType);
             Assert.False(comp.GetTypeByMetadataName("C3").IsUnionType);
+
+            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard).Concat(comp.EmitToImageReference()));
+            INamedTypeSymbol s1VB = vbComp.GetTypeByMetadataName("S1");
+            Assert.False(s1VB.IsUnion);
+            Assert.Empty(s1VB.UnionCaseTypes);
+
+            INamedTypeSymbol i1VB = vbComp.GetTypeByMetadataName("I1");
+            Assert.False(i1VB.IsUnion);
+            Assert.Empty(i1VB.UnionCaseTypes);
         }
 
         [Fact]
@@ -4233,16 +4247,10 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
-                // (66,26): hidden CS9335: The pattern is redundant.
-                //         return u is not ({ } and int);
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(66, 26)
                 );
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
-                // (66,26): hidden CS9335: The pattern is redundant.
-                //         return u is not ({ } and int);
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(66, 26)
                 );
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
@@ -4264,10 +4272,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "null").WithArguments("unions").WithLocation(61, 25),
                 // (66,34): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return u is not ({ } and int);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("unions").WithLocation(66, 34),
-                // (66,26): hidden CS9335: The pattern is redundant.
-                //         return u is not ({ } and int);
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(66, 26)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("unions").WithLocation(66, 34)
                 );
         }
 
@@ -4600,9 +4605,6 @@ struct S1
                 // (29,16): error CS0165: Use of unassigned local variable 'y'
                 //         return y;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(29, 16),
-                // (44,26): hidden CS9335: The pattern is redundant.
-                //         return u is not (S1 and int);
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "S1").WithLocation(44, 26),
                 // (100,16): error CS0165: Use of unassigned local variable 'y'
                 //         return y;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(100, 16)
@@ -8143,18 +8145,12 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (100,25): hidden CS9335: The pattern is redundant.
-                //         _ = u is C1 and C2;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(100, 25),
                 // (101,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(101, 25),
                 // (103,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u switch { C4 => 1, _ => 0 };
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(103, 24),
-                // (200,25): hidden CS9335: The pattern is redundant.
-                //         _ = u is C1 and C2;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(200, 25),
                 // (201,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(201, 25),
@@ -8223,9 +8219,6 @@ class Program
                 // (403,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
                 //         _ = u switch { byte => 1, _ => 0 };
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(403, 24),
-                // (450,18): hidden CS9335: The pattern is redundant.
-                //         _ = x is System.IComparable and byte;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "System.IComparable").WithLocation(450, 18),
                 // (501,29): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
                 //         _ = u is string and int;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(501, 29),
@@ -8418,12 +8411,6 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (200,18): hidden CS9335: The pattern is redundant.
-                //         _ = u is {} and C2 {};
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(200, 18),
-                // (201,18): hidden CS9335: The pattern is redundant.
-                //         _ = u is {} and C3 {};
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(201, 18),
                 // (202,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is {} and C4 {};
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(202, 25),
@@ -8489,18 +8476,12 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (1000,28): hidden CS9335: The pattern is redundant.
-                //         _ = u is C1 {} and C2;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(1000, 28),
                 // (1001,28): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 {} and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(1001, 28),
                 // (1002,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is {} and C4;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(1002, 25),
-                // (2000,28): hidden CS9335: The pattern is redundant.
-                //         _ = u is C1 {} and C2;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(2000, 28),
                 // (2001,28): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 {} and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(2001, 28),
@@ -8601,12 +8582,6 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (300,18): hidden CS9335: The pattern is redundant.
-                //         _ = u is {} and C2 a;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(300, 18),
-                // (301,18): hidden CS9335: The pattern is redundant.
-                //         _ = u is {} and C3 b;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(301, 18),
                 // (302,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is {} and C4 c;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(302, 25),
@@ -8668,15 +8643,9 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (900,27): hidden CS9335: The pattern is redundant.
-                //         _ = u is C1 a and C2;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(900, 27),
                 // (901,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 b and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(901, 27),
-                // (950,27): hidden CS9335: The pattern is redundant.
-                //         _ = u is C1 a and C2;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(950, 27),
                 // (951,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 b and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(951, 27)
@@ -8778,12 +8747,6 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (700,18): hidden CS9335: The pattern is redundant.
-                //         _ = u is {} and not C5;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(700, 18),
-                // (701,18): hidden CS9335: The pattern is redundant.
-                //         _ = u is {} and not C3;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(701, 18),
                 // (702,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is {} and not C4;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(702, 29),
@@ -9127,9 +9090,6 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (100,18): hidden CS9335: The pattern is redundant.
-                //         _ = u is {} and "1";
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(100, 18),
                 // (100,25): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and "1";
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(100, 25),
@@ -9139,9 +9099,6 @@ class Program
                 // (100,25): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         _ = u is {} and "1";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(100, 25),
-                // (101,18): hidden CS9335: The pattern is redundant.
-                //         _ = u is {} and (C2)null;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(101, 18),
                 // (101,25): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and (C2)null;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(C2)null").WithArguments("S1").WithLocation(101, 25),
@@ -9438,9 +9395,6 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (100,18): hidden CS9335: The pattern is redundant.
-                //         _ = u is {} and > 1;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{}").WithLocation(100, 18),
                 // (100,27): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is {} and > 1;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(100, 27),
@@ -10679,15 +10633,6 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
-                // (100,50): hidden CS9335: The pattern is redundant.
-                //         return u switch { int => 1, string => 2, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 50),
-                // (200,48): hidden CS9335: The pattern is redundant.
-                //         return u switch { int => 1, null => 3, string => 2 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(200, 48),
-                // (300,48): hidden CS9335: The pattern is redundant.
-                //         return u switch { null => 3, int => 1, string => 2 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 48),
                 // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         return u switch { int => 1, string => 2 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
@@ -10708,10 +10653,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(1000, 18),
                 // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         return u switch { not null => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1150, 18),
-                // (1300,42): hidden CS9335: The pattern is redundant.
-                //         return u switch { not null => 3, null => 1 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1300, 42)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1150, 18)
                 );
 
             verifier.VerifyIL("Program.Test1", @"
@@ -10828,15 +10770,6 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,50): hidden CS9335: The pattern is redundant.
-                //         return u switch { int => 1, string => 2, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 50),
-                // (200,48): hidden CS9335: The pattern is redundant.
-                //         return u switch { int => 1, null => 3, string => 2 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(200, 48),
-                // (300,48): hidden CS9335: The pattern is redundant.
-                //         return u switch { null => 3, int => 1, string => 2 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 48),
                 // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         return u switch { int => 1, string => 2 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
@@ -10892,12 +10825,6 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,42): hidden CS9335: The pattern is redundant.
-                //         return u switch { not null => 2, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 42),
-                // (200,42): hidden CS9335: The pattern is redundant.
-                //         return u switch { not null => 2, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(200, 42)
                 );
         }
 
@@ -10953,9 +10880,6 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,63): hidden CS9335: The pattern is redundant.
-                //         return u switch { true => 1, false => 4, string => 2, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 63),
                 // (300,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         return u switch { true => 1, false => 4, string => 2 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 18),
@@ -11038,9 +10962,6 @@ class C2
 ";
             var comp1 = CreateCompilation([src1, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp1, expectedOutput: "1323 -1-3-2-3").VerifyDiagnostics(
-                // (26,50): hidden CS9335: The pattern is redundant.
-                //         return u switch { int => 1, string => 2, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(26, 50),
                 // (46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ Value: null }' is not covered.
                 //         return u switch { null => -4, { Value: int } => -1, { Value: string } => -2, { Value: object } => -3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ Value: null }").WithLocation(46, 18)
@@ -11183,9 +11104,6 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (17,46): hidden CS9335: The pattern is redundant.
-                //         return u switch { int => 1, C1 => 2, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(17, 46)
                 );
         }
 
@@ -11235,15 +11153,9 @@ class Program
                 // (18,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C2' is not covered.
                 //         return u switch { int => 1, I1 => 2, null => 3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C2").WithLocation(18, 18),
-                // (23,55): hidden CS9335: The pattern is redundant.
-                //         return u switch { int => 1, I1 => 2, C2 => 4, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(23, 55),
                 // (28,46): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
                 //         return u switch { int => 1, I1 => 2, C3 => 5, C2 => 4, null => 3 };
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(28, 46),
-                // (33,57): hidden CS9335: The pattern is redundant.
-                //         return u switch { int => 1, I1 => 2, null => 3, C2 => 4 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(33, 57)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(28, 46)
                 );
         }
 
@@ -11449,12 +11361,6 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
-                // (100,40): hidden CS9335: The pattern is redundant.
-                //         return u switch { string => 2, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 40),
-                // (600,38): hidden CS9335: The pattern is redundant.
-                //         return u switch { null => 3, string => 2 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(600, 38)
                 );
         }
 
@@ -11503,12 +11409,6 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
-                // (100,37): hidden CS9335: The pattern is redundant.
-                //         return u switch { int => 1, null => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 37),
-                // (600,38): hidden CS9335: The pattern is redundant.
-                //         return u switch { null => 3, int => 1 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(600, 38)
                 );
         }
 
@@ -11634,15 +11534,6 @@ class Program
 
             var expected = new[]
             {
-                // (100,90): hidden CS9335: The pattern is redundant.
-                //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, S1 { Value: null } => 3, not S1 => -100 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 90),
-                // (200,88): hidden CS9335: The pattern is redundant.
-                //         return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, S1 { Value: string } => 2, not S1 => -100 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(200, 88),
-                // (300,88): hidden CS9335: The pattern is redundant.
-                //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 88),
                 // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'S1{ Value: null }' is not covered.
                 //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("S1{ Value: null }").WithLocation(500, 18),
@@ -11664,15 +11555,6 @@ class Program
                 // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'S1{ Value: null }' is not covered.
                 //         return u switch { S1 { Value: not null } => 1, not S1 => -100 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("S1{ Value: null }").WithLocation(1150, 18),
-                // (1200,68): hidden CS9335: The pattern is redundant.
-                //         return u switch { S1 { Value: null } => 3, S1 { Value: not null } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 68),
-                // (1300,68): hidden CS9335: The pattern is redundant.
-                //         return u switch { S1 { Value: not null } => 3, S1 { Value: null } => 1, not S1 => -100 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1300, 68),
-                // (1400,63): hidden CS9335: The pattern is redundant.
-                //         return u switch { S1 { Value: { } } => 1, S1 { Value: null } => 3, not S1 => -100 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1400, 63)
             };
 
             CompileAndVerify(comp).VerifyDiagnostics(expected);
@@ -11913,15 +11795,6 @@ class Program
 
             var expected = new[]
             {
-                // (100,90): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 90),
-                // (200,88): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(200, 88),
-                // (300,88): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 88),
                 // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
                 //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(500, 18),
@@ -11943,15 +11816,6 @@ class Program
                 // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
                 //         return u switch { { S1.Value: not null } => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(1150, 18),
-                // (1200,68): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 68),
-                // (1300,68): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1300, 68),
-                // (1400,63): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1400, 63)
             };
 
             CompileAndVerify(comp).VerifyDiagnostics(expected);
@@ -12208,15 +12072,6 @@ class Program
 
             var expected = new[]
             {
-                // (100,90): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 90),
-                // (200,88): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(200, 88),
-                // (300,88): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 88),
                 // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
                 //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(500, 18),
@@ -12238,27 +12093,12 @@ class Program
                 // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
                 //         return u switch { { S1.Value: not null } => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(1150, 18),
-                // (1200,68): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 68),
-                // (1300,68): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1300, 68),
-                // (1400,63): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1400, 63),
                 // (1600,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
                 //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(1600, 18),
-                // (1600,90): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1600, 90),
                 // (1700,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
                 //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(1700, 18),
-                // (1700,88): hidden CS9335: The pattern is redundant.
-                //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(1700, 88)
             };
 
             CompileAndVerify(comp).VerifyDiagnostics(expected);
@@ -12572,9 +12412,6 @@ class Program
                 // (900,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         return u switch { not null => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(900, 18),
-                // (1100,42): hidden CS9335: The pattern is redundant.
-                //         return u switch { not null => 3, null => 1 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1100, 42),
                 // (1200,37): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         return u switch { { } => 1, null => 3 };
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "null").WithLocation(1200, 37)
@@ -19921,9 +19758,6 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullAttributeDefinition]);
 
             comp.VerifyDiagnostics(
-                // (300,25): hidden CS9335: The pattern is redundant.
-                //          _ = s switch { I1 and { Value: bool } => s.OtherProp.ToString(), _ => "" };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "I1").WithLocation(300, 25),
                 // (300,51): warning CS8602: Dereference of a possibly null reference.
                 //          _ = s switch { I1 and { Value: bool } => s.OtherProp.ToString(), _ => "" };
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(300, 51)
@@ -21121,9 +20955,6 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (26,23): hidden CS9335: The pattern is redundant.
-                //         if (s is { S: object }) return;
-                Diagnostic(ErrorCode.HDN_RedundantPattern, typeNameSyntax).WithLocation(26, 23),
                 // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(200, 9)
@@ -23874,9 +23705,6 @@ class Program
                 // (200,33): warning CS8602: Dereference of a possibly null reference.
                 //          _ = s switch { bool => s.OtherProp.ToString(), _ => "" };
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(200, 33),
-                // (300,25): hidden CS9335: The pattern is redundant.
-                //          _ = s switch { I1 and { Value: bool } => s.OtherProp.ToString(), _ => "" };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "I1").WithLocation(300, 25),
                 // (300,51): warning CS8602: Dereference of a possibly null reference.
                 //          _ = s switch { I1 and { Value: bool } => s.OtherProp.ToString(), _ => "" };
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(300, 51)
@@ -40055,7 +39883,7 @@ class Program
             CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
         }
 
-        [Theory(Skip = "There is metadata vs. source difference for this scenario")] // https://github.com/dotnet/roslyn/issues/82636
+        [Theory]
         [CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/82636")]
         public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_37_ImplicitReferenceConversion_Determinism(
@@ -57702,10 +57530,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1{ Value: int }").WithLocation(300, 18),
                 // (400,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1' is not covered.
                 //         return u switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1").WithLocation(400, 18),
-                // (503,37): hidden CS9335: The pattern is redundant.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(503, 37)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1").WithLocation(400, 18)
                 );
 
             var src4 = @"
@@ -57763,12 +57588,6 @@ class Program
 forLowering: true);
 
             comp.VerifyDiagnostics(
-                // (9,13): hidden CS9335: The pattern is redundant.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C1 and I1 and { Value1: true }").WithLocation(9, 13),
-                // (9,37): hidden CS9335: The pattern is redundant.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(9, 37)
                 );
 
             var src6 = @"
@@ -57803,12 +57622,6 @@ class Program
 forLowering: true);
 
             comp.VerifyDiagnostics(
-                // (9,13): hidden CS9335: The pattern is redundant.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C1 and I1 and { Value1: true }").WithLocation(9, 13),
-                // (9,37): hidden CS9335: The pattern is redundant.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(9, 37)
                 );
 
             var src7 = @"
@@ -57852,9 +57665,6 @@ class Program
 forLowering: true);
 
             comp.VerifyDiagnostics(
-                // (10,37): hidden CS9335: The pattern is redundant.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(10, 37)
                 );
 
             var src8 = @"
@@ -57891,12 +57701,6 @@ class Program
 forLowering: true);
 
             comp.VerifyDiagnostics(
-                // (10,13): hidden CS9335: The pattern is redundant.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C1 and I1 and { Value1: true }").WithLocation(10, 13),
-                // (10,37): hidden CS9335: The pattern is redundant.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(10, 37)
                 );
 
             var src9 = @"
@@ -57937,12 +57741,6 @@ class Program
 forLowering: true);
 
             comp.VerifyDiagnostics(
-                // (10,13): hidden CS9335: The pattern is redundant.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C1 and I1 and { Value1: true }").WithLocation(10, 13),
-                // (10,37): hidden CS9335: The pattern is redundant.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(10, 37)
                 );
         }
 
@@ -59036,9 +58834,6 @@ class Program
 forLowering: false);
 
             comp.VerifyEmitDiagnostics(
-                // (13,13): hidden CS9335: The pattern is redundant.
-                //             null => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(13, 13)
                 );
         }
 
@@ -59108,9 +58903,6 @@ class Program
 forLowering: false);
 
             comp.VerifyEmitDiagnostics(
-                // (13,13): hidden CS9335: The pattern is redundant.
-                //             null => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(13, 13)
                 );
         }
 
@@ -59184,9 +58976,6 @@ class Program
 forLowering: false);
 
             comp.VerifyEmitDiagnostics(
-                // (13,13): hidden CS9335: The pattern is redundant.
-                //             null => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(13, 13)
                 );
         }
 
@@ -59256,9 +59045,6 @@ class Program
 forLowering: false);
 
             comp.VerifyEmitDiagnostics(
-                // (13,13): hidden CS9335: The pattern is redundant.
-                //             null => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(13, 13)
                 );
         }
 
@@ -59328,9 +59114,6 @@ class Program
 forLowering: false);
 
             comp.VerifyEmitDiagnostics(
-                // (13,13): hidden CS9335: The pattern is redundant.
-                //             null => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(13, 13)
                 );
         }
 
@@ -59387,10 +59170,7 @@ forLowering: false);
             comp.VerifyEmitDiagnostics(
                 // (100,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 18),
-                // (400,13): hidden CS9335: The pattern is redundant.
-                //             X => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "X").WithLocation(400, 13)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 18)
                 );
 
             var source3 = @"
@@ -60984,6 +60764,286 @@ class Program
                 //         return u switch { I1 (_, _) and var i1 => true, _ => false };
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(53, 45)
                 );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84570")]
+        public void AnalyzerActions_01()
+        {
+            var comp0 = CreateCompilation([UnionAttributeSource, IUnionSource]);
+
+            var text1 = @"
+public union TestUnion(string, int)
+{
+    private int _f;
+
+    public void TestMethod(long x)
+    {
+    }
+}
+";
+
+            var analyzer = new AnalyzerActions_01_Analyzer();
+            var comp1 = CreateCompilation(text1, references: [comp0.ToMetadataReference()]);
+            comp1.GetAnalyzerDiagnostics([analyzer], null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4_1);
+            Assert.Equal(1, analyzer.FireCount4_2);
+            Assert.Equal(0, analyzer.FireCount4_3);
+            Assert.Equal(1, analyzer.FireCount5_1);
+            Assert.Equal(1, analyzer.FireCount5_2);
+            Assert.Equal(1, analyzer.FireCount5_3);
+            Assert.Equal(0, analyzer.FireCount5_4);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount8);
+            Assert.Equal(0, analyzer.FireCount9);
+            Assert.Equal(1, analyzer.FireCount10);
+            Assert.Equal(1, analyzer.FireCount11);
+            Assert.Equal(1, analyzer.FireCount12);
+            Assert.Equal(1, analyzer.FireCount13);
+            Assert.Equal(1, analyzer.FireCount14);
+            Assert.Equal(1, analyzer.FireCount15);
+            Assert.Equal(0, analyzer.FireCount16);
+            Assert.Equal(1, analyzer.FireCount17);
+            Assert.Equal(1, analyzer.FireCount18);
+            Assert.Equal(0, analyzer.FireCount19);
+            Assert.Equal(1, analyzer.FireCount20);
+            Assert.Equal(0, analyzer.FireCount21);
+            Assert.Equal(1, analyzer.FireCount22);
+        }
+
+        private class AnalyzerActions_01_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4_1;
+            public int FireCount4_2;
+            public int FireCount4_3;
+            public int FireCount5_1;
+            public int FireCount5_2;
+            public int FireCount5_3;
+            public int FireCount5_4;
+            public int FireCount6;
+            public int FireCount7;
+            public int FireCount8;
+            public int FireCount9;
+            public int FireCount10;
+            public int FireCount11;
+            public int FireCount12;
+            public int FireCount13;
+            public int FireCount14;
+            public int FireCount15;
+            public int FireCount16;
+            public int FireCount17;
+            public int FireCount18;
+            public int FireCount19;
+            public int FireCount20;
+            public int FireCount21;
+            public int FireCount22;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(Handle1, SyntaxKind.UnionDeclaration);
+                context.RegisterSyntaxNodeAction(Handle2, SyntaxKind.FieldDeclaration);
+                context.RegisterSyntaxNodeAction(Handle3, SyntaxKind.MethodDeclaration);
+                context.RegisterSyntaxNodeAction(Handle4, SyntaxKind.ParameterList);
+                context.RegisterSyntaxNodeAction(Handle5, SyntaxKind.Parameter);
+
+                context.RegisterCodeBlockAction(Handle6);
+                context.RegisterCodeBlockStartAction<SyntaxKind>(Handle7);
+
+                context.RegisterOperationAction(Handle9, OperationKind.ConstructorBody);
+                context.RegisterOperationBlockAction(Handle10);
+                context.RegisterOperationBlockStartAction(Handle11);
+
+                context.RegisterSymbolAction(Handle12, SymbolKind.NamedType);
+                context.RegisterSymbolAction(Handle13, SymbolKind.Method);
+                context.RegisterSymbolAction(Handle14, SymbolKind.Parameter);
+                context.RegisterSymbolAction(Handle15, SymbolKind.Field);
+                context.RegisterSymbolAction(Handle16, SymbolKind.Property);
+
+                context.RegisterSymbolStartAction(Handle17, SymbolKind.NamedType);
+                context.RegisterSymbolStartAction(Handle18, SymbolKind.Method);
+                context.RegisterSymbolStartAction(Handle19, SymbolKind.Parameter);
+                context.RegisterSymbolStartAction(Handle20, SymbolKind.Field);
+                context.RegisterSymbolStartAction(Handle21, SymbolKind.Property);
+            }
+
+            protected void Handle1(SyntaxNodeAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount1);
+                Assert.IsType<UnionDeclarationSyntax>(context.Node);
+                Assert.Equal("TestUnion", context.ContainingSymbol.ToTestDisplayString());
+            }
+
+            protected void Handle2(SyntaxNodeAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount2);
+                Assert.IsType<FieldDeclarationSyntax>(context.Node);
+                Assert.Equal("System.Int32 TestUnion._f", context.ContainingSymbol.ToTestDisplayString());
+            }
+
+            protected void Handle3(SyntaxNodeAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount3);
+                Assert.IsType<MethodDeclarationSyntax>(context.Node);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.ContainingSymbol.ToTestDisplayString());
+            }
+
+            protected void Handle4(SyntaxNodeAnalysisContext context)
+            {
+                switch (context.Node.Parent.Kind())
+                {
+                    case SyntaxKind.UnionDeclaration:
+                        Interlocked.Increment(ref FireCount4_1);
+                        Assert.Equal("TestUnion", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case SyntaxKind.MethodDeclaration:
+                        Interlocked.Increment(ref FireCount4_2);
+                        Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    default:
+                        Interlocked.Increment(ref FireCount4_3);
+                        break;
+                }
+            }
+
+            protected void Handle5(SyntaxNodeAnalysisContext context)
+            {
+                switch (context.Node.ToString())
+                {
+                    case "string":
+                        Interlocked.Increment(ref FireCount5_1);
+                        Assert.Equal("TestUnion", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "int":
+                        Interlocked.Increment(ref FireCount5_2);
+                        Assert.Equal("TestUnion", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "long x":
+                        Interlocked.Increment(ref FireCount5_3);
+                        Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    default:
+                        Interlocked.Increment(ref FireCount5_4);
+                        break;
+                }
+            }
+
+            private void Handle6(CodeBlockAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount6);
+                Assert.IsType<MethodDeclarationSyntax>(context.CodeBlock);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.OwningSymbol.ToTestDisplayString());
+            }
+
+            private void Handle7(CodeBlockStartAnalysisContext<SyntaxKind> context)
+            {
+                Interlocked.Increment(ref FireCount7);
+                Assert.IsType<MethodDeclarationSyntax>(context.CodeBlock);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.OwningSymbol.ToTestDisplayString());
+
+                context.RegisterCodeBlockEndAction(Handle8);
+            }
+
+            private void Handle8(CodeBlockAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount8);
+                Assert.IsType<MethodDeclarationSyntax>(context.CodeBlock);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.OwningSymbol.ToTestDisplayString());
+            }
+
+            protected void Handle9(OperationAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount9);
+            }
+
+            private void Handle10(OperationBlockAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount10);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.OwningSymbol.ToTestDisplayString());
+            }
+
+            private void Handle11(OperationBlockStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount11);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.OwningSymbol.ToTestDisplayString());
+            }
+
+            private void Handle12(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount12);
+                Assert.Equal("TestUnion", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle13(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount13);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle14(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount14);
+                Assert.Equal("System.Int64 x", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle15(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount15);
+                Assert.Equal("System.Int32 TestUnion._f", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle16(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount16);
+            }
+
+            private void Handle17(SymbolStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount17);
+                Assert.Equal("TestUnion", context.Symbol.ToTestDisplayString());
+                context.RegisterSymbolEndAction(Handle22);
+            }
+
+            private void Handle18(SymbolStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount18);
+                Assert.Equal("void TestUnion.TestMethod(System.Int64 x)", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle19(SymbolStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount19);
+            }
+
+            private void Handle20(SymbolStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount20);
+                Assert.Equal("System.Int32 TestUnion._f", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle21(SymbolStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount21);
+            }
+
+            private void Handle22(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount22);
+                Assert.Equal("TestUnion", context.Symbol.ToTestDisplayString());
+            }
         }
     }
 }

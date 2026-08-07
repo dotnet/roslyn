@@ -19,3 +19,11 @@ Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
   (Cohosting architecture).
 - Integration tests using `AdditionalSyntaxTrees` for tag helper discovery must
   set `UseTwoPhaseCompilation => true` (see `ComponentDiscoveryIntegrationTest`).
+- Regenerate baseline-backed compiler tests with a targeted test filter and
+  `/p:GenerateBaselines=true` on one CoreCLR target framework, then rerun the
+  tests normally. Two-phase tests can produce `.decl.codegen.cs` and
+  `.decl.mappings.txt` in addition to implementation and component
+  `.builder.txt` baselines.
+- After Razor compiler tests or their `TestFiles` change, run the complete
+  affected test project. A successful build does not validate embedded
+  baseline resources.

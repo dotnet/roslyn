@@ -16,39 +16,39 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Configuration" Version="10.0.1">
+    <Dependency Name="Microsoft.Extensions.Configuration" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.DependencyInjection" Version="10.0.1">
+    <Dependency Name="Microsoft.Extensions.DependencyInjection" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.1">
+    <Dependency Name="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="10.0.1">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1">
+    <Dependency Name="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging.Console" Version="10.0.1">
+    <Dependency Name="Microsoft.Extensions.Logging.Console" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Options.ConfigurationExtension" Version="10.0.1">
+    <Dependency Name="Microsoft.Extensions.Options.ConfigurationExtension" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Options" Version="10.0.1">
+    <Dependency Name="Microsoft.Extensions.Options" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Primitives" Version="10.0.1">
+    <Dependency Name="Microsoft.Extensions.Primitives" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
@@ -64,7 +64,7 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.IO.Hashing" Version="10.0.1">
+    <Dependency Name="System.IO.Hashing" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
@@ -72,7 +72,7 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Resources.Extensions" Version="10.0.1">
+    <Dependency Name="System.Resources.Extensions" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
@@ -93,35 +93,35 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Configuration.ConfigurationManager" Version="10.0.1">
+    <Dependency Name="System.Configuration.ConfigurationManager" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Diagnostics.EventLog" Version="10.0.1">
+    <Dependency Name="System.Diagnostics.EventLog" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Security.Cryptography.ProtectedData" Version="10.0.1">
+    <Dependency Name="System.Security.Cryptography.ProtectedData" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Security.Permissions" Version="10.0.1">
+    <Dependency Name="System.Security.Permissions" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Windows.Extensions" Version="10.0.1">
+    <Dependency Name="System.Windows.Extensions" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.26371.2">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.26379.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>c38c50f518aac7fac47ca488c42c7176d40e695c</Sha>
+      <Sha>c5d54a9de6e0e20a85e37fa3576a37235276772b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="10.0.0-beta.26371.2">
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="10.0.0-beta.26379.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>c38c50f518aac7fac47ca488c42c7176d40e695c</Sha>
+      <Sha>c5d54a9de6e0e20a85e37fa3576a37235276772b</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DiaSymReader" Version="2.0.0">
       <Uri>https://github.com/dotnet/symreader</Uri>
@@ -131,9 +131,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>3d32d464e2949f054086fbb5346e4beea0c6df56</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.26371.2">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="10.0.0-beta.26379.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>c38c50f518aac7fac47ca488c42c7176d40e695c</Sha>
+      <Sha>c5d54a9de6e0e20a85e37fa3576a37235276772b</Sha>
     </Dependency>
     <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
          artifacts and flow in as dependencies of the packages produced by roslyn. -->

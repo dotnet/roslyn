@@ -13,20 +13,3 @@ Source Location: (99:1,55 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1361:38,0 [13] )
 |ParentBgColor|
 
-Source Location: (126:2,7 [130] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    public string ParentBgColor { get; set; } = "#FFFFFF";
-
-    public void OnComponentHover(MouseEventArgs e)
-    {
-    }
-|
-Generated Location: (1617:49,0 [130] )
-|
-    public string ParentBgColor { get; set; } = "#FFFFFF";
-
-    public void OnComponentHover(MouseEventArgs e)
-    {
-    }
-|
-

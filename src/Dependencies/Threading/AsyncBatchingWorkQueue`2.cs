@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Threading;
 /// processing happen serially, only starting up after a previous round has completed.
 /// <para>
 /// Failure to complete a particular batch (either due to cancellation or some faulting error) will not prevent
-/// further batches from executing. The only thing that will permenantly stop this queue from processing items is if
-/// the <see cref="CancellationToken"/> passed to the constructor switches to <see
-/// cref="CancellationToken.IsCancellationRequested"/>.
+/// further batches from executing. The only thing that will permanently stop this queue from processing items is
+/// calling <see cref="Dispose()"/>, or cancelling the <see cref="CancellationToken"/> passed to the constructor,
+/// which is equivalent.
 /// </para>
 /// </summary>
 internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
@@ -46,9 +46,10 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
 
     /// <summary>
     /// Cancellation token controlling the entire queue.  Once this is triggered, we don't want to do any more work
-    /// at all.
+    /// at all. This is cancelled by a call to <see cref="Dispose()"/>; the IsCancellationRequested flag of this token
+    /// can be used as the "is disposed" flag for this object.
     /// </summary>
-    private readonly CancellationToken _entireQueueCancellationToken;
+    private readonly CancellationTokenSource _entireQueueCancellationTokenSource;
 
     /// <summary>
     /// Cancellation series we use so we can cancel individual batches of work if requested.  The client of the
@@ -58,6 +59,11 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
     /// allowing the client callback to cooperatively cancel the current batch of work it is performing.
     /// </summary>
     private readonly CancellationSeries _cancellationSeries;
+
+    /// <summary>
+    /// If our constructor was given a CancellationToken, the registration against that token to call Dispose().
+    /// </summary>
+    private readonly CancellationTokenRegistration _externalCancellationTokenRegistration;
 
     #region protected by lock
 
@@ -107,23 +113,44 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
         Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
         IEqualityComparer<TItem>? equalityComparer,
         IAsynchronousOperationListener asyncListener,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         _delay = delay;
         _processBatchAsync = processBatchAsync;
         _equalityComparer = equalityComparer;
         _asyncListener = asyncListener;
-        _entireQueueCancellationToken = cancellationToken;
+        _entireQueueCancellationTokenSource = new CancellationTokenSource();
 
         _uniqueItems = new SegmentedHashSet<TItem>(equalityComparer);
 
         // Combine with the queue cancellation token so that any batch is controlled by that token as well.
-        _cancellationSeries = new CancellationSeries(_entireQueueCancellationToken);
+        _cancellationSeries = new CancellationSeries(_entireQueueCancellationTokenSource.Token);
         CancelExistingWork();
+
+        // As a convenience, if we were given a cancellation token, this should be equivalent to calling Dispose().
+        // We don't link _entireQueueCancellationTokenSource to this, since we want to ensure the Dispose() also cleans up any
+        // queued items that were in our lists.
+        _externalCancellationTokenRegistration = cancellationToken.Register(static @this => ((AsyncBatchingWorkQueue<TItem, TResult>)@this!).Dispose(), this);
     }
 
     public void Dispose()
     {
+        lock (_gate)
+        {
+            // If we've previously disposed, we don't need to do anything further
+            if (_entireQueueCancellationTokenSource.IsCancellationRequested)
+                return;
+
+            // Cancel all work in the queue; this .Cancel() should stop the work, but we'll call CancelExistingWork() too to ensure
+            // we've cleared out all items that haven't ran.
+            CancelExistingWork();
+            _entireQueueCancellationTokenSource.Cancel();
+        }
+
+        // This must be done outside of the lock: disposing a registration blocks if the registered callback is currently running.
+        // If we did this inside the lock, the callback might be blocked waiting for a call to Dispose() to release the lock, but the
+        // caller of Dispose() would be blocked on that registration. If we could drop netstandard support, we could just call Unregister() instead.
+        _externalCancellationTokenRegistration.Dispose();
         _cancellationSeries.Dispose();
     }
 
@@ -135,6 +162,10 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
     {
         lock (_gate)
         {
+            // If we've previously disposed, we don't need to do anything further
+            if (_entireQueueCancellationTokenSource.IsCancellationRequested)
+                return;
+
             // Cancel out the current executing batch, and create a new token for the next batch.
             _nextBatchCancellationToken = _cancellationSeries.CreateNext();
 
@@ -151,12 +182,12 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
 
     public void AddWork(ReadOnlySpan<TItem> items, bool cancelExistingWork = false)
     {
-        // Don't do any more work if we've been asked to shutdown.
-        if (_entireQueueCancellationToken.IsCancellationRequested)
-            return;
-
         lock (_gate)
         {
+            // Don't do any more work if we've been asked to shutdown.
+            if (_entireQueueCancellationTokenSource.IsCancellationRequested)
+                return;
+
             // if we were asked to cancel the prior set of items, do so now.
             if (cancelExistingWork)
                 CancelExistingWork();
@@ -203,7 +234,7 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
             await lastTask.NoThrowAwaitableInternal(captureContext: false);
 
             // If we were asked to shutdown, immediately transition to the canceled state without doing any more work.
-            if (_entireQueueCancellationToken.IsCancellationRequested)
+            if (_entireQueueCancellationTokenSource.IsCancellationRequested)
                 return (ranToCompletion: false, default(TResult?));
 
             // Ensure that we always yield the current thread this is necessary for correctness as we are called
@@ -211,10 +242,10 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
             // must be on another thread that runs afterwards, can only grab the thread once we release it and will
             // then reset that bool back to false
             await Task.Yield().ConfigureAwait(false);
-            await _asyncListener.Delay(_delay, _entireQueueCancellationToken).NoThrowAwaitableInternal(false);
+            await _asyncListener.Delay(_delay, _entireQueueCancellationTokenSource.Token).NoThrowAwaitableInternal(false);
 
             // If we were asked to shutdown, immediately transition to the canceled state without doing any more work.
-            if (_entireQueueCancellationToken.IsCancellationRequested)
+            if (_entireQueueCancellationTokenSource.IsCancellationRequested)
                 return (ranToCompletion: false, default(TResult?));
 
             return (ranToCompletion: true, await ProcessNextBatchAsync().ConfigureAwait(false));
@@ -237,8 +268,8 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
         var (ranToCompletion, result) = await updateTask.ConfigureAwait(false);
         if (!ranToCompletion)
         {
-            Debug.Assert(_entireQueueCancellationToken.IsCancellationRequested);
-            _entireQueueCancellationToken.ThrowIfCancellationRequested();
+            Debug.Assert(_entireQueueCancellationTokenSource.IsCancellationRequested);
+            _entireQueueCancellationTokenSource.Token.ThrowIfCancellationRequested();
         }
 
         return result;
@@ -246,7 +277,7 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
 
     private async ValueTask<TResult?> ProcessNextBatchAsync()
     {
-        _entireQueueCancellationToken.ThrowIfCancellationRequested();
+        _entireQueueCancellationTokenSource.Token.ThrowIfCancellationRequested();
         try
         {
             var (nextBatch, batchCancellationToken) = GetNextBatchAndResetQueue();
@@ -259,7 +290,7 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
             await batchResultTask.NoThrowAwaitableInternal(false);
             if (batchResultTask.IsCompletedSuccessfully)
                 return batchResultTask.Result;
-            else if (batchResultTask.IsCanceled && !_entireQueueCancellationToken.IsCancellationRequested)
+            else if (batchResultTask.IsCanceled && !_entireQueueCancellationTokenSource.IsCancellationRequested)
             {
                 // Don't bubble up cancellation to the queue for the nested batch cancellation.  Just because we decided
                 // to cancel this batch isn't something that should stop processing further batches.
