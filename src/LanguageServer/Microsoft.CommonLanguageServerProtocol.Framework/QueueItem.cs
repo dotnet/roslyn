@@ -90,7 +90,7 @@ internal sealed class QueueItem<TRequestContext>
         return (queueItem, queueItem._completionSource.Task);
     }
 
-    public async Task<(TRequestContext, TRequest)?> CreateRequestContextAsync<TRequest>(IMethodHandler handler, RequestHandlerMetadata requestHandlerMetadata, AbstractLanguageServer<TRequestContext> languageServer, CancellationToken cancellationToken)
+    public async Task<(RequestContextInfo<TRequestContext>, TRequest)?> CreateRequestContextAsync<TRequest>(IMethodHandler handler, RequestHandlerMetadata requestHandlerMetadata, AbstractLanguageServer<TRequestContext> languageServer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -106,8 +106,8 @@ internal sealed class QueueItem<TRequestContext>
         }
 
         var requestContextFactory = LspServices.GetRequiredService<AbstractRequestContextFactory<TRequestContext>>();
-        var context = await requestContextFactory.CreateRequestContextAsync(this, handler, deserializedRequest, cancellationToken).ConfigureAwait(false);
-        return (context, deserializedRequest);
+        var contextInfo = await requestContextFactory.CreateRequestContextAsync(this, handler, deserializedRequest, cancellationToken).ConfigureAwait(false);
+        return (contextInfo, deserializedRequest);
     }
 
     /// <summary>
@@ -165,15 +165,20 @@ internal sealed class QueueItem<TRequestContext>
     /// representing the task that the client is waiting for, then re-thrown so that
     /// the queue can correctly handle them depending on the type of request.
     /// </summary>
-    public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, CancellationToken cancellationToken)
+    public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, RequestContextInfo<TRequestContext> requestContextInfo, IMethodHandler handler, CancellationToken cancellationToken)
     {
-        _requestHandlingStarted = true;
-
-        _logger.LogDebug("Starting request handler");
-
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            var context = requestContextInfo.PrepareContextAsync is null
+                ? requestContextInfo.Context
+                : await requestContextInfo.PrepareContextAsync(cancellationToken).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _requestHandlingStarted = true;
+            _logger.LogDebug("Starting request handler");
 
             if (context is null)
             {

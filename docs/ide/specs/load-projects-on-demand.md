@@ -4,453 +4,363 @@ Status: Draft
 
 ## Summary
 
-This document proposes a Roslyn LSP feature that defers full project loading until a request needs project-backed semantics, while still performing a cheap upfront scan of workspace folders for `.csproj` files. This should be the default behavior for the standalone language server.
+The standalone Roslyn LSP server can defer project loading until a file is opened or a document request prefers project-backed semantics. The design has four key properties:
 
-The design is intentionally different from the current standalone LSP behavior, which either:
+- project discovery is demand-driven and walks only the requested file's ancestors,
+- opening a document starts loading without waiting for a design-time build,
+- requests can wait for a preferred level of project context without blocking the global LSP request queue, and
+- explicit, eager, and on-demand callers share one canonical load operation per project path.
 
-- eagerly auto-loads a solution or all discovered projects at startup, or
-- leaves unopened projects invisible and serves files through the miscellaneous-files workspace.
-
-The proposal is also intentionally different from a pure OmniSharp clone. Instead of starting from a fully empty project model and discovering projects only when a file is touched, Roslyn will build a lightweight project index up front, then use that index to materialize projects on demand.
-
-This is a hybrid approach:
-
-- startup work is bounded to file-system enumeration and cache updates,
-- first-touch latency is reduced because candidate projects are already known,
-- Roslyn can preserve richer project-context behavior than a pure directory walk,
-- the implementation can reuse existing Roslyn LSP building blocks such as primordial projects, miscellaneous-file fallback, and explicit project loading,
-- eager project loading remains available as an opt-in path for `AutoLoadProjects` and explicit client-open scenarios.
+The feature is enabled by default through `dotnet_load_on_demand`. It is disabled when Dev Kit owns the project system.
 
 ## Motivation
 
-Large repositories pay a meaningful startup cost when Roslyn LSP discovers and fully loads every `.csproj` under the workspace or every project in a solution. Users who open a large monorepo often need only one or two projects during a session.
+The standalone server can currently load a solution or recursively discover and load projects at startup. That scales poorly for large repositories when a session uses only a small subset of their projects.
 
-OmniSharp's `LoadProjectsOnDemand` feature addresses this by delaying project loads until a file is actually used. That improves startup time and reduces initial memory use, but its discovery model is tightly coupled to OmniSharp's workspace and request pipeline.
-
-Roslyn LSP already has several primitives that make a different, more Roslyn-native design attractive:
-
-- explicit `solution/open` and `project/open` loading paths,
-- a host workspace and a miscellaneous-files workspace,
-- a primordial-to-fully-loaded project transition in `LanguageServerProjectLoader`,
-- an existing file-system traversal and caching implementation for file-based-app discovery.
-
-The goal of this proposal is to combine those primitives into an implementation that improves startup scalability without regressing correctness for project-backed features.
+Deferring design-time builds reduces startup work and memory. The first request that needs an unloaded project may take longer, but unrelated LSP requests must remain responsive while that load is in progress.
 
 ## Goals
 
-- Avoid full design-time loading of all projects at server startup.
-- Perform an upfront scan of workspace folders for `.csproj` files.
-- Reuse as much of the existing file-based-app discovery infrastructure as is practical.
-- Load projects when a document or feature first requires project-backed semantics.
-- Preserve current behavior for transitive project references once a root project is loaded.
-- Keep loose-file and miscellaneous-file behavior working for files that do not belong to any discovered project.
-- Fit the existing Roslyn LSP architecture for standalone LSP without requiring immediate Dev Kit changes.
+- Avoid recursively scanning workspace folders at startup.
+- Avoid loading unrelated projects before they are needed.
+- Start likely project loads when documents are opened.
+- Give document handlers a declarative way to request project-context completeness.
+- Preserve request ordering and request-time tracked text.
+- Avoid blocking unrelated requests while project loading is in progress.
+- Deduplicate project loading across every loading entry point.
+- Load transitive project references when a request prefers project-and-dependency context.
+- Preserve miscellaneous-file fallback when discovery or loading cannot provide the preferred context.
+- Organize document resolution in `LspWorkspaceManager` as a small provider pipeline.
 
 ## Non-Goals
 
 - Replacing the Dev Kit project system.
-- Fully solving multi-solution and multi-project ambiguity in the first iteration.
-- Eagerly determining exact document membership for every source file at startup.
-- Loading analyzers, generators, or full compilation state during the startup scan.
-- Changing the file-based-app classification algorithm.
+- Discovering projects outside configured workspace folders.
+- Proving exact source-file membership before evaluating a project.
+- Discovering reverse project dependencies.
+- Loading every project under a workspace folder for ordinary workspace requests.
+- Adding project-load prioritization in this change. The work queue is being enhanced separately.
+- Adding a persistent project-discovery cache.
+- Changing file-based-program discovery.
+- Adding new user-facing project-load failure notifications.
 
-## Current State
+## Configuration And Applicability
 
-### Standalone Roslyn LSP
+`LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand` uses the `dotnet_load_on_demand` option and defaults to `true`.
 
-At startup, `AutoLoadProjectsInitializer` may:
+The option is checked centrally when an on-demand operation is initiated:
 
-- load a configured solution,
-- load a single solution found at the workspace root, or
-- recursively enumerate `.csproj` files in workspace folders and fully load them.
+- when enabled, document open and preferred-context requests may discover and load projects,
+- when disabled, callers immediately continue with the currently available context,
+- explicit project and solution loading are unaffected, and
+- Dev Kit disables the feature even when the option is enabled.
 
-This is simple, but it scales poorly in large repositories because project enumeration is followed by design-time loading of every discovered project.
+Automatic or explicit loading does not disable on-demand behavior. On-demand loading joins projects already being loaded and fills gaps outside the explicitly loaded set.
 
-### File-Based Apps
+## Context Preference Model
 
-`FileBasedProgramsEntryPointDiscovery` already walks workspace folders using a custom file-system visitor. Important characteristics of that implementation:
+`ISolutionRequiredHandler` exposes an `LspSolutionContextPreference` property. The initial enum contains:
 
-- it skips well-known ignored directories,
-- it maintains a persistent discovery cache,
-- it records directories containing `.csproj`,
-- it avoids descending into a subtree once a `.csproj` is found,
-- it is optimized for repeated startup scans.
+- `NoPreference`
+- `Project`
+- `ProjectAndDependencies`
+- `Workspace`
 
-This is the closest existing Roslyn LSP infrastructure to the desired upfront `.csproj` scan.
+Reverse-dependant completeness is not represented until it can be implemented correctly.
 
-### Document Resolution
+The interface default is `ProjectAndDependencies`. Context creation normalizes the preference to `NoPreference` when the handler does not require an LSP solution or the request has no document identifier.
 
-When an LSP request needs a document, `LspWorkspaceManager` searches the registered workspaces. If no project-backed document is found, Roslyn may serve the file from the miscellaneous-files workspace instead.
+Mutating handlers must explicitly declare `NoPreference`. Context creation validates this requirement because mutating handlers cannot wait outside serialized execution safely. `didOpen` is one such handler.
 
-That fallback is useful today, but it means a file that really belongs to a project may initially be treated as loose until the project is loaded through some other path.
+Individual handlers can later use less or more expensive preferences based on correctness and latency data. The initial implementation intentionally establishes one default rather than tuning every handler in the same change.
 
-## Proposed User Experience
+### Preference Semantics
 
-When the feature is enabled:
+`NoPreference` uses the context immediately available when the request is ordered.
 
-1. On initialization, Roslyn scans workspace folders for `.csproj` files and builds a lightweight discovery index.
-2. Roslyn does not run design-time builds for those projects at startup.
-3. If the user opens or requests a file that belongs to one of the indexed projects, Roslyn loads that project on demand.
-4. Roslyn also loads transitive project references using the existing project-loading pipeline.
-5. Once a project is loaded, project-backed features behave as they do today.
-6. If no indexed project plausibly owns the file, Roslyn continues to use miscellaneous-file behavior.
+`Project` waits for at least one evaluated target for the containing project to be committed to the host workspace. A primordial project does not satisfy this preference.
 
-The expected tradeoff is:
+`ProjectAndDependencies` waits for the selected project and its transitive project-reference closure to settle. Supported absolute project references can be loaded even when they are outside the workspace folder that bounded initial discovery.
 
-- much lower startup cost,
-- slightly higher latency on the first project-backed request for a file in an unloaded project,
-- significantly better first-touch behavior than pure reactive discovery because the project candidates are already indexed.
+`Workspace` waits for a snapshot of projects associated with explicit solution and project open operations known when the request is ordered. It does not discover every project under workspace folders. A document-scoped workspace request still selects its requested document after waiting.
 
-## Configuration
+Preferences mean "wait, then fall back," not "wait or fail." Project-load failures use existing logging and toast policy, after which the request receives the best context available.
 
-Add a new client-side setting, conceptually:
+### Achieved Completeness
 
-- `dotnet.loadProjectsOnDemand`
+`RequestContext` exposes a separate `LspSolutionContextCompleteness` property with these values:
 
-Behavior:
+- `NotEvaluated`
+- `None`
+- `Miscellaneous`
+- `Project`
+- `ProjectAndDependencies`
+- `Workspace`
 
-- `true` by default.
-- When enabled, standalone LSP uses the hybrid design described here.
-- `AutoLoadProjects` remains an explicit eager-loading override for scenarios that want a preloaded project set at startup.
+`NoPreference` produces `NotEvaluated`; the framework does not inspect or guarantee the actual context in that case.
 
-Compatibility:
+For preferred requests, `None` means no document context was available and `Miscellaneous` means a valid loose-file context was available. Project completeness is relative to the project selected for the requested document. Failure to load an unselected ambiguous candidate does not lower the selected document's achieved completeness.
 
-- If `AutoLoadProjects` is enabled, the projects loaded eagerly at startup stay loaded, but on-demand loading remains active for files outside that eagerly loaded set.
-- If the client explicitly opens a solution or project, those projects become part of the loaded set, but files outside that set should still be eligible for on-demand loading.
+## Demand-Driven Project Discovery
 
-Open question:
+`WorkspaceProjectDiscoveryService` remains a per-LSP-server service, but it no longer performs startup discovery. It owns:
 
-- none; this setting is client-driven and defaults to enabled.
+- configured workspace-folder boundaries,
+- subscriptions to workspace-folder changes,
+- nearest-ancestor project lookup,
+- positive per-directory candidate caches, and
+- logical file-watcher contexts for positive project subtrees.
 
-## Design
+`OnDemandProjectLoader` consumes the concrete discovery service. Protocol-layer callers see only `IOnDemandProjectLoader`.
 
-### Overview
+### Initialization And Paths
 
-Introduce a new startup-time discovery component and a new first-touch load trigger:
+During initialization, the discovery service records workspace-folder paths and subscribes to `IInitializeManager.WorkspaceFoldersChanged`. It performs no filesystem enumeration.
 
-- `WorkspaceProjectDiscoveryService`
-- `OnDemandProjectLoader`
+When a workspace folder is removed, the service removes its cached candidates and disposes logical watcher contexts beneath that root. Already loaded projects remain owned by the project-system lifecycle.
 
-The design separates three stages:
+Path keys use platform filesystem semantics: case-insensitive on Windows and case-sensitive on Unix. Discovery uses normalized lexical full paths and does not resolve symbolic links.
 
-1. Discovery: find `.csproj` files cheaply at startup.
-2. Resolution: map a requested file to one or more candidate projects.
-3. Materialization: load the chosen project through the existing `LanguageServerProjectSystem` pipeline.
+### Ancestor Lookup
 
-### 1. Discovery Stage
+For a local file URI:
 
-#### Responsibilities
+1. Find the deepest configured workspace folder containing the file.
+2. Start at the file's containing directory.
+3. Enumerate project files directly in that directory.
+4. If supported project files are found, return all of them in ordinal path order.
+5. Otherwise continue with the parent directory.
+6. Stop after inspecting the selected workspace root.
 
-The discovery service will:
+Files outside every configured workspace folder are not eligible for discovery.
 
-- read workspace-folder paths during LSP initialization,
-- walk each workspace folder,
-- collect discovered `.csproj` files,
-- persist a cache to accelerate future startups,
-- expose lookup APIs for later resolution.
+The first project-bearing directory is authoritative. If its projects evaluate successfully but do not contain the requested file, the operation falls back to miscellaneous behavior rather than loading projects from higher ancestors.
 
-#### Reuse of File-Based-App Discovery
+Project-file recognition is delegated to `LanguageServerProjectSystem`, which owns `ProjectFileExtensionRegistry`, and is filtered to languages supported by the current LSP server.
 
-The preferred implementation is to piggy-back on the traversal pattern from `FileBasedProgramsEntryPointDiscovery` rather than duplicate a separate recursive enumerator.
+Directory enumeration is synchronous because each operation examines only one directory at a time. The shared discovery operation itself is scheduled outside serialized LSP queue execution, so filesystem I/O does not block request ordering.
 
-The strongest reuse opportunities are:
+Enumeration failures are logged and treated as an empty directory for that lookup. Discovery continues with the parent directory.
 
-- directory ignore rules,
-- timestamp-based cache invalidation,
-- the `FileSystemEnumerator`-based visitor,
-- persistent per-workspace-folder cache files,
-- the existing concept of `DirectoriesContainingCsproj`.
+### Cache And File Watching
 
-There are two ways to do this.
+The service retains positive per-directory results for the server lifetime. Empty directories are not retained.
 
-Option A: Refactor the common traversal into shared infrastructure.
+Each positive directory gets a logical recursive project-file watch. The underlying `IFileChangeWatcher` implementations consolidate watcher resources where possible, so the discovery service does not add custom watcher consolidation.
 
-- Extract a shared workspace-folder scanner used by both file-based-app discovery and project discovery.
-- Allow each consumer to plug in file-type-specific behavior.
+Watcher behavior is:
 
-Option B: Leave the current file-based-app implementation mostly intact and build a second discovery service that copies the traversal pattern.
+- newly created supported project files populate the matching cached directory,
+- deleted project files are removed from the cached set,
+- an empty positive entry is removed,
+- modified project files remain candidates and are handled by existing project reload infrastructure, and
+- existing descendants are not scanned when a positive directory is first discovered.
 
-- Faster to prototype.
-- Higher long-term maintenance cost.
+Watcher events that race enumeration are merged with the enumerated result, and project-file existence is validated before candidates are returned.
 
-Recommendation:
+Concurrent lookups coalesce enumeration per directory. Different directories can be inspected concurrently.
 
-- Start with a small shared utility if the extraction is local and mechanical.
-- Do not force a large abstraction if it delays the feature substantially.
+## Document Open
 
-#### Discovery Output
+`didOpen` remains a mutating handler with `NoPreference`.
 
-The cache should store at least:
+`RequestContext.StartTrackingAsync` is the single production document-open path. It:
 
-- workspace folder path,
-- last successful walk time,
-- sorted list of discovered `.csproj` paths,
-- sorted list of directories containing `.csproj`.
+1. awaits normal document tracking so the client text is recorded,
+2. asks the optional `IOnDemandProjectLoader` to start a shared load operation, and
+3. returns without waiting for discovery or project evaluation.
 
-Optional future additions:
+The operation is tracked through Roslyn's asynchronous-operation infrastructure. Once initiated, it uses server-lifetime cancellation rather than the `didOpen` request token. Canceling one notification or request does not cancel work shared with later requests.
 
-- solution paths,
-- solution-to-project membership,
-- last known project GUID from solution parsing,
-- lightweight ownership hints for files previously resolved to a project.
+A preferred document request can independently initiate the same operation when `didOpen` did not occur.
 
-### 2. Resolution Stage
+Shared pre-discovery operations are keyed by normalized lexical document path plus the selected workspace root. Requests share discovery and project loading, but each request constructs its own final `RequestContext` because tracked text, version, and project-context selection are request-specific.
 
-When a request references a file, Roslyn needs to decide whether to stay in miscellaneous-files mode or load a project.
+## Canonical Project Loading
 
-#### Trigger Points
+`LanguageServerProjectLoader` owns canonical per-project in-flight state. A normalized lexical project path identifies one load operation across on-demand, automatic, explicit project, and explicit solution loading.
 
-The first version should trigger resolution when a request needs a project-backed document and no loaded workspace currently contains that file.
+The existing `_gate` protects this state. Queue-level deduplication is not the sole correctness mechanism because it only deduplicates pending items within a batch.
 
-The most natural hook is the document lookup path in `LspWorkspaceManager`:
+### Project Load Handle
 
-- if a requested document is not found in loaded workspaces,
-- and the URI is a local file path,
-- ask the discovery service for candidate projects,
-- synchronously or asynchronously initiate project load,
-- retry document resolution before falling back to miscellaneous files.
+A begin-or-join operation returns an internal `ProjectLoadHandle`. The handle is internal to HostWorkspace and exposes structured completion for one project.
 
-This keeps the behavior centered around the existing document-resolution path rather than spreading feature-specific checks across many request handlers.
+An individual result contains a final status such as loaded, failed, unsupported, or unloaded, plus the `ProjectId`s of loaded target-framework projects committed to the workspace.
 
-#### Candidate Selection
+Expected evaluation failures are caught at the per-project reload boundary, logged through existing mechanisms, and converted to a structured result. One failed project must not fail the entire batch or strand unrelated handles.
 
-The first iteration should use simple, explainable heuristics:
+A project is complete only after its evaluated target projects have been applied to the workspace. Already loaded projects return completed handles. Primordial projects remain pending until canonical targets are committed.
 
-1. Walk upward from the requested file's directory.
-2. At each level, check whether the directory is known to contain one or more indexed `.csproj` files.
-3. Prefer the nearest containing directory.
-4. If multiple projects exist in that directory, queue them all or apply a deterministic tie-breaker.
+Outstanding handles complete with an unloaded status when their project is unloaded. Server shutdown cancels outstanding handles with the project-loader lifetime token.
 
-Why this works:
+Reload freshness is outside this design. A handle requested for an already committed project completes from current state even if a reload is queued or active.
 
-- it matches common SDK-style repository layouts,
-- it mirrors OmniSharp's intuition without requiring runtime directory enumeration,
-- it uses the prebuilt index instead of scanning the file system again.
+### Joining Metadata And Progress
 
-Later improvements may incorporate:
+If on-demand loading queues a project without a solution GUID and an explicit solution load joins before evaluation starts, the pending operation adopts the GUID. If different GUIDs are supplied for the same normalized path, the first wins and the conflict is logged.
 
-- solution membership,
-- already-open project context,
-- source include/exclude evaluation,
-- project name or path affinity from recent resolutions.
+Progress belongs to each explicit bulk operation, not to a single `ProjectToLoad`. Every caller advances its own progress when the shared handle settles.
 
-#### Ambiguity Strategy
+`OpenProjectsAsync` awaits only handles for its requested projects. `OpenSolutionAsync` awaits only handles for projects from that solution. Neither operation waits for unrelated projects that happen to enter the same batching snapshot.
 
-In repositories with linked files or multiple projects per directory, file ownership may be ambiguous.
+Project-initialization-complete notifications remain associated with explicit bulk project and solution operations. On-demand operations do not send global initialization-complete notifications.
 
-First iteration behavior:
+### Dependency Closure
 
-- if one candidate project is found, load it,
-- if multiple candidate projects are found in the nearest directory, load all of them,
-- let normal Roslyn project-context selection resolve the document after load,
-- if none of the loaded projects contains the file, fall back to miscellaneous files.
+`ProjectAndDependencies` expands the project-reference graph after each project evaluation:
 
-This is intentionally conservative. Loading a small set of sibling projects is acceptable because it is still much cheaper than loading the entire repository.
+1. Await every candidate root project.
+2. Read normalized supported absolute project-reference paths from the loader's private completed state.
+3. Begin or join canonical handles for unseen references.
+4. Repeat until the transitive closure settles.
 
-### 3. Materialization Stage
+Each document operation maintains a visited set and shares canonical handles, which makes cycles and overlapping candidate closures safe.
 
-Once candidate projects are selected, Roslyn should load them through the existing `LanguageServerProjectSystem` pipeline.
+All nearest candidate roots and their closures are allowed to settle before final document selection. Completeness is then evaluated relative to the selected document project:
 
-#### Loading Flow
+- successful selected root and closure produces `ProjectAndDependencies`,
+- successful selected root with a failed dependency produces `Project`, and
+- failure to obtain a project-backed selected document falls back to `Miscellaneous` or `None`.
 
-The on-demand feature should not invent a second project loader. Instead it should:
+### Prioritization
 
-- call into `LanguageServerProjectSystem.OpenProjectsAsync(...)` or a narrower equivalent,
-- rely on existing batching and telemetry in `LanguageServerProjectLoader`,
-- reuse existing transitive project-reference loading performed during project load.
+This change preserves the existing `AsyncBatchingWorkQueue` scheduling and project-load parallelism. It does not preempt, promote, or reserve capacity for on-demand work.
 
-This keeps the expensive part of the feature in the same code path used by explicit project loading today.
+A preferred-context request can therefore wait behind a large existing project batch. A separate work-queue enhancement can add prioritization later without changing the handle or context-preference contracts.
 
-#### Primordial Experience
+## Non-Blocking Request Context Preparation
 
-Roslyn already supports a primordial-project model in `LanguageServerProjectLoader`, though the standard host project system currently goes straight to tracked loaded targets for explicit project loads.
+Request-context creation must preserve LSP ordering without awaiting long-running project work in the serialized queue.
 
-There are two viable materialization strategies.
+`AbstractRequestContextFactory` gains an optional generic deferred-preparation capability. Serialized creation returns the immediate context built using current behavior plus an optional async callback that produces the context used for dispatch. Other language-server consumers return no callback and retain existing behavior.
 
-Strategy A: Load-on-demand waits for the target project load to complete before retrying document resolution.
+For a preferred Roslyn document request, serialized creation:
 
-- simpler,
-- less new workspace-state complexity,
-- higher first-touch latency.
+1. captures tracked document text as of the request's position in the queue,
+2. captures client capabilities, method, and requested project-context identifier,
+3. builds the immediate fallback context as today,
+4. atomically gets or creates the shared on-demand operation, and
+5. returns without performing ancestor I/O or awaiting project work.
 
-Strategy B: Introduce a host-workspace primordial project for on-demand resolution misses.
+For non-mutating requests, dispatch awaits deferred preparation outside serialized queue processing. Later mutating and non-mutating requests can therefore start while project loading remains blocked.
 
-- immediate document availability,
-- lower perceived latency,
-- more implementation complexity,
-- requires careful transition from miscellaneous or unresolved state to real host project state.
+After the shared operation settles, preparation always re-resolves the document against the latest workspace. The resulting solution is forked with the request-time tracked text. This exposes newly loaded project structure without exposing document edits ordered after the request.
 
-Recommendation:
+The original project-context identifier is passed through normal `FindDocumentInProjectContext` selection. When multiple candidates contain the file, existing project-context behavior remains authoritative.
 
-- implement Strategy A first,
-- reserve Strategy B for a later optimization if first-touch latency proves unacceptable.
+If preparation fails unexpectedly, Roslyn reports and logs the exception and dispatches with the immediate context. If the request is canceled while waiting, dispatch is canceled and the handler is not invoked; shared project loading continues.
 
-The main value of this proposal comes from the startup-time savings and indexed resolution, not from immediate primordial host projects.
+## Document Context Provider Pipeline
 
-## Interaction With File-Based Apps
+`LspWorkspaceManager.GetLspDocumentInfoAsync` resolves existing document contexts through an explicitly ordered, closed provider pipeline. On-demand loading is not a provider because it occurs during deferred context preparation.
 
-This feature must coexist cleanly with file-based-app discovery.
+The internal Protocol abstraction is `ILspDocumentContextProvider`. A provider receives a lookup context and returns either `(Workspace, Solution, TextDocument)` or no result so the next provider can run.
 
-Desired behavior:
+The factory constructs an immutable provider array in this order:
 
-- the `.csproj` discovery scan should not regress file-based-app discovery,
-- file-based-app logic should continue to avoid treating files inside a normal project cone as loose file-based apps,
-- both features should use the same ignored-directory policy and, if practical, a compatible cache layout.
+1. registered workspaces,
+2. miscellaneous fallback.
 
-Recommended implementation direction:
+The registered-workspaces provider searches snapshots supplied by the manager's existing registration and fork cache. It is read-only.
 
-- keep file-based-app discovery as the owner of `.cs` entry-point classification,
-- let the new project discovery service own `.csproj` indexing,
-- share traversal helpers and cache conventions where it is easy and low-risk.
+The miscellaneous provider may add an open tracked document to the existing miscellaneous-files provider. It receives the captured tracked-document map through the lookup context rather than reading manager state directly.
 
-We should avoid coupling these features so tightly that changes to file-based-app heuristics block project-discovery evolution.
+The manager owns final success/failure telemetry and cross-provider cleanup. When a registered non-miscellaneous document wins, the manager removes any stale miscellaneous copy.
 
-## Detailed Behavior
+Unexpected non-cancellation provider exceptions are logged and resolution continues with the next provider. Workspace-level `GetLspSolutionInfoAsync` remains a direct host-workspace operation and does not use this pipeline.
 
-### Initialization
+The provider pipeline is internal and explicitly constructed. It does not add MEF ordering metadata until a real external extension requirement exists.
 
-When `dotnet.loadProjectsOnDemand` is enabled:
+## Interaction With File-Based Programs
 
-1. Do not run the eager auto-load path.
-2. Start background discovery of `.csproj` files for each workspace folder.
-3. Allow LSP initialization to complete without waiting for project loads.
-4. If a request arrives before discovery finishes, either:
-   - await discovery for the relevant workspace folder, or
-   - fall back to a targeted synchronous probe for that file's directory chain.
+This design does not change file-based-program discovery or extract a shared recursive workspace walker. File-based-program behavior continues through the existing miscellaneous-files infrastructure.
 
-Recommendation:
-
-- discovery should start immediately at initialization,
-- requests should be allowed to await per-folder discovery completion when needed.
-
-### Document Open
-
-`didOpen` should continue to track LSP text immediately.
-
-On-demand project loading should not be triggered merely because a document was opened, unless we explicitly decide to prewarm project load on open.
-
-Recommendation for first iteration:
-
-- keep `didOpen` cheap,
-- trigger project loading when the first project-backed request arrives.
-
-Possible future optimization:
-
-- opportunistically begin loading the owning project in the background after `didOpen` for a local file that has a single strong candidate project.
-
-### Project-Backed Requests
-
-For requests such as completion, hover, go to definition, find references, rename, code actions, or diagnostics:
-
-1. Attempt normal document lookup.
-2. If the file is already in a loaded project, proceed normally.
-3. If not found and the file is eligible for on-demand loading, resolve candidate projects from the discovery index.
-4. Load the candidate project set.
-5. Retry document lookup.
-6. If still unresolved, continue with miscellaneous-file behavior or a no-document result, as appropriate.
-
-### Workspace-Wide Requests
-
-Workspace-wide requests such as workspace symbols or whole-workspace diagnostics should not automatically load every indexed project just because the feature is enabled.
-
-First iteration behavior:
-
-- operate only on the currently loaded projects.
-
-Rationale:
-
-- loading all indexed projects on the first workspace-wide request would defeat the feature's primary goal.
-
-## Caching
-
-The discovery cache should follow the same general model as the file-based-app cache:
-
-- one cache directory per workspace folder,
-- stable sorted output for ease of inspection and binary search,
-- timestamp-based incremental invalidation,
-- best-effort writes with graceful fallback when cache I/O fails.
-
-The cache does not need to be perfectly precise to be useful. False positives are acceptable if they only cause Roslyn to consider or load a nearby project. False negatives should be minimized because they lead to unnecessary miscellaneous-file fallback.
-
-## Telemetry
-
-Add telemetry for:
-
-- discovery duration per workspace folder,
-- number of `.csproj` files indexed,
-- number of directories containing `.csproj`,
-- number of on-demand load attempts,
-- number of successful document resolutions after on-demand load,
-- first-touch load latency,
-- count of ambiguity cases,
-- count of fallbacks to miscellaneous files after attempted on-demand load.
-
-This telemetry is important because the feature's success criteria are about startup cost, first-touch latency, and fallback correctness.
+Removing recursive project discovery also removes the reason for the current `WorkspaceFolderWalker` extraction. That refactor should not be part of this feature change.
 
 ## Error Handling
 
-- Discovery failures should be non-fatal and should log diagnostics.
-- Corrupt cache files should be discarded.
-- Project-load failures should use existing project-load logging and user messaging.
-- If on-demand loading fails for a given file, Roslyn should still try to provide best-effort miscellaneous-file behavior.
+- Initialization performs no discovery I/O.
+- Ancestor enumeration failures are logged and lookup continues upward.
+- Project evaluation failures use existing logging, telemetry, and toast behavior.
+- Preferred requests fall back to their immediate context when the preference cannot be achieved.
+- No new LSP request errors or feature-specific user warnings are introduced.
+- Request cancellation cancels only that waiter.
+- Server shutdown cancels shared work through loader lifetime cancellation.
+
+## Telemetry And Logging
+
+The initial implementation reuses existing project-load telemetry. It adds diagnostic logs for discovery outcome, requested and achieved completeness, fallback reason, and wait duration.
+
+No paths are added to telemetry. A dedicated telemetry schema for discovery and preference fallback is deferred until the behavior is validated.
 
 ## Testing Plan
 
-### Unit Tests
+### Discovery And Watcher Tests
 
-- Discovery finds `.csproj` files under workspace folders.
-- Discovery skips ignored directories.
-- Discovery cache is reused across repeated scans.
-- Resolution selects the nearest indexed project directory.
-- Resolution loads multiple sibling projects when ownership is ambiguous.
-- Resolution falls back to miscellaneous files when no project candidate is found.
+- Initialization records workspace roots without enumerating the filesystem.
+- Lookup selects the deepest containing workspace root and nearest project-bearing ancestor.
+- Multiple supported projects are returned in ordinal order.
+- Files outside workspace roots do not trigger discovery.
+- Empty directories are not retained in the cache.
+- Concurrent lookups coalesce per-directory enumeration.
+- Enumeration errors log and continue upward.
+- Platform path semantics apply to workspace add/remove and duplicate handling.
+- Workspace-folder removal drops matching cache and watcher state.
+- Created and deleted project files update positive subtree caches.
+- Enumeration racing a watcher event returns a validated merged result.
 
-### Integration Tests
+### Project Loading Tests
 
-- Opening a workspace with many projects does not eagerly load them when the feature is enabled.
-- First project-backed request for a file loads the owning project.
-- Loading one project does not load unrelated projects.
-- Project references are loaded transitively.
-- Workspace-wide requests operate over only loaded projects.
-- File-based-app discovery still works in workspaces that contain both `.csproj` projects and loose file-based apps.
+- On-demand, project-open, and solution-open callers share one evaluation and one canonical handle.
+- Per-project completion occurs after workspace commit without waiting for unrelated batch work.
+- Already loaded projects return completed handles.
+- Transitive references, cycles, and overlapping closures settle correctly.
+- Dependency failure lowers selected-document completeness from `ProjectAndDependencies` to `Project`.
+- Unload completes outstanding handles as unloaded.
+- Shutdown cancels outstanding handles.
+- Dev Kit does not initiate standalone on-demand loading when the option is enabled.
 
-### Performance Tests
+### Request Queue And Context Tests
 
-- compare startup time against eager auto-load in large repositories,
-- compare memory after initialization,
-- measure first-touch latency for unloaded projects,
-- measure repeated startup scans with a warm discovery cache.
+- A blocked preferred request does not prevent later mutating or non-mutating requests from starting.
+- Prepared context uses request-time tracked text after a later `didChange`.
+- Client project-context selection survives deferred preparation.
+- Request cancellation prevents handler dispatch without canceling shared loading.
+- Unexpected preparation failure falls back to the immediate context.
+- Every achieved completeness value is reported correctly.
 
-## Rollout Plan
+### Provider Tests
 
-Phase 1:
+- Registered workspaces run before miscellaneous fallback.
+- Project-context selection for linked documents is preserved.
+- A project-backed result removes a stale miscellaneous document.
 
-- standalone LSP only,
-- discovery index plus on-demand host project loading,
-- conservative ambiguity behavior,
-- no Dev Kit integration changes.
-- `didOpen` prewarm,
+### Integration Validation
 
-Phase 2:
+Use a controlled synthetic workspace containing deep source paths, multiple sibling candidates, transitive and cyclic references, an unrelated blocked load, unsupported and failing projects, and dynamic workspace-folder changes.
 
-- better candidate selection heuristics,
-- optional lightweight host primordial projects if latency warrants it.
+The primary release criterion is no global LSP queue stall. While project evaluation is deliberately blocked, later mutating and non-mutating requests must start. Avoid fixed wall-clock performance assertions.
 
-Phase 3:
+Required validation includes focused Protocol unit tests, LanguageServer unit tests, and builds for the touched language-server and protocol projects.
 
-- evaluate whether similar indexing concepts should be surfaced to the Dev Kit project system through a separate contract.
+## Implementation And Review Plan
 
-## Recommendation
+The existing PR is rewritten in place and kept as one PR with phased commits:
 
-Implement this feature as a hybrid index-and-materialize design for standalone Roslyn LSP.
+1. Add generic deferred request-context preparation and queue responsiveness tests.
+2. Add canonical per-project handles and targeted explicit-operation waiting.
+3. Replace startup discovery with demand-driven ancestor resolution and positive-subtree watching.
+4. Add context preference, document-open initiation, dependency closure, and achieved completeness.
+5. Refactor document lookup into the minimal provider pipeline, update tests, and finalize documentation.
 
-- Build a lightweight `.csproj` index at startup by reusing the file-based-app discovery traversal model.
-- Trigger project loads from `didOpen` and from project-backed document requests when a file is not already covered by a loaded project.
-- Load the selected project set through the existing `LanguageServerProjectSystem` pipeline.
-- If multiple sibling projects exist in the nearest indexed directory, load them all.
-- Keep workspace-wide features scoped to loaded projects.
-- Do not index `.sln` or `.slnx` in v1.
-- Use a client-side `dotnet.loadProjectsOnDemand` setting that defaults to enabled.
-- Defer host-workspace primordial projects and Dev Kit integration to later iterations.
+The option remains enabled by default throughout the completed implementation. The design accepts first-touch latency from existing work-queue ordering until the separate prioritization enhancement is available.
 
-This gives Roslyn most of the startup and memory wins that motivated OmniSharp's feature, while staying aligned with Roslyn LSP's current architecture and existing discovery infrastructure.
+## Deferred Work
+
+- Tune preferences for individual handlers.
+- Add project-load prioritization using the separately enhanced work queue.
+- Design reverse-dependant discovery before adding a dependant preference value.
+- Consider dedicated telemetry after initial validation.
+- Consider broader provider extensibility only when another document-context source requires it.
+- Evaluate first-touch latency before considering primordial host-project context as a preference level.
