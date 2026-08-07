@@ -112,23 +112,23 @@ _ = o[2];
 """;
 
         CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
-            // (2,1): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (2,1): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // o[0] = 1;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "o[0]").WithArguments("extension indexers").WithLocation(2, 1),
-            // (3,5): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "o[0]").WithArguments("extension indexers", "15.0").WithLocation(2, 1),
+            // (3,5): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = o[2];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "o[2]").WithArguments("extension indexers").WithLocation(3, 5));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "o[2]").WithArguments("extension indexers", "15.0").WithLocation(3, 5));
 
-        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular15).VerifyEmitDiagnostics();
 
         CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
 
         CreateCompilation([src, libSrc], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
-            // (5,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[int i]
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(5, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(5, 20));
 
-        CreateCompilation([src, libSrc], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation([src, libSrc], parseOptions: TestOptions.Regular15).VerifyEmitDiagnostics();
 
         CreateCompilation([src, libSrc], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
     }
@@ -8947,14 +8947,14 @@ _ = new C() is [.., 1];
 
         var comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,16): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = new C() is [.., 1];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[.., 1]").WithArguments("extension indexers").WithLocation(1, 16));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[.., 1]").WithArguments("extension indexers", "15.0").WithLocation(1, 16));
 
         comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
@@ -9964,27 +9964,27 @@ _ = new C() is [_, .. var x];
 
         var comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,16): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[_, .. var x]").WithArguments("extension indexers").WithLocation(1, 16),
-            // (1,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[_, .. var x]").WithArguments("extension indexers", "15.0").WithLocation(1, 16),
+            // (1,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, ".. var x").WithArguments("extension indexers").WithLocation(1, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, ".. var x").WithArguments("extension indexers", "15.0").WithLocation(1, 20));
 
         comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (8,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (8,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(8, 20),
-            // (9,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(8, 20),
+            // (9,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[System.Range r] { get { System.Console.WriteLine(r); return 0; } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(9, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(9, 20));
     }
 
     [Fact]
@@ -10074,9 +10074,9 @@ _ = new C() is [_, .. var x];
             // (1,16): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // _ = new C() is [_, .. var x];
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "[_, .. var x]").WithArguments("extensions", "14.0").WithLocation(1, 16),
-            // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,16): error CS9260: Feature 'extension indexers' is not available in C# 13.0. Please use language version 15.0 or greater.
             // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[_, .. var x]").WithArguments("extension indexers").WithLocation(1, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "[_, .. var x]").WithArguments("extension indexers", "15.0").WithLocation(1, 16),
             // (1,20): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // _ = new C() is [_, .. var x];
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, ".. var x").WithArguments("extensions", "14.0").WithLocation(1, 20),
@@ -10086,14 +10086,14 @@ _ = new C() is [_, .. var x];
 
         comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,16): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[_, .. var x]").WithArguments("extension indexers").WithLocation(1, 16));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[_, .. var x]").WithArguments("extension indexers", "15.0").WithLocation(1, 16));
 
         comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("(1, 2)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("(1, 2)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
@@ -11312,14 +11312,14 @@ c?[43] = 100;
 
         var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (2,3): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (2,3): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // c?[42] = 0;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[42]").WithArguments("extension indexers").WithLocation(2, 3),
-            // (5,3): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[42]").WithArguments("extension indexers", "15.0").WithLocation(2, 3),
+            // (5,3): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // c?[43] = 100;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[43]").WithArguments("extension indexers").WithLocation(5, 3));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[43]").WithArguments("extension indexers", "15.0").WithLocation(5, 3));
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular15);
         comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef]);
@@ -11327,9 +11327,9 @@ c?[43] = 100;
 
         comp = CreateCompilation([src, libSrc], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (7,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[int i]
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(7, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(7, 20));
     }
 
     [Fact]
@@ -11401,14 +11401,14 @@ System.Console.Write(c?[43] is 100);
 
         var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (2,24): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (2,24): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // System.Console.Write(c?[42] is null);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[42]").WithArguments("extension indexers").WithLocation(2, 24),
-            // (5,24): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[42]").WithArguments("extension indexers", "15.0").WithLocation(2, 24),
+            // (5,24): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // System.Console.Write(c?[43] is 100);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[43]").WithArguments("extension indexers").WithLocation(5, 24));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[43]").WithArguments("extension indexers", "15.0").WithLocation(5, 24));
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular15);
         comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef]);
@@ -11416,9 +11416,9 @@ System.Console.Write(c?[43] is 100);
 
         comp = CreateCompilation([src, libSrc], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (7,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[int i]
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(7, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(7, 20));
     }
 
     [Fact]
@@ -11723,12 +11723,12 @@ i[101] = 102;
 
         comp = CreateCompilation(src, [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (2,5): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = i[43];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i[43]").WithArguments("extension indexers").WithLocation(2, 5),
-            // (3,1): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "i[43]").WithArguments("extension indexers", "15.0").WithLocation(2, 5),
+            // (3,1): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // i[101] = 102;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i[101]").WithArguments("extension indexers").WithLocation(3, 1));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "i[101]").WithArguments("extension indexers", "15.0").WithLocation(3, 1));
     }
 
     [Fact]
@@ -15102,9 +15102,9 @@ public static class E
             // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).this[string]' that could not be resolved
             // /// <see cref="E.extension(int).this[string]"/>
             Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).this[string]").WithArguments("extension(int).this[string]").WithLocation(1, 16),
-            // (1,18): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,18): error CS9260: Feature 'extension indexers' is not available in C# 13.0. Please use language version 15.0 or greater.
             // /// <see cref="E.extension(int).this[string]"/>
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension(int).this[string]").WithArguments("extension indexers").WithLocation(1, 18),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "extension(int).this[string]").WithArguments("extension indexers", "15.0").WithLocation(1, 18),
             // (2,16): warning CS1574: XML comment has cref attribute 'extension(int).get_Item(string)' that could not be resolved
             // /// <see cref="E.extension(int).get_Item(string)"/>
             Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).get_Item(string)").WithArguments("extension(int).get_Item(string)").WithLocation(2, 16),
@@ -15156,13 +15156,13 @@ class C { }
 """;
         var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.Regular14.WithDocumentationMode(DocumentationMode.Diagnose));
         comp.VerifyEmitDiagnostics(
-            // (1,18): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,18): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // /// <see cref="E.extension(int).this[string]"/>
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension(int).this[string]").WithArguments("extension indexers").WithLocation(1, 18));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "extension(int).this[string]").WithArguments("extension indexers", "15.0").WithLocation(1, 18));
 
         validateCrefSymbols(comp);
 
-        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.Regular15.WithDocumentationMode(DocumentationMode.Diagnose));
         comp.VerifyEmitDiagnostics();
 
         validateCrefSymbols(comp);
