@@ -7,8 +7,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Interop;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             out ImmutableArray<byte> publicKey);
 
         internal ReadKeysFromContainerDelegate ReadKeysFromContainerFunc { get; set; }
-        internal Action<ExtendedPEBuilder, BlobBuilder, RSAParameters> SignBuilderFunc { get; set; }
+        internal Action<ManagedPEBuilder, BlobBuilder, RSAParameters> SignBuilderFunc { get; set; }
         internal Action<StrongNameKeys, string> SignFileFunc { get; set; }
         internal Func<IClrStrongName> GetStrongNameInterfaceFunc { get; set; }
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal override void SignFile(StrongNameKeys keys, string filePath) => SignFileFunc(keys, filePath);
 
-        internal override void SignBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey) => SignBuilderFunc(peBuilder, peBlob, privateKey);
+        internal override void SignBuilder(ManagedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey) => SignBuilderFunc(peBuilder, peBlob, privateKey);
 
         internal override IClrStrongName GetStrongNameInterface() => GetStrongNameInterfaceFunc();
     }

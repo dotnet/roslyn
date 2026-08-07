@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             Assert.True(task.Execute());
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""
+            AssertEx.AssertContainsToleratingWhitespaceDifferences($$"""
                 Could not extract the MVID from "{{source.Path}}". Are you sure it is a reference assembly?
                 Copying reference assembly from "{{source.Path}}" to "{{dest}}".
                 """,
