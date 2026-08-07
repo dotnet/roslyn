@@ -31,6 +31,7 @@ public sealed class GenerateComparisonOperatorsTests
             {
                 public int CompareTo(C c) => 0;
             }
+
             """,
             """
             using System;
@@ -458,26 +459,25 @@ public sealed class GenerateComparisonOperatorsTests
             {
                 int IComparable<C>.{|CS8701:CompareTo|}(C c) => 0;
 
-                public static bool operator {|CS8652:<|}(C left, C right)
+                public static bool operator <(C left, C right)
                 {
                     return left.CompareTo(right) < 0;
                 }
 
-                public static bool operator {|CS8652:>|}(C left, C right)
+                public static bool operator >(C left, C right)
                 {
                     return left.CompareTo(right) > 0;
                 }
 
-                public static bool operator {|CS8652:<=|}(C left, C right)
+                public static bool operator <=(C left, C right)
                 {
                     return left.CompareTo(right) <= 0;
                 }
 
-                public static bool operator {|CS8652:>=|}(C left, C right)
+                public static bool operator >=(C left, C right)
                 {
                     return left.CompareTo(right) >= 0;
                 }
             }
             """);
 }
-

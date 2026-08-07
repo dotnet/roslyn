@@ -379,11 +379,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
-    public Task ClosedAsIdentifierInClass(TestHost testHost)
+    public Task ClosedAsKeywordInClass(TestHost testHost)
         => TestInClassAsync("closed Goo;",
             testHost,
-            Identifier("closed"),
-            Field("Goo"),
+            Keyword("closed"),
+            Identifier("Goo"),
             Punctuation.Semicolon);
 
     private static readonly string[] s_contextualKeywordsOnlyValidInMethods = ["where", "from", "group", "join", "select", "into", "let", "by", "orderby", "on", "equals", "ascending", "descending"];
