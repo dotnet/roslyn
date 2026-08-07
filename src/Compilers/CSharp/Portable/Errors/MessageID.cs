@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureClosedClasses: // semantic check
                 case MessageID.IDS_FeatureLabeledBreakContinue:
                 case MessageID.IDS_FeatureExtensionIndexers:
-                case MessageID.IDS_FeatureTypeParameterInferenceFromConstraints: // semantic check
+                case MessageID.IDS_FeatureTypeParameterInferenceFromConstraints:
                     return LanguageVersion.Preview;
 
                 // C# 14.0 features.
