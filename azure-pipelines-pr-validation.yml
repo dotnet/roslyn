@@ -233,6 +233,7 @@ extends:
           inputs:
             packageType: sdk
             useGlobalJson: true
+            includePreviewVersions: true
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: MicroBuildSigningPlugin@4
