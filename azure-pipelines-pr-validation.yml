@@ -232,9 +232,9 @@ extends:
           displayName: 'Use .NET Core sdk'
           inputs:
             packageType: sdk
-            useGlobalJson: true
+            # Can't use global.json to install .NET 11 preview due to https://github.com/microsoft/azure-pipelines-tasks/issues/18988.
+            version: '11.0.x'
             includePreviewVersions: true
-            workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: MicroBuildSigningPlugin@4
           inputs:
