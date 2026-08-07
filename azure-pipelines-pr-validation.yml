@@ -177,7 +177,7 @@ extends:
           displayName: Setup branch for insertion validation
           inputs:
             filePath: 'eng\setup-pr-validation.ps1'
-            arguments: "-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
+            arguments: "-prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
           condition: succeeded()
 
         - task: Powershell@2
@@ -233,6 +233,7 @@ extends:
           inputs:
             packageType: sdk
             useGlobalJson: true
+            includePreviewVersions: true
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: MicroBuildSigningPlugin@4

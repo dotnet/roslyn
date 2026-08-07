@@ -139,10 +139,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
             TimeSpan.FromMilliseconds(100),
             ReloadProjectsAsync,
             ProjectToLoad.Comparer,
-            Listener,
-            // We don't need a separate shutdown cancellation token here: Dispose() disposes the work queue, and that
-            // cancels any in-flight batch along with any work that hasn't started yet.
-            CancellationToken.None);
+            Listener);
     }
 
     private static ImmutableDictionary<string, string> BuildAdditionalProperties(ServerConfiguration? serverConfiguration)
@@ -652,8 +649,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
             _progressQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.Zero,
                 ReportProgressAsync,
-                listener ?? AsynchronousOperationListenerProvider.NullListener,
-                CancellationToken.None);
+                listener ?? AsynchronousOperationListenerProvider.NullListener);
 
             reporter.Report(new LSP.WorkDoneProgressReport
             {

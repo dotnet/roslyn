@@ -1,0 +1,3 @@
+﻿[0000] OpenElement("input")
+[0001] AddAttribute("type", "text")
+[0002] AddAttribute("data-slider-min", Min)

@@ -5,14 +5,13 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Hover;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.Hover;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.Hover?>;
 
@@ -30,7 +29,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
-    public ValueTask<RemoteResponse<Hover?>> GetHoverAsync(
+    public ValueTask<RemoteResponse<LspHover?>> GetHoverAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
@@ -38,15 +37,15 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetHoverAsync(context, position, cancellationToken),
+            snapshot => GetHoverAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<RemoteResponse<Hover?>> GetHoverAsync(
-        RemoteDocumentContext context,
+    private async ValueTask<RemoteResponse<LspHover?>> GetHoverAsync(
+        RemoteDocumentSnapshot snapshot,
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var sourceText = codeDocument.Source.Text;
         if (!sourceText.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
@@ -64,8 +63,8 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
 
         if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
         {
-            var generatedDocument = await context.Snapshot
-                .GetGeneratedDocumentAsync(cancellationToken)
+            var generatedDocument = await snapshot
+                .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
                 .ConfigureAwait(false);
 
             var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
@@ -85,7 +84,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
 
             // Map the hover range back to the host document
             if (csharpHover.Range is { } range &&
-                DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), range.ToLinePositionSpan(), out var hostDocumentSpan))
+                DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(positionInfo.InDeclDocument), range.ToLinePositionSpan(), out var hostDocumentSpan))
             {
                 csharpHover.Range = LspFactory.CreateRange(hostDocumentSpan);
             }
@@ -112,7 +111,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
             }
 
             // As there is a C# hover, stop further handling.
-            return new RemoteResponse<Hover?>(StopHandling: true, Result: csharpHover);
+            return new RemoteResponse<LspHover?>(StopHandling: true, Result: csharpHover);
         }
 
         if (positionInfo.LanguageKind is not (RazorLanguageKind.Html or RazorLanguageKind.Razor))
@@ -129,7 +128,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
         // All of this will change when solution snapshots are available in the core Razor project model.
 
         // TODO: Remove this when solution snapshots are available in the core Razor project model.
-        var componentAvailabilityService = new ComponentAvailabilityService(context.Snapshot.ProjectSnapshot.SolutionSnapshot);
+        var componentAvailabilityService = new ComponentAvailabilityService(snapshot.ProjectSnapshot.SolutionSnapshot);
 
         var razorHover = await HoverFactory
             .GetHoverAsync(codeDocument, hostDocumentIndex, options, componentAvailabilityService, cancellationToken)
@@ -141,37 +140,6 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
             return CallHtml;
         }
 
-        // Ensure that we convert our Hover to a Roslyn Hover.
-        var resultHover = ConvertHover(razorHover);
-
-        return Results(resultHover);
-    }
-
-    /// <summary>
-    ///  Converts a <see cref="Hover"/> to a <see cref="Hover"/>.
-    /// </summary>
-    /// <remarks>
-    ///  Once Razor moves wholly over to Roslyn.LanguageServer.Protocol, this method can be removed.
-    /// </remarks>
-    private static Hover ConvertHover(Hover hover)
-    {
-        // Note: Razor only ever produces a Hover with MarkupContent or a VSInternalHover with RawContents.
-        // Both variants return a Range.
-
-        return hover switch
-        {
-            VSInternalHover { Range: var range, RawContent: { } rawContent } => new VSInternalHover()
-            {
-                Range = range,
-                Contents = string.Empty,
-                RawContent = rawContent
-            },
-            Hover { Range: var range, Contents.Fourth: MarkupContent contents } => new Hover()
-            {
-                Range = range,
-                Contents = contents
-            },
-            _ => Assumed.Unreachable<Hover>(),
-        };
+        return Results(razorHover);
     }
 }
