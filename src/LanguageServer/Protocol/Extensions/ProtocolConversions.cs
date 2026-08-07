@@ -186,7 +186,8 @@ internal static partial class ProtocolConversions
 
     public static bool IsSourceGeneratedScheme(string scheme)
     {
-        return scheme == SourceGeneratedDocumentUri.Scheme;
+        // URI scheme names are case-insensitive, so source-generated URIs must be recognized regardless of their casing.
+        return string.Equals(scheme, SourceGeneratedDocumentUri.Scheme, StringComparison.OrdinalIgnoreCase);
     }
 
 #pragma warning disable RS0030 // Do not use banned APIs

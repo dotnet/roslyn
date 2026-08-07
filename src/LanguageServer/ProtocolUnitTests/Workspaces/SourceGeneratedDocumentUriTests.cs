@@ -18,6 +18,10 @@ public sealed class SourceGeneratedDocumentUrisTests : AbstractLanguageServerPro
     }
 
     [Fact]
+    public void SchemeComparisonIsCaseInsensitive()
+        => Assert.True(ProtocolConversions.IsSourceGeneratedScheme(SourceGeneratedDocumentUri.Scheme.ToUpperInvariant()));
+
+    [Fact]
     public async Task UrisRoundTrip()
     {
         await using var testLspServer = await CreateTestLspServerAsync("", false);
