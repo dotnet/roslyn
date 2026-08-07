@@ -68,7 +68,7 @@ public class DocumentFormattingBenchmark
         }
 
         var document = _workspace.CurrentSolution.GetAdditionalDocument(documentId).AssumeNotNull();
-        var snapshotManager = new RemoteSnapshotManager(NoOpTelemetryReporter.Instance);
+        var snapshotManager = new RemoteSnapshotManager();
         var documentSnapshot = snapshotManager.GetSnapshot(document);
         _documentSnapshot = documentSnapshot;
 
