@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Hash.Combine(this.Size, this.PackingSize), _kind);
+            return Hash.Combine(Hash.Combine(this.Size, this.PackingSize), (int)this.Kind);
         }
     }
 }
