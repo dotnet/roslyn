@@ -10,12 +10,23 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Filters;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Benchmarks;
 
-public class AssemblyFileOperationBenchmarks
+[Config(typeof(Config))]
+public class WindowsAssemblyFileOperationBenchmarks
 {
+    private class Config : ManualConfig
+    {
+        public Config()
+        {
+            AddFilter(new SimpleFilter(_ => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)));
+        }
+    }
+
     private const int FileOperationCount = 16;
 
     private string _sourcePath = null!;
@@ -40,7 +51,7 @@ public class AssemblyFileOperationBenchmarks
 
         _destinationDirectory = Path.Combine(
             temporaryPath,
-            $"{nameof(AssemblyFileOperationBenchmarks)}-{Guid.NewGuid():N}");
+            $"{nameof(WindowsAssemblyFileOperationBenchmarks)}-{Guid.NewGuid():N}");
         Directory.CreateDirectory(_destinationDirectory);
     }
 
