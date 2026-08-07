@@ -10,5 +10,5 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 internal interface ICSharpCodeActionResolver : ICodeActionResolver
 {
-    Task<CodeAction> ResolveAsync(RemoteDocumentContext documentContext, CodeAction codeAction, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken);
+    Task<CodeAction> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, CodeAction codeAction, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken);
 }

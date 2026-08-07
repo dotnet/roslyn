@@ -46,17 +46,6 @@ Increment
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private int counter;
-
-    public void Increment(MyType type) => counter++;
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

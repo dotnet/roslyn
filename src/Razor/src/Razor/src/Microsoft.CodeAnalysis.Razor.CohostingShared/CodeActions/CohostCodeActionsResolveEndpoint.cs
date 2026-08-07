@@ -11,11 +11,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -74,7 +74,7 @@ internal sealed class CohostCodeActionsResolveEndpoint(
 
     protected override Task<CodeAction?> HandleRequestAsync(CodeAction request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
         return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 
@@ -97,6 +97,7 @@ internal sealed class CohostCodeActionsResolveEndpoint(
         {
             CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
         };
+
         return await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, CodeAction>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.ResolveCodeActionAsync(solutionInfo, razorDocument.Id, request, resolvedDelegatedCodeAction, formattingOptions, cancellationToken),

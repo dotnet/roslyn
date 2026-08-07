@@ -15,6 +15,9 @@ permissions:
 network:
   allowed: [defaults]
 
+engine: copilot
+model: gpt-5-mini
+
 safe-outputs:
   mentions: false
   allowed-github-references: []

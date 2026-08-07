@@ -18,16 +18,3 @@ Source Location: (103:0,103 [2] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1439:42,0 [2] )
 |P1|
 
-Source Location: (126:3,1 [94] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    [Parameter]public string P1 {get; set;}
-
-    [Parameter]public string P2 {get; set;}
-|
-Generated Location: (1748:54,0 [94] )
-|
-    [Parameter]public string P1 {get; set;}
-
-    [Parameter]public string P2 {get; set;}
-|
-
