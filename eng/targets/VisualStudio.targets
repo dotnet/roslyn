@@ -125,8 +125,8 @@
       <Link>EULA.rtf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.ThirdPartyNotices\ThirdPartyNotices.rtf">
-      <Link>ThirdPartyNotices.rtf</Link>
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.ThirdPartyNotices\ThirdPartyNotices.txt">
+      <Link>ThirdPartyNotices.txt</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
 

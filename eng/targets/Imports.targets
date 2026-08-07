@@ -220,10 +220,10 @@
   </ItemGroup>
 
   <!-- 
-    Add ThirdPartyNotices.rtf to all shipping NuGet packages.
+    Add ThirdPartyNotices.txt to all shipping NuGet packages.
   -->
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsShipping)' == 'true'">
-    <None Include="$(ThirdPartyNoticesFilePath)" PackagePath="ThirdPartyNotices.rtf" Visible="false" Pack="true"/>
+    <None Include="$(ThirdPartyNoticesFilePath)" PackagePath="ThirdPartyNotices.txt" Visible="false" Pack="true"/>
   </ItemGroup>
 
   <!--
