@@ -719,7 +719,7 @@
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="translated">'not' または 'or' パターンの中で変数を宣言することはできません。</target>
+        <target state="new">A variable may not be declared within a 'not' or 'or' pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -2514,7 +2514,7 @@
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
         <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="translated">'safe' 修飾子は、'unsafe' としてマークされていないメンバーで、かつ 'extern' メンバー、または明示的レイアウトもしくは拡張レイアウトを持つ型のフィールドに類似したメンバーにのみ使用できます。</target>
+        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
@@ -2939,7 +2939,7 @@
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern">
         <source>The pattern is redundant.</source>
-        <target state="translated">パターンは冗長です。</target>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
@@ -2954,7 +2954,7 @@
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern_Title">
         <source>The pattern is redundant.</source>
-        <target state="translated">パターンは冗長です。</target>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -6027,12 +6027,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">現在のメモリ安全性規則においては、'unsafe' 修飾子による影響はありません。</target>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnsafeMeaningless_Title">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="translated">現在のメモリ安全性規則においては、'unsafe' 修飾子による影響はありません。</target>
+        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
