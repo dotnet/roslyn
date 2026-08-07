@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
@@ -16,23 +19,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.HostWorkspace;
 public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerHostTests(testOutputHelper)
 {
+    private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(
+        typeof(ServerConfigurationFactory),
+        typeof(SyntaxTreeCacheServiceFactory));
+
     [Theory]
     [InlineData(LanguageNames.CSharp, "class C { }", "first.cs", "second.cs")]
+    [InlineData(LanguageNames.VisualBasic, "Class C\nEnd Class", "first.vb", "second.vb")]
     public async Task IdenticalDocumentsInDifferentWorkspacesShareGreenNodes(
         string language, string source, string firstPath, string secondPath)
     {
-        var hostServices = GetLanguageServerHostServices();
-        using var firstWorkspace = new AdhocWorkspace(hostServices, WorkspaceKind.Host);
-        using var secondWorkspace = new AdhocWorkspace(hostServices, WorkspaceKind.Host);
+        var exportProvider = GetLanguageServerExportProvider();
+        var firstText = SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha1);
+        var secondText = SourceText.From(source, Encoding.Unicode, SourceHashAlgorithm.Sha256);
+        using var firstWorkspace = await CreateWorkspaceAsync(exportProvider, language, firstText, firstPath);
+        using var secondWorkspace = await CreateWorkspaceAsync(exportProvider, language, secondText, secondPath);
 
         Assert.Same(
             firstWorkspace.Services.GetRequiredService<ISyntaxTreeCacheService>(),
             secondWorkspace.Services.GetRequiredService<ISyntaxTreeCacheService>());
 
-        var firstText = SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha1);
-        var secondText = SourceText.From(source, Encoding.Unicode, SourceHashAlgorithm.Sha256);
-        var firstDocument = AddDocument(firstWorkspace, language, firstText, firstPath);
-        var secondDocument = AddDocument(secondWorkspace, language, secondText, secondPath);
+        var firstDocument = firstWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        var secondDocument = secondWorkspace.CurrentSolution.Projects.Single().Documents.Single();
 
         var firstTree = await firstDocument.GetSyntaxTreeAsync(CancellationToken.None);
         var secondTree = await secondDocument.GetSyntaxTreeAsync(CancellationToken.None);
@@ -46,6 +54,8 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
         Assert.True(firstRoot.IsIncrementallyIdenticalTo(secondRoot));
         Assert.Equal(firstPath, firstTree.FilePath);
         Assert.Equal(secondPath, secondTree.FilePath);
+        Assert.Same(Encoding.UTF8, firstTree.Encoding);
+        Assert.Same(Encoding.Unicode, secondTree.Encoding);
         Assert.Same(firstText, firstTree.GetText());
         Assert.Same(secondText, secondTree.GetText());
         Assert.NotEqual(firstDocument.Id, secondDocument.Id);
@@ -62,16 +72,15 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
     public async Task DifferentParseOptionsDoNotShareGreenNodes()
     {
         const string source = "class C { }";
-        var hostServices = GetLanguageServerHostServices();
-        using var firstWorkspace = new AdhocWorkspace(hostServices, WorkspaceKind.Host);
-        using var secondWorkspace = new AdhocWorkspace(hostServices, WorkspaceKind.Host);
-
-        var firstDocument = AddDocument(
-            firstWorkspace, LanguageNames.CSharp, SourceText.From(source), "first.cs",
+        var exportProvider = GetLanguageServerExportProvider();
+        using var firstWorkspace = await CreateWorkspaceAsync(
+            exportProvider, LanguageNames.CSharp, SourceText.From(source), "first.cs",
             CSharpParseOptions.Default.WithPreprocessorSymbols("FIRST"));
-        var secondDocument = AddDocument(
-            secondWorkspace, LanguageNames.CSharp, SourceText.From(source), "second.cs",
+        using var secondWorkspace = await CreateWorkspaceAsync(
+            exportProvider, LanguageNames.CSharp, SourceText.From(source), "second.cs",
             CSharpParseOptions.Default.WithPreprocessorSymbols("SECOND"));
+        var firstDocument = firstWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        var secondDocument = secondWorkspace.CurrentSolution.Projects.Single().Documents.Single();
 
         var firstTree = await firstDocument.GetSyntaxTreeAsync(CancellationToken.None);
         var secondTree = await secondDocument.GetSyntaxTreeAsync(CancellationToken.None);
@@ -80,39 +89,15 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
         var firstRoot = await firstTree.GetRootAsync(CancellationToken.None);
         var secondRoot = await secondTree.GetRootAsync(CancellationToken.None);
 
+        // This could eventually share trees when the differing parse options do not affect the parsed result.
         Assert.False(firstRoot.IsIncrementallyIdenticalTo(secondRoot));
     }
 
     [Fact]
-    public void NonDaemonBypassesCache()
+    public void NonDaemonDoesNotProvideCache()
     {
-        using var workspace = CreateCacheWorkspace(out var cache, isDaemon: false);
-        var text = SourceText.From("class C { }");
-        var options = CSharpParseOptions.Default;
-        var counts = new int[2];
-
-        SyntaxTree GetTree()
-            => cache.GetOrCreateSyntaxTree(
-                text,
-                options,
-                static (state, _) =>
-                {
-                    state.counts[0]++;
-                    return CSharpSyntaxTree.ParseText(state.text, state.options);
-                },
-                static (root, state) =>
-                {
-                    state.counts[1]++;
-                    return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, state.options);
-                },
-                (text, options, counts),
-                CancellationToken.None);
-
-        _ = GetTree();
-        _ = GetTree();
-
-        Assert.Equal(2, counts[0]);
-        Assert.Equal(0, counts[1]);
+        using var workspace = new TestWorkspace(GetLanguageServerExportProvider(isDaemon: false), WorkspaceKind.Host);
+        Assert.Null(workspace.Services.GetService<ISyntaxTreeCacheService>());
     }
 
     [Fact]
@@ -123,7 +108,7 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
 
         var trees = await Task.WhenAll(
             Enumerable.Range(0, 16).Select(_ => Task.Run(
-                () => GetOrCreateTree(cache, text))));
+                () => GetOrCreateCSharpTree(cache, text))));
 
         var canonicalRoot = trees[0].GetRoot();
         Assert.All(trees, tree => Assert.True(canonicalRoot.IsIncrementallyIdenticalTo(tree.GetRoot())));
@@ -134,12 +119,12 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
     {
         using var workspace = CreateCacheWorkspace(out var cache);
         var text = SourceText.From("class C { }");
-        var firstTree = GetOrCreateTree(cache, text);
+        var firstTree = GetOrCreateCSharpTree(cache, text);
         var firstRoot = firstTree.GetRoot();
         var secondRootReference = ObjectReference.CreateFromFactory(
             static state =>
             {
-                var root = GetOrCreateTree(state.cache, state.text).GetRoot();
+                var root = GetOrCreateCSharpTree(state.cache, state.text).GetRoot();
                 Assert.True(state.expectedSharedRoot.IsIncrementallyIdenticalTo(root));
                 return root;
             },
@@ -147,7 +132,7 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
 
         secondRootReference.AssertReleased();
 
-        var thirdRoot = GetOrCreateTree(cache, text).GetRoot();
+        var thirdRoot = GetOrCreateCSharpTree(cache, text).GetRoot();
         Assert.True(firstRoot.IsIncrementallyIdenticalTo(thirdRoot));
     }
 
@@ -161,14 +146,14 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
                 // The cache key strongly retains these unique options, so their lifetime lets this test observe
                 // whether periodic cleanup removed the entry after its weak roots died.
                 var options = CSharpParseOptions.Default.WithPreprocessorSymbols(Guid.NewGuid().ToString());
-                _ = GetOrCreateTree(state.cache, state.text, options);
+                _ = GetOrCreateCSharpTree(state.cache, state.text, options);
                 return options;
             },
             (cache, text: SourceText.From("class First { }")));
         firstOptionsReference.AssertHeld();
 
         cache.GetTestAccessor().TriggerCleanupOnNextAddedRoot();
-        _ = GetOrCreateTree(cache, SourceText.From("class Second { }"));
+        _ = GetOrCreateCSharpTree(cache, SourceText.From("class Second { }"));
 
         firstOptionsReference.AssertReleased();
     }
@@ -179,12 +164,12 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
         using var workspace = CreateCacheWorkspace(out var cache);
         var text = SourceText.From("class C { }");
         var rootReference = ObjectReference.CreateFromFactory(
-            static state => GetOrCreateTree(state.cache, state.text).GetRoot(),
+            static state => GetOrCreateCSharpTree(state.cache, state.text).GetRoot(),
             (cache, text));
         rootReference.AssertReleased();
 
-        var replacementRoot = GetOrCreateTree(cache, text).GetRoot();
-        var cachedReplacementRoot = GetOrCreateTree(cache, text).GetRoot();
+        var replacementRoot = GetOrCreateCSharpTree(cache, text).GetRoot();
+        var cachedReplacementRoot = GetOrCreateCSharpTree(cache, text).GetRoot();
         Assert.True(replacementRoot.IsIncrementallyIdenticalTo(cachedReplacementRoot));
     }
 
@@ -193,48 +178,55 @@ public sealed class SyntaxTreeCacheServiceTests(ITestOutputHelper testOutputHelp
     {
         using var workspace = CreateCacheWorkspace(out var cache);
         var text = SourceText.From("class C { }");
-        var csharpRoot = GetOrCreateTree(cache, text).GetRoot();
-        var visualBasicRoot = GetOrCreateVisualBasicTree(cache, text).GetRoot();
+        var csharpTree = GetOrCreateCSharpTree(cache, text);
+        var visualBasicTree = GetOrCreateVisualBasicTree(cache, text);
 
-        Assert.False(csharpRoot.IsIncrementallyIdenticalTo(visualBasicRoot));
+        Assert.NotEqual(csharpTree.GetType(), visualBasicTree.GetType());
+        Assert.False(csharpTree.GetRoot().IsIncrementallyIdenticalTo(visualBasicTree.GetRoot()));
     }
 
-    private HostServices GetLanguageServerHostServices(bool isDaemon = true)
+    private ExportProvider GetLanguageServerExportProvider(bool isDaemon = true)
     {
         var serverConfiguration = ServerConfigurationWithoutDevKit with { IsDaemon = isDaemon };
-        var exportProvider = LanguageServerTestComposition.GetSharedExportProvider(serverConfiguration, LoggerFactory);
-        return exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
+        var exportProvider = s_composition.ExportProviderFactory.CreateExportProvider();
+        exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
+        return exportProvider;
     }
 
-    private AdhocWorkspace CreateCacheWorkspace(out SyntaxTreeCacheService cache, bool isDaemon = true)
+    private TestWorkspace CreateCacheWorkspace(out SyntaxTreeCacheService cache)
     {
-        var workspace = new AdhocWorkspace(GetLanguageServerHostServices(isDaemon), WorkspaceKind.Host);
+        var workspace = new TestWorkspace(GetLanguageServerExportProvider(), WorkspaceKind.Host);
         cache = (SyntaxTreeCacheService)workspace.Services.GetRequiredService<ISyntaxTreeCacheService>();
         return workspace;
     }
 
-    private static Document AddDocument(
-        AdhocWorkspace workspace,
+    private static async Task<TestWorkspace> CreateWorkspaceAsync(
+        ExportProvider exportProvider,
         string language,
         SourceText text,
         string filePath,
         ParseOptions? parseOptions = null)
     {
-        var project = workspace.AddProject(Guid.NewGuid().ToString(), language);
+        var workspace = TestWorkspace.Create(
+            new XElement("Workspace",
+                new XElement("Project", new XAttribute("Language", language))),
+            exportProvider,
+            workspaceKind: WorkspaceKind.Host);
+
+        var project = workspace.CurrentSolution.Projects.Single();
         if (parseOptions is not null)
         {
             Assert.True(workspace.TryApplyChanges(project.Solution.WithProjectParseOptions(project.Id, parseOptions)));
-            project = workspace.CurrentSolution.GetProject(project.Id);
-            Assert.NotNull(project);
         }
 
         var documentId = DocumentId.CreateNewId(project.Id);
         var loader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), filePath));
-        return workspace.AddDocument(DocumentInfo.Create(
+        await workspace.AddDocumentAsync(DocumentInfo.Create(
             documentId, Path.GetFileName(filePath), loader: loader, filePath: filePath));
+        return workspace;
     }
 
-    private static SyntaxTree GetOrCreateTree(
+    private static SyntaxTree GetOrCreateCSharpTree(
         SyntaxTreeCacheService cache,
         SourceText text,
         CSharpParseOptions? options = null)

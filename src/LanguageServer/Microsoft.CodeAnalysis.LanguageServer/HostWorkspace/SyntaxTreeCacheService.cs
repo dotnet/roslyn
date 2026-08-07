@@ -4,10 +4,10 @@
 
 using System.Collections.Concurrent;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -27,23 +27,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// cache retaining any syntax tree.
 /// </para>
 /// </remarks>
-[ExportWorkspaceService(typeof(ISyntaxTreeCacheService), ServiceLayer.Host), Shared]
 internal sealed class SyntaxTreeCacheService : ISyntaxTreeCacheService
 {
+    /// <summary>
+    /// An arbitrary initial threshold that can be tuned based on observed cache behavior.
+    /// </summary>
     private const int DefaultCleanupInterval = 10_000;
 
-    private readonly bool _isDaemon;
     private readonly ConcurrentDictionary<CacheKey, CacheEntry> _entries = [];
 
     private int _addedRoots;
-    private int _cleanupInProgress;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SyntaxTreeCacheService(ServerConfiguration serverConfiguration)
-    {
-        _isDaemon = serverConfiguration.IsDaemon;
-    }
 
     public SyntaxTree GetOrCreateSyntaxTree<TArg>(
         SourceText text,
@@ -53,9 +46,6 @@ internal sealed class SyntaxTreeCacheService : ISyntaxTreeCacheService
         TArg arg,
         CancellationToken cancellationToken)
     {
-        if (!_isDaemon)
-            return parseSyntaxTree(arg, cancellationToken);
-
         var key = new CacheKey(Checksum.From(text.GetContentHash()), options);
         while (true)
         {
@@ -65,7 +55,7 @@ internal sealed class SyntaxTreeCacheService : ISyntaxTreeCacheService
 
             if (tree is null)
             {
-                RemoveEntry(key, entry);
+                _entries.TryRemove(new(key, entry));
                 continue;
             }
 
@@ -84,25 +74,12 @@ internal sealed class SyntaxTreeCacheService : ISyntaxTreeCacheService
 
     private void RemoveDeadEntries()
     {
-        if (Interlocked.CompareExchange(ref _cleanupInProgress, 1, 0) != 0)
-            return;
-
-        try
+        foreach (var (key, entry) in _entries)
         {
-            foreach (var (key, entry) in _entries)
-            {
-                if (entry.TryMarkRemovedIfEmpty())
-                    RemoveEntry(key, entry);
-            }
-        }
-        finally
-        {
-            Volatile.Write(ref _cleanupInProgress, 0);
+            if (entry.TryMarkRemovedIfEmpty())
+                _entries.TryRemove(new(key, entry));
         }
     }
-
-    private void RemoveEntry(CacheKey key, CacheEntry entry)
-        => ((ICollection<KeyValuePair<CacheKey, CacheEntry>>)_entries).Remove(new(key, entry));
 
     internal TestAccessor GetTestAccessor() => new(this);
 
@@ -133,10 +110,11 @@ internal sealed class SyntaxTreeCacheService : ISyntaxTreeCacheService
                 if (_removed)
                     return null;
 
-                if (TryGetRootAndPruneDeadReferences(out var cachedRoot))
+                if (GetRootAndPruneDeadReferences() is { } cachedRoot)
                 {
                     var cachedTree = createSyntaxTreeFromRoot(cachedRoot, arg);
                     _roots.Add(new(cachedTree.GetRoot(cancellationToken)));
+                    // Do not set added: cleanup is based on cache growth, not additional users of an existing entry.
                     return cachedTree;
                 }
 
@@ -151,7 +129,7 @@ internal sealed class SyntaxTreeCacheService : ISyntaxTreeCacheService
         {
             lock (_gate)
             {
-                if (_removed || TryGetRootAndPruneDeadReferences(out _))
+                if (_removed || GetRootAndPruneDeadReferences() is not null)
                     return false;
 
                 _removed = true;
@@ -163,11 +141,13 @@ internal sealed class SyntaxTreeCacheService : ISyntaxTreeCacheService
         /// Removes dead references and returns any remaining live root.
         /// </summary>
         /// <returns>
-        /// <see langword="true"/> when at least one live root remains; otherwise, <see langword="false"/>.
+        /// A remaining live root, or <see langword="null"/> when all references are dead.
         /// </returns>
-        private bool TryGetRootAndPruneDeadReferences([NotNullWhen(true)] out SyntaxNode? root)
+        private SyntaxNode? GetRootAndPruneDeadReferences()
         {
-            root = null;
+            Contract.ThrowIfFalse(Monitor.IsEntered(_gate));
+
+            SyntaxNode? root = null;
 
             // Iterate backwards so removing an entry does not shift any indexes that remain to be inspected.
             for (var i = _roots.Count - 1; i >= 0; i--)
@@ -182,7 +162,26 @@ internal sealed class SyntaxTreeCacheService : ISyntaxTreeCacheService
                 }
             }
 
-            return root is not null;
+            return root;
         }
     }
+}
+
+[ExportWorkspaceServiceFactory(typeof(ISyntaxTreeCacheService), ServiceLayer.Host), Shared]
+internal sealed class SyntaxTreeCacheServiceFactory : IWorkspaceServiceFactory
+{
+    private readonly SyntaxTreeCacheService? _service;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public SyntaxTreeCacheServiceFactory(ServerConfiguration serverConfiguration)
+    {
+        if (serverConfiguration.IsDaemon)
+            _service = new();
+    }
+
+    // Although the return type is non-nullable, IWorkspaceServiceFactory explicitly permits null when the service
+    // is not applicable to the workspace.
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => _service!;
 }
