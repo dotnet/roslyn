@@ -37,11 +37,11 @@ internal abstract class XamlRequestHandlerFactoryBase<TRequest, TResponse> : ILs
             _resolveDataCache = resolveDataCache ?? throw new ArgumentNullException(nameof(resolveDataCache));
         }
 
-        [Obsolete]
+        [Obsolete("Use overload that takes a DocumentUri instead of Uri. This method will be removed in a future version. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
         public object ToResolveData(object data, Uri uri)
             => ResolveDataConversions.ToCachedResolveData(data, new(uri), _resolveDataCache);
 
-        [Obsolete]
+        [Obsolete("Use FromResolveDataDocumentUri instead. This method will be removed in a future version. Tracking: https://github.com/dotnet/roslyn/issues/84785")]
         public (object? data, Uri? uri) FromResolveData(object? lspData)
         {
             var (data, documentUri) = ResolveDataConversions.FromCachedResolveData(lspData, _resolveDataCache);
