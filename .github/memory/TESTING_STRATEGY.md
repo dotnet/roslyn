@@ -19,6 +19,7 @@ the one for your area):
 | Compiler tests | `src/Compilers/*/Test/`. |
 | IDE/analyzer tests | `*Test` projects under `src/Features`, `src/Analyzers`, `src/EditorFeatures`. |
 | Integration tests | VS integration tests (`azure-pipelines-integration*.yml`); runnable locally on **Windows** hosts with a VS install, also run in CI. |
+| Roslyn-sdk testing library tests | `src/Test/Microsoft.CodeAnalysis.Testing/Test/**` — unit tests for the merged analyzer/code-fix/refactoring/source-generator test framework. Run on `net10.0`; use `dotnet test <proj> -f net10.0`. |
 
 Frameworks: xUnit with Roslyn test utilities.
 
