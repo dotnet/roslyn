@@ -184,9 +184,9 @@ The event carries these properties:
 
 | Property | Meaning |
 |----------|---------|
-| `cachestatus` | `hit` or `miss` |
-| `storeresult` | `none`, `stored`, `skippedrace`, `skippedexists`, or `failed` |
-| `language` | the compiler language (`C#` / `Visual Basic`) |
+| `cachestatus` | `hit` or `miss` (always present) |
+| `storeresult` | `none`, `stored`, `skippedrace`, `skippedexists`, or `failed` (always present) |
+| `language` | the compiler language (`C#` / `Visual Basic`) (always present) |
 | `keycomputems` | milliseconds spent computing the deterministic key (always present) |
 | `restorems` | milliseconds spent attempting to restore a cached result (always present) |
 | `storems` | milliseconds spent storing the result; omitted when no store was attempted (a hit, or a miss whose compilation failed) |

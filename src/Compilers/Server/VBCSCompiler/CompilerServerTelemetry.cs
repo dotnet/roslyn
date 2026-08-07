@@ -10,16 +10,11 @@ using Microsoft.CodeAnalysis.CommandLine;
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     /// <summary>
-    /// Implemented by server compilers that can produce telemetry for a build request. The request
+    /// Implemented by compiler hosts that can produce telemetry for a build request. The request
     /// handler collects these events after a compilation completes and returns them to the client in
     /// the <see cref="CompletedBuildResponse"/>. The build task then forwards each event to the host
     /// via <c>IBuildEngine5.LogTelemetry</c>.
     /// </summary>
-    /// <remarks>
-    /// This is intentionally generic: the transport (protocol + task) has no knowledge of any
-    /// particular event, so new server-side telemetry can be added by producing additional
-    /// <see cref="BuildTelemetryEvent"/> instances without changing the protocol or the task.
-    /// </remarks>
     internal interface ICompilerServerTelemetryProvider
     {
         /// <summary>
@@ -67,8 +62,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     /// <summary>
     /// Accumulates compilation-cache statistics for a single request and converts them into a
-    /// generic <see cref="BuildTelemetryEvent"/>. This is the first contributor to the compiler
-    /// server telemetry channel; additional contributors can be added independently.
+    /// generic <see cref="BuildTelemetryEvent"/>.
     /// </summary>
     internal sealed class CompilationCacheTelemetry
     {
@@ -91,25 +85,39 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public long? CompileMilliseconds { get; set; }
 
-        private Stopwatch? _compileStopwatch;
+        private readonly Stopwatch _stopwatch = new Stopwatch();
+        private bool _compileTimerRunning;
 
-        /// <summary>
-        /// Starts measuring compilation time. Called when a cache miss is detected, immediately
-        /// before the normal compilation runs.
-        /// </summary>
-        public void StartCompileTimer() => _compileStopwatch = Stopwatch.StartNew();
+        public void StartKeyComputeTimer() => StartTimer();
+        public void StopKeyComputeTimer() => KeyComputeMilliseconds = StopTimer();
 
-        /// <summary>
-        /// Records the elapsed compilation time. Called once the compilation has completed
-        /// successfully. No-op if the timer was never started.
-        /// </summary>
+        public void StartRestoreTimer() => StartTimer();
+        public void StopRestoreTimer() => RestoreMilliseconds = StopTimer();
+
+        public void StartCompileTimer()
+        {
+            StartTimer();
+            _compileTimerRunning = true;
+        }
+
         public void StopCompileTimer()
         {
-            if (_compileStopwatch is not null)
+            if (_compileTimerRunning)
             {
-                CompileMilliseconds = _compileStopwatch.ElapsedMilliseconds;
-                _compileStopwatch = null;
+                CompileMilliseconds = StopTimer();
+                _compileTimerRunning = false;
             }
+        }
+
+        public void StartStoreTimer() => StartTimer();
+        public void StopStoreTimer() => StoreMilliseconds = StopTimer();
+
+        private void StartTimer() => _stopwatch.Restart();
+
+        private long StopTimer()
+        {
+            _stopwatch.Stop();
+            return _stopwatch.ElapsedMilliseconds;
         }
 
         /// <summary>

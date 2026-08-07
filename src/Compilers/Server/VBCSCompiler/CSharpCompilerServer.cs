@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _metadataProvider;
         private readonly CompilationCache? _cache;
-        private readonly CompilationCacheTelemetry _cacheTelemetry = new();
+        private readonly CompilationCacheTelemetry _cacheTelemetry = new CompilationCacheTelemetry();
         private readonly ICompilerServerLogger _logger;
 
         internal CSharpCompilerServer(Func<string, MetadataReferenceProperties, PortableExecutableReference> metadataProvider, string[] args, BuildPaths buildPaths, string? libDirectory, IAnalyzerAssemblyLoader analyzerLoader, GeneratorDriverCache driverCache, ICompilerServerLogger? logger = null)

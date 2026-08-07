@@ -540,16 +540,23 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
-        public void CompilationCacheTelemetry_CompileTimer_RecordsElapsed()
+        public void CompilationCacheTelemetry_Timers_RecordElapsed()
         {
             var telemetry = new CompilationCacheTelemetry();
-            Assert.Null(telemetry.CompileMilliseconds);
 
+            telemetry.StartKeyComputeTimer();
+            telemetry.StopKeyComputeTimer();
+            telemetry.StartRestoreTimer();
+            telemetry.StopRestoreTimer();
             telemetry.StartCompileTimer();
             telemetry.StopCompileTimer();
+            telemetry.StartStoreTimer();
+            telemetry.StopStoreTimer();
 
-            Assert.NotNull(telemetry.CompileMilliseconds);
+            Assert.True(telemetry.KeyComputeMilliseconds >= 0);
+            Assert.True(telemetry.RestoreMilliseconds >= 0);
             Assert.True(telemetry.CompileMilliseconds >= 0);
+            Assert.True(telemetry.StoreMilliseconds >= 0);
         }
 
         [Fact]

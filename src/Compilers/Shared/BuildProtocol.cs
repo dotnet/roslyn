@@ -403,6 +403,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// --------------------------------------------------
     ///  Length             UInteger        4
     ///  ReturnCode         Integer         4
+    ///  Utf8Output         Boolean         1
     ///  Output             String          Variable
     ///  TelemetryCount     Integer         4
     ///  TelemetryEvents    Variable        Variable

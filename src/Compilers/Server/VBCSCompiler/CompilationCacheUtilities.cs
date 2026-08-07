@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CommandLine;
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             var dllName = arguments.OutputFileName;
             var outputTimestampUtc = DateTime.UtcNow;
-            var keyStopwatch = Stopwatch.StartNew();
+            telemetry.StartKeyComputeTimer();
             try
             {
                 using var sourceLinkStream = arguments.SourceLink is not null
@@ -74,15 +73,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             finally
             {
-                telemetry.KeyComputeMilliseconds = keyStopwatch.ElapsedMilliseconds;
+                telemetry.StopKeyComputeTimer();
             }
 
             hashKey = CompilationCache.ComputeHashKey(deterministicKey);
 
             var outputFiles = BuildOutputFiles(arguments, dllName);
-            var restoreStopwatch = Stopwatch.StartNew();
+            telemetry.StartRestoreTimer();
             var restored = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger, outputTimestampUtc);
-            telemetry.RestoreMilliseconds = restoreStopwatch.ElapsedMilliseconds;
+            telemetry.StopRestoreTimer();
 
             if (restored)
             {
@@ -119,9 +118,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             var dllName = arguments.OutputFileName;
             var outputFiles = BuildOutputFiles(arguments, dllName);
-            var storeStopwatch = Stopwatch.StartNew();
+            telemetry.StartStoreTimer();
             telemetry.StoreResult = cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, logger);
-            telemetry.StoreMilliseconds = storeStopwatch.ElapsedMilliseconds;
+            telemetry.StopStoreTimer();
         }
 
         private static CompilationOutputFiles BuildOutputFiles(CommandLineArguments arguments, string dllName)
