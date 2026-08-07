@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -23,16 +22,11 @@ internal sealed class CSharpFormatter
     private const string MarkerId = "RazorMarker";
 
     internal static IndentationOptions GetIndentationOptions(
-        SolutionServices services,
         RazorFormattingOptions options,
         AutoFormattingOptions autoFormattingOptions,
-        FormattingOptions2.IndentStyle indentStyle,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
+        FormattingOptions2.IndentStyle indentStyle)
     {
-        var resolvedCSharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(
-            services,
-            options,
-            csharpSyntaxFormattingOptions);
+        var resolvedCSharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(options);
 
         return new(resolvedCSharpSyntaxFormattingOptions)
         {
@@ -75,9 +69,7 @@ internal sealed class CSharpFormatter
 
         // At this point, we have added all the necessary markers and attached annotations.
         // Let's invoke the C# formatter and hope for the best.
-        var formattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(
-            hostWorkspaceServices.SolutionServices,
-            context.Options);
+        var formattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(context.Options);
         var formattedRoot = Formatter.Format(
             root,
             hostWorkspaceServices.SolutionServices,
