@@ -168,6 +168,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
             }
         }
 
+        // Progress titles can contain URIs whose canonical form changes casing, so compare them case-insensitively.
         private static bool MatchingTitle(string expectedTitle, string? actualTitle)
             => expectedTitle.Equals(actualTitle, StringComparison.OrdinalIgnoreCase);
 

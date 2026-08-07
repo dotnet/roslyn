@@ -184,6 +184,7 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
         Assert.NotNull(unit.CreateParams.Token.Value);
 
         var end = await unit.WaitForEndAsync().WaitAsync(TimeSpan.FromMinutes(2));
+        // Progress messages can contain URIs whose canonical form changes casing, so compare them case-insensitively.
         Assert.Equal(expectedEndMessage, end.Message, ignoreCase: true);
     }
 
