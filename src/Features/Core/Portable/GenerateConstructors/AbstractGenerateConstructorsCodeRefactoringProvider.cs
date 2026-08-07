@@ -220,6 +220,14 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
             return null;
         }
 
+        // A record with a primary constructor already has a constructor that takes all of its
+        // positional members.
+        if (containingType.IsRecord &&
+            containingType.InstanceConstructors.Any(static c => c.IsPrimaryConstructor()))
+        {
+            return null;
+        }
+
         // Find all the possible writable instance fields/properties.  If there are any, then
         // show a dialog to the user to select the ones they want.  Otherwise, if there are none
         // don't offer to generate anything.
