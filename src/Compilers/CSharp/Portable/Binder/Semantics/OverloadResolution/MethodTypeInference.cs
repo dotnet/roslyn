@@ -1157,6 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This lets the bounds inferred for Xj (e.g. from an argument) flow into the
             // type parameters mentioned in Xj's constraints, by ensuring Xj is fixed first.
             if (IsFeatureTypeParameterInferenceFromConstraintsEnabled &&
+                iParam != jParam &&
                 ConstraintContainsTypeParameter(_methodTypeParameters[jParam], _methodTypeParameters[iParam]))
             {
                 return true;
