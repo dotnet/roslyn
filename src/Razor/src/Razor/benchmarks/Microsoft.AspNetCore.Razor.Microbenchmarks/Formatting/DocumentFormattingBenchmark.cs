@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -169,7 +168,7 @@ public class DocumentFormattingBenchmark
             is_global = true
 
             build_property.RazorLangVersion = {{RazorLanguageVersion.Preview}}
-            build_property.RazorConfiguration = {{FallbackRazorConfiguration.Latest.ConfigurationName}}
+            build_property.RazorConfiguration = MVC-3.0
             build_property.RootNamespace = {{RootNamespace}}
 
             # This mirrors the Razor SDK setup used by the Roslyn-based test project shape.
