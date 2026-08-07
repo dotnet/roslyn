@@ -73,9 +73,10 @@ internal static partial class Extensions
     public static Uri GetRequiredLegacySystemUri(this DocumentUri documentUri)
     {
 #pragma warning disable RS0030 // Intentional for backwards compatibility.
-        Contract.ThrowIfNull(documentUri.ParsedUri, $"URI {documentUri} could not be parsed");
+        var parsedUri = documentUri.ParsedUri;
+        Contract.ThrowIfNull(parsedUri, $"URI {documentUri} could not be parsed");
 #pragma warning restore RS0030 // Do not use banned APIs
-        return documentUri.ParsedUri;
+        return parsedUri;
     }
 
     public static ParsedUri GetRequiredParsedUri(this DocumentUri documentUri)
