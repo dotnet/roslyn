@@ -1617,6 +1617,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
     /// </summary>
     private class ComponentFileKindVisitor : LoweringVisitor
     {
+        private bool _isCurrentAttributeNameEscaped;
+
         public ComponentFileKindVisitor(
             DocumentIntermediateNode document,
             IntermediateNodeBuilder builder,
@@ -1696,8 +1698,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             // just process the attributes.
             //
             // Visit the attributes
+            var previousWasEscape = false;
             foreach (var block in node.Attributes)
             {
+                _isCurrentAttributeNameEscaped = previousWasEscape;
+
                 if (block is MarkupAttributeBlockSyntax attribute)
                 {
                     VisitMarkupAttributeBlock(attribute);
@@ -1706,7 +1711,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 {
                     VisitMarkupMinimizedAttributeBlock(minimized);
                 }
+
+                previousWasEscape = block is MarkupEphemeralTextLiteralSyntax;
             }
+
+            _isCurrentAttributeNameEscaped = false;
         }
 
         public override void VisitMarkupEndTag(MarkupEndTagSyntax node)
@@ -1736,6 +1745,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 {
                     AttributeName = name,
                     IsMinimized = false,
+                    IsDirectiveAttributeCandidate = IsDirectiveAttributeCandidate(node.Name),
                     Source = source,
                     ValueContent = node.Value?.GetContent(),
                     ValueSourceSpan = valueSourceSpan,
@@ -1882,6 +1892,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 {
                     AttributeName = name,
                     IsMinimized = true,
+                    IsDirectiveAttributeCandidate = IsDirectiveAttributeCandidate(node.Name),
                     Source = source,
                     AttributeStructure = AttributeStructure.Minimized,
                     AttributeNameSpan = BuildSourceSpanFromNode(node.Name),
@@ -1892,6 +1903,14 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 _builder.Add(htmlAttr);
             }
+        }
+
+        private bool IsDirectiveAttributeCandidate(MarkupTextLiteralSyntax name)
+        {
+            var tokens = name.LiteralTokens;
+            return !_isCurrentAttributeNameEscaped &&
+                   tokens is [{ Kind: SyntaxKind.Transition }, ..] &&
+                   (tokens.Count == 1 || tokens[1].Kind != SyntaxKind.Transition);
         }
 
         // Example

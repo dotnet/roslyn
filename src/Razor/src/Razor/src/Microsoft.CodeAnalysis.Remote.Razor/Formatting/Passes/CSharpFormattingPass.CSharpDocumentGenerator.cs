@@ -166,7 +166,7 @@ internal partial class CSharpFormattingPass
             private readonly bool _insertSpaces = options.InsertSpaces;
             private readonly int _tabSize = options.TabSize;
             private readonly AttributeIndentStyle _attributeIndentStyle = options.AttributeIndentStyle;
-            private readonly CSharpSyntaxFormattingOptions? _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
+            private readonly CSharpSyntaxFormattingOptions _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
             private readonly StringBuilder _builder = builder;
             private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
             private readonly IDocumentMappingService _documentMappingService = documentMappingService;
@@ -1313,7 +1313,7 @@ internal partial class CSharpFormattingPass
                 //
                 // The formatted offset tells the mapping code to ignore whichever representation Roslyn chose, because
                 // the synthetic lambda opener is scaffolding for formatting and should not be copied back into Razor.
-                return _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
+                return _csharpSyntaxFormattingOptions.NewLines.IsFlagSet(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody)
                     ? SyntheticLambdaSignatureLength
                     : SyntheticLambdaBodyStart.Length;
             }

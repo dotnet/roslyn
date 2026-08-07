@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
@@ -9,25 +10,14 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal static class CSharpFormattingOptionsHelper
 {
-    internal static CSharpSyntaxFormattingOptions GetCSharpSyntaxFormattingOptions(
-        SolutionServices services,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions)
-    {
-        csharpSyntaxFormattingOptions
-            ??= (CSharpSyntaxFormattingOptions)(services.GetService<ILegacyGlobalOptionsWorkspaceService>()?.GetSyntaxFormattingOptions(services.GetLanguageServices(LanguageNames.CSharp))
-                ?? CSharpSyntaxFormattingOptions.Default);
-
-        return csharpSyntaxFormattingOptions;
-    }
+    internal static CSharpSyntaxFormattingOptions GetCSharpSyntaxFormattingOptions(SolutionServices services)
+        => (CSharpSyntaxFormattingOptions)services.ExportProvider.GetService<IGlobalOptionService>()
+            .GetSyntaxFormattingOptions(services.GetLanguageServices(LanguageNames.CSharp));
 
     internal static CSharpSyntaxFormattingOptions GetResolvedCSharpSyntaxFormattingOptions(
-        SolutionServices services,
-        RazorFormattingOptions options,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
+        RazorFormattingOptions options)
     {
-        csharpSyntaxFormattingOptions = GetCSharpSyntaxFormattingOptions(
-            services,
-            csharpSyntaxFormattingOptions ?? options.CSharpSyntaxFormattingOptions);
+        var csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
 
         return csharpSyntaxFormattingOptions with
         {

@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
@@ -30,5 +31,6 @@ internal interface IRemoteCodeActionsService : IRemoteJsonService
         JsonSerializableDocumentId razorDocumentId,
         CodeAction request,
         CodeAction? delegatedCodeAction,
+        RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken);
 }

@@ -10,10 +10,10 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -23,12 +23,10 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 [method: ImportingConstructor]
 internal sealed class CSharpCodeActionResolver(
     IRazorFormattingService razorFormattingService,
-    IClientSettingsManager clientSettingsManager,
     RemoteSnapshotManager snapshotManager,
     ILoggerFactory loggerFactory) : ICSharpCodeActionResolver
 {
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
-    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpCodeActionResolver>();
 
@@ -37,6 +35,7 @@ internal sealed class CSharpCodeActionResolver(
     public async Task<CodeAction> ResolveAsync(
         RemoteDocumentSnapshot snapshot,
         CodeAction codeAction,
+        RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
         if (codeAction.Edit?.DocumentChanges is null)
@@ -44,8 +43,6 @@ internal sealed class CSharpCodeActionResolver(
             // Unable to resolve code action with server, return original code action
             return codeAction;
         }
-
-        var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
 
         // Files this code action creates. Roslyn's generate-type-in-a-new-file copies the triggering
         // document's file banner into the new file. When the trigger is a Razor component's generated
