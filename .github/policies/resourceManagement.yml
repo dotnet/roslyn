@@ -45,20 +45,20 @@ configuration:
       - approvePullRequest:
           comment: Auto-approve
           
-     - description: Require VS validation insertion for feature branch merges
-       triggerOnOwnActions: false
-       if:
-       - payloadType: Pull_Request
-       - isPullRequest
-       - targetsBranch:
-           branch: main
-       - sourceBranch:
-           branch: features/*
-       - isAction:
-           action: Opened
-       then:
-       - requestChangesPullRequest:
-           comment: Merges from feature branches require a passing VS validation insertion to complete.
+    - description: Require VS validation insertion for feature branch merges
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - targetsBranch:
+          branch: main
+      - sourceBranch:
+          branch: features/*
+      - isAction:
+          action: Opened
+      then:
+      - requestChangesPullRequest:
+          comment: Merges from feature branches require a passing VS validation insertion to complete.
 
     - description: Milestone tracking
       triggerOnOwnActions: true
