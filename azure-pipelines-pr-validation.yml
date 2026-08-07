@@ -234,6 +234,7 @@ extends:
             packageType: sdk
             useGlobalJson: true
             workingDirectory: '$(Build.SourcesDirectory)'
+            allowPrerelease
 
         - task: MicroBuildSigningPlugin@4
           inputs:
