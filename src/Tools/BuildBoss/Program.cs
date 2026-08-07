@@ -36,6 +36,7 @@ namespace BuildBoss
             string repositoryDirectory = null;
             string configuration = "Debug";
             string primarySolution = null;
+            bool checkPackageInstall = false;
             List<string> solutionFiles;
 
             var options = new OptionSet
@@ -43,6 +44,10 @@ namespace BuildBoss
                 { "r|root=", "The repository root", value => repositoryDirectory = value },
                 { "c|configuration=", "Build configuration", value => configuration = value },
                 { "p|primary=", "Primary solution file name (which contains all projects)", value => primarySolution = value },
+                // The trailing ':' makes the value optional, so a bare --check-package-install turns the
+                // check on. Without it Mono.Options silently discards an explicit value and
+                // --check-package-install=false would still run the check.
+                { "check-package-install:", "Verify our NuGet packages can be installed", value => checkPackageInstall = value is null || bool.Parse(value) },
             };
 
             if (configuration is not "Debug" and not "Release")
@@ -79,7 +84,7 @@ namespace BuildBoss
                 solutionFiles = Directory.EnumerateFiles(repositoryDirectory, "*.sln").ToList();
             }
 
-            return Go(repositoryDirectory, configuration, primarySolution, solutionFiles);
+            return Go(repositoryDirectory, configuration, primarySolution, solutionFiles, checkPackageInstall);
         }
 
         private static string FindRepositoryRoot(string startDirectory)
@@ -93,7 +98,7 @@ namespace BuildBoss
             return dir;
         }
 
-        private static bool Go(string repositoryDirectory, string configuration, string primarySolution, List<string> solutionFileNames)
+        private static bool Go(string repositoryDirectory, string configuration, string primarySolution, List<string> solutionFileNames, bool checkPackageInstall)
         {
             var allGood = true;
             foreach (var solutionFileName in solutionFileNames)
@@ -108,6 +113,11 @@ namespace BuildBoss
             allGood &= ProcessPackages(repositoryDirectory, artifactsDirectory, configuration);
             allGood &= ProcessStructuredLog(artifactsDirectory, configuration);
             allGood &= ProcessOptProf(repositoryDirectory, artifactsDirectory, configuration);
+
+            if (checkPackageInstall)
+            {
+                allGood &= ProcessPackageInstall(repositoryDirectory, artifactsDirectory, configuration);
+            }
 
             if (!allGood)
             {
@@ -170,6 +180,12 @@ namespace BuildBoss
         {
             var util = new OptProfCheckerUtil(repositoryDirectory, artifactsDirectory, configuration);
             return CheckCore(util, $"OptProf inputs");
+        }
+
+        private static bool ProcessPackageInstall(string repositoryDirectory, string artifactsDirectory, string configuration)
+        {
+            var util = new PackageInstallChecker(repositoryDirectory, artifactsDirectory, configuration);
+            return CheckCore(util, "NuGet package install");
         }
     }
 }

@@ -87,7 +87,7 @@ internal sealed class HotReloadService
         /// <summary>
         /// Status of the updates.
         /// </summary>
-        public readonly Status Status { get; init; }
+        public required Status Status { get; init; }
 
         /// <summary>
         /// Returns all diagnostics that can't be addressed by rebuilding/restarting the project.
