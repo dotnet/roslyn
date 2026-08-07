@@ -2061,13 +2061,13 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
-                // (4,17): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,17): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static void M1() 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("static members in interfaces").WithLocation(4, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "M1").WithArguments("static members in interfaces", "15.0").WithLocation(4, 17)
                 );
 
             compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics();
@@ -10556,9 +10556,9 @@ class Test2 : I1
                 // (5,25): error CS8501: Target runtime doesn't support default interface implementation.
                 //     virtual extern void M2(); 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M2").WithLocation(5, 25),
-                // (6,24): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,24): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static extern void M3(); 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M3").WithArguments("static members in interfaces").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "M3").WithArguments("static members in interfaces", "15.0").WithLocation(6, 24),
                 // (7,25): error CS8501: Target runtime doesn't support default interface implementation.
                 //     private extern void M4();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M4").WithLocation(7, 25),
@@ -10585,7 +10585,7 @@ class Test2 : I1
             Validate(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
-                                                 parseOptions: TestOptions.RegularNext, skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular15, skipUsesIsNullable: true);
             Assert.False(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             var expected = new[]
@@ -11513,7 +11513,7 @@ public partial interface I1
             compilation1.VerifyDiagnostics();
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
@@ -11529,13 +11529,13 @@ public partial interface I1
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
-                // (5,17): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,17): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static void M1() {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("static members in interfaces").WithLocation(5, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "M1").WithArguments("static members in interfaces", "15.0").WithLocation(5, 17)
                 );
 
             compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics();
@@ -11566,7 +11566,7 @@ public partial interface I1
             compilation1.VerifyDiagnostics();
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
@@ -11588,7 +11588,7 @@ public partial interface I1
                 );
 
             compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
@@ -13856,9 +13856,9 @@ public interface I1
                 // (8,22): error CS0501: 'I1.P05.set' must declare a body because it is not marked abstract, extern, or partial
                 //     private int P05 {set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P05.set").WithLocation(8, 22),
-                // (9,21): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,21): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static int P06 {get;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(9, 21),
                 // (10,22): error CS0501: 'I1.P07.set' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual int P07 {set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P07.set").WithLocation(10, 22),
@@ -13961,7 +13961,7 @@ public interface I1
             };
 
             compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
 
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -14492,45 +14492,45 @@ set_P8";
                                                  parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         get
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(6, 9),
-                // (11,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(6, 9),
+                // (11,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         set 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(11, 9),
-                // (19,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(11, 9),
+                // (19,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         get
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(19, 9),
-                // (24,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(19, 9),
+                // (24,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         set
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(24, 9),
-                // (33,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(24, 9),
+                // (33,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         get => Test1.GetP3();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(33, 9),
-                // (34,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(33, 9),
+                // (34,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         set => System.Console.WriteLine("set_P3");
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(34, 9),
-                // (37,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(34, 9),
+                // (37,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     internal static int P4 => Test1.GetP4();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Test1.GetP4()").WithArguments("static members in interfaces").WithLocation(37, 31),
-                // (41,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "Test1.GetP4()").WithArguments("static members in interfaces", "15.0").WithLocation(37, 31),
+                // (41,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         get
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(41, 9),
-                // (50,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(41, 9),
+                // (50,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         get => Test1.GetP6();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(50, 9),
-                // (55,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(50, 9),
+                // (55,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         set
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(55, 9),
-                // (63,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(55, 9),
+                // (63,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         set => System.Console.WriteLine("set_P8");
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(63, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(63, 9)
                 );
 
             Validate(compilation2.SourceModule);
 
             compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                             parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             CompileAndVerify(compilation2, expectedOutput: expected, symbolValidator: Validate);
 
@@ -27512,9 +27512,9 @@ public interface I1
                 // (8,38): error CS8701: Target runtime doesn't support default interface implementation.
                 //     private event System.Action P05 {remove{}}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(8, 38),
-                // (9,37): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,37): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static event System.Action P06 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("static members in interfaces").WithLocation(9, 37),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "add").WithArguments("static members in interfaces", "15.0").WithLocation(9, 37),
                 // (10,38): error CS8701: Target runtime doesn't support default interface implementation.
                 //     virtual event System.Action P07 {remove{}}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(10, 38),
@@ -27668,7 +27668,7 @@ public interface I1
             };
 
             compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(expected);
@@ -28256,27 +28256,27 @@ class Test1 : I1
                                                  parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyEmitDiagnostics(
-                // (4,39): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,39): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static event System.Action P1; 
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("static members in interfaces").WithLocation(4, 39),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "P1").WithArguments("static members in interfaces", "15.0").WithLocation(4, 39),
                 // (4,39): warning CS0067: The event 'I1.P1' is never used
                 //     public static event System.Action P1; 
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P1").WithArguments("I1.P1").WithLocation(4, 39),
-                // (8,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         add;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("static members in interfaces").WithLocation(8, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "add").WithArguments("static members in interfaces", "15.0").WithLocation(8, 9),
                 // (8,12): error CS0073: An add or remove accessor must have a body
                 //         add;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 12),
-                // (9,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,9): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //         remove;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("static members in interfaces").WithLocation(9, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "remove").WithArguments("static members in interfaces", "15.0").WithLocation(9, 9),
                 // (9,15): error CS0073: An add or remove accessor must have a body
                 //         remove;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(9, 15),
-                // (12,40): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,40): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     private static event System.Action P3 = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("static members in interfaces").WithLocation(12, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "P3").WithArguments("static members in interfaces", "15.0").WithLocation(12, 40),
                 // (12,40): warning CS0414: The field 'I1.P3' is assigned but its value is never used
                 //     private static event System.Action P3 = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "P3").WithArguments("I1.P3").WithLocation(12, 40)
@@ -28308,7 +28308,7 @@ class Test1 : I1
             Validate(compilation3.SourceModule);
 
             compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                             parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyEmitDiagnostics(expected2);
 
@@ -28322,7 +28322,7 @@ class Test1 : I1
             Validate(compilation4.SourceModule);
 
             compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                             parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             CompileAndVerify(compilation4, expectedOutput: expected, symbolValidator: Validate);
 
@@ -44278,18 +44278,18 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,16): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,16): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static int F1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("static members in interfaces").WithLocation(4, 16),
-                // (5,23): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F1").WithArguments("static members in interfaces", "15.0").WithLocation(4, 16),
+                // (5,23): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static int F2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("static members in interfaces").WithLocation(5, 23),
-                // (6,25): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F2").WithArguments("static members in interfaces", "15.0").WithLocation(5, 23),
+                // (6,25): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     internal static int F3;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("static members in interfaces").WithLocation(6, 25),
-                // (7,24): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F3").WithArguments("static members in interfaces", "15.0").WithLocation(6, 25),
+                // (7,24): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     private static int F4;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("static members in interfaces").WithLocation(7, 24)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F4").WithArguments("static members in interfaces", "15.0").WithLocation(7, 24)
                 );
 
             Validate1(compilation5.SourceModule);
@@ -44303,7 +44303,7 @@ class Test2 : I1
             CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
 
             compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
 
             Validate1(compilation5.SourceModule);
@@ -44316,7 +44316,7 @@ class Test2 : I1
             CompileAndVerify(compilation2, expectedOutput: "112244");
 
             compilation3 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                             parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             CompileAndVerify(compilation3, expectedOutput: "112244");
         }
@@ -44439,18 +44439,18 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,25): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,25): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static readonly int F1 = 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("static members in interfaces").WithLocation(4, 25),
-                // (5,32): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F1").WithArguments("static members in interfaces", "15.0").WithLocation(4, 25),
+                // (5,32): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static readonly int F2 = 2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("static members in interfaces").WithLocation(5, 32),
-                // (6,34): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F2").WithArguments("static members in interfaces", "15.0").WithLocation(5, 32),
+                // (6,34): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     internal static readonly int F3 = 3;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("static members in interfaces").WithLocation(6, 34),
-                // (7,33): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F3").WithArguments("static members in interfaces", "15.0").WithLocation(6, 34),
+                // (7,33): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     private static readonly int F4 = 4;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("static members in interfaces").WithLocation(7, 33)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F4").WithArguments("static members in interfaces", "15.0").WithLocation(7, 33)
                 );
 
             Validate1(compilation5.SourceModule);
@@ -44464,7 +44464,7 @@ class Test2 : I1
             CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
 
             compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
 
             Validate1(compilation5.SourceModule);
@@ -44477,7 +44477,7 @@ class Test2 : I1
             CompileAndVerify(compilation2, expectedOutput: "124");
 
             compilation3 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                             parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             CompileAndVerify(compilation3, expectedOutput: "124");
         }
@@ -44595,18 +44595,18 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,15): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,15): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     const int F1 = 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("static members in interfaces").WithLocation(4, 15),
-                // (5,22): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F1").WithArguments("static members in interfaces", "15.0").WithLocation(4, 15),
+                // (5,22): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public const int F2 = 2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("static members in interfaces").WithLocation(5, 22),
-                // (6,24): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F2").WithArguments("static members in interfaces", "15.0").WithLocation(5, 22),
+                // (6,24): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     internal const int F3 = 3;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("static members in interfaces").WithLocation(6, 24),
-                // (7,23): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F3").WithArguments("static members in interfaces", "15.0").WithLocation(6, 24),
+                // (7,23): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     private const int F4 = 4;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("static members in interfaces").WithLocation(7, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F4").WithArguments("static members in interfaces", "15.0").WithLocation(7, 23)
                 );
 
             Validate1(compilation5.SourceModule);
@@ -44620,7 +44620,7 @@ class Test2 : I1
             CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
 
             compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
 
             Validate1(compilation5.SourceModule);
@@ -44633,7 +44633,7 @@ class Test2 : I1
             CompileAndVerify(compilation2, expectedOutput: "124");
 
             compilation3 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                             parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             CompileAndVerify(compilation3, expectedOutput: "124");
         }
@@ -44908,12 +44908,12 @@ interface I6
                                                   targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
-                // (4,12): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,12): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static I1() {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1").WithArguments("static members in interfaces").WithLocation(4, 12),
-                // (8,12): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "I1").WithArguments("static members in interfaces", "15.0").WithLocation(4, 12),
+                // (8,12): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static I2() => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2").WithArguments("static members in interfaces").WithLocation(8, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "I2").WithArguments("static members in interfaces", "15.0").WithLocation(8, 12),
                 // (12,5): error CS0526: Interfaces cannot contain instance constructors
                 //     I3() {}
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I3").WithLocation(12, 5),
@@ -44926,9 +44926,9 @@ interface I6
                 // (20,5): error CS0526: Interfaces cannot contain instance constructors
                 //     I5();
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I5").WithLocation(20, 5),
-                // (24,19): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (24,19): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     extern static I6();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I6").WithArguments("static members in interfaces").WithLocation(24, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "I6").WithArguments("static members in interfaces", "15.0").WithLocation(24, 19),
                 // (24,19): warning CS0824: Constructor 'I6.I6()' is marked external
                 //     extern static I6();
                 Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "I6").WithArguments("I6.I6()").WithLocation(24, 19)
@@ -44954,7 +44954,7 @@ interface I6
             };
 
             compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(expected);
@@ -45656,34 +45656,34 @@ class Test2 : I1
             Validate1(compilation5.SourceModule);
 
             compilation5.VerifyDiagnostics(
-                // (4,20): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,20): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static int F1 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(4, 20),
-                // (4,25): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(4, 20),
+                // (4,25): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static int F1 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(4, 25),
-                // (5,27): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(4, 25),
+                // (5,27): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static int F2 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(5, 27),
-                // (5,32): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(5, 27),
+                // (5,32): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static int F2 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(5, 32),
-                // (6,29): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(5, 32),
+                // (6,29): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     internal static int F3 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(6, 29),
-                // (6,34): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(6, 29),
+                // (6,34): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     internal static int F3 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(6, 34),
-                // (7,28): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(6, 34),
+                // (7,28): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     private static int F4 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(7, 28),
-                // (7,33): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(7, 28),
+                // (7,33): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     private static int F4 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(7, 33)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(7, 33)
                 );
 
             compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
 
             Validate1(compilation5.SourceModule);
@@ -45704,7 +45704,7 @@ class Test2 : I1
             CompileAndVerify(compilation6, expectedOutput: "112244");
 
             var compilation7 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                                 parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             CompileAndVerify(compilation7, expectedOutput: "112244");
         }
@@ -45833,24 +45833,24 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,20): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,20): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static int F1 {get;} = 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(4, 20),
-                // (5,27): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(4, 20),
+                // (5,27): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static int F2 {get;} = 2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(5, 27),
-                // (6,29): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(5, 27),
+                // (6,29): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     internal static int F3 {get;} = 3;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(6, 29),
-                // (7,28): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(6, 29),
+                // (7,28): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     private static int F4 {get;} = 4;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(7, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(7, 28)
                 );
 
             Validate1(compilation5.SourceModule);
 
             compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
 
             Validate1(compilation5.SourceModule);
@@ -45871,7 +45871,7 @@ class Test2 : I1
             CompileAndVerify(compilation6, expectedOutput: "124");
 
             var compilation7 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                                 parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             CompileAndVerify(compilation7, expectedOutput: "124");
         }
@@ -46001,30 +46001,30 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,20): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,20): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static int F1 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(4, 20),
-                // (4,33): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(4, 20),
+                // (4,33): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static int F1 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(4, 33),
-                // (5,27): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(4, 33),
+                // (5,27): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(5, 27),
-                // (5,40): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(5, 27),
+                // (5,40): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(5, 40),
-                // (6,29): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(5, 40),
+                // (6,29): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(6, 29),
-                // (6,42): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "get").WithArguments("static members in interfaces", "15.0").WithLocation(6, 29),
+                // (6,42): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(6, 42)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "set").WithArguments("static members in interfaces", "15.0").WithLocation(6, 42)
                 );
 
             Validate1(compilation5.SourceModule);
 
             compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                             parseOptions: TestOptions.RegularNext,
+                                             parseOptions: TestOptions.Regular15,
                                              targetFramework: TargetFramework.Mscorlib461Extended);
 
             Validate1(compilation5.SourceModule);
@@ -46045,7 +46045,7 @@ class Test2 : I1
             CompileAndVerify(compilation6, expectedOutput: "1122");
 
             var compilation7 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                                 parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             CompileAndVerify(compilation7, expectedOutput: "1122");
         }
@@ -46214,18 +46214,18 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,32): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,32): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static event System.Action F1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("static members in interfaces").WithLocation(4, 32),
-                // (5,39): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F1").WithArguments("static members in interfaces", "15.0").WithLocation(4, 32),
+                // (5,39): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static event System.Action F2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("static members in interfaces").WithLocation(5, 39),
-                // (6,41): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F2").WithArguments("static members in interfaces", "15.0").WithLocation(5, 39),
+                // (6,41): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     internal static event System.Action F3;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("static members in interfaces").WithLocation(6, 41),
-                // (7,40): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F3").WithArguments("static members in interfaces", "15.0").WithLocation(6, 41),
+                // (7,40): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     private static event System.Action F4;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("static members in interfaces").WithLocation(7, 40)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F4").WithArguments("static members in interfaces", "15.0").WithLocation(7, 40)
                 );
 
             Validate1(compilation5.SourceModule);
@@ -46238,7 +46238,7 @@ class Test2 : I1
             CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
 
             compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                             parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             Validate1(compilation5.SourceModule);
 
@@ -46250,7 +46250,7 @@ class Test2 : I1
             CompileAndVerify(compilation2, expectedOutput: "112244");
 
             compilation3 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                             parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             CompileAndVerify(compilation3, expectedOutput: "112244");
         }
@@ -46375,18 +46375,18 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,32): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,32): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     static event System.Action F1 = () => System.Console.Write(1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("static members in interfaces").WithLocation(4, 32),
-                // (5,39): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F1").WithArguments("static members in interfaces", "15.0").WithLocation(4, 32),
+                // (5,39): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static event System.Action F2 = () => System.Console.Write(2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("static members in interfaces").WithLocation(5, 39),
-                // (6,41): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F2").WithArguments("static members in interfaces", "15.0").WithLocation(5, 39),
+                // (6,41): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     internal static event System.Action F3 = () => System.Console.Write(3);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("static members in interfaces").WithLocation(6, 41),
-                // (7,40): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F3").WithArguments("static members in interfaces", "15.0").WithLocation(6, 41),
+                // (7,40): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     private static event System.Action F4 = () => System.Console.Write(4);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("static members in interfaces").WithLocation(7, 40)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "F4").WithArguments("static members in interfaces", "15.0").WithLocation(7, 40)
                 );
 
             Validate1(compilation5.SourceModule);
@@ -46399,7 +46399,7 @@ class Test2 : I1
             CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
 
             compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                             parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             Validate1(compilation5.SourceModule);
 
@@ -46411,7 +46411,7 @@ class Test2 : I1
             CompileAndVerify(compilation2, expectedOutput: "1234");
 
             compilation3 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+                                             parseOptions: TestOptions.Regular15, targetFramework: TargetFramework.Mscorlib461Extended);
 
             CompileAndVerify(compilation3, expectedOutput: "1234");
         }
@@ -47519,75 +47519,75 @@ true
                                                  parseOptions: TestOptions.Regular14);
 
             compilation61.VerifyDiagnostics(
-                // (4,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator +(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "+").WithArguments("static members in interfaces").WithLocation(4, 31),
-                // (10,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "+").WithArguments("static members in interfaces", "15.0").WithLocation(4, 31),
+                // (10,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator -(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "-").WithArguments("static members in interfaces").WithLocation(10, 31),
-                // (16,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "-").WithArguments("static members in interfaces", "15.0").WithLocation(10, 31),
+                // (16,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator !(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "!").WithArguments("static members in interfaces").WithLocation(16, 31),
-                // (22,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "!").WithArguments("static members in interfaces", "15.0").WithLocation(16, 31),
+                // (22,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator ~(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "~").WithArguments("static members in interfaces").WithLocation(22, 31),
-                // (28,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "~").WithArguments("static members in interfaces", "15.0").WithLocation(22, 31),
+                // (28,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator ++(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "++").WithArguments("static members in interfaces").WithLocation(28, 31),
-                // (34,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "++").WithArguments("static members in interfaces", "15.0").WithLocation(28, 31),
+                // (34,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator --(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "--").WithArguments("static members in interfaces").WithLocation(34, 31),
-                // (40,33): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "--").WithArguments("static members in interfaces", "15.0").WithLocation(34, 31),
+                // (40,33): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static bool operator true(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "true").WithArguments("static members in interfaces").WithLocation(40, 33),
-                // (46,33): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "true").WithArguments("static members in interfaces", "15.0").WithLocation(40, 33),
+                // (46,33): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static bool operator false(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "false").WithArguments("static members in interfaces").WithLocation(46, 33),
-                // (52,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "false").WithArguments("static members in interfaces", "15.0").WithLocation(46, 33),
+                // (52,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator +(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "+").WithArguments("static members in interfaces").WithLocation(52, 31),
-                // (58,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "+").WithArguments("static members in interfaces", "15.0").WithLocation(52, 31),
+                // (58,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator -(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "-").WithArguments("static members in interfaces").WithLocation(58, 31),
-                // (64,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "-").WithArguments("static members in interfaces", "15.0").WithLocation(58, 31),
+                // (64,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator *(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "*").WithArguments("static members in interfaces").WithLocation(64, 31),
-                // (70,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "*").WithArguments("static members in interfaces", "15.0").WithLocation(64, 31),
+                // (70,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator /(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "/").WithArguments("static members in interfaces").WithLocation(70, 31),
-                // (76,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "/").WithArguments("static members in interfaces", "15.0").WithLocation(70, 31),
+                // (76,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator %(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "%").WithArguments("static members in interfaces").WithLocation(76, 31),
-                // (82,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "%").WithArguments("static members in interfaces", "15.0").WithLocation(76, 31),
+                // (82,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator &(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&").WithArguments("static members in interfaces").WithLocation(82, 31),
-                // (88,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "&").WithArguments("static members in interfaces", "15.0").WithLocation(82, 31),
+                // (88,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator |(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "|").WithArguments("static members in interfaces").WithLocation(88, 31),
-                // (94,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "|").WithArguments("static members in interfaces", "15.0").WithLocation(88, 31),
+                // (94,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator ^(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "^").WithArguments("static members in interfaces").WithLocation(94, 31),
-                // (100,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "^").WithArguments("static members in interfaces", "15.0").WithLocation(94, 31),
+                // (100,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator <<(I1 x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<<").WithArguments("static members in interfaces").WithLocation(100, 31),
-                // (106,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "<<").WithArguments("static members in interfaces", "15.0").WithLocation(100, 31),
+                // (106,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator >>(I1 x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>").WithArguments("static members in interfaces").WithLocation(106, 31),
-                // (112,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, ">>").WithArguments("static members in interfaces", "15.0").WithLocation(106, 31),
+                // (112,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator >(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">").WithArguments("static members in interfaces").WithLocation(112, 31),
-                // (118,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, ">").WithArguments("static members in interfaces", "15.0").WithLocation(112, 31),
+                // (118,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator <(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<").WithArguments("static members in interfaces").WithLocation(118, 31),
-                // (124,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "<").WithArguments("static members in interfaces", "15.0").WithLocation(118, 31),
+                // (124,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator >=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">=").WithArguments("static members in interfaces").WithLocation(124, 31),
-                // (130,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, ">=").WithArguments("static members in interfaces", "15.0").WithLocation(124, 31),
+                // (130,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator <=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<=").WithArguments("static members in interfaces").WithLocation(130, 31),
-                // (136,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "<=").WithArguments("static members in interfaces", "15.0").WithLocation(130, 31),
+                // (136,31): error CS9327: Feature 'static members in interfaces' is not available in C# 14.0. Please use language version 15.0 or greater.
                 //     public static I1 operator >>>(I1 x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("static members in interfaces").WithLocation(136, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, ">>>").WithArguments("static members in interfaces", "15.0").WithLocation(136, 31)
                 );
 
             var compilation62 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
@@ -47598,7 +47598,7 @@ true
 
             compilation62 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
                                               targetFramework: TargetFramework.Mscorlib461Extended,
-                                              parseOptions: TestOptions.RegularNext);
+                                              parseOptions: TestOptions.Regular15);
 
             compilation62.VerifyDiagnostics();
 

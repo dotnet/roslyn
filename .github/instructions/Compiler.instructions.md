@@ -23,6 +23,7 @@ Roslyn follows a **layered compiler architecture**:
 ### Essential Files for Context
 - `src/Compilers/CSharp/Portable/Errors/ErrorCode.cs` - All C# compiler error codes
 - `src/Compilers/CSharp/Portable/Errors/MessageID.cs` - Language feature version gating
+- `src/Compilers/CSharp/Portable/LanguageVersion.cs` - Public language-version enum and parsing/mapping logic
 - `src/Compilers/CSharp/Portable/Syntax/Syntax.xml` - Syntax tree node definitions (generated code source)
 - `src/Compilers/CSharp/Portable/BoundTree/BoundNodes.xml` - Bound tree node definitions (generated code source)
 - `docs/wiki/Roslyn-Overview.md` - Architecture deep-dive
