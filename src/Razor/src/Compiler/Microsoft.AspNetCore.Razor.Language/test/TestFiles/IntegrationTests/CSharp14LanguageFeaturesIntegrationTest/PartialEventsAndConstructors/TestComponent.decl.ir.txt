@@ -1,0 +1,10 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            CSharpCode - (110:6,7 [376] x:\dir\subdir\Test\TestComponent.razor)
+                LazyIntermediateToken - (110:6,7 [376] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    public partial class Example\n    {\n        public partial event System.Action Updated;\n        public partial event System.Action Updated\n        {\n            add { }\n            remove { }\n        }\n\n        public int Value { get; }\n\n        public partial Example();\n        public partial Example()\n        {\n            Value = 1;\n        }\n    }\n
