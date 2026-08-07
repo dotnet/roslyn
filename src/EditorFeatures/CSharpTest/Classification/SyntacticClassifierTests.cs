@@ -2115,7 +2115,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     public Task UnionTypeDeclaration1(TestHost testHost)
         => TestAsync("union Union1(int, Union1) { }",
             testHost,
-            TestOptions.RegularNext,
+            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15),
             Keyword("union"),
             Struct("Union1"),
             Punctuation.OpenParen,
@@ -2752,7 +2752,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             }
             """,
             testHost,
-            [new CSharpParseOptions(LanguageVersion.Preview)],
+            [new CSharpParseOptions(LanguageVersion.CSharp15)],
             Keyword("static"),
             Keyword("class"),
             Class("E"),
