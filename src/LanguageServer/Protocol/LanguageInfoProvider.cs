@@ -46,8 +46,8 @@ internal sealed class LanguageInfoProvider : ILanguageInfoProvider
 
     public bool TryGetLanguageInformation(DocumentUri requestUri, string? lspLanguageId, [NotNullWhen(true)] out LanguageInformation? languageInformation)
     {
-        // First try to get language information from the URI path.
-        // We can do this for File uris and absolute uris.  We use local path to get the value without any query parameters.
+        // First try to get language information from the URI path. This works for both absolute and relative URIs.
+        // FsPath is derived only from the path component, so query parameters and fragments do not affect the extension.
         if (requestUri.ParsedDocumentUri is { } parsedDocumentUri)
         {
             var localPath = parsedDocumentUri.FsPath;
