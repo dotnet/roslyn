@@ -10066,6 +10066,76 @@ AnonymousTypes(
             """,
             MainDescription($"Extensions.extension(System.String)"));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82258")]
+    public Task TestLegacyExtensionFromMetadataDocComment()
+        => VerifyWithReferenceWorkerAsync("""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Legacy();
+                }
+            }
+            ]]>
+                    </Document>
+                    <MetadataReferenceFromSource Language="C#" CommonReferences="true" IncludeXmlDocComments="true" LanguageVersion="Preview">
+                        <Document FilePath="ReferencedDocument"><![CDATA[
+            public static class Extensions
+            {
+                /// <summary>Legacy summary.</summary>
+                public static void Legacy(this string s) { }
+
+                extension(string s)
+                {
+                    /// <summary>Modern summary.</summary>
+                    public void Modern() { }
+                }
+            }
+            ]]>
+                        </Document>
+                    </MetadataReferenceFromSource>
+                </Project>
+            </Workspace>
+            """, MainDescription($"({CSharpFeaturesResources.extension}) void string.Legacy()"), Documentation("Legacy summary."));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82258")]
+    public Task TestModernExtensionFromMetadataDocComment()
+        => VerifyWithReferenceWorkerAsync("""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Modern();
+                }
+            }
+            ]]>
+                    </Document>
+                    <MetadataReferenceFromSource Language="C#" CommonReferences="true" IncludeXmlDocComments="true" LanguageVersion="Preview">
+                        <Document FilePath="ReferencedDocument"><![CDATA[
+            public static class Extensions
+            {
+                /// <summary>Legacy summary.</summary>
+                public static void Legacy(this string s) { }
+
+                extension(string s)
+                {
+                    /// <summary>Modern summary.</summary>
+                    public void Modern() { }
+                }
+            }
+            ]]>
+                        </Document>
+                    </MetadataReferenceFromSource>
+                </Project>
+            </Workspace>
+            """, MainDescription($"void Extensions.extension(string).Modern()"), Documentation("Modern summary."));
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72780")]
     public Task TestLocalVariableComment1()
         => TestAsync(
