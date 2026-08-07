@@ -96,6 +96,16 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
 
+## ExternalAccess Assemblies
+
+Partner assemblies (AspNetCore, Copilot, Extensions) follow a **consolidated** pattern introduced in PRs #81593 and #84349:
+
+- **Implementation** lives in `src/Features/ExternalAccess/Core/` (`Microsoft.CodeAnalysis.Features.ExternalAccess`). Partner areas each get a subfolder, e.g., `Core/Extensions/External/`, `Core/Extensions/Internal/`, with their resource files under `Core/Extensions/`.
+- **Partner facades** (e.g., `src/Features/ExternalAccess/Extensions/`) are thin assembly-identity wrappers containing only `TypeForwards.cs` (`[assembly: TypeForwardedTo(...)]`) that redirect every public and internal type to the Core assembly. They carry no implementation.
+- **Resource files** moved to Core get their source generated with `<EmbeddedResource Update="Partner/Resource.resx" GenerateSource="true" />`. The generated class namespace includes the subfolder path: `RootNamespace.Partner.ResourceClass`.
+- **MEF exports** live exclusively in `Microsoft.CodeAnalysis.Features.ExternalAccess`; the facade assemblies export nothing. `RemoteExportProviderBuilder.RemoteHostAssemblyNames` includes Core EA so the remote host discovers MEF exports.
+- **API baselines**: public types go in Core's `PublicAPI.Unshipped.txt`; internal implementation goes in Core's `InternalAPI.Unshipped.txt`. Partner facade baselines retain shipped entries for binary-compat tracking but add no new entries after consolidation.
+
 ## Common Gotchas
 
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`

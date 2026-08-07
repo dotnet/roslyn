@@ -6,7 +6,7 @@ using System;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Extensions;
+using Microsoft.CodeAnalysis.Features.ExternalAccess.Extensions;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
