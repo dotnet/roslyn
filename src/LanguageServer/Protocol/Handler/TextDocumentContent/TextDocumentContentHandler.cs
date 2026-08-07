@@ -31,6 +31,7 @@ internal sealed class TextDocumentContentHandler() : ILspServiceDocumentRequestH
         var scheme = request.Uri.ParsedDocumentUri?.Scheme;
         if (scheme is not null)
         {
+            // URI scheme names are case-insensitive, so providers must match regardless of the casing used in the request.
             var provider = context.GetRequiredServices<ITextDocumentContentProvider>().Single(p => p.Scheme.Equals(scheme, StringComparison.OrdinalIgnoreCase));
 
             var contentText = await provider.GetTextAsync(context.TextDocument, cancellationToken).ConfigureAwait(false);
