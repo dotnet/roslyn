@@ -85,6 +85,7 @@ internal sealed class UnresolvedAttributeIntermediateNode : IntermediateNode
         {
             AttributeName = AttributeName,
             IsMinimized = IsMinimized,
+            IsDirectiveAttributeCandidate = IsDirectiveAttributeCandidate,
             ValueContent = ValueContent,
             ValueSourceSpan = ValueSourceSpan,
             AttributeStructure = AttributeStructure,
