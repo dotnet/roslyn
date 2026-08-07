@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [Name(nameof(RootSymbolTreeItemSourceProvider))]
 [Order(Before = HierarchyItemsProviderNames.Contains)]
 [AppliesToProject("CSharp | VB")]
-internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
+internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>, IDisposable
 {
     /// <summary>
     /// Mapping from filepath to the collection sources made for it.  Is a multi dictionary because the same
@@ -95,8 +95,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             UpdateCollectionSourcesAsync,
             // Ignore case as we're comparing file paths here.
             StringComparer.OrdinalIgnoreCase,
-            this.Listener,
-            this.ThreadingContext.DisposalToken);
+            this.Listener);
 
         // Register for workspace changes so that if any documents change, we can update the symbol tree *as long as it
         // has been expanded at least once* to reflect the new state of the document.
@@ -148,6 +147,8 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 
         this.ContextMenuController = new SymbolItemContextMenuController(this);
     }
+
+    public void Dispose() => _updateSourcesQueue.Dispose();
 
     private async ValueTask UpdateCollectionSourcesAsync(
         ImmutableSegmentedList<string> updatedFilePaths, CancellationToken cancellationToken)

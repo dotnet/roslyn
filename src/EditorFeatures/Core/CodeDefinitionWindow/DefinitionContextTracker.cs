@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow;
 [Export(typeof(DefinitionContextTracker))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [TextViewRole(PredefinedTextViewRoles.Interactive)]
-internal sealed class DefinitionContextTracker : ITextViewConnectionListener
+internal sealed class DefinitionContextTracker : ITextViewConnectionListener, IDisposable
 {
     private readonly HashSet<ITextView> _subscribedViews = [];
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -66,9 +66,10 @@ internal sealed class DefinitionContextTracker : ITextViewConnectionListener
         _workQueue = new AsyncBatchingWorkQueue<SnapshotPoint>(
             DelayTimeSpan.Short,
             ProcessWorkAsync,
-            _asyncListener,
-            _threadingContext.DisposalToken);
+            _asyncListener);
     }
+
+    public void Dispose() => _workQueue.Dispose();
 
     void ITextViewConnectionListener.SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
     {

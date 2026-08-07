@@ -35,6 +35,35 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
         }
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LoadSolutionAsync(bool useDaemon)
+    {
+        var workspace = MaterializedLspWorkspace.Create(
+            TempRoot,
+            LspTestWorkspaces.CreateConsoleApplication("ConsoleApplication")
+                .WithFile("ConsoleApplication.slnx", """
+                    <Solution>
+                      <Project Path="ConsoleApplication.csproj" />
+                    </Solution>
+                    """),
+            CancellationToken.None);
+        var solutionPath = workspace.GetFullPath("ConsoleApplication.slnx");
+
+        if (useDaemon)
+        {
+            await using var daemon = await CreateDaemonServerAsync();
+            await using var server = await daemon.CreateClientAsync();
+            await VerifySolutionLoadsAsync(server, solutionPath);
+        }
+        else
+        {
+            await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+            await VerifySolutionLoadsAsync(server, solutionPath);
+        }
+    }
+
     [Fact]
     public async Task LoadProjectsIntoSeparateStandaloneServersAsync()
     {
@@ -65,5 +94,13 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
 
         var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
         Assert.Equal(expectedAssemblyName, workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single().AssemblyName);
+    }
+
+    private static async Task VerifySolutionLoadsAsync(TestLspServer server, string solutionPath)
+    {
+        await server.OpenSolutionAsync(solutionPath, CancellationToken.None);
+
+        var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        Assert.Equal("ConsoleApplication", workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single().AssemblyName);
     }
 }
