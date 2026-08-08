@@ -320,41 +320,43 @@ In both cases, we will add a `if (disposeMode) /* jump to enclosing finally or e
 #### State values and transitions
 
 The enumerable starts with state -2.
-Calling GetAsyncEnumerator sets the state to -3, or returns a fresh enumerator (also with state -3).
+Calling GetAsyncEnumerator sets the state to -4, or returns a fresh enumerator (also with state -4).
 
 From there, MoveNext will either:
-- reach the end of the method (-2, we're done and disposed)
+- reach the end of the method (-3, we're done and disposed)
 - reach a `yield break` (state unchanged, dispose mode = true)
-- reach a `yield return` (-N, decreasing from -4)
+- reach a `yield return` (-N, decreasing from -5)
 - reach an `await` (N, increasing from 0)
 
 From suspended state N or -N, MoveNext will resume execution (-1).
 But if the suspension was a `yield return` (-N), you could also call DisposeAsync, which resumes execution (-1) in dispose mode.
 
-When in dispose mode, MoveNext continues to suspend (N) and resume (-1) until the end of the method is reached (-2).
+When in dispose mode, MoveNext continues to suspend (N) and resume (-1) until the end of the method is reached (-3).
 
 The result of invoking `DisposeAsync` from states -1 or N is unspecified. This compiler generates `throw new NotSupportException()` for those cases.
 
 ```
-        DisposeAsync                              await
- +------------------------+             +------------------------> N
- |                        |             |                          |
- v   GetAsyncEnumerator   |             |        resuming          |
--2 --------------------> -3 --------> -1 <-------------------------+    Dispose mode = false
- ^                                   |  |                          |
- |         done and disposed         |  |      yield return        |
- +-----------------------------------+  +-----------------------> -N
+                                                  await
+                                        +------------------------> N
+                                        |                          |
+         GetAsyncEnumerator             |        resuming          |
+ -2 ------------------------- -4 ---> -1 <-------------------------+    Dispose mode = false
+                               |     |  |                          |
+          DisposeAsync         |     |  |      yield return        |
+ +-----------------------------+     |  +-----------------------> -N
+ |                                   |                             |
+ +-----------------------------------+                             |
+ |         done and disposed         |                             |
  |        or exception thrown        |                             |
  |                                   |                             |
- |                             yield |                             |
- |                             break |           DisposeAsync      |
- |                                   |  +--------------------------+
+ |                             yield |           DisposeAsync      |
+ |                             break |  +--------------------------+
  |                                   |  |
  |                                   |  |
  |         done and disposed         v  v    suspension (await)
  +----------------------------------- -1 ------------------------> N
-                                        ^                          |    Dispose mode = true
-                                        |         resuming         |
-                                        +--------------------------+
+ |                                      ^                          |    Dispose mode = true
+ v                                      |         resuming         |
+ -3                                     +--------------------------+
 ```
 
