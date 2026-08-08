@@ -8344,6 +8344,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureClosedClasses" xml:space="preserve">
     <value>closed classes</value>
   </data>
+  <data name="IDS_FeatureTypeParameterInferenceFromConstraints" xml:space="preserve">
+    <value>type parameter inference from constraints</value>
+  </data>
   <data name="ERR_ClosedTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'closed'.</value>
   </data>
