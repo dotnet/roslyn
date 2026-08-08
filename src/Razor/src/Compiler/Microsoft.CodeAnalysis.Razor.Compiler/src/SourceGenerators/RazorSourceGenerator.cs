@@ -222,7 +222,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     // fallback types are exactly the ones declared by the discovery-only decl trees we just
                     // added, and tag-helper producers examine each type independently, so discovering just
                     // those yields the same descriptors the full walk would for them.
-                    var fallbackTypes = ResolveFallbackTypes(augmented, fallbackTrees, cancellationToken);
+                    var fallbackTypes = ResolveFallbackTypes(augmented, fallbackTypeNames, cancellationToken);
                     if (fallbackTypes.IsDefaultOrEmpty)
                     {
                         return TagHelperCollection.Empty;
