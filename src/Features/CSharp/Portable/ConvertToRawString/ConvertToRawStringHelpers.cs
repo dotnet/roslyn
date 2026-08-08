@@ -155,4 +155,12 @@ internal static class ConvertToRawStringHelpers
 
         return longestSequence;
     }
+
+    public static string NormalizeLineEndings(string input, string replacementText)
+    {
+        return input
+            .Replace("\r\n", "\n")
+            .Replace("\r", "\n")
+            .Replace("\n", replacementText);
+    }
 }

@@ -1149,7 +1149,7 @@ public sealed class ExtractClassTests
         }.RunAsync();
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
     public async Task TestUsingsInsideNamespace()
     {

@@ -66,9 +66,10 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
         var nameChanged = hasGetPrefix;
 
         // Looks good!
-        context.RegisterRefactoring(CodeAction.Create(
+        context.RegisterRefactoring(new LineEndingSolutionChangeAction(
             string.Format(FeaturesResources.Replace_0_with_property, methodName),
-            c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
+            (_, c) => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
+            document.Project.Solution,
             methodName),
             methodDeclaration.Span);
 
@@ -79,9 +80,10 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
             var setMethod = FindSetMethod(methodSymbol);
             if (setMethod != null)
             {
-                context.RegisterRefactoring(CodeAction.Create(
+                context.RegisterRefactoring(new LineEndingSolutionChangeAction(
                     string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
-                    c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
+                    (_, c) => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
+                    document.Project.Solution,
                     methodName + "-get/set"),
                     methodDeclaration.Span);
             }

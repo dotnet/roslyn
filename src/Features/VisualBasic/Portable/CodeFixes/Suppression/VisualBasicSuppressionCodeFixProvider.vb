@@ -7,6 +7,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Formatting
@@ -140,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             attributeStatement = CType(Formatter.Format(attributeStatement, services, options, cancellationToken), AttributesStatementSyntax)
 
             Dim leadingTrivia = If(isFirst AndAlso Not compilationRoot.HasLeadingTrivia,
-                SyntaxFactory.TriviaList(SyntaxFactory.CommentTrivia(GlobalSuppressionsFileHeaderComment)),
+                SyntaxFactory.TriviaList(SyntaxFactory.CommentTrivia(LineEndingUtilities.NormalizeLineEndings(GlobalSuppressionsFileHeaderComment, options.NewLine))),
                 Nothing)
             leadingTrivia = leadingTrivia.AddRange(compilationRoot.GetLeadingTrivia())
             compilationRoot = compilationRoot.WithoutLeadingTrivia()
