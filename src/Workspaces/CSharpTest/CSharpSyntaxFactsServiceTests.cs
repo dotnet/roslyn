@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -12,6 +13,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class CSharpSyntaxFactsServiceTests
 {
+    [Fact]
+    public void ElasticCarriageReturnLineFeed_UsesEnvironmentNewLine()
+    {
+        var service = CSharpSyntaxFacts.Instance;
+        var trivia = service.ElasticCarriageReturnLineFeed;
+
+        Assert.True(service.IsElastic(trivia));
+        Assert.Equal(Environment.NewLine, trivia.ToFullString());
+    }
+
     private static bool IsQueryKeyword(string markup)
     {
         MarkupTestFile.GetPosition(markup, out var code, out int position);
