@@ -27,11 +27,17 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
         DeclarationModifiers modifiers,
         string name,
         SpecialType specialType,
+#if !OLDER_ROSLYN
+        TypeLayout typeLayout,
+#endif
         NullableAnnotation nullableAnnotation,
         ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
         : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation)
     {
         this.TypeMembers = typeMembers;
+#if !OLDER_ROSLYN
+        this.TypeLayout = typeLayout;
+#endif
 
         foreach (var member in typeMembers)
         {
@@ -128,6 +134,7 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
     public bool IsExtension => false;
     public string ExtensionGroupingName => null;
     public string ExtensionMarkerName => null;
+    public TypeLayout TypeLayout { get; }
     public IParameterSymbol ExtensionParameter => null;
 
     public override bool IsClosed => Modifiers.IsClosed;

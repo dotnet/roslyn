@@ -21,7 +21,11 @@ internal sealed class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationA
         ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
         : base(constructedFrom.ContainingAssembly, constructedFrom.ContainingType, constructedFrom.GetAttributes(),
                constructedFrom.DeclaredAccessibility, constructedFrom.Modifiers,
-               constructedFrom.Name, constructedFrom.SpecialType, constructedFrom.NullableAnnotation, typeMembers)
+               constructedFrom.Name, constructedFrom.SpecialType,
+#if !OLDER_ROSLYN
+               constructedFrom.TypeLayout,
+#endif
+               constructedFrom.NullableAnnotation, typeMembers)
     {
         _constructedFrom = constructedFrom;
         this.OriginalDefinition = constructedFrom.OriginalDefinition;

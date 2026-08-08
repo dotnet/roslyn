@@ -1,5 +1,14 @@
+Microsoft.CodeAnalysis.INamedTypeSymbol.TypeLayout.get -> Microsoft.CodeAnalysis.TypeLayout
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha384 = 3 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha512 = 4 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
+Microsoft.CodeAnalysis.TypeLayout
+Microsoft.CodeAnalysis.TypeLayout.Equals(Microsoft.CodeAnalysis.TypeLayout other) -> bool
+Microsoft.CodeAnalysis.TypeLayout.Kind.get -> System.Runtime.InteropServices.LayoutKind
+Microsoft.CodeAnalysis.TypeLayout.PackingSize.get -> short
+Microsoft.CodeAnalysis.TypeLayout.Size.get -> int
+Microsoft.CodeAnalysis.TypeLayout.TypeLayout() -> void
+override Microsoft.CodeAnalysis.TypeLayout.Equals(object? obj) -> bool
+override Microsoft.CodeAnalysis.TypeLayout.GetHashCode() -> int
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypeInfo() -> void
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>

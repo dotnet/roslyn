@@ -1311,6 +1311,7 @@ Microsoft.CodeAnalysis.INamedTypeSymbol.get_TupleElements
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_TupleUnderlyingType
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_TypeArgumentNullableAnnotations
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_TypeArguments
+Microsoft.CodeAnalysis.INamedTypeSymbol.get_TypeLayout
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_TypeParameters
 Microsoft.CodeAnalysis.INamespaceOrTypeSymbol
 Microsoft.CodeAnalysis.INamespaceOrTypeSymbol.GetMembers
@@ -4003,6 +4004,13 @@ Microsoft.CodeAnalysis.TypeKind.Submission
 Microsoft.CodeAnalysis.TypeKind.TypeParameter
 Microsoft.CodeAnalysis.TypeKind.Unknown
 Microsoft.CodeAnalysis.TypeKind.value__
+Microsoft.CodeAnalysis.TypeLayout
+Microsoft.CodeAnalysis.TypeLayout.Equals(Microsoft.CodeAnalysis.TypeLayout)
+Microsoft.CodeAnalysis.TypeLayout.Equals(System.Object)
+Microsoft.CodeAnalysis.TypeLayout.GetHashCode
+Microsoft.CodeAnalysis.TypeLayout.get_Kind
+Microsoft.CodeAnalysis.TypeLayout.get_PackingSize
+Microsoft.CodeAnalysis.TypeLayout.get_Size
 Microsoft.CodeAnalysis.TypeParameterKind
 Microsoft.CodeAnalysis.TypeParameterKind.Cref
 Microsoft.CodeAnalysis.TypeParameterKind.Method
