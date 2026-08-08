@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -55,6 +56,60 @@ public abstract class AbstractDocumentationCommentTests
                 commandHandler.ExecuteCommand(commandArgs, nextHandler, TestCommandExecutionContext.Create());
             },
             useTabs, newLine, trimTrailingWhiteSpace, globalOptions);
+    }
+
+    internal void VerifyPaste(string initialMarkup, string pastedText, string expectedMarkup, bool useTabs = false, string newLine = "\r\n", bool trimTrailingWhiteSpace = false, OptionsCollection globalOptions = null)
+    {
+        Verify(initialMarkup, expectedMarkup,
+            execute: (workspace, view, editorOperationsFactoryService) => ExecutePaste(workspace, view, editorOperationsFactoryService, pastedText),
+            useTabs, newLine, trimTrailingWhiteSpace, globalOptions);
+    }
+
+    internal void VerifyPasteAndUndo(
+        string initialMarkup,
+        string pastedText,
+        string expectedAfterPasteMarkup,
+        string expectedAfterFirstUndoMarkup,
+        string expectedAfterSecondUndoMarkup,
+        bool useTabs = false,
+        string newLine = "\r\n",
+        bool trimTrailingWhiteSpace = false,
+        OptionsCollection globalOptions = null)
+    {
+        Verify(
+            initialMarkup,
+            expectedAfterPasteMarkup,
+            execute: (workspace, view, editorOperationsFactoryService) => ExecutePaste(workspace, view, editorOperationsFactoryService, pastedText),
+            useTabs,
+            newLine,
+            trimTrailingWhiteSpace,
+            globalOptions,
+            afterVerification: (workspace, view) =>
+            {
+                var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);
+
+                history.Undo(count: 1);
+                AssertTextAndCaret(view, expectedAfterFirstUndoMarkup);
+
+                history.Undo(count: 1);
+                AssertTextAndCaret(view, expectedAfterSecondUndoMarkup);
+            });
+    }
+
+    private void ExecutePaste(
+        EditorTestWorkspace workspace,
+        IWpfTextView view,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        string pastedText)
+    {
+        var commandHandler = CreateCommandHandler(workspace);
+        var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
+        var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
+
+        commandHandler.ExecuteCommand(
+            commandArgs,
+            () => editorOperations.ReplaceSelection(pastedText),
+            TestCommandExecutionContext.Create());
     }
 
     internal void VerifyInsertCommentCommand(string initialMarkup, string expectedMarkup, bool useTabs = false, string newLine = "\r\n", bool trimTrailingWhiteSpace = false, OptionsCollection globalOptions = null)
@@ -127,7 +182,8 @@ public abstract class AbstractDocumentationCommentTests
         bool useTabs,
         string newLine,
         bool trimTrailingWhiteSpace,
-        OptionsCollection globalOptions)
+        OptionsCollection globalOptions,
+        Action<EditorTestWorkspace, IWpfTextView> afterVerification = null)
     {
         using var workspace = CreateTestWorkspace(initialMarkup);
         var testDocument = workspace.Documents.Single();
@@ -145,20 +201,35 @@ public abstract class AbstractDocumentationCommentTests
         editorOptions.SetOptionValue(DefaultOptions.NewLineCharacterOptionId, newLine);
         view.Options.SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionId, trimTrailingWhiteSpace);
 
-        if (testDocument.SelectedSpans.Any())
+        if (testDocument.SelectedSpans.Count > 1)
         {
-            var selectedSpan = testDocument.SelectedSpans[0];
-            var isReversed = selectedSpan.Start == startCaretPosition;
-
-            view.Selection.Select(new SnapshotSpan(view.TextSnapshot, selectedSpan.Start, selectedSpan.Length), isReversed);
+            view.SetMultiSelection(testDocument.SelectedSpans.Select(
+                span => new SnapshotSpan(view.TextSnapshot, span.Start, span.Length)));
         }
+        else
+        {
+            if (testDocument.SelectedSpans.Any())
+            {
+                var selectedSpan = testDocument.SelectedSpans[0];
+                var isReversed = selectedSpan.Start == startCaretPosition;
 
-        view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
+                view.Selection.Select(new SnapshotSpan(view.TextSnapshot, selectedSpan.Start, selectedSpan.Length), isReversed);
+            }
+
+            view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
+        }
 
         execute(
             workspace,
             view,
             workspace.GetService<IEditorOperationsFactoryService>());
+
+        AssertTextAndCaret(view, expectedMarkup);
+        afterVerification?.Invoke(workspace, view);
+    }
+
+    private static void AssertTextAndCaret(IWpfTextView view, string expectedMarkup)
+    {
         MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int _);
 
         var actual = view.TextSnapshot.GetText();
