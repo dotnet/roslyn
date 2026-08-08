@@ -101,3 +101,4 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **ImportingConstructor must be marked `[Obsolete]`** with `MefConstruction.ImportingConstructorMessage`
 - **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
+- **Formatter elastic end-of-line trivia must stay "elastic" through analysis** — in trivia analyzers, make sure `EndOfLineTrivia` contributes to `TreatAsElastic` even without preceding whitespace, or `LineFormattingOptions.NewLine` normalization can be skipped.

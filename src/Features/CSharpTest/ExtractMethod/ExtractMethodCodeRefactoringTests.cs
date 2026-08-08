@@ -114,6 +114,7 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 void M()
                 {
                     local();
+
                     {|Rename:NewMethod1|}();
 
                     Testing = 5;
@@ -1535,7 +1536,7 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     [CompilerTrait(CompilerFeature.Tuples)]
     public Task TestDeconstruction2()
         => TestInRegularAndScriptAsync(
@@ -1782,6 +1783,7 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 void M(CancellationToken ct)
                 {
                     var v = 0;
+
                     {|Rename:NewMethod|}(v, ct);
                 }
 
@@ -5520,6 +5522,7 @@ class Program
                 {
                     int a = 0;
                     int b = 0;
+
                     (a, b) = await {|Rename:NewMethod|}(a, b);
             
                     Console.Write(a);
@@ -5790,7 +5793,7 @@ class Program
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Theory]
     [CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
     public async Task TestPrimaryConstructorBaseList(bool withBody)
     {
