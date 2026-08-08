@@ -422,6 +422,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return MethodKind.DelegateInvoke
             End If
 
+            If name.StartsWith(GeneratedNameConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
+                Return MethodKind.LambdaMethod
+            End If
+
             Return MethodKind.Ordinary
         End Function
 
