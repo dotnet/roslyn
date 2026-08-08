@@ -108997,6 +108997,9 @@ public interface IB
             var comp1 = CreateCompilation(new[] { source }, options: WithNullableEnable());
 
             comp1.VerifyDiagnostics(
+                // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
+                //         M1(b2, a2); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(9, 9),
                 // (10,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
                 //         M1<TB1, TB1?>(b2, a2); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1, TB1?>").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(10, 9)
@@ -109026,6 +109029,9 @@ public interface IB
             var comp1 = CreateCompilation(new[] { source }, options: WithNullableEnable());
 
             comp1.VerifyDiagnostics(
+                // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
+                //         M1(b2, a2); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(9, 9),
                 // (10,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
                 //         M1<TB1, TB1?>(b2, a2); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1, TB1?>").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(10, 9)
@@ -109055,6 +109061,9 @@ public interface IB
             var comp1 = CreateCompilation(new[] { source }, options: WithNullableEnable());
 
             comp1.VerifyDiagnostics(
+                // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
+                //         M1(b2, a2); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(9, 9),
                 // (10,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
                 //         M1<TB1, TB1?>(b2, a2); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1, TB1?>").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(10, 9)
@@ -109090,6 +109099,9 @@ public interface IC
             var comp1 = CreateCompilation(new[] { source }, options: WithNullableEnable());
 
             comp1.VerifyDiagnostics(
+                // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
+                //         M1(b2, a2); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(9, 9),
                 // (10,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
                 //         M1<TB1, TB1?>(b2, a2); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1, TB1?>").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(10, 9)
@@ -109125,6 +109137,9 @@ public interface IC
             var comp1 = CreateCompilation(new[] { source }, options: WithNullableEnable());
 
             comp1.VerifyDiagnostics(
+                // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
+                //         M1(b2, a2); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(9, 9),
                 // (10,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
                 //         M1<TB1, TB1?>(b2, a2); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1, TB1?>").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(10, 9)
@@ -119224,18 +119239,12 @@ interface I1<in U> {}
 ";
 
             CreateCompilation(source, options: WithNullableEnable()).VerifyDiagnostics(
-                // (6,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<T?>'.
+                // (6,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<U?>'.
                 //         M3(M2(x0), a0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "I1<T?>", "U", "I1<T>").WithLocation(6, 9),
-                // (6,9): warning CS8634: The type 'T' cannot be used as type parameter 'W' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'T' doesn't match 'class' constraint.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "I1<U?>", "U", "I1<T>").WithLocation(6, 9),
+                // (9,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<U?>'.
                 //         M3(M2(x0), a0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "W", "T").WithLocation(6, 9),
-                // (9,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<T?>'.
-                //         M3(M2(x0), a0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "I1<T?>", "U", "I1<T>").WithLocation(9, 9),
-                // (9,9): warning CS8634: The type 'T' cannot be used as type parameter 'W' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'T' doesn't match 'class' constraint.
-                //         M3(M2(x0), a0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "W", "T").WithLocation(9, 9),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "I1<U?>", "U", "I1<T>").WithLocation(9, 9),
                 // (11,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<U?>'.
                 //         M3<I1<T>, U>(y0, null);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3<I1<T>, U>").WithArguments("Outer.M3<U, W>(U, W?)", "I1<U?>", "U", "I1<T>").WithLocation(11, 9),
@@ -119332,13 +119341,7 @@ class Outer
 interface I1<in U> {}
 ";
 
-            CreateCompilation(source, options: WithNullableEnable()).VerifyDiagnostics(
-                // (6,9): warning CS8634: The type 'T' cannot be used as type parameter 'W' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'T' doesn't match 'class' constraint.
-                //         M3(M2(x0), a0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "W", "T").WithLocation(6, 9),
-                // (9,9): warning CS8634: The type 'T' cannot be used as type parameter 'W' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'T' doesn't match 'class' constraint.
-                //         M3(M2(x0), a0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "W", "T").WithLocation(9, 9));
+            CreateCompilation(source, options: WithNullableEnable()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -141493,7 +141496,13 @@ class Program
             comp.VerifyDiagnostics(
                 // (11,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T y = null; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 15));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 15),
+                // (14,14): warning CS8631: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'E.F<T, U>(T, U)'. Nullability of type argument 'T?' doesn't match constraint type 'T'.
+                //         d1 = x.F; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "x.F").WithArguments("E.F<T, U>(T, U)", "T", "U", "T?").WithLocation(14, 14),
+                // (18,23): warning CS8631: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'E.F<T, U>(T, U)'. Nullability of type argument 'T?' doesn't match constraint type 'T'.
+                //         _ = new D<T?>(x.F); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "x.F").WithArguments("E.F<T, U>(T, U)", "T", "U", "T?").WithLocation(18, 23));
         }
 
         [Fact]

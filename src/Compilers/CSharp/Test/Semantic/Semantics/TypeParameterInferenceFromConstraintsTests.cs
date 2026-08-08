@@ -58,6 +58,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void ContravariantConstraint_DoesNotChangeInferredType()
+        {
+            var source = """
+                using System;
+
+                static Type M<T, U>(T t, U u) where T : I<U> => typeof(U);
+                Console.WriteLine(M(new Holder(), new B()).Name);
+                interface I<in T> { }
+                class A { }
+                class B : A { }
+                class Holder : I<A> { }
+                """;
+
+            CompileAndVerify(
+                CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.DebugExe),
+                expectedOutput: "B").VerifyDiagnostics();
+
+            CompileAndVerify(
+                CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe),
+                expectedOutput: "B").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ConstraintInference_PrecedingOutputInference_DoesNotChangeInferredType()
+        {
+            var source = """
+                using System;
+
+                static Type M<T, U, V>(T t, V v, Func<V, U> f) where T : I<U> => typeof(U);
+                Console.WriteLine(M(new Holder(), 0, x => new B()).Name);
+                interface I<in T> { }
+                class A { }
+                class B : A { }
+                class Holder : I<A> { }
+                """;
+
+            CompileAndVerify(
+                CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe),
+                expectedOutput: "B").VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Basic_FailsWithoutFeature()
         {
             var source = """
@@ -396,6 +438,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void NullableReferenceType_AnnotationFlowsFromOrdinaryBound()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    static void M<T, U>(T x, T y) where T : U
+                    {
+                    }
+
+                    static void Main()
+                    {
+                        M("", null);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var method = GetInferredMethod(comp);
+            AssertEx.Equal(
+                new[] { "System.String?", "System.String?" },
+                method.TypeArguments.SelectAsArray(t => t.ToTestDisplayString(includeNonNullable: true)));
+        }
+
+        [Fact]
         public void NullableReferenceType_DoesNotCrashNullableAnalysis()
         {
             // Exercises the NullableWalker re-inference path through the constraint lower-bound inference.
@@ -422,10 +492,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void ConflictingBounds_FailsGracefully()
+        public void OrdinaryBoundConflictsWithConstraint_ConstraintFails()
         {
-            // TElement gets a lower bound 'string' from the direct argument and 'int' from the
-            // constraint of TEnumerable; there is no best common type, so inference fails.
+            // The direct argument fixes TElement as string. Constraint inference does not replace
+            // that ordinary bound, so inference succeeds and the incompatible constraint is reported.
             var source = """
                 using System.Collections.Generic;
 
@@ -443,9 +513,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (11,9): error CS0411: The type arguments for method 'C.M<TEnumerable, TElement>(TEnumerable, TElement)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (11,9): error CS0311: The type 'System.Collections.Generic.List<int>' cannot be used as type parameter 'TEnumerable' in the generic type or method 'C.M<TEnumerable, TElement>(TEnumerable, TElement)'. There is no implicit reference conversion from 'System.Collections.Generic.List<int>' to 'System.Collections.Generic.IEnumerable<string>'.
                 //         M(new List<int>(), "hello");
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable, TElement)").WithLocation(11, 9));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable, TElement)", "System.Collections.Generic.IEnumerable<string>", "TEnumerable", "System.Collections.Generic.List<int>").WithLocation(11, 9));
         }
 
         [Fact]
@@ -758,6 +828,85 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void CyclicConstraints_WithOrdinaryBounds_DoNotDependOnTypeParameterOrder()
+        {
+            var source = """
+                interface I<T> { }
+                interface J<T> { }
+                class A : I<B1> { }
+                class B1 : J<A> { }
+                class B2 : B1 { }
+
+                class Program
+                {
+                    static void M1<T, U>(T t, U u) where T : I<U> where U : J<T> { }
+                    static void M2<U, T>(U u, T t) where T : I<U> where U : J<T> { }
+
+                    static void Main()
+                    {
+                        M1(new A(), new B2());
+                        M2(new B2(), new A());
+                    }
+                }
+                """;
+
+            var expected = new[]
+            {
+                // (14,9): error CS0311: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'Program.M1<T, U>(T, U)'. There is no implicit reference conversion from 'A' to 'I<B2>'.
+                //         M1(new A(), new B2());
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M1").WithArguments("Program.M1<T, U>(T, U)", "I<B2>", "T", "A").WithLocation(14, 9),
+                // (15,9): error CS0311: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'Program.M2<U, T>(U, T)'. There is no implicit reference conversion from 'A' to 'I<B2>'.
+                //         M2(new B2(), new A());
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M2").WithArguments("Program.M2<U, T>(U, T)", "I<B2>", "T", "A").WithLocation(15, 9)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void CyclicConstraints_WithConstraintBounds_DoNotDependOnTypeParameterOrder()
+        {
+            var source = """
+                interface P<out T, out U> { }
+                interface I<T> { }
+                interface J<T> { }
+                class A : I<B1> { }
+                class B1 : J<A> { }
+                class B2 : B1 { }
+                class Seed : P<A, B2> { }
+
+                class Program
+                {
+                    static void M1<S, T, U>(S s) where S : P<T, U> where T : I<U> where U : J<T> { }
+                    static void M2<S, U, T>(S s) where S : P<T, U> where T : I<U> where U : J<T> { }
+
+                    static void Main()
+                    {
+                        M1(new Seed());
+                        M2(new Seed());
+                    }
+                }
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+                // (16,9): error CS0411: The type arguments for method 'Program.M1<S, T, U>(S)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(new Seed());
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<S, T, U>(S)").WithLocation(16, 9),
+                // (17,9): error CS0411: The type arguments for method 'Program.M2<S, U, T>(S)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M2(new Seed());
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<S, U, T>(S)").WithLocation(17, 9));
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (16,9): error CS0311: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'Program.M1<S, T, U>(S)'. There is no implicit reference conversion from 'A' to 'I<B2>'.
+                //         M1(new Seed());
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M1").WithArguments("Program.M1<S, T, U>(S)", "I<B2>", "T", "A").WithLocation(16, 9),
+                // (17,9): error CS0311: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'Program.M2<S, U, T>(S)'. There is no implicit reference conversion from 'A' to 'I<B2>'.
+                //         M2(new Seed());
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M2").WithArguments("Program.M2<S, U, T>(S)", "I<B2>", "T", "A").WithLocation(17, 9));
+        }
+
+        [Fact]
         public void MultiLevelEnumeratorPattern_InfersThroughConstraintChain()
         {
             // The allocation-free "generic struct enumerator" LINQ pattern: the enumerator type is
@@ -915,14 +1064,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void AsyncLambda_ReturnConflictsWithConstraint_ChangesErrorKind()
+        public void AsyncLambda_ReturnConflictsWithConstraint_OrdinaryBoundWins()
         {
-            // This code is invalid either way (List<object> cannot be IEnumerable<int>), but the
-            // feature changes WHICH error the user sees. Without the feature, the async lambda's
-            // Task<int> return fixes TElement = int, inference succeeds as M<List<object>, int>, and
-            // the constraint check then fails (CS0311). With the feature the constraint also feeds
-            // TElement an 'object' bound (from List<object>) that conflicts with the lambda's 'int',
-            // so inference itself fails (CS0411) before any constraint check.
+            // The async lambda's Task<int> return fixes TElement as int. Constraint inference does
+            // not replace that ordinary bound, so both language versions report the same constraint
+            // failure for List<object>.
             var source = """
                 using System;
                 using System.Collections.Generic;
@@ -943,9 +1089,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (14,9): error CS0411: The type arguments for method 'C.M<TEnumerable, TElement>(TEnumerable, Func<Task<TElement>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (14,9): error CS0311: The type 'System.Collections.Generic.List<object>' cannot be used as type parameter 'TEnumerable' in the generic type or method 'C.M<TEnumerable, TElement>(TEnumerable, Func<Task<TElement>>)'. There is no implicit reference conversion from 'System.Collections.Generic.List<object>' to 'System.Collections.Generic.IEnumerable<int>'.
                 //         M(new List<object>(), async () => 42);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable, System.Func<System.Threading.Tasks.Task<TElement>>)").WithLocation(14, 9));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable, System.Func<System.Threading.Tasks.Task<TElement>>)", "System.Collections.Generic.IEnumerable<int>", "TEnumerable", "System.Collections.Generic.List<object>").WithLocation(14, 9));
 
             CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (14,9): error CS0311: The type 'System.Collections.Generic.List<object>' cannot be used as type parameter 'TEnumerable' in the generic type or method 'C.M<TEnumerable, TElement>(TEnumerable, Func<Task<TElement>>)'. There is no implicit reference conversion from 'System.Collections.Generic.List<object>' to 'System.Collections.Generic.IEnumerable<int>'.
