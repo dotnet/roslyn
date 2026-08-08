@@ -222,7 +222,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                         return TagHelperCollection.Empty;
                     }
 
-                    return all.Where(fallbackTypeNames, static (descriptor, names) => names.Contains(StripGenericArity(descriptor.TypeName)));
+                    return all.Where(fallbackTypeNames, static (descriptor, names) => names.Contains(StripGenericArity(GetOwningTypeName(descriptor))));
                 })
                 .WithLambdaComparer(static (a, b) => a!.SequenceEqual(b!))
                 .WithTrackingName("SlowTagHelpers");
@@ -239,7 +239,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var ((fast, slow), fallbackTypeNames) = pair;
                     var fastOwned = fallbackTypeNames.IsEmpty
                         ? fast
-                        : fast.Where(fallbackTypeNames, static (descriptor, names) => !names.Contains(StripGenericArity(descriptor.TypeName)));
+                        : fast.Where(fallbackTypeNames, static (descriptor, names) => !names.Contains(StripGenericArity(GetOwningTypeName(descriptor))));
                     return TagHelperCollection.Merge(fastOwned, slow);
                 })
                 .WithTrackingName("TagHelpersFromCompilation");
