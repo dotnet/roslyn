@@ -9076,5 +9076,72 @@ record Rec(string Item)
 </doc>";
             AssertEx.Equal(expected, actual);
         }
+
+        [Fact]
+        [WorkItem(27150, "https://github.com/dotnet/roslyn/issues/27150")]
+        public void CDataInCodeElementPreservesAuthoredIndentation()
+        {
+            var source = """
+                /// <summary>This is the Summary</summary>
+                /// <example>
+                /// <code language="c#">
+                /// <![CDATA[
+                /// // No Indent
+                ///     // four spaces
+                ///         // eight spaces
+                /// ]]>
+                /// </code>
+                /// </example>
+                public class C
+                {
+                }
+                """;
+
+            var compilation = CreateCompilation(
+                source,
+                assemblyName: "csdoccomment",
+                options: TestOptions.ReleaseDll);
+
+            using var peStream = new MemoryStream();
+            using var xmlStream = new MemoryStream();
+
+            var emitResult = compilation.Emit(
+                peStream: peStream,
+                xmlDocumentationStream: xmlStream);
+
+            emitResult.Diagnostics.Verify();
+            Assert.True(emitResult.Success);
+
+            static string normalizeLineEndings(string value) =>
+                value.Replace("\r\n", "\n").Replace('\r', '\n');
+
+            var actual = normalizeLineEndings(
+                System.Text.Encoding.UTF8.GetString(xmlStream.ToArray()));
+
+            var expected = normalizeLineEndings("""
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>csdoccomment</name>
+                    </assembly>
+                    <members>
+                        <member name="T:C">
+                            <summary>This is the Summary</summary>
+                            <example>
+                            <code language="c#">
+                            <![CDATA[
+                // No Indent
+                    // four spaces
+                        // eight spaces
+                ]]>
+                            </code>
+                            </example>
+                        </member>
+                    </members>
+                </doc>
+                """) + "\n";
+
+            AssertEx.Equal(expected, actual);
+        }
     }
 }
