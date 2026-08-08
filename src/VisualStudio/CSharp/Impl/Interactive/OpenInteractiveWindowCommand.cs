@@ -22,7 +22,10 @@ internal sealed class OpenInteractiveWindowCommand(
     public override CommandConfiguration CommandConfiguration => new("%CSharpLanguageServiceExtension.OpenInteractiveWindow.DisplayName%")
     {
         Placements = [CommandPlacement.KnownPlacements.ViewOtherWindowsMenu.WithPriority(0x8000)],
-        // TODO: Shortcuts https://github.com/dotnet/roslyn/issues/3941
+        Shortcuts =
+        [
+            new CommandShortcutConfiguration(ModifierKey.Control | ModifierKey.LeftAlt, Key.C),
+        ],
     };
 
     public override async Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
