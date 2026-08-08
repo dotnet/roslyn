@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Text.Json;
+using Microsoft.CodeAnalysis.LanguageServer;
 using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -15,5 +17,7 @@ public static class LspRequestExtensions
         => new(lspRequest.Name);
 
     internal static LSP.ClientCapabilities GetClientCapabilities(this LS.RequestContext requestContext)
-        => requestContext.ClientCapabilities?.ToObject<LSP.ClientCapabilities>() ?? new LSP.VSInternalClientCapabilities();
+        => requestContext.ClientCapabilities is { } clientCapabilities
+            ? JsonSerializer.Deserialize<LSP.ClientCapabilities>(clientCapabilities.ToString(), ProtocolConversions.LspJsonSerializerOptions)
+            : new LSP.VSInternalClientCapabilities();
 }

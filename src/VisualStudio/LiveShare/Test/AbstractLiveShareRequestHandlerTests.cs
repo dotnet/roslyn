@@ -51,13 +51,13 @@ public abstract class AbstractLiveShareRequestHandlerTests(ITestOutputHelper tes
 
     protected static async Task<ResponseType> TestHandleAsync<RequestType, ResponseType>(Solution solution, RequestType request, string methodName)
     {
-        var requestContext = new RequestContext<Solution>(solution, new MockHostProtocolConverter(), JObject.FromObject(new ClientCapabilities()));
+        var requestContext = new RequestContext<Solution>(solution, new MockHostProtocolConverter(), new JObject());
         return await GetHandler<RequestType, ResponseType>(solution, methodName).HandleAsync(request, requestContext, CancellationToken.None);
     }
 
     protected static async Task<ResponseType> TestHandleAsync<RequestType, ResponseType>(Solution solution, RequestType request, string methodName, Func<Uri, Uri> uriMappingFunc)
     {
-        var requestContext = new RequestContext<Solution>(solution, new MockHostProtocolConverter(uriMappingFunc), JObject.FromObject(new ClientCapabilities()));
+        var requestContext = new RequestContext<Solution>(solution, new MockHostProtocolConverter(uriMappingFunc), new JObject());
         return await GetHandler<RequestType, ResponseType>(solution, methodName).HandleAsync(request, requestContext, CancellationToken.None);
     }
 
