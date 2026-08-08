@@ -513,7 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
-#nullable disable
 
         public override string MetadataName
         {
@@ -540,6 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _containingType;
             }
         }
+#nullable disable
 
         internal override LexicalSortKey GetLexicalSortKey()
         {

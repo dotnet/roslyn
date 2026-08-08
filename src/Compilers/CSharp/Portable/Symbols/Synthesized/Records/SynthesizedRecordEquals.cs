@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     MethodSymbol? baseEquals = ContainingType.GetMembersUnordered().OfType<SynthesizedRecordBaseEquals>().Single().OverriddenMethod;
 
-                    if (baseEquals is null || !baseEquals.ContainingType.Equals(ContainingType.BaseTypeNoUseSiteDiagnostics, TypeCompareKind.AllIgnoreOptions) ||
+                    if (baseEquals is null || !baseEquals.RequiredContainingType.Equals(ContainingType.BaseTypeNoUseSiteDiagnostics, TypeCompareKind.AllIgnoreOptions) ||
                         baseEquals.ReturnType.SpecialType != SpecialType.System_Boolean)
                     {
                         // There was a problem with overriding of base equals, an error was reported elsewhere
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(c.IsImplicit);
                     Debug.Assert(c.IsReference);
                     retExpr = F.Call(
-                        F.Base(baseEquals.ContainingType),
+                        F.Base(baseEquals.RequiredContainingType),
                         baseEquals,
                         F.Convert(baseType, other, c));
                 }

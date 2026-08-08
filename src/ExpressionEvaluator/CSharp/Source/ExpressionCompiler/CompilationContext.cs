@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                         // "this" for non-static methods that are not display class methods or
                         // display class methods where the display class contains "<>4__this".
-                        if (!m.IsStatic && !IsDisplayClassType(m.ContainingType) ||
+                        if (!m.IsStatic && !IsDisplayClassType(m.RequiredContainingType) ||
                             GetThisProxy(_displayClassVariables) != null)
                         {
                             var methodName = GetNextMethodName(methodBuilder);
@@ -1324,7 +1324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodSymbol method,
             MethodSymbol? sourceMethod)
         {
-            var containingType = method.ContainingType;
+            var containingType = method.RequiredContainingType;
             bool isIteratorOrAsyncMethod = IsDisplayClassType(containingType) &&
                 GeneratedNameParser.GetKind(containingType.Name) == GeneratedNameKind.StateMachineType;
 
@@ -1402,7 +1402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            if (IsDisplayClassType(currentFrame.ContainingType) && !currentFrame.IsStatic)
+            if (IsDisplayClassType(currentFrame.RequiredContainingType) && !currentFrame.IsStatic)
             {
                 // Add "this" display class instance.
                 var instance = new DisplayClassInstanceFromParameter(currentFrame.ThisParameter);
@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (!currentFrame.IsStatic && isPrimaryConstructor)
             {
                 checkForPrimaryConstructor = !tryAddCapturedPrimaryConstructorParameters(currentFrame, shadowingParameterNames: ImmutableArray<string>.Empty,
-                                                                                         possiblyCapturingType: currentFrame.ContainingType,
+                                                                                         possiblyCapturingType: currentFrame.RequiredContainingType,
                                                                                          possiblyCapturingTypeInstance: (Instance: null, Fields: ConsList<FieldSymbol>.Empty),
                                                                                          displayClassVariablesBuilder, displayClassVariableNamesInsideInOrderBuilder);
             }
@@ -1473,7 +1473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (!isPrimaryConstructor && checkForPrimaryConstructor && currentFrame == currentSourceMethod && !currentFrame.IsStatic)
             {
                 checkForPrimaryConstructor = !tryAddCapturedPrimaryConstructorParameters(currentFrame, shadowingParameterNames: parameterNamesInOrder,
-                                                                                         possiblyCapturingType: currentFrame.ContainingType,
+                                                                                         possiblyCapturingType: currentFrame.RequiredContainingType,
                                                                                          possiblyCapturingTypeInstance: (Instance: null, Fields: ConsList<FieldSymbol>.Empty),
                                                                                          displayClassVariablesBuilder, displayClassVariableNamesOutsideInOrderBuilder);
             }
@@ -1753,7 +1753,7 @@ REPARSE:
                         }
                     }
                 }
-                else if (variableKind != DisplayClassVariableKind.This || GeneratedNameParser.GetKind(instance.Type.ContainingType.Name) != GeneratedNameKind.LambdaDisplayClass)
+                else if (variableKind != DisplayClassVariableKind.This || GeneratedNameParser.GetKind(instance.Type.RequiredContainingType.Name) != GeneratedNameKind.LambdaDisplayClass)
                 {
                     // In async lambdas, the hoisted "this" field in the state machine type will point to the display class instance, if there is one.
                     // In such cases, we want to add the display class "this" to the map instead (or nothing, if it lacks one).
@@ -1797,7 +1797,7 @@ REPARSE:
             //    so we may have to walk out more than one level.
             while (IsDisplayClassType(type))
             {
-                type = type.ContainingType;
+                type = type.RequiredContainingType;
             }
 
             return type;
@@ -1853,7 +1853,7 @@ REPARSE:
         {
             displayClassTypeArguments = default;
 
-            var candidateSubstitutedSourceType = candidateSubstitutedSourceMethod.ContainingType;
+            var candidateSubstitutedSourceType = candidateSubstitutedSourceMethod.RequiredContainingType;
 
             string? desiredMethodName;
             if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceType.Name, GeneratedNameKind.StateMachineType, out desiredMethodName) ||

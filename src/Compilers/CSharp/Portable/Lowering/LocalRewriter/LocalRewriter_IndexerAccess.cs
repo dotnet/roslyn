@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(receiverStore is null);
                     Debug.Assert(Binder.IsWellKnownSystemRange(node.Argument.Type, _compilation));
 
-                    MethodSymbol createSpan = getCreateSpanHelper(node, spanType: getItemOrSliceHelper.ContainingType, intType: (NamedTypeSymbol)getItemOrSliceHelper.Parameters[0].Type);
+                    MethodSymbol createSpan = getCreateSpanHelper(node, spanType: getItemOrSliceHelper.RequiredContainingType, intType: (NamedTypeSymbol)getItemOrSliceHelper.Parameters[0].Type);
                     getItemOrSliceHelper = getItemOrSliceHelper.AsMember((NamedTypeSymbol)createSpan.ReturnType);
 
                     BoundRangeExpression? rangeExpr;
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // createSpan(ref receiver, length)[index]
 
-                NamedTypeSymbol spanType = getItemOrSliceHelper.ContainingType;
+                NamedTypeSymbol spanType = getItemOrSliceHelper.RequiredContainingType;
                 MethodSymbol createSpan = getCreateSpanHelper(node, spanType, intType);
                 getItemOrSliceHelper = getItemOrSliceHelper.AsMember((NamedTypeSymbol)createSpan.ReturnType);
                 return _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true), getItemOrSliceHelper, index);

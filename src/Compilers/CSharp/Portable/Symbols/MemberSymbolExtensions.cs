@@ -80,6 +80,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
+        extension(Symbol symbol)
+        {
+            internal NamedTypeSymbol RequiredContainingType
+            {
+                get
+                {
+                    var containingType = symbol.ContainingType;
+                    Debug.Assert(containingType is not null, $"'{symbol.Name}': Unexpected null ContainingType");
+                    return containingType;
+                }
+            }
+        }
+
+        internal static bool IsExtensionBlockMember(this Symbol member, [NotNullWhen(true)] out NamedTypeSymbol? extension)
+        {
+            if (!member.IsExtensionBlockMember())
+            {
+                extension = null;
+                return false;
+            }
+
+            extension = member.RequiredContainingType;
+            return true;
+        }
+
         internal static bool IsExtensionBlockMember(this Symbol member)
         {
             switch (member.Kind)
@@ -103,12 +128,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
         }
 
+        extension(NamedTypeSymbol namedType)
+        {
+            internal ParameterSymbol RequiredExtensionParameter
+            {
+                get
+                {
+                    var extensionParameter = namedType.ExtensionParameter;
+                    Debug.Assert(extensionParameter is not null);
+                    return extensionParameter;
+                }
+            }
+        }
+
         internal static bool TryGetInstanceExtensionParameter(this Symbol symbol, [NotNullWhen(true)] out ParameterSymbol? extensionParameter)
         {
             if (symbol is not null
-                && symbol.IsExtensionBlockMember()
+                && symbol.IsExtensionBlockMember(out var extension)
                 && !symbol.IsStatic
-                && symbol.ContainingType.ExtensionParameter is { } foundExtensionParameter)
+                && extension.ExtensionParameter is { } foundExtensionParameter)
             {
                 extensionParameter = foundExtensionParameter;
                 return true;
@@ -120,9 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static int GetMemberArityIncludingExtension(this Symbol member)
         {
-            if (member.IsExtensionBlockMember())
+            if (member.IsExtensionBlockMember(out var extension))
             {
-                return member.ContainingType.Arity + member.GetMemberArity();
+                return extension.Arity + member.GetMemberArity();
             }
 
             return member.GetMemberArity();
@@ -134,15 +172,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (member is MethodSymbol method)
             {
-                return method.IsExtensionBlockMember()
-                    ? method.ContainingType.TypeParameters.Concat(method.TypeParameters)
+                return method.IsExtensionBlockMember(out var extension)
+                    ? extension.TypeParameters.Concat(method.TypeParameters)
                     : method.TypeParameters;
             }
 
             if (member is PropertySymbol property)
             {
                 Debug.Assert(property.IsExtensionBlockMember());
-                return property.ContainingType.TypeParameters;
+                return property.RequiredContainingType.TypeParameters;
             }
 
             throw ExceptionUtilities.UnexpectedValue(member);
@@ -154,9 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (member is MethodSymbol method)
             {
                 Dictionary<TypeParameterSymbol, int>? ordinals = null;
-                if (method.IsExtensionBlockMember() && method.Arity > 0 && method.ContainingType.Arity > 0)
+                if (method.IsExtensionBlockMember(out var extension) && method.Arity > 0 && extension.Arity > 0)
                 {
-                    Debug.Assert(originalTypeParameters.Length == method.Arity + method.ContainingType.Arity);
+                    Debug.Assert(originalTypeParameters.Length == method.Arity + extension.Arity);
 
                     // Since we're concatenating type parameters from the extension and from the method together
                     // we need to control the ordinals that are used
@@ -183,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, consider optimizing
             if (!skipExtensionIfStatic || !symbol.IsStatic)
             {
-                if (symbol.IsExtensionBlockMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)
+                if (symbol.IsExtensionBlockMember(out var extension) && extension.ExtensionParameter is { } extensionParameter)
                 {
                     return [extensionParameter, .. symbol.GetParameters()];
                 }
@@ -194,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static int GetParameterCountIncludingExtensionParameter(this Symbol symbol)
         {
-            bool hasExtensionParameter = symbol.IsExtensionBlockMember() && symbol.ContainingType.ExtensionParameter is { };
+            bool hasExtensionParameter = symbol.IsExtensionBlockMember(out var extension) && extension.ExtensionParameter is { };
             return symbol.GetParameterCount() + (hasExtensionParameter ? 1 : 0);
         }
 
@@ -208,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (method.IsExtensionBlockMember())
                 {
-                    NamedTypeSymbol extension = method.ContainingType;
+                    NamedTypeSymbol extension = method.RequiredContainingType;
                     if (extension.Arity > 0)
                     {
                         extension = extension.Construct(typeArguments[..extension.Arity]);
@@ -229,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (member is PropertySymbol property)
             {
                 Debug.Assert(property.IsExtensionBlockMember());
-                NamedTypeSymbol extension = property.ContainingType;
+                NamedTypeSymbol extension = property.RequiredContainingType;
                 Debug.Assert(extension.Arity > 0);
                 Debug.Assert(extension.Arity == typeArguments.Length);
 

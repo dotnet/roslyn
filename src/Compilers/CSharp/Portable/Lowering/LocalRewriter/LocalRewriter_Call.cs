@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (methodGroup.ReceiverOpt == null)
                     {
                         // Calling a static method defined on an outer class via its simple name.
-                        NamedTypeSymbol firstContainer = node.ApplicableMethods.First().ContainingType;
-                        Debug.Assert(node.ApplicableMethods.All(m => !m.RequiresInstanceReceiver && TypeSymbol.Equals(m.ContainingType, firstContainer, TypeCompareKind.ConsiderEverything2)));
+                        NamedTypeSymbol firstContainer = node.ApplicableMethods.First().RequiredContainingType;
+                        Debug.Assert(node.ApplicableMethods.All(m => !m.RequiresInstanceReceiver && TypeSymbol.Equals(m.RequiredContainingType, firstContainer, TypeCompareKind.ConsiderEverything2)));
 
                         loweredReceiver = new BoundTypeExpression(node.Syntax, null, firstContainer);
                     }
@@ -162,12 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(nameSyntax != null);
             Debug.Assert(interceptor.IsDefinition);
-            Debug.Assert(!interceptor.ContainingType.IsGenericType);
+            Debug.Assert(!interceptor.RequiredContainingType.IsGenericType);
 
             if (interceptor.Arity != 0)
             {
                 var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                method.ContainingType.GetAllTypeArgumentsNoUseSiteDiagnostics(typeArgumentsBuilder);
+                method.RequiredContainingType.GetAllTypeArgumentsNoUseSiteDiagnostics(typeArgumentsBuilder);
                 typeArgumentsBuilder.AddRange(method.TypeArgumentsWithAnnotations);
 
                 var netArity = typeArgumentsBuilder.Count;
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenBoundCall;
 
             if (method.IsStatic &&
-                method.ContainingType.IsObjectType() &&
+                method.RequiredContainingType.IsObjectType() &&
                 !_inExpressionLambda &&
                 (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals))
             {
@@ -951,9 +951,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private RefKind GetExtensionBlockMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
         {
             Debug.Assert(rewrittenReceiver.Type is { });
-            Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is { });
 
-            RefKind receiverRefKind = methodOrIndexer.ContainingType.ExtensionParameter.RefKind;
+            RefKind receiverRefKind = methodOrIndexer.RequiredContainingType.RequiredExtensionParameter.RefKind;
             bool isReceiverTakenByValue = receiverRefKind == RefKind.None;
 
             if (rewrittenReceiver.Type.IsReferenceType ||
@@ -1329,10 +1328,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol;
                 }
 
-                if (methodOrIndexer.IsExtensionBlockMember())
+                if (methodOrIndexer.IsExtensionBlockMember(out var extension))
                 {
-                    Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is not null);
-                    return methodOrIndexer.ContainingType.ExtensionParameter.Type as NamedTypeSymbol;
+                    return extension.RequiredExtensionParameter.Type as NamedTypeSymbol;
                 }
 
                 return (NamedTypeSymbol?)methodOrIndexer.ContainingType;

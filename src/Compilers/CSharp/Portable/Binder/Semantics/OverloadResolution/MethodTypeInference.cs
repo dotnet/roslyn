@@ -131,10 +131,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         private readonly CSharpCompilation? _compilation;
-#nullable disable
         private readonly ConversionsBase _conversions;
         private readonly ImmutableArray<TypeParameterSymbol> _methodTypeParameters;
-        private readonly NamedTypeSymbol _constructedContainingTypeOfMethod;
+        private readonly NamedTypeSymbol? _constructedContainingTypeOfMethod;
+#nullable disable
         private readonly ImmutableArray<TypeWithAnnotations> _formalParameterTypes;
         private readonly ImmutableArray<RefKind> _formalParameterRefKinds;
         private readonly ImmutableArray<BoundExpression> _arguments;
@@ -169,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private int NumberArgumentsToProcess => System.Math.Min(_arguments.Length, _formalParameterTypes.Length);
 
+#nullable enable
         public static MethodTypeInferenceResult Infer(
             Binder binder,
             ConversionsBase conversions,
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We are attempting to build a map from method type parameters 
             // to inferred type arguments.
 
-            NamedTypeSymbol constructedContainingTypeOfMethod,
+            NamedTypeSymbol? constructedContainingTypeOfMethod,
             ImmutableArray<TypeWithAnnotations> formalParameterTypes,
 
             // We have some unusual requirements for the types that flow into the inference engine.
@@ -278,9 +279,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            Extensions extensions = null,
+            Extensions? extensions = null,
             // Map of TypeParameterSymbol to ordinal for new extension methods
-            Dictionary<TypeParameterSymbol, int> ordinals = null)
+            Dictionary<TypeParameterSymbol, int>? ordinals = null)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -319,13 +320,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // SPEC: a particular type or unfixed with an associated set of bounds. Each of
         // SPEC: the bounds is of some type T. Initially each type parameter is unfixed
         // SPEC: with an empty set of bounds.
-
-#nullable enable
         private MethodTypeInferrer(
             CSharpCompilation? compilation,
             ConversionsBase conversions,
             ImmutableArray<TypeParameterSymbol> methodTypeParameters,
-            NamedTypeSymbol constructedContainingTypeOfMethod,
+            NamedTypeSymbol? constructedContainingTypeOfMethod,
             ImmutableArray<TypeWithAnnotations> formalParameterTypes,
             ImmutableArray<RefKind> formalParameterRefKinds,
             ImmutableArray<BoundExpression> arguments,
@@ -355,7 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dependencies = null;
             _dependenciesDirty = false;
         }
-#nullable enable
 
 #if DEBUG
 

@@ -195,14 +195,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (property.ContainingType.IsAnonymousType)
+            if (property.RequiredContainingType.IsAnonymousType)
             {
                 //at this point we expect that the code is lowered and that getters of anonymous types are accessed
                 //only via their corresponding get-methods, except for properties in expression trees
 
                 // Property of an anonymous type
-                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly();
-                if (ReferenceEquals(newType, property.ContainingType))
+                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(property.RequiredContainingType).AsTypeSymbolOnly();
+                if (ReferenceEquals(newType, property.RequiredContainingType))
                 {
                     // Anonymous type symbol was not rewritten
                     return property;
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return ((PropertySymbol)property.OriginalDefinition)
-                    .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly())
+                    .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.RequiredContainingType).AsTypeSymbolOnly())
                     ;
         }
 
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (method.ContainingType.IsAnonymousType)
+            if (method.RequiredContainingType.IsAnonymousType)
             {
                 //  Method of an anonymous type
                 var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();

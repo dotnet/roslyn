@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (method.IsExtensionBlockMember())
                 {
-                    return method.ContainingType.ExtensionParameter;
+                    return method.RequiredContainingType.ExtensionParameter;
                 }
 
                 return method.TryGetThisParameter(out var thisParameter) ? thisParameter : null;
