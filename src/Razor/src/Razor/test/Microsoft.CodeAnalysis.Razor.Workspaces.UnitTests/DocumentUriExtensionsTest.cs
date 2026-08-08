@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Xunit;
 
@@ -15,7 +16,7 @@ public class DocumentUriExtensionsTest
     public void IsRazorHtmlDocumentUri_ReturnsExpectedResult(string inputUri, bool expectedResult, string? expectedFilePath)
     {
         // Arrange
-        var documentUri = new DocumentUri(new Uri(inputUri));
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(inputUri);
 
         // Act
         var result = documentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri);
@@ -38,7 +39,7 @@ public class DocumentUriExtensionsTest
     public void IsRazorHtmlDocumentUri_HtmlFile_ReturnsExpectedUri()
     {
         // Arrange
-        var documentUri = new DocumentUri(new Uri(@"C:\path\to\file.razor__virtual.html"));
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\path\to\file.razor__virtual.html");
 
         // Act
         var result = documentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri);
@@ -54,7 +55,7 @@ public class DocumentUriExtensionsTest
     public void IsRazorHtmlDocumentUri_RazorFile_ReturnsExpectedResult()
     {
         // Arrange
-        var documentUri = new DocumentUri(new Uri(@"C:\path\to\file.razor"));
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\path\to\file.razor");
 
         // Act
         var result = documentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri);
@@ -70,7 +71,7 @@ public class DocumentUriExtensionsTest
     public void IsRazorHtmlDocumentUri_RazorHtmlUri_ReturnsRazorFileUri(string inputUri, string expectedFilePath)
     {
         // Arrange
-        var documentUri = new DocumentUri(new Uri(inputUri));
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(inputUri);
 
         // Act
         var result = documentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri);
@@ -90,7 +91,7 @@ public class DocumentUriExtensionsTest
     public void IsRazorHtmlDocumentUri_HtmlVirtualSuffixNotAtEnd_ReturnsFalse(string inputUri)
     {
         // Arrange
-        var documentUri = new DocumentUri(new Uri(inputUri));
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(inputUri);
 
         // Act
         var result = documentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri);
