@@ -29,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\ReflectionUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\FileSystem\PathMapParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CanonicalError.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CommandLineBuilderExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CopyRefAssembly.cs" />

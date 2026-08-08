@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            analyzerConfigSet = AnalyzerConfigSet.Create(configs, out var setDiagnostics);
+            analyzerConfigSet = AnalyzerConfigSet.Create(configs, Arguments.PathMap, out var setDiagnostics);
             configs.Free();
             diagnostics.AddRange(setDiagnostics);
             return true;

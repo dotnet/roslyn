@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,7 +21,7 @@ internal sealed partial class ProjectState
     /// This cache is stored on <see cref="ProjectState"/> and needs to be invalidated whenever <see cref="SolutionState.FallbackAnalyzerOptions"/> for the language of the project change,
     /// editorconfig file is updated, etc.
     /// </summary>
-    private readonly struct AnalyzerConfigOptionsCache(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates, StructuredAnalyzerConfigOptions fallbackOptions)
+    private readonly struct AnalyzerConfigOptionsCache(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates, StructuredAnalyzerConfigOptions fallbackOptions, ImmutableArray<KeyValuePair<string, string>> pathMap)
     {
         public readonly struct Value(AnalyzerConfigSet configSet, StructuredAnalyzerConfigOptions fallbackOptions)
         {
@@ -37,21 +39,21 @@ internal sealed partial class ProjectState
         public readonly AsyncLazy<Value> Lazy = AsyncLazy.Create(
             asynchronousComputeFunction: static async (args, cancellationToken) =>
             {
-                var (analyzerConfigDocumentStates, fallbackOptions) = args;
+                var (analyzerConfigDocumentStates, fallbackOptions, pathMap) = args;
                 var tasks = analyzerConfigDocumentStates.States.Values.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
                 var analyzerConfigs = await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                return new Value(AnalyzerConfigSet.Create(analyzerConfigs), fallbackOptions);
+                return new Value(AnalyzerConfigSet.Create(analyzerConfigs, pathMap, out _), fallbackOptions);
             },
             synchronousComputeFunction: static (args, cancellationToken) =>
             {
-                var (analyzerConfigDocumentStates, fallbackOptions) = args;
+                var (analyzerConfigDocumentStates, fallbackOptions, pathMap) = args;
                 var analyzerConfigs = analyzerConfigDocumentStates.SelectAsArray(a => a.GetAnalyzerConfig(cancellationToken));
-                return new Value(AnalyzerConfigSet.Create(analyzerConfigs), fallbackOptions);
+                return new Value(AnalyzerConfigSet.Create(analyzerConfigs, pathMap, out _), fallbackOptions);
             },
-            arg: (analyzerConfigDocumentStates, fallbackOptions));
+            arg: (analyzerConfigDocumentStates, fallbackOptions, pathMap));
 
         public StructuredAnalyzerConfigOptions FallbackOptions
             => fallbackOptions;

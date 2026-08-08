@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -54,17 +55,47 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public ITaskItem FileName { get; set; }
 
+        /// <summary>
+        /// The path map used by the compiler (the value of the <c>/pathmap</c> option), in the same
+        /// <c>from=to,from2=to2</c> format. It is applied to the generated config only where
+        /// <see cref="MapSectionHeaderPaths"/> or <see cref="MapPropertyValues"/> opts in, rewriting
+        /// absolute paths to their deterministic (mapped) form so the config is independent of the
+        /// directory the build ran in. Paths that do not begin with a mapped root are left unchanged.
+        /// </summary>
+        public string PathMap { get; set; }
+
+        /// <summary>
+        /// When <see langword="true"/>, the file paths used as section headers are rewritten through
+        /// <see cref="PathMap"/>. The compiler tries both the real and mapped path when resolving a
+        /// file's options, so mapped headers continue to match. Opt-in and off by default.
+        /// </summary>
+        public bool MapSectionHeaderPaths { get; set; }
+
+        /// <summary>
+        /// When <see langword="true"/>, any emitted <c>build_property</c> value that begins with a
+        /// mapped root (e.g. <c>ProjectDir</c>) is rewritten through <see cref="PathMap"/>. Opt-in
+        /// and off by default because a source generator that reads such a value and opens or embeds
+        /// it would receive a non-openable mapped path.
+        /// </summary>
+        public bool MapPropertyValues { get; set; }
+
         public GenerateMSBuildEditorConfig()
         {
             ConfigFileContents = string.Empty;
             MetadataItems = Array.Empty<ITaskItem>();
             PropertyItems = Array.Empty<ITaskItem>();
             FileName = new TaskItem();
+            PathMap = string.Empty;
+            MapSectionHeaderPaths = false;
+            MapPropertyValues = false;
         }
 
         public override bool Execute()
         {
             StringBuilder builder = new StringBuilder();
+
+            // Only parse the path map if some part of the config opts in to mapping.
+            var pathMap = (MapSectionHeaderPaths || MapPropertyValues) ? PathMapParser.ParsePathMap(PathMap) : s_emptyPathMap;
 
             // we always generate global configs
             builder.AppendLine("is_global = true");
@@ -72,14 +103,33 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // collect the properties into a global section
             foreach (var prop in PropertyItems)
             {
+                // Path-valued properties (e.g. ProjectDir) are absolute and would otherwise make the
+                // config location-dependent. NormalizePathPrefix is prefix-anchored, so only a value
+                // that starts with a mapped root is rewritten; other values are left as-is.
+                var value = prop.GetMetadata("Value");
+                if (MapPropertyValues)
+                {
+                    value = PathMapParser.NormalizePathPrefix(value, pathMap);
+                }
+
                 builder.Append("build_property.")
                        .Append(prop.ItemSpec)
                        .Append(" = ")
-                       .AppendLine(prop.GetMetadata("Value"));
+                       .AppendLine(value);
             }
 
-            // group the metadata items by their full path
-            var groupedItems = MetadataItems.GroupBy(i => NormalizeWithForwardSlash(i.GetMetadata("FullPath")));
+            // group the metadata items by their full path, optionally rewriting each path through
+            // the compiler's path map so the section headers match the paths the compiler computes.
+            var groupedItems = MetadataItems.GroupBy(i =>
+            {
+                var fullPath = i.GetMetadata("FullPath");
+                if (MapSectionHeaderPaths)
+                {
+                    fullPath = PathMapParser.NormalizePathPrefix(fullPath, pathMap);
+                }
+
+                return NormalizeWithForwardSlash(fullPath);
+            });
 
             foreach (var group in groupedItems)
             {
@@ -160,5 +210,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </remarks>
         private static string NormalizeWithForwardSlash(string p)
             => PlatformInformation.IsUnix ? p : p.Replace('\\', '/');
+
+        private static readonly List<KeyValuePair<string, string>> s_emptyPathMap = new List<KeyValuePair<string, string>>();
     }
 }
