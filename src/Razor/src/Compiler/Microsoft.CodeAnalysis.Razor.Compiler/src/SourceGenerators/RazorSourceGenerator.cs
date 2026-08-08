@@ -215,14 +215,29 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     }
 
                     var augmented = compilation.AddSyntaxTrees(fallbackTrees);
-                    var tagHelperFeature = GetStaticTagHelperFeature(augmented);
-                    var all = tagHelperFeature.GetTagHelpers(augmented.Assembly, cancellationToken);
-                    if (all.IsEmpty)
+
+                    // Discover only the fallback components' own types rather than re-walking the whole
+                    // augmented assembly. fastDiscovery already covered every splittable component, so the
+                    // full walk here would rediscover all of them just to keep the few fallback types. The
+                    // fallback types are exactly the ones declared by the discovery-only decl trees we just
+                    // added, and tag-helper producers examine each type independently, so discovering just
+                    // those yields the same descriptors the full walk would for them.
+                    var fallbackTypes = ResolveFallbackTypes(augmented, fallbackTypeNames, cancellationToken);
+                    if (fallbackTypes.IsDefaultOrEmpty)
                     {
                         return TagHelperCollection.Empty;
                     }
 
-                    return all.Where(fallbackTypeNames, static (descriptor, names) => names.Contains(StripGenericArity(descriptor.TypeName)));
+                    var tagHelperFeature = GetStaticTagHelperFeature(augmented);
+                    var discovered = tagHelperFeature.GetTagHelpers(fallbackTypes, cancellationToken);
+                    if (discovered.IsEmpty)
+                    {
+                        return TagHelperCollection.Empty;
+                    }
+
+                    // A resolved type can be a partial that also produces a non-fallback descriptor name;
+                    // keep only the fallback components' types, matching the ownership split with fastDiscovery.
+                    return discovered.Where(fallbackTypeNames, static (descriptor, names) => names.Contains(StripGenericArity(descriptor.TypeName)));
                 })
                 .WithLambdaComparer(static (a, b) => a!.SequenceEqual(b!))
                 .WithTrackingName("SlowTagHelpers");
