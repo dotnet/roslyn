@@ -19,7 +19,7 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 | `Dependencies/` | compiler | High-performance pooled collections & threading. |
 | `ExpressionEvaluator/` | compiler | Debugger expression evaluator. |
 | `Tools/` | compiler | Compiler tooling (BuildBoss, format tools) and benchmark harnesses. |
-| `Workspaces/` | ide | Solution/Project/Document model, MSBuild loading, Remote (OOP). |
+| `Workspaces/` | ide | Solution/Project/Document model, MSBuild loading, Remote (OOP), and `CoreTest/UtilityTest` coverage for shared utilities such as async work queues. |
 | `Features/`, `EditorFeatures/` | ide | IDE feature logic and editor integration. |
 | `Analyzers/`, `CodeStyle/` | ide | IDE0xxx code-style analyzers & fixes. |
 | `LanguageServer/` | ide | LSP server. |
