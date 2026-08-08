@@ -44,20 +44,31 @@ namespace Microsoft.CodeAnalysis.Collections
                     if (value is null)
                         throw new ArgumentNullException(nameof(value));
 
-                    if (value != KeyComparer)
+                    var self = this;
+
+                    if (value != self.KeyComparer)
                     {
                         // Rewrite the mutable dictionary using a new comparer
-                        var valuesToAdd = ReadOnlyDictionary;
-                        _mutableDictionary = new SegmentedDictionary<TKey, TValue>(value);
-                        _dictionary = default;
-                        AddRange(valuesToAdd);
+                        var valuesToAdd = self.ReadOnlyDictionary;
+                        self._mutableDictionary = new SegmentedDictionary<TKey, TValue>(value);
+                        self._dictionary = default;
+                        self.AddRange(valuesToAdd);
                     }
+
+                    this = self;
                 }
             }
 
             public readonly int Count => ReadOnlyDictionary.Count;
 
-            internal readonly SegmentedDictionary<TKey, TValue> ReadOnlyDictionary => _mutableDictionary ?? _dictionary._dictionary;
+            internal readonly SegmentedDictionary<TKey, TValue> ReadOnlyDictionary
+            {
+                get
+                {
+                    var self = this;
+                    return self._mutableDictionary ?? self._dictionary._dictionary;
+                }
+            }
 
             readonly IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => throw new NotSupportedException();
 
@@ -95,24 +106,28 @@ namespace Microsoft.CodeAnalysis.Collections
 
             internal SegmentedDictionary<TKey, TValue> GetOrCreateMutableDictionary()
             {
-                if (_mutableDictionary is null)
+                var self = this;
+                if (self._mutableDictionary is null)
                 {
-                    var originalDictionary = RoslynImmutableInterlocked.InterlockedExchange(ref _dictionary, default);
+                    var originalDictionary = RoslynImmutableInterlocked.InterlockedExchange(ref self._dictionary, default);
                     if (originalDictionary.IsDefault)
-                        throw new InvalidOperationException($"Unexpected concurrent access to {GetType()}");
+                        throw new InvalidOperationException($"Unexpected concurrent access to {self.GetType()}");
 
-                    _mutableDictionary = new SegmentedDictionary<TKey, TValue>(originalDictionary._dictionary, originalDictionary.KeyComparer);
+                    self._mutableDictionary = new SegmentedDictionary<TKey, TValue>(originalDictionary._dictionary, originalDictionary.KeyComparer);
                 }
 
-                return _mutableDictionary;
+                this = self;
+                return self._mutableDictionary;
             }
 
             public void Add(TKey key, TValue value)
             {
-                if (Contains(new KeyValuePair<TKey, TValue>(key, value)))
+                var self = this;
+                if (self.Contains(new KeyValuePair<TKey, TValue>(key, value)))
                     return;
 
-                GetOrCreateMutableDictionary().Add(key, value);
+                self.GetOrCreateMutableDictionary().Add(key, value);
+                this = self;
             }
 
             public void Add(KeyValuePair<TKey, TValue> item)
@@ -120,27 +135,34 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> items)
             {
+                var self = this;
                 if (items == null)
                     throw new ArgumentNullException(nameof(items));
 
                 foreach (var pair in items)
-                    Add(pair.Key, pair.Value);
+                {
+                    self.Add(pair.Key, pair.Value);
+                }
+                this = self;
             }
 
             public void Clear()
             {
-                if (ReadOnlyDictionary.Count != 0)
+                var self = this;
+                if (self.ReadOnlyDictionary.Count != 0)
                 {
-                    if (_mutableDictionary is null)
+                    if (self._mutableDictionary is null)
                     {
-                        _mutableDictionary = new SegmentedDictionary<TKey, TValue>(KeyComparer);
-                        _dictionary = default;
+                        self._mutableDictionary = new SegmentedDictionary<TKey, TValue>(self.KeyComparer);
+                        self._dictionary = default;
                     }
                     else
                     {
-                        _mutableDictionary.Clear();
+                        self._mutableDictionary.Clear();
                     }
                 }
+
+                this = self;
             }
 
             public readonly bool Contains(KeyValuePair<TKey, TValue> item)
@@ -176,41 +198,50 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public bool Remove(TKey key)
             {
-                if (_mutableDictionary is null && !ContainsKey(key))
+                var self = this;
+                if (self._mutableDictionary is null && !self.ContainsKey(key))
                     return false;
 
-                return GetOrCreateMutableDictionary().Remove(key);
+                bool removed = self.GetOrCreateMutableDictionary().Remove(key);
+                this = self;
+                return removed;
             }
 
             public bool Remove(KeyValuePair<TKey, TValue> item)
             {
-                if (!Contains(item))
+                var self = this;
+                if (!self.Contains(item))
                 {
                     return false;
                 }
 
-                GetOrCreateMutableDictionary().Remove(item.Key);
-                return true;
+                bool removed = self.GetOrCreateMutableDictionary().Remove(item.Key);
+                this = self;
+                return removed;
             }
 
             public void RemoveRange(IEnumerable<TKey> keys)
             {
+                var self = this;
                 if (keys is null)
                     throw new ArgumentNullException(nameof(keys));
 
                 foreach (var key in keys)
                 {
-                    Remove(key);
+                    self.Remove(key);
                 }
+
+                this = self;
             }
 
 #pragma warning disable IDE0251 // Make member 'readonly' (false positive: https://github.com/dotnet/roslyn/issues/72335)
             public bool TryGetKey(TKey equalKey, out TKey actualKey)
 #pragma warning restore IDE0251 // Make member 'readonly'
             {
-                foreach (var pair in this)
+                var self = this;
+                foreach (var pair in self.ReadOnlyDictionary)
                 {
-                    if (KeyComparer.Equals(pair.Key, equalKey))
+                    if (self.KeyComparer.Equals(pair.Key, equalKey))
                     {
                         actualKey = pair.Key;
                         return true;
@@ -228,9 +259,11 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public ImmutableSegmentedDictionary<TKey, TValue> ToImmutable()
             {
-                _dictionary = new ImmutableSegmentedDictionary<TKey, TValue>(ReadOnlyDictionary);
-                _mutableDictionary = null;
-                return _dictionary;
+                var self = this;
+                self._dictionary = new ImmutableSegmentedDictionary<TKey, TValue>(self.ReadOnlyDictionary);
+                self._mutableDictionary = null;
+                this = self;
+                return self._dictionary;
             }
 
             readonly void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
