@@ -401,7 +401,15 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 // Get the value usage info.
                 var valueUsageInfo = memberReference.GetValueUsageInfo(operationContext.ContainingSymbol);
 
-                if (valueUsageInfo == ValueUsageInfo.ReadWrite)
+                if (memberSymbol is IPropertySymbol { RefKind: RefKind.Ref })
+                {
+                    // A writable ref-returning property/indexer always invokes its getter to obtain the
+                    // reference, even when the access is the target of a write (e.g. 'A = x', 'A++', 'A += y').
+                    // The reference is therefore always at least a read of the property and must not be
+                    // downgraded to write-only, which would cause a false IDE0052 'never read' report.
+                    valueUsageInfo |= ValueUsageInfo.Read;
+                }
+                else if (valueUsageInfo == ValueUsageInfo.ReadWrite)
                 {
                     Debug.Assert(memberReference.Parent is ICompoundAssignmentOperation compoundAssignment &&
                         compoundAssignment.Target == memberReference ||
