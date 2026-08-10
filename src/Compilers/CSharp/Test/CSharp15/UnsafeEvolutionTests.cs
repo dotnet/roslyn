@@ -365,7 +365,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Assert.True(symbolExpectedUnsafeMode == symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty), $"Expected {symbol.GetType().Name} '{symbol.ToTestDisplayString()}' to have {nameof(CallerUnsafeMode)}.{symbolExpectedUnsafeMode} (got {symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty)}).");
 
             var publicSymbol = symbol.GetPublicSymbol();
-            Assert.Equal(symbolExpectedUnsafeMode != CallerUnsafeMode.None, publicSymbol.RequiresUnsafe);
+            Assert.Equal(symbolExpectedUnsafeMode != CallerUnsafeMode.None, publicSymbol.RequiresUnsafeContext);
 
             var hasAttributeInGetAttributes = symbol.GetAttributes().Any(a => a.AttributeClass?.Name == Name);
             Assert.False(hasAttributeInGetAttributes,
@@ -15086,7 +15086,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void PublicApi_RequiresUnsafe()
+    public void PublicApi_RequiresUnsafeContext()
     {
         var source = """
             public unsafe class C
@@ -15108,20 +15108,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe, "safe").WithLocation(5, 12));
 
         var m1 = comp.GetMember<MethodSymbol>("C.M1").GetPublicSymbol();
-        Assert.True(m1.RequiresUnsafe);
+        Assert.True(m1.RequiresUnsafeContext);
 
         var m2 = comp.GetMember<MethodSymbol>("C.M2").GetPublicSymbol();
-        Assert.False(m2.RequiresUnsafe);
+        Assert.False(m2.RequiresUnsafeContext);
 
         var m3 = comp.GetMember<MethodSymbol>("C.M3").GetPublicSymbol();
-        Assert.True(m3.RequiresUnsafe);
+        Assert.True(m3.RequiresUnsafeContext);
 
         var m4 = comp.GetMember<MethodSymbol>("C.M4").GetPublicSymbol();
-        Assert.False(m4.RequiresUnsafe);
+        Assert.False(m4.RequiresUnsafeContext);
 
-        Assert.False(m1.ContainingAssembly.RequiresUnsafe);
-        Assert.False(m1.ContainingModule.RequiresUnsafe);
-        Assert.False(m1.ContainingType.RequiresUnsafe);
+        Assert.False(m1.ContainingAssembly.RequiresUnsafeContext);
+        Assert.False(m1.ContainingModule.RequiresUnsafeContext);
+        Assert.False(m1.ContainingType.RequiresUnsafeContext);
 
         // Module has no attributes since it is the source symbol.
         Assert.Empty(m1.ContainingModule.GetAttributes());
@@ -15130,7 +15130,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void PublicApi_RequiresUnsafe_CompatMode()
+    public void PublicApi_RequiresUnsafeContext_CompatMode()
     {
         var source = """
             public unsafe class C
@@ -15146,20 +15146,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         comp.VerifyEmitDiagnostics();
 
         var m1 = comp.GetMember<MethodSymbol>("C.M1").GetPublicSymbol();
-        Assert.True(m1.RequiresUnsafe);
+        Assert.True(m1.RequiresUnsafeContext);
 
         var m2 = comp.GetMember<MethodSymbol>("C.M2").GetPublicSymbol();
-        Assert.False(m2.RequiresUnsafe);
+        Assert.False(m2.RequiresUnsafeContext);
 
         var m3 = comp.GetMember<MethodSymbol>("C.M3").GetPublicSymbol();
-        Assert.False(m3.RequiresUnsafe);
+        Assert.False(m3.RequiresUnsafeContext);
 
         var m4 = comp.GetMember<MethodSymbol>("C.M4").GetPublicSymbol();
-        Assert.True(m4.RequiresUnsafe);
+        Assert.True(m4.RequiresUnsafeContext);
 
-        Assert.False(m1.ContainingAssembly.RequiresUnsafe);
-        Assert.False(m1.ContainingModule.RequiresUnsafe);
-        Assert.False(m1.ContainingType.RequiresUnsafe);
+        Assert.False(m1.ContainingAssembly.RequiresUnsafeContext);
+        Assert.False(m1.ContainingModule.RequiresUnsafeContext);
+        Assert.False(m1.ContainingType.RequiresUnsafeContext);
 
         Assert.Empty(m1.ContainingModule.GetAttributes());
 
@@ -15167,7 +15167,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
-    public void PublicApi_RequiresUnsafe_VisualBasic(bool useMetadata)
+    public void PublicApi_RequiresUnsafeContext_VisualBasic(bool useMetadata)
     {
         var source = """
             Public Class C
@@ -15183,6 +15183,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         comp.VerifyDiagnostics();
         var method = comp.GetTypeByMetadataName("C")!.GetMember("M");
-        Assert.False(method.RequiresUnsafe);
+        Assert.False(method.RequiresUnsafeContext);
     }
 }
