@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expression.HasDynamicType())
             {
-                // https://github.com/dotnet/roslyn/issues/79762: Handle runtime async here
+                // Runtime async dynamic await lowering is handled in RuntimeAsyncRewriter.
                 isDynamic = true;
                 return true;
             }

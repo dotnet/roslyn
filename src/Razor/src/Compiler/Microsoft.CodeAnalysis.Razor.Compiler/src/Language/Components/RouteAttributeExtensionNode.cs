@@ -14,6 +14,16 @@ internal sealed class RouteAttributeExtensionNode(string template) : ExtensionIn
 
     public override void Accept(IntermediateNodeVisitor visitor) => AcceptExtensionNode(this, visitor);
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new RouteAttributeExtensionNode(Template)
+        {
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void WriteNode(CodeTarget target, CodeRenderingContext context)
     {
         context.CodeWriter.Write("[global::");

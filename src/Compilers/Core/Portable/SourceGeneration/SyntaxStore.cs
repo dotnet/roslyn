@@ -60,77 +60,92 @@ namespace Microsoft.CodeAnalysis
 
                     // get a builder for each input node
                     var syntaxInputBuilders = ArrayBuilder<(SyntaxInputNode node, ISyntaxInputBuilder builder)>.GetInstance(_syntaxInputNodes.Length);
-                    foreach (var node in _syntaxInputNodes)
+                    var freedBuilderCount = 0;
+                    try
                     {
-                        // We don't cache the tracked incremental steps in a manner that we can easily rehydrate between runs,
-                        // so we disable the cached compilation perf optimization when incremental step tracking is enabled.
-                        if (compilationIsCached && !_enableTracking && _previous._tables.TryGetValue(node, out var previousStateTable))
+                        foreach (var node in _syntaxInputNodes)
                         {
-                            _tableBuilder.SetTable(node, previousStateTable);
-                        }
-                        else
-                        {
-                            syntaxInputBuilders.Add((node, node.GetBuilder(_previous._tables, _enableTracking)));
-                            _syntaxTimes[node] = TimeSpan.Zero;
-                        }
-                    }
-
-                    if (syntaxInputBuilders.Count > 0)
-                    {
-                        // Ensure that even if the node that caused the update was cached, we can still adjust it to take into account other nodes that weren't 
-                        _syntaxTimes[syntaxInputNode] = TimeSpan.Zero;
-
-                        // at this point we need to grab the syntax trees from the new compilation, and optionally diff them against the old ones
-                        NodeStateTable<SyntaxTree> syntaxTreeState = syntaxTreeTable;
-
-                        // update each tree for the builders, sharing the semantic model
-                        foreach (var (tree, state, syntaxTreeIndex, stepInfo) in syntaxTreeState)
-                        {
-                            var root = new Lazy<SyntaxNode>(() => tree.GetRoot(_cancellationToken));
-                            var model = state != EntryState.Removed ? new Lazy<SemanticModel>(() => _compilation.GetSemanticModel(tree)) : null;
-                            for (int i = 0; i < syntaxInputBuilders.Count; i++)
+                            // We don't cache the tracked incremental steps in a manner that we can easily rehydrate between runs,
+                            // so we disable the cached compilation perf optimization when incremental step tracking is enabled.
+                            if (compilationIsCached && !_enableTracking && _previous._tables.TryGetValue(node, out var previousStateTable))
                             {
-                                var currentNode = syntaxInputBuilders[i].node;
-                                try
-                                {
-                                    var sw = SharedStopwatch.StartNew();
-                                    try
-                                    {
-                                        _cancellationToken.ThrowIfCancellationRequested();
-                                        syntaxInputBuilders[i].builder.VisitTree(root, state, model, _cancellationToken);
-                                    }
-                                    finally
-                                    {
-                                        var elapsed = sw.Elapsed;
-
-                                        // if this node isn't the one that caused the update, ensure we remember it and remove the time it took from the requester
-                                        if (currentNode != syntaxInputNode)
-                                        {
-                                            _syntaxTimes[syntaxInputNode] = _syntaxTimes[syntaxInputNode].Subtract(elapsed);
-                                            _syntaxTimes[currentNode] = _syntaxTimes[currentNode].Add(elapsed);
-                                        }
-                                    }
-                                }
-                                catch (UserFunctionException ufe)
-                                {
-                                    // we're evaluating this node ahead of time, so we can't just throw the exception
-                                    // instead we'll hold onto it, and throw the exception when a downstream node actually
-                                    // attempts to read the value
-                                    _syntaxExceptions[currentNode] = ufe;
-                                    syntaxInputBuilders.RemoveAt(i);
-                                    i--;
-                                }
+                                _tableBuilder.SetTable(node, previousStateTable);
+                            }
+                            else
+                            {
+                                syntaxInputBuilders.Add((node, node.GetBuilder(_previous._tables, _enableTracking)));
+                                _syntaxTimes[node] = TimeSpan.Zero;
                             }
                         }
 
-                        // save the updated inputs
-                        foreach ((var node, ISyntaxInputBuilder builder) in syntaxInputBuilders)
+                        if (syntaxInputBuilders.Count > 0)
                         {
-                            builder.SaveStateAndFree(_tableBuilder);
-                            Debug.Assert(_tableBuilder.Contains(node));
+                            // Ensure that even if the node that caused the update was cached, we can still adjust it to take into account other nodes that weren't
+                            _syntaxTimes[syntaxInputNode] = TimeSpan.Zero;
+
+                            // at this point we need to grab the syntax trees from the new compilation, and optionally diff them against the old ones
+                            NodeStateTable<SyntaxTree> syntaxTreeState = syntaxTreeTable;
+
+                            // update each tree for the builders, sharing the semantic model
+                            foreach (var (tree, state, syntaxTreeIndex, stepInfo) in syntaxTreeState)
+                            {
+                                var root = new Lazy<SyntaxNode>(() => tree.GetRoot(_cancellationToken));
+                                var model = state != EntryState.Removed ? new Lazy<SemanticModel>(() => _compilation.GetSemanticModel(tree)) : null;
+                                for (int i = 0; i < syntaxInputBuilders.Count; i++)
+                                {
+                                    var currentNode = syntaxInputBuilders[i].node;
+                                    try
+                                    {
+                                        var sw = SharedStopwatch.StartNew();
+                                        try
+                                        {
+                                            _cancellationToken.ThrowIfCancellationRequested();
+                                            syntaxInputBuilders[i].builder.VisitTree(root, state, model, _cancellationToken);
+                                        }
+                                        finally
+                                        {
+                                            var elapsed = sw.Elapsed;
+
+                                            // if this node isn't the one that caused the update, ensure we remember it and remove the time it took from the requester
+                                            if (currentNode != syntaxInputNode)
+                                            {
+                                                _syntaxTimes[syntaxInputNode] = _syntaxTimes[syntaxInputNode].Subtract(elapsed);
+                                                _syntaxTimes[currentNode] = _syntaxTimes[currentNode].Add(elapsed);
+                                            }
+                                        }
+                                    }
+                                    catch (UserFunctionException ufe)
+                                    {
+                                        // we're evaluating this node ahead of time, so we can't just throw the exception
+                                        // instead we'll hold onto it, and throw the exception when a downstream node actually
+                                        // attempts to read the value
+                                        _syntaxExceptions[currentNode] = ufe;
+                                        var builder = syntaxInputBuilders[i].builder;
+                                        syntaxInputBuilders.RemoveAt(i);
+                                        builder.FreeUnderlying();
+                                        i--;
+                                    }
+                                }
+                            }
+
+                            // save the updated inputs
+                            while (freedBuilderCount < syntaxInputBuilders.Count)
+                            {
+                                (var node, ISyntaxInputBuilder builder) = syntaxInputBuilders[freedBuilderCount++];
+                                builder.SaveStateAndFree(_tableBuilder);
+                                Debug.Assert(_tableBuilder.Contains(node));
+                            }
                         }
                     }
-                    syntaxInputBuilders.Free();
+                    finally
+                    {
+                        while (freedBuilderCount < syntaxInputBuilders.Count)
+                        {
+                            syntaxInputBuilders[freedBuilderCount++].builder.FreeUnderlying();
+                        }
+
+                        syntaxInputBuilders.Free();
+                    }
                 }
 
                 // if we don't have an entry for this node, it must have thrown an exception

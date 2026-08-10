@@ -33,7 +33,7 @@ internal sealed class AdhocServices : HostServices
             .AssumeNotNull();
     }
 
-    protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
+    protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
     {
         if (workspace is null)
         {

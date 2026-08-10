@@ -2655,12 +2655,2468 @@ class Test
 }";
             CompileAndVerify(source, "42");
 
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_VoidResult()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { Console.WriteLine("GetResult"); }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                        Console.WriteLine(42);
+                    }
+
+                    static void Main()
+                    {
+                        F(new Awaitable()).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_NotCompleted()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_VoidResult_NotCompleted()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void GetResult() { Console.WriteLine("GetResult"); }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                        Console.WriteLine(42);
+                    }
+
+                    static void Main()
+                    {
+                        F(new Awaitable()).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_MultipleProperties()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Prop1 { get { Console.WriteLine("Prop1"); return new Awaiter("A1"); } }
+                    public Awaiter Prop2 { get { Console.WriteLine("Prop2"); return new Awaiter("A2"); } }
+                    public Awaiter Prop3 { get { Console.WriteLine("Prop3"); return new Awaiter("A3"); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    private string _name;
+                    public Awaiter(string name) { _name = name; }
+                    public bool IsCompleted { get { Console.WriteLine($"{_name}.IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine($"{_name}.GetResult"); return 1; }
+                    public Awaiter GetAwaiter() { Console.WriteLine($"{_name}.GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        var a = await d.Prop1;
+                        var b = await d.Prop2;
+                        var c = await d.Prop3;
+                        return a + b + c;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Prop1
+                A1.GetAwaiter
+                A1.IsCompleted
+                A1.GetResult
+                Prop2
+                A2.GetAwaiter
+                A2.IsCompleted
+                A2.GetResult
+                Prop3
+                A3.GetAwaiter
+                A3.IsCompleted
+                A3.GetResult
+                3
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_NotCompleted_NotINotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            Console.WriteLine(F(new Awaitable()).Result);
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is InvalidCastException)
+                        {
+                            Console.WriteLine("InvalidCastException");
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                InvalidCastException
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_NotCompleted_ICriticalNotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void UnsafeOnCompleted(Action continuation) { Console.WriteLine("UnsafeOnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                UnsafeOnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_VoidResult_NotCompleted_ICriticalNotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void UnsafeOnCompleted(Action continuation) { Console.WriteLine("UnsafeOnCompleted"); continuation(); }
+                    public void GetResult() { Console.WriteLine("GetResult"); }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                        Console.WriteLine(42);
+                    }
+
+                    static void Main()
+                    {
+                        F(new Awaitable()).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                UnsafeOnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_NotCompleted_OnlyINotifyCompletion()
+        {
+            // Verifies that when an awaiter implements only INotifyCompletion (not ICriticalNotifyCompletion),
+            // OnCompleted is called as the fallback path.
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_MissingGetAwaiter_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public object Property { get { Console.WriteLine("Property"); return new object(); } }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'GetAwaiter'") ? "RuntimeBinderException: GetAwaiter" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                RuntimeBinderException: GetAwaiter
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_MissingGetResult_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'GetResult'") ? "RuntimeBinderException: GetResult" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: GetResult
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_MissingIsCompleted_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'IsCompleted'") ? "RuntimeBinderException: IsCompleted" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                RuntimeBinderException: IsCompleted
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_BadIsCompleted_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public string IsCompleted { get { Console.WriteLine("IsCompleted"); return ""; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'string'") && rbe.Message.Contains("'bool'") ? "RuntimeBinderException: string -> bool" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: string -> bool
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Dynamic_RuntimeAsync_MissingGetAwaiter_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new object()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'GetAwaiter'") ? "RuntimeBinderException: GetAwaiter" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RuntimeBinderException: GetAwaiter"), verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.F", """
+                {
+                  // Code size      328 (0x148)
+                  .maxstack  10
+                  .locals init (object V_0,
+                                System.Runtime.CompilerServices.ICriticalNotifyCompletion V_1)
+                  IL_0000:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_0005:  brtrue.s   IL_0037
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldstr      "GetAwaiter"
+                  IL_000d:  ldnull
+                  IL_000e:  ldtoken    "Test"
+                  IL_0013:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_001e:  dup
+                  IL_001f:  ldc.i4.0
+                  IL_0020:  ldc.i4.0
+                  IL_0021:  ldnull
+                  IL_0022:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_0027:  stelem.ref
+                  IL_0028:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_002d:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_0032:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_0037:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_003c:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
+                  IL_0041:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_0046:  ldarg.0
+                  IL_0047:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_004c:  stloc.0
+                  IL_004d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_0052:  brtrue.s   IL_0079
+                  IL_0054:  ldc.i4.s   16
+                  IL_0056:  ldtoken    "bool"
+                  IL_005b:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0060:  ldtoken    "Test"
+                  IL_0065:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_006a:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                  IL_006f:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_0074:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_0079:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_007e:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Target"
+                  IL_0083:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_0088:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_008d:  brtrue.s   IL_00be
+                  IL_008f:  ldc.i4.0
+                  IL_0090:  ldstr      "IsCompleted"
+                  IL_0095:  ldtoken    "Test"
+                  IL_009a:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_009f:  ldc.i4.1
+                  IL_00a0:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_00a5:  dup
+                  IL_00a6:  ldc.i4.0
+                  IL_00a7:  ldc.i4.0
+                  IL_00a8:  ldnull
+                  IL_00a9:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_00ae:  stelem.ref
+                  IL_00af:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_00b4:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_00b9:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_00be:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_00c3:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
+                  IL_00c8:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_00cd:  ldloc.0
+                  IL_00ce:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_00d3:  callvirt   "bool System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_00d8:  brtrue.s   IL_00f7
+                  IL_00da:  ldloc.0
+                  IL_00db:  isinst     "System.Runtime.CompilerServices.ICriticalNotifyCompletion"
+                  IL_00e0:  stloc.1
+                  IL_00e1:  ldloc.1
+                  IL_00e2:  brfalse.s  IL_00ec
+                  IL_00e4:  ldloc.1
+                  IL_00e5:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.ICriticalNotifyCompletion>(System.Runtime.CompilerServices.ICriticalNotifyCompletion)"
+                  IL_00ea:  br.s       IL_00f7
+                  IL_00ec:  ldloc.0
+                  IL_00ed:  castclass  "System.Runtime.CompilerServices.INotifyCompletion"
+                  IL_00f2:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<System.Runtime.CompilerServices.INotifyCompletion>(System.Runtime.CompilerServices.INotifyCompletion)"
+                  IL_00f7:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_00fc:  brtrue.s   IL_0132
+                  IL_00fe:  ldc.i4     0x100
+                  IL_0103:  ldstr      "GetResult"
+                  IL_0108:  ldnull
+                  IL_0109:  ldtoken    "Test"
+                  IL_010e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0113:  ldc.i4.1
+                  IL_0114:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_0119:  dup
+                  IL_011a:  ldc.i4.0
+                  IL_011b:  ldc.i4.0
+                  IL_011c:  ldnull
+                  IL_011d:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_0122:  stelem.ref
+                  IL_0123:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_0128:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_012d:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_0132:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_0137:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>>.Target"
+                  IL_013c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_0141:  ldloc.0
+                  IL_0142:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_0147:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Dynamic_RuntimeAsync_MissingGetResult_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'GetResult'") ? "RuntimeBinderException: GetResult" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: GetResult
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Dynamic_RuntimeAsync_BadIsCompleted_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public string IsCompleted { get { Console.WriteLine("IsCompleted"); return ""; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d;
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'string'") && rbe.Message.Contains("'bool'") ? "RuntimeBinderException: string -> bool" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: string -> bool
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.F", """
+                {
+                  // Code size      471 (0x1d7)
+                  .maxstack  11
+                  .locals init (System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> V_0,
+                                System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> V_1,
+                                object V_2,
+                                object V_3,
+                                System.Runtime.CompilerServices.ICriticalNotifyCompletion V_4)
+                  IL_0000:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Test.<>o__0.<>p__1"
+                  IL_0005:  brtrue.s   IL_002b
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldtoken    "int"
+                  IL_000d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0012:  ldtoken    "Test"
+                  IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_001c:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                  IL_0021:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_0026:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Test.<>o__0.<>p__1"
+                  IL_002b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Test.<>o__0.<>p__1"
+                  IL_0030:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
+                  IL_0035:  stloc.0
+                  IL_0036:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Test.<>o__0.<>p__1"
+                  IL_003b:  stloc.1
+                  IL_003c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_0041:  brtrue.s   IL_0073
+                  IL_0043:  ldc.i4.0
+                  IL_0044:  ldstr      "GetAwaiter"
+                  IL_0049:  ldnull
+                  IL_004a:  ldtoken    "Test"
+                  IL_004f:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0054:  ldc.i4.1
+                  IL_0055:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_005a:  dup
+                  IL_005b:  ldc.i4.0
+                  IL_005c:  ldc.i4.0
+                  IL_005d:  ldnull
+                  IL_005e:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_0063:  stelem.ref
+                  IL_0064:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_0069:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_006e:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_0073:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_0078:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
+                  IL_007d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_0082:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
+                  IL_0087:  brtrue.s   IL_00b9
+                  IL_0089:  ldc.i4.0
+                  IL_008a:  ldstr      "Method"
+                  IL_008f:  ldnull
+                  IL_0090:  ldtoken    "Test"
+                  IL_0095:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_009a:  ldc.i4.1
+                  IL_009b:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_00a0:  dup
+                  IL_00a1:  ldc.i4.0
+                  IL_00a2:  ldc.i4.0
+                  IL_00a3:  ldnull
+                  IL_00a4:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_00a9:  stelem.ref
+                  IL_00aa:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_00af:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_00b4:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
+                  IL_00b9:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
+                  IL_00be:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
+                  IL_00c3:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
+                  IL_00c8:  ldarg.0
+                  IL_00c9:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_00ce:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_00d3:  stloc.3
+                  IL_00d4:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_00d9:  brtrue.s   IL_0100
+                  IL_00db:  ldc.i4.s   16
+                  IL_00dd:  ldtoken    "bool"
+                  IL_00e2:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_00e7:  ldtoken    "Test"
+                  IL_00ec:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_00f1:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                  IL_00f6:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_00fb:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_0100:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_0105:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Target"
+                  IL_010a:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_010f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_0114:  brtrue.s   IL_0145
+                  IL_0116:  ldc.i4.0
+                  IL_0117:  ldstr      "IsCompleted"
+                  IL_011c:  ldtoken    "Test"
+                  IL_0121:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0126:  ldc.i4.1
+                  IL_0127:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_012c:  dup
+                  IL_012d:  ldc.i4.0
+                  IL_012e:  ldc.i4.0
+                  IL_012f:  ldnull
+                  IL_0130:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_0135:  stelem.ref
+                  IL_0136:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_013b:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_0140:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_0145:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_014a:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
+                  IL_014f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_0154:  ldloc.3
+                  IL_0155:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_015a:  callvirt   "bool System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_015f:  brtrue.s   IL_0181
+                  IL_0161:  ldloc.3
+                  IL_0162:  isinst     "System.Runtime.CompilerServices.ICriticalNotifyCompletion"
+                  IL_0167:  stloc.s    V_4
+                  IL_0169:  ldloc.s    V_4
+                  IL_016b:  brfalse.s  IL_0176
+                  IL_016d:  ldloc.s    V_4
+                  IL_016f:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.ICriticalNotifyCompletion>(System.Runtime.CompilerServices.ICriticalNotifyCompletion)"
+                  IL_0174:  br.s       IL_0181
+                  IL_0176:  ldloc.3
+                  IL_0177:  castclass  "System.Runtime.CompilerServices.INotifyCompletion"
+                  IL_017c:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<System.Runtime.CompilerServices.INotifyCompletion>(System.Runtime.CompilerServices.INotifyCompletion)"
+                  IL_0181:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_0186:  brtrue.s   IL_01b8
+                  IL_0188:  ldc.i4.0
+                  IL_0189:  ldstr      "GetResult"
+                  IL_018e:  ldnull
+                  IL_018f:  ldtoken    "Test"
+                  IL_0194:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0199:  ldc.i4.1
+                  IL_019a:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_019f:  dup
+                  IL_01a0:  ldc.i4.0
+                  IL_01a1:  ldc.i4.0
+                  IL_01a2:  ldnull
+                  IL_01a3:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_01a8:  stelem.ref
+                  IL_01a9:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_01ae:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_01b3:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_01b8:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_01bd:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
+                  IL_01c2:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_01c7:  ldloc.3
+                  IL_01c8:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_01cd:  stloc.2
+                  IL_01ce:  ldloc.0
+                  IL_01cf:  ldloc.1
+                  IL_01d0:  ldloc.2
+                  IL_01d1:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_01d6:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_VoidResult()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { Console.WriteLine("GetResult"); }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                        Console.WriteLine(42);
+                    }
+
+                    static void Main()
+                    {
+                        F(new Awaitable()).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.F", """
+                {
+                  // Code size      410 (0x19a)
+                  .maxstack  11
+                  .locals init (object V_0,
+                                System.Runtime.CompilerServices.ICriticalNotifyCompletion V_1)
+                  IL_0000:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_0005:  brtrue.s   IL_0037
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldstr      "GetAwaiter"
+                  IL_000d:  ldnull
+                  IL_000e:  ldtoken    "Test"
+                  IL_0013:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_001e:  dup
+                  IL_001f:  ldc.i4.0
+                  IL_0020:  ldc.i4.0
+                  IL_0021:  ldnull
+                  IL_0022:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_0027:  stelem.ref
+                  IL_0028:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_002d:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_0032:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_0037:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_003c:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
+                  IL_0041:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__0"
+                  IL_0046:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
+                  IL_004b:  brtrue.s   IL_007d
+                  IL_004d:  ldc.i4.0
+                  IL_004e:  ldstr      "Method"
+                  IL_0053:  ldnull
+                  IL_0054:  ldtoken    "Test"
+                  IL_0059:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_005e:  ldc.i4.1
+                  IL_005f:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_0064:  dup
+                  IL_0065:  ldc.i4.0
+                  IL_0066:  ldc.i4.0
+                  IL_0067:  ldnull
+                  IL_0068:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_006d:  stelem.ref
+                  IL_006e:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_0073:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_0078:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
+                  IL_007d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
+                  IL_0082:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
+                  IL_0087:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__0.<>p__0"
+                  IL_008c:  ldarg.0
+                  IL_008d:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_0092:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_0097:  stloc.0
+                  IL_0098:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_009d:  brtrue.s   IL_00c4
+                  IL_009f:  ldc.i4.s   16
+                  IL_00a1:  ldtoken    "bool"
+                  IL_00a6:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_00ab:  ldtoken    "Test"
+                  IL_00b0:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_00b5:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                  IL_00ba:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_00bf:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_00c4:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_00c9:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>>.Target"
+                  IL_00ce:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>> Test.<>o__F|0.<>p__2"
+                  IL_00d3:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_00d8:  brtrue.s   IL_0109
+                  IL_00da:  ldc.i4.0
+                  IL_00db:  ldstr      "IsCompleted"
+                  IL_00e0:  ldtoken    "Test"
+                  IL_00e5:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_00ea:  ldc.i4.1
+                  IL_00eb:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_00f0:  dup
+                  IL_00f1:  ldc.i4.0
+                  IL_00f2:  ldc.i4.0
+                  IL_00f3:  ldnull
+                  IL_00f4:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_00f9:  stelem.ref
+                  IL_00fa:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_00ff:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_0104:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_0109:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_010e:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>>.Target"
+                  IL_0113:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> Test.<>o__F|0.<>p__1"
+                  IL_0118:  ldloc.0
+                  IL_0119:  callvirt   "dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_011e:  callvirt   "bool System.Func<System.Runtime.CompilerServices.CallSite, dynamic, bool>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_0123:  brtrue.s   IL_0142
+                  IL_0125:  ldloc.0
+                  IL_0126:  isinst     "System.Runtime.CompilerServices.ICriticalNotifyCompletion"
+                  IL_012b:  stloc.1
+                  IL_012c:  ldloc.1
+                  IL_012d:  brfalse.s  IL_0137
+                  IL_012f:  ldloc.1
+                  IL_0130:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.ICriticalNotifyCompletion>(System.Runtime.CompilerServices.ICriticalNotifyCompletion)"
+                  IL_0135:  br.s       IL_0142
+                  IL_0137:  ldloc.0
+                  IL_0138:  castclass  "System.Runtime.CompilerServices.INotifyCompletion"
+                  IL_013d:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<System.Runtime.CompilerServices.INotifyCompletion>(System.Runtime.CompilerServices.INotifyCompletion)"
+                  IL_0142:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_0147:  brtrue.s   IL_017d
+                  IL_0149:  ldc.i4     0x100
+                  IL_014e:  ldstr      "GetResult"
+                  IL_0153:  ldnull
+                  IL_0154:  ldtoken    "Test"
+                  IL_0159:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_015e:  ldc.i4.1
+                  IL_015f:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_0164:  dup
+                  IL_0165:  ldc.i4.0
+                  IL_0166:  ldc.i4.0
+                  IL_0167:  ldnull
+                  IL_0168:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_016d:  stelem.ref
+                  IL_016e:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_0173:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_0178:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_017d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_0182:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>>.Target"
+                  IL_0187:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, dynamic>> Test.<>o__F|0.<>p__3"
+                  IL_018c:  ldloc.0
+                  IL_018d:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_0192:  ldc.i4.s   42
+                  IL_0194:  call       "void System.Console.WriteLine(int)"
+                  IL_0199:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_NotCompleted()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_VoidResult_NotCompleted()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void GetResult() { Console.WriteLine("GetResult"); }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                        Console.WriteLine(42);
+                    }
+
+                    static void Main()
+                    {
+                        F(new Awaitable()).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_MultipleMethods()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method1() { Console.WriteLine("Method1"); return new Awaiter("A1"); }
+                    public Awaiter Method2() { Console.WriteLine("Method2"); return new Awaiter("A2"); }
+                    public Awaiter Method3() { Console.WriteLine("Method3"); return new Awaiter("A3"); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    private string _name;
+                    public Awaiter(string name) { _name = name; }
+                    public bool IsCompleted { get { Console.WriteLine($"{_name}.IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine($"{_name}.GetResult"); return 1; }
+                    public Awaiter GetAwaiter() { Console.WriteLine($"{_name}.GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        var a = await d.Method1();
+                        var b = await d.Method2();
+                        var c = await d.Method3();
+                        return a + b + c;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method1
+                A1.GetAwaiter
+                A1.IsCompleted
+                A1.GetResult
+                Method2
+                A2.GetAwaiter
+                A2.IsCompleted
+                A2.GetResult
+                Method3
+                A3.GetAwaiter
+                A3.IsCompleted
+                A3.GetResult
+                3
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_NotCompleted_NotINotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            Console.WriteLine(F(new Awaitable()).Result);
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is InvalidCastException)
+                        {
+                            Console.WriteLine("InvalidCastException");
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                InvalidCastException
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_NotCompleted_ICriticalNotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void UnsafeOnCompleted(Action continuation) { Console.WriteLine("UnsafeOnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                UnsafeOnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_VoidResult_NotCompleted_ICriticalNotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public void UnsafeOnCompleted(Action continuation) { Console.WriteLine("UnsafeOnCompleted"); continuation(); }
+                    public void GetResult() { Console.WriteLine("GetResult"); }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                        Console.WriteLine(42);
+                    }
+
+                    static void Main()
+                    {
+                        F(new Awaitable()).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                UnsafeOnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_NotCompleted_OnlyINotifyCompletion()
+        {
+            // Verifies that when an awaiter implements only INotifyCompletion (not ICriticalNotifyCompletion),
+            // OnCompleted is called as the fallback path.
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return false; } }
+                    public void OnCompleted(Action continuation) { Console.WriteLine("OnCompleted"); continuation(); }
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                OnCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_MissingGetAwaiter_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public object Method() { Console.WriteLine("Method"); return new object(); }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'GetAwaiter'") ? "RuntimeBinderException: GetAwaiter" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                RuntimeBinderException: GetAwaiter
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_MissingGetResult_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'GetResult'") ? "RuntimeBinderException: GetResult" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: GetResult
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_MissingIsCompleted_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'IsCompleted'") ? "RuntimeBinderException: IsCompleted" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                RuntimeBinderException: IsCompleted
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicMethod_RuntimeAsync_BadIsCompleted_RuntimeFailure()
+        {
+            var source = """
+                using System;
+                using Microsoft.CSharp.RuntimeBinder;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Method() { Console.WriteLine("Method"); return new Awaiter(); }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public string IsCompleted { get { Console.WriteLine("IsCompleted"); return ""; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public void GetResult() { }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task F(dynamic d)
+                    {
+                        await d.Method();
+                    }
+
+                    static void Main()
+                    {
+                        try
+                        {
+                            F(new Awaitable()).Wait();
+                        }
+                        catch (AggregateException ex) when (ex.InnerException is RuntimeBinderException rbe)
+                        {
+                            Console.WriteLine(rbe.Message.Contains("'string'") && rbe.Message.Contains("'bool'") ? "RuntimeBinderException: string -> bool" : rbe.Message);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Method
+                GetAwaiter
+                IsCompleted
+                RuntimeBinderException: string -> bool
+                """), verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Dynamic_RuntimeAsync_MissingUnsafeAwaitAwaiter()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d;
+                    }
+                }
+                """;
+
             var comp = CreateRuntimeAsyncCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter);
             comp.VerifyEmitDiagnostics(
-                // (9,16): error CS9328: Method 'Test.F1(dynamic)' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                // (9,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter'
                 //         return await d;
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await d").WithArguments("Test.F1(dynamic)").WithLocation(9, 16)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "UnsafeAwaitAwaiter").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void Dynamic_RuntimeAsync_MissingAwaitAwaiter()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
+            comp.VerifyEmitDiagnostics(
+                // (9,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter'
+                //         return await d;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "AwaitAwaiter").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void Dynamic_RuntimeAsync_MissingICriticalNotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion);
+            comp.VerifyEmitDiagnostics(
+                // (9,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.ICriticalNotifyCompletion' is not defined or imported
+                //         return await d;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.ICriticalNotifyCompletion").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void Dynamic_RuntimeAsync_MissingINotifyCompletion()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion);
+            comp.VerifyEmitDiagnostics(
+                // (9,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.INotifyCompletion' is not defined or imported
+                //         return await d;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.INotifyCompletion").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void DynamicAwait_RuntimeAsync_TwoAsyncLocalFunctions_01()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Console.WriteLine(await L1(new Awaitable()));
+                        Console.WriteLine(await L2(new Awaitable()));
+
+                        static async Task<int> L1(dynamic d) => await d.Property;
+                        static async Task<int> L2(dynamic d) => await d.Property;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                AssertEx.SequenceEqual(["Test.<>o__0", "Test.<>o__<Main>g__L1|0_0|", "Test.<>o__<Main>g__L2|0_1|"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicAwait_RuntimeAsync_TwoAsyncLocalFunctions_02()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Console.WriteLine(await L1(new Awaitable()));
+                        Console.WriteLine(await L2(new Awaitable()));
+
+                        static async Task<int> L1(dynamic d)
+                        {
+                            static async Task<int> L3(dynamic d) => await d.Property;
+
+                            return await L3(d);
+                        }
+
+                        static async Task<int> L2(dynamic d)
+                        {
+                            static async Task<int> L3(dynamic d) => await d.Property;
+
+                            return await L3(d);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                AssertEx.SequenceEqual(["Test.<>o__0", "Test.<>o__<Main>g__L3|0_2|", "Test.<>o__<Main>g__L3|0_3|"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicAwait_RuntimeAsync_TwoAsyncLocalFunctions_OverloadedContainingMethods()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        await F();
+                        await F(1);
+                    }
+
+                    static async Task F()
+                    {
+                        Console.WriteLine(await L1(new Awaitable()));
+                        static async Task<int> L1(dynamic d) => await d.Property;
+                    }
+
+                    static async Task F(int i)
+                    {
+                        Console.WriteLine(await L1(new Awaitable()));
+                        static async Task<int> L1(dynamic d) => await d.Property;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                AssertEx.SequenceEqual(
+                    ["Test.<>o__1", "Test.<>o__2", "Test.<>o__<F>g__L1|1_0|", "Test.<>o__<F>g__L1|2_0|"],
+                    module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicAwait_RuntimeAsync_LocalFunctionWithAsyncAndSyncDynamic()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public void M() { Console.WriteLine("M"); }
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Console.WriteLine(await L1(new Awaitable()));
+
+                        static async Task<int> L1(dynamic d)
+                        {
+                            d.M();
+                            return await d.Property;
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                M
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                // L1 is not generic, so its sync dynamic call site (d.M()) shares Main's LocalRewriter
+                // container (<>o__0). The async dynamic await machinery is lowered by RuntimeAsyncRewriter,
+                // which uses the current function's name as the container suffix, producing
+                // <>o__<Main>g__L1|0_0| for L1.
+                AssertEx.SequenceEqual(["Test.<>o__0", "Test.<>o__<Main>g__L1|0_0|"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicAwait_RuntimeAsync_GenericLocalFunctionWithAsyncAndSyncDynamic()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public void M() { Console.WriteLine("M"); }
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Console.WriteLine(await L1<int>(new Awaitable()));
+
+                        static async Task<int> L1<T>(dynamic d)
+                        {
+                            d.M();
+                            return await d.Property;
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                M
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                // L1 is generic, so LocalRewriter creates a dedicated container for L1's sync dynamic
+                // call sites (d.M()) — suffixed by the local function ordinal — that inherits L1's type
+                // parameters. The async dynamic await machinery is lowered by RuntimeAsyncRewriter
+                // independently, producing a second L1-specific container suffixed by the current
+                // function's synthesized name. Both containers are generic in T because they inherit
+                // L1's type parameters.
+                AssertEx.SequenceEqual(["Test.<>o__0|0<T>", "Test.<>o__<Main>g__L1|0_0|<T>"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicAwait_RuntimeAsync_TwoGenericAsyncLocalFunctions()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Console.WriteLine(await L1<int>(new Awaitable()));
+                        Console.WriteLine(await L2<int>(new Awaitable()));
+
+                        static async Task<int> L1<T>(dynamic d) => await d.Property;
+                        static async Task<int> L2<T>(dynamic d) => await d.Property;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                // Each generic local function gets its own LocalRewriter container for d.Property
+                // (suffix = local function ordinal) plus its own RuntimeAsyncRewriter container for the
+                // await machinery (suffix = synthesized local function name).
+                AssertEx.SequenceEqual(["Test.<>o__0|0<T>", "Test.<>o__1|0<T>", "Test.<>o__<Main>g__L1|0_0|<T>", "Test.<>o__<Main>g__L2|0_1|<T>"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicAwait_RuntimeAsync_NestedGenericAsyncLocalFunctions_01()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Console.WriteLine(await L1<int>(new Awaitable()));
+
+                        static async Task<int> L1<T>(dynamic d)
+                        {
+                            static async Task<int> L1<T>(dynamic d) => await d.Property;
+
+                            Console.WriteLine(await d.Property);
+                            return await L1<T>(d);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                // Each generic local function gets its own LocalRewriter container for d.Property
+                // (suffix = local function ordinal) plus its own RuntimeAsyncRewriter container for the
+                // await machinery (suffix = synthesized local function name).
+                AssertEx.SequenceEqual(["Test.<>o__0|0<T>", "Test.<>o__1|0<T, T>", "Test.<>o__<Main>g__L1|0_0|<T>", "Test.<>o__<Main>g__L1|0_1|<T, T>"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics(
+                // (26,39): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'L1<T>(dynamic)'
+                //             static async Task<int> L1<T>(dynamic d) => await d.Property;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "L1<T>(dynamic)").WithLocation(26, 39)
             );
+        }
+
+        [Fact]
+        public void DynamicAwait_RuntimeAsync_NestedGenericAsyncLocalFunctions_02()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Console.WriteLine(await L1<int>(new Awaitable()));
+
+                        static async Task<int> L1<T>(dynamic d)
+                        {
+                            static async Task<int> L1(dynamic d) => await d.Property;
+
+                            Console.WriteLine(await d.Property);
+                            return await L1(d);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                // Each generic local function gets its own LocalRewriter container for d.Property
+                // (suffix = local function ordinal) plus its own RuntimeAsyncRewriter container for the
+                // await machinery (suffix = synthesized local function name).
+                AssertEx.SequenceEqual(["Test.<>o__0|0<T>", "Test.<>o__<Main>g__L1|0_0|<T>", "Test.<>o__<Main>g__L1|0_1|<T>"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicAwait_RuntimeAsync_ExplicitInterfaceImplementation()
+        {
+            // Explicit interface implementations have metadata names that contain '.', e.g. "IFoo.M".
+            // The runtime async dynamic call site container suffix is derived from the current function's
+            // name, so without sanitization the synthesized nested type would also contain a '.' — which
+            // can confuse metadata APIs that combine type names with namespaces. The container suffix is
+            // sanitized to replace '.' with '-' (GeneratedNameConstants.DotReplacementInTypeNames).
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                interface IFoo
+                {
+                    Task<int> M(dynamic d);
+                }
+
+                class Test : IFoo
+                {
+                    async Task<int> IFoo.M(dynamic d) => await d.Property;
+
+                    static async Task Main()
+                    {
+                        IFoo t = new Test();
+                        Console.WriteLine(await t.M(new Awaitable()));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                AssertEx.SequenceEqual(["Test.<>o__0", "Test.<>o__IFoo-M|0"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicProperty_RuntimeAsync_OverloadsAtMethodLevel()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    public static async Task<int> F(dynamic d)
+                    {
+                        return await d.Property;
+                    }
+
+                    public static async Task<int> F(dynamic d, int i)
+                    {
+                        return await d.Property;
+                    }
+
+                    static void Main()
+                    {
+                        Console.WriteLine(F(new Awaitable()).Result);
+                        Console.WriteLine(F(new Awaitable(), 1).Result);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                AssertEx.SequenceEqual(
+                    ["Test.<>o__0", "Test.<>o__1", "Test.<>o__F|0", "Test.<>o__F|1"],
+                    module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2738,6 +5194,33 @@ class Driver
     }
 }";
             CompileAndVerify(source, "0");
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Goo]: Unexpected type on the stack. { Offset = 0x11, Found = ref 'T', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>' }
+                    [Bar]: Unexpected type on the stack. { Offset = 0x27, Found = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<System.Threading.Tasks.Task`1<object>>' }
+                    [<Bar>b__0]: Unexpected type on the stack. { Offset = 0x16, Found = ref 'int32', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>' }
+                    """
+            });
+            verifier.VerifyDiagnostics(
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(3, 1)
+            );
+            verifier.VerifyIL("DynamicClass.Goo<T>(T)", """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
+                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_000b:  ldarg.1
+                  IL_000c:  box        "T"
+                  IL_0011:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2946,21 +5429,8 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (44,31): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             C2 cc = new C2(x: await c.Method(1));
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await c.Method(1)").WithArguments("TestCase.Run()").WithLocation(44, 31),
-                // (50,25): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             cc = new C2(await c.Method(2), await f());
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await c.Method(2)").WithArguments("TestCase.Run()").WithLocation(50, 25),
-                // (50,44): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             cc = new C2(await c.Method(2), await f());
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await f()").WithArguments("TestCase.Run()").WithLocation(50, 44),
-                // (55,35): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             var x = new C2(2).Bar(await c.Method(1));
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await c.Method(1)").WithArguments("TestCase.Run()").WithLocation(55, 35)
-            );
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails);
         }
 
         [Fact]
@@ -3124,21 +5594,8 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (39,13): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             await (await dy * 5);
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await (await dy * 5)").WithArguments("TestCase.Run()").WithLocation(39, 13),
-                // (39,20): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             await (await dy * 5);
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await dy").WithArguments("TestCase.Run()").WithLocation(39, 20),
-                // (44,13): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             await (d + await dd);
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await (d + await dd)").WithArguments("TestCase.Run()").WithLocation(44, 13),
-                // (44,24): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             await (d + await dd);
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await dd").WithArguments("TestCase.Run()").WithLocation(44, 24)
-            );
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails);
         }
 
         [Fact]
@@ -3272,12 +5729,8 @@ class Driver
 }";
             CompileAndVerify(source, "0");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (34,13): error CS9328: Method 'TestCase.Run()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //             await t2;
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await t2").WithArguments("TestCase.Run()").WithLocation(34, 13)
-            );
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4914,12 +7367,8 @@ class Driver
             var expected = @"0";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (19,17): error CS9328: Method 'MyTask.Run<T>()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         var x = await myTask;
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await myTask").WithArguments("MyTask.Run<T>()").WithLocation(19, 17)
-            );
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails);
         }
 
         [WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")]
@@ -10091,9 +12540,62 @@ static class Test1
             );
 
             // Runtime async not turned on, so we shouldn't care about the missing member
-            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(code, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net100);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
-            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MissingAwaitAwaiter_Dynamic_RuntimeAsync()
+        {
+            var code = """
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    static async Task F(dynamic d)
+                    {
+                        await d;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, TestOptions.ReleaseDll);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
+            comp.VerifyEmitDiagnostics(
+                // (7,15): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter'
+                //             await d;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "AwaitAwaiter").WithLocation(7, 15)
+            );
+
+            // Runtime async not turned on, so we shouldn't care about the missing member
+            comp = CreateCompilation(code, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net100);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MissingINotifyCompletion_Dynamic_RuntimeAsync()
+        {
+            var code = """
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    static async Task F(dynamic d)
+                    {
+                        await d;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, TestOptions.ReleaseDll);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion);
+            comp.VerifyEmitDiagnostics(
+                // (7,15): error CS0518: Predefined type 'System.Runtime.CompilerServices.INotifyCompletion' is not defined or imported
+                //             await d;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.INotifyCompletion").WithLocation(7, 15)
+            );
         }
 
         [Fact]

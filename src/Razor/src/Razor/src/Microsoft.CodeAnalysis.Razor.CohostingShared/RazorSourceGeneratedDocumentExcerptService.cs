@@ -1,23 +1,27 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.DocumentExcerpt;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.CohostingShared;
 
+#pragma warning disable RS0030 // Do not use banned APIs
 [Export(typeof(IRazorSourceGeneratedDocumentExcerptService))]
+[Shared]
 [method: ImportingConstructor]
+#pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class RazorSourceGeneratedDocumentExcerptService(IRemoteServiceInvoker remoteServiceInvoker) : IRazorSourceGeneratedDocumentExcerptService
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
 
-    public async Task<RazorExcerptResult?> TryExcerptAsync(SourceGeneratedDocument document, TextSpan span, RazorExcerptMode mode, RazorClassificationOptionsWrapper options, CancellationToken cancellationToken)
+    public async Task<ExcerptResult?> TryExcerptAsync(SourceGeneratedDocument document, TextSpan span, ExcerptMode mode, ClassificationOptions options, CancellationToken cancellationToken)
     {
         if (!document.IsRazorSourceGeneratedDocument())
         {
@@ -47,8 +51,8 @@ internal sealed class RazorSourceGeneratedDocumentExcerptService(IRemoteServiceI
 
         var razorDocumentSpan = result.RazorDocumentSpan;
         var excerptSpan = result.ExcerptSpan;
-        var excerptText = DocumentExcerptHelper.GetTranslatedExcerptText(razorSourceText, ref razorDocumentSpan, ref excerptSpan, builder);
+        var excerptText = RazorDocumentExcerptHelper.GetTranslatedExcerptText(razorSourceText, ref razorDocumentSpan, ref excerptSpan, builder);
 
-        return new RazorExcerptResult(excerptText, razorDocumentSpan, builder.ToImmutable(), document, span);
+        return new ExcerptResult(excerptText, razorDocumentSpan, builder.ToImmutable(), document, span);
     }
 }

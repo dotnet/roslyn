@@ -1,20 +1,18 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Moq;
@@ -33,16 +31,15 @@ public class HtmlCodeActionResolverTest
         TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out _, out var span);
 
         var documentPath = TestProjectData.SomeProjectComponentFile1.FilePath;
-        var documentUri = new Uri(documentPath);
-        var (context, sourceText, workspace) = CreateDocumentContext(documentUri, documentPath, contents);
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
+        var (snapshot, sourceText, workspace) = CreateDocumentSnapshot(documentPath, contents);
         using var workspaceLifetime = workspace;
 
         var razorEditServiceMock = new StrictMock<IRazorEditService>();
         razorEditServiceMock
-            .Setup(x => x.MapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
-            .Callback<IDocumentSnapshot, WorkspaceEdit, CancellationToken>((snapshot, edit, _) =>
+            .Setup(x => x.MapWorkspaceEditAsync(It.IsAny<Solution>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
+            .Callback<Solution, WorkspaceEdit, CancellationToken>((_, edit, _) =>
             {
-                Assert.IsType<RemoteDocumentSnapshot>(snapshot);
                 var textDocumentEdit = edit.EnumerateTextDocumentEdits().First();
                 textDocumentEdit.TextDocument.DocumentUri = new(documentPath);
                 textDocumentEdit.Edits = [LspFactory.CreateTextEdit(sourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")];
@@ -62,7 +59,7 @@ public class HtmlCodeActionResolverTest
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier
                         {
-                            DocumentUri = new(new Uri(documentPath + ".html")),
+                            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath + ".html"),
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                     }
@@ -71,20 +68,20 @@ public class HtmlCodeActionResolverTest
         };
 
         // Act
-        var action = await resolver.ResolveAsync(context, codeAction, CancellationToken.None);
+        var action = await resolver.ResolveAsync(snapshot, codeAction, CancellationToken.None);
 
         // Assert
         Assert.NotNull(action.Edit);
         var documentEdits = action.Edit.EnumerateTextDocumentEdits().ToArray();
         Assert.NotEmpty(documentEdits);
-        Assert.Equal(documentUri, documentEdits[0].TextDocument.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(documentUri, documentEdits[0].TextDocument.DocumentUri);
 
         var text = SourceText.From(contents);
         var changed = text.WithChanges(documentEdits[0].Edits.Select(e => text.GetTextChange((TextEdit)e)));
         Assert.Equal("Goo @(DateTime.Now) Bar", changed.ToString());
     }
 
-    private static (RemoteDocumentContext Context, SourceText SourceText, AdhocWorkspace Workspace) CreateDocumentContext(Uri documentUri, string filePath, string text)
+    private static (RemoteDocumentSnapshot Snapshot, SourceText SourceText, AdhocWorkspace Workspace) CreateDocumentSnapshot(string filePath, string text)
     {
         var sourceText = SourceText.From(text);
 
@@ -99,9 +96,9 @@ public class HtmlCodeActionResolverTest
 
         workspace.TryApplyChanges(solution);
         var document = workspace.CurrentSolution.GetAdditionalDocument(documentId)!;
-        var snapshotManager = new RemoteSnapshotManager(new RemoteFilePathService(), NoOpTelemetryReporter.Instance);
+        var snapshotManager = new RemoteSnapshotManager(NoOpTelemetryReporter.Instance);
         var snapshot = snapshotManager.GetSnapshot(document);
 
-        return (new RemoteDocumentContext(documentUri, snapshot), sourceText, workspace);
+        return (snapshot, sourceText, workspace);
     }
 }

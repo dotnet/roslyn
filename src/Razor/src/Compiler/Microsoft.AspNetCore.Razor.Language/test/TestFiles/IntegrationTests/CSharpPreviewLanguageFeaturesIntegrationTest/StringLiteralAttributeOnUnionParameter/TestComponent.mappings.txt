@@ -1,0 +1,34 @@
+﻿Source Location: (2:0,2 [87] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var content = new Test.SlotContent(new MarkupString("<strong>hello</strong>"));
+|
+Generated Location: (733:21,0 [87] )
+|
+    var content = new Test.SlotContent(new MarkupString("<strong>hello</strong>"));
+|
+
+Source Location: (95:4,1 [4] x:\dir\subdir\Test\TestComponent.razor)
+|Slot|
+Generated Location: (921:28,49 [4] )
+|Slot|
+
+Source Location: (100:4,6 [7] x:\dir\subdir\Test\TestComponent.razor)
+|Content|
+Generated Location: (1086:32,0 [7] )
+|Content|
+
+Source Location: (121:5,1 [4] x:\dir\subdir\Test\TestComponent.razor)
+|Slot|
+Generated Location: (1422:40,49 [4] )
+|Slot|
+
+Source Location: (126:5,6 [7] x:\dir\subdir\Test\TestComponent.razor)
+|Content|
+Generated Location: (1587:44,0 [7] )
+|Content|
+
+Source Location: (136:5,16 [7] x:\dir\subdir\Test\TestComponent.razor)
+|content|
+Generated Location: (1852:52,0 [7] )
+|content|
+

@@ -1,0 +1,3 @@
+[**]
+dotnet_public_api_analyzer.skip_namespaces = Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal,Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal
+

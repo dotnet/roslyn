@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -25,7 +25,7 @@ internal class DidSaveHandler() : ILspServiceNotificationHandler<DidSaveTextDocu
 
     public async Task HandleNotificationAsync(DidSaveTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
+        var document = context.GetRequiredTextDocument();
         var workspace = document.Project.Solution.Workspace;
         context.TraceDebug($"RefreshSourceGenerators for {document.Project.Id.DebugName}");
 

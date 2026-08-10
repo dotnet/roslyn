@@ -1,0 +1,14 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [5] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                    LazyIntermediateToken - (40:2,0 [2] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - <p
+                    LazyIntermediateToken - (42:2,2 [1] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - >
+                CSharpExpression - (44:2,4 [18] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (44:2,4 [18] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - Utility.GetValue()
+                HtmlContent - (62:2,22 [4] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (62:2,22 [4] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - </p>

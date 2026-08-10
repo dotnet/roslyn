@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol.InlayHints;
@@ -59,7 +59,7 @@ internal class CohostInlayHintResolveEndpoint(
 
         var hint = await _remoteServiceInvoker.TryInvokeAsync<IRemoteInlayHintService, InlayHint>(
            razorDocument.Project.Solution,
-           (service, solutionInfo, cancellationToken) => service.ResolveHintAsync(solutionInfo, razorDocument.Id, request, cancellationToken),
+           (service, solutionInfo, cancellationToken) => service.ResolveHintAsync(solutionInfo, razorDocument.Id, request, razorData.InDeclDocument, cancellationToken),
            cancellationToken).ConfigureAwait(false);
 
         if (hint is null)

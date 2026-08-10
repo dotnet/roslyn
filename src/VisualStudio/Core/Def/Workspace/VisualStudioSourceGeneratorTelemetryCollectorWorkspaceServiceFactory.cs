@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -25,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices;
 /// </summary>
 [Export]
 [ExportWorkspaceServiceFactory(typeof(ISourceGeneratorTelemetryCollectorWorkspaceService)), Shared]
-internal sealed class VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory : IWorkspaceServiceFactory, ISourceGeneratorTelemetryReporterWorkspaceService
+internal sealed class VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory : IWorkspaceServiceFactory, ISourceGeneratorTelemetryReporterWorkspaceService, IDisposable
 {
     /// <summary>
     /// The collector that's used to collect all the telemetry for operations within <see
@@ -43,24 +42,23 @@ internal sealed class VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServ
     private readonly SourceGeneratorTelemetryCollectorWorkspaceService _otherWorkspacesInstance = new();
 
     private readonly AsyncBatchingWorkQueue _workQueue;
-    private readonly IThreadingContext _threadingContext;
 
     private readonly Lazy<VisualStudioWorkspace> _visualStudioWorkspace;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory(IThreadingContext threadingContext, IAsynchronousOperationListenerProvider listenerProvider, Lazy<VisualStudioWorkspace> visualStudioWorkspace)
+    public VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory(IAsynchronousOperationListenerProvider listenerProvider, Lazy<VisualStudioWorkspace> visualStudioWorkspace)
     {
-        _threadingContext = threadingContext;
         _visualStudioWorkspace = visualStudioWorkspace;
 
         // We will report telemetry every five minutes, if we have any to report
         _workQueue = new AsyncBatchingWorkQueue(
             TimeSpan.FromMinutes(5),
             SendSourceGeneratorTelemetryAsync,
-            listenerProvider.GetListener(FeatureAttribute.Telemetry),
-            _threadingContext.DisposalToken);
+            listenerProvider.GetListener(FeatureAttribute.Telemetry));
     }
+
+    public void Dispose() => _workQueue.Dispose();
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {

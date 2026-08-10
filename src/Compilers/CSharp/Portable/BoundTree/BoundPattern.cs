@@ -19,31 +19,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             innerPattern = this;
             bool negated = false;
 
-            if (innerPattern is BoundNegatedPattern { IsUnionMatching: true })
-            {
-                // This node doesn't represent a negation at the top level, it really represents a negation
-                // in a property sub-pattern. Therefore, doing a semantically equivalent unwrapping for such
-                // BoundNegatedPattern isn't trivial since we need to preserve the "union matching" piece stored
-                // in the node, probably by rewriting innerPattern.Negated.
-                // Bottom line, this will not be a trivial unwrapping. Since the unwrapping is not necessary for
-                // correctness, we simply don't do it.
-                return negated;
-            }
-
             while (innerPattern is BoundNegatedPattern negatedPattern)
             {
-                Debug.Assert(!negatedPattern.IsUnionMatching);
+                Debug.Assert(negatedPattern.UnionMatchingMode == UnionMatchingMode.None);
                 negated = !negated;
                 innerPattern = negatedPattern.Negated;
             }
             return negated;
         }
 
-        public virtual bool IsUnionMatching => false;
+        public virtual UnionMatchingMode UnionMatchingMode => UnionMatchingMode.None;
 
         private partial void Validate()
         {
-            Debug.Assert(!IsUnionMatching || InputType is { IsSubjectForUnionMatching: true });
+            Debug.Assert(UnionMatchingMode != UnionMatchingMode.UnionInstance);
+            Debug.Assert(UnionMatchingMode == UnionMatchingMode.None || InputType is { IsSubjectForUnionMatching: true });
         }
     }
 }

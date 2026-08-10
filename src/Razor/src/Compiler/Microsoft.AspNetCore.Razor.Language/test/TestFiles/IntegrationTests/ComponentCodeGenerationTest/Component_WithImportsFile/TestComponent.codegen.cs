@@ -22,14 +22,6 @@ using System.Reflection
     ;
     #line default
     #line hidden
-#nullable restore
-#line (3,12)-(3,26) "x:\dir\subdir\Test\_Imports.razor"
-[Serializable]
-
-#line default
-#line hidden
-#nullable disable
-
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable

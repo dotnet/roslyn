@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
@@ -143,6 +144,8 @@ internal abstract partial class AbstractMetadataAsSourceService
 
         public bool IsUnion => _symbol.IsUnion;
 
+        public ImmutableArray<ITypeSymbol> UnionCaseTypes => _symbol.UnionCaseTypes;
+
         public bool IsNativeIntegerType => _symbol.IsNativeIntegerType;
 
         public bool IsExtension => _symbol.IsExtension;
@@ -151,6 +154,9 @@ internal abstract partial class AbstractMetadataAsSourceService
         public string ExtensionMarkerName => _symbol.ExtensionMarkerName;
 
         public bool IsFileLocal => _symbol.IsFileLocal;
+
+        public bool IsClosed => _symbol.IsClosed;
+        public ClosedDerivedTypeInfo GetClosedDerivedTypeInfo(CancellationToken cancellationToken) => _symbol.GetClosedDerivedTypeInfo(cancellationToken);
 
         public INamedTypeSymbol NativeIntegerUnderlyingType => _symbol.NativeIntegerUnderlyingType;
 

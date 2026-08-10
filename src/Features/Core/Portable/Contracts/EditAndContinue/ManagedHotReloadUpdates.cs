@@ -8,17 +8,20 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 [DataContract]
-internal readonly struct ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate> updates, ImmutableArray<ManagedHotReloadDiagnostic> diagnostics, ImmutableArray<ProjectInstanceId> projectsToRebuild, ImmutableArray<ProjectInstanceId> projectsToRestart)
+internal readonly struct ManagedHotReloadUpdates
 {
-    [DataMember(Name = "updates")]
-    public ImmutableArray<ManagedHotReloadUpdate> Updates { get; } = updates;
+    [DataMember]
+    public ImmutableArray<ManagedHotReloadUpdate> Updates { get; init; }
 
-    [DataMember(Name = "diagnostics")]
-    public ImmutableArray<ManagedHotReloadDiagnostic> Diagnostics { get; } = diagnostics;
+    [DataMember]
+    public ImmutableArray<ManagedHotReloadDiagnostic> Diagnostics { get; init; }
 
-    [DataMember(Name = "projectsToRebuild")]
-    public ImmutableArray<ProjectInstanceId> ProjectsToRebuild { get; } = projectsToRebuild;
+    [DataMember]
+    public ImmutableArray<ProjectInstanceId> ProjectsToRebuild { get; init; }
 
-    [DataMember(Name = "projectsToRestart")]
-    public ImmutableArray<ProjectInstanceId> ProjectsToRestart { get; } = projectsToRestart;
+    [DataMember]
+    public ImmutableArray<ProjectInstanceId> ProjectsToRestart { get; init; }
+
+    [DataMember]
+    public bool HasPendingUpdates { get; init; }
 }
