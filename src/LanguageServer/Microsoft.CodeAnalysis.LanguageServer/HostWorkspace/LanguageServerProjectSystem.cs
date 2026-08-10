@@ -4,11 +4,13 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -109,6 +111,13 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
         await WaitForProjectLoadsAsync(handles.MoveToImmutable(), progressTracker);
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
+    }
+
+    internal ImmutableArray<string> GetSupportedProjectFileExtensions()
+    {
+        var supportedLanguages = _hostProjectFactory.Workspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>();
+        return _projectFileExtensionRegistry.GetRegisteredProjectFileExtensions().WhereAsArray(
+            extension => _projectFileExtensionRegistry.TryGetLanguageNameFromExtension(extension, out var languageName) && supportedLanguages.Contains(languageName));
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
