@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -189,15 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     location = token.GetLocation();
             }
 
-            if (errorCode != ErrorCode.ERR_PartialMisplaced ||
-                diagnostics.DiagnosticBag?.AsEnumerableWithoutResolution().Any(
-                    static (diagnostic, location) =>
-                        diagnostic.Code == (int)ErrorCode.ERR_PartialMisplaced &&
-                        diagnostic.Location == location,
-                    location) != true)
-            {
-                diagnostics.Add(errorCode, location, args);
-            }
+            diagnostics.Add(errorCode, location, args);
         }
 
         internal static void ReportDefaultInterfaceImplementationModifiers(
@@ -515,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
                 messageId.CheckFeatureAvailability(diagnostics, modifier);
 
-                // `partial` must always be the last modifier according to the language. However, there was a bug
+                // `partial` must always be the last modifier according to the language.  However, there was a bug
                 // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
                 // backcompat.
                 var isLast = i == modifiers.Count - 1;

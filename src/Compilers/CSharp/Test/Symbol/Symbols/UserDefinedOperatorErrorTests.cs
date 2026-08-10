@@ -198,6 +198,9 @@ partial class C
                 // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial public static int operator + (C c1, C c2) { return 0; }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial public static int operator + (C c1, C c2) { return 0; }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
                 // (5,34): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract public int operator - (C c1, C c2) { return 0; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("abstract").WithLocation(5, 34),
