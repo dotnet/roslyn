@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Composition;
 using System.IO.Enumeration;
@@ -22,7 +23,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.WorkspaceFolderWalker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
@@ -51,6 +51,15 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     LspServices lspServices) : ILspService, IOnInitialized
 {
     private static readonly StringComparer s_pathComparer = StringComparer.OrdinalIgnoreCase;
+
+    /// <summary>Directories which are ignored per convention.</summary>
+    /// <remarks>Directories whose name starts with '.' (e.g. '.git', '.vs') are also ignored.</remarks>
+    private static readonly SearchValues<string> s_ignoredDirectories = SearchValues.Create([
+        "artifacts",
+        "bin",
+        "obj",
+        "node_modules"
+    ], StringComparison.OrdinalIgnoreCase);
 
     private readonly ILogger _logger = loggerFactory.CreateLogger<FileBasedProgramsEntryPointDiscovery>();
     private ImmutableArray<string> _workspaceFolders;
@@ -224,6 +233,52 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         return bytesSpan is [(byte)'#', (byte)'!', ..] or [0xEF, 0xBB, 0xBF, (byte)'#', (byte)'!'];
     }
 
+    private enum CsFileKind
+    {
+        None, // Denotes a file that is irrelevant for discovery. Shouldn't appear on a valid 'CsFileInfo' instance.
+        Directory,
+        Cs,
+        Csproj,
+    }
+
+    private readonly struct CsFileInfo(CsFileKind kind, string path, DateTimeOffset createdOrModifiedTimeUtc)
+    {
+        public CsFileKind Kind { get; } = kind;
+        public string Path { get; } = path;
+        public DateTimeOffset CreatedOrModifiedTimeUtc { get; } = createdOrModifiedTimeUtc;
+    }
+
+    private sealed class DirectoryEnumerator(string directory) : FileSystemEnumerator<CsFileInfo>(directory, new EnumerationOptions { RecurseSubdirectories = false, IgnoreInaccessible = true })
+    {
+        private static CsFileKind GetKind(ref FileSystemEntry entry)
+        {
+            if (entry.IsDirectory)
+                return CsFileKind.Directory;
+
+            var extension = Path.GetExtension(entry.FileName);
+            if (extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
+                return CsFileKind.Cs;
+
+            if (extension.Equals(".csproj", StringComparison.OrdinalIgnoreCase))
+                return CsFileKind.Csproj;
+
+            return CsFileKind.None;
+        }
+
+        protected override CsFileInfo TransformEntry(ref FileSystemEntry entry)
+        {
+            var kind = GetKind(ref entry);
+            Contract.ThrowIfTrue(kind == CsFileKind.None);
+            return new CsFileInfo(kind, entry.ToFullPath(), Max(entry.CreationTimeUtc, entry.LastWriteTimeUtc));
+        }
+
+        protected override bool ShouldIncludeEntry(ref FileSystemEntry entry)
+            => GetKind(ref entry) != CsFileKind.None;
+
+        protected override bool ShouldRecurseIntoEntry(ref FileSystemEntry entry)
+            => throw ExceptionUtilities.Unreachable();
+    }
+
     private class WorkspaceFolderVisitor(Cache cache, ArrayBuilder<string> entryPointsBuilder, ArrayBuilder<string> directoriesContainingCsprojBuilder, ILogger logger)
     {
         internal void Visit()
@@ -233,7 +288,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         private void VisitDirectory(string directory, DateTimeOffset createdOrModifiedTimeUtc)
         {
             var directoryName = Path.GetFileName(directory.AsSpan());
-            if (ShouldIgnoreDirectory(directoryName))
+            if (directoryName.StartsWith('.') || directoryName.ContainsAny(s_ignoredDirectories))
                 return;
 
             if (createdOrModifiedTimeUtc < cache.LastWalkTimeUtc)
@@ -315,6 +370,9 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
             }
         }
     }
+
+    private static DateTimeOffset Max(DateTimeOffset lhs, DateTimeOffset rhs)
+        => lhs < rhs ? rhs : lhs;
 
     internal sealed record Cache(string WorkspacePath, DateTimeOffset LastWalkTimeUtc, ImmutableArray<string> FileBasedAppFullPaths, ImmutableArray<string> DirectoriesContainingCsproj);
 

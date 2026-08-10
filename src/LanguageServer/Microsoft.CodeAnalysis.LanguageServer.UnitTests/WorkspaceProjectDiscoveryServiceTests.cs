@@ -7,164 +7,548 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.Logging.Abstractions;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
 {
     private readonly TempRoot _tempRoot = new();
-    private static readonly TimeSpan s_eventualTimeout = TimeSpan.FromSeconds(5);
 
     public void Dispose()
         => _tempRoot.Dispose();
 
     [Fact]
-    public async Task DiscoveryService_ReturnsCandidateProjectForFile()
+    public void InitializationRecordsRootsWithoutEnumeration()
     {
         var workspace = _tempRoot.CreateDirectory();
-        var srcDir = workspace.CreateDirectory("src");
-        var nestedDir = srcDir.CreateDirectory("Nested").CreateDirectory("Deep");
+        var enumerationCount = 0;
+        var service = CreateDiscoveryService(
+            enumerateFiles: _ =>
+            {
+                Interlocked.Increment(ref enumerationCount);
+                return [];
+            });
 
-        var srcProjectFile = srcDir.CreateFile("Src.csproj");
-        srcProjectFile.WriteAllText("<Project Sdk=\"Microsoft.NET.Sdk\" />");
+        service.GetTestAccessor().Initialize([workspace.Path]);
 
-        var codeFile = nestedDir.CreateFile("Program.cs");
-        codeFile.WriteAllText("class C { }");
-
-        var service = CreateDiscoveryService();
-        var accessor = service.GetTestAccessor();
-        accessor.AddWorkspaceFolder(workspace.Path);
-
-        var candidates = await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None);
-        Assert.NotEmpty(candidates);
-        Assert.Contains(candidates, p => string.Equals(p, srcProjectFile.Path, StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(0, enumerationCount);
+        Assert.Equal(1, service.GetTestAccessor().WorkspaceFolderCount);
     }
 
     [Fact]
-    public async Task DiscoveryService_AddsAndRemovesWorkspaceFolders()
+    public async Task NestedWorkspaceUsesDeepestBoundary()
     {
-        var workspace1 = _tempRoot.CreateDirectory();
-        var workspace2 = _tempRoot.CreateDirectory();
-
-        var workspace1Project = workspace1.CreateFile("Workspace1.csproj");
-        workspace1Project.WriteAllText("<Project Sdk=\"Microsoft.NET.Sdk\" />");
-        var workspace2Project = workspace2.CreateFile("Workspace2.csproj");
-        workspace2Project.WriteAllText("<Project Sdk=\"Microsoft.NET.Sdk\" />");
-
-        var workspace1Code = workspace1.CreateFile("Program1.cs");
-        workspace1Code.WriteAllText("class C1 { }");
-        var workspace2Code = workspace2.CreateFile("Program2.cs");
-        workspace2Code.WriteAllText("class C2 { }");
-
+        var outerWorkspace = _tempRoot.CreateDirectory();
+        var outerProject = outerWorkspace.CreateFile("Outer.csproj");
+        var innerWorkspace = outerWorkspace.CreateDirectory("inner");
+        var codeFile = innerWorkspace.CreateDirectory("src").CreateFile("Program.cs");
         var service = CreateDiscoveryService();
-        var accessor = service.GetTestAccessor();
+        service.GetTestAccessor().Initialize([outerWorkspace.Path, innerWorkspace.Path]);
 
-        accessor.AddWorkspaceFolder(workspace1.Path);
+        var candidates = await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None);
 
-        var workspace2CandidatesBeforeAdd = await accessor.GetCandidateProjectsAsync(workspace2Code.Path, CancellationToken.None);
-        Assert.Empty(workspace2CandidatesBeforeAdd);
-
-        accessor.AddWorkspaceFolder(workspace2.Path);
-        var workspace2CandidatesAfterAdd = await accessor.GetCandidateProjectsAsync(workspace2Code.Path, CancellationToken.None);
-        Assert.Single(workspace2CandidatesAfterAdd);
-        Assert.Equal(workspace2Project.Path, workspace2CandidatesAfterAdd[0], ignoreCase: true);
-
-        accessor.RemoveWorkspaceFolder(workspace1.Path);
-        var workspace1CandidatesAfterRemove = await accessor.GetCandidateProjectsAsync(workspace1Code.Path, CancellationToken.None);
-        Assert.Empty(workspace1CandidatesAfterRemove);
+        Assert.Empty(candidates);
+        Assert.True(File.Exists(outerProject.Path));
     }
 
     [Fact]
-    public async Task DiscoveryService_AddsProjectWhenCsprojCreated()
+    public async Task ReturnsAllSupportedProjectsFromNearestAncestorInOrdinalOrder()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        workspace.CreateFile("Root.csproj");
+        var sourceDirectory = workspace.CreateDirectory("src");
+        var secondProject = sourceDirectory.CreateFile("B.csproj");
+        sourceDirectory.CreateFile("Unsupported.vbproj");
+        var firstProject = sourceDirectory.CreateFile("A.csproj");
+        var codeFile = sourceDirectory.CreateDirectory("nested").CreateFile("Program.cs");
+        var service = CreateDiscoveryService();
+        service.GetTestAccessor().Initialize([workspace.Path]);
+
+        var candidates = await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None);
+
+        AssertEx.Equal([firstProject.Path, secondProject.Path], candidates);
+    }
+
+    [Fact]
+    public async Task FileOutsideWorkspaceReturnsNoCandidatesOrEnumeration()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var outsideDirectory = _tempRoot.CreateDirectory();
+        var codeFile = outsideDirectory.CreateFile("Program.cs");
+        var enumerationCount = 0;
+        var service = CreateDiscoveryService(
+            enumerateFiles: directory =>
+            {
+                Interlocked.Increment(ref enumerationCount);
+                return EnumerateFiles(directory);
+            });
+        service.GetTestAccessor().Initialize([workspace.Path]);
+
+        var candidates = await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None);
+
+        Assert.Empty(candidates);
+        Assert.Equal(0, enumerationCount);
+    }
+
+    [Fact]
+    public async Task EmptyDirectoryIsRecheckedOnLaterDemand()
     {
         var workspace = _tempRoot.CreateDirectory();
         var codeFile = workspace.CreateFile("Program.cs");
-        codeFile.WriteAllText("class C { }");
+        var enumerationCount = 0;
+        var service = CreateDiscoveryService(
+            enumerateFiles: directory =>
+            {
+                Interlocked.Increment(ref enumerationCount);
+                return EnumerateFiles(directory);
+            });
+        service.GetTestAccessor().Initialize([workspace.Path]);
 
-        var service = CreateDiscoveryService();
-        var accessor = service.GetTestAccessor();
-        accessor.AddWorkspaceFolder(workspace.Path);
+        Assert.Empty(await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.Equal(0, service.GetTestAccessor().ProjectDirectoryCount);
 
-        var candidatesBeforeCreate = await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None);
-        Assert.Empty(candidatesBeforeCreate);
+        var project = workspace.CreateFile("Project.csproj");
+        var candidates = await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None);
 
-        var projectFile = workspace.CreateFile("AddedLater.csproj");
-        projectFile.WriteAllText("<Project Sdk=\"Microsoft.NET.Sdk\" />");
-        accessor.NotifyProjectFileChanged(workspace.Path, projectFile.Path);
-
-        await AssertEventuallyAsync(async () =>
-        {
-            var candidates = await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None);
-            return candidates.Length == 1 && string.Equals(candidates[0], projectFile.Path, StringComparison.OrdinalIgnoreCase);
-        });
+        AssertEx.Equal([project.Path], candidates);
+        Assert.Equal(2, enumerationCount);
     }
 
     [Fact]
-    public async Task DiscoveryService_RemovesProjectWhenCsprojDeleted()
+    public async Task ConcurrentLookupsCoalesceDirectoryEnumeration()
     {
         var workspace = _tempRoot.CreateDirectory();
-        var firstProjectFile = workspace.CreateFile("First.csproj");
-        firstProjectFile.WriteAllText("<Project Sdk=\"Microsoft.NET.Sdk\" />");
+        var project = workspace.CreateFile("Project.csproj");
+        var codeFile = workspace.CreateFile("Program.cs");
+        using var enumerationStarted = new ManualResetEventSlim();
+        using var releaseEnumeration = new ManualResetEventSlim();
+        var enumerationCount = 0;
+        var service = CreateDiscoveryService(
+            enumerateFiles: directory =>
+            {
+                Interlocked.Increment(ref enumerationCount);
+                enumerationStarted.Set();
+                Assert.True(releaseEnumeration.Wait(TestHelpers.HangMitigatingTimeout));
+                return EnumerateFiles(directory);
+            });
+        service.GetTestAccessor().Initialize([workspace.Path]);
 
-        var secondProjectFile = workspace.CreateFile("Second.csproj");
-        secondProjectFile.WriteAllText("<Project Sdk=\"Microsoft.NET.Sdk\" />");
-        var secondCodeFile = workspace.CreateFile("Second.cs");
-        secondCodeFile.WriteAllText("class Second { }");
+        var firstLookup = Task.Run(async () => await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.True(enumerationStarted.Wait(TestHelpers.HangMitigatingTimeout));
+        var secondLookup = Task.Run(async () => await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        releaseEnumeration.Set();
 
-        var service = CreateDiscoveryService();
+        var results = await Task.WhenAll(firstLookup, secondLookup).WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.All(results, candidates => AssertEx.Equal([project.Path], candidates));
+        Assert.Equal(1, enumerationCount);
+    }
+
+    [Fact]
+    public async Task CancellationStopsWaitingWithoutCancelingSharedEnumeration()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var project = workspace.CreateFile("Project.csproj");
+        var codeFile = workspace.CreateFile("Program.cs");
+        using var enumerationStarted = new ManualResetEventSlim();
+        using var releaseEnumeration = new ManualResetEventSlim();
+        var service = CreateDiscoveryService(
+            enumerateFiles: directory =>
+            {
+                enumerationStarted.Set();
+                Assert.True(releaseEnumeration.Wait(TestHelpers.HangMitigatingTimeout));
+                return EnumerateFiles(directory);
+            });
+        service.GetTestAccessor().Initialize([workspace.Path]);
+        using var cancellationSource = new CancellationTokenSource();
+
+        var canceledLookup = service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, cancellationSource.Token).AsTask();
+        Assert.True(enumerationStarted.Wait(TestHelpers.HangMitigatingTimeout));
+        var sharedLookup = service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None).AsTask();
+
+        cancellationSource.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await canceledLookup.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.False(sharedLookup.IsCompleted);
+
+        releaseEnumeration.Set();
+        AssertEx.Equal([project.Path], await sharedLookup.WaitAsync(TestHelpers.HangMitigatingTimeout));
+    }
+
+    [Fact]
+    public async Task UnexpectedEnumerationFailureSettlesAllWaitersAndReleasesOwnership()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var project = workspace.CreateFile("Project.csproj");
+        var codeFile = workspace.CreateFile("Program.cs");
+        var watcher = new TestFileChangeWatcher();
+        using var enumerationStarted = new ManualResetEventSlim();
+        using var releaseEnumeration = new ManualResetEventSlim();
+        var enumerationCount = 0;
+        var service = CreateDiscoveryService(
+            watcher,
+            directory =>
+            {
+                if (Interlocked.Increment(ref enumerationCount) == 1)
+                {
+                    enumerationStarted.Set();
+                    Assert.True(releaseEnumeration.Wait(TestHelpers.HangMitigatingTimeout));
+                    throw new UnexpectedEnumerationException();
+                }
+
+                return EnumerateFiles(directory);
+            });
+        service.GetTestAccessor().Initialize([workspace.Path]);
+
+        var firstLookup = service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None).AsTask();
+        Assert.True(enumerationStarted.Wait(TestHelpers.HangMitigatingTimeout));
+        var coalescedLookup = service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None).AsTask();
+        releaseEnumeration.Set();
+
+        await Assert.ThrowsAsync<UnexpectedEnumerationException>(async () => await firstLookup.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        await Assert.ThrowsAsync<UnexpectedEnumerationException>(async () => await coalescedLookup.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.Equal(1, watcher.Contexts.Single().DisposalCount);
+
+        AssertEx.Equal([project.Path], await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.Equal(2, enumerationCount);
+    }
+
+    [Fact]
+    public async Task SupersededEnumerationDoesNotRemoveReplacement()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var project = workspace.CreateFile("Project.csproj");
+        var codeFile = workspace.CreateFile("Program.cs");
+        using var firstEnumerationStarted = new ManualResetEventSlim();
+        using var releaseFirstEnumeration = new ManualResetEventSlim();
+        using var secondEnumerationStarted = new ManualResetEventSlim();
+        using var releaseSecondEnumeration = new ManualResetEventSlim();
+        var enumerationCount = 0;
+        var service = CreateDiscoveryService(
+            enumerateFiles: directory =>
+            {
+                var currentCount = Interlocked.Increment(ref enumerationCount);
+                var enumerationStarted = currentCount == 1 ? firstEnumerationStarted : secondEnumerationStarted;
+                var releaseEnumeration = currentCount == 1 ? releaseFirstEnumeration : releaseSecondEnumeration;
+                enumerationStarted.Set();
+                Assert.True(releaseEnumeration.Wait(TestHelpers.HangMitigatingTimeout));
+                return EnumerateFiles(directory);
+            });
         var accessor = service.GetTestAccessor();
+        accessor.Initialize([workspace.Path]);
+
+        var firstLookup = Task.Run(async () => await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.True(firstEnumerationStarted.Wait(TestHelpers.HangMitigatingTimeout));
+
+        accessor.RemoveWorkspaceFolder(workspace.Path);
         accessor.AddWorkspaceFolder(workspace.Path);
 
-        var secondCandidatesBeforeDelete = await accessor.GetCandidateProjectsAsync(secondCodeFile.Path, CancellationToken.None);
-        Assert.Equal(2, secondCandidatesBeforeDelete.Length);
-        Assert.Contains(secondCandidatesBeforeDelete, p => string.Equals(p, secondProjectFile.Path, StringComparison.OrdinalIgnoreCase));
+        var secondLookup = Task.Run(async () => await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.True(secondEnumerationStarted.Wait(TestHelpers.HangMitigatingTimeout));
 
-        File.Delete(secondProjectFile.Path);
-        accessor.NotifyProjectFileChanged(workspace.Path, secondProjectFile.Path);
+        releaseFirstEnumeration.Set();
+        Assert.Empty(await firstLookup.WaitAsync(TestHelpers.HangMitigatingTimeout));
 
-        await AssertEventuallyAsync(async () =>
-        {
-            var candidates = await accessor.GetCandidateProjectsAsync(secondCodeFile.Path, CancellationToken.None);
-            return candidates.Length == 1
-                && !candidates.Any(p => string.Equals(p, secondProjectFile.Path, StringComparison.OrdinalIgnoreCase))
-                && candidates.Any(p => string.Equals(p, firstProjectFile.Path, StringComparison.OrdinalIgnoreCase));
-        });
+        releaseSecondEnumeration.Set();
+        AssertEx.Equal([project.Path], await secondLookup.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.Equal(2, enumerationCount);
     }
 
-    private static WorkspaceProjectDiscoveryService CreateDiscoveryService()
-        => new(NullLoggerFactory.Instance, new TestFileChangeWatcher());
-
-    private static async Task AssertEventuallyAsync(Func<Task<bool>> condition)
+    [Fact]
+    public async Task EnumerationFailureContinuesToParent()
     {
-        var timeoutAt = DateTime.UtcNow + s_eventualTimeout;
-        while (DateTime.UtcNow < timeoutAt)
-        {
-            if (await condition().ConfigureAwait(false))
-                return;
+        var workspace = _tempRoot.CreateDirectory();
+        var project = workspace.CreateFile("Project.csproj");
+        var childDirectory = workspace.CreateDirectory("src");
+        var codeFile = childDirectory.CreateFile("Program.cs");
+        var service = CreateDiscoveryService(
+            enumerateFiles: directory =>
+            {
+                if (PathUtilities.Comparer.Equals(directory, childDirectory.Path))
+                    throw new IOException("Expected test failure");
 
-            await Task.Delay(50).ConfigureAwait(false);
-        }
+                return EnumerateFiles(directory);
+            });
+        service.GetTestAccessor().Initialize([workspace.Path]);
 
-        Assert.True(false, "Condition was not satisfied within the timeout window.");
+        var candidates = await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None);
+
+        AssertEx.Equal([project.Path], candidates);
     }
+
+    [Fact]
+    public async Task WorkspaceChangesUsePlatformPathSemanticsAndCleanCachedState()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var project = workspace.CreateFile("Project.csproj");
+        var codeFile = workspace.CreateFile("Program.cs");
+        var watcher = new TestFileChangeWatcher();
+        var service = CreateDiscoveryService(watcher);
+        var accessor = service.GetTestAccessor();
+        accessor.Initialize([workspace.Path]);
+        AssertEx.Equal([project.Path], await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+
+        var alternateCasePath = workspace.Path.ToUpperInvariant();
+        accessor.AddWorkspaceFolder(alternateCasePath);
+        Assert.Equal(PathUtilities.IsUnixLikePlatform ? 2 : 1, accessor.WorkspaceFolderCount);
+
+        accessor.RemoveWorkspaceFolder(workspace.Path);
+
+        Assert.Empty(await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.Equal(0, accessor.ProjectDirectoryCount);
+        Assert.True(watcher.Contexts.Single().IsDisposed);
+    }
+
+    [Fact]
+    public async Task RemovingOuterWorkspacePreservesNestedWorkspaceCache()
+    {
+        var outerWorkspace = _tempRoot.CreateDirectory();
+        var innerWorkspace = outerWorkspace.CreateDirectory("inner");
+        var project = innerWorkspace.CreateFile("Project.csproj");
+        var codeFile = innerWorkspace.CreateFile("Program.cs");
+        var service = CreateDiscoveryService();
+        var accessor = service.GetTestAccessor();
+        accessor.Initialize([outerWorkspace.Path, innerWorkspace.Path]);
+        AssertEx.Equal([project.Path], await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+
+        accessor.RemoveWorkspaceFolder(outerWorkspace.Path);
+
+        AssertEx.Equal([project.Path], await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.Equal(1, accessor.ProjectDirectoryCount);
+    }
+
+    [Fact]
+    public async Task RemovingOuterWorkspacePreservesNestedWorkspaceEnumeration()
+    {
+        var outerWorkspace = _tempRoot.CreateDirectory();
+        var innerWorkspace = outerWorkspace.CreateDirectory("inner");
+        var project = innerWorkspace.CreateFile("Project.csproj");
+        var codeFile = innerWorkspace.CreateFile("Program.cs");
+        using var enumerationStarted = new ManualResetEventSlim();
+        using var releaseEnumeration = new ManualResetEventSlim();
+        var service = CreateDiscoveryService(
+            enumerateFiles: directory =>
+            {
+                var files = EnumerateFiles(directory);
+                enumerationStarted.Set();
+                Assert.True(releaseEnumeration.Wait(TestHelpers.HangMitigatingTimeout));
+                return files;
+            });
+        var accessor = service.GetTestAccessor();
+        accessor.Initialize([outerWorkspace.Path, innerWorkspace.Path]);
+
+        var lookup = Task.Run(async () => await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.True(enumerationStarted.Wait(TestHelpers.HangMitigatingTimeout));
+        accessor.RemoveWorkspaceFolder(outerWorkspace.Path);
+        releaseEnumeration.Set();
+
+        AssertEx.Equal([project.Path], await lookup.WaitAsync(TestHelpers.HangMitigatingTimeout));
+    }
+
+    [Fact]
+    public async Task RemovingOwningWorkspaceSettlesCoalescedLookupBeforeEnumerationCompletes()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        workspace.CreateFile("Project.csproj");
+        var codeFile = workspace.CreateFile("Program.cs");
+        var watcher = new TestFileChangeWatcher();
+        using var enumerationStarted = new ManualResetEventSlim();
+        using var releaseEnumeration = new ManualResetEventSlim();
+        var service = CreateDiscoveryService(
+            watcher,
+            directory =>
+            {
+                enumerationStarted.Set();
+                Assert.True(releaseEnumeration.Wait(TestHelpers.HangMitigatingTimeout));
+                return EnumerateFiles(directory);
+            });
+        var accessor = service.GetTestAccessor();
+        accessor.Initialize([workspace.Path]);
+
+        var firstLookup = Task.Run(async () => await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.True(enumerationStarted.Wait(TestHelpers.HangMitigatingTimeout));
+        var coalescedLookup = accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None).AsTask();
+        Assert.False(coalescedLookup.IsCompleted);
+
+        accessor.RemoveWorkspaceFolder(workspace.Path);
+
+        Assert.Empty(await coalescedLookup.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.Equal(1, watcher.Contexts.Single().DisposalCount);
+
+        releaseEnumeration.Set();
+        Assert.Empty(await firstLookup.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.Equal(1, watcher.Contexts.Single().DisposalCount);
+    }
+
+    [Fact]
+    public async Task RemovedWorkspaceDoesNotCreateDirectoryState()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        workspace.CreateFile("Project.csproj");
+        var watcher = new TestFileChangeWatcher();
+        var service = CreateDiscoveryService(watcher);
+        var accessor = service.GetTestAccessor();
+        accessor.Initialize([workspace.Path]);
+        accessor.RemoveWorkspaceFolder(workspace.Path);
+
+        var projects = await accessor.GetProjectsInDirectoryAsync(workspace.Path, workspace.Path, CancellationToken.None);
+
+        Assert.Empty(projects);
+        Assert.Empty(watcher.Contexts);
+    }
+
+    [Fact]
+    public async Task DisposedServiceDoesNotCreateDirectoryState()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        workspace.CreateFile("Project.csproj");
+        var watcher = new TestFileChangeWatcher();
+        var service = CreateDiscoveryService(watcher);
+        var accessor = service.GetTestAccessor();
+        accessor.Initialize([workspace.Path]);
+        service.Dispose();
+
+        var projects = await accessor.GetProjectsInDirectoryAsync(workspace.Path, workspace.Path, CancellationToken.None);
+
+        Assert.Empty(projects);
+        Assert.Empty(watcher.Contexts);
+    }
+
+    [Fact]
+    public async Task DisposeReleasesWatchersAndCancelsInFlightEnumeration()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var codeFile = workspace.CreateFile("Program.cs");
+        var watcher = new TestFileChangeWatcher();
+        using var enumerationStarted = new ManualResetEventSlim();
+        using var releaseEnumeration = new ManualResetEventSlim();
+        var service = CreateDiscoveryService(
+            watcher,
+            directory =>
+            {
+                enumerationStarted.Set();
+                Assert.True(releaseEnumeration.Wait(TestHelpers.HangMitigatingTimeout));
+                return EnumerateFiles(directory);
+            });
+        service.GetTestAccessor().Initialize([workspace.Path]);
+
+        var lookup = Task.Run(async () => await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.True(enumerationStarted.Wait(TestHelpers.HangMitigatingTimeout));
+        var coalescedLookup = service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None).AsTask();
+        Assert.False(coalescedLookup.IsCompleted);
+        service.Dispose();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await coalescedLookup.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        releaseEnumeration.Set();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await lookup.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.All(watcher.Contexts, context => Assert.Equal(1, context.DisposalCount));
+    }
+
+    [Fact]
+    public async Task WatcherCreationAndDeletionUpdatePositiveCache()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var firstProject = workspace.CreateFile("First.csproj");
+        var codeFile = workspace.CreateFile("Program.cs");
+        var watcher = new TestFileChangeWatcher();
+        var service = CreateDiscoveryService(watcher);
+        var accessor = service.GetTestAccessor();
+        accessor.Initialize([workspace.Path]);
+        AssertEx.Equal([firstProject.Path], await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+
+        var secondProject = workspace.CreateFile("Second.csproj");
+        watcher.Notify(secondProject.Path);
+        AssertEx.Equal([firstProject.Path, secondProject.Path], await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+
+        File.Delete(firstProject.Path);
+        watcher.Notify(firstProject.Path);
+        AssertEx.Equal([secondProject.Path], await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task WatcherEventRacingEnumerationIsMergedAndValidated()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var firstProject = workspace.CreateFile("First.csproj");
+        var codeFile = workspace.CreateFile("Program.cs");
+        var watcher = new TestFileChangeWatcher();
+        using var enumerationStarted = new ManualResetEventSlim();
+        using var releaseEnumeration = new ManualResetEventSlim();
+        var service = CreateDiscoveryService(
+            watcher,
+            directory =>
+            {
+                var files = EnumerateFiles(directory);
+                enumerationStarted.Set();
+                Assert.True(releaseEnumeration.Wait(TestHelpers.HangMitigatingTimeout));
+                return files;
+            });
+        service.GetTestAccessor().Initialize([workspace.Path]);
+
+        var lookup = Task.Run(async () => await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.True(enumerationStarted.Wait(TestHelpers.HangMitigatingTimeout));
+        var secondProject = workspace.CreateFile("Second.csproj");
+        watcher.Notify(secondProject.Path);
+        File.Delete(firstProject.Path);
+        watcher.Notify(firstProject.Path);
+        releaseEnumeration.Set();
+
+        var candidates = await lookup.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        AssertEx.Equal([secondProject.Path], candidates);
+    }
+
+    private static WorkspaceProjectDiscoveryService CreateDiscoveryService(
+        TestFileChangeWatcher? watcher = null,
+        Func<string, ImmutableArray<string>>? enumerateFiles = null)
+        => new(
+            NullLoggerFactory.Instance,
+            watcher ?? new TestFileChangeWatcher(),
+            supportedProjectFileExtensions: ["csproj"],
+            enumerateFiles);
+
+    private static ImmutableArray<string> EnumerateFiles(string directory)
+        => [.. Directory.EnumerateFiles(directory, searchPattern: "*", SearchOption.TopDirectoryOnly)];
 
     private sealed class TestFileChangeWatcher : IFileChangeWatcher
     {
+        public List<TestFileChangeContext> Contexts { get; } = [];
+
         public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
-            => new TestFileChangeContext();
+        {
+            var context = new TestFileChangeContext();
+            Contexts.Add(context);
+            return context;
+        }
+
+        public void Notify(string filePath)
+        {
+            foreach (var context in Contexts.ToArray())
+                context.Notify(filePath);
+        }
     }
 
     private sealed class TestFileChangeContext : IFileChangeContext
     {
-#pragma warning disable CS0067
+        private int _disposalCount;
+
         public event EventHandler<string>? FileChanged;
-#pragma warning restore CS0067
+        public bool IsDisposed => DisposalCount > 0;
+        public int DisposalCount => Volatile.Read(ref _disposalCount);
 
         public IWatchedFile EnqueueWatchingFile(string filePath)
             => NoOpWatchedFile.Instance;
 
-        public void Dispose()
+        public void Notify(string filePath)
         {
+            if (!IsDisposed)
+                FileChanged?.Invoke(this, filePath);
         }
+
+        public void Dispose()
+            => Interlocked.Increment(ref _disposalCount);
     }
+
+    private sealed class UnexpectedEnumerationException : Exception;
 }

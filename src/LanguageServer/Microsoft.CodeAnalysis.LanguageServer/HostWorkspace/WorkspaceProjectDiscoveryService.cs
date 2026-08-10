@@ -7,6 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -20,268 +21,451 @@ internal sealed class WorkspaceProjectDiscoveryServiceFactory(
     ILoggerFactory loggerFactory) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new WorkspaceProjectDiscoveryService(loggerFactory, lspServices.GetRequiredService<IFileChangeWatcher>());
+        => new WorkspaceProjectDiscoveryService(
+            loggerFactory,
+            lspServices.GetRequiredService<IFileChangeWatcher>(),
+            lspServices.GetRequiredService<LanguageServerProjectSystem>().GetSupportedProjectFileExtensions());
 }
 
-internal sealed class WorkspaceProjectDiscoveryService(
-    ILoggerFactory loggerFactory,
-    IFileChangeWatcher fileChangeWatcher) : ILspService, IOnInitialized
+internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IOnInitialized, IDisposable
 {
-    private static readonly StringComparer s_pathComparer = StringComparer.OrdinalIgnoreCase;
+    private static readonly StringComparison s_pathComparison = PathUtilities.IsUnixLikePlatform ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
-    private readonly ILogger _logger = loggerFactory.CreateLogger<WorkspaceProjectDiscoveryService>();
+    private readonly ILogger _logger;
+    private readonly IFileChangeWatcher _fileChangeWatcher;
+    private readonly ImmutableArray<string> _supportedProjectFileExtensions;
+    private readonly Func<string, ImmutableArray<string>> _enumerateFiles;
     private readonly object _gate = new();
-    private readonly IFileChangeWatcher _fileChangeWatcher = fileChangeWatcher;
-    private readonly TaskCompletionSource _discoveryCompletionSource = new();
 
     private ImmutableArray<string> _workspaceFolders;
-    private ImmutableDictionary<string, WorkspaceFolderProjectIndex> _discoveryIndexByWorkspaceFolder = ImmutableDictionary<string, WorkspaceFolderProjectIndex>.Empty.WithComparers(s_pathComparer);
-    private ImmutableDictionary<string, IFileChangeContext> _watchersByWorkspaceFolder = ImmutableDictionary<string, IFileChangeContext>.Empty.WithComparers(s_pathComparer);
+    private readonly Dictionary<string, ProjectDirectory> _projectDirectories = new(PathUtilities.Comparer);
+    private readonly Dictionary<string, DirectoryEnumeration> _directoryEnumerations = new(PathUtilities.Comparer);
+    private IInitializeManager? _initializeManager;
+    private bool _isDisposed;
+
+    internal WorkspaceProjectDiscoveryService(
+        ILoggerFactory loggerFactory,
+        IFileChangeWatcher fileChangeWatcher,
+        ImmutableArray<string> supportedProjectFileExtensions,
+        Func<string, ImmutableArray<string>>? enumerateFiles = null)
+    {
+        _logger = loggerFactory.CreateLogger<WorkspaceProjectDiscoveryService>();
+        _fileChangeWatcher = fileChangeWatcher;
+        _supportedProjectFileExtensions = supportedProjectFileExtensions;
+        _enumerateFiles = enumerateFiles ?? EnumerateFiles;
+    }
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         var initializeManager = context.GetRequiredService<IInitializeManager>();
-        // Subscribe before reading initial state so we cannot miss updates that race with initialization.
         initializeManager.WorkspaceFoldersChanged += OnWorkspaceFoldersChanged;
 
-        _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
-
-        if (_workspaceFolders.IsDefaultOrEmpty)
+        lock (_gate)
         {
-            _discoveryCompletionSource.SetResult();
-            return Task.CompletedTask;
+            Contract.ThrowIfTrue(_isDisposed);
+            _initializeManager = initializeManager;
+            _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths().SelectAsArray(NormalizePath);
         }
 
-        foreach (var workspaceFolder in _workspaceFolders)
-        {
-            AddWorkspaceFolder(workspaceFolder);
-        }
-
-        _discoveryCompletionSource.SetResult();
         return Task.CompletedTask;
     }
 
     private void OnWorkspaceFoldersChanged(object? sender, WorkspaceFoldersChangedEventArgs e)
     {
         foreach (var addedFolder in e.AddedFolders)
-        {
             AddWorkspaceFolder(addedFolder);
-        }
 
         foreach (var removedFolder in e.RemovedFolders)
-        {
             RemoveWorkspaceFolder(removedFolder);
-        }
     }
 
     private void AddWorkspaceFolder(string workspaceFolder)
     {
-        if (!Directory.Exists(workspaceFolder))
-            return;
+        workspaceFolder = NormalizePath(workspaceFolder);
 
         lock (_gate)
         {
-            if (_discoveryIndexByWorkspaceFolder.ContainsKey(workspaceFolder))
-            {
-                _logger.LogTrace("Workspace folder '{WorkspaceFolder}' is already being discovered.", workspaceFolder);
+            if (_isDisposed)
                 return;
-            }
-        }
 
-        var index = DiscoverProjectsInWorkspaceFolder(workspaceFolder);
-        var watcher = CreateWatcher(workspaceFolder);
-
-        lock (_gate)
-        {
-            if (_discoveryIndexByWorkspaceFolder.ContainsKey(workspaceFolder))
-            {
-                watcher.Dispose();
-                _logger.LogTrace("Workspace folder '{WorkspaceFolder}' is already being discovered.", workspaceFolder);
-                return;
-            }
-
-            _discoveryIndexByWorkspaceFolder = _discoveryIndexByWorkspaceFolder.Add(workspaceFolder, index);
-            _watchersByWorkspaceFolder = _watchersByWorkspaceFolder.Add(workspaceFolder, watcher);
-            _workspaceFolders = _workspaceFolders.IsDefault ? [workspaceFolder] : _workspaceFolders.Add(workspaceFolder);
-            _logger.LogTrace("Started project discovery and watcher for workspace folder '{WorkspaceFolder}'.", workspaceFolder);
+            Contract.ThrowIfTrue(_workspaceFolders.IsDefault, $"{nameof(OnInitializedAsync)} must be called before adding workspace folders.");
+            if (!_workspaceFolders.Contains(workspaceFolder, PathUtilities.Comparer))
+                _workspaceFolders = _workspaceFolders.Add(workspaceFolder);
         }
     }
 
     private void RemoveWorkspaceFolder(string workspaceFolder)
     {
+        workspaceFolder = NormalizePath(workspaceFolder);
+        List<IFileChangeContext>? watchersToDispose = null;
+        List<DirectoryEnumeration>? enumerationsToAbandon = null;
+
         lock (_gate)
         {
-            if (_watchersByWorkspaceFolder.TryGetValue(workspaceFolder, out var watcher))
+            if (_isDisposed)
+                return;
+
+            Contract.ThrowIfTrue(_workspaceFolders.IsDefault, $"{nameof(OnInitializedAsync)} must be called before removing workspace folders.");
+            _workspaceFolders = _workspaceFolders.Remove(workspaceFolder, PathUtilities.Comparer);
+
+            foreach (var (directory, projectDirectory) in _projectDirectories)
             {
-                watcher.Dispose();
-                _watchersByWorkspaceFolder = _watchersByWorkspaceFolder.Remove(workspaceFolder);
+                if (PathUtilities.Comparer.Equals(projectDirectory.WorkspaceFolder, workspaceFolder))
+                {
+                    watchersToDispose ??= [];
+                    watchersToDispose.Add(projectDirectory.Watcher);
+                    _projectDirectories.Remove(directory);
+                }
             }
 
-            if (_discoveryIndexByWorkspaceFolder.ContainsKey(workspaceFolder))
+            foreach (var (directory, enumeration) in _directoryEnumerations)
             {
-                _discoveryIndexByWorkspaceFolder = _discoveryIndexByWorkspaceFolder.Remove(workspaceFolder);
-                _workspaceFolders = _workspaceFolders.Remove(workspaceFolder);
-                _logger.LogTrace("Removed project discovery cache and watcher for workspace folder '{WorkspaceFolder}'.", workspaceFolder);
+                if (PathUtilities.Comparer.Equals(enumeration.WorkspaceFolder, workspaceFolder))
+                {
+                    enumerationsToAbandon ??= [];
+                    enumerationsToAbandon.Add(enumeration);
+                    _directoryEnumerations.Remove(directory);
+                }
             }
+        }
+
+        if (watchersToDispose is not null)
+        {
+            foreach (var watcher in watchersToDispose)
+                watcher.Dispose();
+        }
+
+        if (enumerationsToAbandon is not null)
+        {
+            foreach (var enumeration in enumerationsToAbandon)
+                AbandonEnumeration(enumeration, cancel: false);
         }
     }
 
-    private IFileChangeContext CreateWatcher(string workspaceFolder)
+    internal async ValueTask<ImmutableArray<string>> GetCandidateProjectsAsync(string filePath, CancellationToken cancellationToken)
     {
-        var watcher = _fileChangeWatcher.CreateContext([new WatchedDirectory(workspaceFolder, [".csproj"])]);
-        watcher.FileChanged += (_, projectFilePath) => OnProjectFileChanged(workspaceFolder, projectFilePath);
+        lock (_gate)
+        {
+            Contract.ThrowIfTrue(_isDisposed);
+            Contract.ThrowIfTrue(_workspaceFolders.IsDefault, $"{nameof(OnInitializedAsync)} must be called before {nameof(GetCandidateProjectsAsync)}.");
+        }
+
+        if (!PathUtilities.IsAbsolute(filePath))
+            return [];
+
+        filePath = NormalizePath(filePath);
+        var workspaceFolder = GetDeepestContainingWorkspaceFolder(filePath);
+        if (workspaceFolder is null)
+            return [];
+
+        var directory = PathUtilities.GetDirectoryName(filePath);
+        while (PathUtilities.IsSameDirectoryOrChildOf(directory, workspaceFolder, s_pathComparison))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var projects = await GetProjectsInDirectoryAsync(directory, workspaceFolder, cancellationToken).ConfigureAwait(false);
+            if (!projects.IsEmpty)
+                return projects;
+
+            if (PathUtilities.Comparer.Equals(directory, workspaceFolder))
+                break;
+
+            directory = PathUtilities.GetDirectoryName(directory);
+        }
+
+        return [];
+    }
+
+    private string? GetDeepestContainingWorkspaceFolder(string filePath)
+    {
+        lock (_gate)
+            return GetDeepestContainingWorkspaceFolder_NoLock(filePath);
+    }
+
+    private string? GetDeepestContainingWorkspaceFolder_NoLock(string path)
+    {
+        string? deepestWorkspaceFolder = null;
+        foreach (var workspaceFolder in _workspaceFolders)
+        {
+            if (PathUtilities.IsSameDirectoryOrChildOf(path, workspaceFolder, s_pathComparison) &&
+                (deepestWorkspaceFolder is null || workspaceFolder.Length > deepestWorkspaceFolder.Length))
+            {
+                deepestWorkspaceFolder = workspaceFolder;
+            }
+        }
+
+        return deepestWorkspaceFolder;
+    }
+
+    private async ValueTask<ImmutableArray<string>> GetProjectsInDirectoryAsync(
+        string directory, string workspaceFolder, CancellationToken cancellationToken)
+    {
+        ProjectDirectory? projectDirectory;
+        DirectoryEnumeration? enumeration;
+        lock (_gate)
+        {
+            if (_isDisposed || !_workspaceFolders.Contains(workspaceFolder, PathUtilities.Comparer))
+                return [];
+
+            if (_projectDirectories.TryGetValue(directory, out var cachedDirectory))
+            {
+                projectDirectory = cachedDirectory;
+                enumeration = null;
+            }
+            else
+            {
+                projectDirectory = null;
+                if (!_directoryEnumerations.TryGetValue(directory, out enumeration))
+                {
+                    var watcher = CreateWatcher(directory);
+                    enumeration = new DirectoryEnumeration(workspaceFolder, watcher);
+                    _directoryEnumerations.Add(directory, enumeration);
+                }
+            }
+        }
+
+        if (projectDirectory is not null)
+            return ValidateProjects(directory, projectDirectory);
+
+        Contract.ThrowIfNull(enumeration);
+        if (enumeration.TryStart())
+        {
+            // Enumeration is shared by all coalesced callers, so it must not inherit one caller's cancellation.
+            _ = Task.Run(() => EnumerateDirectory(directory, enumeration), CancellationToken.None);
+        }
+
+        return await enumeration.Completion.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private void EnumerateDirectory(string directory, DirectoryEnumeration enumeration)
+    {
+        try
+        {
+            EnumerateDirectoryCore(directory, enumeration);
+        }
+        catch (Exception ex)
+        {
+            lock (_gate)
+            {
+                if (_directoryEnumerations.TryGetValue(directory, out var currentEnumeration) && ReferenceEquals(currentEnumeration, enumeration))
+                    _directoryEnumerations.Remove(directory);
+            }
+
+            enumeration.DisposeWatcher();
+            enumeration.Completion.TrySetException(ex);
+        }
+    }
+
+    private void EnumerateDirectoryCore(string directory, DirectoryEnumeration enumeration)
+    {
+        ImmutableArray<string> enumeratedProjects;
+        try
+        {
+            enumeratedProjects = [.. _enumerateFiles(directory)
+                .Where(IsSupportedProjectExtension)
+                .Order(StringComparer.Ordinal)];
+        }
+        catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
+        {
+            _logger.LogWarning(
+                "Could not enumerate project files in '{Directory}' while resolving workspace projects: {ExceptionMessage}",
+                directory,
+                ex.Message);
+            enumeratedProjects = [];
+        }
+
+        // Validate the enumerated snapshot. Watcher changes are merged below while atomically transitioning
+        // the directory from an in-flight enumeration to either a positive cache entry or no state.
+        var projects = enumeratedProjects.Where(IsExistingSupportedProject).ToHashSet(PathUtilities.Comparer);
+        var result = ImmutableArray<string>.Empty;
+        var disposeWatcher = true;
+        lock (_gate)
+        {
+            if (_directoryEnumerations.TryGetValue(directory, out var currentEnumeration) && ReferenceEquals(currentEnumeration, enumeration))
+            {
+                foreach (var (projectPath, exists) in enumeration.Changes)
+                {
+                    if (exists)
+                        projects.Add(projectPath);
+                    else
+                        projects.Remove(projectPath);
+                }
+
+                result = [.. projects.Order(StringComparer.Ordinal)];
+                _directoryEnumerations.Remove(directory);
+
+                if (_isDisposed || !_workspaceFolders.Contains(enumeration.WorkspaceFolder, PathUtilities.Comparer))
+                {
+                    result = [];
+                }
+                else if (!result.IsEmpty)
+                {
+                    _projectDirectories.Add(directory, new ProjectDirectory(enumeration.WorkspaceFolder, result, enumeration.Watcher));
+                    disposeWatcher = false;
+                }
+            }
+        }
+
+        if (disposeWatcher)
+            enumeration.DisposeWatcher();
+
+        enumeration.Completion.TrySetResult(result);
+    }
+
+    private static void AbandonEnumeration(DirectoryEnumeration enumeration, bool cancel)
+    {
+        if (cancel)
+            enumeration.Completion.TrySetCanceled();
+        else
+            enumeration.Completion.TrySetResult([]);
+
+        enumeration.DisposeWatcher();
+    }
+
+    private IFileChangeContext CreateWatcher(string directory)
+    {
+        var watcher = _fileChangeWatcher.CreateContext([new WatchedDirectory(directory, extensionFilters: [])]);
+        watcher.FileChanged += OnProjectFileChanged;
         return watcher;
     }
 
-    private void OnProjectFileChanged(string workspaceFolder, string projectFilePath)
+    private void OnProjectFileChanged(object? sender, string projectFilePath)
     {
+        if (!PathUtilities.IsAbsolute(projectFilePath) || !IsSupportedProjectExtension(projectFilePath))
+            return;
+
+        projectFilePath = NormalizePath(projectFilePath);
+        var directory = PathUtilities.GetDirectoryName(projectFilePath);
+        var exists = File.Exists(projectFilePath);
+        IFileChangeContext? watcherToDispose = null;
+
         lock (_gate)
         {
-            if (!_discoveryIndexByWorkspaceFolder.TryGetValue(workspaceFolder, out var index))
+            if (_directoryEnumerations.TryGetValue(directory, out var enumeration))
+            {
+                enumeration.Changes[projectFilePath] = exists;
+                return;
+            }
+
+            if (_projectDirectories.TryGetValue(directory, out var projectDirectory))
+            {
+                // We already know whether 'projectFilePath' exists; no need to re-stat every other project
+                // in the directory, so this stays free of blocking I/O while holding the lock.
+                var projects = projectDirectory.Projects;
+                var updatedProjects = exists
+                    ? (projects.Contains(projectFilePath, PathUtilities.Comparer) ? projects : [.. projects.Add(projectFilePath).Order(StringComparer.Ordinal)])
+                    : projects.Remove(projectFilePath, PathUtilities.Comparer);
+
+                if (updatedProjects.IsEmpty)
+                {
+                    _projectDirectories.Remove(directory);
+                    watcherToDispose = projectDirectory.Watcher;
+                }
+                else if (updatedProjects != projects)
+                {
+                    _projectDirectories[directory] = projectDirectory with { Projects = updatedProjects };
+                }
+            }
+            else if (!exists || GetDeepestContainingWorkspaceFolder_NoLock(directory) is not { } workspaceFolder)
+            {
+                return;
+            }
+            else
+            {
+                var watcher = CreateWatcher(directory);
+                _projectDirectories.Add(directory, new ProjectDirectory(workspaceFolder, [projectFilePath], watcher));
+            }
+        }
+
+        watcherToDispose?.Dispose();
+    }
+
+    private ImmutableArray<string> ValidateProjects(string directory, ProjectDirectory projectDirectory)
+    {
+        var projects = projectDirectory.Projects.Where(IsExistingSupportedProject).Order(StringComparer.Ordinal).ToImmutableArray();
+
+        IFileChangeContext? watcherToDispose = null;
+        lock (_gate)
+        {
+            // Only reconcile if nothing else raced ahead of us and already replaced this entry.
+            if (_projectDirectories.TryGetValue(directory, out var current) && ReferenceEquals(current, projectDirectory))
+            {
+                if (projects.IsEmpty)
+                {
+                    _projectDirectories.Remove(directory);
+                    watcherToDispose = current.Watcher;
+                }
+                else if (projects.Length != current.Projects.Length)
+                {
+                    _projectDirectories[directory] = current with { Projects = projects };
+                }
+            }
+        }
+
+        watcherToDispose?.Dispose();
+        return projects;
+    }
+
+    private bool IsExistingSupportedProject(string projectPath)
+        => File.Exists(projectPath) && IsSupportedProjectExtension(projectPath);
+
+    private bool IsSupportedProjectExtension(string path)
+    {
+        var extension = PathUtilities.GetExtension(path);
+        if (extension is not ['.', .. var extensionWithoutDot])
+            return false;
+
+        foreach (var supported in _supportedProjectFileExtensions)
+        {
+            if (extensionWithoutDot.AsSpan().Equals(supported, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
+    private ImmutableArray<string> EnumerateFiles(string directory)
+    {
+        // Filter by extension during enumeration itself so files that can't be projects never get a path string allocated.
+        using var enumerator = new ProjectFileEnumerator(directory, _supportedProjectFileExtensions);
+        var builder = ImmutableArray.CreateBuilder<string>();
+        while (enumerator.MoveNext())
+            builder.Add(enumerator.Current);
+
+        return builder.ToImmutable();
+    }
+
+    private static string NormalizePath(string path)
+        => Path.GetFullPath(path);
+
+    public void Dispose()
+    {
+        IInitializeManager? initializeManager;
+        List<IFileChangeContext> watchers;
+        List<DirectoryEnumeration> enumerations;
+
+        lock (_gate)
+        {
+            if (_isDisposed)
                 return;
 
-            var projectExists = File.Exists(projectFilePath);
-            var updatedIndex = projectExists
-                ? index.WithAddedProject(projectFilePath)
-                : index.WithRemovedProject(projectFilePath);
-
-            _discoveryIndexByWorkspaceFolder = _discoveryIndexByWorkspaceFolder.SetItem(workspaceFolder, updatedIndex);
-
-            _logger.LogTrace("Updated project discovery cache for changed project file '{ProjectFilePath}' in workspace folder '{WorkspaceFolder}'.", projectFilePath, workspaceFolder);
-        }
-    }
-
-    internal ValueTask<ImmutableArray<string>> GetCandidateProjectsAsync(string filePath, CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfTrue(_workspaceFolders.IsDefault, $"{nameof(OnInitializedAsync)} must be called before {nameof(GetCandidateProjectsAsync)}.");
-
-        ImmutableDictionary<string, WorkspaceFolderProjectIndex> discoveryIndexByWorkspaceFolder;
-        lock (_gate)
-        {
-            discoveryIndexByWorkspaceFolder = _discoveryIndexByWorkspaceFolder;
+            _isDisposed = true;
+            initializeManager = _initializeManager;
+            _initializeManager = null;
+            watchers = [.. _projectDirectories.Values.Select(static directory => directory.Watcher)];
+            enumerations = [.. _directoryEnumerations.Values];
+            _projectDirectories.Clear();
+            _directoryEnumerations.Clear();
+            _workspaceFolders = [];
         }
 
-        if (!PathUtilities.IsAbsolute(filePath) || discoveryIndexByWorkspaceFolder.IsEmpty)
-            return new([]);
+        initializeManager?.WorkspaceFoldersChanged -= OnWorkspaceFoldersChanged;
 
-        // Prefer the deepest workspace folder in case folders are nested.
-        var candidateWorkspaceFolders = discoveryIndexByWorkspaceFolder.Keys
-            .Where(workspaceFolder => PathUtilities.IsSameDirectoryOrChildOf(child: filePath, parent: workspaceFolder))
-            .OrderByDescending(static workspaceFolder => workspaceFolder.Length)
-            .ToImmutableArray();
+        foreach (var enumeration in enumerations)
+            AbandonEnumeration(enumeration, cancel: true);
 
-        foreach (var workspaceFolder in candidateWorkspaceFolders)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var index = discoveryIndexByWorkspaceFolder[workspaceFolder];
-            var projects = index.FindNearestProjects(filePath);
-            if (!projects.IsDefaultOrEmpty)
-                return new(projects);
-        }
-
-        return new([]);
-    }
-
-    private WorkspaceFolderProjectIndex DiscoverProjectsInWorkspaceFolder(string workspaceFolder)
-    {
-        var stopwatch = SharedStopwatch.StartNew();
-        var projectsByDirectory = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(s_pathComparer);
-
-        WorkspaceFolderWalker.Walk(workspaceFolder, (directory, csprojPaths) =>
-        {
-            projectsByDirectory[directory] = csprojPaths;
-        });
-
-        _logger.LogDebug(
-            "Indexed {ProjectCount} projects across {DirectoryCount} directories in '{WorkspaceFolder}' in {ElapsedMilliseconds} ms.",
-            projectsByDirectory.Values.Sum(static values => values.Length),
-            projectsByDirectory.Count,
-            workspaceFolder,
-            Math.Round(stopwatch.Elapsed.TotalMilliseconds));
-
-        return new WorkspaceFolderProjectIndex(workspaceFolder, projectsByDirectory.ToImmutable());
+        foreach (var watcher in watchers)
+            watcher.Dispose();
     }
 
     internal TestAccessor GetTestAccessor() => new(this);
-
-    internal readonly struct TestAccessor
-    {
-        private readonly WorkspaceProjectDiscoveryService _instance;
-
-        internal TestAccessor(WorkspaceProjectDiscoveryService instance)
-            => _instance = instance;
-
-        /// <summary>
-        /// Returns a task that completes when all project discovery tasks are complete.
-        /// Useful for tests to wait for discovery without hardcoding delays.
-        /// </summary>
-        internal Task WhenDiscoveryCompleteAsync()
-        {
-            return _instance._discoveryCompletionSource.Task;
-        }
-
-        internal void AddWorkspaceFolder(string workspaceFolder)
-            => _instance.AddWorkspaceFolder(workspaceFolder);
-
-        internal void RemoveWorkspaceFolder(string workspaceFolder)
-            => _instance.RemoveWorkspaceFolder(workspaceFolder);
-
-        internal void NotifyProjectFileChanged(string workspaceFolder, string projectFilePath)
-            => _instance.OnProjectFileChanged(workspaceFolder, projectFilePath);
-
-        internal ValueTask<ImmutableArray<string>> GetCandidateProjectsAsync(string filePath, CancellationToken cancellationToken)
-            => _instance.GetCandidateProjectsAsync(filePath, cancellationToken);
-    }
-
-    private sealed record WorkspaceFolderProjectIndex(string WorkspaceFolder, ImmutableDictionary<string, ImmutableArray<string>> ProjectsByDirectory)
-    {
-        public WorkspaceFolderProjectIndex WithAddedProject(string projectFilePath)
-        {
-            var projectDirectory = PathUtilities.GetDirectoryName(projectFilePath);
-
-            if (ProjectsByDirectory.TryGetValue(projectDirectory, out var projects))
-            {
-                if (projects.Any(project => s_pathComparer.Equals(project, projectFilePath)))
-                    return this;
-
-                return this with { ProjectsByDirectory = ProjectsByDirectory.SetItem(projectDirectory, projects.Add(projectFilePath)) };
-            }
-
-            return this with { ProjectsByDirectory = ProjectsByDirectory.Add(projectDirectory, [projectFilePath]) };
-        }
-
-        public WorkspaceFolderProjectIndex WithRemovedProject(string projectFilePath)
-        {
-            var projectDirectory = PathUtilities.GetDirectoryName(projectFilePath);
-            if (!ProjectsByDirectory.TryGetValue(projectDirectory, out var projects))
-                return this;
-
-            var filteredProjects = projects.Where(project => !s_pathComparer.Equals(project, projectFilePath)).ToImmutableArray();
-            if (filteredProjects.Length == projects.Length)
-                return this;
-
-            if (filteredProjects.IsEmpty)
-                return this with { ProjectsByDirectory = ProjectsByDirectory.Remove(projectDirectory) };
-
-            return this with { ProjectsByDirectory = ProjectsByDirectory.SetItem(projectDirectory, filteredProjects) };
-        }
-
-        public ImmutableArray<string> FindNearestProjects(string filePath)
-        {
-            var directory = PathUtilities.GetDirectoryName(filePath);
-            while (PathUtilities.IsSameDirectoryOrChildOf(child: directory, parent: WorkspaceFolder))
-            {
-                if (ProjectsByDirectory.TryGetValue(directory, out var projects))
-                    return projects;
-
-                var parent = PathUtilities.GetDirectoryName(directory);
-                if (directory.Equals(parent, StringComparison.OrdinalIgnoreCase))
-                    break;
-
-                directory = parent;
-            }
-
-            return [];
-        }
-    }
 }

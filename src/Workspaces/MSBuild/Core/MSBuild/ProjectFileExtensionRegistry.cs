@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
@@ -45,7 +46,7 @@ internal sealed class ProjectFileExtensionRegistry
         }
     }
 
-    public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName)
+    public ImmutableArray<string> GetRegisteredProjectFileExtensions()
     {
         return TryGetLanguageNameFromProjectPath(projectFilePath, mode, out languageName, out _);
     }
@@ -83,6 +84,34 @@ internal sealed class ProjectFileExtensionRegistry
         }
 
         isFileBasedApp = false;
+        _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
+        return false;
+    }
+
+    public bool TryGetLanguageNameFromExtension(string extension, [NotNullWhen(true)] out string? languageName)
+    {
+        using (_dataGuard.DisposableWait())
+        {
+            return _extensionToLanguageMap.TryGetValue(extension, out languageName);
+        }
+    }
+
+    public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName)
+    {
+        var extension = Path.GetExtension(projectFilePath);
+        if (extension is null)
+        {
+            languageName = null;
+            _diagnosticReporter.Report(mode, $"Project file path was 'null'");
+            return false;
+        }
+
+        if (extension is ['.', .. var rest])
+            extension = rest;
+
+        if (TryGetLanguageNameFromExtension(extension, out languageName))
+            return true;
+
         _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
         return false;
     }
