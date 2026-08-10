@@ -29,12 +29,6 @@ public sealed class RazorCSharpDocument
     /// </summary>
     public bool IsStubDocument { get; }
 
-    /// <summary>
-    /// The generated C# code as a string. Prefer <see cref="Text"/>, which avoids materializing the
-    /// whole document as a single string.
-    /// </summary>
-    public string GeneratedCode => Text.ToString();
-
     public RazorCSharpDocument(
         RazorCodeDocument codeDocument,
         SourceText text,
