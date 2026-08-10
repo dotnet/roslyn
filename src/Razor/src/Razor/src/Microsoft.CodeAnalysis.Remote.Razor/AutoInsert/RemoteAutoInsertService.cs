@@ -165,13 +165,16 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             .SelectAsArray(
                 predicate: s => s.Metadata.Language == LanguageNames.CSharp,
                 selector: s => s.Value);
+        var csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions
+            ?? throw new InvalidOperationException("C# syntax formatting options were not provided for auto insert.");
+
         var autoInsertResponseItem = await OnAutoInsertHandler.GetOnAutoInsertResponseAsync(
             globalOptions,
             services,
             generatedDocument,
             mappedPosition,
             character,
-            options.CSharpSyntaxFormattingOptions,
+            csharpSyntaxFormattingOptions,
             includeNewLineBraceFormatting: true,
             cancellationToken
         ).ConfigureAwait(false);

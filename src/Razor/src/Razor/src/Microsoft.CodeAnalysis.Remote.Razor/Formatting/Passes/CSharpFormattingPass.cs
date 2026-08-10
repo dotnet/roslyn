@@ -125,31 +125,36 @@ internal sealed partial class CSharpFormattingPass(
 
         var tree = CSharpSyntaxTree.ParseText(generatedCSharpText, cancellationToken: cancellationToken);
         var csharpRoot = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        // Roslyn can be configured to insert a space after a method call, or a dot, but that can break Razor. eg:
-        //
-        // <div>@PrintHello()</div>
-        // @DateTime.Now.ToString()
-        //
-        // Would become:
-        //
-        // <div>@PrintHello ()</div>
-        // @DateTime. Now. ToString()
-        //
-        // In Razor, that's not a method call, its a method group (ie C# compile error) followed by Html, and
-        // the dot after DateTime is also just Html, as is the rest of the line.
-        // We're not smart enough (yet?) to ignore this change when its inline in Razor, but allow it when
-        // in a code block, so we just force these options to off.
-        options = options with
+        var csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
+
+        if (csharpSyntaxFormattingOptions is not null)
         {
-            CSharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions with
+            // Roslyn can be configured to insert a space after a method call, or a dot, but that can break Razor. eg:
+            //
+            // <div>@PrintHello()</div>
+            // @DateTime.Now.ToString()
+            //
+            // Would become:
+            //
+            // <div>@PrintHello ()</div>
+            // @DateTime. Now. ToString()
+            //
+            // In Razor, that's not a method call, its a method group (ie C# compile error) followed by Html, and
+            // the dot after DateTime is also just Html, as is the rest of the line.
+            // We're not smart enough (yet?) to ignore this change when its inline in Razor, but allow it when
+            // in a code block, so we just force these options to off.
+            csharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions with
             {
-                Spacing = options.CSharpSyntaxFormattingOptions.Spacing
+                Spacing = csharpSyntaxFormattingOptions.Spacing
                     & ~SpacePlacement.AfterMethodCallName
                     & ~SpacePlacement.AfterDot
-            }
-        };
+            };
+        }
 
-        var formattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(options);
+        var formattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(
+            helper.HostWorkspaceServices.SolutionServices,
+            options,
+            csharpSyntaxFormattingOptions);
         var csharpChanges = Formatter.GetFormattedTextChanges(
             csharpRoot,
             csharpRoot.FullSpan,

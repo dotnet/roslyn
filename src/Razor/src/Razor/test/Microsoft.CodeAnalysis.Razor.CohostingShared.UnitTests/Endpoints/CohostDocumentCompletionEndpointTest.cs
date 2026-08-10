@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -505,51 +504,6 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["Equals(object? obj)", "GetHashCode()", "SetParametersAsync(ParameterView parameters)", "ToString()"],
             itemToResolve: "SetParametersAsync(ParameterView parameters)",
             expectedResolvedItemDescription: "(awaitable) Task ComponentBase.SetParametersAsync(ParameterView parameters)");
-    }
-
-    [RoslynConditionalFact(typeof(IsEnglishLocal))]
-    public async Task CSharpOverrideMethods_UsesCSharpFormattingOptions()
-    {
-        await VerifyCompletionListAsync(
-            input: """
-                This is a Razor document.
-
-                <div></div>
-
-                @code {
-                    public override $$
-                }
-
-                The end.
-                """,
-            expected: """
-                @using System.Threading.Tasks
-                This is a Razor document.
-
-                <div></div>
-
-                @code {
-                    public override Task SetParametersAsync(ParameterView parameters)
-                    {
-                    return base.SetParametersAsync(parameters);
-                    }
-                }
-
-                The end.
-                """,
-            completionContext: new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
-                TriggerCharacter = null,
-                TriggerKind = CompletionTriggerKind.Invoked
-            },
-            expectedItemLabels: ["Equals(object? obj)", "GetHashCode()", "SetParametersAsync(ParameterView parameters)", "ToString()"],
-            itemToResolve: "SetParametersAsync(ParameterView parameters)",
-            expectedResolvedItemDescription: "(awaitable) Task ComponentBase.SetParametersAsync(ParameterView parameters)",
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                Indentation = CSharpSyntaxFormattingOptions.Default.Indentation & ~IndentationPlacement.BlockContents
-            });
     }
 
     // Tests MarkupTransitionCompletionItemProvider
@@ -2011,12 +1965,10 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         bool commitElementsWithSpace = true,
         RazorFileKind? fileKind = null,
         TimeSpan? retryTimeout = null,
-        (string fileName, string contents)[]? additionalFiles = null,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
+        (string fileName, string contents)[]? additionalFiles = null)
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
-        csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { AutoInsertAttributeQuotes = autoInsertAttributeQuotes, CommitElementsWithSpace = commitElementsWithSpace });
 
@@ -2145,7 +2097,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             Assert.NotNull(item);
             Assert.NotNull(expectedResolvedItemDescription);
 
-            await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription, request.Position, csharpSyntaxFormattingOptions);
+            await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription, request.Position);
         }
 
         return result;
@@ -2193,14 +2145,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         }
     }
 
-    private async Task VerifyCompletionResolveAsync(
-        CodeAnalysis.TextDocument document,
-        CompletionListCache completionListCache,
-        VSInternalCompletionItem item,
-        string? expected,
-        string expectedResolvedItemDescription,
-        Position position,
-        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+    private async Task VerifyCompletionResolveAsync(CodeAnalysis.TextDocument document, CompletionListCache completionListCache, VSInternalCompletionItem item, string? expected, string expectedResolvedItemDescription, Position position)
     {
         // We expect data to be a JsonElement, so for tests we have to _not_ strongly type
         item.Data = JsonSerializer.SerializeToElement(item.Data, JsonHelpers.JsonSerializerOptions);
@@ -2209,7 +2154,6 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             IncompatibleProjectService,
             completionListCache,
             RemoteServiceInvoker,
-            ClientSettingsManager,
             new TestHtmlRequestInvoker(),
             ClientCapabilitiesService,
             new ThrowingSnippetResolveProvider(),
@@ -2219,7 +2163,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         Assert.NotNull(tdi);
         Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(item, document, csharpSyntaxFormattingOptions, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(item, document, DisposalToken);
 
         Assert.NotNull(result);
 

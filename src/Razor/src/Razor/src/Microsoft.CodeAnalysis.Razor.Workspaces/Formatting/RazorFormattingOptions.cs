@@ -20,7 +20,7 @@ internal readonly record struct RazorFormattingOptions
     [DataMember(Order = 3)]
     public AttributeIndentStyle AttributeIndentStyle { get; init; } = AttributeIndentStyle.AlignWithFirst;
     [DataMember(Order = 4)]
-    public CSharpSyntaxFormattingOptions CSharpSyntaxFormattingOptions { get; init; } = CSharpSyntaxFormattingOptions.Default;
+    public CSharpSyntaxFormattingOptions? CSharpSyntaxFormattingOptions { get; init; }
     [DataMember(Order = 5)]
     public bool FromPaste { get; init; } = false;
 

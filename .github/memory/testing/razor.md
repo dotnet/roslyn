@@ -14,10 +14,9 @@ Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
 - Test end-user scenarios, not implementation details.
 - Verify/helper methods go at the bottom of test files; new test methods go above
   them.
-- Shared cohost endpoint tests go in
-  `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests`
-  and must be listed in its `.projitems` file; both the Visual Studio and VS Code
-  unit-test projects import that suite.
+- New tooling tests go in
+  `src\Razor\src\Razor\test\Microsoft.VisualStudioCode.RazorExtension.UnitTests`
+  (Cohosting architecture).
 - Integration tests using `AdditionalSyntaxTrees` for tag helper discovery must
   set `UseTwoPhaseCompilation => true` (see `ComponentDiscoveryIntegrationTest`).
 - Regenerate baseline-backed compiler tests with a targeted test filter and

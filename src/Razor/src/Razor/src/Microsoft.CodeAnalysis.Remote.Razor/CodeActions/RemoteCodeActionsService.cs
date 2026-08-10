@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -95,15 +94,15 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
         return await _codeActionsService.GetCodeActionsAsync(request, snapshot, htmlCodeActions, csharpCodeActions, csharpDeclCodeActions, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
     }
 
-    public ValueTask<CodeAction> ResolveCodeActionAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, CodeAction request, CodeAction? delegatedCodeAction, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
+    public ValueTask<CodeAction> ResolveCodeActionAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, CodeAction request, CodeAction? delegatedCodeAction, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            snapshot => ResolveCodeActionAsync(snapshot, request, delegatedCodeAction, formattingOptions, cancellationToken),
+            snapshot => ResolveCodeActionAsync(snapshot, request, delegatedCodeAction, cancellationToken),
             cancellationToken);
 
-    private ValueTask<CodeAction> ResolveCodeActionAsync(RemoteDocumentSnapshot snapshot, CodeAction request, CodeAction? delegatedCodeAction, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
+    private ValueTask<CodeAction> ResolveCodeActionAsync(RemoteDocumentSnapshot snapshot, CodeAction request, CodeAction? delegatedCodeAction, CancellationToken cancellationToken)
     {
-        return new(_codeActionResolveService.ResolveCodeActionAsync(snapshot, request, delegatedCodeAction, formattingOptions, cancellationToken));
+        return new(_codeActionResolveService.ResolveCodeActionAsync(snapshot, request, delegatedCodeAction, cancellationToken));
     }
 }
