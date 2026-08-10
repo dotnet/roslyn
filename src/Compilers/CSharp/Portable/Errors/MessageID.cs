@@ -313,8 +313,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnions = MessageBase + 12860,
         IDS_FeatureStaticMembersInInterfaces = MessageBase + 12861,
         IDS_FeatureClosedClasses = MessageBase + 12862,
-
-        IDS_FeatureRelaxedModifierOrdering = MessageBase + 12863,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -500,7 +498,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUnions:
                 case MessageID.IDS_FeatureStaticMembersInInterfaces:
                 case MessageID.IDS_FeatureClosedClasses: // semantic check
-                case MessageID.IDS_FeatureRelaxedModifierOrdering:
                     return LanguageVersion.Preview;
 
                 // C# 14.0 features.
