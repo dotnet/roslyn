@@ -17,7 +17,7 @@ public class MEFCompositionTest(ITestOutputHelper testOutputHelper) : ToolingTes
     public void Composes()
     {
         var testComposition = TestComposition.RoslynFeatures
-            .AddAssemblies(typeof(VSCodeLanguageServerFeatureOptions).Assembly);
+            .AddAssemblies(typeof(VSCodeRemoteServicesInitializer).Assembly);
 
         var errors = testComposition.GetCompositionErrors().Order().ToArray();
 
@@ -30,11 +30,10 @@ public class MEFCompositionTest(ITestOutputHelper testOutputHelper) : ToolingTes
                 but found 0.
                 """, e),
             e => AssertEx.AssertEqualToleratingWhitespaceDifferences("""
-                Microsoft.VisualStudioCode.RazorExtension.Services.WorkspaceProviderInitializer.ctor(hostWorkspaceProvider): expected exactly 1 export matching constraints:
-                    Contract name: Microsoft.CodeAnalysis.Host.IHostWorkspaceProvider
-                    TypeIdentityName: Microsoft.CodeAnalysis.Host.IHostWorkspaceProvider
+                Microsoft.CodeAnalysis.LanguageServer.LspWorkspaceRegistrationServiceFactory.ctor(eventListener): expected exactly 1 export matching constraints:
+                    Contract name: Microsoft.CodeAnalysis.LanguageServer.LspWorkspaceRegistrationEventListener
+                    TypeIdentityName: Microsoft.CodeAnalysis.LanguageServer.LspWorkspaceRegistrationEventListener
                 but found 0.
                 """, e));
-        ;
     }
 }

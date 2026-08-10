@@ -27,7 +27,13 @@ internal sealed partial class TemporaryStorageService
             if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
             {
                 var textFactory = workspaceServices.GetRequiredService<ITextFactoryService>();
-                return new TemporaryStorageService(workspaceThreadingService, textFactory);
+
+                // On x86 processes, force each allocation into its own dedicated memory mapped file. The
+                // bump-pointer allocator packs small items into shared 8 MB blocks, but a single surviving
+                // handle keeps the entire block mapped. Over long test runs this accumulates hundreds of
+                // blocks and exhausts the 4 GB virtual address space limit.
+                var forceSingleFile = !Environment.Is64BitProcess;
+                return new TemporaryStorageService(workspaceThreadingService, textFactory, forceSingleFile);
             }
             else
             {

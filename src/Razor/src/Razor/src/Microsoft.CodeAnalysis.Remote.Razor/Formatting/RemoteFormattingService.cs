@@ -6,10 +6,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.IRemoteFormattingService.TriggerKind;
@@ -25,9 +26,23 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
     }
 
     private readonly IRazorFormattingService _formattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
+    private readonly IFormattingLoggerFactory _formattingLoggerFactory = args.ExportProvider.GetExportedValue<IFormattingLoggerFactory>();
+
+    public async ValueTask<bool> SetFormattingLogDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
+    {
+        await RunServiceAsync(
+            cancellationToken =>
+            {
+                _formattingLoggerFactory.SetLogDirectory(logDirectory);
+                return default;
+            },
+            cancellationToken).ConfigureAwait(false);
+
+        return true;
+    }
 
     public ValueTask<ImmutableArray<TextChange>> GetDocumentFormattingEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         ImmutableArray<TextChange> htmlChanges,
         RazorFormattingOptions options,
@@ -35,11 +50,11 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => new ValueTask<ImmutableArray<TextChange>>(_formattingService.GetDocumentFormattingChangesAsync(context, htmlChanges, span: null, options, cancellationToken)),
+            snapshot => new ValueTask<ImmutableArray<TextChange>>(_formattingService.GetDocumentFormattingChangesAsync(snapshot, htmlChanges, span: null, options, cancellationToken)),
             cancellationToken);
 
     public ValueTask<ImmutableArray<TextChange>> GetRangeFormattingEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         ImmutableArray<TextChange> htmlChanges,
         LinePositionSpan linePositionSpan,
@@ -48,11 +63,11 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            async context =>
+            async snapshot =>
             {
                 try
                 {
-                    return await _formattingService.GetDocumentFormattingChangesAsync(context, htmlChanges, linePositionSpan, options, cancellationToken).ConfigureAwait(false);
+                    return await _formattingService.GetDocumentFormattingChangesAsync(snapshot, htmlChanges, linePositionSpan, options, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception) when (options.FromPaste)
                 {
@@ -63,7 +78,7 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
             cancellationToken);
 
     public ValueTask<ImmutableArray<TextChange>> GetOnTypeFormattingEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         ImmutableArray<TextChange> htmlChanges,
         LinePosition linePosition,
@@ -73,13 +88,13 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetOnTypeFormattingEditsAsync(context, htmlChanges, linePosition, character, options, cancellationToken),
+            snapshot => GetOnTypeFormattingEditsAsync(snapshot, htmlChanges, linePosition, character, options, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<ImmutableArray<TextChange>> GetOnTypeFormattingEditsAsync(RemoteDocumentContext context, ImmutableArray<TextChange> htmlChanges, LinePosition linePosition, string triggerCharacter, RazorFormattingOptions options, CancellationToken cancellationToken)
+    private async ValueTask<ImmutableArray<TextChange>> GetOnTypeFormattingEditsAsync(RemoteDocumentSnapshot snapshot, ImmutableArray<TextChange> htmlChanges, LinePosition linePosition, string triggerCharacter, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var sourceText = await context.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
         if (!sourceText.TryGetAbsoluteIndex(linePosition, out var hostDocumentIndex))
         {
             return [];
@@ -92,15 +107,20 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
 
         if (triggerCharacterKind is RazorLanguageKind.Html)
         {
-            return await _formattingService.GetHtmlOnTypeFormattingChangesAsync(context, htmlChanges, options, hostDocumentIndex, triggerCharacter[0], cancellationToken).ConfigureAwait(false);
+            return await _formattingService.GetHtmlOnTypeFormattingChangesAsync(snapshot, htmlChanges, options, hostDocumentIndex, triggerCharacter[0], cancellationToken).ConfigureAwait(false);
+        }
+
+        if (!DocumentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, hostDocumentIndex, out _, out _, out var inDeclDocument))
+        {
+            return [];
         }
 
         Debug.Assert(triggerCharacterKind is RazorLanguageKind.CSharp);
-        return await _formattingService.GetCSharpOnTypeFormattingChangesAsync(context, options, hostDocumentIndex, triggerCharacter[0], cancellationToken).ConfigureAwait(false);
+        return await _formattingService.GetCSharpOnTypeFormattingChangesAsync(snapshot, options, hostDocumentIndex, triggerCharacter[0], inDeclDocument, cancellationToken).ConfigureAwait(false);
     }
 
     public ValueTask<Response> GetOnTypeFormattingTriggerKindAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         LinePosition linePosition,
         string triggerCharacter,
@@ -108,12 +128,12 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetOnTypeFormattingTriggerKindAsync(context, linePosition, triggerCharacter, cancellationToken),
+            snapshot => GetOnTypeFormattingTriggerKindAsync(snapshot, linePosition, triggerCharacter, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<Response> GetOnTypeFormattingTriggerKindAsync(RemoteDocumentContext context, LinePosition linePosition, string triggerCharacter, CancellationToken cancellationToken)
+    private async ValueTask<Response> GetOnTypeFormattingTriggerKindAsync(RemoteDocumentSnapshot snapshot, LinePosition linePosition, string triggerCharacter, CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = codeDocument.Source.Text;
         if (!sourceText.TryGetAbsoluteIndex(linePosition, out var hostDocumentIndex))
         {

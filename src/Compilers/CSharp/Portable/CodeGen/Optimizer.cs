@@ -1079,6 +1079,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.Sequence:
+                    // The assignment should have been pushed inside the sequence during lowering,
+                    // so instead of `{...side-effects..., val} = something` we should get here with `{...side-effects..., (val = something)}`.
                     Debug.Assert(!IsIndirectAssignment(node.Update(((BoundSequence)node.Left).Value, node.Right, node.IsRef, node.Type)),
                         "indirect assignment to a sequence is unexpected");
                     return false;
@@ -2252,7 +2254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // Value types do not need runtime element type checks.
                     !arrayAccess.Type.IsValueType)
                 {
-                    return new BoundRefArrayAccess(arrayAccess.Syntax, arrayAccess);
+                    return new BoundRefArrayAccess(arrayAccess.Syntax, arrayAccess, right.Type);
                 }
 
                 // assigned local is not used later => just emit the Right

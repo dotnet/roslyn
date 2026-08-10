@@ -1,0 +1,24 @@
+﻿Source Location: (2:0,2 [77] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var text = """
+    {"value":"Razor"}
+    """;
+    _ = text.Length;
+|
+Generated Location: (733:21,0 [77] )
+|
+    var text = """
+    {"value":"Razor"}
+    """;
+    _ = text.Length;
+|
+
+Source Location: (91:7,7 [35] x:\dir\subdir\Test\TestComponent.razor)
+|"""
+    {"value":"Razor"}
+    """|
+Generated Location: (1015:34,24 [35] )
+|"""
+    {"value":"Razor"}
+    """|
+

@@ -1,0 +1,18 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [127] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (25:0,25 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Parameter1 - Parameter1 - AttributeStructure.DoubleQuotes
+                        HtmlContent - (25:0,25 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (25:0,25 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Html - SomeValue
+                    ComponentAttribute - (53:1,16 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Parameter2 - Parameter2 - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (54:1,17 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - true
+                    ComponentAttribute - (109:2,16 [14] x:\dir\subdir\Test\TestComponent.cshtml) - Parameter3 - Parameter3 - AttributeStructure.DoubleQuotes
+                        HtmlContent - (109:2,16 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (109:2,16 [14] x:\dir\subdir\Test\TestComponent.cshtml) - Html - SomeOtherValue

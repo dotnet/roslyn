@@ -1,0 +1,14 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [71] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (2:0,2 [71] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    short amount = 1;\n    var value = 8 << amount;\n    _ = value;\n
+                MarkupElement - (78:6,0 [25] x:\dir\subdir\Test\TestComponent.razor) - div
+                    CSharpExpression - (85:6,7 [11] x:\dir\subdir\Test\TestComponent.razor)
+                        LazyIntermediateToken - (85:6,7 [11] x:\dir\subdir\Test\TestComponent.razor) - CSharp - 8 << amount

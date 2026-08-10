@@ -30,16 +30,6 @@ Foo
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,12)-(4,5) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-        int Foo = 18;
-    
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591
