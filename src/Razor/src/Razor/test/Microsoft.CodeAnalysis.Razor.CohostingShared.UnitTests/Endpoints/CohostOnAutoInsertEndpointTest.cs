@@ -615,6 +615,65 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     }
 
     [Fact]
+    public async Task CSharp_OnEnter_UsesEditorConfig_Razor()
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @code {
+                    private void M() {
+                $$}
+                }
+                """,
+            output: """
+                @code {
+                    private void M() {
+                        $0
+                    }
+                }
+                """,
+            triggerCharacter: "\n",
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+    }
+
+    [Fact]
+    public async Task CSharp_OnEnter_UsesEditorConfig_Cshtml()
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @functions {
+                    private void M() {
+                $$}
+                }
+                """,
+            output: """
+                @functions {
+                    private void M() {
+                        $0
+                    }
+                }
+                """,
+            triggerCharacter: "\n",
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/12703")]
     public async Task CSharp_OnEnter_KAndRBraces_Property()
     {
@@ -814,12 +873,19 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         bool formatOnType = true,
         bool autoClosingTags = true,
         RazorFileKind? fileKind = null,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
+        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null,
+        (string fileName, string contents)[]? additionalFiles = null)
     {
         fileKind ??= RazorFileKind.Component;
-        csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind);
+        var document = CreateProjectAndRazorDocument(
+            input.Text,
+            fileKind: fileKind,
+            additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
+        if (!HasEditorConfig(additionalFiles))
+        {
+            csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
+        }
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { FormatOnType = formatOnType, AutoClosingTags = autoClosingTags });
 
@@ -861,7 +927,9 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             Options = formattingOptions
         };
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, csharpSyntaxFormattingOptions, DisposalToken);
+        var result = csharpSyntaxFormattingOptions is null
+            ? await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken)
+            : await endpoint.GetTestAccessor().HandleRequestAsync(request, document, csharpSyntaxFormattingOptions, DisposalToken);
 
         if (output is not null)
         {
