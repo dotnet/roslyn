@@ -90,7 +90,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         TextDocument razorDocument,
         CancellationToken cancellationToken)
     {
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
         return HandleRequestAsync(completionItem, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 
@@ -191,6 +191,12 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
     {
         public TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
             => instance.GetRazorTextDocumentIdentifier(request);
+
+        public Task<VSInternalCompletionItem?> HandleRequestAsync(
+            VSInternalCompletionItem request,
+            TextDocument razorDocument,
+            CancellationToken cancellationToken)
+                => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
 
         public Task<VSInternalCompletionItem?> HandleRequestAsync(
             VSInternalCompletionItem request,

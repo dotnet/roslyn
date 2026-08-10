@@ -79,7 +79,7 @@ internal sealed class CohostOnAutoInsertEndpoint(
 
     protected override Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
         return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 
@@ -170,6 +170,12 @@ internal sealed class CohostOnAutoInsertEndpoint(
 
     internal readonly struct TestAccessor(CohostOnAutoInsertEndpoint instance)
     {
+        public Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+            VSInternalDocumentOnAutoInsertParams request,
+            TextDocument razorDocument,
+            CancellationToken cancellationToken)
+                => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+
         public Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
             VSInternalDocumentOnAutoInsertParams request,
             TextDocument razorDocument,
