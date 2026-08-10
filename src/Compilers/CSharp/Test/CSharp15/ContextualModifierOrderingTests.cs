@@ -82,6 +82,14 @@ public sealed class ContextualModifierOrderingTests : CSharpTestBase
                 Declaration: "class C { }",
                 CompanionModifiers: ImmutableArray.Create("static", "unsafe"),
                 LangVersion: LanguageVersion.CSharp11)),
+
+            KeyValuePair.Create(SyntaxKind.ClosedKeyword, new Shape(
+                Usings: "",
+                WrapperOpen: "",
+                WrapperClose: "",
+                Declaration: "class C { }",
+                CompanionModifiers: ImmutableArray.Create("public", "unsafe"),
+                LangVersion: LanguageVersion.Preview)),
         });
 
     /// <summary>
