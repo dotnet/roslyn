@@ -894,11 +894,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var nextToken = this.PeekToken(1);
-            if (nextToken.ContextualKind is SyntaxKind.RecordKeyword or SyntaxKind.UnionKeyword)
-            {
-                return false;
-            }
-
             return GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None
                 && this.IsPartialModifierInDeclarationHead(allowMembers: false);
         }
@@ -1371,14 +1366,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             isPossibleTypeDeclaration = true;
             var seenPartial = false;
-            for (var i = 0; i < tokens.Count; i++)
-            {
-                if (tokens[i] is SyntaxToken token && token.ContextualKind == SyntaxKind.PartialKeyword)
-                {
-                    seenPartial = true;
-                    break;
-                }
-            }
 
             while (true)
             {
@@ -1434,7 +1421,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (this.ScanTypeTreatingPartialAsIdentifier() != ScanTypeFlags.NotType &&
                                 IsPossibleMemberName())
                             {
-                                return;
+                                if (!this.IsEnabledRecordOrUnionKeyword())
+                                {
+                                    return;
+                                }
                             }
                         }
 
@@ -1703,6 +1693,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None;
         }
 
+        private bool IsEnabledRecordOrUnionKeyword()
+        {
+            return this.CurrentToken.ContextualKind switch
+            {
+                SyntaxKind.RecordKeyword => IsFeatureEnabled(MessageID.IDS_FeatureRecords),
+                SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
+                _ => false,
+            };
+        }
+
         /// <summary>
         /// Returns true when the current <c>partial</c> token should be consumed as a declaration
         /// modifier, considering that it may be interleaved with other modifier tokens.  This performs
@@ -1759,7 +1759,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (this.ScanTypeTreatingPartialAsIdentifier() != ScanTypeFlags.NotType &&
                         IsPossibleMemberName())
                     {
-                        return true;
+                        if (!this.IsEnabledRecordOrUnionKeyword())
+                        {
+                            return true;
+                        }
                     }
                 }
 

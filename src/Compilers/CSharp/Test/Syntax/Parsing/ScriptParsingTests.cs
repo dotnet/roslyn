@@ -2477,19 +2477,19 @@ partial partial<int> Goo() { }
 
             tree = UsingTree(src,
                 // (11,9): error CS1520: Method must have a return type
-                // partial Goo() { }
+                // partial Goo() { } 
                 Diagnostic(ErrorCode.ERR_MemberNeedsType, "Goo").WithLocation(11, 9),
                 // (12,9): error CS1525: Invalid expression term 'partial'
-                // partial partial Goo() { }
+                // partial partial Goo() { } 
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(12, 9),
                 // (12,9): error CS1003: Syntax error, ',' expected
-                // partial partial Goo() { }
+                // partial partial Goo() { } 
                 Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(12, 9),
                 // (12,17): error CS1002: ; expected
-                // partial partial Goo() { }
+                // partial partial Goo() { } 
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Goo").WithLocation(12, 17),
                 // (12,23): error CS1002: ; expected
-                // partial partial Goo() { }
+                // partial partial Goo() { } 
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(12, 23));
 
             N(SyntaxKind.CompilationUnit);
