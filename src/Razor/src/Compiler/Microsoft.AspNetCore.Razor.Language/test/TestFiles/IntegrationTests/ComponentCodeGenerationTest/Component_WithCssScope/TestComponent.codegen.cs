@@ -115,7 +115,11 @@ myVariable
         }
         #pragma warning restore 1998
 #nullable restore
-#line (21,1)-(26,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+#line (17,8)-(26,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
+    ElementReference myElementReference;
+    TemplatedComponent myComponentReference;
+    string myVariable;
 
     void MethodRenderingMarkup(RenderTreeBuilder __builder)
     {

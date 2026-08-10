@@ -20,9 +20,7 @@ internal interface IRemoteCodeActionsService : IRemoteJsonService
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         VSCodeActionParams request,
-        RazorVSInternalCodeAction[] htmlCodeActions,
-        RazorVSInternalCodeAction[] csharpCodeActions,
-        RazorVSInternalCodeAction[] csharpDeclCodeActions,
+        RazorVSInternalCodeAction[] delegatedCodeActions,
         CancellationToken cancellationToken);
 
     ValueTask<CodeAction> ResolveCodeActionAsync(

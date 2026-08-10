@@ -1,3 +1,0 @@
-﻿[0000] OpenComponent<global::Test.MyComponent>()
-[0001] AddComponentParameter("ParamBefore", "before")
-[0002] AddComponentParameter("ParamAfter", "after")

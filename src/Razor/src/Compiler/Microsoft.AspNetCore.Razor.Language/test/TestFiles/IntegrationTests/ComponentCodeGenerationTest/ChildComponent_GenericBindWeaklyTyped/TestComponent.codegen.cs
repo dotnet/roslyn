@@ -39,6 +39,15 @@ Value
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
+#nullable restore
+#line (2,8)-(4,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
+    string Value;
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591

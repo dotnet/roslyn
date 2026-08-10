@@ -1,2 +1,0 @@
-﻿[0000] OpenComponent<global::Test.dynamic>()
-[0001] AddComponentParameter(nameof(global::Test.dynamic. Value ), "Hello")

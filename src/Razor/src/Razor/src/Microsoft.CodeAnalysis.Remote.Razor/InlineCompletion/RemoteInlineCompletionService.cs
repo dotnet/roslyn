@@ -3,11 +3,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,45 +26,41 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            snapshot => GetInlineCompletionInfoAsync(snapshot, linePosition, cancellationToken),
+            context => GetInlineCompletionInfoAsync(context, linePosition, cancellationToken),
             cancellationToken);
 
-    public async ValueTask<InlineCompletionRequestInfo?> GetInlineCompletionInfoAsync(RemoteDocumentSnapshot snapshot, LinePosition linePosition, CancellationToken cancellationToken)
+    public async ValueTask<InlineCompletionRequestInfo?> GetInlineCompletionInfoAsync(RemoteDocumentContext context, LinePosition linePosition, CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(linePosition, out var hostDocumentPosition))
         {
             return null;
         }
 
-        // Keep track of which generated C# document the request maps into so the client asks Roslyn for completions in
-        // that document, and the formatting step maps Roslyn's result back through the same document's source mappings.
-        if (!_documentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, hostDocumentPosition, out var mappedPosition, out _, out var inDeclDocument))
+        if (!_documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, hostDocumentPosition, out var mappedPosition, out _))
         {
             return null;
         }
 
-        var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
-        // DocumentUri doesn't serialize through MessagePack nicely, and since we know generated documents always have parsable Uris, since they're
-        // created by Roslyn, it's easiest to just use Uri.
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
         return new InlineCompletionRequestInfo(
-            GeneratedDocumentUri: generatedDocument.GetURI().GetRequiredParsedUri(),
-            Position: mappedPosition,
-            InDeclDocument: inDeclDocument);
+            GeneratedDocumentUri: generatedDocument.CreateSystemUri(),
+            Position: mappedPosition);
     }
 
-    public ValueTask<FormattedInlineCompletionInfo?> FormatInlineCompletionAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, bool inDeclDocument, RazorFormattingOptions options, LinePositionSpan span, string text, CancellationToken cancellationToken)
+    public ValueTask<FormattedInlineCompletionInfo?> FormatInlineCompletionAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, RazorFormattingOptions options, LinePositionSpan span, string text, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            snapshot => FormatInlineCompletionAsync(snapshot, inDeclDocument, options, span, text, cancellationToken),
+            context => FormatInlineCompletionAsync(context, options, span, text, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<FormattedInlineCompletionInfo?> FormatInlineCompletionAsync(RemoteDocumentSnapshot snapshot, bool inDeclDocument, RazorFormattingOptions options, LinePositionSpan span, string text, CancellationToken cancellationToken)
+    private async ValueTask<FormattedInlineCompletionInfo?> FormatInlineCompletionAsync(RemoteDocumentContext context, RazorFormattingOptions options, LinePositionSpan span, string text, CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
         if (!_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, span, out var razorRange))
         {
@@ -74,7 +69,7 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
 
         var hostDocumentIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(razorRange.End);
 
-        var formattingContext = FormattingContext.Create(snapshot, codeDocument, options, logger: null);
+        var formattingContext = FormattingContext.Create(context.Snapshot, codeDocument, options, logger: null);
         if (!SnippetFormatter.TryGetSnippetWithAdjustedIndentation(formattingContext, text, hostDocumentIndex, out var newSnippetText))
         {
             return null;

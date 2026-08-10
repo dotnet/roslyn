@@ -1,2 +1,0 @@
-﻿[0000] OpenComponent<global::Test.ComponentWithNullableAction>()
-[0001] AddComponentParameter(nameof(global::Test.ComponentWithNullableAction. NullableAction ), (global::System.Action)( NullableAction ))

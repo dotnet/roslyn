@@ -8,12 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
@@ -80,12 +79,12 @@ internal sealed class CohostInlineCompletionEndpoint(
             (service, solutionInfo, cancellationToken) => service.GetInlineCompletionInfoAsync(solutionInfo, razorDocument.Id, linePosition, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (requestInfo is not InlineCompletionRequestInfo(var generatedDocumentUri, var position, var inDeclDocument))
+        if (requestInfo is not InlineCompletionRequestInfo(var generatedDocumentUri, var position))
         {
             return null;
         }
 
-        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(generatedDocumentUri.CreateDocumentUriFromSystemUri(), cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false);
         if (generatedDocument is null)
         {
             return null;
@@ -103,7 +102,7 @@ internal sealed class CohostInlineCompletionEndpoint(
             var span = result.Range.ToLinePositionSpan();
             var formattedInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteInlineCompletionService, FormattedInlineCompletionInfo?>(
                 razorDocument.Project.Solution,
-                (service, solutionInfo, cancellationToken) => service.FormatInlineCompletionAsync(solutionInfo, razorDocument.Id, inDeclDocument, options, span, result.Text, cancellationToken),
+                (service, solutionInfo, cancellationToken) => service.FormatInlineCompletionAsync(solutionInfo, razorDocument.Id, options, span, result.Text, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (formattedInfo is { } formatted)

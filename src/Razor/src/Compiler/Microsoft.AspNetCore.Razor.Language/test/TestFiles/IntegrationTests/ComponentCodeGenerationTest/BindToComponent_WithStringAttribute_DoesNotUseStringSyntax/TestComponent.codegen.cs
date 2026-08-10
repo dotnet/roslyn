@@ -39,6 +39,15 @@ person.Name
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
+#nullable restore
+#line (4,2)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
+    Person person = new Person();
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591

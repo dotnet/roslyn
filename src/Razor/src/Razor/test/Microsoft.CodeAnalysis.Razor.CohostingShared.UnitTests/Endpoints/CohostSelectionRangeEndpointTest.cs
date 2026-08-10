@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -50,41 +49,6 @@ public sealed class CohostSelectionRangeEndpointTest(ITestOutputHelper testOutpu
     }
 
     [Fact]
-    public Task SelectionRanges_CSharpMethodBody_Legacy()
-        => VerifySelectionRangesAsync(
-            """
-            @functions {
-                [|void M()
-                [|{
-                    [|[|var [|x [|= [|[|{|caret:|}1|] + 2|]|]|]|];|]
-                }|]|]
-            }
-            """,
-            RazorFileKind.Legacy);
-
-    [Fact]
-    public async Task SelectionRanges_MultiplePositions_Legacy()
-    {
-        TestCode input =
-            """
-            @functions {
-                void M()
-                {
-                    var x = {|caret:|}1;
-                    var y = {|caret:|}2;
-                }
-            }
-            """;
-
-        var results = await GetSelectionRangesAsync(input, RazorFileKind.Legacy);
-
-        Assert.NotNull(results);
-        Assert.Equal(2, results!.Length);
-        AssertRangeChainIsNestedCorrectly(results[0]);
-        AssertRangeChainIsNestedCorrectly(results[1]);
-    }
-
-    [Fact]
     public async Task SelectionRanges_HtmlReturnsNull()
     {
         TestCode input =
@@ -97,9 +61,9 @@ public sealed class CohostSelectionRangeEndpointTest(ITestOutputHelper testOutpu
         Assert.Null(results);
     }
 
-    private async Task VerifySelectionRangesAsync(TestCode input, RazorFileKind fileKind = RazorFileKind.Component)
+    private async Task VerifySelectionRangesAsync(TestCode input)
     {
-        var results = await GetSelectionRangesAsync(input, fileKind);
+        var results = await GetSelectionRangesAsync(input);
         Assert.NotNull(results);
         var result = Assert.Single(results!);
 
@@ -117,9 +81,9 @@ public sealed class CohostSelectionRangeEndpointTest(ITestOutputHelper testOutpu
         Assert.Equal(expected, chain);
     }
 
-    private async Task<SelectionRange[]?> GetSelectionRangesAsync(TestCode input, RazorFileKind fileKind = RazorFileKind.Component)
+    private async Task<SelectionRange[]?> GetSelectionRangesAsync(TestCode input)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
         var positions = input.NamedSpans["caret"].Select(c => sourceText.GetPosition(c.Start)).ToArray();
 

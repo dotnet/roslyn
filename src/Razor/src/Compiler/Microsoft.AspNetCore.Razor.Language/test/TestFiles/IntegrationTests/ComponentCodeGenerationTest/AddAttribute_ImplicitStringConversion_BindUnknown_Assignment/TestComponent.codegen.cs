@@ -31,6 +31,16 @@ c1 = c2
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
+#nullable restore
+#line (3,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
+    private MyClass c1 = new();
+    private MyClass c2 = new();
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591
