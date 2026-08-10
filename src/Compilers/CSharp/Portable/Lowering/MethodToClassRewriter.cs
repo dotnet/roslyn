@@ -100,17 +100,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var rewrittenArguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             var rewrittenType = this.VisitType(node.Type);
 
-#if DEBUG
-            // Calling IsMetadataVirtual with intent of getting a fully accurate result requires the symbol to be fully completed first
-            Debug.Assert(rewrittenMethodSymbol.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.ForceCompleteIfNeeded)
-                == node.Method.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.ForceCompleteIfNeeded));
-#endif
-
             // If the original receiver was a base access and it was rewritten, 
             // change the method to point to the wrapper method
-            if (BaseReferenceInReceiverWasRewritten(node.ReceiverOpt, rewrittenReceiver) && node.Method.IsMetadataVirtual())
+            if (BaseReferenceInReceiverWasRewritten(node.ReceiverOpt, rewrittenReceiver))
             {
-                rewrittenMethodSymbol = GetMethodWrapperForBaseNonVirtualCall(rewrittenMethodSymbol, node.Syntax);
+                if (node.Method.IsMetadataVirtual(CompilationState.Compilation.SourceModule))
+                {
+                    Debug.Assert(rewrittenMethodSymbol.IsMetadataVirtual(CompilationState.Compilation.SourceModule));
+                    rewrittenMethodSymbol = GetMethodWrapperForBaseNonVirtualCall(rewrittenMethodSymbol, node.Syntax);
+                }
+                else
+                {
+                    Debug.Assert(!rewrittenMethodSymbol.IsMetadataVirtual(CompilationState.Compilation.SourceModule));
+                }
             }
 
             return node.Update(
@@ -341,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // if the original receiver was BoundKind.BaseReference (i.e. from a method group)
             // and the receiver is overridden, change the method to point to a wrapper method
-            if (BaseReferenceInReceiverWasRewritten(originalArgument, rewrittenArgument) && method!.IsMetadataVirtual())
+            if (BaseReferenceInReceiverWasRewritten(originalArgument, rewrittenArgument) && method!.IsMetadataVirtual(CompilationState.Compilation.SourceModule))
             {
                 method = GetMethodWrapperForBaseNonVirtualCall(method, originalArgument.Syntax);
             }

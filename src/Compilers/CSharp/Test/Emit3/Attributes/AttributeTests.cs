@@ -10190,6 +10190,9 @@ class C
                 // (8,28): warning CS0612: 'C.F()' is obsolete
                 //     static D M2() => new D(F);
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(8, 28),
+                // (8,28): error CS9363: 'C.F()' must be used in an unsafe context because it has pointers in its signature
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "F").WithArguments("C.F()").WithLocation(8, 28),
             };
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
@@ -10243,6 +10246,9 @@ namespace System.Runtime.InteropServices
                 // (9,28): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
                 //     static D M2() => new D(F);
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "F").WithArguments("C.F()").WithLocation(9, 28),
+                // (9,28): error CS9363: 'C.F()' must be used in an unsafe context because it has pointers in its signature
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "F").WithArguments("C.F()").WithLocation(9, 28),
             };
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);

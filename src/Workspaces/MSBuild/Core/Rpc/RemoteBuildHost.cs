@@ -42,8 +42,8 @@ internal sealed class RemoteBuildHost
         => _client.InvokeAsync<bool>(BuildHostTargetObject, nameof(IBuildHost.HasUsableMSBuild), parameters: [projectOrSolutionFilePath], cancellationToken);
 
     /// <inheritdoc cref="IBuildHost.ConfigureGlobalState"/>
-    public Task ConfigureGlobalStateAsync(ImmutableArray<string> knownCommandLineParserLanguages, ImmutableDictionary<string, string> globalProperties, string? binlogPath, CancellationToken cancellationToken)
-        => _client.InvokeAsync(BuildHostTargetObject, nameof(IBuildHost.ConfigureGlobalState), parameters: [knownCommandLineParserLanguages.ToArray(), new Dictionary<string, string>(globalProperties), binlogPath], cancellationToken);
+    public Task ConfigureGlobalStateAsync(ImmutableArray<string> knownCommandLineParserLanguages, ImmutableDictionary<string, string> globalProperties, string? binlogPath, int? maxNodeCount, CancellationToken cancellationToken)
+        => _client.InvokeAsync(BuildHostTargetObject, nameof(IBuildHost.ConfigureGlobalState), parameters: [knownCommandLineParserLanguages.ToArray(), new Dictionary<string, string>(globalProperties), binlogPath, maxNodeCount], cancellationToken);
 
     public async Task<RemoteProjectFile> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken)
     {
@@ -56,12 +56,20 @@ internal sealed class RemoteBuildHost
     /// Permits loading a project file which only exists in-memory, for example, for file-based program scenarios.
     /// </summary>
     /// <param name="projectFilePath">A path to a project file which may or may not exist on disk. Note that an extension that is known by MSBuild, such as .csproj or .vbproj, should be used here.</param>
+    /// <param name="physicalFilePath">The original C# file path.</param>
     /// <param name="projectContent">The project file XML content.</param>
-    public async Task<RemoteProjectFile> LoadProjectAsync(string projectFilePath, string projectContent, string languageName, CancellationToken cancellationToken)
+    public async Task<RemoteProjectFile> LoadProjectAsync(string projectFilePath, string? physicalFilePath, string projectContent, string languageName, IDictionary<string, string>? globalProperties, CancellationToken cancellationToken)
     {
-        var remoteProjectFileTargetObject = await _client.InvokeAsync<int>(BuildHostTargetObject, nameof(IBuildHost.LoadProject), parameters: [projectFilePath, projectContent, languageName], cancellationToken).ConfigureAwait(false);
+        var remoteProjectFileTargetObject = await _client.InvokeAsync<int>(BuildHostTargetObject, nameof(IBuildHost.LoadProject), parameters: [projectFilePath, physicalFilePath, projectContent, languageName, globalProperties], cancellationToken).ConfigureAwait(false);
 
         return new RemoteProjectFile(_client, remoteProjectFileTargetObject);
+    }
+
+    public async Task<RemoteProjectInstance> LoadProjectInstanceAsync(string projectFilePath, string projectContent, IDictionary<string, string>? additionalGlobalProperties, CancellationToken cancellationToken)
+    {
+        var remoteProjectInstanceTargetObject = await _client.InvokeAsync<int>(BuildHostTargetObject, nameof(IBuildHost.LoadProjectInstance), parameters: [projectFilePath, projectContent, additionalGlobalProperties], cancellationToken).ConfigureAwait(false);
+
+        return new RemoteProjectInstance(_client, remoteProjectInstanceTargetObject);
     }
 
     public Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken)

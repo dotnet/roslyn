@@ -67,6 +67,11 @@
         <target state="translated">失敗:    {0}，通過:    {1}，跳過:    {2}，總計:    {3}，持續時間: {4}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_read_project_assets_file_0_version_1_2">
+        <source>Failed to read project assets file {0} (version {1}), assuming a restore is required. {2}</source>
+        <target state="translated">無法讀取專案資產檔案 {0} (版本 {1})，將假設需要進行還原。{2}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
         <target state="translated">無法讀取位於 {0} 的 .runsettings 檔案: {1}</target>
@@ -101,6 +106,11 @@
         <source>Loading {0} project(s)...</source>
         <target state="translated">正在載入 {0} 專案...</target>
         <note>The placeholder is the number of projects</note>
+      </trans-unit>
+      <trans-unit id="Loading_projects">
+        <source>Loading projects...</source>
+        <target state="new">Loading projects...</target>
+        <note />
       </trans-unit>
       <trans-unit id="Message">
         <source>Message</source>

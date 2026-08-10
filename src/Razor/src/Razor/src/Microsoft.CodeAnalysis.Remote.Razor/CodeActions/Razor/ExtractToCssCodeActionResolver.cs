@@ -24,15 +24,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]
 internal sealed class ExtractToCssCodeActionResolver(
-    LanguageServerFeatureOptions languageServerFeatureOptions,
     IFileSystem fileSystem) : IRazorCodeActionResolver
 {
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IFileSystem _fileSystem = fileSystem;
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToCss;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<ExtractToCssCodeActionParams>();
         if (actionParams is null)
@@ -40,18 +38,18 @@ internal sealed class ExtractToCssCodeActionResolver(
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        var cssFilePath = $"{FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath())}.css";
-        var cssFileUri = LspFactory.CreateFilePathUri(cssFilePath, _languageServerFeatureOptions);
+        var cssFilePath = $"{FilePathNormalizer.Normalize(documentSnapshot.Uri.GetAbsoluteOrUNCPath())}.css";
+        var cssFileUri = LspFactory.CreateFilePathUri(cssFilePath);
 
-        var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var text = codeDocument.Source.Text;
 
         var cssContent = text.ToString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(documentContext.Uri) };
-        var cssDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(cssFileUri) };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentSnapshot.Uri };
+        var cssDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = cssFileUri };
 
         using var changes = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(capacity: 3);
 

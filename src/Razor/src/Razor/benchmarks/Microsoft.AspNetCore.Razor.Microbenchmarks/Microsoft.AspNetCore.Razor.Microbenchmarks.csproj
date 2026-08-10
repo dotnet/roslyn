@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <DefineConstants>$(DefineConstants);ROSLYN_NO_INDEXRANGE</DefineConstants>
     <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFrameworks>$(NetVS);$(NetFxVS)</TargetFrameworks>
@@ -14,6 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\..\..\Dependencies\Contracts\Index.cs" Link="LanguageSupport\Index.cs" />
+    <Compile Include="..\..\..\..\..\Dependencies\Contracts\Range.cs" Link="LanguageSupport\Range.cs" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
   </ItemGroup>
@@ -21,8 +24,6 @@
   <ItemGroup>
     <None Remove=".gitignore" />
     <None Remove="BenchmarkDotNet.Artifacts\**" />
-
-    <Compile Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
 
     <Compile Remove="Resources\**\*.*" />
     <None Remove="Resources\**\*.*" />

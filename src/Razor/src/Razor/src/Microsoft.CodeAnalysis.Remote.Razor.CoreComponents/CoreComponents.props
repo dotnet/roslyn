@@ -13,16 +13,16 @@
     <DeployExtension>false</DeployExtension>
     
     <SetupProductArch>$(ComponentArchitecture)</SetupProductArch>
-    <IsProductComponent>true</IsProductComponent>
+    <IsProductComponent>$(RazorIsProductComponent)</IsProductComponent>
 
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
 
     <VSSDKTargetPlatformRegRootSuffix>$(RazorVSSDKTargetPlatformRegRootSuffix)</VSSDKTargetPlatformRegRootSuffix>
-    <ExtensionInstallationRoot>$(RazorExtensionInstallationRoot)</ExtensionInstallationRoot>
-    <ExtensionInstallationFolder>$(RazorExtensionInstallationFolderBase)\$(RazorServiceHubCoreSubFolder)</ExtensionInstallationFolder>
-    <VisualStudioInsertionComponent>$(RazorVisualStudioInsertionComponent)</VisualStudioInsertionComponent>
+    <ExtensionInstallationRoot Condition="'$(RazorExtensionInstallationRoot)' != ''">$(RazorExtensionInstallationRoot)</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder Condition="'$(RazorExtensionInstallationRoot)' != ''">$(RazorExtensionInstallationFolderBase)\$(RazorServiceHubCoreSubFolder)</ExtensionInstallationFolder>
+    <VisualStudioInsertionComponent Condition="'$(RazorVisualStudioInsertionComponent)' != ''">$(RazorVisualStudioInsertionComponent)</VisualStudioInsertionComponent>
 
     <!-- Create the VSIX for official builds and local x64 deployment so ServiceHub payload stays in the wrapper project. -->
     <CreateVsixContainer>false</CreateVsixContainer>

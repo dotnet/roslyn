@@ -93,8 +93,21 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
     public T? GetService<T>() where T : notnull
     {
-        return TryGetService(typeof(T), out var service)
-            ? (T)service
+        var type = typeof(T);
+        var typeName = type.FullName;
+        Contract.ThrowIfNull(typeName);
+
+        // Query for a service with an exact type match.
+        var service = GetService(typeName);
+        if (service is not null)
+        {
+            return (T)service;
+        }
+
+        // If given an interface, query for a service that implements that interface (this is how GetRequiredServices works)
+        // Only allow this if there is exactly one service that implements the interface.
+        return type.IsInterface
+            ? GetRequiredServices<T>().SingleOrDefault()
             : default;
     }
 

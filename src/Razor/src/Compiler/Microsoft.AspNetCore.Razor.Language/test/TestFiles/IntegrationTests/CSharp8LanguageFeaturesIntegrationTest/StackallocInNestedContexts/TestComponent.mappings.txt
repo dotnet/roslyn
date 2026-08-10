@@ -1,0 +1,13 @@
+﻿Source Location: (2:0,2 [137] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var flag = true;
+    System.Span<int> values = flag ? stackalloc int[] { 1, 2 } : stackalloc int[] { 3, 4 };
+    _ = values[0];
+|
+Generated Location: (733:21,0 [137] )
+|
+    var flag = true;
+    System.Span<int> values = flag ? stackalloc int[] { 1, 2 } : stackalloc int[] { 3, 4 };
+    _ = values[0];
+|
+

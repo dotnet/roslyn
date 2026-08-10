@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -18,6 +19,21 @@ public sealed class FieldDeclarationIntermediateNode : MemberDeclarationIntermed
 
     public override void Accept(IntermediateNodeVisitor visitor)
         => visitor.VisitFieldDeclaration(this);
+
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new FieldDeclarationIntermediateNode
+        {
+            Name = Name,
+            Type = Type,
+            Modifiers = Modifiers,
+            SuppressWarnings = SuppressWarnings,
+            IsTagHelperField = IsTagHelperField,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
 
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {

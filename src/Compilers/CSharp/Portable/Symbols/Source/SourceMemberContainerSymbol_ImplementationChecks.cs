@@ -1578,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(implementedMember is not null || overridingMember.IsDefinition);
 
             var leastOverriddenMember = implementedMember ?? overridingMember.GetLeastOverriddenMember(overridingMember.ContainingType);
-            if (overridingMember.CallerUnsafeMode == CallerUnsafeMode.Explicit && leastOverriddenMember.CallerUnsafeMode == CallerUnsafeMode.None)
+            if (overridingMember.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit && leastOverriddenMember.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.None)
             {
                 diagnostics.Add(errorCode, overridingMemberLocation(arg), overridingMember, leastOverriddenMember);
             }
@@ -1910,7 +1910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             needSynthesizedImplementation = false;
                         }
                     }
-                    else if (implementingMethod.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges))
+                    else if (implementingMethod.IsMetadataVirtual(null, ignoreInterfaceImplementationChanges: true))
                     {
                         // If the signatures match and the implementation method is definitely virtual, then we're set.
                         needSynthesizedImplementation = false;
