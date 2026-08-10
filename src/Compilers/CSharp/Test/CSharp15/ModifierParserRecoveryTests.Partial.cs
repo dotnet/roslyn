@@ -16,11 +16,10 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 /// <summary>
-/// Tests for permissive parsing of modifier ordering.
-/// Tracking: https://github.com/dotnet/csharplang/issues/8966.
+/// Tests parser recovery when <c>partial</c> appears in a non-canonical modifier position.
 /// <para>
-/// The parser accepts the affected modifiers (currently <c>partial</c>) in any position of the
-/// modifier list on every language version. The binder continues to report
+/// The parser accepts <c>partial</c> in any position of the modifier list when the declaration is
+/// otherwise unambiguous. The binder continues to report
 /// <c>ERR_PartialMisplaced</c> at non-canonical positions, so this parser recovery does not change
 /// which programs are accepted. Modifiers that are not legal on a declaration at all (e.g.,
 /// <c>partial enum</c>) continue to produce the same binding error.
@@ -30,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 /// <c>CreateCompilation(...).VerifyDiagnostics(...)</c>.
 /// </para>
 /// </summary>
-public sealed partial class RelaxedModifierOrderingTests : ParsingTests
+public sealed partial class ModifierParserRecoveryTests : ParsingTests
 {
-    public RelaxedModifierOrderingTests(ITestOutputHelper output) : base(output) { }
+    public ModifierParserRecoveryTests(ITestOutputHelper output) : base(output) { }
 
     public static TheoryData<SyntaxKind> AllModifierKindsExceptPartialAndRef()
     {
