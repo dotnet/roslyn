@@ -4,8 +4,10 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
@@ -201,5 +203,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool ITypeSymbol.IsRecord => UnderlyingTypeSymbol.IsRecord || UnderlyingTypeSymbol.IsRecordStruct;
 
         bool ITypeSymbol.IsUnion => UnderlyingTypeSymbol is Symbols.NamedTypeSymbol { IsUnionType: true };
+
+        ImmutableArray<ITypeSymbol> ITypeSymbol.UnionCaseTypes
+        {
+            get
+            {
+                if (UnderlyingTypeSymbol is not Symbols.NamedTypeSymbol { IsUnionType: true } namedType)
+                {
+                    return ImmutableArray<ITypeSymbol>.Empty;
+                }
+
+                return namedType.UnionCaseTypesNoUseSiteDiagnostics.GetPublicSymbols();
+            }
+        }
+
+        bool ITypeSymbol.IsClosed => UnderlyingTypeSymbol is Symbols.NamedTypeSymbol { IsClosed: true };
+
+        ClosedDerivedTypeInfo ITypeSymbol.GetClosedDerivedTypeInfo(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (UnderlyingTypeSymbol is not Symbols.NamedTypeSymbol { IsClosed: true } namedType)
+                throw new InvalidOperationException(CSharpResources.GetClosedDerivedTypeInfoMustBeClosed);
+
+            var isComplete = namedType.TryGetClosedSubtypes(out var subtypes, cancellationToken);
+            return new ClosedDerivedTypeInfo(subtypes.GetPublicSymbols(), isComplete);
+        }
     }
 }

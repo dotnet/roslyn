@@ -1996,28 +1996,28 @@ class Animal { }
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
-                // (19,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (19,22): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (o is int y1 or 1) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y1").WithLocation(19, 22),
-                // (20,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (20,22): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (o is int y2 or (1 or 2)) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y2").WithLocation(20, 22),
-                // (21,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (21,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (o is 1 or int y3) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y3").WithLocation(21, 27),
-                // (22,34): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (22,34): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (o is (1 or 2) or int y4) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y4").WithLocation(22, 34),
-                // (23,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (23,33): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (o is Point { X: var y5 } or Animal _) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y5").WithLocation(23, 33),
-                // (24,28): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (24,28): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (o is Point(var y6, _) or Animal _) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y6").WithLocation(24, 28),
                 // (25,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 //         if (o is object or (1 or var y7)) { }
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is object or (1 or var y7)").WithArguments("object").WithLocation(25, 13),
-                // (25,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (25,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
                 //         if (o is object or (1 or var y7)) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y7").WithLocation(25, 38)
                 );
@@ -7413,13 +7413,7 @@ class C
             compilation.VerifyDiagnostics(
                 // (4,47): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //     int M((object?, bool, bool, bool) t) => t switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47),
-                // (11,18): hidden CS9271: The pattern is redundant.
-                //         ({ }, _, true, _) => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(11, 18),
-                // (12,10): hidden CS9271: The pattern is redundant.
-                //         (null, _, _, false) => 7,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(12, 10)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47)
                 );
         }
 

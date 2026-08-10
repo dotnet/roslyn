@@ -3,26 +3,25 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteCallHierarchyService : IRemoteJsonService
 {
     ValueTask<RemoteResponse<CallHierarchyItem[]?>> PrepareCallHierarchyAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         Position position,
         CancellationToken cancellationToken);
 
     ValueTask<RemoteResponse<CallHierarchyIncomingCall[]?>> GetIncomingCallsAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         CallHierarchyItem item,
         CancellationToken cancellationToken);
 
     ValueTask<RemoteResponse<CallHierarchyOutgoingCall[]?>> GetOutgoingCallsAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         CallHierarchyItem item,
         CancellationToken cancellationToken);

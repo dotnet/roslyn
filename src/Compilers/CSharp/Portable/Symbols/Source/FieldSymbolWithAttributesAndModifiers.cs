@@ -61,6 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsFixedSizeBuffer
             => (Modifiers & DeclarationModifiers.Fixed) != 0;
 
+        internal bool HasSafeModifier
+            => (Modifiers & DeclarationModifiers.Safe) != 0;
+
+        internal bool HasUnsafeModifier
+            => (Modifiers & DeclarationModifiers.Unsafe) != 0;
+
         /// <summary>
         /// Gets the attributes applied on this symbol.
         /// Returns an empty array if there are no attributes.

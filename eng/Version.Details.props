@@ -6,45 +6,45 @@ This file should be imported by eng/Versions.props
 <Project>
   <PropertyGroup>
     <!-- dotnet-arcade dependencies -->
-    <MicrosoftDotNetArcadeSdkPackageVersion>10.0.0-beta.26257.4</MicrosoftDotNetArcadeSdkPackageVersion>
-    <MicrosoftDotNetHelixSdkPackageVersion>10.0.0-beta.26257.4</MicrosoftDotNetHelixSdkPackageVersion>
-    <MicrosoftDotNetXliffTasksPackageVersion>10.0.0-beta.26257.4</MicrosoftDotNetXliffTasksPackageVersion>
+    <MicrosoftDotNetArcadeSdkPackageVersion>11.0.0-beta.26407.6</MicrosoftDotNetArcadeSdkPackageVersion>
+    <MicrosoftDotNetHelixSdkPackageVersion>11.0.0-beta.26407.6</MicrosoftDotNetHelixSdkPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>11.0.0-beta.26407.6</MicrosoftDotNetXliffTasksPackageVersion>
     <!-- dotnet-dotnet dependencies -->
-    <MicrosoftBclAsyncInterfacesPackageVersion>10.0.1</MicrosoftBclAsyncInterfacesPackageVersion>
-    <MicrosoftExtensionsConfigurationPackageVersion>10.0.1</MicrosoftExtensionsConfigurationPackageVersion>
-    <MicrosoftExtensionsDependencyInjectionPackageVersion>10.0.1</MicrosoftExtensionsDependencyInjectionPackageVersion>
-    <MicrosoftExtensionsFileSystemGlobbingPackageVersion>10.0.1</MicrosoftExtensionsFileSystemGlobbingPackageVersion>
-    <MicrosoftExtensionsLoggingPackageVersion>10.0.1</MicrosoftExtensionsLoggingPackageVersion>
-    <MicrosoftExtensionsLoggingAbstractionsPackageVersion>10.0.1</MicrosoftExtensionsLoggingAbstractionsPackageVersion>
-    <MicrosoftExtensionsLoggingConsolePackageVersion>10.0.1</MicrosoftExtensionsLoggingConsolePackageVersion>
-    <MicrosoftExtensionsOptionsPackageVersion>10.0.1</MicrosoftExtensionsOptionsPackageVersion>
-    <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>10.0.1</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
-    <MicrosoftExtensionsPrimitivesPackageVersion>10.0.1</MicrosoftExtensionsPrimitivesPackageVersion>
-    <RoslynDiagnosticsAnalyzersPackageVersion>5.8.0-1.26265.116</RoslynDiagnosticsAnalyzersPackageVersion>
-    <SystemCollectionsImmutablePackageVersion>10.0.1</SystemCollectionsImmutablePackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-preview.5.26265.116</SystemCommandLinePackageVersion>
-    <SystemComponentModelCompositionPackageVersion>10.0.1</SystemComponentModelCompositionPackageVersion>
-    <SystemCompositionPackageVersion>10.0.1</SystemCompositionPackageVersion>
-    <SystemConfigurationConfigurationManagerPackageVersion>10.0.1</SystemConfigurationConfigurationManagerPackageVersion>
-    <SystemDiagnosticsDiagnosticSourcePackageVersion>10.0.1</SystemDiagnosticsDiagnosticSourcePackageVersion>
-    <SystemDiagnosticsEventLogPackageVersion>10.0.1</SystemDiagnosticsEventLogPackageVersion>
-    <SystemIOHashingPackageVersion>10.0.1</SystemIOHashingPackageVersion>
-    <SystemIOPipelinesPackageVersion>10.0.1</SystemIOPipelinesPackageVersion>
-    <SystemReflectionMetadataPackageVersion>10.0.1</SystemReflectionMetadataPackageVersion>
-    <SystemResourcesExtensionsPackageVersion>10.0.1</SystemResourcesExtensionsPackageVersion>
-    <SystemSecurityCryptographyProtectedDataPackageVersion>10.0.1</SystemSecurityCryptographyProtectedDataPackageVersion>
-    <SystemSecurityPermissionsPackageVersion>10.0.1</SystemSecurityPermissionsPackageVersion>
-    <SystemTextEncodingsWebPackageVersion>10.0.1</SystemTextEncodingsWebPackageVersion>
-    <SystemTextJsonPackageVersion>10.0.1</SystemTextJsonPackageVersion>
-    <SystemThreadingTasksDataflowPackageVersion>10.0.1</SystemThreadingTasksDataflowPackageVersion>
-    <SystemWindowsExtensionsPackageVersion>10.0.1</SystemWindowsExtensionsPackageVersion>
+    <MicrosoftBclAsyncInterfacesPackageVersion>10.0.10</MicrosoftBclAsyncInterfacesPackageVersion>
+    <MicrosoftExtensionsConfigurationPackageVersion>10.0.10</MicrosoftExtensionsConfigurationPackageVersion>
+    <MicrosoftExtensionsDependencyInjectionPackageVersion>10.0.10</MicrosoftExtensionsDependencyInjectionPackageVersion>
+    <MicrosoftExtensionsFileSystemGlobbingPackageVersion>10.0.10</MicrosoftExtensionsFileSystemGlobbingPackageVersion>
+    <MicrosoftExtensionsLoggingPackageVersion>10.0.10</MicrosoftExtensionsLoggingPackageVersion>
+    <MicrosoftExtensionsLoggingAbstractionsPackageVersion>10.0.10</MicrosoftExtensionsLoggingAbstractionsPackageVersion>
+    <MicrosoftExtensionsLoggingConsolePackageVersion>10.0.10</MicrosoftExtensionsLoggingConsolePackageVersion>
+    <MicrosoftExtensionsOptionsPackageVersion>10.0.10</MicrosoftExtensionsOptionsPackageVersion>
+    <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>10.0.10</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
+    <MicrosoftExtensionsPrimitivesPackageVersion>10.0.10</MicrosoftExtensionsPrimitivesPackageVersion>
+    <SystemCollectionsImmutablePackageVersion>10.0.10</SystemCollectionsImmutablePackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-preview.6.26324.102</SystemCommandLinePackageVersion>
+    <SystemComponentModelCompositionPackageVersion>10.0.10</SystemComponentModelCompositionPackageVersion>
+    <SystemCompositionPackageVersion>10.0.10</SystemCompositionPackageVersion>
+    <SystemConfigurationConfigurationManagerPackageVersion>10.0.10</SystemConfigurationConfigurationManagerPackageVersion>
+    <SystemDiagnosticsDiagnosticSourcePackageVersion>10.0.10</SystemDiagnosticsDiagnosticSourcePackageVersion>
+    <SystemDiagnosticsEventLogPackageVersion>10.0.10</SystemDiagnosticsEventLogPackageVersion>
+    <SystemIOHashingPackageVersion>10.0.10</SystemIOHashingPackageVersion>
+    <SystemIOPipelinesPackageVersion>10.0.10</SystemIOPipelinesPackageVersion>
+    <SystemReflectionMetadataPackageVersion>10.0.10</SystemReflectionMetadataPackageVersion>
+    <SystemResourcesExtensionsPackageVersion>10.0.10</SystemResourcesExtensionsPackageVersion>
+    <SystemSecurityCryptographyProtectedDataPackageVersion>10.0.10</SystemSecurityCryptographyProtectedDataPackageVersion>
+    <SystemSecurityPermissionsPackageVersion>10.0.10</SystemSecurityPermissionsPackageVersion>
+    <SystemTextEncodingsWebPackageVersion>10.0.10</SystemTextEncodingsWebPackageVersion>
+    <SystemTextJsonPackageVersion>10.0.10</SystemTextJsonPackageVersion>
+    <SystemThreadingTasksDataflowPackageVersion>10.0.10</SystemThreadingTasksDataflowPackageVersion>
+    <SystemWindowsExtensionsPackageVersion>10.0.10</SystemWindowsExtensionsPackageVersion>
     <!-- dotnet-roslyn dependencies -->
-    <MicrosoftCodeAnalysisPackageVersion>5.6.0-2.26172.2</MicrosoftCodeAnalysisPackageVersion>
-    <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.6.0-2.26172.2</MicrosoftCodeAnalysisAnalyzersPackageVersion>
-    <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.6.0-2.26172.2</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
-    <MicrosoftNetCompilersToolsetPackageVersion>5.6.0-2.26172.2</MicrosoftNetCompilersToolsetPackageVersion>
+    <MicrosoftCodeAnalysisPackageVersion>5.10.0-1.26365.3</MicrosoftCodeAnalysisPackageVersion>
+    <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.10.0-1.26365.3</MicrosoftCodeAnalysisAnalyzersPackageVersion>
+    <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.10.0-1.26365.3</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
+    <MicrosoftNetCompilersToolsetPackageVersion>5.10.0-1.26365.3</MicrosoftNetCompilersToolsetPackageVersion>
+    <RoslynDiagnosticsAnalyzersPackageVersion>5.10.0-1.26365.3</RoslynDiagnosticsAnalyzersPackageVersion>
     <!-- dotnet-symreader dependencies -->
-    <MicrosoftDiaSymReaderPackageVersion>2.0.0</MicrosoftDiaSymReaderPackageVersion>
+    <MicrosoftDiaSymReaderPackageVersion>2.2.10</MicrosoftDiaSymReaderPackageVersion>
   </PropertyGroup>
   <!--Property group for alternate package version names-->
   <PropertyGroup>
@@ -63,7 +63,6 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsOptionsVersion>$(MicrosoftExtensionsOptionsPackageVersion)</MicrosoftExtensionsOptionsVersion>
     <MicrosoftExtensionsOptionsConfigurationExtensionVersion>$(MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion)</MicrosoftExtensionsOptionsConfigurationExtensionVersion>
     <MicrosoftExtensionsPrimitivesVersion>$(MicrosoftExtensionsPrimitivesPackageVersion)</MicrosoftExtensionsPrimitivesVersion>
-    <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsAnalyzersPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutablePackageVersion)</SystemCollectionsImmutableVersion>
     <SystemCommandLineVersion>$(SystemCommandLinePackageVersion)</SystemCommandLineVersion>
     <SystemComponentModelCompositionVersion>$(SystemComponentModelCompositionPackageVersion)</SystemComponentModelCompositionVersion>
@@ -86,6 +85,7 @@ This file should be imported by eng/Versions.props
     <MicrosoftCodeAnalysisAnalyzersVersion>$(MicrosoftCodeAnalysisAnalyzersPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>$(MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion)</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftNetCompilersToolsetVersion>$(MicrosoftNetCompilersToolsetPackageVersion)</MicrosoftNetCompilersToolsetVersion>
+    <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsAnalyzersPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <!-- dotnet-symreader dependencies -->
     <MicrosoftDiaSymReaderVersion>$(MicrosoftDiaSymReaderPackageVersion)</MicrosoftDiaSymReaderVersion>
   </PropertyGroup>

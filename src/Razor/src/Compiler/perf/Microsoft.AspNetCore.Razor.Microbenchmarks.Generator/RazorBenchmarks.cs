@@ -13,10 +13,13 @@ public class RazorBenchmarks : AbstractBenchmark
     public GeneratorDriver Razor_Add_Independent() => RunRazorBenchmark(Independent, "Independent.razor", replaceExisting: false);
 
     [Benchmark]
-    public GeneratorDriver Razor_Edit_Independent() => RunRazorBenchmark(Independent, "\\0.razor");
+    public GeneratorDriver Razor_Edit_Independent() => RunRazorBenchmark(Independent, "0.razor");
 
     [Benchmark]
-    public GeneratorDriver Razor_Remove_Independent() => RunRazorBenchmark(null, "\\0.razor");
+    public GeneratorDriver Razor_Edit_IndependentIgnorable() => RunRazorBenchmark(IndependentIgnorable, "0.razor");
+
+    [Benchmark]
+    public GeneratorDriver Razor_Remove_Independent() => RunRazorBenchmark(null, "0.razor");
 
     [Benchmark]
     public GeneratorDriver Razor_Edit_DependentIgnorable() => RunRazorBenchmark(DependentIgnorable, "Counter.razor");
@@ -25,17 +28,17 @@ public class RazorBenchmarks : AbstractBenchmark
     public GeneratorDriver Razor_Edit_Dependent() => RunRazorBenchmark(Dependent, "Counter.razor");
 
     [Benchmark]
-    public GeneratorDriver Razor_Remove_Dependent() => RunRazorBenchmark(null, "\\Counter.razor");
+    public GeneratorDriver Razor_Remove_Dependent() => RunRazorBenchmark(null, "Counter.razor");
 
 
-    private GeneratorDriver RunRazorBenchmark(string? AddedFileContent, string FilePath, bool replaceExisting = true) => RunBenchmark((ProjectSetup.RazorProject project) =>
+    private GeneratorDriver RunRazorBenchmark(string? addedFileContent, string filePath, bool replaceExisting = true) => RunBenchmark((ProjectSetup.RazorProject project) =>
     {
         var removedFile = replaceExisting
-                            ? project.AdditionalTexts.Single(a => a.Path.EndsWith(FilePath, StringComparison.OrdinalIgnoreCase))
+                            ? project.AdditionalTexts.Single(a => Path.GetFileName(a.Path).Equals(filePath, StringComparison.OrdinalIgnoreCase))
                             : null;
 
-        var addedFile = AddedFileContent is not null
-                            ? new ProjectSetup.InMemoryAdditionalText(AddedFileContent, replaceExisting ? removedFile!.Path : FilePath)
+        var addedFile = addedFileContent is not null
+                            ? new ProjectSetup.InMemoryAdditionalText(addedFileContent, replaceExisting ? removedFile!.Path : filePath)
                             : null;
 
         if (addedFile is not null && removedFile is not null)
@@ -55,7 +58,16 @@ public class RazorBenchmarks : AbstractBenchmark
     });
 
 
+    // Replacing the file body without an @page directive drops the route from the component's declaration,
+    // so this is a public-surface (signature) change: it invalidates whole-compilation tag-helper discovery.
     private const string Independent = "<h1>Independent file</h1>";
+
+    // Keeps the file's @page route (its declaration/public surface), changing only the markup body, so the
+    // decl stays byte-identical and discovery is not re-run -- the common "edit a leaf's body" case.
+    private const string IndependentIgnorable = """
+        @page "/0"
+        <h1>Independent file</h1>
+        """;
 
     private const string DependentIgnorable = """
         @page "/counter"

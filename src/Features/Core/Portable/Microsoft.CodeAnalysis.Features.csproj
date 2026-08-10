@@ -42,13 +42,14 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Copilot" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Extensions" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.ExternalAccess" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.ExternalAccess" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ExternalAccess" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.UnitTesting" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Xaml" />
@@ -68,6 +69,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
@@ -96,11 +98,13 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.UnitTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot" />
     <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
@@ -165,7 +169,7 @@
     <MSBuild Projects="$(RepoRoot)src\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" Targets="Build" Properties="TargetFramework=netstandard2.0" />
 
     <!-- Only run validation in CI builds. Running them in local builds will prevent refreshing auto-generated files. -->
-    <Exec Command="&quot;$(DotNetExecutable)&quot; --roll-forward major &quot;$(_GenerateRulesMissingDocumentationFilesPath)&quot; &quot;-validateOnly:$(ContinuousIntegrationBuild)&quot; &quot;$(AnalyzerDocumentationFileDir)&quot; &quot;$(ArtifactsBinDir)$(EscapeDirectorySuffix)&quot; &quot;$(Configuration)&quot;" />
+    <Exec EnvironmentVariables="DOTNET_ROLL_FORWARD_TO_PRERELEASE=1" Command="&quot;$(DotNetExecutable)&quot; --roll-forward major &quot;$(_GenerateRulesMissingDocumentationFilesPath)&quot; &quot;-validateOnly:$(ContinuousIntegrationBuild)&quot; &quot;$(AnalyzerDocumentationFileDir)&quot; &quot;$(ArtifactsBinDir)$(EscapeDirectorySuffix)&quot; &quot;$(Configuration)&quot;" />
   </Target>
 
 </Project>

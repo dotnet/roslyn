@@ -32,7 +32,6 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
 
     private readonly IThreadingContext _threadingContext;
     private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
-    private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
     private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _analyzerAssemblyRedirectors;
     private readonly IVsService<SVsBackgroundSolution, IVsBackgroundSolution> _solution;
 
@@ -43,13 +42,11 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     public VisualStudioProjectFactory(
         IThreadingContext threadingContext,
         VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
-        [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
         [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> analyzerAssemblyRedirectors,
         IVsService<SVsBackgroundSolution, IVsBackgroundSolution> solution)
     {
         _threadingContext = threadingContext;
         _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
-        _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
         _analyzerAssemblyRedirectors = analyzerAssemblyRedirectors.AsImmutableOrEmpty();
         _solution = solution;
 
@@ -86,7 +83,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solution?.SolutionFileName;
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
 
-        var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, _analyzerAssemblyRedirectors);
+        var hostInfo = new ProjectSystemHostInfo(_analyzerAssemblyRedirectors);
         var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo, cancellationToken).ConfigureAwait(true);
 
         // We have now created the project and added it to the solution -- we are committed at this point

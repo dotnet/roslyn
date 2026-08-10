@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -172,6 +173,13 @@ namespace Microsoft.CodeAnalysis
 
         internal static string GetAssemblyLocation(Type type)
         {
+#if NET
+            if (!RuntimeFeature.IsDynamicCodeSupported)
+            {
+                return "<unknown>";
+            }
+#endif
+
             var location = type.Assembly.Location;
             return string.IsNullOrEmpty(location) ? "<unknown>" : location;
         }
@@ -1230,13 +1238,6 @@ namespace Microsoft.CodeAnalysis
             // But before we do so, we need to run diagnostic suppressors (if any) on all suppressable warnings/errors (if any).
             if (HasUnsuppressableErrors(diagnostics))
             {
-                if (analyzerDriver != null)
-                {
-                    // Analyzer cleanup is cancellation-driven on early exit, but that cleanup does not currently
-                    // guarantee all pooled analyzer state is freed before leak tracking runs.
-                    PoolTracker.ForgiveLeaks();
-                }
-
                 if (analyzerDriver == null || !analyzerDriver.HasDiagnosticSuppressors || !HasSuppressableWarningsOrErrors(diagnostics))
                 {
                     return;

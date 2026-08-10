@@ -97,6 +97,11 @@
         <target state="translated">Oluşturan C# Dilini Göster</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidShowGeneratedDeclarationCode|ButtonText">
+        <source>Show Generated C# Declaration</source>
+        <target state="new">Show Generated C# Declaration</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidShowGeneratedHtml|ButtonText">
         <source>Show Generated HTML</source>
         <target state="translated">Oluşturan HTML’yi Göster</target>
@@ -115,6 +120,16 @@
       <trans-unit id="cmdidViewPageEditor|LocCanonicalName">
         <source>ViewPageEditor</source>
         <target state="translated">ViewPageEditor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="menuidShowGenerated|ButtonText">
+        <source>Show Generated File</source>
+        <target state="new">Show Generated File</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="menuidShowTagHelpers|ButtonText">
+        <source>Show Tag Helpers</source>
+        <target state="new">Show Tag Helpers</target>
         <note />
       </trans-unit>
       <trans-unit id="menuidToolWindowToolbar|ButtonText">

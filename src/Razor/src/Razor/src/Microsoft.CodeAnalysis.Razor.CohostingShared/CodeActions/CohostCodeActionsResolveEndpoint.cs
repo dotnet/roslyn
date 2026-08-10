@@ -8,13 +8,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -34,11 +39,13 @@ internal sealed class CohostCodeActionsResolveEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
+    IClientSettingsManager clientSettingsManager,
     IHtmlRequestInvoker requestInvoker)
     : AbstractCohostDocumentEndpoint<CodeAction, CodeAction?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
 
     protected override bool MutatesSolutionState => false;
@@ -65,7 +72,17 @@ internal sealed class CohostCodeActionsResolveEndpoint(
         return resolveParams.TextDocument;
     }
 
-    protected override async Task<CodeAction?> HandleRequestAsync(CodeAction request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override Task<CodeAction?> HandleRequestAsync(CodeAction request, TextDocument razorDocument, CancellationToken cancellationToken)
+    {
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
+        return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
+    }
+
+    private async Task<CodeAction?> HandleRequestAsync(
+        CodeAction request,
+        TextDocument razorDocument,
+        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
+        CancellationToken cancellationToken)
     {
         var resolveParams = RazorCodeActionResolutionParams.Unwrap(request);
 
@@ -76,9 +93,14 @@ internal sealed class CohostCodeActionsResolveEndpoint(
             _ => null
         };
 
+        var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions() with
+        {
+            CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
+        };
+
         return await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, CodeAction>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.ResolveCodeActionAsync(solutionInfo, razorDocument.Id, request, resolvedDelegatedCodeAction, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.ResolveCodeActionAsync(solutionInfo, razorDocument.Id, request, resolvedDelegatedCodeAction, formattingOptions, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -106,12 +128,54 @@ internal sealed class CohostCodeActionsResolveEndpoint(
                 resourceOptions = [ResourceOperationKind.Create, ResourceOperationKind.Rename];
             }
 
-            return await CodeActions.ResolveCodeActionAsync(generatedDocument, codeAction, resourceOptions, cancellationToken).ConfigureAwait(false);
+            return await ResolveCodeActionAsync(generatedDocument, codeAction, resourceOptions, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
             codeAction.Data = originalData;
         }
+    }
+
+    private static async Task<CodeAction> ResolveCodeActionAsync(Document document, CodeAction codeAction, ResourceOperationKind[] resourceOperations, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(codeAction.Data);
+        var data = CodeActionResolveHandler.GetCodeActionResolveData(codeAction).AssumeNotNull();
+
+        // We don't need to resolve a top level code action that has nested actions - it requires further action
+        // on the client to pick which of the nested actions to actually apply.
+        if (data.NestedCodeActions.HasValue && data.NestedCodeActions.Value.Length > 0)
+        {
+            return codeAction;
+        }
+
+        var solution = document.Project.Solution;
+
+        var codeFixService = solution.Services.ExportProvider.GetService<ICodeFixService>();
+        var codeRefactoringService = solution.Services.ExportProvider.GetService<ICodeRefactoringService>();
+
+        var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
+            document,
+            data.Range,
+            codeFixService,
+            codeRefactoringService,
+            fixAllScope: null,
+            cancellationToken).ConfigureAwait(false);
+
+        Contract.ThrowIfNull(data.CodeActionPath);
+        var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.CodeActionPath, codeActions, isFixAllAction: false);
+
+        var operations = await codeActionToResolve.GetOperationsAsync(solution, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+
+        var edit = await CodeActionResolveHelper.GetCodeActionResolveEditsAsync(
+            solution,
+            data,
+            operations,
+            resourceOperations,
+            logFunction: static s => { },
+            cancellationToken).ConfigureAwait(false);
+
+        codeAction.Edit = edit;
+        return codeAction;
     }
 
     private async Task<CodeAction> ResolvedHtmlCodeActionAsync(TextDocument razorDocument, CodeAction codeAction, RazorCodeActionResolutionParams resolveParams, CancellationToken cancellationToken)
@@ -144,7 +208,10 @@ internal sealed class CohostCodeActionsResolveEndpoint(
 
     internal readonly struct TestAccessor(CohostCodeActionsResolveEndpoint instance)
     {
-        public Task<CodeAction?> HandleRequestAsync(TextDocument razorDocument, CodeAction request, CancellationToken cancellationToken)
-            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+        public Task<CodeAction?> HandleRequestAsync(TextDocument razorDocument, CodeAction request, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
+
+        public static Task<CodeAction> ResolveCodeActionAsync(Document document, CodeAction codeAction, ResourceOperationKind[] resourceOperations, CancellationToken cancellationToken)
+            => CohostCodeActionsResolveEndpoint.ResolveCodeActionAsync(document, codeAction, resourceOperations, cancellationToken);
     }
 }

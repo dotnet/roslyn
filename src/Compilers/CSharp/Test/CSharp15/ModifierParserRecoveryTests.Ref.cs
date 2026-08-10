@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 /// does not change where <c>ref</c> may appear:
 /// <list type="bullet">
 /// <item>On a type declaration, the binder unconditionally reports
-/// <c>ERR_RefMisplacedOnType</c> (<c>CS9389</c>) at the <c>ref</c> token whenever it isn't
+/// <c>ERR_RefMisplacedOnType</c> (<c>CS9399</c>) at the <c>ref</c> token whenever it isn't
 /// immediately before <c>struct</c>, <c>record struct</c>, or <c>union</c> (or before a
 /// trailing <c>partial struct</c>) -- regardless of language version.</item>
 /// <item>If <c>ref</c> appears as a modifier on a member, the binder reports the targeted
-/// <c>ERR_RefNotMemberModifier</c> (<c>CS9388</c>) on the <c>ref</c> token.  <c>ref</c> belongs
+/// <c>ERR_RefNotMemberModifier</c> (<c>CS9398</c>) on the <c>ref</c> token.  <c>ref</c> belongs
 /// to the return type for members and must appear immediately before it.</item>
 /// <item>If <c>ref</c> appears on a type kind that does not accept it (class, interface, enum,
 /// delegate, namespace), the pre-existing <c>ERR_BadMemberFlag</c> diagnostic is reported.</item>
@@ -149,7 +149,7 @@ public sealed partial class ModifierParserRecoveryTests
         foreach (var options in new[] { TestOptions.Regular14, TestOptions.RegularPreview })
         {
             CreateCompilation(src, parseOptions: options).VerifyDiagnostics(
-                // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                // (1,1): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
                 // ref public struct S { }
                 Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1));
         }
@@ -180,7 +180,7 @@ public sealed partial class ModifierParserRecoveryTests
         foreach (var options in new[] { TestOptions.Regular14, TestOptions.RegularPreview })
         {
             CreateCompilation(src, parseOptions: options, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (1,8): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                // (1,8): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
                 // public ref unsafe struct S { }
                 Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 8));
         }
@@ -215,7 +215,7 @@ public sealed partial class ModifierParserRecoveryTests
         foreach (var options in new[] { TestOptions.Regular14, TestOptions.RegularPreview })
         {
             CreateCompilation(src, parseOptions: options).VerifyDiagnostics(
-                // (1,8): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                // (1,8): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
                 // public ref readonly struct S { }
                 Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 8));
         }
@@ -245,7 +245,7 @@ public sealed partial class ModifierParserRecoveryTests
         foreach (var options in new[] { TestOptions.Regular14, TestOptions.RegularPreview })
         {
             CreateCompilation(src, parseOptions: options).VerifyDiagnostics(
-                // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+                // (1,1): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
                 Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1));
         }
     }
@@ -295,7 +295,7 @@ public sealed partial class ModifierParserRecoveryTests
         EOF();
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // (1,1): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // ref public record struct S(int X);
             Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
             // (1,26): error CS0106: The modifier 'ref' is not valid for this item
@@ -323,7 +323,7 @@ public sealed partial class ModifierParserRecoveryTests
         var src = "ref public class C { }";
 
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // (1,1): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // ref public class C { }
             Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
             // (1,18): error CS0106: The modifier 'ref' is not valid for this item
@@ -414,7 +414,7 @@ public sealed partial class ModifierParserRecoveryTests
             """;
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (3,5): error CS9388: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+            // (3,5): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
             //     ref public int M() => throw null;
             Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(3, 5));
     }
@@ -430,7 +430,7 @@ public sealed partial class ModifierParserRecoveryTests
             """;
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (3,12): error CS9388: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+            // (3,12): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
             //     public ref static int M() => throw null;
             Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(3, 12));
     }
@@ -447,7 +447,7 @@ public sealed partial class ModifierParserRecoveryTests
             """;
 
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (3,5): error CS9388: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+            // (3,5): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
             //     ref public int M() => throw null;
             Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(3, 5));
     }
@@ -463,7 +463,7 @@ public sealed partial class ModifierParserRecoveryTests
             """;
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (3,5): error CS9388: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+            // (3,5): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
             //     ref public int x;
             Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(3, 5),
             // (3,20): warning CS0649: Field 'C.x' is never assigned to, and will always have its default value 0
@@ -482,7 +482,7 @@ public sealed partial class ModifierParserRecoveryTests
             """;
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (3,5): error CS9388: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+            // (3,5): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
             //     ref public int P => throw null;
             Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(3, 5));
     }
@@ -501,7 +501,7 @@ public sealed partial class ModifierParserRecoveryTests
             """;
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (3,5): error CS9388: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+            // (3,5): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
             //     ref readonly public int M() => throw null;
             Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(3, 5),
             // (3,29): error CS0106: The modifier 'readonly' is not valid for this item
@@ -523,7 +523,7 @@ public sealed partial class ModifierParserRecoveryTests
             """;
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (3,5): error CS9388: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+            // (3,5): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
             //     ref event System.Action E;
             Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(3, 5),
             // (3,29): warning CS0067: The event 'C.E' is never used
@@ -733,7 +733,7 @@ public sealed partial class ModifierParserRecoveryTests
         EOF();
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // (1,1): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // ref readonly struct S { }
             Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1));
     }
@@ -788,7 +788,7 @@ public sealed partial class ModifierParserRecoveryTests
         EOF();
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // (1,1): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // ref file partial struct S { }
             Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1));
     }
@@ -979,13 +979,13 @@ public sealed partial class ModifierParserRecoveryTests
         var src = "ref partial public struct S { }";
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // (1,1): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // ref partial public struct S { }
             Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 5));
 
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // (1,1): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // ref partial public struct S { }
             Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 5));
@@ -1118,7 +1118,7 @@ public sealed partial class ModifierParserRecoveryTests
         EOF();
 
         CreateCompilation("file ref readonly struct S { }").VerifyDiagnostics(
-            // (1,6): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // (1,6): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // file ref readonly struct S { }
             Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 6));
     }
@@ -1169,7 +1169,7 @@ public sealed partial class ModifierParserRecoveryTests
         var src = "ref ref struct S { }";
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
+            // (1,1): error CS9399: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // ref ref struct S { }
             Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
             // (1,5): error CS1004: Duplicate 'ref' modifier

@@ -26,6 +26,7 @@ internal static class ComponentsApi
     {
         public const string FullTypeName = "Microsoft.AspNetCore.Components.ParameterAttribute";
         public const string MetadataName = FullTypeName;
+        public const string CaptureUnmatchedValues = nameof(CaptureUnmatchedValues);
     }
 
     public static class LayoutAttribute
@@ -48,6 +49,11 @@ internal static class ComponentsApi
     public static class IDictionary
     {
         public const string MetadataName = "System.Collection.IDictionary`2";
+    }
+
+    public static class Dictionary
+    {
+        public const string MetadataName = "System.Collections.Generic.Dictionary`2";
     }
 
     public static class IComponentRenderMode

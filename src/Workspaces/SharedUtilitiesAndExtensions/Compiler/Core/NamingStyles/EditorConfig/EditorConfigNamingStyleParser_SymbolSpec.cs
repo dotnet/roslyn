@@ -7,10 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.EditorConfig.Parsing;
-using Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
@@ -18,34 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 internal static partial class EditorConfigNamingStyleParser
 {
-    internal static bool TryGetSymbolSpecification(
-        Section section,
-        string namingRuleTitle,
-        IReadOnlyDictionary<string, string> entries,
-        IReadOnlyDictionary<string, TextLine> lines,
-        [NotNullWhen(true)] out ApplicableSymbolInfo? applicableSymbolInfo)
-    {
-        if (TryGetSymbolProperties(
-            namingRuleTitle,
-            entries,
-            out var specification,
-            out var kinds,
-            out var accessibilities,
-            out var modifiers))
-        {
-            applicableSymbolInfo = new ApplicableSymbolInfo(
-                OptionName: new(section, specification.GetSpan(lines), specification.Value),
-                SymbolKinds: new(section, kinds.GetSpan(lines), kinds.Value),
-                Accessibilities: new(section, accessibilities.GetSpan(lines), accessibilities.Value),
-                Modifiers: new(section, modifiers.GetSpan(lines), modifiers.Value));
-
-            return true;
-        }
-
-        applicableSymbolInfo = null;
-        return false;
-    }
-
     private static bool TryGetSymbolSpecification(
         string namingRuleTitle,
         IReadOnlyDictionary<string, string> entries,

@@ -4,8 +4,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using CompletionResponse = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.Completion.CompletionResult>;
 
@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 internal interface IRemoteCompletionService : IRemoteJsonService
 {
     ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         VSInternalCompletionContext completionContext,
         Position position,
         CancellationToken cancellationToken);
 
     ValueTask<CompletionResponse> GetCompletionAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
@@ -30,8 +30,9 @@ internal interface IRemoteCompletionService : IRemoteJsonService
         CancellationToken cancellationToken);
 
     ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId id,
         VSInternalCompletionItem request,
+        RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken);
 }

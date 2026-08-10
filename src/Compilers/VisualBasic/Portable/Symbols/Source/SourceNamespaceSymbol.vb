@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' VS can display errors and warnings separately in the IDE, so it may be ok to flood the users with
             ' these warnings.
             If Not reportedNamespaceMismatch AndAlso
-                String.Compare(node.Identifier.ValueText, Me.Name, StringComparison.Ordinal) <> 0 Then
+                Not String.Equals(node.Identifier.ValueText, Me.Name, StringComparison.Ordinal) Then
                 ' all namespace names from the declarations match following the VB identifier comparison rules,
                 ' so we just need to check when they are not matching using case sensitive comparison.
 
@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim path = Nothing
 
             For Each declaration In _declaration.Declarations
-                If String.Compare(Me.Name, declaration.Name, StringComparison.Ordinal) = 0 Then
+                If String.Equals(Me.Name, declaration.Name, StringComparison.Ordinal) Then
                     If declaration.IsPartOfRootNamespace Then
                         'path = StringConstants.ProjectSettingLocationName
                         path = New LocalizableErrorArgument(ERRID.IDS_ProjectSettingsLocationName)

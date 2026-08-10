@@ -9,6 +9,7 @@
     <Import_RootNamespace>Xunit</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)..\IntegrationTestAssemblyResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\ActivityLogCollector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\DataCollectionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Harness\EventLogCollector.cs" />

@@ -6,7 +6,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -36,9 +36,13 @@ internal sealed class CohostGeneratedDocumentContentsEndpoint(
     {
         var response = request.Kind switch
         {
-            GeneratedDocumentKind.CSharp => await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, string>(
+            GeneratedDocumentKind.CSharpImplementation => await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, string?>(
                 razorDocument.Project.Solution,
-                (service, solutionInfo, cancellationToken) => service.GetCSharpDocumentTextAsync(solutionInfo, razorDocument.Id, cancellationToken),
+                (service, solutionInfo, cancellationToken) => service.GetCSharpDocumentTextAsync(solutionInfo, razorDocument.Id, declarationDocument: false, cancellationToken),
+                cancellationToken).ConfigureAwait(false),
+            GeneratedDocumentKind.CSharpDeclaration => await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, string?>(
+                razorDocument.Project.Solution,
+                (service, solutionInfo, cancellationToken) => service.GetCSharpDocumentTextAsync(solutionInfo, razorDocument.Id, declarationDocument: true, cancellationToken),
                 cancellationToken).ConfigureAwait(false),
             GeneratedDocumentKind.Html => await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, string>(
                 razorDocument.Project.Solution,
