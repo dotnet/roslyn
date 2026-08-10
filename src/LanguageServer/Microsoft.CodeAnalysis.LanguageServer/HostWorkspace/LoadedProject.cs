@@ -319,6 +319,13 @@ internal sealed class LoadedProject : IDisposable
         }
     }
 
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(LoadedProject loadedProject)
+    {
+        public void RaiseNeedsReload() => loadedProject.NeedsReload?.Invoke(loadedProject, EventArgs.Empty);
+    }
+
     private sealed class DocumentFileInfoComparer : IEqualityComparer<DocumentFileInfo>
     {
         public static IEqualityComparer<DocumentFileInfo> Instance = new DocumentFileInfoComparer();
