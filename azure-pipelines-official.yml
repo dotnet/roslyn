@@ -450,24 +450,7 @@ extends:
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
-          publishingInfraVersion: 3
           publishAssetsImmediately: true
           enableSigningValidation: false
           enableNugetValidation: false
           enableSourceLinkValidation: false
-          # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
-          SDLValidationParameters:
-            enable: true
-            params: >-
-              -SourceToolsList @("policheck","credscan")
-              -ArtifactToolsList @("binskim")
-              -BinskimAdditionalRunConfigParams @("IgnorePdbLoadError < True","Recurse < True","SymbolsPath < SRV*https://msdl.microsoft.com/download/symbols")
-              -TsaInstanceURL $(_TsaInstanceURL)
-              -TsaProjectName $(_TsaProjectName)
-              -TsaNotificationEmail $(_TsaNotificationEmail)
-              -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
-              -TsaBugAreaPath $(_TsaBugAreaPath)
-              -TsaIterationPath $(_TsaIterationPath)
-              -TsaRepositoryName $(_TsaRepositoryName)
-              -TsaCodebaseName $(_TsaCodebaseName)
-              -TsaPublish $True
