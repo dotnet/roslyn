@@ -18,14 +18,3 @@ Source Location: (55:2,25 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1482:42,0 [4] )
 |true|
 
-Source Location: (74:4,7 [59] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    [Parameter]
-    public bool TestBool { get; set; }
-|
-Generated Location: (1725:53,0 [59] )
-|
-    [Parameter]
-    public bool TestBool { get; set; }
-|
-

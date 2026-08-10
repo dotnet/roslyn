@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient;
 [Name(nameof(ViewCodeCommandHandler))]
 [Export(typeof(ICommandHandler))]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
+[ContentType(RazorLSPConstants.CSharpContentTypeName)]
 [method: ImportingConstructor]
 internal sealed partial class ViewCodeCommandHandler(
     [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
@@ -28,6 +29,11 @@ internal sealed partial class ViewCodeCommandHandler(
     JoinableTaskContext joinableTaskContext) : ICommandHandler<ViewCodeCommandArgs>
 {
     private static readonly CommandState s_availableCommandState = new(isAvailable: true, displayText: SR.View_Code);
+    private static readonly CommandState s_hiddenAvailableCommandState = new(
+        isAvailable: true,
+        isChecked: false,
+        isEnabled: true,
+        isVisible: false);
 
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService = textDocumentFactoryService;
@@ -39,35 +45,55 @@ internal sealed partial class ViewCodeCommandHandler(
 
     public CommandState GetCommandState(ViewCodeCommandArgs args)
     {
-        if (TryGetCSharpFilePath(args.SubjectBuffer, out _))
+        if (TryGetTargetFilePath(args.SubjectBuffer, out _, out var isRazorFile))
         {
-            return s_availableCommandState;
+            return isRazorFile ? s_availableCommandState : s_hiddenAvailableCommandState;
         }
 
-        return CommandState.Unavailable;
+        return isRazorFile ? CommandState.Unavailable : CommandState.Unspecified;
     }
 
     public bool ExecuteCommand(ViewCodeCommandArgs args, CommandExecutionContext executionContext)
     {
-        if (TryGetCSharpFilePath(args.SubjectBuffer, out var csharpFilePath))
+        if (TryGetTargetFilePath(args.SubjectBuffer, out var targetFilePath, out _))
         {
-            VsShellUtilities.OpenDocument(_serviceProvider, csharpFilePath);
+            VsShellUtilities.OpenDocument(_serviceProvider, targetFilePath);
             return true;
         }
 
         return false;
     }
 
-    private bool TryGetCSharpFilePath(ITextBuffer buffer, [NotNullWhen(true)] out string? codeFilePath)
+    private bool TryGetTargetFilePath(
+        ITextBuffer buffer,
+        [NotNullWhen(true)] out string? targetFilePath,
+        out bool isRazorFile)
     {
         // Command state checks and execution should always happen on the main thread.
         // However, if that changes, we should assert because our FileExistsHelper will likely be corrupted.
         _joinableTaskContext.AssertUIThread();
 
+        isRazorFile = false;
+        if (_textDocumentFactoryService.TryGetTextDocument(buffer, out var document) &&
+            document?.FilePath is string filePath)
+        {
+            isRazorFile = FileUtilities.IsAnyRazorFilePath(filePath, StringComparison.OrdinalIgnoreCase);
+            if (isRazorFile
+                ? TryGetCSharpFilePath(filePath, out targetFilePath)
+                : TryGetRazorFilePath(filePath, out targetFilePath))
+            {
+                return true;
+            }
+        }
+
+        targetFilePath = null;
+        return false;
+    }
+
+    private bool TryGetCSharpFilePath(string filePath, [NotNullWhen(true)] out string? codeFilePath)
+    {
         // Exclude imports files — they don't have nested code files.
-        if (_textDocumentFactoryService.TryGetTextDocument(buffer, out var document)
-            && document?.FilePath is string filePath
-            && FileUtilities.IsAnyRazorFilePath(filePath, StringComparison.OrdinalIgnoreCase)
+        if (FileUtilities.IsAnyRazorFilePath(filePath, StringComparison.OrdinalIgnoreCase)
             && Path.GetFileName(filePath) is string fileName
             && !string.Equals(fileName, ComponentHelpers.ImportsFileName, StringComparison.OrdinalIgnoreCase)
             && !string.Equals(fileName, MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase))
@@ -77,6 +103,26 @@ internal sealed partial class ViewCodeCommandHandler(
         }
 
         codeFilePath = null;
+        return false;
+    }
+
+    private bool TryGetRazorFilePath(string filePath, [NotNullWhen(true)] out string? razorFilePath)
+    {
+        if (!filePath.EndsWith(RazorLSPConstants.RazorFileExtension + RazorLSPConstants.CSharpFileExtension, StringComparison.OrdinalIgnoreCase) &&
+            !filePath.EndsWith(RazorLSPConstants.CSHTMLFileExtension + RazorLSPConstants.CSharpFileExtension, StringComparison.OrdinalIgnoreCase))
+        {
+            razorFilePath = null;
+            return false;
+        }
+
+        razorFilePath = filePath[..^RazorLSPConstants.CSharpFileExtension.Length];
+        if (FileUtilities.IsAnyRazorFilePath(razorFilePath, StringComparison.OrdinalIgnoreCase) &&
+            _helper.FileExists(razorFilePath))
+        {
+            return true;
+        }
+
+        razorFilePath = null;
         return false;
     }
 }

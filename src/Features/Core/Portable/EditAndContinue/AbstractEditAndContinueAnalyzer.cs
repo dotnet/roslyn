@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyzer
 {
+    // TODO: https://github.com/dotnet/roslyn/issues/81728
+    // Temporarily disabled until https://devdiv.visualstudio.com/DevDiv/_queries/edit/1835505 is implemented.
+    // Only enabled in dotnet-watch and tests.
+    internal static bool EnableProjectLevelAnalysis = false;
+
     internal const int DefaultStatementPart = 0;
     private const string CreateNewOnMetadataUpdateAttributeName = "CreateNewOnMetadataUpdateAttribute";
     private const string RestartRequiredOnMetadataUpdateAttributeName = "RestartRequiredOnMetadataUpdateAttribute";
@@ -578,7 +583,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             // since the option changed would have different semantics than the parts that have changed.
             //
             // Skip further analysis of the document if we detect any such change (classified as rude edits) in parse options.
-            if (GetParseOptionsRudeEdits(oldTree.Options, newTree.Options).Any())
+            if (EnableProjectLevelAnalysis && GetParseOptionsRudeEdits(oldTree.Options, newTree.Options).Any())
             {
                 log.Write($"Parse options differ for '{filePath}'");
 

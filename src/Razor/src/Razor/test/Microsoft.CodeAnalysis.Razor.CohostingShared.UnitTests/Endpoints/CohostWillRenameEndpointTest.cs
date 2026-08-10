@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -158,10 +157,10 @@ public class CohostWillRenameEndpointTest(ITestOutputHelper testOutputHelper) : 
             ]);
 
     private async Task VerifyRenamesAsync(
-        Uri newName,
-        Uri oldName,
+        DocumentUri newName,
+        DocumentUri oldName,
         (string fileName, string contents)[] files,
-        (Uri fileUri, string contents)[] expectedFiles)
+        (DocumentUri FileDocumentUri, string contents)[] expectedFiles)
     {
         var document = CreateProjectAndRazorDocument(contents: "", additionalFiles: files);
 
@@ -175,8 +174,8 @@ public class CohostWillRenameEndpointTest(ITestOutputHelper testOutputHelper) : 
             Files = [
                 new FileRename
                 {
-                    OldUri = new(oldName),
-                    NewUri = new(newName),
+                    OldUri = oldName,
+                    NewUri = newName,
                 }
             ]
         };

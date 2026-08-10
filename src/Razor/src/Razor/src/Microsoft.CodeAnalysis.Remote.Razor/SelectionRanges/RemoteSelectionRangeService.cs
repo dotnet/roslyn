@@ -5,13 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -24,26 +24,30 @@ internal sealed class RemoteSelectionRangeService(in ServiceArgs args) : RazorDo
     }
 
     public ValueTask<SelectionRange[]?> GetSelectionRangesAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position[] positions,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetSelectionRangesAsync(context, positions, cancellationToken),
+            snapshot => GetSelectionRangesAsync(snapshot, positions, cancellationToken),
             cancellationToken);
 
     private async ValueTask<SelectionRange[]?> GetSelectionRangesAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         Position[] positions,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        using var mappedPositions = new PooledArrayBuilder<LinePosition>();
-        foreach (var position in positions)
+        // Each position can map to either the implementation or declaration C# document. Keep the
+        // position info in request order so we can query each generated document separately and still
+        // return selection ranges in the same order as the original request.
+        var positionInfos = new DocumentPositionInfo[positions.Length];
+        for (var i = 0; i < positions.Length; i++)
         {
+            var position = positions[i];
             if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
             {
                 return null;
@@ -55,31 +59,67 @@ internal sealed class RemoteSelectionRangeService(in ServiceArgs args) : RazorDo
                 return null;
             }
 
-            mappedPositions.Add(positionInfo.Position.ToLinePosition());
+            positionInfos[i] = positionInfo;
         }
 
-        var generatedDocument = await context.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
-            .ConfigureAwait(false);
+        var selectionRanges = new SelectionRange[positions.Length];
 
-        var linePositions = mappedPositions.ToImmutable();
-        var csharpSelectionRanges = await ExternalHandlers.SelectionRanges
-            .GetSelectionRangesAsync(generatedDocument, linePositions, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (csharpSelectionRanges is null)
+        if (!await AddSelectionRangesAsync(inDeclDocument: false, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
 
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
-        var selectionRanges = new SelectionRange[csharpSelectionRanges.Length];
-        for (var i = 0; i < csharpSelectionRanges.Length; i++)
+        if (!await AddSelectionRangesAsync(inDeclDocument: true, cancellationToken).ConfigureAwait(false))
         {
-            selectionRanges[i] = MapSelectionRange(csharpDocument, csharpSelectionRanges[i], positions[i], isRoot: true)!;
+            return null;
         }
 
         return selectionRanges;
+
+        async ValueTask<bool> AddSelectionRangesAsync(
+            bool inDeclDocument,
+            CancellationToken cancellationToken)
+        {
+            // Roslyn selection range requests are scoped to a single document, so collect just the
+            // positions that belong to the requested generated C# document.
+            using var linePositions = new PooledArrayBuilder<LinePosition>();
+            foreach (var positionInfo in positionInfos)
+            {
+                if (positionInfo.InDeclDocument == inDeclDocument)
+                {
+                    linePositions.Add(positionInfo.Position.ToLinePosition());
+                }
+            }
+
+            if (linePositions.Count == 0)
+            {
+                return true;
+            }
+
+            var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+
+            var csharpSelectionRanges = await SelectionRangeHandler.GetSelectionRangesAsync(generatedDocument, linePositions.ToImmutable(), cancellationToken).ConfigureAwait(false);
+            if (csharpSelectionRanges is null)
+            {
+                return false;
+            }
+
+            var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
+            var csharpSelectionRangeIndex = 0;
+
+            // The Roslyn results match the filtered line position order. Walk the original positions
+            // again so each mapped result goes back to its original request index.
+            for (var i = 0; i < positionInfos.Length; i++)
+            {
+                if (positionInfos[i].InDeclDocument == inDeclDocument)
+                {
+                    selectionRanges[i] = MapSelectionRange(csharpDocument, csharpSelectionRanges[csharpSelectionRangeIndex], positions[i], isRoot: true)!;
+                    csharpSelectionRangeIndex++;
+                }
+            }
+
+            return true;
+        }
     }
 
     private SelectionRange? MapSelectionRange(RazorCSharpDocument csharpDocument, SelectionRange? csharpSelectionRange, Position originalPosition, bool isRoot)

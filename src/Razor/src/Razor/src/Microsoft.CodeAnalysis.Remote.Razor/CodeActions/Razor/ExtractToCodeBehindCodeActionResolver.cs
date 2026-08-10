@@ -17,24 +17,17 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
-[method: ImportingConstructor]
-internal sealed class ExtractToCodeBehindCodeActionResolver(
-    LanguageServerFeatureOptions languageServerFeatureOptions,
-    IRoslynCodeActionHelpers roslynCodeActionHelpers) : IRazorCodeActionResolver
+internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionResolver
 {
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-    private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
-
     public string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehind;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<ExtractToCodeBehindCodeActionParams>();
         if (actionParams is null)
@@ -42,24 +35,24 @@ internal sealed class ExtractToCodeBehindCodeActionResolver(
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        var path = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
+        var path = FilePathNormalizer.Normalize(documentSnapshot.Uri.GetAbsoluteOrUNCPath());
         var codeBehindPath = FileUtilities.GenerateUniquePath(path, $"{Path.GetExtension(path)}.cs");
-        var codeBehindUri = LspFactory.CreateFilePathUri(codeBehindPath, _languageServerFeatureOptions);
+        var codeBehindUri = LspFactory.CreateFilePathUri(codeBehindPath);
 
-        var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var text = codeDocument.Source.Text;
 
         var className = Path.GetFileNameWithoutExtension(path);
         var codeBlockContent = text.ToString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var codeBehindContent = GenerateCodeBehindClass(className, actionParams.Namespace, codeBlockContent, codeDocument);
 
-        codeBehindContent = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(documentContext.Snapshot.Project, codeBehindUri, codeBehindContent, cancellationToken).ConfigureAwait(false);
+        codeBehindContent = await RoslynCodeActionHelpers.GetFormattedNewFileContentsAsync(documentSnapshot.ProjectSnapshot.Project, codeBehindPath, codeBehindContent, cancellationToken).ConfigureAwait(false);
 
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(documentContext.Uri) };
-        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(codeBehindUri) };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentSnapshot.Uri };
+        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = codeBehindUri };
 
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
         {

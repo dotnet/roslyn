@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -248,17 +248,27 @@ public abstract class IntegrationTestBase
 
     protected CompiledAssembly CompileToAssembly(CompiledCSharpCode code, bool throwOnFailure = true, bool ignoreRazorDiagnostics = false)
     {
-        var csharpDocument = code.CodeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = code.CodeDocument.GetRequiredImplCSharpDocument();
         if (!ignoreRazorDiagnostics && csharpDocument.Diagnostics.Any())
         {
             var diagnosticsLog = string.Join(Environment.NewLine, csharpDocument.Diagnostics.Select(d => d.ToString()).ToArray());
             throw new InvalidOperationException($"Aborting compilation to assembly because RazorCompiler returned nonempty diagnostics: {diagnosticsLog}");
         }
 
-        var syntaxTrees = new[]
+        var primaryPath = code.CodeDocument.Source.FilePath ?? string.Empty;
+        var syntaxTrees = new List<CSharpSyntaxTree>
         {
-            (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(csharpDocument.Text, CSharpParseOptions, path: code.CodeDocument.Source.FilePath ?? string.Empty),
+            (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(csharpDocument.Text, CSharpParseOptions, path: primaryPath),
         };
+
+        // The decl phase emits a separate decl C# document when the document is splittable;
+        // both partial halves must make it into the compilation so observers see the full type.
+        if (code.CodeDocument.GetDeclCSharpDocument() is { } declDocument)
+        {
+            // The two halves must have distinct paths so C# can keep file-local types
+            // (e.g. __PrivateComponentRenderModeAttribute) unambiguous.
+            syntaxTrees.Add((CSharpSyntaxTree)CSharpSyntaxTree.ParseText(declDocument.Text, CSharpParseOptions, path: primaryPath + ".decl.g.cs"));
+        }
 
         var compilation = code.BaseCompilation.AddSyntaxTrees(syntaxTrees);
 
@@ -295,7 +305,11 @@ public abstract class IntegrationTestBase
                 };
             }
 
-            return new CompiledAssembly(compilation, code.CodeDocument, Assembly.Load(peStream.ToArray()));
+            var imageBytes = peStream.ToArray();
+            return new CompiledAssembly(compilation, code.CodeDocument, Assembly.Load(imageBytes))
+            {
+                ImageBytes = imageBytes,
+            };
         }
     }
 
@@ -379,6 +393,28 @@ public abstract class IntegrationTestBase
         IntermediateNodeVerifier.Verify(document, baseline);
     }
 
+    protected void AssertSyntaxTreeMatchesBaseline(RazorCodeDocument codeDocument, [CallerMemberName] string testName = "")
+    {
+        var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".stree.txt");
+        var actualSyntaxNodes = TestSyntaxSerializer.Serialize(codeDocument.GetRequiredSyntaxTree().Root);
+
+        if (GenerateBaselines.ShouldGenerate)
+        {
+            var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
+            File.WriteAllText(baselineFullPath, actualSyntaxNodes, _baselineEncoding);
+            return;
+        }
+
+        var stFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
+        if (!stFile.Exists())
+        {
+            throw new XunitException($"The resource {baselineFileName} was not found.");
+        }
+
+        var syntaxNodeBaseline = stFile.ReadAllText();
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(syntaxNodeBaseline, actualSyntaxNodes);
+    }
+
     internal void AssertHtmlDocumentMatchesBaseline(RazorHtmlDocument htmlDocument, [CallerMemberName] string testName = "")
     {
         var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".codegen.html");
@@ -415,7 +451,7 @@ public abstract class IntegrationTestBase
             File.WriteAllText(baselineFullPath, csharpDocument.Text.ToString(), _baselineEncoding);
 
             var baselineDiagnosticsFullPath = Path.Combine(TestProjectRoot, baselineDiagnosticsFileName);
-            var lines = csharpDocument.Diagnostics.Select(RazorDiagnosticSerializer.Serialize).ToArray();
+            var lines = csharpDocument.Diagnostics.Select(RazorDiagnosticSerializer.SerializeAssertingFilePath).ToArray();
             if (lines.Any())
             {
                 File.WriteAllLines(baselineDiagnosticsFullPath, lines, _baselineEncoding);
@@ -447,13 +483,13 @@ public abstract class IntegrationTestBase
             baselineDiagnostics = diagnosticsFile.ReadAllText();
         }
 
-        var actualDiagnostics = string.Concat(csharpDocument.Diagnostics.Select(d => NormalizeNewLines(RazorDiagnosticSerializer.Serialize(d)) + "\r\n"));
+        var actualDiagnostics = string.Concat(csharpDocument.Diagnostics.Select(d => NormalizeNewLines(RazorDiagnosticSerializer.SerializeAssertingFilePath(d)) + "\r\n"));
         Assert.Equal(baselineDiagnostics, actualDiagnostics);
     }
 
     protected void AssertSourceMappingsMatchBaseline(RazorCodeDocument codeDocument, [CallerMemberName] string testName = "")
     {
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetImplCSharpDocument();
         Assert.NotNull(csharpDocument);
 
         var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".mappings.txt");
@@ -575,9 +611,13 @@ public abstract class IntegrationTestBase
 
     protected void AssertLinePragmas(RazorCodeDocument codeDocument)
     {
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetImplCSharpDocument();
         Assert.NotNull(csharpDocument);
         var linePragmas = csharpDocument.LinePragmas;
+        if (codeDocument.GetDeclCSharpDocument() is { } declDocument)
+        {
+            linePragmas = linePragmas.AddRange(declDocument.LinePragmas);
+        }
 
         var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree() ?? codeDocument.GetRequiredSyntaxTree();
         var sourceContent = syntaxTree.Source.Text.ToString();

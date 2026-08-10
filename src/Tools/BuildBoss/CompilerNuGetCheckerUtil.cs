@@ -140,7 +140,7 @@ namespace BuildBoss
             // https://github.com/dotnet/roslyn/issues/17864
             allGood &= VerifyPackageCore(
                 textWriter,
-                FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.Tools.Roslyn"),
+                SharedUtil.FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.Tools.Roslyn"),
                 excludeFunc: relativeFileName =>
                     PathComparer.Equals(relativeFileName, "csc.exe") ||
                     PathComparer.Equals(relativeFileName, "Icon.png") ||
@@ -158,7 +158,7 @@ namespace BuildBoss
 
             allGood &= VerifyPackageCore(
                 textWriter,
-                FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset.Arm64"),
+                SharedUtil.FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset.Arm64"),
                 (@"tasks\net472", GetProjectOutputDirectory("csc-arm64", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("vbc-arm64", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("csi", "net472")),
@@ -167,7 +167,7 @@ namespace BuildBoss
 
             allGood &= VerifyPackageCore(
                 textWriter,
-                FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset.Framework"),
+                SharedUtil.FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset.Framework"),
                 (@"tasks\net472", GetProjectOutputDirectory("csc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("vbc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("csi", "net472")),
@@ -176,7 +176,7 @@ namespace BuildBoss
 
             allGood &= VerifyPackageCore(
                 textWriter,
-                FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset"),
+                SharedUtil.FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset"),
                 excludeFunc: relativeFileName =>
                     relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.DiaSymReader.Native", PathComparison) ||
                     relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll", PathComparison) ||
@@ -358,7 +358,7 @@ namespace BuildBoss
         /// <param name="textWriter"></param>
         private bool CheckExternalApis(TextWriter textWriter)
         {
-            var packageFilePath = FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.ExternalAPIs.Roslyn");
+            var packageFilePath = SharedUtil.FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.ExternalAPIs.Roslyn");
             var allGood = true;
 
             // This tracks the packages which are included in separate packages. Hence they don't need to
@@ -419,20 +419,6 @@ namespace BuildBoss
                     }
                 }
             }
-        }
-
-        private string FindNuGetPackage(string directory, string partialName)
-        {
-            var regex = $@"{partialName}.\d.*\.nupkg";
-            var file = Directory
-                .EnumerateFiles(directory, "*.nupkg")
-                .Where(filePath =>
-                {
-                    var fileName = Path.GetFileName(filePath);
-                    return Regex.IsMatch(fileName, regex);
-                })
-               .SingleOrDefault();
-            return file ?? throw new Exception($"Unable to find unique '{partialName}' in '{directory}'");
         }
 
         private string FindVsix(string fileName)

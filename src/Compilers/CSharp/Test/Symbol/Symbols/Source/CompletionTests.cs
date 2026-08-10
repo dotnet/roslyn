@@ -179,5 +179,37 @@ class A {
         {
             return unchecked((bits & (sbyte)(bits - 1)) == 0);
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/83978")]
+        public void Repro_IsMetadataVirtualLocked_Assertion()
+        {
+            var source1 = """
+                public struct U : I1
+                {
+                    public object Value => throw null!;
+                }
+
+                public interface I1
+                {
+                    object Value { get; }
+                }
+                """;
+
+            var source2 = """
+                class Program
+                {
+                    object M1(U u)
+                    {
+                        return u.Value;
+                    }
+                }
+                """;
+
+            var comp0 = CreateCompilation(source1);
+            var comp = CreateCompilation(source2, references: [comp0.ToMetadataReference()]);
+            comp.VerifyEmitDiagnostics();
+            comp0.VerifyEmitDiagnostics();
+        }
     }
 }

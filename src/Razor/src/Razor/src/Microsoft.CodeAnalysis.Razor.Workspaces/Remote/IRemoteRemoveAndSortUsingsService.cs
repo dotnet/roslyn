@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
@@ -12,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 internal interface IRemoteRemoveAndSortUsingsService
 {
     ValueTask<ImmutableArray<TextChange>> GetRemoveAndSortUsingsEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         CancellationToken cancellationToken);
 
     ValueTask<ImmutableArray<TextChange>> GetSortUsingsEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         CancellationToken cancellationToken);
 }

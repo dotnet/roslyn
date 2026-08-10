@@ -24,10 +24,13 @@ internal static class ShowToastNotification
         CommandIdentifier = "csharp.showOutputWindow"
     };
 
-    public static async Task ShowToastNotificationAsync(LSP.MessageType messageType, string message, CancellationToken cancellationToken, params LSP.Command[] commands)
+    public static async Task ShowToastNotificationAsync(
+        this IClientLanguageServerManager languageServerManager,
+        LSP.MessageType messageType,
+        string message,
+        CancellationToken cancellationToken,
+        params LSP.Command[] commands)
     {
-        Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
-        var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
         var toastParams = new ShowToastNotificationParams(messageType, message, commands);
         await languageServerManager.SendNotificationAsync(ShowToastNotificationName, toastParams, cancellationToken);
     }

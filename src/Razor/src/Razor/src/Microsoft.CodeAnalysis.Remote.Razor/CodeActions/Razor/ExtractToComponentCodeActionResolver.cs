@@ -15,23 +15,19 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
-[method: ImportingConstructor]
-internal sealed class ExtractToComponentCodeActionResolver(
-    LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
+internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionResolver
 {
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-
     public string Action => LanguageServerConstants.CodeActions.ExtractToNewComponent;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         if (data.ValueKind == JsonValueKind.Undefined)
         {
@@ -44,15 +40,15 @@ internal sealed class ExtractToComponentCodeActionResolver(
             return null;
         }
 
-        var componentDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var componentDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var text = componentDocument.Source.Text;
-        var path = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
+        var path = FilePathNormalizer.Normalize(documentSnapshot.Uri.GetAbsoluteOrUNCPath());
         var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
         var templatePath = Path.Combine(directoryName, "Component.razor");
         var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentUri = new DocumentUri(LspFactory.CreateFilePathUri(componentPath, _languageServerFeatureOptions));
+        var newComponentUri = LspFactory.CreateFilePathUri(componentPath);
 
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
@@ -88,7 +84,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             new CreateFile { DocumentUri = newComponentUri },
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(documentContext.Uri) },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentSnapshot.Uri },
                 Edits =
                 [
                     new TextEdit

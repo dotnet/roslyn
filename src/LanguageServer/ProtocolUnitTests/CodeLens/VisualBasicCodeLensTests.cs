@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeLens;
 
 public sealed class VisualBasicCodeLensTests : AbstractCodeLensTests
 {
-    public VisualBasicCodeLensTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    public VisualBasicCodeLensTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 

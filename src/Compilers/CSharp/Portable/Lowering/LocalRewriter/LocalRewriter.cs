@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -441,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Each generic local function gets its own dynamic factory because it 
                     // needs its own container to cache dynamic call-sites. That type (the container) "inherits"
                     // local function's type parameters as well as type parameters of all containing methods.
-                    _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
+                    _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal.ToString(CultureInfo.InvariantCulture));
                 }
 
                 return base.VisitLocalFunctionStatement(node)!;
@@ -841,10 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var F = _factory;
 
             BoundNode resultExpr;
-            if (TypeSymbol.Equals(
-                indexType,
-                _compilation.GetWellKnownType(WellKnownType.System_Range),
-                TypeCompareKind.ConsiderEverything))
+            if (Binder.IsWellKnownSystemRange(indexType, _compilation))
             {
                 // array[Range] is compiled to:
                 // System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray(array, Range)

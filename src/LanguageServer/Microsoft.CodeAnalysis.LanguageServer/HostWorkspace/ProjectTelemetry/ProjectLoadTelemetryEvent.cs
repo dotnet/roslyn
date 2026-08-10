@@ -25,6 +25,7 @@ internal sealed record ProjectLoadTelemetryEvent(
     [property: JsonPropertyName("SdkStyleProject")] bool SdkStyleProject,
     [property: JsonPropertyName("HasSolutionFile")] bool HasSolutionFile,
     [property: JsonPropertyName("IsFileBasedProgram")] bool IsFileBasedProgram,
+    [property: JsonPropertyName("HasFileBasedAppDirectives")] bool HasFileBasedAppDirectives,
     [property: JsonPropertyName("IsMiscellaneousFile")] bool IsMiscellaneousFile)
 {
 }

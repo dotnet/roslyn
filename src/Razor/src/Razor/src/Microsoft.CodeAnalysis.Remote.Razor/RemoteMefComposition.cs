@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Threading;
 
@@ -25,6 +24,10 @@ internal sealed class RemoteMefComposition
         static () => CreateConfigurationAsync(CancellationToken.None),
         joinableTaskFactory: null);
 
+    private static readonly AsyncLazy<IExportProviderFactory> s_lazyExportProviderFactory = new(
+        static () => CreateExportProviderFactoryAsync(CancellationToken.None),
+        joinableTaskFactory: null);
+
     private static readonly AsyncLazy<ExportProvider> s_lazyExportProvider = new(
         static () => CreateExportProviderAsync(CacheDirectory, CancellationToken.None),
         joinableTaskFactory: null);
@@ -32,13 +35,6 @@ internal sealed class RemoteMefComposition
     private static Task? s_saveCacheFileTask;
 
     public static string? CacheDirectory { get; set; }
-
-    /// <summary>
-    ///  Gets a <see cref="CompositionConfiguration"/> built from <see cref="Assemblies"/>. Note that the
-    ///  same <see cref="CompositionConfiguration"/> instance is returned for subsequent calls to this method.
-    /// </summary>
-    public static Task<CompositionConfiguration> GetConfigurationAsync(CancellationToken cancellationToken)
-        => s_lazyConfiguration.GetValueAsync(cancellationToken);
 
     /// <summary>
     ///  Gets an <see cref="ExportProvider"/> for the shared MEF composition. Note that the
@@ -57,12 +53,34 @@ internal sealed class RemoteMefComposition
         return CompositionConfiguration.Create(catalog).ThrowOnErrors();
     }
 
+    private static async Task<IExportProviderFactory> CreateExportProviderFactoryAsync(CancellationToken cancellationToken)
+    {
+        var runtimeComposition = await CreateRuntimeCompositionAsync(cancellationToken).ConfigureAwait(false);
+        return runtimeComposition.CreateExportProviderFactory();
+    }
+
+    private static async Task<RuntimeComposition> CreateRuntimeCompositionAsync(CancellationToken cancellationToken)
+    {
+        var configuration = await s_lazyConfiguration.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+        return runtimeComposition;
+    }
+
     /// <summary>
     ///  Creates a new MEF composition and returns an <see cref="ExportProvider"/>. The catalog and configuration
-    ///  are reused for subsequent calls to this method.
+    ///  are reused for subsequent calls to this method. When <paramref name="cacheDirectory"/> is <see langword="null"/>,
+    ///  the export provider factory is also reused and only the provider instance is recreated per call.
     /// </summary>
     public static async Task<ExportProvider> CreateExportProviderAsync(string? cacheDirectory, CancellationToken cancellationToken)
     {
+        if (cacheDirectory is null)
+        {
+            var cachedExportProviderFactory = await s_lazyExportProviderFactory.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return cachedExportProviderFactory.CreateExportProvider();
+        }
+
         var cache = new CachedComposition();
         var compositionCacheFile = GetCompositionCacheFile(cacheDirectory);
         if (await TryLoadCachedExportProviderAsync(cache, compositionCacheFile, cancellationToken).ConfigureAwait(false) is { } cachedProvider)
@@ -70,10 +88,7 @@ internal sealed class RemoteMefComposition
             return cachedProvider;
         }
 
-        var configuration = await s_lazyConfiguration.GetValueAsync(cancellationToken).ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+        var runtimeComposition = await CreateRuntimeCompositionAsync(cancellationToken).ConfigureAwait(false);
         var exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
 
         // We don't need to block on saving the cache, because if it fails or is corrupt, we'll just try again next time, but
@@ -163,7 +178,7 @@ internal sealed class RemoteMefComposition
             return null;
         }
 
-        var checksum = new Checksum.Builder();
+        var checksum = new Microsoft.AspNetCore.Razor.Utilities.Checksum.Builder();
         foreach (var assembly in Assemblies)
         {
             var assemblyPath = assembly.Location.AssumeNotNull();

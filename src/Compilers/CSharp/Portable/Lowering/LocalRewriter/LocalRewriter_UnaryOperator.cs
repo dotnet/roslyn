@@ -527,7 +527,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression makeAssignmentBack(SyntaxNode syntax, BoundExpression transformedLHS, BoundLocal boundTemp, bool isChecked, AssignmentKind assignmentKind)
             {
-                return MakeAssignmentOperator(syntax, transformedLHS, boundTemp, used: false, isChecked: isChecked, assignmentKind);
+                // Note: the receiver is known to be captured because of TransformCompoundAssignmentLHS
+                return MakeAssignmentOperator(syntax, transformedLHS, boundTemp, used: false, isChecked: isChecked, assignmentKind, receiverIsKnownToBeCaptured: true);
             }
         }
 
@@ -661,19 +662,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // prefix:  temp = (X)(T.Increment((T)operand)));  operand = temp; 
                 // postfix: temp = operand;                        operand = (X)(T.Increment((T)temp)));
-                tempInitializers.Add(MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment));
+                tempInitializers.Add(MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: true));
 
+                // Note: the receiver in transformedLHS is known to be captured because of TransformCompoundAssignmentLHS
                 if (!isPrefix && IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the increment operation
                     BoundLocal incrementResult = _factory.StoreToTemp(newValue, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
                     tempSymbols.Add(incrementResult.LocalSymbol);
                     tempInitializers.Add(assignmentToTemp);
-                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, incrementResult, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement));
+                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, incrementResult, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement, receiverIsKnownToBeCaptured: true));
                 }
                 else
                 {
-                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement));
+                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement, receiverIsKnownToBeCaptured: true));
                 }
 
                 // prefix:  Seq( operand initializers; temp = (T)(operand + 1); operand = temp;          result: temp)
@@ -700,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var tempValue = isPrefix ? newValue : MakeRValue(operand);
                 Debug.Assert(tempValue.Type is { });
-                var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment);
+                var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: true);
 
                 var operandValue = isPrefix ? boundTemp : newValue;
                 var tempAssignedAndOperandValue = new BoundSequence(
@@ -712,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // prefix:  operand = Seq{temp = (T)(operand + 1);  temp;}
                 // postfix: operand = Seq{temp = operand;        ;  (T)(temp + 1);}
-                BoundExpression operandAssignment = MakeAssignmentOperator(syntax, operand, tempAssignedAndOperandValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement);
+                BoundExpression operandAssignment = MakeAssignmentOperator(syntax, operand, tempAssignedAndOperandValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement, receiverIsKnownToBeCaptured: true);
 
                 // prefix:  Seq{operand initializers; operand = Seq{temp = (T)(operand + 1);  temp;}          result: temp}
                 // postfix: Seq{operand initializers; operand = Seq{temp = operand;        ;  (T)(temp + 1);} result: temp}

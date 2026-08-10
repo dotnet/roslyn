@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
@@ -29,7 +27,7 @@ internal sealed class HtmlDocumentPublisher(
     private readonly TrackingLSPDocumentManager _documentManager = documentManager as TrackingLSPDocumentManager ?? throw new InvalidOperationException("Expected TrackingLSPDocumentManager");
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlDocumentPublisher>();
 
-    public async Task<bool> TryPublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken)
+    public async Task<bool> TryPublishAsync(TextDocument document, Checksum checksum, string htmlText, CancellationToken cancellationToken)
     {
         var uri = document.CreateSystemUri();
         if (!_documentManager.TryGetDocument(uri, out var documentSnapshot) ||

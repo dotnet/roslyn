@@ -1,0 +1,3 @@
+﻿[0000] OpenElement("p")
+[0001] AddAttribute("onmouseover", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, OnComponentHover ))
+[0002] AddAttribute("style", "background:" + " " + ( ParentBgColor ) + ";")

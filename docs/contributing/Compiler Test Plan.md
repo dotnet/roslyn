@@ -104,7 +104,10 @@ See also [types](#types) and [members](#members) lists below.
 - Readonly members on structs (methods, property/indexer accessors, custom event accessors)
 - SkipLocalsInit
 - Method override or explicit implementation with `where T : { class, struct, default }`
-- `extension` blocks (emitted with content-based names)
+- `extension` blocks (emitted with content-based names): 
+    - methods
+    - operators (except conversion operators)
+    - properties and indexers (including get/set/init accessors)
 
 ## Code
 - Operators (see Eric's list below)
@@ -224,6 +227,8 @@ yield return …;
 yield break;
 break;
 continue;
+break label;
+continue label;
 ```
 
 ## Expression classifications

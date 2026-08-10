@@ -18,12 +18,12 @@
     <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
-    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Since we're including these DLLs in the package, we mark them as private assets so they're not also dependencies -->
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
   </ItemGroup>
@@ -47,8 +47,6 @@
   <Target Name="PopulateLocalDevelopmentOutput" AfterTargets="Build" Condition="'$(ContinuousIntegrationBuild)' != 'true' and '$(DotNetBuildSourceOnly)' != 'true'">
     <ItemGroup>
       <_LocalRootOutput Include="
-          $(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll;
-          $(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.xml;
           $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.dll;
           $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.pdb;
           $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Workspaces.dll;

@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Composition;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 #pragma warning disable RS0030 // Do not use banned APIs
 [ExportRazorLspServiceFactory(typeof(IRazorSemanticTokensRefreshQueue)), Shared]
@@ -26,9 +26,8 @@ internal class RazorSemanticTokensRefreshQueueWrapperFactory() : ILspServiceFact
 
     internal class RazorSemanticTokensRefreshQueueWrapper(SemanticTokensRefreshQueue semanticTokensRefreshQueue) : IRazorSemanticTokensRefreshQueue
     {
-        public void Initialize(string clientCapabilitiesString)
+        public void Initialize(VSInternalClientCapabilities clientCapabilities)
         {
-            var clientCapabilities = JsonSerializer.Deserialize<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
             // If Roslyn and Razor both support semantic tokens, then this call to Initialize is redundant, but the
             // Initialize method in the queue itself is resilient to being called twice, so it doesn't actually do
             // any harm.
