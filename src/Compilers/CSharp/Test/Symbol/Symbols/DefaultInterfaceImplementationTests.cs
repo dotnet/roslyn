@@ -11747,10 +11747,9 @@ public partial interface I1
                 // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
                 //         new System.Action(M2).Invoke();
                 Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27),
-                // Before C# preview, 'partial' was required to be the last modifier. With the relaxed-modifier-ordering feature it can appear anywhere.
-                // (13,5): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 //     partial static void M4();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(13, 5));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(13, 5));
 
             CreateCompilation(source1, options: TestOptions.DebugDll,
                               parseOptions: TestOptions.RegularPreview,
@@ -11760,7 +11759,10 @@ public partial interface I1
                 Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M1").WithArguments("I1.M1()").WithLocation(9, 27),
                 // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
                 //         new System.Action(M2).Invoke();
-                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27));
+                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27),
+                // (13,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                //     partial static void M4();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(13, 5));
         }
 
         [Fact]
@@ -45112,18 +45114,12 @@ interface I19
                 // (62,20): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I13() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I13").WithArguments("virtual").WithLocation(62, 20),
-                // (66,5): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     partial static I14();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(66, 5),
                 // (66,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
                 // (70,12): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(70, 12),
-                // (74,5): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     partial static I16() {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(74, 5),
                 // (74,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),

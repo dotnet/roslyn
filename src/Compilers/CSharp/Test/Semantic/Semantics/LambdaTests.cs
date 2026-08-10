@@ -6917,9 +6917,9 @@ class Program
         public void PartialStaticLambda()
         {
             // The source here is invalid: 'partial static' is not a legal lambda modifier sequence.
-            // Under the relaxed modifier-ordering feature, the parser now commits to 'partial static'
-            // as the start of a member declaration once it sees the reserved 'static' keyword after
-            // 'partial'. That is a plausible reading but it happens to be the wrong one for this
+            // The parser commits to 'partial static' as the start of a member declaration once it
+            // sees the reserved 'static' keyword after 'partial'. That is a plausible reading but
+            // it happens to be the wrong one for this
             // broken fragment, and the resulting error recovery cascade is noisy. The precise shape
             // of the recovery diagnostics is not a contract; this test just pins down the current
             // behavior. Improving error recovery for this exact pathological input is not worth the
@@ -6942,6 +6942,7 @@ class Program
                 // (5,27): error CS1513: } expected
                 //         System.Action x = partial static () => { };
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "partial").WithLocation(5, 27),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 27),
                 // (5,43): error CS8124: Tuple must contain at least two elements.
                 //         System.Action x = partial static () => { };
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 43),

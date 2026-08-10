@@ -109,9 +109,9 @@ class Program
 }
 ";
             var comp = CreateCompilation(text);
-            // Phase 3 (relaxing 'ref' type-modifier ordering) will produce cleaner diagnostics;
-            // for now the mix of relaxed 'partial' + strict 'ref' produces cascading parse errors.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5));
         }
 
         [Fact]
@@ -139,9 +139,11 @@ class C
                 // (4,5): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
                 //     ref partial readonly struct S {}
                 Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(4, 5),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 9),
                 // (5,5): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(5, 5));
+                Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(5, 5),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 9));
         }
 
         [Fact]
@@ -154,9 +156,11 @@ class C
     partial ref readonly struct S {}
 }");
             comp.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
                 // (4,13): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(4, 13),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
                 // (5,13): error CS9380: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(5, 13));
@@ -171,9 +175,9 @@ class C
     readonly partial ref struct S {}
     readonly partial ref struct S {}
 }");
-            // Phase 3 (relaxing 'ref' type-modifier ordering) will produce cleaner diagnostics;
-            // for now the mix of relaxed 'partial' + strict 'ref' produces cascading parse errors.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 14),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 14));
         }
 
         [Fact]

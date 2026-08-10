@@ -127,7 +127,10 @@ public sealed class FileModifierParsingTests : ParsingTests
     {
         UsingNode($$"""
             partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """);
+            """,
+            expectedBindingDiagnostics: [
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
+            ]);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
@@ -143,17 +146,19 @@ public sealed class FileModifierParsingTests : ParsingTests
         }
         EOF();
 
-        // Before C# preview, 'partial' was required to be the last modifier. With relaxed-modifier-ordering it can appear anywhere.
         CreateCompilation($$"""
             partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
             """, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             // partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
 
         CreateCompilation($$"""
             partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]
@@ -161,7 +166,10 @@ public sealed class FileModifierParsingTests : ParsingTests
     {
         UsingNode("""
             partial file record C { }
-            """);
+            """,
+            expectedBindingDiagnostics: [
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
+            ]);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordDeclaration);
@@ -180,13 +188,16 @@ public sealed class FileModifierParsingTests : ParsingTests
         CreateCompilation("""
             partial file record C { }
             """, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             // partial file record C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
 
         CreateCompilation("""
             partial file record C { }
-            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // partial file record C { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]
@@ -217,7 +228,10 @@ public sealed class FileModifierParsingTests : ParsingTests
     {
         UsingNode($$"""
             partial file record struct C { }
-            """);
+            """,
+            expectedBindingDiagnostics: [
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
+            ]);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordStructDeclaration);
@@ -237,13 +251,16 @@ public sealed class FileModifierParsingTests : ParsingTests
         CreateCompilation("""
             partial file record struct C { }
             """, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             // partial file record struct C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
 
         CreateCompilation("""
             partial file record struct C { }
-            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // partial file record struct C { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]
@@ -253,52 +270,16 @@ public sealed class FileModifierParsingTests : ParsingTests
             file partial ref struct C { }
             """,
             options: TestOptions.Regular10,
-            expectedParsingDiagnostics: new[]
-            {
-                // (1,6): error CS1525: Invalid expression term 'partial'
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 6),
-                // (1,6): error CS1002: ; expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 6)
-            },
             expectedBindingDiagnostics: new[]
             {
-                // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1),
-                // (1,6): error CS1525: Invalid expression term 'partial'
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 6),
-                // (1,6): error CS1002: ; expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 6),
-                // (1,6): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 6)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(1, 25)
             });
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
             N(SyntaxKind.StructDeclaration);
             {
+                N(SyntaxKind.FileKeyword);
                 N(SyntaxKind.PartialKeyword);
                 N(SyntaxKind.RefKeyword);
                 N(SyntaxKind.StructKeyword);
@@ -317,50 +298,16 @@ public sealed class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             file partial ref struct C { }
             """,
-            expectedParsingDiagnostics: new[]
-            {
-                // (1,6): error CS1525: Invalid expression term 'partial'
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 6),
-                // (1,6): error CS1002: ; expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 6)
-            },
             expectedBindingDiagnostics: new[]
             {
-                // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1),
-                // (1,6): error CS1525: Invalid expression term 'partial'
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 6),
-                // (1,6): error CS1002: ; expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 6)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6)
             });
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
             N(SyntaxKind.StructDeclaration);
             {
+                N(SyntaxKind.FileKeyword);
                 N(SyntaxKind.PartialKeyword);
                 N(SyntaxKind.RefKeyword);
                 N(SyntaxKind.StructKeyword);
@@ -379,7 +326,10 @@ public sealed class FileModifierParsingTests : ParsingTests
         // Phase 1 relaxes partial ordering; ref lookahead is unchanged until Phase 3, but this input now parses as a struct with modifiers.
         UsingNode($$"""
             partial file ref struct C { }
-            """);
+            """,
+            expectedBindingDiagnostics: [
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
+            ]);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -400,13 +350,16 @@ public sealed class FileModifierParsingTests : ParsingTests
         CreateCompilation("""
             partial file ref struct C { }
             """, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             // partial file ref struct C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
 
         CreateCompilation("""
             partial file ref struct C { }
-            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // partial file ref struct C { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]

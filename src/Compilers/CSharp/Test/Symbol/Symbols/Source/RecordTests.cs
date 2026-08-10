@@ -1196,15 +1196,15 @@ partial public record C
 {
 }
 ";
-            // Before C# preview, 'partial' was required to be the last modifier.  Starting with the
-            // relaxed-modifier-ordering feature (preview), 'partial' can appear anywhere in the
-            // modifier list.
             CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-                // (2,1): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // partial public record C
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
 
-            CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // partial public record C
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
 
         [Fact]

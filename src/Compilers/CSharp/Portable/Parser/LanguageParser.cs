@@ -1429,8 +1429,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // 'partial' is a contextual keyword.  Accept it as a modifier whenever the rest of the
                         // modifier list, followed by the actual declaration head, clearly identifies a
                         // partial-capable type declaration or member declaration.  Historically 'partial' was
-                        // required to be the last modifier; that restriction is now enforced (with feature
-                        // gating) by the binder in ModifierUtils.ToDeclarationModifiers.
+                        // required to be the last modifier; that restriction is enforced by the binder in
+                        // ModifierUtils.ToDeclarationModifiers.
                         if (this.IsPartialModifierInDeclarationHead())
                         {
                             modTok = ConvertToKeyword(this.EatToken());
@@ -1536,7 +1536,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (!parsingStatementNotDeclaration &&
                 (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword))
             {
-                this.EatToken(); // "partial" doesn't affect our decision, so look past it.
+                // If the remainder is unambiguously a declaration with 'partial' in its modifier
+                // list, this contextual token is also unambiguously a modifier. This handles chains
+                // such as 'closed partial ref struct' without leaving parser diagnostics behind.
+                if (this.IsPartialModifierInDeclarationHead())
+                {
+                    return true;
+                }
+
+                this.EatToken(); // "partial" doesn't affect our remaining heuristics, so look past it.
             }
 
             // ... 'TOKEN' [partial] <typedecl> ...
@@ -1642,8 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <remarks>
         /// This is intentionally permissive at the parse layer.  The binder
         /// (<see cref="Microsoft.CodeAnalysis.CSharp.Symbols.ModifierUtils.ToDeclarationModifiers"/>)
-        /// is responsible for reporting diagnostics when <c>partial</c> is misplaced or when the
-        /// relaxed ordering feature is not available for the declared language version.
+        /// is responsible for reporting diagnostics when <c>partial</c> is misplaced.
         /// </remarks>
         private bool IsPartialModifierInDeclarationHead()
         {

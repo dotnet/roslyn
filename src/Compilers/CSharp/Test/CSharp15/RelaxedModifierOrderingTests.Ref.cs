@@ -925,35 +925,30 @@ public sealed partial class RelaxedModifierOrderingTests
         }
         EOF();
 
-        // `partial` in first position here is the relaxed form; `ref` immediately before `struct`
-        // is canonical.  We expect only the `partial`-relaxation feature gate to fire on older
-        // language versions, not any `ref` diagnostic.
-        CreateCompilation(src).VerifyDiagnostics();
+        // `partial` in first position is non-canonical; `ref` immediately before `struct` is canonical.
+        CreateCompilation(src).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // partial ref struct S { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]
     public void Ref_WithPartial_BothNonCanonical_TwoDiagnostics()
     {
-        // `ref` errors unconditionally on non-canonical positions; `partial` is gated on the
-        // relaxed-modifier-ordering feature so it only errors on older language versions.
+        // Both modifiers error unconditionally in non-canonical positions.
         var src = "ref partial public struct S { }";
 
         CreateCompilation(src).VerifyDiagnostics(
             // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // ref partial public struct S { }
-            Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 5));
 
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // ref partial public struct S { }
             Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
-            // (1,5): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // ref partial public struct S { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 5));
     }
 
     // ---------- permutation coverage: ref + other modifiers on struct ----------
@@ -1122,7 +1117,8 @@ public sealed partial class RelaxedModifierOrderingTests
         }
         EOF();
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 15));
     }
 
     // ---------- duplicate ref ----------
