@@ -555,6 +555,14 @@ public partial class AbstractLanguageServerClientTests
         processStartInfo.ArgumentList.Add("--extensionLogDirectory");
         processStartInfo.ArgumentList.Add(extensionLogsPath);
 
+        if (launchOptions.TelemetryLevel is { } telemetryLevel)
+        {
+            processStartInfo.ArgumentList.Add("--telemetryLevel");
+            processStartInfo.ArgumentList.Add(telemetryLevel);
+            processStartInfo.ArgumentList.Add("--sessionId");
+            processStartInfo.ArgumentList.Add(Guid.NewGuid().ToString());
+        }
+
         if (launchOptions.AutoLoadProjects)
         {
             processStartInfo.ArgumentList.Add("--autoLoadProjects");

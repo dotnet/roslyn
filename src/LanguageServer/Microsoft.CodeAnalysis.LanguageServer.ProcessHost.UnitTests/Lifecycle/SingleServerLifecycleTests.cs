@@ -34,6 +34,25 @@ public sealed class SingleServerLifecycleTests(ITestOutputHelper testOutputHelpe
     }
 
     [Theory, CombinatorialData]
+    public async Task StartsAndShutsDownWithTelemetrySession(bool includeDevKitComponents)
+    {
+        await using var client = await CreateLanguageServerAsync(
+            LspWorkspaceContent.Empty,
+            new LspServerLaunchOptions
+            {
+                IncludeDevKitComponents = includeDevKitComponents,
+                TelemetryLevel = "off",
+            });
+
+        await client.ShutdownAndExitAsync();
+
+        var exitCode = await WaitForThinClientExitAsync(client);
+        Assert.Equal(0, exitCode);
+
+        await AssertServerProcessExitedAsync(client);
+    }
+
+    [Theory, CombinatorialData]
     public async Task EditorKilled_ThinClientAndServerExit(bool useNamedPipe)
     {
         // The test process can't kill itself, so stand up a separate, killable process to play the editor that the
