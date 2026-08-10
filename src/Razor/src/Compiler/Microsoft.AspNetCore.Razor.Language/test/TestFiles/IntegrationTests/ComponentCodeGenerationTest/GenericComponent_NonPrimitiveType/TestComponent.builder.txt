@@ -1,0 +1,10 @@
+﻿[0000] OpenComponent<global::Test.MyComponent<
+#nullable restore
+#line (1,21)-(1,31) "x:\dir\subdir\Test\TestComponent.cshtml"
+CustomType
+
+#line default
+#line hidden
+#nullable disable
+            >>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent<CustomType>. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<CustomType>( new CustomType() ))

@@ -1339,6 +1339,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return DeclarationModifiers.File;
                         case SyntaxKind.ClosedKeyword:
                             return DeclarationModifiers.Closed;
+                        case SyntaxKind.SafeKeyword:
+                            return DeclarationModifiers.Safe;
                     }
 
                     goto default;
@@ -1449,8 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // members, consuming 'ref' in non-canonical positions lets the binder report
                         // a targeted error rather than producing cascading parse errors.  The binder
                         // (ModifierUtils.ToDeclarationModifiers / CheckModifiers) decides whether
-                        // the position is allowed and gates older language versions via the
-                        // relaxed-modifier-ordering feature.
+                        // the position is allowed and reports an error for every non-canonical use.
                         if (this.IsRefModifierInDeclarationHead(forAccessors))
                         {
                             modTok = this.EatToken();
@@ -1483,6 +1484,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case DeclarationModifiers.Required:
                         if (!parseAsModifier(MessageID.IDS_FeatureRequiredMembers, out modTok))
                             return;
+
+                        break;
+
+                    case DeclarationModifiers.Safe:
+                        if (forAccessors)
+                        {
+                            if (!this.IsPossibleAccessorModifier())
+                            {
+                                return;
+                            }
+
+                            modTok = ConvertToKeyword(this.EatToken());
+                        }
+                        else if (!parseAsModifier(MessageID.IDS_FeatureUnsafeEvolution, out modTok))
+                        {
+                            return;
+                        }
 
                         break;
 
@@ -2123,10 +2141,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
-                    case SyntaxKind.UnionKeyword:
                         Debug.Assert(name is not null);
                         return syntaxFactory.StructDeclaration(
-                            keyword.Kind is SyntaxKind.UnionKeyword ? SyntaxKind.UnionDeclaration : SyntaxKind.StructDeclaration,
+                            attributes,
+                            modifiersList,
+                            keyword,
+                            name,
+                            typeParameters,
+                            paramList,
+                            baseList,
+                            constraintsList,
+                            openBrace,
+                            membersList,
+                            closeBrace,
+                            semicolon);
+
+                    case SyntaxKind.UnionKeyword:
+                        Debug.Assert(name is not null);
+                        return syntaxFactory.UnionDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
@@ -2756,6 +2788,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Doing this before parsing modifiers simplifies further analysis since some of these keywords can act as modifiers as well.
                 //
                 // unsafe { ... }
+                // unsafe (...)
                 // fixed (...) { ... } 
                 // delegate (...) { ... }
                 // delegate { ... }
@@ -2775,6 +2808,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                             {
                                 return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
+                            }
+                            else if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(attributes));
                             }
                             break;
 
@@ -3159,7 +3196,7 @@ parse_member_name:;
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None &&
-                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword or SyntaxKind.ClosedKeyword) &&
+                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword or SyntaxKind.ClosedKeyword or SyntaxKind.SafeKeyword) &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
@@ -8640,9 +8677,30 @@ done:
         private StatementSyntax ParseStatementStartingWithUsing(SyntaxList<AttributeListSyntax> attributes)
             => PeekToken(1).Kind == SyntaxKind.OpenParenToken ? ParseUsingStatement(attributes) : ParseLocalDeclarationStatement(attributes);
 
-        // Checking for brace to disambiguate between unsafe statement and unsafe local function
+        // Checking for brace or parentheses to disambiguate between unsafe statement, unsafe expression, and unsafe local function
         private StatementSyntax TryParseStatementStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
-            => IsPossibleUnsafeStatement() ? ParseUnsafeStatement(attributes) : null;
+        {
+            return PeekToken(1).Kind switch
+            {
+                SyntaxKind.OpenParenToken => ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(attributes),
+                SyntaxKind.OpenBraceToken => ParseUnsafeStatement(attributes),
+                _ => null,
+            };
+        }
+
+        private StatementSyntax ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
+        {
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+            var result = ParseLocalDeclarationStatement(attributes);
+            if (result is LocalFunctionStatementSyntax)
+            {
+                return result;
+            }
+
+            resetPoint.Reset();
+            return ParseExpressionStatement(attributes);
+        }
 
         private bool IsPossibleAwaitUsing()
             => CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword && PeekToken(1).Kind == SyntaxKind.UsingKeyword;
@@ -8650,11 +8708,6 @@ done:
         private bool IsPossibleLabeledStatement()
         {
             return this.PeekToken(1).Kind == SyntaxKind.ColonToken && this.IsTrueIdentifier();
-        }
-
-        private bool IsPossibleUnsafeStatement()
-        {
-            return this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken;
         }
 
         private bool IsPossibleYieldStatement()
@@ -8701,7 +8754,7 @@ done:
 
             var isPossibleModifier =
                 IsAdditionalLocalFunctionModifier(tk)
-                && (tk is not (SyntaxKind.AsyncKeyword or SyntaxKind.ScopedKeyword) || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
+                && (tk is not (SyntaxKind.AsyncKeyword or SyntaxKind.SafeKeyword or SyntaxKind.ScopedKeyword) || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
             if (isPossibleModifier)
             {
                 return true;
@@ -9494,6 +9547,7 @@ done:
             return _syntaxFactory.BreakStatement(
                 attributes,
                 this.EatToken(SyntaxKind.BreakKeyword),
+                this.IsTrueIdentifier() ? this.ParseIdentifierName() : null,
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
@@ -9502,6 +9556,7 @@ done:
             return _syntaxFactory.ContinueStatement(
                 attributes,
                 this.EatToken(SyntaxKind.ContinueKeyword),
+                this.IsTrueIdentifier() ? this.ParseIdentifierName() : null,
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
@@ -10945,7 +11000,7 @@ done:
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
             {
                 SyntaxToken mod;
-                if (k == SyntaxKind.AsyncKeyword)
+                if (k is SyntaxKind.AsyncKeyword or SyntaxKind.SafeKeyword)
                 {
                     // check for things like "async async()" where async is the type and/or the function name
                     if (!shouldTreatAsModifier())
@@ -11028,6 +11083,7 @@ done:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.UnsafeKeyword:
+                case SyntaxKind.SafeKeyword:
                 case SyntaxKind.ExternKeyword:
                 // Not a valid modifier, but we should parse to give a good
                 // error message
@@ -11093,6 +11149,9 @@ done:
                         forceLocalFunc = true;
                         continue;
                     case SyntaxKind.UnsafeKeyword:
+                        forceLocalFunc = true;
+                        continue;
+                    case SyntaxKind.SafeKeyword:
                         forceLocalFunc = true;
                         continue;
                     case SyntaxKind.ReadOnlyKeyword:
@@ -11234,6 +11293,7 @@ done:
                 case SyntaxKind.RefTypeKeyword:
                 case SyntaxKind.CheckedKeyword:
                 case SyntaxKind.UncheckedKeyword:
+                case SyntaxKind.UnsafeKeyword:
                 case SyntaxKind.RefValueKeyword:
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.BaseKeyword:
@@ -11429,6 +11489,7 @@ done:
                 case SyntaxKind.SizeOfExpression:
                 case SyntaxKind.CheckedExpression:
                 case SyntaxKind.UncheckedExpression:
+                case SyntaxKind.UnsafeExpression:
                 case SyntaxKind.MakeRefExpression:
                 case SyntaxKind.RefValueExpression:
                 case SyntaxKind.RefTypeExpression:
@@ -12102,6 +12163,8 @@ done:
                     case SyntaxKind.CheckedKeyword:
                     case SyntaxKind.UncheckedKeyword:
                         return this.ParseCheckedOrUncheckedExpression();
+                    case SyntaxKind.UnsafeKeyword:
+                        return this.ParseUnsafeExpression();
                     case SyntaxKind.RefValueKeyword:
                         return this.ParseRefValueExpression();
                     case SyntaxKind.ColonColonToken:
@@ -12817,6 +12880,15 @@ done:
             return _syntaxFactory.CheckedExpression(
                 kind,
                 checkedOrUnchecked,
+                this.EatToken(SyntaxKind.OpenParenToken),
+                this.ParseExpressionForParenthesizedConstruct(),
+                this.EatToken(SyntaxKind.CloseParenToken));
+        }
+
+        private UnsafeExpressionSyntax ParseUnsafeExpression()
+        {
+            return _syntaxFactory.UnsafeExpression(
+                this.EatToken(SyntaxKind.UnsafeKeyword),
                 this.EatToken(SyntaxKind.OpenParenToken),
                 this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken));

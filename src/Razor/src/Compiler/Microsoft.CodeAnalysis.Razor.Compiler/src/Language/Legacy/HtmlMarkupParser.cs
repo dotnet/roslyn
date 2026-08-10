@@ -658,6 +658,17 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             return ParseStartTextTag(openAngleToken, out tagMode, out isWellFormed);
         }
 
+        if (mode == ParseMode.MarkupInCodeBlock &&
+            _tagTracker.Count == 0 &&
+            tagName.Length == 0 &&
+            At(SyntaxKind.CloseAngle))
+        {
+            // The outer tag of a markup block is missing a name.
+            Context.ErrorSink.OnError(
+                RazorDiagnosticFactory.CreateParsing_OuterTagMissingName(
+                    new SourceSpan(tagStartLocation, contentLength: 1)));
+        }
+
         var tagNameToken = At(SyntaxKind.Text) ? EatCurrentToken() : SyntaxFactory.MissingToken(SyntaxKind.Text);
 
         var attributes = EmptySyntaxList;
@@ -1193,6 +1204,12 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         // If we encounter a transition (@) here, it can be parsed as CSharp or Markup depending on the feature flag.
         // For example, in Components, we want to parse it as Markup so we can support directive attributes.
         //
+        if (At(SyntaxKind.RazorCommentTransition))
+        {
+            // There is razor comment in the attribute area. Don't try to parse the name.
+            return AttributeNameParsingResult.RazorComment;
+        }
+
         if (Context.Options.AllowCSharpInMarkupAttributeArea)
         {
             if (At(SyntaxKind.Transition))
@@ -1213,11 +1230,6 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                     // There is CSharp in the attribute area. Don't try to parse the name.
                     return AttributeNameParsingResult.CSharp;
                 }
-            }
-            else if (At(SyntaxKind.RazorCommentTransition))
-            {
-                // There is razor comment in the attribute area. Don't try to parse the name.
-                return AttributeNameParsingResult.RazorComment;
             }
         }
 
@@ -1792,9 +1804,14 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
         if (typeAttribute != null)
         {
-            var contentValues = typeAttribute.Value.CreateRed().DescendantTokens();
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-            var scriptType = string.Concat(contentValues.Select(t => t.Content)).Trim();
+            foreach (var token in typeAttribute.Value.CreateRed().DescendantTokens())
+            {
+                builder.Append(token.Content);
+            }
+
+            var scriptType = builder.ToString().Trim();
 
             // Does not allow charset parameter (or any other parameters).
             return string.Equals(scriptType, "text/html", StringComparison.OrdinalIgnoreCase);

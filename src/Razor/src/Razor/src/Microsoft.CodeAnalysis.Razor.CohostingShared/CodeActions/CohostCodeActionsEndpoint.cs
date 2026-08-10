@@ -10,12 +10,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -76,7 +77,8 @@ internal sealed class CohostCodeActionsEndpoint(
             (service, solutionInfo, cancellationToken) => service.GetCodeActionRequestInfoAsync(solutionInfo, razorDocument.Id, request, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (requestInfo is null or { LanguageKind: RazorLanguageKind.CSharp, CSharpRequest: null })
+        if (requestInfo is null ||
+            requestInfo is { LanguageKind: RazorLanguageKind.CSharp, CSharpRequest: null, CSharpDeclRequest: null })
         {
             return null;
         }
@@ -84,25 +86,32 @@ internal sealed class CohostCodeActionsEndpoint(
         // This is just to prevent a warning for an unused field in the VS Code extension
         Debug.Assert(_requestInvoker is not null);
 
-        var delegatedCodeActions = requestInfo.LanguageKind switch
-        {
-            // We don't support Html code actions in VS Code
 #if !VSCODE
-            RazorLanguageKind.Html => await GetHtmlCodeActionsAsync(razorDocument, request, correlationId, cancellationToken).ConfigureAwait(false),
+        var htmlCodeActions = requestInfo.LanguageKind == RazorLanguageKind.Html
+            ? await GetHtmlCodeActionsAsync(razorDocument, request, correlationId, cancellationToken).ConfigureAwait(false)
+            : [];
+#else
+        // We don't support Html code actions in VS Code
+        var htmlCodeActions = Array.Empty<RazorVSInternalCodeAction>();
 #endif
-            RazorLanguageKind.CSharp => await GetCSharpCodeActionsAsync(razorDocument, requestInfo.CSharpRequest.AssumeNotNull(), correlationId, cancellationToken).ConfigureAwait(false),
-            _ => []
-        };
+
+        var csharpCodeActions = requestInfo is { LanguageKind: RazorLanguageKind.CSharp, CSharpRequest: { } csharpRequest }
+            ? await GetCSharpCodeActionsAsync(razorDocument, csharpRequest, correlationId, cancellationToken).ConfigureAwait(false)
+            : [];
+
+        var csharpDeclCodeActions = requestInfo is { LanguageKind: RazorLanguageKind.CSharp, CSharpDeclRequest: { } csharpDeclRequest }
+            ? await GetCSharpCodeActionsAsync(razorDocument, csharpDeclRequest, correlationId, cancellationToken).ConfigureAwait(false)
+            : [];
 
         return await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, SumType<Command, CodeAction>[]?>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetCodeActionsAsync(solutionInfo, razorDocument.Id, request, delegatedCodeActions, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetCodeActionsAsync(solutionInfo, razorDocument.Id, request, htmlCodeActions, csharpCodeActions, csharpDeclCodeActions, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<RazorVSInternalCodeAction[]> GetCSharpCodeActionsAsync(TextDocument razorDocument, VSCodeActionParams request, Guid correlationId, CancellationToken cancellationToken)
     {
-        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(request.TextDocument.DocumentUri.GetRequiredSystemUri(), cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(request.TextDocument.DocumentUri, cancellationToken).ConfigureAwait(false);
         if (generatedDocument is null)
         {
             return [];
@@ -112,9 +121,23 @@ internal sealed class CohostCodeActionsEndpoint(
         var csharpRequest = JsonHelpers.Convert<VSCodeActionParams, CodeActionParams>(request).AssumeNotNull();
 
         using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCodeActionName, "Razor.ExternalAccess", TelemetryThresholds.CodeActionSubLSPTelemetryThreshold, correlationId);
-        var csharpCodeActions = await CodeActions.GetCodeActionsAsync(generatedDocument, csharpRequest, _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+        var csharpCodeActions = await GetCodeActionsAsync(generatedDocument, csharpRequest, _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
 
         return JsonHelpers.ConvertAll<CodeAction, RazorVSInternalCodeAction>(csharpCodeActions);
+    }
+
+    private static Task<CodeAction[]> GetCodeActionsAsync(
+        Document document,
+        CodeActionParams request,
+        bool supportsVSExtensions,
+        CancellationToken cancellationToken)
+    {
+        var solution = document.Project.Solution;
+
+        var codeFixService = solution.Services.ExportProvider.GetService<ICodeFixService>();
+        var codeRefactoringService = solution.Services.ExportProvider.GetService<ICodeRefactoringService>();
+
+        return CodeActionHelpers.GetVSCodeActionsAsync(request, document, codeFixService, codeRefactoringService, supportsVSExtensions, cancellationToken);
     }
 
 #if !VSCODE
@@ -166,5 +189,8 @@ internal sealed class CohostCodeActionsEndpoint(
     {
         public Task<SumType<Command, CodeAction>[]?> HandleRequestAsync(TextDocument razorDocument, VSCodeActionParams request, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+
+        public static Task<CodeAction[]> GetCodeActionsAsync(Document document, CodeActionParams request, bool supportsVSExtensions, CancellationToken cancellationToken)
+            => CohostCodeActionsEndpoint.GetCodeActionsAsync(document, request, supportsVSExtensions, cancellationToken);
     }
 }

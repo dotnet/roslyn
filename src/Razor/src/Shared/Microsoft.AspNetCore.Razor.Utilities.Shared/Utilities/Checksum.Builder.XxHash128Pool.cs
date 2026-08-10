@@ -14,7 +14,7 @@ internal readonly partial record struct Checksum
         {
             public static readonly XxHash128Pool Default = new(Policy.Instance, DefaultPoolSize);
 
-            private XxHash128Pool(PooledObjectPolicy policy, Optional<int> poolSize)
+            private XxHash128Pool(PooledObjectPolicy policy, Opt<int> poolSize)
                 : base(policy, poolSize)
             {
             }

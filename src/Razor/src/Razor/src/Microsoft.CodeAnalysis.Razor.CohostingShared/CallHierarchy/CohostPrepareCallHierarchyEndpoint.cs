@@ -7,11 +7,12 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CallHierarchy;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Remote;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -71,7 +72,7 @@ internal sealed class CohostPrepareCallHierarchyEndpoint(
 
     private static CallHierarchyItem WrapRazorItem(CallHierarchyItem item, TextDocumentIdentifier textDocument)
     {
-        var uri = item.Uri.GetRequiredSystemUri();
+        var uri = item.Uri;
         return uri.GetDocumentFilePathFromUri().IsRazorFilePath()
             ? RazorCallHierarchyResolveData.Wrap(item, textDocument.WithUri(uri))
             : item;

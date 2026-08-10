@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -42,9 +41,9 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             newName: "CallThisFunction",
             expected: """
                 This is a Razor document.
-                
+
                 <h1>@CallThisFunction()</h1>
-                
+
                 @code
                 {
                     public string CallThisFunction()
@@ -52,7 +51,42 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                         return $"Hi from {nameof(CallThisFunction)}";
                     }
                 }
-                
+
+                The end.
+                """);
+
+    [Fact]
+    public Task CSharp_SameFile_FromMethodBody()
+        => VerifyRenamesAsync(
+            input: """
+                This is a Razor document.
+
+                <h1>@MyMethod()</h1>
+
+                @code
+                {
+                    public string MyMethod()
+                    {
+                        return MyMe$$thod();
+                    }
+                }
+
+                The end.
+                """,
+            newName: "CallThisFunction",
+            expected: """
+                This is a Razor document.
+
+                <h1>@CallThisFunction()</h1>
+
+                @code
+                {
+                    public string CallThisFunction()
+                    {
+                        return CallThisFunction();
+                    }
+                }
+
                 The end.
                 """);
 
@@ -253,6 +287,49 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     }
                     """)
            ]);
+
+    [Fact]
+    public Task CSharp_TypeParameter_FromDirective()
+       => VerifyRenamesAsync(
+           input: """
+               @typeparam TI$$tem
+
+               This is a Razor document.
+
+               <h1>@typeof(TItem).Name</h1>
+
+               @code
+               {
+                   private TItem? _item;
+
+                   public TItem? GetItem()
+                   {
+                       return _item;
+                   }
+               }
+
+               The end.
+               """,
+           newName: "TModel",
+           expected: """
+               @typeparam TModel
+
+               This is a Razor document.
+
+               <h1>@typeof(TModel).Name</h1>
+
+               @code
+               {
+                   private TModel? _item;
+
+                   public TModel? GetItem()
+                   {
+                       return _item;
+                   }
+               }
+
+               The end.
+               """);
 
     [Fact]
     public Task CSharp_Attribute()
@@ -687,6 +764,46 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
                     """)
             ]);
+
+    [Fact]
+    public Task Component_Attribute_FromParameterDeclaration()
+        => VerifyRenamesAsync(
+            input: """
+                This is a Razor document.
+
+                <p>@Title</p>
+
+                @code {
+                    [Parameter]
+                    public string Tit$$le { get; set; } = nameof(Title);
+                }
+                """,
+            additionalFiles: [
+                (FilePath("OtherComponent.razor"), """
+                    <Component Title="Hello1" />
+                    <Component Title="Hello2">
+                    </Component>
+                    """)
+            ],
+            newName: "Name",
+            expected: """
+                This is a Razor document.
+
+                <p>@Name</p>
+
+                @code {
+                    [Parameter]
+                    public string Name { get; set; } = nameof(Name);
+                }
+                """,
+            additionalExpectedFiles: [
+                (FileUri("OtherComponent.razor"), """
+                    <Component Name="Hello1" />
+                    <Component Name="Hello2">
+                    </Component>
+                    """)
+            ],
+            documentFilePath: FilePath("Component.razor"));
 
     [Fact]
     public Task Component_BindAttribute()
@@ -1462,12 +1579,13 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
         string newName,
         string expected,
         RazorFileKind? fileKind = null,
-        Uri? newFileUri = null,
+        DocumentUri? newFileUri = null,
+        string? documentFilePath = null,
         (string fileName, string contents)[]? additionalFiles = null,
-        (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
+        (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         TestFileMarkupParser.GetPosition(input, out var source, out var cursorPosition);
-        var document = CreateProjectAndRazorDocument(source, fileKind, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(source, fileKind, documentFilePath: documentFilePath, additionalFiles: additionalFiles);
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetPosition(cursorPosition);
 
@@ -1495,8 +1613,8 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
         Assert.NotNull(result);
 
-        var documentUri = newFileUri is null ? document.GetURI() : new(newFileUri);
-        var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (new DocumentUri(e.fileUri), e.contents)).Concat([(documentUri, expected)]);
+        var documentUri = newFileUri is null ? document.GetURI() : newFileUri;
+        var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (e.fileUri, e.contents)).Concat([(documentUri, expected)]);
         await result.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
     }
 }

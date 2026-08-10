@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -25,20 +26,27 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
     private readonly IAsynchronousOperationListener _asynchronousOperationListener;
 
-    public LspFileChangeWatcher(LanguageServerHost languageServerHost, IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+    private LspFileChangeWatcher(ILspServices lspServices, IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
     {
-        _didChangeWatchedFilesHandler = languageServerHost.GetRequiredLspService<LspDidChangeWatchedFilesHandler>();
-        _clientLanguageServerManager = languageServerHost.GetRequiredLspService<IClientLanguageServerManager>();
+        _didChangeWatchedFilesHandler = lspServices.GetRequiredService<LspDidChangeWatchedFilesHandler>();
+        _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         _asynchronousOperationListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Workspace);
-
-        Contract.ThrowIfFalse(SupportsLanguageServerHost(languageServerHost));
     }
 
-    public static bool SupportsLanguageServerHost(LanguageServerHost languageServerHost)
+    public static bool TryCreate(ILspServices lspServices, IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider, [NotNullWhen(true)] out LspFileChangeWatcher? fileChangeWatcher)
     {
         // We can only use the LSP client for doing file watching if we support dynamic registration for it
-        var clientCapabilitiesProvider = languageServerHost.GetRequiredLspService<IInitializeManager>();
-        return clientCapabilitiesProvider.GetClientCapabilities().Workspace?.DidChangeWatchedFiles?.DynamicRegistration ?? false;
+        var clientCapabilitiesProvider = lspServices.GetRequiredService<IInitializeManager>();
+        var supportsLspFileWatching = clientCapabilitiesProvider.GetClientCapabilities().Workspace?.DidChangeWatchedFiles?.DynamicRegistration ?? false;
+
+        if (supportsLspFileWatching)
+        {
+            fileChangeWatcher = new LspFileChangeWatcher(lspServices, asynchronousOperationListenerProvider);
+            return true;
+        }
+
+        fileChangeWatcher = null;
+        return false;
     }
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)

@@ -1503,7 +1503,8 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         DeclarationModifiers.Sealed |
         DeclarationModifiers.Static |
         DeclarationModifiers.Unsafe |
-        DeclarationModifiers.File;
+        DeclarationModifiers.File |
+        DeclarationModifiers.Closed;
 
     private static readonly DeclarationModifiers s_recordModifiers =
         DeclarationModifiers.Abstract |
@@ -1638,6 +1639,12 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                     }
                 }
 
+                // 'closed' implies abstract on classes and 'closed abstract' can't be explicitly combined.
+                if (modifiers.IsClosed && modifiers.IsAbstract)
+                {
+                    modifiers = modifiers.WithIsAbstract(false);
+                }
+
                 // We're updating the modifiers for something.  We don't want to add elastic trivia in that case as
                 // we don't want the act of adding/removing/modifying modifiers to change the formatting of the parent
                 // construct.
@@ -1704,6 +1711,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         AddIf(modifiers.IsExtern, ExternKeyword);
         AddIf(modifiers.IsRequired, RequiredKeyword);
         AddIf(modifiers.IsFixed, FixedKeyword);
+        AddIf(modifiers.IsClosed, ClosedKeyword);
 
         // partial and ref must be last
         AddIf(modifiers.IsRef, RefKeyword);

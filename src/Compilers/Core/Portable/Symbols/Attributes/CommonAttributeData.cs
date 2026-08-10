@@ -123,9 +123,8 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     string name = container.Name;
-                    int nameLength = name.Length;
-                    index -= nameLength;
-                    if (index < 0 || string.Compare(namespaceName, index, name, 0, nameLength, options) != 0)
+                    index -= name.Length;
+                    if (index < 0 || !namespaceName.AsSpan(index).StartsWith(name.AsSpan(), options))
                     {
                         return false;
                     }

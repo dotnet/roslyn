@@ -1,6 +1,5 @@
 [CmdletBinding(PositionalBinding=$false)]
 param (
-  [string]$sourceBranchName,
   [string]$prNumber,
   [string]$commitSHA,
   [boolean]$enforceLatestCommit)
@@ -9,10 +8,6 @@ try {
     # name and email are only used for merge commit, it doesn't really matter what we put in there.
     git config user.name "RoslynValidation"
     git config user.email "validation@roslyn.net"
-
-    if ($sourceBranchName -notlike '*-vs-deps') {
-      Write-Host  "##vso[task.LogIssue type=warning;]The base branch for insertion validation is $sourceBranchName, which is not a vs-deps branch."
-    }
 
     if ($commitSHA.Length -lt 7) {
       Write-Host "##vso[task.LogIssue type=error;]The PR Commit SHA must be at least 7 characters long."

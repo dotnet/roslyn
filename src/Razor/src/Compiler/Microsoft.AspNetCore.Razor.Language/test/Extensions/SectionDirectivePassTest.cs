@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Roslyn.Test.Utilities;
@@ -20,7 +21,15 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
 
     protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
+        // Need the document classifier (for the namespace/class/method wrapping the test asserts on) and
+        // tag-helper rewrite (so legacy markup like <p>...</p> is collapsed into HtmlContent rather than
+        // left as an UnresolvedElement). The directive classifier is skipped because SectionDirectivePass
+        // is itself an IRazorDirectiveClassifierPass, and the test wants to call its Execute manually
+        // rather than have the directive classifier convert @section into a SectionIntermediateNode. Decl
+        // lowering is skipped because it would emit C# for a half-processed tree.
+        processor.ExecutePhasesThroughExcept<DefaultRazorTagHelperRewritePhase>(
+            typeof(DefaultRazorDirectiveClassifierPhase),
+            typeof(DefaultRazorDeclCSharpLoweringPhase));
     }
 
     [Fact]
@@ -99,7 +108,8 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
 
         // Verify that a RazorDirective node for 'section' exists in the syntax tree
         var directiveNodes = syntaxTree.Root.DescendantNodes()
-            .OfType<Microsoft.AspNetCore.Razor.Language.Syntax.RazorDirectiveSyntax>();
+            .OfType<Microsoft.AspNetCore.Razor.Language.Syntax.RazorDirectiveSyntax>()
+            .ToImmutableArray();
 
         Assert.Contains(directiveNodes, d => d.DirectiveDescriptor?.Directive == "section");
     }
@@ -121,7 +131,8 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
         // The section directive should NOT be recognized in component files.
         // Verify that no RazorDirective node for 'section' exists in the syntax tree
         var directiveNodes = syntaxTree.Root.DescendantNodes()
-            .OfType<Microsoft.AspNetCore.Razor.Language.Syntax.RazorDirectiveSyntax>();
+            .OfType<Microsoft.AspNetCore.Razor.Language.Syntax.RazorDirectiveSyntax>()
+            .ToImmutableArray();
         
         Assert.DoesNotContain(directiveNodes, d => d.DirectiveDescriptor?.Directive == "section");
     }

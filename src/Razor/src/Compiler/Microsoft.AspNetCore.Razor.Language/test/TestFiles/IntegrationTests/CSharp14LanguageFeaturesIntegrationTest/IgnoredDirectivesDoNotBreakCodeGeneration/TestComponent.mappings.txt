@@ -1,0 +1,5 @@
+﻿Source Location: (100:5,4 [5] x:\dir\subdir\Test\TestComponent.razor)
+|Value|
+Generated Location: (805:22,24 [5] )
+|Value|
+

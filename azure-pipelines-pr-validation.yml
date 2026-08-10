@@ -177,7 +177,7 @@ extends:
           displayName: Setup branch for insertion validation
           inputs:
             filePath: 'eng\setup-pr-validation.ps1'
-            arguments: "-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
+            arguments: "-prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
           condition: succeeded()
 
         - task: Powershell@2
@@ -213,17 +213,19 @@ extends:
             versionSpec: '4.9.2'
 
         # Authenticate with service connections to be able to publish packages to external nuget feeds.
+        # Authenticate to azure-public/vs-impl feed via WIF service connection
         - task: NuGetAuthenticate@1
           inputs:
-            nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
-
-        # Needed because the build fails the NuGet Tools restore without it
-        - task: UseDotNet@2
-          displayName: 'Use .NET Core sdk'
+            azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+            feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json
+        # Authenticate to azure-public/vssdk feed via WIF service connection
+        - task: NuGetAuthenticate@1
           inputs:
-            packageType: sdk
-            useGlobalJson: true
-            workingDirectory: '$(Build.SourcesDirectory)'
+            azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+            feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json
+
+        # Authenticate to DevDiv feeds
+        - task: NuGetAuthenticate@1
 
         - task: MicroBuildSigningPlugin@4
           inputs:

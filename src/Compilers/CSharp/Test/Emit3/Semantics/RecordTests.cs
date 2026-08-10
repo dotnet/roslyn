@@ -15927,6 +15927,139 @@ record B(int X, int Y) : A
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_GetHashCode_01()
+        {
+            var source =
+@"
+abstract record R
+{
+    public abstract override int GetHashCode();
+}
+
+record S : R;
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (7,8): error CS9391: Record member 'S.GetHashCode()' must be declared explicitly because 'R.GetHashCode()' is abstract.
+                // record S : R;
+                Diagnostic(ErrorCode.ERR_AbstractBaseRecordImplementation, "S").WithArguments("S.GetHashCode()", "R.GetHashCode()").WithLocation(7, 8)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_GetHashCode_02()
+        {
+            var source =
+@"
+abstract record R
+{
+    public abstract override int GetHashCode();
+}
+
+record S : R
+{
+    public override int GetHashCode() => 0;
+}
+";
+
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_PrintMembers_01()
+        {
+            var source =
+@"
+abstract record R
+{
+    protected abstract bool PrintMembers(System.Text.StringBuilder builder);
+}
+
+record S : R;
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (7,8): error CS9391: Record member 'S.PrintMembers(StringBuilder)' must be declared explicitly because 'R.PrintMembers(StringBuilder)' is abstract.
+                // record S : R;
+                Diagnostic(ErrorCode.ERR_AbstractBaseRecordImplementation, "S").WithArguments("S.PrintMembers(System.Text.StringBuilder)", "R.PrintMembers(System.Text.StringBuilder)").WithLocation(7, 8)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_PrintMembers_02()
+        {
+            var source =
+@"
+abstract record R
+{
+    protected abstract bool PrintMembers(System.Text.StringBuilder builder);
+}
+
+record S : R
+{
+    protected override bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
+";
+
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_RecordEquals_01()
+        {
+            var source =
+@"
+#pragma warning disable CS8851 // defines 'Equals' but not 'GetHashCode'
+
+public abstract record R
+{
+    public abstract bool Equals(R other);
+}
+
+record S : R;
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (9,8): error CS9391: Record member 'S.Equals(S?)' must be declared explicitly because 'R.Equals(R)' is abstract.
+                // record S : R;
+                Diagnostic(ErrorCode.ERR_AbstractBaseRecordImplementation, "S").WithArguments("S.Equals(S?)", "R.Equals(R)").WithLocation(9, 8)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_RecordEquals_02()
+        {
+            var source =
+@"
+#pragma warning disable CS8851 // defines 'Equals' but not 'GetHashCode'
+
+public abstract record R
+{
+    public abstract bool Equals(R other);
+}
+
+record S : R
+{
+    public virtual bool Equals(S other) => true;
+}
+";
+
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ObjectEquals_01()
         {
             var ilSource = @"

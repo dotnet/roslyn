@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -15,8 +14,13 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers;
 
-public sealed class OrderModifiersCompilerErrorTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
+public sealed class OrderModifiersCompilerErrorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
+    public OrderModifiersCompilerErrorTests(ITestOutputHelper logger)
+      : base(logger)
+    {
+    }
+
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpOrderModifiersCodeFixProvider());
 
@@ -24,7 +28,6 @@ public sealed class OrderModifiersCompilerErrorTests(ITestOutputHelper logger) :
     [WorkItem("https://github.com/dotnet/roslyn/issues/30352")]
     public Task PartialAtTheEnd()
         => TestInRegularAndScriptAsync(
-            @"[|partial|] public class C { }",
-            @"public partial class C { }",
-            parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14)));
+@"[|partial|] public class C { }",
+@"public partial class C { }");
 }

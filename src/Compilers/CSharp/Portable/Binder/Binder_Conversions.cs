@@ -3104,15 +3104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stackAllocType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
                     break;
                 case ConversionKind.StackAllocToSpanType:
-                    // Under the updated memory safety rules, a stackalloc_expression is unsafe if being converted to Span/ROS,
-                    // does not have an initializer, and is used within a member with SkipLocalsInitAttribute.
-                    // https://github.com/dotnet/roslyn/issues/82546: Confirm this rule with LDM.
-                    if (Compilation.SourceModule.UseUpdatedMemorySafetyRules &&
-                        boundStackAlloc.InitializerOpt is null &&
-                        ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false })
-                    {
-                        ReportUnsafeIfNotAllowed(syntax, diagnostics, disallowedUnder: MemorySafetyRules.Updated, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
-                    }
+                    ReportUnsafeForUninitializedSpanStackAllocIfRequired(syntax, diagnostics, hasInitializer: boundStackAlloc.InitializerOpt is not null);
 
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructs, diagnostics);
                     stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
@@ -3754,8 +3746,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, syntax, isDelegateConversion: true);
             }
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
+            ReportDisallowedExtensionBlockMethod(selectedMethod, syntax, diagnostics);
             ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, selectedMethod, syntax);
-            ReportDiagnosticsIfDisallowedExtension(diagnostics, selectedMethod, syntax);
 
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process

@@ -807,6 +807,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitTypeDeclarationCore(node);
             }
 
+            public override Binder VisitUnionDeclaration(UnionDeclarationSyntax node)
+            {
+                return VisitTypeDeclarationCore(node);
+            }
+
             public override Binder VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
             {
                 return VisitTypeDeclarationCore(node);

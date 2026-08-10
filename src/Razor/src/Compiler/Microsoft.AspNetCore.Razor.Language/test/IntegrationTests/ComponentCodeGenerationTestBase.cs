@@ -4,7 +4,9 @@
 #nullable disable
 
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
@@ -35,6 +37,78 @@ public class ComponentCodeGenerationTestBase()
         return $"TestFiles/IntegrationTests/ComponentCodeGenerationTest/{testName}";
     }
 
+    /// <summary>
+    /// Shadow of the base <c>CompileToAssembly</c> that, after compiling and verifying no
+    /// unexpected C# diagnostics, also asserts a <c>.builder.txt</c> baseline: the
+    /// component's render-tree-builder calls ordered by sequence number (see
+    /// <see cref="BuilderCallDumper"/>). Every test calling <c>CompileToAssembly(generated)</c>
+    /// picks up the check with no per-test change; pass
+    /// <paramref name="assertBuilderBaseline"/> <c>false</c> to opt a test out (for example
+    /// one whose generated render operations aren't deterministic across runs).
+    /// </summary>
+    /// <remarks>
+    /// The <c>.codegen.cs</c> / <c>.decl.codegen.cs</c> baselines pin the emitted C#
+    /// byte-for-byte, so they move under cosmetic reorganization -- which partial half a
+    /// member lands in, line-pragma layout, whitespace -- that doesn't change what the
+    /// component renders. The builder baseline is a sequence-ordered projection of just the
+    /// render operations: it stays put under that reorganization yet still trips on a real
+    /// change (a different element, a dropped attribute, a renumbered fragment).
+    /// </remarks>
+    protected CompileToAssemblyResult CompileToAssembly(
+        CompileToCSharpResult cSharpResult,
+        bool assertBuilderBaseline = true,
+        [CallerMemberName] string testName = "")
+    {
+        var result = RazorIntegrationTestBase.CompileToAssembly(cSharpResult);
+        if (assertBuilderBaseline)
+        {
+            AssertBuilderCallsMatchBaseline(cSharpResult, testName);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Diagnostic-expecting overload: shadowed so call sites that pass expected
+    /// diagnostics resolve here. The builder-baseline check is skipped because
+    /// compile-error tests don't emit a meaningful render tree.
+    /// </summary>
+    protected new CompileToAssemblyResult CompileToAssembly(
+        CompileToCSharpResult cSharpResult,
+        params DiagnosticDescription[] expectedDiagnostics)
+    {
+        return RazorIntegrationTestBase.CompileToAssembly(cSharpResult, expectedDiagnostics);
+    }
+
+    private void AssertBuilderCallsMatchBaseline(CompileToCSharpResult cSharpResult, string testName)
+    {
+        var dump = BuilderCallDumper.Dump([cSharpResult.Code, cSharpResult.DeclCode]);
+
+        var baselineFilePath = GetBaselineFilePath(cSharpResult.CodeDocument, ".builder.txt", testName);
+        if (GenerateBaselines.ShouldGenerate)
+        {
+            if (dump.Length == 0)
+            {
+                // No render-tree-builder calls (e.g. a code-only component) -- nothing to pin.
+                return;
+            }
+
+            var baselineFullPath = Path.Combine(TestProjectRoot, baselineFilePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(baselineFullPath));
+            File.WriteAllText(baselineFullPath, dump, new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+            return;
+        }
+
+        var baselineFile = TestFile.Create(baselineFilePath, GetType().Assembly);
+        if (!baselineFile.Exists())
+        {
+            // Component emits no builder calls, or its baseline predates this check.
+            return;
+        }
+
+        Assert.Equal(baselineFile.ReadAllText(), dump);
+    }
+
     #region Basics
 
     [Fact]
@@ -55,6 +129,36 @@ public class ComponentCodeGenerationTestBase()
         <p>Output: @output</p>
     }
 }");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13117")]
+    public void SwitchExpression_WithMarkupInLambdaArms()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components
+
+            @code {
+                public enum SampleType { Alpha, Beta, Gamma }
+
+                private static RenderFragment RenderBadge(SampleType type) => type switch
+                {
+                    SampleType.Alpha => (__builder) =>
+                    {
+                        <span>Alpha</span>
+                    },
+                    _ => (__builder) =>
+                    {
+                        <span>Unknown</span>
+                    }
+                };
+            }
+            """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -206,6 +310,88 @@ namespace Test
     BoolProperty=""true""
     StringProperty=""My string""
     ObjectProperty=""new SomeType()""/>");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13188")]
+    public void ChildComponent_WithStringLiteralUnionParameter()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            #nullable enable
+
+            namespace System.Runtime.CompilerServices
+            {
+                public interface IUnion
+                {
+                    object? Value { get; }
+                }
+
+                public class UnionAttribute : System.Attribute
+                {
+                }
+            }
+            """));
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public union SlotContent(string, MarkupString, RenderFragment);
+
+                public class Slot : ComponentBase
+                {
+                    [Parameter] public SlotContent Content { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @{
+                var content = new Test.SlotContent("from variable");
+            }
+
+            <Slot Content="hello" />
+            <Slot Content="new Test.SlotContent()" />
+            <Slot Content="@content" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7271")]
+    public void ChildComponent_WithParametersAndRazorComment()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter] public string Parameter1 { get; set; }
+                    [Parameter] public bool Parameter2 { get; set; }
+                    [Parameter] public string Parameter3 { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent Parameter1="SomeValue"
+                Parameter2="@true" @* NOTE: this does not work! *@
+                Parameter3="SomeOtherValue" />
+            """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -516,7 +702,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Items1=items1 Items2=items2 Items3=items3>
@@ -594,7 +780,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=item1 Items2=items2>
@@ -737,7 +923,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
@@ -814,7 +1000,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>

@@ -23,5 +23,3 @@
                     HtmlAttribute -  - @formname=" - "
                         CSharpExpression - (113:1,69 [1] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (113:1,69 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - y
-            CSharpCode - (132:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (132:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string x = "a";\n    string y = "b";\n
