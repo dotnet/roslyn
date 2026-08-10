@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Threading;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -130,6 +132,44 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             });
 
             return tagHelperFeature;
+        }
+
+        /// <summary>
+        ///  Resolves the fallback component type symbols so the slow discovery path can target just those
+        ///  types instead of walking the whole augmented assembly. Uses the compilation's declaration table
+        ///  (no semantic models): a fallback type name is namespace-qualified, so the fast predicate keys off
+        ///  its final segment and over-selects; the caller's descriptor-name filter trims any collisions.
+        /// </summary>
+        private static ImmutableArray<INamedTypeSymbol> ResolveFallbackTypes(
+            Compilation compilation,
+            ImmutableHashSet<string> fallbackTypeNames,
+            CancellationToken cancellationToken)
+        {
+            if (fallbackTypeNames.IsEmpty)
+            {
+                return [];
+            }
+
+            var shortNames = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var name in fallbackTypeNames)
+            {
+                var lastDot = name.LastIndexOf('.');
+                shortNames.Add(lastDot >= 0 ? name.Substring(lastDot + 1) : name);
+            }
+
+            using var builder = new PooledArrayBuilder<INamedTypeSymbol>();
+
+            foreach (var symbol in compilation.GetSymbolsWithName(shortNames.Contains, SymbolFilter.Type, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (symbol is INamedTypeSymbol typeSymbol)
+                {
+                    builder.Add(typeSymbol);
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         private static SourceGeneratorProjectEngine GetGenerationProjectEngine(
