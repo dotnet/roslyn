@@ -3,15 +3,17 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
@@ -46,12 +48,21 @@ internal sealed class CohostInlineCompletionEndpoint(
             return [new Registration
             {
                 Method = VSInternalMethods.TextDocumentInlineCompletionName,
-                RegisterOptions = new VSInternalInlineCompletionRegistrationOptions().EnableInlineCompletion()
+                RegisterOptions = new VSInternalInlineCompletionRegistrationOptions()
+                {
+                    Pattern = new Regex(string.Join("|",
+                        GetBuiltInCSharpSnippetTriggers()))
+                }
             }];
         }
 
         return [];
     }
+
+    internal static string[] GetBuiltInCSharpSnippetTriggers()
+        => ["~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
+            "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
+            "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while"];
 
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
         => request.TextDocument;
@@ -62,25 +73,30 @@ internal sealed class CohostInlineCompletionEndpoint(
     protected override Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)
         => HandleRequestAsync(context, razorDocument, request.Position.ToLinePosition(), request.Options, cancellationToken);
 
-    private async Task<VSInternalInlineCompletionList?> HandleRequestAsync(RequestContext? context, TextDocument razorDocument, LinePosition linePosition, FormattingOptions formattingOptions, CancellationToken cancellationToken)
+    private async Task<VSInternalInlineCompletionList?> HandleRequestAsync(
+        RequestContext? context,
+        TextDocument razorDocument,
+        LinePosition linePosition,
+        FormattingOptions formattingOptions,
+        CancellationToken cancellationToken)
     {
         var requestInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteInlineCompletionService, InlineCompletionRequestInfo?>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetInlineCompletionInfoAsync(solutionInfo, razorDocument.Id, linePosition, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (requestInfo is not InlineCompletionRequestInfo(var generatedDocumentUri, var position))
+        if (requestInfo is not InlineCompletionRequestInfo(var generatedDocumentUri, var position, var inDeclDocument))
         {
             return null;
         }
 
-        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(generatedDocumentUri.CreateDocumentUriFromSystemUri(), cancellationToken).ConfigureAwait(false);
         if (generatedDocument is null)
         {
             return null;
         }
 
-        var result = await Completion.GetInlineCompletionItemsAsync(context, generatedDocument, position, formattingOptions, cancellationToken).ConfigureAwait(false);
+        var result = await GetInlineCompletionItemsAsync(context, generatedDocument, position, formattingOptions, cancellationToken).ConfigureAwait(false);
         if (result is null)
         {
             return null;
@@ -88,11 +104,16 @@ internal sealed class CohostInlineCompletionEndpoint(
 
         if (result.Range is not null)
         {
-            var options = RazorFormattingOptions.From(formattingOptions, _clientSettingsManager.GetClientSettings().AdvancedSettings.CodeBlockBraceOnNextLine, _clientSettingsManager.GetClientSettings().AdvancedSettings.AttributeIndentStyle);
+            var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
+            var options = RazorFormattingOptions.From(
+                formattingOptions,
+                _clientSettingsManager.GetClientSettings().AdvancedSettings.CodeBlockBraceOnNextLine,
+                _clientSettingsManager.GetClientSettings().AdvancedSettings.AttributeIndentStyle,
+                csharpSyntaxFormattingOptions);
             var span = result.Range.ToLinePositionSpan();
             var formattedInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteInlineCompletionService, FormattedInlineCompletionInfo?>(
                 razorDocument.Project.Solution,
-                (service, solutionInfo, cancellationToken) => service.FormatInlineCompletionAsync(solutionInfo, razorDocument.Id, options, span, result.Text, cancellationToken),
+                (service, solutionInfo, cancellationToken) => service.FormatInlineCompletionAsync(solutionInfo, razorDocument.Id, inDeclDocument, options, span, result.Text, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (formattedInfo is { } formatted)
@@ -107,6 +128,20 @@ internal sealed class CohostInlineCompletionEndpoint(
         }
 
         return new VSInternalInlineCompletionList { Items = [result] };
+    }
+
+    private static Task<VSInternalInlineCompletionItem?> GetInlineCompletionItemsAsync(
+        RequestContext? context,
+        Document document,
+        LinePosition position,
+        FormattingOptions options,
+        CancellationToken cancellationToken)
+    {
+        // Razor tests don't construct a RequestContext, so we need to handle the null case.
+        var logger = context?.Logger ?? NoOpLspLogger.Instance;
+        var xmlSnippetParser = document.Project.Solution.Services.ExportProvider.GetService<XmlSnippetParser>();
+
+        return InlineCompletionsHandler.GetInlineCompletionItemsAsync(logger, document, position, options, xmlSnippetParser, cancellationToken);
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

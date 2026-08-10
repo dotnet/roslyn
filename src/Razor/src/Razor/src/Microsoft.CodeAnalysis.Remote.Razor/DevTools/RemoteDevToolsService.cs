@@ -6,10 +6,9 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -29,54 +28,63 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
         WriteIndented = true
     };
 
-    public ValueTask<string> GetCSharpDocumentTextAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+    public ValueTask<string?> GetCSharpDocumentTextAsync(
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
+        bool declarationDocument,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            async context =>
+            async snapshot =>
             {
-                var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-                return codeDocument.GetCSharpSourceText().ToString();
+                var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+                var csharpDocument = codeDocument.GetCSharpDocument(declarationDocument);
+
+                return csharpDocument?.Text.ToString();
             },
             cancellationToken);
 
     public ValueTask<string> GetHtmlDocumentTextAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            async context =>
+            async snapshot =>
             {
-                var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+                var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
                 return codeDocument.GetHtmlSourceText(cancellationToken).ToString();
             },
             cancellationToken);
 
     public ValueTask<string> GetFormattingDocumentTextAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            async context =>
+            async snapshot =>
             {
-                var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-                var csharpSyntaxTree = await context.Snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+                var csharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+                var declSyntaxTree = codeDocument.GetCSharpDocument(declarationDocument: true) is not null
+                    ? await snapshot.GetCSharpSyntaxTreeAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false)
+                    : null;
                 var csharpSyntaxRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                var declSyntaxRoot = declSyntaxTree is not null
+                    ? await declSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false)
+                    : null;
 #pragma warning disable CS0618 // Type or member is obsolete
-                return CSharpFormattingPass.GetFormattingDocumentContentsForSyntaxVisualizer(codeDocument, csharpSyntaxRoot, DocumentMappingService);
+                return CSharpFormattingPass.GetFormattingDocumentContentsForSyntaxVisualizer(codeDocument, csharpSyntaxRoot, declSyntaxRoot, DocumentMappingService);
 #pragma warning restore CS0618 // Type or member is obsolete
             },
             cancellationToken);
 
     public ValueTask<string> GetTagHelpersJsonAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         TagHelpersKind kind,
         CancellationToken cancellationToken)
@@ -86,9 +94,9 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             context => GetTagHelpersJsonAsync(context, kind, cancellationToken),
             cancellationToken);
 
-    private static async ValueTask<string> GetTagHelpersJsonAsync(RemoteDocumentContext documentContext, TagHelpersKind kind, CancellationToken cancellationToken)
+    private static async ValueTask<string> GetTagHelpersJsonAsync(RemoteDocumentSnapshot documentSnapshot, TagHelpersKind kind, CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var tagHelpers = kind switch
         {
             TagHelpersKind.All => codeDocument.GetTagHelpers(),
@@ -165,7 +173,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
     }
 
     public ValueTask<SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -174,9 +182,9 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             context => GetRazorSyntaxTreeAsync(context, cancellationToken),
             cancellationToken);
 
-    private static async ValueTask<SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    private static async ValueTask<SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var razorSyntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree();
 
         if (razorSyntaxTree?.Root == null)

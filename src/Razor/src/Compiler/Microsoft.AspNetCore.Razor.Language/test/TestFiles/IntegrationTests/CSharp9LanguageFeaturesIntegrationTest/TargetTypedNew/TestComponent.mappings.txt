@@ -1,0 +1,11 @@
+﻿Source Location: (2:0,2 [83] x:\dir\subdir\Test\TestComponent.razor)
+|
+    System.Collections.Generic.List<int> values = new();
+    _ = values.Count;
+|
+Generated Location: (733:21,0 [83] )
+|
+    System.Collections.Generic.List<int> values = new();
+    _ = values.Count;
+|
+

@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            If String.Compare(identifierName.Identifier.ToString(), "New", StringComparison.OrdinalIgnoreCase) <> 0 Then
+            If Not String.Equals(identifierName.Identifier.ToString(), "New", StringComparison.OrdinalIgnoreCase) Then
                 Return False
             End If
 

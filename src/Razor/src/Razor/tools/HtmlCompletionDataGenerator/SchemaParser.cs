@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Text;
 using System.Xml;
 
 namespace HtmlSchemaGenerator;
@@ -214,6 +215,8 @@ internal static class SchemaParser
             HasExternalCompletion = string.Equals(name, "script", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(name, "style", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(name, "svg", StringComparison.OrdinalIgnoreCase),
+            Baseline = GetVsAttribute(elementNode, VsSchemaAttributes.Baseline) ?? "",
+            BaselineDate = GetVsAttribute(elementNode, VsSchemaAttributes.BaselineDate) ?? "",
         };
 
         // Get attributes from the element's type or inline complexType
@@ -393,7 +396,6 @@ internal static class SchemaParser
         var vsStandalone = GetVsAttribute(attrNode, VsSchemaAttributes.Standalone);
         var vsDesc = GetVsAttribute(attrNode, VsSchemaAttributes.Description);
         var vsOmType = GetVsAttribute(attrNode, VsSchemaAttributes.OmType);
-        var vsPreferredExtensions = GetVsAttribute(attrNode, VsSchemaAttributes.PreferredExtensions);
         var vsMultiValue = GetVsAttribute(attrNode, VsSchemaAttributes.MultiValue);
 
         var isBoolean = string.Equals(vsStandalone, "true", StringComparison.OrdinalIgnoreCase);
@@ -413,14 +415,14 @@ internal static class SchemaParser
         }
 
         // Determine if this attribute's value completion is owned by an external provider.
-        // Sources: vs:preferredextensions (file paths), vs:multivalue (space-separated values),
-        // multivalue simpleType reference, or hardcoded names (class, style).
+        // Sources: xsd:anyURI type (URLs/file paths), vs:multivalue (space-separated values),
+        // multivalue simpleType reference, or hardcoded names (class, style, id).
         var typeRef = attrNode.Attributes?["type"]?.Value;
         var isMultiValue = string.Equals(vsMultiValue, "true", StringComparison.OrdinalIgnoreCase)
             || (typeRef != null && context.MultiValueSimpleTypes.Contains(typeRef));
 
-        var hasExternalCompletion = vsPreferredExtensions != null
-            || isMultiValue
+        var hasExternalCompletion = isMultiValue
+            || string.Equals(typeRef, "xsd:anyURI", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "class", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "style", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "id", StringComparison.OrdinalIgnoreCase);
@@ -433,6 +435,8 @@ internal static class SchemaParser
             IsEvent = isEvent,
             Icon = icon,
             HasExternalCompletion = hasExternalCompletion,
+            Baseline = GetVsAttribute(attrNode, VsSchemaAttributes.Baseline) ?? "",
+            BaselineDate = GetVsAttribute(attrNode, VsSchemaAttributes.BaselineDate) ?? "",
         };
 
         // Resolve enumeration values
@@ -507,27 +511,37 @@ internal static class SchemaParser
         return descriptions;
     }
 
+    /// <summary>
+    /// Normalizes whitespace in LOC file descriptions: skips \r, preserves \n (for markdown
+    /// paragraph/bullet structure), and collapses runs of spaces/tabs within a line.
+    /// </summary>
     private static string NormalizeWhitespace(string input)
     {
         var trimmed = input.Trim();
-        var sb = new System.Text.StringBuilder(trimmed.Length);
-        var prevWasSpace = false;
+        var sb = new StringBuilder(trimmed.Length);
+        var prevChar = 'X';
 
-        foreach (var ch in trimmed)
+        for (var i = 0; i < trimmed.Length; i++)
         {
-            if (ch == '\r' || ch == '\n' || ch == '\t' || ch == ' ')
+            var ch = trimmed[i];
+
+            if (ch == '\r')
             {
-                if (!prevWasSpace)
+                // Skip carriage returns; \n handles line breaks.
+            }
+            else if (ch == '\t' || ch == ' ')
+            {
+                if (prevChar != ' ' && prevChar != '\t')
                 {
                     sb.Append(' ');
                 }
-                prevWasSpace = true;
             }
             else
             {
                 sb.Append(ch);
-                prevWasSpace = false;
             }
+
+            prevChar = ch;
         }
 
         return sb.ToString();

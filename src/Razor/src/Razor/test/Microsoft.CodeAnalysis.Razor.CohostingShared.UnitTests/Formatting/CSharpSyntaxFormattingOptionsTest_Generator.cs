@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 public class CSharpSyntaxFormattingOptionsTest_Generator
 {
     /// <summary>
-    /// This test can be run manually to generate exhaustive tests for RazorCSharpSyntaxFormattingOptions.
+    /// This test can be run manually to generate exhaustive tests for CSharpSyntaxFormattingOptions.
     /// </summary>
     /// <remarks>
     /// After running this test, the file will be updated but you should expect the "expected" output to be incorrect
@@ -32,7 +32,7 @@ public class CSharpSyntaxFormattingOptionsTest_Generator
             using System.Threading.Tasks;
             using Microsoft.AspNetCore.Razor.Language;
             using Microsoft.AspNetCore.Razor.Test.Common;
-            using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+            using Microsoft.CodeAnalysis.CSharp.Formatting;
             using Microsoft.CodeAnalysis.Razor.Formatting;
             using Xunit;
             using Xunit.Abstractions;
@@ -84,9 +84,9 @@ public class CSharpSyntaxFormattingOptionsTest_Generator
                             }
                         }
                         """,
-                    csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+                    csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
                     {
-                        NewLines = {RazorNewLinePlacement},
+                        NewLines = {NewLinePlacement},
                         WrappingKeepStatementsOnSingleLine = {WrappingKeepStatementsOnSingleLine},
                         WrappingPreserveSingleLine = {WrappingPreserveSingleLine},
                     });
@@ -103,7 +103,7 @@ public class CSharpSyntaxFormattingOptionsTest_Generator
         using var writer = new StreamWriter(testFileName);
         writer.WriteLine(fileHeader);
 
-        foreach (var nl in GetAllValues(typeof(RazorNewLinePlacement)))
+        foreach (var nl in GetAllValues(typeof(NewLinePlacement)))
             foreach (var keep in booleanOptions)
                 foreach (var preserve in booleanOptions)
                 {
@@ -117,7 +117,7 @@ public class CSharpSyntaxFormattingOptionsTest_Generator
                     var testName = $"CSharpSyntaxFormattingOptions_Without{nl.without}_{(keep ? "SingleLine" : "MultiLine")}_{(preserve ? "PreserveSingle" : "DontPreserve")}";
                     writer.WriteLine(testTemplate
                         .Replace("{TestName}", testName)
-                        .Replace("{RazorNewLinePlacement}", nl.value)
+                        .Replace("{NewLinePlacement}", nl.value)
                         .Replace("{WrappingKeepStatementsOnSingleLine}", keep.ToString().ToLowerInvariant())
                         .Replace("{WrappingPreserveSingleLine}", preserve.ToString().ToLowerInvariant()));
                 }

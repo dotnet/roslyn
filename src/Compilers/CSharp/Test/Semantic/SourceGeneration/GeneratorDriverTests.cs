@@ -3011,6 +3011,303 @@ class C { }
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9211")]
+        public void ReplaceAdditionalTexts_Reordered_Does_Not_Duplicate_Entries()
+        {
+            // When the input count is unchanged, InputNode uses a "modify" heuristic instead of
+            // remove+add, which keeps the table the same size and avoids unnecessary downstream
+            // invalidation. This test verifies that reordering surviving items while simultaneously
+            // replacing one does not produce duplicate table entries -- each item appears exactly once,
+            // and only the slot whose item was removed gets a new value.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var textA = new InMemoryAdditionalText("pathA.txt", "a");
+            var textB = new InMemoryAdditionalText("pathB.txt", "b");
+            var textC = new InMemoryAdditionalText("pathC.txt", "c");
+            var textD = new InMemoryAdditionalText("pathD.txt", "d");
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterImplementationSourceOutput(
+                    ctx.AdditionalTextsProvider.Select((t, _) => t.Path).WithTrackingName("Paths"),
+                    (spc, path) =>
+                    {
+                        spc.AddSource(path.Replace(".", "_"), "// " + path);
+                    });
+            }));
+
+            // Run 1: [A, B, C]
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { textA, textB, textC }, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+            Assert.Equal(3, runResult.GeneratedTrees.Length);
+
+            // Run 2: [C, A, D] -- reorder C and A, remove B, add D.
+            // The new item D should land in B's old slot. A and C should remain cached.
+            driver = driver.ReplaceAdditionalTexts(ImmutableArray.Create<AdditionalText>(textC, textA, textD));
+            driver = driver.RunGenerators(compilation);
+            runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+            Assert.Equal(3, runResult.GeneratedTrees.Length);
+
+            Assert.Collection(runResult.Results[0].TrackedSteps["Paths"],
+                step =>
+                {
+                    Assert.Equal("pathA.txt", step.Outputs[0].Value);
+                    Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
+                },
+                step =>
+                {
+                    Assert.Equal("pathD.txt", step.Outputs[0].Value);
+                    Assert.Equal(IncrementalStepRunReason.Modified, step.Outputs[0].Reason);
+                },
+                step =>
+                {
+                    Assert.Equal("pathC.txt", step.Outputs[0].Value);
+                    Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
+                });
+
+            // Run 3: same inputs again -- everything should be cached
+            driver = driver.RunGenerators(compilation);
+            runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+            Assert.Equal(3, runResult.GeneratedTrees.Length);
+
+            Assert.Collection(runResult.Results[0].TrackedSteps["Paths"],
+                step => Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason),
+                step => Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason),
+                step => Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9211")]
+        public void ReplaceAdditionalTexts_NewItem_Only_Modifies_Replaced_Slot()
+        {
+            // When an item is removed and a new one is added (same count), only the removed item's
+            // slot should receive Modified status. Surviving items must remain Cached regardless of
+            // where they or the new item appear in the input ordering, because the replacement cursor
+            // skips items that exist in the previous table and only selects genuinely new items.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var textA = new InMemoryAdditionalText("pathA.txt", "a");
+            var textB = new InMemoryAdditionalText("pathB.txt", "b");
+            var textC = new InMemoryAdditionalText("pathC.txt", "c");
+            var textD = new InMemoryAdditionalText("pathD.txt", "d");
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterImplementationSourceOutput(
+                    ctx.AdditionalTextsProvider.Select((t, _) => t.Path).WithTrackingName("Paths"),
+                    (spc, path) =>
+                    {
+                        spc.AddSource(path.Replace(".", "_"), "// " + path);
+                    });
+            }));
+
+            // Run 1: [A, B, C]
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { textA, textB, textC }, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(driver.GetRunResult().Diagnostics);
+
+            // Run 2: [D, B, C] -- remove A (slot 0), add D at the front.
+            // D should replace A's slot. B and C remain cached. Only 1 Modified entry.
+            driver = driver.ReplaceAdditionalTexts(ImmutableArray.Create<AdditionalText>(textD, textB, textC));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+            Assert.Equal(3, runResult.GeneratedTrees.Length);
+
+            Assert.Collection(runResult.Results[0].TrackedSteps["Paths"],
+                step =>
+                {
+                    Assert.Equal("pathD.txt", step.Outputs[0].Value);
+                    Assert.Equal(IncrementalStepRunReason.Modified, step.Outputs[0].Reason);
+                },
+                step =>
+                {
+                    Assert.Equal("pathB.txt", step.Outputs[0].Value);
+                    Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
+                },
+                step =>
+                {
+                    Assert.Equal("pathC.txt", step.Outputs[0].Value);
+                    Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
+                });
+
+            // Run 3: [B, D, C] -- same items, just reorder D and B.
+            // No items changed, so everything should be cached.
+            driver = driver.ReplaceAdditionalTexts(ImmutableArray.Create<AdditionalText>(textB, textD, textC));
+            driver = driver.RunGenerators(compilation);
+            runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+
+            Assert.Collection(runResult.Results[0].TrackedSteps["Paths"],
+                step => Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason),
+                step => Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason),
+                step => Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9211")]
+        public void ReplaceAdditionalTexts_Multiple_Replacements_Only_Modify_Replaced_Slots()
+        {
+            // When multiple items are removed and an equal number of new items are added (same total
+            // count), the new items should be assigned to the removed slots in input order. Surviving
+            // items keep their existing table positions with Cached status, ensuring downstream nodes
+            // only re-evaluate the slots that actually changed.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var textA = new InMemoryAdditionalText("pathA.txt", "a");
+            var textB = new InMemoryAdditionalText("pathB.txt", "b");
+            var textC = new InMemoryAdditionalText("pathC.txt", "c");
+            var textD = new InMemoryAdditionalText("pathD.txt", "d");
+            var textE = new InMemoryAdditionalText("pathE.txt", "e");
+            var textX = new InMemoryAdditionalText("pathX.txt", "x");
+            var textY = new InMemoryAdditionalText("pathY.txt", "y");
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterImplementationSourceOutput(
+                    ctx.AdditionalTextsProvider.Select((t, _) => t.Path).WithTrackingName("Paths"),
+                    (spc, path) =>
+                    {
+                        spc.AddSource(path.Replace(".", "_"), "// " + path);
+                    });
+            }));
+
+            // Run 1: [A, B, C, D, E]
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { textA, textB, textC, textD, textE }, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(driver.GetRunResult().Diagnostics);
+
+            // Run 2: [X, C, Y, D, A] -- remove B (slot 1) and E (slot 4), add X and Y.
+            // A, C, D survive. X and Y should fill the two removed slots.
+            driver = driver.ReplaceAdditionalTexts(ImmutableArray.Create<AdditionalText>(textX, textC, textY, textD, textA));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+            Assert.Equal(5, runResult.GeneratedTrees.Length);
+
+            var steps = runResult.Results[0].TrackedSteps["Paths"];
+            Assert.Equal(5, steps.Length);
+
+            // A (slot 0): survived -> Cached
+            Assert.Equal("pathA.txt", steps[0].Outputs[0].Value);
+            Assert.Equal(IncrementalStepRunReason.Cached, steps[0].Outputs[0].Reason);
+
+            // B's old slot (1): replaced by X (first new item in input order) -> Modified
+            Assert.Equal("pathX.txt", steps[1].Outputs[0].Value);
+            Assert.Equal(IncrementalStepRunReason.Modified, steps[1].Outputs[0].Reason);
+
+            // C (slot 2): survived -> Cached
+            Assert.Equal("pathC.txt", steps[2].Outputs[0].Value);
+            Assert.Equal(IncrementalStepRunReason.Cached, steps[2].Outputs[0].Reason);
+
+            // D (slot 3): survived -> Cached
+            Assert.Equal("pathD.txt", steps[3].Outputs[0].Value);
+            Assert.Equal(IncrementalStepRunReason.Cached, steps[3].Outputs[0].Reason);
+
+            // E's old slot (4): replaced by Y (second new item in input order) -> Modified
+            Assert.Equal("pathY.txt", steps[4].Outputs[0].Value);
+            Assert.Equal(IncrementalStepRunReason.Modified, steps[4].Outputs[0].Reason);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9211")]
+        public void ReplaceAdditionalTexts_Successive_Shuffles_Maintain_Correct_State()
+        {
+            // The input node table must remain consistent across multiple rounds of shuffling and
+            // replacing items. Items that survive every round should stay Cached, new items should
+            // be Modified in the round they appear, and a subsequent run with identical inputs should
+            // produce all Cached entries -- confirming the table converges to a stable state.
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var textA = new InMemoryAdditionalText("pathA.txt", "a");
+            var textB = new InMemoryAdditionalText("pathB.txt", "b");
+            var textC = new InMemoryAdditionalText("pathC.txt", "c");
+            var textD = new InMemoryAdditionalText("pathD.txt", "d");
+            var textE = new InMemoryAdditionalText("pathE.txt", "e");
+            var textF = new InMemoryAdditionalText("pathF.txt", "f");
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterImplementationSourceOutput(
+                    ctx.AdditionalTextsProvider.Select((t, _) => t.Path).WithTrackingName("Paths"),
+                    (spc, path) =>
+                    {
+                        spc.AddSource(path.Replace(".", "_"), "// " + path);
+                    });
+            }));
+
+            // Run 1: [A, B, C]
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { textA, textB, textC }, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(driver.GetRunResult().Diagnostics);
+
+            // Run 2: [C, D, A] -- remove B, add D, shuffle
+            driver = driver.ReplaceAdditionalTexts(ImmutableArray.Create<AdditionalText>(textC, textD, textA));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+            Assert.Equal(3, runResult.GeneratedTrees.Length);
+
+            // Run 3: [E, A, F] -- remove C and D, add E and F, shuffle
+            driver = driver.ReplaceAdditionalTexts(ImmutableArray.Create<AdditionalText>(textE, textA, textF));
+            driver = driver.RunGenerators(compilation);
+            runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+            Assert.Equal(3, runResult.GeneratedTrees.Length);
+
+            // A should be Cached (survived all rounds). E and F should be Modified (replaced removed slots).
+            var steps = runResult.Results[0].TrackedSteps["Paths"];
+            Assert.Equal(3, steps.Length);
+
+            Assert.Equal("pathA.txt", steps[0].Outputs[0].Value);
+            Assert.Equal(IncrementalStepRunReason.Cached, steps[0].Outputs[0].Reason);
+
+            Assert.Equal(IncrementalStepRunReason.Modified, steps[1].Outputs[0].Reason);
+            Assert.Equal(IncrementalStepRunReason.Modified, steps[2].Outputs[0].Reason);
+
+            // The two modified slots should contain E and F (in input order of new items)
+            var modifiedValues = steps.Where(s => s.Outputs[0].Reason == IncrementalStepRunReason.Modified)
+                .Select(s => (string)s.Outputs[0].Value)
+                .ToArray();
+            Assert.Equal(new[] { "pathE.txt", "pathF.txt" }, modifiedValues);
+
+            // Run 4: same inputs [E, A, F] again -- everything should be cached
+            driver = driver.ReplaceAdditionalTexts(ImmutableArray.Create<AdditionalText>(textE, textA, textF));
+            driver = driver.RunGenerators(compilation);
+            runResult = driver.GetRunResult();
+            Assert.Empty(runResult.Diagnostics);
+
+            foreach (var step in runResult.Results[0].TrackedSteps["Paths"])
+            {
+                Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
+            }
+        }
+
+        [Fact]
         public void Replaced_Input_Is_Treated_As_Modified()
         {
             var source = @"

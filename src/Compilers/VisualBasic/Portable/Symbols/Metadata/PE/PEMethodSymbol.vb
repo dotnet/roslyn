@@ -726,7 +726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _containingType.ContainingPEModule.Module.GetDllImportData(Me._handle)
         End Function
 
-        Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
+        Friend Overrides Function IsMetadataNewSlot() As Boolean
             Return (_flags And MethodAttributes.NewSlot) <> 0
         End Function
 

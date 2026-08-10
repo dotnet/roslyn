@@ -7,20 +7,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
-internal sealed class LspLogMessageLoggerProvider(ILoggerFactory fallbackLoggerFactory, ServerConfiguration serverConfiguration) : ILoggerProvider, ISupportExternalScope
+internal sealed class LspLogMessageLoggerProvider(
+    IClientLanguageServerManager clientLanguageServerManager,
+    LogConfiguration logConfiguration) : ILoggerProvider, ISupportExternalScope
 {
     private readonly ConcurrentDictionary<string, LspLogMessageLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
     private IExternalScopeProvider? _externalScopeProvider;
 
     public ILogger CreateLogger(string categoryName)
     {
-        return _loggers.GetOrAdd(categoryName, new LspLogMessageLogger(categoryName, fallbackLoggerFactory, serverConfiguration, _externalScopeProvider));
+        return _loggers.GetOrAdd(categoryName, new LspLogMessageLogger(categoryName, clientLanguageServerManager, logConfiguration, _externalScopeProvider));
     }
 
     public void Dispose()
     {
         _loggers.Clear();
-        fallbackLoggerFactory.Dispose();
     }
 
     public void SetScopeProvider(IExternalScopeProvider scopeProvider)

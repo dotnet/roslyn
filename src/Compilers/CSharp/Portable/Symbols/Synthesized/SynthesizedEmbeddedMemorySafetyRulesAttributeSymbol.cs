@@ -52,7 +52,7 @@ internal sealed class SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol : Synt
 
         _properties =
         [
-            new SynthesizedPropertySymbol(PropertyName, field),
+            new SynthesizedEmbeddedAttributePropertySymbol(PropertyName, field),
         ];
 
         _constructors =

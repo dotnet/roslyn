@@ -63,17 +63,18 @@
       <Private>true</Private>
     </Reference>
 
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" GeneratePathProperty="true" PrivateAssets="all" />
+    <!-- Prevent downstream projects from trying to place the Sqlite assemblies from this package -->
+    <PackageReference Include="SQLite3MC.PCLRaw.bundle" PrivateAssets="all" />
+    <PackageReference Include="SQLite3MC.PCLRaw.provider" PrivateAssets="all" />
+    <PackageReference Include="SQLite3MC.PCLRaw.lib" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(PkgSQLitePCLRaw_lib_e_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
-      <Link>e_sqlite3.dll</Link>
+    <Content Include="$(PkgSQLite3MC_PCLRaw_lib)\runtimes\win-x86\native\sqlite3mc.dll">
+      <Link>runtimes\win-x86\native\sqlite3mc.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="$(PkgSQLitePCLRaw_lib_e_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
-      <Link>Core\e_sqlite3.dll</Link>
+    <Content Include="$(PkgSQLite3MC_PCLRaw_lib)\runtimes\win-x64\native\sqlite3mc.dll">
+      <Link>runtimes\win-x64\native\sqlite3mc.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

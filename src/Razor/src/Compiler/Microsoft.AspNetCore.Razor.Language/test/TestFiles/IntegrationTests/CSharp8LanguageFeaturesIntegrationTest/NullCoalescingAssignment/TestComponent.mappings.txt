@@ -1,0 +1,13 @@
+﻿Source Location: (2:0,2 [76] x:\dir\subdir\Test\TestComponent.razor)
+|
+    string? value = null;
+    value ??= "Razor";
+    _ = value.Length;
+|
+Generated Location: (733:21,0 [76] )
+|
+    string? value = null;
+    value ??= "Razor";
+    _ = value.Length;
+|
+

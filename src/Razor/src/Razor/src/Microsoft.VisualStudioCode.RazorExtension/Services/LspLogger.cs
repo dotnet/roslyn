@@ -9,11 +9,8 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 /// <summary>
-/// ILogger implementation that logs via the razor/log LSP method
+/// ILogger implementation that logs via the window/logMessage LSP method.
 /// </summary>
-/// <remarks>
-/// The handler for this custom log message is implemented in the C# extension and is responsible for writing the message to the output window.
-/// </remarks>
 internal class LspLogger(string categoryName, RazorClientServerManagerProvider razorClientServerManagerProvider) : ILogger
 {
     private readonly string _categoryName = categoryName;
@@ -39,8 +36,8 @@ internal class LspLogger(string categoryName, RazorClientServerManagerProvider r
             LogLevel.Error => MessageType.Error,
             LogLevel.Warning => MessageType.Warning,
             LogLevel.Information => MessageType.Info,
-            LogLevel.Debug => MessageType.Log,
-            LogLevel.Trace => MessageType.Log,
+            LogLevel.Debug => MessageType.Debug,
+            LogLevel.Trace => MessageType.Debug,
             _ => throw new NotImplementedException(),
         };
 
@@ -52,6 +49,6 @@ internal class LspLogger(string categoryName, RazorClientServerManagerProvider r
             Message = formattedMessage,
         };
 
-        clientLanguageServerManager.SendNotificationAsync("razor/log", @params, CancellationToken.None).Forget();
+        clientLanguageServerManager.SendNotificationAsync(Methods.WindowLogMessageName, @params, CancellationToken.None).Forget();
     }
 }

@@ -6,7 +6,8 @@ using System.Text.Json;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Remote.Razor.Completion;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
 
@@ -38,7 +39,7 @@ public class CompletionListSerializationBenchmark
         }
 
         CompletionList deserializedCompletions;
-        var stream = new MemoryStream(originalStream.GetBuffer());
+        var stream = new MemoryStream(originalStream.ToArray());
         using (stream)
         {
             deserializedCompletions = JsonSerializer.Deserialize<CompletionList>(stream).AssumeNotNull();
@@ -99,7 +100,7 @@ public class CompletionListSerializationBenchmark
     {
         using var stream = new MemoryStream();
         JsonSerializer.Serialize(stream, completionList);
-        var buffer = stream.GetBuffer();
+        var buffer = stream.ToArray();
 
         return buffer;
     }

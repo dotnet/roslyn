@@ -11,5 +11,3 @@
                     ComponentAttribute - (20:0,20 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Value - Value - AttributeStructure.DoubleQuotes
                         HtmlContent - (20:0,20 [5] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (20:0,20 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Hello
-            CSharpCode - (38:1,7 [55] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (38:1,7 [55] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string nameof(string s) => string.Empty;\n

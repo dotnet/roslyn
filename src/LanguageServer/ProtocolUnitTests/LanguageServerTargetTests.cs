@@ -28,6 +28,16 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
     protected override TestComposition Composition => base.Composition.AddParts(typeof(StatefulLspServiceFactory), typeof(StatelessLspService));
 
     [Theory, CombinatorialData]
+    public async Task InitializeResultContainsServerInfo(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+        var initializeResult = server.GetInitializeResult();
+
+        Assert.NotNull(initializeResult.ServerInfo);
+        Assert.Equal(WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToTelemetryString(), initializeResult.ServerInfo.Name);
+    }
+
+    [Theory, CombinatorialData]
     public async Task LanguageServerQueueEmptyOnShutdownMessage(bool mutatingLspWorkspace)
     {
         await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);

@@ -17,6 +17,9 @@ internal static class UriExtensions
     public static Uri CreateSystemUri(this TextDocument document)
         => document.GetURI().GetRequiredSystemUri();
 
+    public static DocumentUri CreateDocumentUriFromSystemUri(this Uri uri)
+        => new DocumentUri(uri);
+
     public static string GetDocumentFilePathFromUri(this Uri uri)
     {
         return uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;

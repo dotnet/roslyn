@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename;
 internal sealed class InlineRenameUIOptionsStorage
 {
     public static readonly Option2<bool> CollapseUI = new("dotnet_collapse_inline_rename_ui", defaultValue: false);
-    public static readonly Option2<bool> CollapseSuggestionsPanel = new("dotnet_collapse_suggestions_in_inline_rename_ui_v2", defaultValue: true);
+    public static readonly Option2<bool?> CollapseSuggestionsPanel = new("dotnet_collapse_suggestions_in_inline_rename_ui_v2", defaultValue: null);
     public static readonly Option2<bool> GetSuggestionsAutomatically = new("dotnet_rename_get_suggestions_automatically", defaultValue: false);
     public static readonly Option2<bool> GetSuggestionsContext = new("visual_studio_enable_copilot_rename_context", defaultValue: false);
 }

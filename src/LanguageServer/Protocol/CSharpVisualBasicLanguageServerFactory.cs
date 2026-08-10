@@ -13,8 +13,8 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-[Export(typeof(ILanguageServerFactory)), Shared]
-internal sealed class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
+[Export(typeof(CSharpVisualBasicLanguageServerFactory)), Shared]
+internal sealed class CSharpVisualBasicLanguageServerFactory
 {
     private readonly AbstractLspServiceProvider _lspServiceProvider;
 
@@ -30,15 +30,13 @@ internal sealed class CSharpVisualBasicLanguageServerFactory : ILanguageServerFa
         JsonRpc jsonRpc,
         JsonSerializerOptions options,
         WellKnownLspServerKinds serverKind,
-        AbstractLspLogger logger,
         HostServices hostServices,
-        AbstractTypeRefResolver? typeRefResolver)
+        AbstractTypeRefResolver? typeRefResolver = null)
     {
         var server = new RoslynLanguageServer(
             _lspServiceProvider,
             jsonRpc,
             options,
-            logger,
             hostServices,
             ProtocolConstants.RoslynLspLanguages,
             serverKind,

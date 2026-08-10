@@ -9,17 +9,17 @@ using System.IO;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.VisualStudio.Razor.Rename;
 
-[Export(typeof(IRazorRefactorNotifyService))]
+[Export(typeof(IRefactorNotifyService))]
 [method: ImportingConstructor]
 internal sealed class RazorRefactorNotifyService(
-    ILoggerFactory loggerFactory) : IRazorRefactorNotifyService
+    ILoggerFactory loggerFactory) : IRefactorNotifyService
 {
     private readonly IFileSystem _fileSystem = new FileSystem();
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorRefactorNotifyService>();

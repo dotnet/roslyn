@@ -1,0 +1,613 @@
+@using BlazorPro.BlazorSize
+@using BoatClub.Data
+@using EFCoreSecondLevelCacheInterceptor
+@using Humanizer
+@using Microsoft.EntityFrameworkCore
+@using MSA_AddressUtilities.WorldDb.Data
+@using MSA_JavaInteropHelpers
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Inputs
+@using Action = Syncfusion.Blazor.Grids.Action
+@using SelectionMode = Syncfusion.Blazor.Grids.SelectionMode
+@using SelectionType = Syncfusion.Blazor.Grids.SelectionType
+
+@inject WorldDBContext WorldDbContext
+@inject ILogger<PhoneNumbersSection> Logger
+@inject JavaInteropHelpers JavaHelpers
+
+
+@inject IResizeListener Listener
+
+@implements IDisposable
+
+<div class="p-boatsection">
+
+    <h3 class="p-boatsection-header">Boats</h3>
+    
+    <div class="@(DisableGrid ? "p-boatsection-grid disabled" : "p-boatsection-grid")">
+        <SfGrid TValue="Boat"
+                ID="boatsection-sfGrid"
+                @ref="sfGrid"
+                DataSource="@workingBoats"
+                AllowSelection="true"
+                AllowSorting="false"
+                AllowFiltering="false"
+                EnableVirtualization="false"
+                EnableVirtualMaskRow="false"
+                EnableHover="false"
+                @attributes="@GridAttributes"
+                RowHeight="38">
+
+            <GridEvents TValue="Boat"
+                        OnActionComplete="@OnActionComplete"
+                        OnBeginEdit="@OnBeginEdit" />
+            
+            <GridEditSettings AllowAdding="true"
+                              AllowEditing="true"
+                              AllowDeleting="true"
+                              ShowDeleteConfirmDialog="@showDeleteDialog"
+                              NewRowPosition="NewRowPosition.Bottom"
+                              Mode="EditMode.Normal">
+
+            </GridEditSettings>
+
+
+            <GridSelectionSettings Type="SelectionType.Single"
+                                   Mode="SelectionMode.Row"
+                                   EnableToggle="true" />
+
+            <GridColumns>
+                <GridColumn Field=@nameof(Boat.BoatId) 
+                            Visible="false" 
+                            IsPrimaryKey="true" />
+                
+                <GridColumn Field="@nameof(Boat.Name)"
+                            HeaderText="Boat Name"
+                            TextAlign="TextAlign.Left"
+                            Width="20%" />
+                
+                <GridColumn Field="@nameof(Boat.Year)"
+                            HeaderText="Year"
+                            TextAlign="TextAlign.Center"
+                            Width="10%"/>
+                
+                <GridColumn Field="@nameof(Boat.Manufacturer)"
+                            HeaderText="Manufacturer"
+                            TextAlign="TextAlign.Left"
+                            Width="20%">
+                    <EditTemplate>
+                        <SfAutoComplete @bind-Value="@((context as Boat)!.Manufacturer)"
+                                        TValue="string"
+                                        TItem="string"
+                                        DataSource="@manufactureList"
+                                        Placeholder="Manufacturer"
+                                        FloatLabelType="FloatLabelType.Always"
+                                        AllowFiltering="true"
+                                        AllowCustom="true"
+                                        IgnoreCase="true"
+                                        ShowClearButton="true"
+                                        Readonly="@IsEditing">
+                        </SfAutoComplete>
+                    </EditTemplate>
+                </GridColumn>
+                
+                <GridColumn Field="@nameof(Boat.Model)"
+                            HeaderText="Model"
+                            TextAlign="TextAlign.Left"
+                            Width="20%"/>
+                                
+                
+                <GridColumn HeaderText="Manage" 
+                            Width="15%"
+                            TextAlign="TextAlign.Center">
+                    <GridCommandColumns>
+                        <GridCommandColumn Type="CommandButtonType.Edit" 
+                                           ButtonOption="@(new CommandButtonOptions() { IconCss = "e-icons e-edit", CssClass = "e-flat" })" />
+                        <GridCommandColumn Type="CommandButtonType.Delete" 
+                                           ButtonOption="@(new CommandButtonOptions() { IconCss = "e-icons e-delete", CssClass = "e-flat" })" />
+                        <GridCommandColumn Type="CommandButtonType.Save" 
+                                           ButtonOption="@(new CommandButtonOptions() { IconCss = "e-icons e-update", CssClass = "e-flat" })" />
+                        <GridCommandColumn Type="CommandButtonType.Cancel" 
+                                           ButtonOption="@(new CommandButtonOptions() { IconCss = "e-icons e-cancel-icon", CssClass = "e-flat" })" />
+                    </GridCommandColumns>
+                </GridColumn>
+            </GridColumns>
+
+        </SfGrid>
+        
+        @if (showEditDialog)
+        {
+            <BoatEntryDialog Boat="WorkBoat!"
+			                 ContactBoat="WorkContactBoat"
+                                 AppDbContext="AppDbContext"
+                                 DialogVisible="showEditDialog"
+                                 OnDialogCancel="OnEditDialogCancel"
+                                 OnBoatSaved="OnEditDialogSave"
+                                 DefaultWidth="@MySize.WidthAsInt.ToString()"
+            />
+        }
+
+    </div>
+    <button class="btn btn-primary p-boatsection-addboat"
+            @onclick="AddBoat"
+            disabled="@(IsEditing || DisableGrid)">
+        Add Boat
+    </button>
+</div>
+
+
+@code {
+
+	#region Variables
+
+	//  This component is responsible for displaying and managing the phone numbers for a contact.
+	//  It uses a Syncfusion grid to display the phone numbers and allow the user to add, edit, and delete phone numbers.
+	//  The changes are made to a working list of phone numbers that is synced with the Contact's Phones list
+	//  when the user saves or deletes a phone number. This allows us to manage the state of the phone numbers
+	//  in the grid without directly modifying the Contact's Phones until we're ready to apply those changes.
+	[Parameter]
+	public required Contact Contact { get; set; }
+
+	//  We need the AppDbContext to load the phone types and countries for the grid.
+	//  We will NOT use the AppDbContext to make changes to the phone numbers, those changes will be made to
+	//  the Contact's Phones list and then persisted by the parent component when the user saves the contact.
+	[Parameter]
+	public required ApplicationDbContext AppDbContext { get; set; }
+
+	//  This event callback is used to notify the parent component that the contact has changed
+	//  so it can re-evaluate the contact's state and any related UI.
+	[Parameter]
+	public EventCallback<Boat> OnBoatChanged { get; set; }
+
+	//  This event callback is used to notify the parent component of the grid's editing state
+	[Parameter]
+	public EventCallback<bool> OnEditingState { get; set; }
+
+	//  This property is used to control whether the grid is disabled or not, we use it to enable or disable the Add Address button.
+	[Parameter]
+	public bool DisableGrid { get;
+		set
+		{
+			if (IsEditing) return;
+
+			if (GridAttributes.ContainsKey("aria-disabled"))
+			{
+				GridAttributes["aria-disabled"] = value ? "true" : "false";
+				StateHasChanged();
+			}
+
+			field = value;
+		} } = false;
+
+	//  This dictionary is used to set the aria-disabled attribute on the grid, we use it to enable or disable the grid.
+	private Dictionary<string, object> GridAttributes { get; set; } = new()
+    {
+        {"aria-disabled", "false" }
+    };
+
+	private List<ElectricRequirement> electricRequirements { get; set; } = [];
+	private List<string> manufactureList { get; set; } = [];
+	private RangeLimits? yearRangeLimits { get; set; } = typeof(Boat).GetRangeLimits(nameof(Boat.Year));
+
+    private bool showEditDialog { get; set; } = false;
+
+    private JavaInteropHelpers.ElementSize MySize { get; set; } = new JavaInteropHelpers.ElementSize() { Height = 500, Width = 800 };
+
+
+	//  This is the working list of boats that is used to manage the state of the boats in the grid.
+	private List<Boat> workingBoats = [];
+    private Boat? WorkBoat { get; set; }
+	private ContactBoat? WorkContactBoat { get; set; }
+
+
+	//  This is a reference to the Syncfusion grid component, we use it to access the grid's properties and methods.
+	private SfGrid<Boat>? sfGrid;
+
+	//  This property is used to track whether the grid is in edit mode or not,
+	//  we use it to enable or disable the Add Boat button.
+	private bool IsEditing
+	{
+		get;
+		set
+		{
+			if (field == value) return;
+			field = value;
+			if (OnEditingState.HasDelegate)
+			{
+				OnEditingState.InvokeAsync(value);
+			}
+		}
+	} = false;
+
+	//  This property is used to control whether the delete confirmation dialog is shown or not,
+	private bool showDeleteDialog { get; set; } = true;
+
+	#endregion
+
+    private async Task OnEditDialogSave(Boat boat)
+    {
+        showEditDialog = false;
+        IsEditing = false;
+
+        //  Update the corresponding Boat entity in the Contact's boat list
+        var workEntity = Contact.Boats.FirstOrDefault(a => a.BoatId == boat.BoatId);
+        if (workEntity != null)
+        {
+            workEntity.UpdateFromBoat(boat);
+
+            var pos = workingBoats.FindIndex(a => a.BoatId == workEntity.BoatId);
+            if (pos >= 0)
+            {
+                workingBoats[pos] = workEntity;
+            }
+        }
+        else
+        {
+            //  Add it if it doesn't exist, this can happen when adding a new boat since the
+            //  Boat won't have a BoatId until it's saved, and we need to make sure it's added to
+            //  the Contact's boat list so it will be persisted
+            workEntity = new Boat(boat);
+            workingBoats.Add(workEntity);
+            Contact.Boats.Add(workEntity);
+        }
+
+        //  Notify the parent component that the contact has changed so it can re-evaluate the contact's
+        //  state and any related UI.
+        if(OnBoatChanged.HasDelegate)
+        {
+            await OnBoatChanged.InvokeAsync(workEntity);
+        }
+
+        await sfGrid!.Refresh();
+
+        await Task.Delay(100);
+
+        StateHasChanged();
+    }
+
+    private async Task OnEditDialogCancel()
+    {
+        showEditDialog = false;
+        IsEditing = false;
+
+        var work = AppDbContext.ChangeTracker.Entries()
+                               .FirstOrDefault(e => e.Entity == WorkBoat);
+
+        //	If the work boat is being tracked by the change tracker, we need to reset its state to unchanged
+        if (work != null)
+        {
+            work.CurrentValues.SetValues(work.OriginalValues);
+            work.State = EntityState.Unchanged;
+        }
+
+		//	If the work contact boat is being tracked by the change tracker, we need to reset its state to unchanged
+		work = AppDbContext.ChangeTracker.Entries()
+							   .FirstOrDefault(e => e.Entity == WorkContactBoat);
+		if (work != null)
+		{
+			work.CurrentValues.SetValues(work.OriginalValues);
+			work.State = EntityState.Unchanged;
+		}
+
+
+        //    Give the grid a moment to pick up the change.
+        await Task.Delay(100);
+    }
+
+    private void OnBeginEdit(BeginEditArgs<Boat> args)
+    {
+        WorkBoat = args.RowData;
+		WorkContactBoat = Contact.ContactBoats.FirstOrDefault(cb => cb.BoatId == WorkBoat.BoatId);
+        IsEditing = true;
+        showEditDialog = true;
+
+        args.Cancel = true;
+    }
+
+	/// <summary>
+	///  This method is called when an action is completed in the grid, such as saving or deleting a phone number.
+	/// </summary>
+	/// <param name="args">The action event arguments.</param>
+	private void OnActionComplete(ActionEventArgs<Boat> args)
+	{
+
+		//  We only want to handle save and delete actions, we don't need to do anything for edit or add actions
+		//  since those are handled by the grid's edit settings and the Add Boat button.
+		if (args.RequestType is not (Action.Save or Action.Delete) || args.Data == null) 
+			return;
+
+		Boat? workEntity = null;
+
+		//  If a boat was saved
+		if (args.RequestType == Action.Save)
+		{
+
+			//  Update the corresponding Boat entity in the Contact's boat list
+			workEntity = Contact.Boats.FirstOrDefault(p => p.BoatId == args.Data.BoatId);
+			if(workEntity != null)
+			{
+				workEntity.UpdateFromBoat(args.Data);
+			}
+			else
+			{
+				//  Add it if it doesn't exist, this can happen when adding a new boat since the
+				//  Boat won't have a BoatId until it's saved, and we need to make sure it's added to
+				//  the Contact's boat list so it will be persisted
+				workEntity = new Boat(args.Data);
+				Contact.Boats.Add(workEntity);
+			}
+		}
+
+		//  Notify the parent component that the contact has changed so it can re-evaluate the contact's
+		//  state and any related UI.
+		if (OnBoatChanged.HasDelegate)
+		{
+			OnBoatChanged.InvokeAsync(workEntity);
+		}
+	}
+
+	/// <summary>
+	/// Handles the event when editing a boat is canceled.
+	/// </summary>
+	/// <param name="args">The event arguments containing the boat data.</param>
+	/// <returns>A task that represents the asynchronous operation.</returns>
+	private async Task EditCanceled(EditCanceledEventArgs<Boat> args)
+	{
+		var record = args.Data;
+		var old = args.PreviousData;
+		if (record != null)
+		{
+			// If the record is new and invalid, remove it from the contact's boat list
+			if(old == null)
+			{
+				// Suppress the delete confirmation dialog since we're just cleaning up an invalid new record
+				showDeleteDialog = false;
+				// Give the grid a moment to pick up the change.
+				await Task.Delay(100);
+
+				await sfGrid!.DeleteRecordAsync();
+				// Give the grid a moment to pick up the change.
+				await Task.Delay(100);
+
+				await sfGrid!.ClearSelectionAsync();
+				showDeleteDialog = true;
+				StateHasChanged();
+
+			}
+		}
+	}
+
+	/// <summary>
+	/// Handles the event when a new phone number is added.
+	/// </summary>
+	/// <returns>A task that represents the asynchronous operation.</returns>
+	private async Task AddBoat()
+	{
+		//  Create a new boat with default values.
+		WorkBoat = new Boat()
+        {
+
+            Year = yearRangeLimits?.MinimumInt ?? DateTime.Now.Year,
+			Manufacturer = "Unknown"
+        };
+
+		WorkContactBoat = new ContactBoat()
+
+        showEditDialog = true;
+        IsEditing = true;
+
+		// //  Determine the row where the record should be added, this should be the bottom.
+		// var row = workingBoats.Count();
+
+		// //  Add the new boat to the working list and the Contact's boat list,
+		// //  we will persist it when the user saves the new boat in the grid.
+		// workingBoats.Add(newBoat);
+		// Contact?.Boats.Add(newBoat);
+
+		// //  Refresh the grid to pick up the new boat, then select the new row and start editing it.
+		// await sfGrid!.Refresh(true);
+		// await Task.Delay(100);
+
+		// await sfGrid!.SelectRowAsync(row);
+		// await sfGrid.StartEditAsync();
+		// await Task.Delay(100);
+
+		StateHasChanged();
+	}
+
+    private async Task SetMySize()
+    {
+        try
+        {
+            //  Get the dialog size using the JavaInteropHelpers service
+            MySize = await JavaHelpers.GetElementSize("p-boatsection");
+
+            //  Set the width to 60% of
+            MySize.Width = MySize.Width == 0 ? 500 : MySize.Width * 0.4;
+
+            // Todo:  If the width is too small, set it to a minimum value, this is a temporary fix until we can get the dialog to resize properly.
+            MySize.Width = 200;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error getting dialog size.");
+            MySize = new JavaInteropHelpers.ElementSize() { Height = 500, Width = 800 };
+        }
+    }
+
+	protected override void OnAfterRender(bool firstRender)
+	{
+		if (firstRender)
+		{
+			// Subscribe to the OnResized event. This will do work when the browser is resized.
+			AddResizeListener(firstRender);
+		}
+		base.OnAfterRender(firstRender);
+
+        _ = SetMySize();
+	}
+
+	#region Overrides of ComponentBase
+
+	private async Task Initialize()
+	{
+		
+		//  Sync the workingPhones list with the Contact's Phones, this allows us to make changes to the phone numbers
+		//  in the grid and then apply those changes to the Contact's Phones when the user saves or deletes a phone number.
+		//  It also allows us to manage the state of the boats in the grid without directly modifying the
+		//  Contact's Boats until we're ready to apply those changes.
+		if (workingBoats.Count == 0)
+		{
+			foreach (var boat in Contact.Boats)
+			{
+				workingBoats.Add(new Boat(boat));
+			}
+		}
+		
+		try
+		{
+			if (electricRequirements.Count == 0)
+			{
+				electricRequirements = await AppDbContext.ElectricRequirements
+														.Cacheable()
+														.AsNoTracking()
+														.ToListAsync();
+			}
+
+			if (manufactureList.Count == 0)
+			{
+				manufactureList = await AppDbContext.Boats
+													.Cacheable()
+													.AsNoTracking()
+													.Select(m => m.Manufacturer)
+                                                    .Distinct()
+													.ToListAsync();
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Error loading ElectricRequirement and manufacturer types.");
+		}
+
+	}
+
+	/// <summary>
+	/// Handles the event after the component has been rendered.
+	/// </summary>
+	/// <param name="firstRender">A boolean value indicating whether this is the first time the
+	/// component is being rendered.</param>
+	/// <returns>A task that represents the asynchronous operation.</returns>
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		//  Sync the IsEditing state with the grid's IsEdit property,
+		//  this allows us to enable or disable the Add Phone button based on whether the grid is in edit mode or not.
+		if (IsEditing != sfGrid!.IsEdit)
+		{
+			IsEditing = sfGrid!.IsEdit;
+
+			StateHasChanged();
+		}
+
+		if (firstRender)
+		{
+			await Initialize();
+
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+#endregion
+
+#region Window Resize Processing
+
+    // We can also capture the browser's width / height if needed. We hold the value here.
+    BrowserWindowSize _browser = new();
+
+    bool _isSmallMedia = false;
+
+    // This method will be called when the window resizes.
+    // It is ONLY called when the user stops dragging the window's edge. (It is already throttled to protect your app from perf. nightmares)
+    private async void WindowResized(object? _, BrowserWindowSize window)
+    {
+        try
+        {
+            // Get the browser's width / height
+            _browser = window;
+
+            // Check a media query to see if it was matched. We can do this at any time, but it's best to check on each resize
+            _isSmallMedia = await Listener.MatchMedia("(max-width: 510.98px)");
+
+            // Adjust sizes based on windows width
+            if (_isSmallMedia)
+            {
+               
+            }
+            else
+            {
+                
+            }
+
+            // We're outside the component's lifecycle, be sure to let it know it has to re-render.
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error during WindowResized processing.");
+        }
+    }
+
+#endregion
+
+#region Implementation of IDisposable
+
+    /// <summary>
+    /// Add the resize listener
+    /// </summary>
+    /// <param name="firstRender"></param>
+    private void AddResizeListener(bool firstRender)
+    {
+        Listener.OnResized += WindowResized;
+    }
+
+    void IDisposable.Dispose()
+    {
+        // Always use IDisposable in your component to unsubscribe from the event.
+        // Be a good citizen and leave things how you found them.
+        // This way event handlers aren't called when nobody is listening.
+        Listener.OnResized -= WindowResized;
+    }
+
+#endregion
+
+}
+
+<style>
+
+	.p-boatsection-addboat{
+		margin: 5px;
+		padding: 5px;
+	}
+
+	.p-boatsection-grid.disabled {
+		opacity: 0.6;
+		pointer-events: none;
+		touch-action: none;
+		cursor: not-allowed;
+	}
+
+    .p-boatsection-header{
+        font-weight: bold;
+        font-size: 1.5rem;
+    }
+    .countrygroup {
+        font-weight: bold;
+        font-size: 1.2em;
+        padding: 5px 0;
+        color: black;
+    }
+
+    .p-boatsection-grid{
+        @*height: 20vh;*@
+    }
+</style>

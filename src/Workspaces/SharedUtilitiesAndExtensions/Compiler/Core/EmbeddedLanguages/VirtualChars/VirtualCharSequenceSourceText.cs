@@ -30,7 +30,7 @@ internal sealed class VirtualCharSequenceSourceText : SourceText
 
     public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
     {
-        for (int i = sourceIndex, n = sourceIndex + count; i < n; i++)
-            destination[destinationIndex + i] = this[i];
+        for (var i = 0; i < count; i++)
+            destination[destinationIndex + i] = this[sourceIndex + i];
     }
 }

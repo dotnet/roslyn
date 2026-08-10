@@ -7,7 +7,7 @@
                 CSharpTransition - [0..1)::1 - Gen<None>
                     Transition;[@];
                 RazorDirectiveBody - [1..40)::39
-                    CSharpStatementLiteral - [1..40)::39 - [using   static   global::System.Console] - Gen<Import:   static   global::System.Console;>
+                    CSharpStatementLiteral - [1..40)::39 - [using   static   global::System.Console] - Gen<Import: static   global::System.Console;>
                         Keyword;[using];
                         Whitespace;[   ];
                         Keyword;[static];
