@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 /// (<c>partial</c>, <c>async</c>, <c>required</c>, <c>file</c>, ...).
 /// <para>
 /// The goal of this file is to lock in the property that each contextual-keyword modifier can
-/// appear in any position of a declaration's modifier list without affecting binding, and to
-/// detect silently-introduced ordering rules when a future contextual modifier is added.
+/// be parsed in any position of a declaration's modifier list. For modifiers whose ordering is
+/// semantically unrestricted, the tests also verify that ordering does not affect binding.
 /// </para>
 /// <para>
 /// The set of contextual modifier kinds is discovered dynamically from
@@ -45,9 +45,9 @@ public sealed class ContextualModifierOrderingTests : CSharpTestBase
     // For each known contextual-keyword modifier, a declaration template where the modifier is
     // semantically valid, plus the set of non-contextual companion modifiers to interleave with
     // it.  The harness generates every permutation of [contextual keyword + companions] and
-    // asserts the resulting declarations all bind with the same diagnostics.  Companion modifiers
-    // are intentionally drawn from the reserved-keyword set so the tests isolate the contextual
-    // keyword's own ordering behavior from the feature-gated relaxations of 'partial' and 'ref'.
+    // asserts the resulting declarations parse the contextual keyword as a modifier. Companion
+    // modifiers are intentionally drawn from the reserved-keyword set so the tests isolate the
+    // contextual keyword's own ordering behavior.
     private static readonly ImmutableDictionary<SyntaxKind, Shape> s_shapes =
         ImmutableDictionary.CreateRange(new KeyValuePair<SyntaxKind, Shape>[]
         {
@@ -57,9 +57,6 @@ public sealed class ContextualModifierOrderingTests : CSharpTestBase
                 WrapperClose: "",
                 Declaration: "class C { }",
                 CompanionModifiers: ImmutableArray.Create("public", "unsafe"),
-                // 'partial'-last used to be mandatory; the relaxation lives behind the preview
-                // feature so preview is the version on which every ordering is expected to bind
-                // identically.
                 LangVersion: LanguageVersion.Preview)),
 
             KeyValuePair.Create(SyntaxKind.AsyncKeyword, new Shape(
@@ -85,6 +82,14 @@ public sealed class ContextualModifierOrderingTests : CSharpTestBase
                 Declaration: "class C { }",
                 CompanionModifiers: ImmutableArray.Create("static", "unsafe"),
                 LangVersion: LanguageVersion.CSharp11)),
+
+            KeyValuePair.Create(SyntaxKind.ClosedKeyword, new Shape(
+                Usings: "",
+                WrapperOpen: "",
+                WrapperClose: "",
+                Declaration: "class C { }",
+                CompanionModifiers: ImmutableArray.Create("public", "unsafe"),
+                LangVersion: LanguageVersion.Preview)),
         });
 
     /// <summary>
@@ -139,21 +144,16 @@ public sealed class ContextualModifierOrderingTests : CSharpTestBase
     }
 
     /// <summary>
-    /// For each registered contextual-keyword modifier, compiles every permutation of the
-    /// modifier list (contextual keyword plus companion modifiers) and asserts the diagnostic
-    /// IDs produced are identical across permutations.  If any permutation produces a different
-    /// set of diagnostics, the parser or binder is treating the contextual keyword as
-    /// order-sensitive and the failure message points at the first divergent permutation.
+    /// For each registered contextual-keyword modifier, parses every permutation of the modifier
+    /// list and verifies that the contextual keyword is promoted from an identifier to a modifier
+    /// keyword without parser diagnostics.
     /// </summary>
     [Theory, MemberData(nameof(ContextualModifierKinds))]
-    public void AllPermutationsBindIdentically(SyntaxKind contextualKind)
+    public void AllPermutationsParseAsModifiers(SyntaxKind contextualKind)
     {
         var shape = s_shapes[contextualKind];
         var contextualText = SyntaxFacts.GetText(contextualKind);
         var tokens = shape.CompanionModifiers.Append(contextualText).ToImmutableArray();
-
-        string? baselineIds = null;
-        string? baselineSource = null;
 
         foreach (var permutation in Permutations(tokens))
         {
@@ -170,6 +170,45 @@ public sealed class ContextualModifierOrderingTests : CSharpTestBase
                 parseOptions: TestOptions.Regular.WithLanguageVersion(shape.LangVersion),
                 options: TestOptions.UnsafeReleaseDll);
 
+            comp.GetParseDiagnostics().Verify();
+            Assert.Single(comp.SyntaxTrees.Single().GetRoot().DescendantTokens(), token => token.Kind() == contextualKind);
+        }
+    }
+
+    public static TheoryData<SyntaxKind> OrderIndependentContextualModifierKinds()
+    {
+        var data = new TheoryData<SyntaxKind>();
+        foreach (var kind in s_shapes.Keys.Where(k => k != SyntaxKind.PartialKeyword).OrderBy(k => k.ToString()))
+            data.Add(kind);
+        return data;
+    }
+
+    /// <summary>
+    /// For contextual modifiers whose ordering is semantically unrestricted, compiles every
+    /// permutation and asserts that the diagnostic IDs are identical.
+    /// </summary>
+    [Theory, MemberData(nameof(OrderIndependentContextualModifierKinds))]
+    public void AllPermutationsBindIdentically(SyntaxKind contextualKind)
+    {
+        var shape = s_shapes[contextualKind];
+        var contextualText = SyntaxFacts.GetText(contextualKind);
+        var tokens = shape.CompanionModifiers.Append(contextualText).ToImmutableArray();
+        string? baselineIds = null;
+        string? baselineSource = null;
+
+        foreach (var permutation in Permutations(tokens))
+        {
+            var modifierList = string.Join(" ", permutation);
+            var source = $$"""
+                {{shape.Usings}}
+                {{shape.WrapperOpen}}
+                    {{modifierList}} {{shape.Declaration}}
+                {{shape.WrapperClose}}
+                """;
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(shape.LangVersion),
+                options: TestOptions.UnsafeReleaseDll);
             var ids = string.Join(",", comp.GetDiagnostics()
                 .Select(d => $"{d.Id}:{d.Severity}")
                 .OrderBy(s => s));
