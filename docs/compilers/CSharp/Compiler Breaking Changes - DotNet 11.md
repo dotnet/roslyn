@@ -318,7 +318,7 @@ In C# 15, `union` followed by a type name can be parsed as a union declaration. 
 To continue using `union` as an identifier, escape it with `@`.
 
 ```cs
-class union { }
+class @union { }
 
 class C
 {
