@@ -404,6 +404,9 @@ public class C
         public void PartialPublicEnum()
         {
             CreateCompilation("partial public enum E { }").VerifyDiagnostics(
+                // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // partial public enum E { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
                 // (1,21): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // partial public enum E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 21));
