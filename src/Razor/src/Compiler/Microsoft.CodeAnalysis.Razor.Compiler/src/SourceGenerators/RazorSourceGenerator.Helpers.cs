@@ -38,6 +38,28 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         }
 
         /// <summary>
+        /// Returns the name of the component type a descriptor belongs to. A component descriptor's owning
+        /// type is itself, but descriptors derived from a component -- child content and bind, for example --
+        /// carry the owning component's namespace and identifier while their own <see cref="TagHelperDescriptor.TypeName"/>
+        /// is suffixed (e.g. <c>Ns.Card.Header</c> for the <c>Header</c> child content of <c>Ns.Card</c>).
+        /// Reconstructing the owning name from the namespace and identifier lets ownership filtering keep or
+        /// exclude a fallback component and all its derived descriptors together, rather than only the
+        /// component descriptor whose <see cref="TagHelperDescriptor.TypeName"/> matches exactly.
+        /// </summary>
+        internal static string GetOwningTypeName(TagHelperDescriptor descriptor)
+        {
+            var identifier = descriptor.TypeNameIdentifier;
+            if (identifier is null)
+            {
+                return descriptor.TypeName;
+            }
+
+            return descriptor.TypeNamespace is { Length: > 0 } typeNamespace
+                ? typeNamespace + "." + identifier
+                : identifier;
+        }
+
+        /// <summary>
         /// Returns the hint name for the decl half of a Razor component generated source given
         /// the impl half's hint name. The decl file substitutes <c>.decl.g.cs</c> for the
         /// trailing <c>.g.cs</c> -- e.g. <c>Component1_razor.g.cs</c> →
