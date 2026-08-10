@@ -440,7 +440,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         var src = "public partial enum E { }";
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (1,21): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // (1,21): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
             // public partial enum E { }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 21));
     }
@@ -451,7 +451,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         var src = "public partial delegate void D();";
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (1,30): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // (1,30): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
             // public partial delegate void D();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "D").WithLocation(1, 30));
     }
@@ -692,7 +692,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
 
         CreateCompilation("partial enum E { }").VerifyDiagnostics(
-            // (1,14): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
             // partial enum E { }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
     }
@@ -724,7 +724,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
 
         CreateCompilation("partial delegate void D();").VerifyDiagnostics(
-            // (1,23): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // (1,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
             // partial delegate void D();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "D").WithLocation(1, 23));
     }
