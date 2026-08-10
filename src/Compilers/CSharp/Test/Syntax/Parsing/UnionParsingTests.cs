@@ -232,35 +232,53 @@ union M()
 partial union U1(E1);
 """;
         UsingTree(src, TestOptions.Regular14,
-            // (1,20): error CS1001: Identifier expected
+            // (1,15): error CS1003: Syntax error, '=' expected
             // partial union U1(E1);
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 20)
+            Diagnostic(ErrorCode.ERR_SyntaxError, "U1").WithArguments("=").WithLocation(1, 15)
             );
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.MethodDeclaration);
+            N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.LocalDeclarationStatement);
                 {
-                    N(SyntaxKind.IdentifierToken, "union");
-                }
-                N(SyntaxKind.IdentifierToken, "U1");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.VariableDeclaration);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "E1");
+                            N(SyntaxKind.IdentifierToken, "partial");
                         }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "union");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                M(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "U1");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "E1");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
                     }
-                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -384,15 +402,9 @@ ref union U1(E1);
 ref partial union U1(E1);
 """;
         UsingTree(src, TestOptions.Regular14,
-            // (1,5): error CS1031: Type expected
+            // (1,19): error CS1003: Syntax error, '=' expected
             // ref partial union U1(E1);
-            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 5),
-            // (1,5): error CS1525: Invalid expression term 'partial'
-            // ref partial union U1(E1);
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 5),
-            // (1,5): error CS1003: Syntax error, ',' expected
-            // ref partial union U1(E1);
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 5)
+            Diagnostic(ErrorCode.ERR_SyntaxError, "U1").WithArguments("=").WithLocation(1, 19)
             );
 
         N(SyntaxKind.CompilationUnit);
@@ -406,14 +418,37 @@ ref partial union U1(E1);
                         N(SyntaxKind.RefType);
                         {
                             N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "partial");
                             }
                         }
-                        M(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.VariableDeclarator);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "union");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                M(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "U1");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "E1");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
                         }
                     }
                     N(SyntaxKind.SemicolonToken);

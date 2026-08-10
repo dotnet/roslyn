@@ -5781,29 +5781,15 @@ partial class PartialPartial
     }
 }
 ";
-            // These errors aren't great.  Ideally we can improve things in the future.
             CreateCompilation(text).VerifyDiagnostics(
-                // (5,13): error CS1525: Invalid expression term 'partial'
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
+                // (5,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial void PM();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 13),
-                // (5,13): error CS1002: ; expected
-                //     partial partial void PM();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 13),
-                // (6,13): error CS1525: Invalid expression term 'partial'
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(5, 13),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
+                // (6,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial void PM()
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(6, 13),
-                // (6,13): error CS1002: ; expected
-                //     partial partial void PM()
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(6, 13),
-                // (6,13): error CS0102: The type 'PartialPartial' already contains a definition for ''
-                //     partial partial void PM()
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("PartialPartial", "").WithLocation(6, 13),
-                // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                //     partial partial void PM();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
-                // (6,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                //     partial partial void PM()
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(6, 5));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(6, 13));
         }
 
         [Fact]
@@ -6916,9 +6902,9 @@ class Program
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (6,13): error CS0106: The modifier 'ref' is not valid for this item
+                // (6,9): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
                 //         ref get => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(6, 13));
+                Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(6, 9));
         }
 
         [Fact]
@@ -6935,12 +6921,12 @@ class Program
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
+                // (6,18): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+                //         abstract ref get => throw null;
+                Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(6, 18),
                 // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
                 //         abstract ref get => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("abstract").WithLocation(6, 22),
-                // (6,22): error CS0106: The modifier 'ref' is not valid for this item
-                //         abstract ref get => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("abstract").WithLocation(6, 22));
         }
 
         [Fact]
@@ -6957,9 +6943,9 @@ class Program
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (6,13): error CS0106: The modifier 'ref' is not valid for this item
+                // (6,9): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
                 //         ref set => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(6, 13));
+                Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(6, 9));
         }
 
         [Fact]
@@ -6976,12 +6962,12 @@ class Program
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
+                // (6,18): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+                //         abstract ref set => throw null;
+                Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(6, 18),
                 // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
                 //         abstract ref set => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("abstract").WithLocation(6, 22),
-                // (6,22): error CS0106: The modifier 'ref' is not valid for this item
-                //         abstract ref set => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("abstract").WithLocation(6, 22));
         }
 
         [Fact]

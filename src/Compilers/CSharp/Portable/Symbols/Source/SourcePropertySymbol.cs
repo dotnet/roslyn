@@ -140,7 +140,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 diagnostics)
         {
-            Debug.Assert(syntax.Type is not ScopedTypeSyntax);
+            // 'scoped' is not a valid modifier on a property. When the parser folds a leading
+            // 'scoped' into the declared type (mirroring how 'ref' return types are handled), we
+            // surface the same "modifier 'scoped' is not valid for this item" diagnostic that used
+            // to come from modifier-list validation, pointed at the 'scoped' keyword itself.
+            if (syntax.Type is ScopedTypeSyntax { ScopedKeyword: var scopedKeyword })
+            {
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, scopedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
+            }
 
             if (hasAutoPropertyGet || hasAutoPropertySet)
             {
@@ -571,8 +578,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeWithAnnotations ComputeType(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             var typeSyntax = GetTypeSyntax(syntax);
-            Debug.Assert(typeSyntax is not ScopedTypeSyntax);
-
+            // 'scoped' is already diagnosed in the constructor (see ERR_BadMemberFlag emission
+            // there). Here we just strip it before binding the underlying type.
             typeSyntax = typeSyntax.SkipScoped(out _).SkipRef();
             var type = binder.BindType(typeSyntax, diagnostics);
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);

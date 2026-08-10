@@ -2601,6 +2601,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_NoBreakId
                 or ErrorCode.ERR_NoContinueId
                 or ErrorCode.ERR_ClosedBadDerivedTypesProperty
+                or ErrorCode.ERR_RefNotMemberModifier
+                or ErrorCode.ERR_RefMisplacedOnType
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

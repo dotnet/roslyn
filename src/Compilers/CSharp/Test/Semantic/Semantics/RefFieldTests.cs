@@ -11748,12 +11748,12 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
-                // (4,21): error CS0106: The modifier 'scoped' is not valid for this item
+                // (4,12): error CS0106: The modifier 'scoped' is not valid for this item
                 //     static scoped R F1<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(4, 21),
-                // (5,25): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(4, 12),
+                // (5,12): error CS0106: The modifier 'scoped' is not valid for this item
                 //     static scoped ref R F2<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("scoped").WithLocation(5, 25),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(5, 12),
                 // (9,16): error CS0106: The modifier 'scoped' is not valid for this item
                 //         static scoped R L1<T>() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(9, 16),
@@ -11803,6 +11803,13 @@ delegate ref scoped R D();
                 );
         }
 
+        // 'scoped' is misplaced on a type declaration. The parser consumes 'scoped' as a modifier
+        // (whether or not 'ref'/'readonly'/'scoped' legitimately modify the type, e.g. a ref
+        // struct) and the binder reports a single ERR_BadMemberFlag. This behavior is identical
+        // on every language version since the shape of the declaration is the same; only the
+        // 'ref fields'/'scoped' keyword feature checks (which don't fire here) would differ.
+        // The diagnostic is reported at the type name because that is the generic error location
+        // used for misplaced modifiers on type declarations.
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -11815,111 +11822,67 @@ scoped readonly ref struct C { }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
-                // (1,1): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 1),
-                // (1,8): error CS1001: Identifier expected
-                // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
-                // (1,8): error CS1002: ; expected
-                // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
-                // (2,12): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
+                // (2,19): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(2, 12),
-                // (3,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "B").WithArguments("scoped").WithLocation(2, 19),
+                // (3,28): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(3, 1));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("scoped").WithLocation(3, 28));
         }
 
-        [Fact]
-        public void TypeScopeModifier_02_CSharp10()
+        // 'scoped' prefixing a type declaration is recognised as a misplaced modifier in all
+        // of these shapes -- including `scoped record A { }` where 'record' is itself the
+        // type-declaration keyword (C# 9+), and `scoped readonly record struct B;` where
+        // 'record struct' forms the type head.  The binder reports a single clean
+        // ERR_BadMemberFlag at the type name in each case.
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void TypeScopeModifier_02(LanguageVersion langVersion)
         {
             var source =
 @"scoped record A { }
 scoped readonly record struct B;
 readonly scoped record struct C();
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp10));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
-                // (1,8): error CS0118: 'record' is a variable but is used like a type
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
-                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
                 // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
-                // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (2,31): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(2, 1),
-                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "B").WithArguments("scoped").WithLocation(2, 31),
+                // (3,31): error CS0106: The modifier 'scoped' is not valid for this item
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
-                // (3,1): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 1),
-                // (3,10): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 10),
-                // (3,17): warning CS0168: The variable 'record' is declared but never used
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "record").WithArguments("record").WithLocation(3, 17),
-                // (3,24): error CS1002: ; expected
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
-                // (3,32): error CS8936: Feature 'primary constructors' is not available in C# 10.0. Please use language version 12.0 or greater.
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("scoped").WithLocation(3, 31));
         }
 
+        // 'scoped event' is syntactically unambiguous on every language version: 'event' is a
+        // reserved keyword and cannot start any other member form, so the parser commits 'scoped'
+        // as a modifier on the event declaration.  The binder then reports a single clean
+        // ERR_BadMemberFlag on the 'scoped' keyword itself since 'scoped' is never valid on an
+        // event.
         [Fact]
-        public void TypeScopeModifier_02_CSharp11()
+        public void ScopedEvent()
         {
             var source =
-@"scoped record A { }
-scoped readonly record struct B;
-readonly scoped record struct C();
+@"class C
+{
+    scoped event System.Action E;
+}
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (1,8): error CS0118: 'record' is a variable but is used like a type
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
-                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
-                // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
-                // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(2, 1),
-                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
-                // (3,1): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 1),
-                // (3,10): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 10),
-                // (3,17): warning CS0168: The variable 'record' is declared but never used
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "record").WithArguments("record").WithLocation(3, 17),
-                // (3,24): error CS1002: ; expected
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
-                // (3,32): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32));
+                // (3,5): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped event System.Action E;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(3, 5),
+                // (3,32): warning CS0067: The event 'C.E' is never used
+                //     scoped event System.Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(3, 32));
         }
 
         [Fact]
@@ -12006,18 +11969,18 @@ ref struct R2
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
-                // (4,15): error CS0106: The modifier 'scoped' is not valid for this item
+                // (4,5): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 P1 { get; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("scoped").WithLocation(4, 15),
-                // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(4, 5),
+                // (5,5): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 P2 { get; init; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P2").WithArguments("scoped").WithLocation(5, 15),
-                // (6,15): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(5, 5),
+                // (6,5): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 P3 { set { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P3").WithArguments("scoped").WithLocation(6, 15),
-                // (7,20): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 5),
+                // (7,5): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped ref int P5 => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("scoped").WithLocation(7, 20));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(7, 5));
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -13149,20 +13112,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            // Duplicate scoped modifiers result are parse errors rather than binding errors.
             comp.VerifyDiagnostics(
-                // (6,16): error CS0118: 'scoped' is a variable but is used like a type
+                // (6,16): error CS0106: The modifier 'scoped' is not valid for this item
                 //         scoped scoped R x = default;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(6, 16),
-                // (6,23): warning CS0168: The variable 'R' is declared but never used
-                //         scoped scoped R x = default;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(6, 23),
-                // (6,25): error CS1002: ; expected
-                //         scoped scoped R x = default;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(6, 25),
-                // (6,25): error CS0103: The name 'x' does not exist in the current context
-                //         scoped scoped R x = default;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 16),
                 // (7,9): error CS0118: 'scoped' is a variable but is used like a type
                 //         scoped scoped ref R z = ref x;
                 Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(7, 9),
@@ -13171,10 +13124,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "scoped").WithArguments("scoped").WithLocation(7, 16),
                 // (7,23): error CS1002: ; expected
                 //         scoped scoped ref R z = ref x;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(7, 23),
-                // (7,37): error CS0103: The name 'x' does not exist in the current context
-                //         scoped scoped ref R z = ref x;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 37)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(7, 23)
                 );
         }
 
@@ -13187,17 +13137,13 @@ scoped scoped ref R z = ref x;
 ref struct R { }
 ";
             var comp = CreateCompilation(source);
-            // Duplicate scoped modifiers result are parse errors rather than binding errors.
             comp.VerifyDiagnostics(
-                // (1,8): error CS0118: 'scoped' is a variable but is used like a type
+                // (1,8): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped scoped R x = default;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(1, 8),
-                // (1,15): warning CS0168: The variable 'R' is declared but never used
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 8),
+                // (1,17): warning CS0219: The variable 'x' is assigned but its value is never used
                 // scoped scoped R x = default;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(1, 15),
-                // (1,17): error CS1003: Syntax error, ',' expected
-                // scoped scoped R x = default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 17),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 17),
                 // (2,1): error CS0118: 'scoped' is a variable but is used like a type
                 // scoped scoped ref R z = ref x;
                 Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(2, 1),

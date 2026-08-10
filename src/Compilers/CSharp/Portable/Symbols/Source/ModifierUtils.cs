@@ -86,6 +86,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ReportPartialError(errorLocation, diagnostics, modifierTokens);
                         break;
 
+                    case DeclarationModifiers.Ref when !isForTypeDeclaration:
+                        // `ref` as a "modifier" on a member only reaches CheckModifiers when the
+                        // parser accepted it in a non-canonical position (it is never present in
+                        // `allowedModifiers` for members).  Report a targeted diagnostic on the
+                        // `ref` token itself so the fix-it location is clear.
+                        ReportRefNotMemberModifier(errorLocation, diagnostics, modifierTokens);
+                        break;
+
+                    case DeclarationModifiers.Scoped:
+                        // `scoped` as a "modifier" on a type or member only reaches CheckModifiers
+                        // when the parser accepted it in a non-canonical position (it is never
+                        // present in `allowedModifiers`).  Point the diagnostic at the `scoped`
+                        // token itself when we can find it, matching how `partial` and `ref` are
+                        // reported.
+                        ReportScopedNotMemberModifier(errorLocation, diagnostics, modifierTokens);
+                        break;
+
                     case DeclarationModifiers.Abstract:
                     case DeclarationModifiers.Override:
                     case DeclarationModifiers.Virtual:
@@ -144,19 +161,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static void ReportPartialError(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
+            => ReportBadModifier(SyntaxKind.PartialKeyword, ErrorCode.ERR_PartialMisplaced, errorLocation, diagnostics, modifierTokens, []);
+
+        private static void ReportRefNotMemberModifier(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
+            => ReportBadModifier(SyntaxKind.RefKeyword, ErrorCode.ERR_RefNotMemberModifier, errorLocation, diagnostics, modifierTokens, []);
+
+        private static void ReportScopedNotMemberModifier(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
+            => ReportBadModifier(SyntaxKind.ScopedKeyword, ErrorCode.ERR_BadMemberFlag, errorLocation, diagnostics, modifierTokens, [SyntaxFacts.GetText(SyntaxKind.ScopedKeyword)]);
+
+        // Reports <paramref name="errorCode"/> pointing at the <paramref name="modifierKind"/>
+        // token inside <paramref name="modifierTokens"/> when we can find it; otherwise falls
+        // back to <paramref name="errorLocation"/>.
+        private static void ReportBadModifier(
+            SyntaxKind modifierKind,
+            ErrorCode errorCode,
+            Location errorLocation,
+            BindingDiagnosticBag diagnostics,
+            SyntaxTokenList? modifierTokens,
+            object[] args)
         {
-            // If we can find the 'partial' token, report it on that.
-            if (modifierTokens != null)
+            Location location = errorLocation;
+            if (modifierTokens is { } tokens)
             {
-                var partialToken = modifierTokens.Value.FirstOrDefault(SyntaxKind.PartialKeyword);
-                if (partialToken != default)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
-                    return;
-                }
+                var token = tokens.FirstOrDefault(modifierKind);
+                if (token != default)
+                    location = token.GetLocation();
             }
 
-            diagnostics.Add(ErrorCode.ERR_PartialMisplaced, errorLocation);
+            diagnostics.Add(errorCode, location, args);
         }
 
         internal static void ReportDefaultInterfaceImplementationModifiers(
@@ -484,6 +516,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(
                         ErrorCode.ERR_PartialMisplaced,
                         modifier.GetLocation());
+                }
+            }
+
+            if (isForTypeDeclaration && (result & DeclarationModifiers.Ref) == DeclarationModifiers.Ref)
+            {
+                var i = modifiers.IndexOf(SyntaxKind.RefKeyword);
+                var modifier = modifiers[i];
+
+                // `ref` on a type must appear immediately before the `struct`/`record struct`/
+                // `union` keyword, or immediately before a trailing `partial struct` (etc.).
+                // The parser is permissive and accepts `ref` in any modifier-list position so we
+                // can produce a targeted diagnostic here -- but the language doesn't relax the
+                // canonical position rule, so we always reject non-canonical positions
+                // regardless of language version.
+                var isLast = i == modifiers.Count - 1;
+                var isBeforeTrailingPartial = i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.PartialKeyword;
+                if (!isLast && !isBeforeTrailingPartial)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RefMisplacedOnType, modifier.GetLocation());
                 }
             }
 

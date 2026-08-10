@@ -632,27 +632,18 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Constructor_BeforePartial_Before()
     {
-        UsingDeclaration("public safe partial C();", TestOptions.Regular14,
-            // (1,13): error CS1525: Invalid expression term 'partial'
-            // public safe partial C();
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 13),
-            // (1,13): error CS1003: Syntax error, ',' expected
-            // public safe partial C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 13));
+        UsingDeclaration("public safe partial C();", TestOptions.Regular14);
 
-        N(SyntaxKind.FieldDeclaration);
+        N(SyntaxKind.ConstructorDeclaration);
         {
             N(SyntaxKind.PublicKeyword);
-            N(SyntaxKind.VariableDeclaration);
+            N(SyntaxKind.SafeKeyword);
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.ParameterList);
             {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "safe");
-                }
-                M(SyntaxKind.VariableDeclarator);
-                {
-                    M(SyntaxKind.IdentifierToken);
-                }
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
             }
             N(SyntaxKind.SemicolonToken);
         }
