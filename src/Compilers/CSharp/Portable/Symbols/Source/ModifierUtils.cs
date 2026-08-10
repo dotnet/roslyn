@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -136,12 +137,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var partialToken = modifierTokens.Value.FirstOrDefault(SyntaxKind.PartialKeyword);
                 if (partialToken != default)
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
+                    addIfNotAlreadyReported(partialToken.GetLocation());
                     return;
                 }
             }
 
-            diagnostics.Add(ErrorCode.ERR_PartialMisplaced, errorLocation);
+            addIfNotAlreadyReported(errorLocation);
+
+            void addIfNotAlreadyReported(Location location)
+            {
+                if (diagnostics.DiagnosticBag?.AsEnumerableWithoutResolution().Any(
+                    static (diagnostic, location) =>
+                        diagnostic.Code == (int)ErrorCode.ERR_PartialMisplaced &&
+                        diagnostic.Location == location,
+                    location) != true)
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, location);
+                }
+            }
         }
 
         internal static void ReportDefaultInterfaceImplementationModifiers(
@@ -455,19 +468,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
                 messageId.CheckFeatureAvailability(diagnostics, modifier);
 
-                // `partial` was historically required to be the last modifier in the list.  This restriction
-                // is lifted by the relaxed-modifier-ordering feature; for earlier language versions, emit a
-                // feature-availability diagnostic so the user is directed to upgrade their language version.
-                //
-                // We continue to accept a trailing `partial async` on ordinary methods on all language
-                // versions: this was allowed by a prior bug in older compilers and code relying on it must
-                // keep compiling on old language versions regardless of whether the relaxed ordering feature
-                // is enabled.
+                // `partial` must always be the last modifier according to the language. However, there was a bug
+                // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
+                // backcompat.
                 var isLast = i == modifiers.Count - 1;
                 var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
                 if (!isLast && !isPartialAsyncMethod)
                 {
-                    MessageID.IDS_FeatureRelaxedModifierOrdering.CheckFeatureAvailability(diagnostics, modifier);
+                    diagnostics.Add(
+                        ErrorCode.ERR_PartialMisplaced,
+                        modifier.GetLocation());
                 }
             }
 

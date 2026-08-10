@@ -109,9 +109,9 @@ class Program
 }
 ";
             var comp = CreateCompilation(text);
-            // Phase 3 (relaxing 'ref' type-modifier ordering) will produce cleaner diagnostics;
-            // for now the mix of relaxed 'partial' + strict 'ref' produces cascading parse errors.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5));
         }
 
         [Fact]
@@ -147,6 +147,7 @@ class C
                 // (4,9): error CS1002: ; expected
                 //     ref partial readonly struct S {}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(4, 9),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 9),
                 // (4,9): error CS9064: Target runtime doesn't support ref fields.
                 //     ref partial readonly struct S {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(4, 9),
@@ -162,6 +163,7 @@ class C
                 // (5,9): error CS1002: ; expected
                 //     ref partial readonly struct S {}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 9),
                 // (5,9): error CS9064: Target runtime doesn't support ref fields.
                 //     ref partial readonly struct S {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(5, 9),
@@ -205,9 +207,9 @@ class C
     readonly partial ref struct S {}
     readonly partial ref struct S {}
 }");
-            // Phase 3 (relaxing 'ref' type-modifier ordering) will produce cleaner diagnostics;
-            // for now the mix of relaxed 'partial' + strict 'ref' produces cascading parse errors.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 14),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 14));
         }
 
         [Fact]

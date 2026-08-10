@@ -1241,15 +1241,17 @@ new partial class C { }
         public void NewModifier_ClassWithMisplacedModifiers1()
         {
             var source = "new partial public class C { }";
-            // Before C# preview, 'partial' was required to be the last modifier. With relaxed-modifier-ordering it can appear anywhere.
             CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-                    // (1,5): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (1,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                     // new partial public class C { }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 5),
+                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 5),
                     // (1,26): error CS0106: The modifier 'new' is not valid for this item
                     // new partial public class C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 26));
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                    // (1,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                    // new partial public class C { }
+                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 5),
                     // (1,26): error CS0106: The modifier 'new' is not valid for this item
                     // new partial public class C { }
                     Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 26));
@@ -1274,15 +1276,17 @@ new partial class C { }
         public void NewModifier_ClassWithMisplacedModifiers2()
         {
             var source = "new static partial public class C { }";
-            // Before C# preview, 'partial' was required to be the last modifier. With relaxed-modifier-ordering it can appear anywhere.
             CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-                // (1,12): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // new static partial public class C { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 12),
                 // (1,33): error CS0106: The modifier 'new' is not valid for this item
                 // new static partial public class C { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33));
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,12): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // new static partial public class C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 12),
                 // (1,33): error CS0106: The modifier 'new' is not valid for this item
                 // new static partial public class C { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33));

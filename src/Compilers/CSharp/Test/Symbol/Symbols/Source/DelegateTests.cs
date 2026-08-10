@@ -841,6 +841,9 @@ class C
         public void PartialPublicDelegate()
         {
             CreateCompilation("partial public delegate void M();").VerifyDiagnostics(
+                // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // partial public delegate void M();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
                 // (1,30): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // partial public delegate void M();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "M").WithLocation(1, 30));

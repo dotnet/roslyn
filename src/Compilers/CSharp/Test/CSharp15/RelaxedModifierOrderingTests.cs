@@ -16,15 +16,14 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 /// <summary>
-/// Tests for the relaxed-modifier-ordering feature (<see cref="MessageID.IDS_FeatureRelaxedModifierOrdering"/>).
+/// Tests for permissive parsing of modifier ordering.
 /// Tracking: https://github.com/dotnet/csharplang/issues/8966.
 /// <para>
 /// The parser accepts the affected modifiers (currently <c>partial</c>) in any position of the
-/// modifier list on every language version.  On language versions that predate the feature the
-/// binder reports <c>ERR_FeatureInPreview</c> (or equivalent) at the non-canonical modifier
-/// location; on preview+ the binder accepts the declaration silently.  Modifiers that are not
-/// legal on a declaration at all (e.g., <c>partial enum</c>) continue to produce the
-/// pre-existing <c>ERR_PartialMisplaced</c> regardless of language version.
+/// modifier list on every language version. The binder continues to report
+/// <c>ERR_PartialMisplaced</c> at non-canonical positions, so this parser recovery does not change
+/// which programs are accepted. Modifiers that are not legal on a declaration at all (e.g.,
+/// <c>partial enum</c>) continue to produce the same binding error.
 /// </para>
 /// <para>
 /// Each test exercises the parser shape via <c>UsingTree</c> and then exercises binding via
@@ -56,7 +55,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     // ---------- partial on type declarations ----------
 
     [Fact]
-    public void Partial_BeforeAccessibilityOnClass_Preview()
+    public void Partial_BeforeAccessibilityOnClass()
     {
         var src = "partial public class C { }";
 
@@ -76,11 +75,14 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         }
         EOF();
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // partial public class C { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]
-    public void Partial_BeforeAccessibilityOnClass_CSharp14_FeatureError()
+    public void Partial_BeforeAccessibilityOnClass_CSharp14()
     {
         var src = "partial public class C { }";
 
@@ -101,13 +103,13 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
 
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             // partial public class C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]
-    public void Partial_InMiddleOfTypeModifierList_Preview()
+    public void Partial_InMiddleOfTypeModifierList()
     {
         var src = "public partial static class C { }";
 
@@ -128,18 +130,21 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         }
         EOF();
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (1,8): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // public partial static class C { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 8));
     }
 
     [Fact]
-    public void Partial_InMiddleOfTypeModifierList_CSharp14_FeatureError()
+    public void Partial_InMiddleOfTypeModifierList_CSharp14()
     {
         var src = "public partial static class C { }";
 
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,8): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,8): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             // public partial static class C { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 8));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 8));
     }
 
     [Fact]
@@ -176,19 +181,21 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     [InlineData("partial public record C")]
     [InlineData("partial public record class C")]
     [InlineData("partial public record struct C")]
-    public void Partial_FirstPosition_TypeKinds_PreviewLegal_CSharp14FeatureError(string decl)
+    public void Partial_FirstPosition_TypeKinds_AllLangversError(string decl)
     {
         var src = decl + " { }";
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
 
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(1, 1));
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]
-    public void Partial_WithFileModifier_Preview()
+    public void Partial_WithFileModifier()
     {
         var src = "partial file class C { }";
 
@@ -208,13 +215,16 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         }
         EOF();
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // partial file class C { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     // ---------- partial on methods ----------
 
     [Fact]
-    public void Partial_BeforeAccessibilityOnMethod_Preview()
+    public void Partial_BeforeAccessibilityOnMethod()
     {
         var src = """
             partial class C
@@ -224,11 +234,17 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
             }
             """;
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (3,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     partial public void M();
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            // (4,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     partial public void M() { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
     }
 
     [Fact]
-    public void Partial_BeforeAccessibilityOnMethod_CSharp14_FeatureError()
+    public void Partial_BeforeAccessibilityOnMethod_CSharp14()
     {
         var src = """
             partial class C
@@ -239,16 +255,16 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
             """;
 
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (3,5): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             //     partial public void M();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(3, 5),
-            // (4,5): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            // (4,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             //     partial public void M() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(4, 5));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
     }
 
     [Fact]
-    public void Partial_InMiddleOfMethodModifierList_Preview()
+    public void Partial_InMiddleOfMethodModifierList()
     {
         var src = """
             partial class C
@@ -258,15 +274,20 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
             }
             """;
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (3,12): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     public partial static void M();
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
+            // (4,12): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     public partial static void M() { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 12));
     }
 
     /// <summary>
     /// Backcompat carve-out: the trailing sequence <c>partial async</c> on the implementing
     /// half of an ordinary method has always been accepted (via a long-standing compiler bug
-    /// that became part of the public contract).  This must keep working on every language
-    /// version, including those predating the relaxed-ordering feature, without triggering a
-    /// feature-availability diagnostic.
+    /// that became part of the public contract). This must keep working on every language
+    /// version without triggering a misplaced-modifier diagnostic.
     /// </summary>
     [Theory]
     [InlineData(LanguageVersion.CSharp9)]
@@ -289,11 +310,10 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
 
     /// <summary>
     /// When <c>partial</c> is neither last nor second-to-last immediately before <c>async</c>,
-    /// it falls outside the historical <c>partial async</c> carve-out and the relaxed-ordering
-    /// feature gate must fire on pre-preview language versions.
+    /// it falls outside the historical <c>partial async</c> carve-out and remains an error.
     /// </summary>
     [Fact]
-    public void Partial_NonCanonicalWithAsync_CSharp14_FeatureError()
+    public void Partial_NonCanonicalWithAsync_AllLangversError()
     {
         var src = """
             partial class C
@@ -304,20 +324,26 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
             """;
 
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (3,5): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             //     partial public void M();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(3, 5),
-            // (4,5): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            // (4,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             //     partial public async void M() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(4, 5));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (3,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     partial public void M();
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            // (4,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     partial public async void M() { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
     }
 
     // ---------- partial on properties ----------
 
     [Fact]
-    public void Partial_BeforeAccessibilityOnProperty_Preview()
+    public void Partial_BeforeAccessibilityOnProperty()
     {
         var src = """
             partial class C
@@ -327,11 +353,17 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
             }
             """;
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (3,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     partial public int P { get; set; }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            // (4,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     partial public int P { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
     }
 
     [Fact]
-    public void Partial_BeforeAccessibilityOnProperty_CSharp14_FeatureError()
+    public void Partial_BeforeAccessibilityOnProperty_CSharp14()
     {
         var src = """
             partial class C
@@ -342,18 +374,18 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
             """;
 
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (3,5): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             //     partial public int P { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(3, 5),
-            // (4,5): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            // (4,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
             //     partial public int P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(4, 5));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
     }
 
     // ---------- partial on events ----------
 
     [Fact]
-    public void Partial_BeforeAccessibilityOnEvent_Preview()
+    public void Partial_BeforeAccessibilityOnEvent()
     {
         var src = """
             using System;
@@ -364,13 +396,19 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
             }
             """;
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (4,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     partial public event Action E;
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+            // (5,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     partial public event Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5));
     }
 
     // ---------- partial on constructors ----------
 
     [Fact]
-    public void Partial_BeforeAccessibilityOnConstructor_Preview()
+    public void Partial_BeforeAccessibilityOnConstructor()
     {
         var src = """
             partial class C
@@ -380,7 +418,13 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
             }
             """;
 
-        CreateCompilation(src).VerifyDiagnostics();
+        CreateCompilation(src).VerifyDiagnostics(
+            // (3,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     partial public C();
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            // (4,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            //     partial public C() { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
     }
 
     // ---------- still-invalid placements (partial on a non-partial-capable declaration) ----------
@@ -388,7 +432,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     /// <summary>
     /// 'partial' on an enum/delegate/namespace is still reported via <c>ERR_PartialMisplaced</c>
     /// on every language version, through <c>ModifierUtils.ReportPartialError</c>.  The
-    /// relaxed-ordering feature does not make these legal.
+    /// permissive parser recovery does not make these legal.
     /// </summary>
     [Fact]
     public void Partial_OnEnum_StillErrorsOnPreview()
