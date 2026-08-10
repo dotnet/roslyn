@@ -156,18 +156,11 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
                     produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
                     {
                         var (@this, toastErrorReporter, buildHostProcessManager) = args;
-                        try
-                        {
-                            var projectRestorePath = await @this.ReloadProjectAsync(
-                                projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
+                        var projectRestorePath = await @this.ReloadProjectAsync(
+                            projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
 
-                            if (projectRestorePath is not null)
-                                produceItem(projectRestorePath);
-                        }
-                        finally
-                        {
-                            projectToLoad.ProgressTracker?.OnItemProcessed();
-                        }
+                        if (projectRestorePath is not null)
+                            produceItem(projectRestorePath);
                     },
                     args: (@this: this, toastErrorReporter, buildHostProcessManager),
                     cancellationToken).ConfigureAwait(false);
@@ -406,7 +399,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
             loadedProject.NeedsReload += (_, _) =>
                 // LoadOperation must be cleared: it belongs to the request that triggered this load and is already complete,
                 // so gating a later reload on it would always fail once the project leaves the Loading/Primordial state.
-                _projectsToReload.AddWork(projectToLoad with { LoadOperation = null, ReportTelemetry = false, ProgressTracker = null });
+                _projectsToReload.AddWork(projectToLoad with { LoadOperation = null, ReportTelemetry = false });
             return (loadedProject, alreadyExists: false);
         }
 
@@ -493,7 +486,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
     /// <summary>
     /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
     /// </summary>
-    protected async Task<ProjectLoadHandle> BeginLoadingProjectAsync(string projectPath, string? projectGuid, WorkDoneProgressTracker? progressTracker = null)
+    protected async Task<ProjectLoadHandle> BeginLoadingProjectAsync(string projectPath, string? projectGuid)
     {
         projectPath = NormalizeProjectPath(projectPath);
 
@@ -513,7 +506,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
                 {
                     var primordialLoadOperation = new ProjectLoadOperation(projectGuid);
                     _loadedProjects[projectPath] = primordial with { LoadOperation = primordialLoadOperation };
-                    _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, primordialLoadOperation, ProjectGuid: projectGuid, ReportTelemetry: true, ProgressTracker: progressTracker));
+                    _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, primordialLoadOperation, ProjectGuid: projectGuid, ReportTelemetry: true));
                     return primordialLoadOperation.Handle;
                 }
 
@@ -525,7 +518,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
                     _loadedProjects[projectPath] = failed is { PrimordialProjectFactory: { } primordialProjectFactory, PrimordialProjectId: { } primordialProjectId }
                         ? new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectId, retryLoadOperation)
                         : new ProjectLoadState.Loading(retryLoadOperation);
-                    _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, retryLoadOperation, ProjectGuid: projectGuid, ReportTelemetry: true, ProgressTracker: progressTracker));
+                    _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, retryLoadOperation, ProjectGuid: projectGuid, ReportTelemetry: true));
                     return retryLoadOperation.Handle;
                 }
 
@@ -534,12 +527,27 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
 
             var loadOperation = new ProjectLoadOperation(projectGuid);
             _loadedProjects.Add(projectPath, new ProjectLoadState.Loading(loadOperation));
-            _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, loadOperation, ProjectGuid: projectGuid, ReportTelemetry: true, ProgressTracker: progressTracker));
+            _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, loadOperation, ProjectGuid: projectGuid, ReportTelemetry: true));
             return loadOperation.Handle;
         }
     }
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
+
+    protected static Task WaitForProjectLoadsAsync(ImmutableArray<ProjectLoadHandle> handles, WorkDoneProgressTracker? progressTracker)
+        => Task.WhenAll(handles.SelectAsArray(handle => ObserveProjectLoadAsync(handle, progressTracker)));
+
+    private static async Task ObserveProjectLoadAsync(ProjectLoadHandle handle, WorkDoneProgressTracker? progressTracker)
+    {
+        try
+        {
+            await handle.Completion;
+        }
+        finally
+        {
+            progressTracker?.OnItemProcessed();
+        }
+    }
 
     /// <summary>Unloads all projects associated with this project loader.</summary>
     internal async ValueTask UnloadAllProjectsAsync()

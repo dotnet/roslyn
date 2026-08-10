@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,6 +23,7 @@ using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit.Abstractions;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -158,6 +160,88 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var successfulResult = await successfulHandle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
         Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Failed, failedResult.Status);
         Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Loaded, successfulResult.Status);
+    }
+
+    [Fact]
+    public async Task ExplicitLoadDoesNotWaitForUnrelatedQueuedWork()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var firstEvaluation = loader.QueueEvaluation();
+        var secondEvaluation = loader.QueueEvaluation();
+        var requestedPath = Path.Combine(TempRoot.Root, "Requested.csproj");
+        var unrelatedPath = Path.Combine(TempRoot.Root, "Unrelated.csproj");
+
+        var requestedHandle = await loader.BeginLoadAsync(requestedPath);
+        var unrelatedHandle = await loader.BeginLoadAsync(unrelatedPath);
+        await Task.WhenAll(firstEvaluation.Started.Task, secondEvaluation.Started.Task).WaitAsync(TestHelpers.HangMitigatingTimeout);
+
+        var requestedEvaluation = firstEvaluation.Started.Task.Result == requestedPath ? firstEvaluation : secondEvaluation;
+        var unrelatedEvaluation = firstEvaluation.Started.Task.Result == unrelatedPath ? firstEvaluation : secondEvaluation;
+        var explicitLoad = loader.WaitForExplicitLoadsAsync([requestedHandle]);
+
+        requestedEvaluation.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, requestedPath);
+        await explicitLoad.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.False(unrelatedHandle.Completion.IsCompleted);
+
+        unrelatedEvaluation.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, unrelatedPath);
+        await unrelatedHandle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
+    }
+
+    [Fact]
+    public async Task ExplicitLoadWaitsForAllRequestedHandlesDespiteFailure()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var firstEvaluation = loader.QueueEvaluation();
+        var secondEvaluation = loader.QueueEvaluation();
+        var firstPath = Path.Combine(TempRoot.Root, "First.csproj");
+        var secondPath = Path.Combine(TempRoot.Root, "Second.csproj");
+
+        var firstHandle = await loader.BeginLoadAsync(firstPath);
+        var secondHandle = await loader.BeginLoadAsync(secondPath);
+        await Task.WhenAll(firstEvaluation.Started.Task, secondEvaluation.Started.Task).WaitAsync(TestHelpers.HangMitigatingTimeout);
+
+        var failedEvaluation = firstEvaluation.Started.Task.Result == firstPath ? firstEvaluation : secondEvaluation;
+        var successfulEvaluation = firstEvaluation.Started.Task.Result == secondPath ? firstEvaluation : secondEvaluation;
+        var explicitLoad = loader.WaitForExplicitLoadsAsync([firstHandle, secondHandle]);
+
+        failedEvaluation.Fail(new InvalidOperationException("Expected test failure"));
+        await firstHandle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.False(explicitLoad.IsCompleted);
+
+        successfulEvaluation.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, secondPath);
+        await explicitLoad.WaitAsync(TestHelpers.HangMitigatingTimeout);
+    }
+
+    [Fact]
+    public async Task JoinedExplicitLoadsReportProgressIndependently()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var evaluation = loader.QueueEvaluation();
+        var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
+        var firstReporter = new TestProgressReporter();
+        var secondReporter = new TestProgressReporter();
+
+        var firstHandle = await loader.BeginLoadAsync(projectPath);
+        var secondHandle = await loader.BeginLoadAsync(projectPath);
+        Assert.Same(firstHandle, secondHandle);
+
+        await using (var firstProgress = new LanguageServerProjectLoader.WorkDoneProgressTracker(firstReporter, totalItems: 1))
+        await using (var secondProgress = new LanguageServerProjectLoader.WorkDoneProgressTracker(secondReporter, totalItems: 1))
+        {
+            var firstLoad = loader.WaitForExplicitLoadsAsync([firstHandle], firstProgress);
+            var secondLoad = loader.WaitForExplicitLoadsAsync([secondHandle], secondProgress);
+
+            await evaluation.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+            evaluation.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
+            await Task.WhenAll(firstLoad, secondLoad).WaitAsync(TestHelpers.HangMitigatingTimeout);
+        }
+
+        Assert.Contains(firstReporter.Reports, report => report is LSP.WorkDoneProgressReport { Percentage: 99 });
+        Assert.Contains(secondReporter.Reports, report => report is LSP.WorkDoneProgressReport { Percentage: 99 });
+        Assert.Equal(1, loader.EvaluationCount);
     }
 
     [Fact]
@@ -347,6 +431,9 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         public Task WaitForLoadsAsync()
             => WaitForProjectsToFinishLoadingAsync();
 
+        public Task WaitForExplicitLoadsAsync(ImmutableArray<ProjectLoadHandle> handles, WorkDoneProgressTracker? progressTracker = null)
+            => WaitForProjectLoadsAsync(handles, progressTracker);
+
         public ValueTask<bool> UnloadAsync(string projectPath)
             => TryUnloadProjectAsync(projectPath);
 
@@ -389,5 +476,13 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         public void Fail(Exception exception)
             => Result.SetException(exception);
+    }
+
+    private sealed class TestProgressReporter : IProgress<LSP.WorkDoneProgress>
+    {
+        public ConcurrentQueue<LSP.WorkDoneProgress> Reports { get; } = new();
+
+        public void Report(LSP.WorkDoneProgress value)
+            => Reports.Enqueue(value);
     }
 }
