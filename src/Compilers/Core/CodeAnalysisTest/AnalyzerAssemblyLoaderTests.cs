@@ -1664,6 +1664,45 @@ Delta.2: Test D2
             });
         }
 
+        [Theory]
+        [InlineData(AnalyzerTestKind.ShadowLoad)]
+        public void AssemblyLoading_StressTest(AnalyzerTestKind kind)
+        {
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                const int count = 300;
+
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+                var stringBuilder = new StringBuilder();
+                var analyzerPaths = new string[count];
+                for (var i = 0; i < count; i++)
+                {
+                    var dir = tempDir.CreateDirectory($"Delta{i:D3}");
+                    var analyzerPath = dir.CreateFile($"Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
+                    analyzerPaths[i] = analyzerPath;
+                    loader.AddDependencyLocation(analyzerPath);
+                    var assembly = loader.LoadFromPath(analyzerPath);
+                    var delta = assembly.CreateInstance("Delta.D")!;
+                    delta.GetType().GetMethod("Write")!.Invoke(delta, [stringBuilder, "Test D"]);
+                }
+
+                Assert.Equal(string.Join("", Enumerable.Repeat("Delta: Test D" + Environment.NewLine, count)), stringBuilder.ToString());
+                VerifyDependencyAssemblies(loader, copyCount: count, analyzerPaths);
+
+                // All Delta files were added to cache
+                var shadowResolver = (ShadowCopyAnalyzerPathResolver)loader.AnalyzerPathResolvers.Single();
+                Assert.Equal(300, Directory.EnumerateFiles(path: shadowResolver.CacheDirectory).Count());
+                Assert.Equal(300, Directory.EnumerateFiles(shadowResolver.CacheDirectory, "Delta*.dll").Count());
+
+                // Now prune the cache
+                var shadowResolver2 = new ShadowCopyAnalyzerPathResolver(shadowResolver.BaseDirectory);
+                shadowResolver2.DeleteLeftoverDirectoriesTask.Wait();
+
+                Assert.Equal(200, Directory.EnumerateFiles(shadowResolver.CacheDirectory).Count());
+            });
+        }
+
 #if NET
 
         [Theory]
