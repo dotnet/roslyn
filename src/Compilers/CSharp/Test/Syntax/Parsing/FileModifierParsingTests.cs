@@ -145,20 +145,6 @@ public sealed class FileModifierParsingTests : ParsingTests
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
-
-        CreateCompilation($$"""
-            partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-            // partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
-
-        CreateCompilation($$"""
-            partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-            // partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]
@@ -184,20 +170,6 @@ public sealed class FileModifierParsingTests : ParsingTests
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
-
-        CreateCompilation("""
-            partial file record C { }
-            """, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-            // partial file record C { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
-
-        CreateCompilation("""
-            partial file record C { }
-            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-            // partial file record C { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]
@@ -247,20 +219,6 @@ public sealed class FileModifierParsingTests : ParsingTests
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
-
-        CreateCompilation("""
-            partial file record struct C { }
-            """, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-            // partial file record struct C { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
-
-        CreateCompilation("""
-            partial file record struct C { }
-            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-            // partial file record struct C { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]
@@ -323,7 +281,6 @@ public sealed class FileModifierParsingTests : ParsingTests
     [Fact]
     public void FileModifier_08()
     {
-        // Phase 1 relaxes partial ordering; ref lookahead is unchanged until Phase 3, but this input now parses as a struct with modifiers.
         UsingNode($$"""
             partial file ref struct C { }
             """,
@@ -346,20 +303,6 @@ public sealed class FileModifierParsingTests : ParsingTests
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
-
-        CreateCompilation("""
-            partial file ref struct C { }
-            """, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-            // partial file ref struct C { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
-
-        CreateCompilation("""
-            partial file ref struct C { }
-            """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (1,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-            // partial file ref struct C { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
     [Fact]

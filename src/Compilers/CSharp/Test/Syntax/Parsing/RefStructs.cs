@@ -135,44 +135,16 @@ class C
     ref partial readonly struct S {}
     ref partial readonly struct S {}
 }");
-            // Phase 3 (relaxing 'ref' type-modifier ordering) will produce cleaner diagnostics;
-            // for now the mix of relaxed 'partial' + strict 'ref' produces cascading parse errors.
             comp.VerifyDiagnostics(
-                // (4,9): error CS1031: Type expected
+                // (4,17): error CS1585: Member modifier 'readonly' must precede the member type and name
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(4, 9),
-                // (4,9): error CS1525: Invalid expression term 'partial'
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 17),
+                // (5,17): error CS1585: Member modifier 'readonly' must precede the member type and name
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(4, 9),
-                // (4,9): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(5, 17),
+                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(4, 9),
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 9),
-                // (4,9): error CS9064: Target runtime doesn't support ref fields.
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(4, 9),
-                // (4,9): error CS9059: A ref field can only be declared in a ref struct.
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(4, 9),
-                // (5,9): error CS1031: Type expected
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(5, 9),
-                // (5,9): error CS1525: Invalid expression term 'partial'
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 9),
-                // (5,9): error CS1002: ; expected
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 9),
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 9),
-                // (5,9): error CS9064: Target runtime doesn't support ref fields.
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(5, 9),
-                // (5,9): error CS9059: A ref field can only be declared in a ref struct.
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(5, 9),
-                // (5,9): error CS0102: The type 'C' already contains a definition for ''
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
         }
 
         [Fact]
@@ -184,8 +156,6 @@ class C
     partial ref readonly struct S {}
     partial ref readonly struct S {}
 }");
-            // Phase 3 (relaxing 'ref' type-modifier ordering) will produce cleaner diagnostics;
-            // for now the mix of relaxed 'partial' + strict 'ref' produces cascading parse errors.
             comp.VerifyDiagnostics(
                 // (4,26): error CS1031: Type expected
                 //     partial ref readonly struct S {}

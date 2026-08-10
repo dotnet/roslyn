@@ -883,8 +883,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPartialInNamespaceMemberDeclaration()
         {
-            return this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword
-                && this.IsPartialModifierInDeclarationHead();
+            if (this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
+            {
+                return false;
+            }
+
+            if (this.IsPartialType() || this.PeekToken(1).Kind == SyntaxKind.NamespaceKeyword)
+            {
+                return true;
+            }
+
+            var nextToken = this.PeekToken(1);
+            if (nextToken.ContextualKind is SyntaxKind.RecordKeyword or SyntaxKind.UnionKeyword)
+            {
+                return false;
+            }
+
+            return GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None
+                && this.IsPartialModifierInDeclarationHead(allowMembers: false);
         }
 
         public bool IsEndOfNamespace()
@@ -1354,6 +1370,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(!(forAccessors && forTopLevelStatements));
 
             isPossibleTypeDeclaration = true;
+            var seenPartial = false;
+            for (var i = 0; i < tokens.Count; i++)
+            {
+                if (tokens[i] is SyntaxToken token && token.ContextualKind == SyntaxKind.PartialKeyword)
+                {
+                    seenPartial = true;
+                    break;
+                }
+            }
 
             while (true)
             {
@@ -1385,9 +1410,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // partial-capable type declaration or member declaration.  Historically 'partial' was
                         // required to be the last modifier; that restriction is enforced by the binder in
                         // ModifierUtils.ToDeclarationModifiers.
+                        if (!seenPartial &&
+                            IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
+                            this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword &&
+                            this.PeekToken(2).Kind == SyntaxKind.IdentifierToken &&
+                            this.PeekToken(3).Kind == SyntaxKind.OpenParenToken)
+                        {
+                            // Preserve the existing interpretation of 'partial partial M()' when partial
+                            // constructors are available. The second 'partial' may be the return type of M,
+                            // rather than another modifier followed by a constructor named M.
+                            return;
+                        }
+
+                        if (seenPartial)
+                        {
+                            if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
+                                IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors))
+                            {
+                                return;
+                            }
+
+                            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+                            if (this.ScanTypeTreatingPartialAsIdentifier() != ScanTypeFlags.NotType &&
+                                IsPossibleMemberName())
+                            {
+                                return;
+                            }
+                        }
+
                         if (this.IsPartialModifierInDeclarationHead())
                         {
                             modTok = ConvertToKeyword(this.EatToken());
+                            seenPartial = true;
                         }
                         else
                         {
@@ -1662,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// (<see cref="Microsoft.CodeAnalysis.CSharp.Symbols.ModifierUtils.ToDeclarationModifiers"/>)
         /// is responsible for reporting diagnostics when <c>partial</c> is misplaced.
         /// </remarks>
-        private bool IsPartialModifierInDeclarationHead()
+        private bool IsPartialModifierInDeclarationHead(bool allowMembers = true)
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
@@ -1680,20 +1734,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
                 }
 
-                // A non-contextual modifier keyword (e.g. 'public', 'static', 'sealed', 'ref', ...)
-                // is a reserved word and cannot start any expression/statement or be an identifier.
-                // Seeing one after 'partial' therefore unambiguously proves we are in a declaration
-                // context, so we can commit to treating 'partial' as a modifier without further
-                // inspection.
-                if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                // At a member declaration, a reserved modifier after 'partial' unambiguously
+                // establishes declaration context. At namespace scope we must keep looking for a
+                // type declaration head: otherwise inputs such as top-level
+                // 'partial static () => ...' would be incorrectly classified as namespace members.
+                if (allowMembers && this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                 {
                     return true;
                 }
 
-                // Otherwise we saw a contextual modifier (another 'partial', 'async', 'required',
-                // or 'file').  These tokens can also be identifiers in non-declaration contexts, so
-                // we need to keep scanning until we either hit a reserved modifier or the actual
-                // declaration head.
+                // A second 'partial' may be the declaration head rather than another modifier:
+                //   partial partial()     // constructor named 'partial'
+                //   partial partial M()   // method returning a type named 'partial'
+                // Prefer those existing interpretations when they are possible.
+                if (allowMembers && this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+                {
+                    if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
+                        IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors))
+                    {
+                        return true;
+                    }
+
+                    using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+                    if (this.ScanTypeTreatingPartialAsIdentifier() != ScanTypeFlags.NotType &&
+                        IsPossibleMemberName())
+                    {
+                        return true;
+                    }
+                }
+
                 this.EatToken();
             }
 
@@ -1717,7 +1786,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // does not support a feature, but in this case we are effectively making a language breaking
                         // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
                         // older code that is not using C# 9 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                        if (IsFeatureEnabled(MessageID.IDS_FeatureRecords))
+                        {
+                            return true;
+                        }
+
+                        break;
                     }
 
                 case SyntaxKind.UnionKeyword:
@@ -1726,7 +1800,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // does not support a feature, but in this case we are effectively making a language breaking
                         // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
                         // older code that is not using C# 15 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
+                        if (IsFeatureEnabled(MessageID.IDS_FeatureUnions))
+                        {
+                            return true;
+                        }
+
+                        break;
                     }
             }
 
@@ -1738,6 +1817,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // Partial members.
+            if (!allowMembers)
+            {
+                return false;
+            }
 
             // 'partial event ...' is unambiguously a partial event on every language version:
             // 'event' is a reserved keyword and cannot start any other member/statement form, so
@@ -1763,6 +1846,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // (inside a reset-point, so the advance is local) to determine whether this looks like
             // a member declaration head.
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+        }
+
+        private bool IsPartialType()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+            var nextToken = this.PeekToken(1);
+            switch (nextToken.Kind)
+            {
+                case SyntaxKind.StructKeyword:
+                case SyntaxKind.ClassKeyword:
+                case SyntaxKind.InterfaceKeyword:
+                    return true;
+            }
+
+            switch (nextToken.ContextualKind)
+            {
+                case SyntaxKind.RecordKeyword:
+                    {
+                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+                        // does not support a feature, but in this case we are effectively making a language breaking
+                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
+                        // older code that is not using C# 9 we conditionally parse based on langversion
+                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    }
+
+                case SyntaxKind.UnionKeyword:
+                    {
+                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+                        // does not support a feature, but in this case we are effectively making a language breaking
+                        // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
+                        // older code that is not using C# 15 we conditionally parse based on langversion
+                        return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
+                    }
+            }
+
+            return false;
+        }
+
+        private bool IsPartialMember()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+
+            // Check for:
+            //   partial event
+            if (this.PeekToken(1).Kind == SyntaxKind.EventKeyword)
+            {
+                return true;
+            }
+
+            // Check for constructor:
+            //   partial Identifier(
+            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+            {
+                return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
+            }
+
+            // Check for method/property:
+            //   partial ReturnType MemberName
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            this.EatToken(); // partial
+
+            if (this.ScanType() == ScanTypeFlags.NotType)
+            {
+                return false;
+            }
+
+            return IsPossibleMemberName();
         }
 
         private bool IsPossibleMemberName()
@@ -6177,8 +6329,15 @@ parse_member_name:;
 
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
-            return this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword
-                && this.IsPartialModifierInDeclarationHead();
+            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+            {
+                if (this.IsPartialType() || this.IsPartialMember())
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool IsCurrentTokenFieldInKeywordContext()
@@ -7265,8 +7424,13 @@ parse_member_name:;
         }
 
         private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType)
+            => ScanNamedTypePart(out lastTokenOfType, treatPartialAsIdentifier: false);
+
+        private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType, bool treatPartialAsIdentifier)
         {
-            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken || !this.IsTrueIdentifier())
+            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken ||
+                (!treatPartialAsIdentifier || this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword) &&
+                !this.IsTrueIdentifier())
             {
                 lastTokenOfType = null;
                 return ScanTypeFlags.NotType;
@@ -7284,6 +7448,15 @@ parse_member_name:;
         }
 
         private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType)
+            => ScanType(mode, out lastTokenOfType, treatPartialAsIdentifier: false);
+
+        private ScanTypeFlags ScanTypeTreatingPartialAsIdentifier()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+            return ScanType(ParseTypeMode.Normal, out _, treatPartialAsIdentifier: true);
+        }
+
+        private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType, bool treatPartialAsIdentifier)
         {
             Debug.Assert(mode != ParseTypeMode.NewExpression);
             ScanTypeFlags result;
@@ -7322,7 +7495,7 @@ parse_member_name:;
                     // We're an alias if we start with an: id::
                     isAlias = this.PeekToken(1).Kind == SyntaxKind.ColonColonToken;
 
-                    result = this.ScanNamedTypePart(out lastTokenOfType);
+                    result = this.ScanNamedTypePart(out lastTokenOfType, treatPartialAsIdentifier);
                     if (result == ScanTypeFlags.NotType)
                     {
                         return ScanTypeFlags.NotType;

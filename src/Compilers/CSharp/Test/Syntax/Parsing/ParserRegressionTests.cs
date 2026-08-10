@@ -41,61 +41,32 @@ class Program
     partial abstract struct S {}
 }";
 
-            CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            CreateCompilation(src).VerifyDiagnostics(
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial abstract class A {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial abstract class A {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-                // (7,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // (7,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial partial class B {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(7, 5),
                 // (7,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial class B {}
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(7, 13),
-                // (8,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // (8,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial partial class B {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(8, 5),
                 // (8,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial class B {}
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(8, 13),
-                // (10,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // (10,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial abstract struct S {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(10, 5),
                 // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
                 //     partial abstract struct S {}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29),
-                // (11,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-                //     partial abstract struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(11, 5));
-
-            CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-                //     partial abstract class A {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-                //     partial abstract class A {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-                // (7,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(7, 5),
-                // (7,13): error CS1004: Duplicate 'partial' modifier
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(7, 13),
-                // (8,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(8, 5),
-                // (8,13): error CS1004: Duplicate 'partial' modifier
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(8, 13),
-                // (10,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
-                //     partial abstract struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(10, 5),
-                // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
-                //     partial abstract struct S {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29),
-                // (11,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+                // (11,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial abstract struct S {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(11, 5));
         }

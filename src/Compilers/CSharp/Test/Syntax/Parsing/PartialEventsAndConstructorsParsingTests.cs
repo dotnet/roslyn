@@ -940,12 +940,9 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
             """,
             TestOptions.Regular.WithLanguageVersion(langVersion));
 
-        N(SyntaxKind.MethodDeclaration);
+        N(SyntaxKind.ConstructorDeclaration);
         {
-            N(SyntaxKind.IdentifierName);
-            {
-                N(SyntaxKind.IdentifierToken, "partial");
-            }
+            N(SyntaxKind.PartialKeyword);
             N(SyntaxKind.IdentifierToken, "partial");
             N(SyntaxKind.ParameterList);
             {

@@ -279,25 +279,18 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 partial public C() { }
             }
             """;
-        // Parsing is permissive, but binding continues to require 'partial' to be the last modifier.
-        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (3,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial public event System.Action E;
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial public event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-            // (5,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial public C();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-            // (6,5): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial public C() { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5));
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5));
     }
 
