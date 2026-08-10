@@ -68,7 +68,7 @@ internal sealed class CopilotGenerateDocumentationCommentManager
         _inlinePromptService!.Show(
             textView,
             caret,
-            onAcceptAsync: dismissToken => GenerateAndApplyDocumentationAsync(document, snippet, snapshot, textView, dismissToken),
+            onAcceptAsync: dismissToken => GenerateAndApplyDocumentationAsync(document, snippet, snapshot, dismissToken),
             new InlinePromptOptions
             {
                 ProviderName = GenerateDocumentationProviderName,
@@ -81,7 +81,7 @@ internal sealed class CopilotGenerateDocumentationCommentManager
     }
 
     private async Task GenerateAndApplyDocumentationAsync(Document document,
-        DocumentationCommentSnippet snippet, ITextSnapshot snapshot, ITextView textView, CancellationToken cancellationToken)
+        DocumentationCommentSnippet snippet, ITextSnapshot snapshot, CancellationToken cancellationToken)
     {
         // Re-check Copilot availability / file-exclusion at accept time; degrade quietly otherwise.
         var copilotService = await IsGenerateDocumentationAvailableAsync(document, snippet.MemberNode, cancellationToken).ConfigureAwait(false);
@@ -107,7 +107,7 @@ internal sealed class CopilotGenerateDocumentationCommentManager
         // Apply the edit fire-and-forget: returning tears the session down (cancelling the token), so the write
         // must run afterward and not flow that token.
         var token = _asyncListener.BeginAsyncOperation(nameof(ApplyDocumentationEditsAsync));
-        _ = ApplyDocumentationEditsAsync(textView.TextBuffer, snapshot, edits).CompletesAsyncOperation(token);
+        _ = ApplyDocumentationEditsAsync(snapshot.TextBuffer, snapshot, edits).CompletesAsyncOperation(token);
     }
 
     private async Task ApplyDocumentationEditsAsync(ITextBuffer buffer, ITextSnapshot snapshot, ImmutableArray<DocumentationCommentEdit> edits)

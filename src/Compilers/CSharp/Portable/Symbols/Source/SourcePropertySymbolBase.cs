@@ -939,6 +939,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!IsExpressionBodied)
             {
+                bool hasSafetyModifierOnPropertyAndAccessor =
+                    ((_getMethod != null && (_getMethod.HasUnsafeModifier || _getMethod.HasSafeModifier)) ||
+                    (_setMethod != null && (_setMethod.HasUnsafeModifier || _setMethod.HasSafeModifier))) &&
+                    (this.HasUnsafeModifier || this.HasSafeModifier);
+                if (hasSafetyModifierOnPropertyAndAccessor)
+                {
+                    // Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessors. Remove one of them.
+                    diagnostics.Add(ErrorCode.ERR_InvalidPropertyUnsafeMods, Location, this);
+                }
+
                 bool hasGetAccessor = GetMethod is object;
                 bool hasSetAccessor = SetMethod is object;
 
@@ -960,6 +970,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (_getMethod.LocalDeclaredReadOnly && _setMethod.LocalDeclaredReadOnly)
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, Location, this);
+                    }
+                    else if (!hasSafetyModifierOnPropertyAndAccessor &&
+                        ((_getMethod.HasUnsafeModifier && _setMethod.HasUnsafeModifier && !_getMethod.HasSafeModifier && !_setMethod.HasSafeModifier) ||
+                        (_getMethod.HasSafeModifier && _setMethod.HasSafeModifier && !_getMethod.HasUnsafeModifier && !_setMethod.HasUnsafeModifier)))
+                    {
+                        // Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.
+                        diagnostics.Add(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, Location, this);
                     }
                     else if (this.IsAbstract)
                     {
@@ -1004,6 +1021,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (accessor.LocalDeclaredReadOnly)
                             {
                                 diagnostics.Add(ErrorCode.ERR_ReadOnlyModMissingAccessor, Location, this);
+                            }
+
+                            if (!hasSafetyModifierOnPropertyAndAccessor && (accessor.HasUnsafeModifier || accessor.HasSafeModifier))
+                            {
+                                // Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.
+                                diagnostics.Add(ErrorCode.ERR_SamePropertyUnsafeAccessorMods, Location, this);
                             }
                         }
                     }
@@ -1090,21 +1113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 compilation.EnsureExtensionMarkerAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
             }
-        }
-
-        internal sealed override void AfterTypeMembersCompletedChecks(BindingDiagnosticBag diagnostics)
-        {
-            base.AfterTypeMembersCompletedChecks(diagnostics);
-
-            if (HasSafeModifier && (!(IsExtern || hasExplicitOrExtendedLayoutField()) || HasUnsafeModifier))
-            {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, GetFirstLocation()));
-            }
-
-            return;
-
-            bool hasExplicitOrExtendedLayoutField() => BackingField != null && !IsStatic && (ContainingType.Layout.Kind == LayoutKind.Explicit || ContainingType.Layout.Kind == LayoutKind.Extended);
         }
 
         private void CheckAccessibility(Location location, BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)

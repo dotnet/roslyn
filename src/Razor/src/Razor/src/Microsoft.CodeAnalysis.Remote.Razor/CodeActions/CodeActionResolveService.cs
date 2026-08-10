@@ -13,9 +13,9 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
@@ -26,17 +26,15 @@ internal sealed class CodeActionResolveService(
     [ImportMany] IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
     [ImportMany] IEnumerable<ICSharpCodeActionResolver> csharpCodeActionResolvers,
     [ImportMany] IEnumerable<IHtmlCodeActionResolver> htmlCodeActionResolvers,
-    IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory) : ICodeActionResolveService
 
 {
     private readonly FrozenDictionary<string, IRazorCodeActionResolver> _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);
     private readonly FrozenDictionary<string, ICSharpCodeActionResolver> _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
     private readonly FrozenDictionary<string, IHtmlCodeActionResolver> _htmlCodeActionResolvers = CreateResolverMap(htmlCodeActionResolvers);
-    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CodeActionResolveService>();
 
-    public async Task<CodeAction> ResolveCodeActionAsync(RemoteDocumentContext documentContext, CodeAction request, CodeAction? resolvedDelegatedCodeAction, CancellationToken cancellationToken)
+    public async Task<CodeAction> ResolveCodeActionAsync(RemoteDocumentSnapshot documentSnapshot, CodeAction request, CodeAction? resolvedDelegatedCodeAction, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         var resolutionParams = RazorCodeActionResolutionParams.Unwrap(request);
 
@@ -56,19 +54,21 @@ internal sealed class CodeActionResolveService(
         {
             case RazorLanguageKind.Razor:
                 return await ResolveRazorCodeActionAsync(
-                    documentContext,
+                    documentSnapshot,
                     request,
                     resolutionParams,
+                    formattingOptions,
                     cancellationToken).ConfigureAwait(false);
             case RazorLanguageKind.CSharp:
                 return await ResolveCSharpCodeActionAsync(
-                    documentContext,
+                    documentSnapshot,
                     resolvedDelegatedCodeAction.AssumeNotNull(),
                     resolutionParams,
+                    formattingOptions,
                     cancellationToken).ConfigureAwait(false);
             case RazorLanguageKind.Html:
                 return await ResolveHtmlCodeActionAsync(
-                    documentContext,
+                    documentSnapshot,
                     resolvedDelegatedCodeAction.AssumeNotNull(),
                     resolutionParams,
                     cancellationToken).ConfigureAwait(false);
@@ -79,9 +79,10 @@ internal sealed class CodeActionResolveService(
     }
 
     private async Task<CodeAction> ResolveRazorCodeActionAsync(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         CodeAction codeAction,
         RazorCodeActionResolutionParams resolutionParams,
+        RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
         if (!_razorCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
@@ -97,27 +98,26 @@ internal sealed class CodeActionResolveService(
             return codeAction;
         }
 
-        var options = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
-        var edit = await resolver.ResolveAsync(documentContext, data, options, cancellationToken).ConfigureAwait(false);
+        var edit = await resolver.ResolveAsync(documentSnapshot, data, formattingOptions, cancellationToken).ConfigureAwait(false);
         codeAction.Edit = edit;
         return codeAction;
     }
 
-    private async Task<CodeAction> ResolveCSharpCodeActionAsync(RemoteDocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+    private async Task<CodeAction> ResolveCSharpCodeActionAsync(RemoteDocumentSnapshot documentSnapshot, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         if (TryGetResolver(resolutionParams, _csharpCodeActionResolvers, out var resolver))
         {
-            return await resolver.ResolveAsync(documentContext, codeAction, cancellationToken).ConfigureAwait(false);
+            return await resolver.ResolveAsync(documentSnapshot, codeAction, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
         return codeAction;
     }
 
-    private async Task<CodeAction> ResolveHtmlCodeActionAsync(RemoteDocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+    private async Task<CodeAction> ResolveHtmlCodeActionAsync(RemoteDocumentSnapshot documentSnapshot, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
     {
         if (TryGetResolver(resolutionParams, _htmlCodeActionResolvers, out var resolver))
         {
-            return await resolver.ResolveAsync(documentContext, codeAction, cancellationToken).ConfigureAwait(false);
+            return await resolver.ResolveAsync(documentSnapshot, codeAction, cancellationToken).ConfigureAwait(false);
         }
 
         return codeAction;
@@ -162,13 +162,13 @@ internal sealed class CodeActionResolveService(
 
     internal readonly struct TestAccessor(CodeActionResolveService instance)
     {
-        public Task<CodeAction> ResolveRazorCodeActionAsync(RemoteDocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
-            => instance.ResolveRazorCodeActionAsync(documentContext, codeAction, resolutionParams, cancellationToken);
+        public Task<CodeAction> ResolveRazorCodeActionAsync(RemoteDocumentSnapshot documentSnapshot, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
+            => instance.ResolveRazorCodeActionAsync(documentSnapshot, codeAction, resolutionParams, formattingOptions, cancellationToken);
 
-        public Task<CodeAction> ResolveCSharpCodeActionAsync(RemoteDocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
-            => instance.ResolveCSharpCodeActionAsync(documentContext, codeAction, resolutionParams, cancellationToken);
+        public Task<CodeAction> ResolveCSharpCodeActionAsync(RemoteDocumentSnapshot documentSnapshot, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
+            => instance.ResolveCSharpCodeActionAsync(documentSnapshot, codeAction, resolutionParams, formattingOptions, cancellationToken);
 
-        public Task<CodeAction> ResolveHtmlCodeActionAsync(RemoteDocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
-            => instance.ResolveHtmlCodeActionAsync(documentContext, codeAction, resolutionParams, cancellationToken);
+        public Task<CodeAction> ResolveHtmlCodeActionAsync(RemoteDocumentSnapshot documentSnapshot, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+            => instance.ResolveHtmlCodeActionAsync(documentSnapshot, codeAction, resolutionParams, cancellationToken);
     }
 }

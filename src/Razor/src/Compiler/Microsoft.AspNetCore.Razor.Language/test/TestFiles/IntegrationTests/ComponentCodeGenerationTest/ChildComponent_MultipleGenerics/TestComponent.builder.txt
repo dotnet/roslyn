@@ -1,0 +1,24 @@
+﻿[0000] OpenComponent<global::Test.MyComponent<
+#nullable restore
+#line (1,21)-(1,27) "x:\dir\subdir\Test\TestComponent.cshtml"
+string
+
+#line default
+#line hidden
+#nullable disable
+            , 
+#nullable restore
+#line (1,35)-(1,38) "x:\dir\subdir\Test\TestComponent.cshtml"
+int
+
+#line default
+#line hidden
+#nullable disable
+            >>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent<string, int>. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>( "hi" ))
+[0002] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment<string>)((context) => (__builder2) => { __builder2.OpenElement(3, "div"); __builder2.AddContent(4, context.ToLower() ); __builder2.CloseElement(); } ))
+[0003] OpenElement("div")
+[0004] AddContent(context.ToLower())
+[0005] AddAttribute("AnotherChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment<Test.MyComponent<string, int>.Context>)((item) => (__builder2) => { __builder2.AddContent(6, System.Math.Max(0, item.Item) ); __builder2.AddMarkupContent(7, ";\r\n"); } ))
+[0006] AddContent(System.Math.Max(0, item.Item))
+[0007] AddMarkupContent(";\r\n")

@@ -1,9 +1,0 @@
-﻿Source Location: (7:0,7 [42] x:\dir\subdir\Test\TestComponent.razor)
-|
-    public record Person(string Name);
-|
-Generated Location: (782:23,0 [42] )
-|
-    public record Person(string Name);
-|
-
