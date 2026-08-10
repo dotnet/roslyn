@@ -82,12 +82,13 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ? new WorkDoneProgressTracker(progressReporter, projects.Length)
             : null;
 
+        var handles = ImmutableArray.CreateBuilder<ProjectLoadHandle>(projects.Length);
         foreach (var (path, guid) in projects)
         {
-            await BeginLoadingProjectAsync(path, guid, progressTracker);
+            handles.Add(await BeginLoadingProjectAsync(path, guid));
         }
 
-        await WaitForProjectsToFinishLoadingAsync();
+        await WaitForProjectLoadsAsync(handles.MoveToImmutable(), progressTracker);
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
     }
 
@@ -100,12 +101,13 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ? new WorkDoneProgressTracker(progressReporter, projectFilePaths.Length)
             : null;
 
+        var handles = ImmutableArray.CreateBuilder<ProjectLoadHandle>(projectFilePaths.Length);
         foreach (var path in projectFilePaths)
         {
-            await BeginLoadingProjectAsync(path, projectGuid: null, progressTracker);
+            handles.Add(await BeginLoadingProjectAsync(path, projectGuid: null));
         }
 
-        await WaitForProjectsToFinishLoadingAsync();
+        await WaitForProjectLoadsAsync(handles.MoveToImmutable(), progressTracker);
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
     }
 

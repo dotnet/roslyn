@@ -15,8 +15,7 @@ internal sealed record ProjectToLoad(
     string Path,
     LanguageServerProjectLoader.ProjectLoadOperation? LoadOperation,
     string? ProjectGuid,
-    bool ReportTelemetry,
-    LanguageServerProjectLoader.WorkDoneProgressTracker? ProgressTracker = null)
+    bool ReportTelemetry)
 {
     public static IEqualityComparer<ProjectToLoad> Comparer = new ProjectToLoadComparer();
 
