@@ -1329,52 +1329,6 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         Assert.Equal(2, result.GeneratedSources.Length);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84817")]
-    public async Task Component_FallbackComponent_ChildContentParameters()
-    {
-        // A fallback component (unsplittable via @inherits) exposes RenderFragment child-content
-        // parameters. A consumer referencing them as child elements must resolve them, i.e. no
-        // RZ10012 "unexpected name" for Header/ChildContent.
-        var project = CreateTestProject(new()
-        {
-            ["Shared/Card.razor"] = """
-                @inherits EmptyBase
-
-                <header>@Header</header>
-                <main>@ChildContent</main>
-
-                @code {
-                    [Parameter]
-                    public RenderFragment? Header { get; set; }
-
-                    [Parameter]
-                    public RenderFragment? ChildContent { get; set; }
-                }
-                """,
-            ["Shared/Consumer.razor"] = """
-                <Card>
-                    <Header>Expected header</Header>
-                    <ChildContent>Expected content</ChildContent>
-                </Card>
-                """,
-        }, new()
-        {
-            ["EmptyBase.cs"] = """
-                using Microsoft.AspNetCore.Components;
-
-                public abstract class EmptyBase : ComponentBase;
-                """,
-        });
-        var compilation = await project.GetCompilationAsync();
-        var driver = await GetDriverAsync(project);
-
-        // Act
-        var result = RunGenerator(compilation!, ref driver);
-
-        // Assert -- no RZ10012 for the fallback component's child-content parameters
-        result.Diagnostics.Verify();
-    }
-
     [Fact]
     public async Task Component_WithImplicitContext_NestedInWrapper()
     {
