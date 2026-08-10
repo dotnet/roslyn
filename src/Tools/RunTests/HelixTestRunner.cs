@@ -83,10 +83,6 @@ internal sealed class HelixTestRunner
             await process.WaitForExitAsync(cts.Token);
             return process.ExitCode;
         }
-        catch (OperationCanceledException)
-        {
-            return -1;
-        }
         finally
         {
             if (!process.HasExited)
@@ -262,6 +258,10 @@ internal sealed class HelixTestRunner
 
         builder.AppendLine("""
               </ItemGroup>
+
+              <Target Name="PrintHelixJobId" AfterTargets="CoreTest" Condition="'$(HelixJobId)' != ''">
+                <Message Text="HelixJobId=$(HelixJobId)" Importance="high" />
+              </Target>
 
             </Project>
             """);
