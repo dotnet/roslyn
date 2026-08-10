@@ -501,7 +501,7 @@ class Program
 
             var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,12): error CS9379: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+                // (6,12): error CS9398: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
                 //     static ref readonly ref int M(int x)
                 Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(6, 12),
                 // (6,33): error CS0106: The modifier 'readonly' is not valid for this item
