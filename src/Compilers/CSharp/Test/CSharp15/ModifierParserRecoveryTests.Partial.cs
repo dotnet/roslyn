@@ -14,11 +14,10 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 /// <summary>
-/// Tests for permissive parsing of modifier ordering.
-/// Tracking: https://github.com/dotnet/csharplang/issues/8966.
+/// Tests parser recovery when <c>partial</c> appears in a non-canonical modifier position.
 /// <para>
-/// The parser accepts the affected modifiers (currently <c>partial</c>) in any position of the
-/// modifier list on every language version. The binder continues to report
+/// The parser accepts <c>partial</c> in any position of the modifier list when the declaration is
+/// otherwise unambiguous. The binder continues to report
 /// <c>ERR_PartialMisplaced</c> at non-canonical positions, so this parser recovery does not change
 /// which programs are accepted. Modifiers that are not legal on a declaration at all (e.g.,
 /// <c>partial enum</c>) continue to produce the same binding error.
@@ -28,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 /// <c>CreateCompilation(...).VerifyDiagnostics(...)</c>.
 /// </para>
 /// </summary>
-public sealed partial class RelaxedModifierOrderingTests : ParsingTests
+public sealed partial class ModifierParserRecoveryTests : ParsingTests
 {
-    public RelaxedModifierOrderingTests(ITestOutputHelper output) : base(output) { }
+    public ModifierParserRecoveryTests(ITestOutputHelper output) : base(output) { }
 
     public static TheoryData<SyntaxKind> AllModifierKindsExceptPartialAndRef()
     {
@@ -438,7 +437,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         var src = "public partial enum E { }";
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (1,21): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // (1,21): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
             // public partial enum E { }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 21));
     }
@@ -449,7 +448,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         var src = "public partial delegate void D();";
 
         CreateCompilation(src).VerifyDiagnostics(
-            // (1,30): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // (1,30): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
             // public partial delegate void D();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "D").WithLocation(1, 30));
     }
@@ -690,7 +689,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
 
         CreateCompilation("partial enum E { }").VerifyDiagnostics(
-            // (1,14): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
             // partial enum E { }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
     }
@@ -722,7 +721,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
 
         CreateCompilation("partial delegate void D();").VerifyDiagnostics(
-            // (1,23): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
+            // (1,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
             // partial delegate void D();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "D").WithLocation(1, 23));
     }

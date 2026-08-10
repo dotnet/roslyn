@@ -1401,8 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // members, consuming 'ref' in non-canonical positions lets the binder report
                         // a targeted error rather than producing cascading parse errors.  The binder
                         // (ModifierUtils.ToDeclarationModifiers / CheckModifiers) decides whether
-                        // the position is allowed and gates older language versions via the
-                        // relaxed-modifier-ordering feature.
+                        // the position is allowed and reports an error for every non-canonical use.
                         if (this.IsRefModifierInDeclarationHead(forAccessors))
                         {
                             modTok = this.EatToken();

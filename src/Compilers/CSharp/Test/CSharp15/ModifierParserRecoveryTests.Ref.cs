@@ -15,12 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 /// <summary>
 /// Tests for the parser's handling of the <c>ref</c> modifier in non-canonical positions.
-/// Tracking: https://github.com/dotnet/csharplang/issues/8966.
 /// <para>
 /// The parser is permissive: it accepts <c>ref</c> in any modifier-list position on every
 /// language version when the token cannot be parsed as a return-type prefix.  This lets the
-/// binder produce a single targeted diagnostic instead of cascading parse errors.  The
-/// language itself does <em>not</em> relax where <c>ref</c> may appear:
+/// binder produce a single targeted diagnostic instead of cascading parse errors. This recovery
+/// does not change where <c>ref</c> may appear:
 /// <list type="bullet">
 /// <item>On a type declaration, the binder unconditionally reports
 /// <c>ERR_RefMisplacedOnType</c> (<c>CS9389</c>) at the <c>ref</c> token whenever it isn't
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 /// forms continue to parse with <c>ref</c> as part of the return type, not as a modifier.
 /// </para>
 /// </summary>
-public sealed partial class RelaxedModifierOrderingTests
+public sealed partial class ModifierParserRecoveryTests
 {
     #region ref modifier
 
@@ -103,7 +102,7 @@ public sealed partial class RelaxedModifierOrderingTests
     public void Ref_CanonicalPosition_BeforeTrailingPartial_AllLangvers()
     {
         // Historical form: `ref` immediately before `partial struct` is also considered canonical
-        // and must bind without a feature diagnostic on older language versions.
+        // and must bind on every language version.
         var src = "public ref partial struct S { }";
 
         foreach (var options in new[] { TestOptions.Regular9, TestOptions.Regular13, TestOptions.Regular14, TestOptions.RegularPreview })
@@ -318,14 +317,13 @@ public sealed partial class RelaxedModifierOrderingTests
     }
 
     [Fact]
-    public void Ref_OnClass_FirstPosition_CSharp14_FeatureError()
+    public void Ref_OnClass_FirstPosition_CSharp14_Errors()
     {
-        // On older language versions the non-canonical placement still drives a feature-error
-        // diagnostic in addition to the not-valid-for-this-item error.
+        // The placement and declaration-kind errors are independent of language version.
         var src = "ref public class C { }";
 
         CreateCompilation(src, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,1): error CS9202: Feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS9389: The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.
             // ref public class C { }
             Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1),
             // (1,18): error CS0106: The modifier 'ref' is not valid for this item
@@ -440,9 +438,7 @@ public sealed partial class RelaxedModifierOrderingTests
     [Fact]
     public void Ref_BeforeAccessibility_OnMethod_CSharp14_SingleError()
     {
-        // On older language versions the misplaced-modifier diagnostic fires immediately; we do
-        // not additionally surface the feature-availability diagnostic because `ref` is not a
-        // legal modifier on members in any version.
+        // `ref` is not a legal member modifier in any language version.
         var src = """
             class C
             {
