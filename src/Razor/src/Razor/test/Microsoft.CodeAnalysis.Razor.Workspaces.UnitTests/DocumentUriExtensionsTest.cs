@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test;
 public class DocumentUriExtensionsTest
 {
     [Theory]
-    [InlineData(@"C:\path\to\file.razor__virtual.html", true, "C:/path/to/file.razor")]
+    [InlineData(@"C:\path\to\file.razor__virtual.html", true, "c:/path/to/file.razor")]
     [InlineData(@"C:\path\to\file.razor", false, null)]
     public void IsRazorHtmlDocumentUri_ReturnsExpectedResult(string inputUri, bool expectedResult, string? expectedFilePath)
     {
@@ -48,7 +48,7 @@ public class DocumentUriExtensionsTest
         Assert.True(result);
         Assert.NotNull(razorDocumentUri);
         Assert.Equal(Uri.UriSchemeFile, razorDocumentUri.GetRequiredSystemUri().Scheme);
-        Assert.Equal(@"C:/path/to/file.razor", razorDocumentUri.GetAbsoluteOrUNCPath());
+        Assert.Equal(@"c:/path/to/file.razor", razorDocumentUri.GetAbsoluteOrUNCPath());
     }
 
     [Fact]
@@ -66,8 +66,8 @@ public class DocumentUriExtensionsTest
     }
 
     [Theory]
-    [InlineData("razor-html:/C:/path/to/file.razor__virtual.html", "C:/path/to/file.razor")]
-    [InlineData("razor-html:///C:/path with spaces/to/file.razor__virtual.html", "C:/path with spaces/to/file.razor")]
+    [InlineData("razor-html:/C:/path/to/file.razor__virtual.html", "c:/path/to/file.razor")]
+    [InlineData("razor-html:///C:/path with spaces/to/file.razor__virtual.html", "c:/path with spaces/to/file.razor")]
     public void IsRazorHtmlDocumentUri_RazorHtmlUri_ReturnsRazorFileUri(string inputUri, string expectedFilePath)
     {
         // Arrange
