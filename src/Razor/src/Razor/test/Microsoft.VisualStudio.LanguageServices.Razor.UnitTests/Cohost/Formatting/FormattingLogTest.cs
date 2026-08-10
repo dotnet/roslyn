@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
@@ -91,10 +90,7 @@ public partial class FormattingLogTest(ITestOutputHelper testOutput) : DocumentF
         var document = CreateProjectAndRazorDocument(contents, fileKind: GetFileKind(testName));
         var sourceText = await document.GetTextAsync();
 
-        var options = new RazorFormattingOptions() with
-        {
-            CSharpSyntaxFormattingOptions = CSharpSyntaxFormattingOptions.Default
-        };
+        var options = new RazorFormattingOptions();
         if (GetResource(testName, "Options.json") is { } optionsFile)
         {
             options = DeserializeFormattingOptions(optionsFile);

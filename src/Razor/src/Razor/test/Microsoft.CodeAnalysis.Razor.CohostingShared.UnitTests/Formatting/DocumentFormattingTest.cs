@@ -4,7 +4,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Xunit;
@@ -811,10 +810,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                Spacing = SpacePlacement.AfterDot
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_after_dot = true
+                    """)
+            ]);
     }
 
     [Fact]
@@ -872,10 +876,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                Spacing = SpacePlacement.AfterMethodCallName
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_between_method_call_name_and_opening_parenthesis = true
+                    """)
+            ]);
     }
 
     [Fact]
@@ -933,10 +942,16 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                Spacing = SpacePlacement.AfterMethodCallName | SpacePlacement.AfterMethodDeclarationName
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_between_method_call_name_and_opening_parenthesis = true
+                    csharp_space_between_method_declaration_name_and_open_parenthesis = true
+                    """)
+            ]);
     }
 
     [Fact]
@@ -990,10 +1005,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = default
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "none"));
     }
 
     [Fact]
@@ -1046,10 +1058,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = default
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "none"));
     }
 
     [Fact]
@@ -1083,10 +1092,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -1123,10 +1129,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -1163,10 +1166,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -1209,10 +1209,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 }
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "methods"));
     }
 
     [Fact]
@@ -1245,10 +1242,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = default
-            });
+            additionalFiles: GetNewLinesEditorConfig(openBracePlacement: "none"));
     }
 
     [Fact]
@@ -5862,7 +5856,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5887,7 +5881,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5916,7 +5910,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5944,7 +5938,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -5979,7 +5973,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6013,7 +6007,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6048,7 +6042,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6082,7 +6076,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6110,7 +6104,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6137,7 +6131,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6174,7 +6168,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6210,7 +6204,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6237,7 +6231,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6263,7 +6257,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6284,7 +6278,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <button @onclick="() => { foo(); }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             fileKind: RazorFileKind.Component);
     }
 
@@ -6305,7 +6299,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <button @onclick="() => { foo(); }">
                 </button>
                 """,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: false),
             fileKind: RazorFileKind.Component);
     }
 
@@ -11064,12 +11058,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11150,12 +11139,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </PageTitle>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11233,12 +11217,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11316,12 +11295,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11399,12 +11373,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11488,12 +11457,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 ;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Theory]
@@ -11553,12 +11517,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 ;
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = newLineBeforeBraceInLambda
-                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-            });
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda));
     }
 
     [Fact]
@@ -12521,7 +12480,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true));
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true));
     }
 
     [Fact]
@@ -12555,7 +12514,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByOne);
     }
 
@@ -12590,7 +12549,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
     }
 
@@ -12625,7 +12584,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true));
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true));
     }
 
     [Fact]
@@ -12659,7 +12618,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByOne);
     }
 
@@ -12694,7 +12653,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetNewLineBeforeBraceInLambdaExpressionEditorConfig(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
     }
 
@@ -12753,7 +12712,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
 
@@ -12812,7 +12770,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByOne,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -12872,7 +12829,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -12932,7 +12888,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
 
@@ -12991,7 +12946,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByOne,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -13051,7 +13005,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -13111,7 +13064,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
 
@@ -13170,7 +13122,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByOne,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -13230,7 +13181,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code,
             fileKind: RazorFileKind.Component,
-            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
             additionalFiles: GetCheckBoxButtonComponentFiles());
     }
@@ -15239,10 +15189,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = accessors, types, methods, properties, anonymous_methods, control_blocks, anonymous_types, lambdas
+                    """)
+            ]);
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/12622")]
@@ -15277,10 +15232,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 }
                 """,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = accessors, types, methods, properties, anonymous_methods, control_blocks, anonymous_types, lambdas
+                    """)
+            ]);
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/12622")]
@@ -15724,6 +15684,12 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     private (string fileName, string contents)[] GetCheckBoxButtonComponentFiles()
         =>
         [
+            (".editorconfig", """
+                root = true
+
+                [*.razor]
+                csharp_new_line_before_open_brace = all
+                """),
             (FilePath("CheckBoxButton.razor"), """
                 @using Microsoft.AspNetCore.Components
 
@@ -15735,11 +15701,37 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """)
         ];
 
-    private static CSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
-        => CSharpSyntaxFormattingOptions.Default with
-        {
-            NewLines = newLineBeforeBraceInLambda
-                ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-        };
+    private static (string fileName, string contents)[] GetNewLineBeforeBraceInLambdaExpressionEditorConfig(bool newLineBeforeBraceInLambda)
+    {
+        var openBracePlacement = newLineBeforeBraceInLambda
+            ? "all"
+            : "accessors, types, methods, properties, anonymous_methods, control_blocks, anonymous_types, object_collection_array_initializers";
+
+        return
+        [
+            (".editorconfig", $"""
+                root = true
+
+                [*.razor]
+                csharp_new_line_before_open_brace = {openBracePlacement}
+                """)
+        ];
+    }
+
+    private static (string fileName, string contents)[] GetNewLinesEditorConfig(string openBracePlacement)
+        =>
+        [
+            (".editorconfig", $"""
+                root = true
+
+                [*.razor]
+                csharp_new_line_before_members_in_object_initializers = false
+                csharp_new_line_before_members_in_anonymous_types = false
+                csharp_new_line_before_else = false
+                csharp_new_line_before_catch = false
+                csharp_new_line_before_finally = false
+                csharp_new_line_before_open_brace = {openBracePlacement}
+                csharp_new_line_between_query_expression_clauses = false
+                """)
+        ];
 }

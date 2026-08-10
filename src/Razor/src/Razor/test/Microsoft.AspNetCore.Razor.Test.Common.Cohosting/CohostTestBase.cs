@@ -284,9 +284,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
     protected static string FilePath(string projectRelativeFileName)
         => Path.GetFullPath(Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName));
 
-    private protected static bool HasEditorConfig((string fileName, string contents)[]? files)
-        => files?.Any(static file => IsEditorConfig(file.fileName)) == true;
-
     private static bool IsEditorConfig(string fileName)
         => Path.GetFileName(fileName).Equals(".editorconfig", StringComparison.OrdinalIgnoreCase);
 

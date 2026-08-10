@@ -3,7 +3,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
@@ -180,10 +179,15 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             input,
             expected,
             PredefinedCodeRefactoringProviderNames.InvertIf,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                Indentation = CSharpSyntaxFormattingOptions.Default.Indentation | IndentationPlacement.Braces
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_indent_braces = true
+                    """)
+            ]);
     }
 
     [Fact]

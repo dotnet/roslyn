@@ -176,13 +176,6 @@ internal sealed class CohostOnAutoInsertEndpoint(
             CancellationToken cancellationToken)
                 => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
 
-        public Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
-            VSInternalDocumentOnAutoInsertParams request,
-            TextDocument razorDocument,
-            CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
-            CancellationToken cancellationToken)
-                => instance.HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
-
         public static string[] GetRazorOnAutoInsertTriggerCharacters() => s_razorOnAutoInsertTriggerCharacters;
 
         public static string[] GetHtmlAllowedAutoInsertTriggerCharacters() => s_htmlAllowedAutoInsertTriggerCharacters;

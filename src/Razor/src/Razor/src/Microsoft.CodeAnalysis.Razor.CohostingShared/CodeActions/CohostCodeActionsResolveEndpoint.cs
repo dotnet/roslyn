@@ -211,9 +211,6 @@ internal sealed class CohostCodeActionsResolveEndpoint(
         public Task<CodeAction?> HandleRequestAsync(TextDocument razorDocument, CodeAction request, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
 
-        public Task<CodeAction?> HandleRequestAsync(TextDocument razorDocument, CodeAction request, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, CancellationToken cancellationToken)
-            => instance.HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
-
         public static Task<CodeAction> ResolveCodeActionAsync(Document document, CodeAction codeAction, ResourceOperationKind[] resourceOperations, CancellationToken cancellationToken)
             => CohostCodeActionsResolveEndpoint.ResolveCodeActionAsync(document, codeAction, resourceOperations, cancellationToken);
     }

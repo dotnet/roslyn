@@ -197,12 +197,5 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
             TextDocument razorDocument,
             CancellationToken cancellationToken)
                 => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
-
-        public Task<VSInternalCompletionItem?> HandleRequestAsync(
-            VSInternalCompletionItem request,
-            TextDocument razorDocument,
-            CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
-            CancellationToken cancellationToken)
-                => instance.HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 }

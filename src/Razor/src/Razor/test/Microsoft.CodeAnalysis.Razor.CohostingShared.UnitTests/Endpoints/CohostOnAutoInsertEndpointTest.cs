@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor;
@@ -21,6 +20,19 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
+    private static readonly string[] s_newLineBeforeOpenBracePlacements =
+    [
+        "accessors",
+        "types",
+        "methods",
+        "properties",
+        "anonymous_methods",
+        "control_blocks",
+        "anonymous_types",
+        "object_collection_array_initializers",
+        "lambdas",
+    ];
+
     [Fact]
     public void RazorTriggerCharactersMatchOOPAutoInsertProviders()
     {
@@ -565,7 +577,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInControlBlocks);
+            excludedBracePlacement: "control_blocks");
     }
 
     [Fact]
@@ -587,10 +599,15 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                 }
                 """,
             triggerCharacter: "\n",
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = default
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
     }
 
     [Fact]
@@ -611,7 +628,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInMethods);
+            excludedBracePlacement: "methods");
     }
 
     [Fact]
@@ -691,7 +708,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInProperties);
+            excludedBracePlacement: "properties");
     }
 
     [Fact]
@@ -718,7 +735,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInAccessors);
+            excludedBracePlacement: "accessors");
     }
 
     [Fact]
@@ -739,7 +756,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     };
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody);
+            excludedBracePlacement: "lambdas");
     }
 
     [Fact]
@@ -760,7 +777,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     };
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInAnonymousMethods);
+            excludedBracePlacement: "anonymous_methods");
     }
 
     [Fact]
@@ -781,7 +798,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     };
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers);
+            excludedBracePlacement: "object_collection_array_initializers");
     }
 
     [Fact]
@@ -802,7 +819,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     };
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInAnonymousTypes);
+            excludedBracePlacement: "anonymous_types");
     }
 
     [Fact]
@@ -853,15 +870,20 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     private Task VerifyCSharpOnEnterKAndRBracesAsync(
         TestCode input,
         string output,
-        NewLinePlacement newLinePlacement)
+        string excludedBracePlacement)
         => VerifyOnAutoInsertAsync(
             input,
             output,
             triggerCharacter: "\n",
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines & ~newLinePlacement
-            });
+            additionalFiles:
+            [
+                (".editorconfig", $$"""
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = {{string.Join(", ", s_newLineBeforeOpenBracePlacements.Where(placement => placement != excludedBracePlacement))}}
+                    """)
+            ]);
 
     private async Task VerifyOnAutoInsertAsync(
         TestCode input,
@@ -873,7 +895,6 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         bool formatOnType = true,
         bool autoClosingTags = true,
         RazorFileKind? fileKind = null,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null,
         (string fileName, string contents)[]? additionalFiles = null)
     {
         fileKind ??= RazorFileKind.Component;
@@ -882,10 +903,6 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             fileKind: fileKind,
             additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
-        if (!HasEditorConfig(additionalFiles))
-        {
-            csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
-        }
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { FormatOnType = formatOnType, AutoClosingTags = autoClosingTags });
 
@@ -927,9 +944,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             Options = formattingOptions
         };
 
-        var result = csharpSyntaxFormattingOptions is null
-            ? await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken)
-            : await endpoint.GetTestAccessor().HandleRequestAsync(request, document, csharpSyntaxFormattingOptions, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
         if (output is not null)
         {
