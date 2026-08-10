@@ -187,47 +187,23 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     [InlineData(SyntaxKind.InterfaceKeyword)]
     public void ClosedModifier_03(SyntaxKind typeKeyword)
     {
+        DiagnosticDescription[] expectedBindingDiagnostics = typeKeyword == SyntaxKind.ClassKeyword
+            ? [Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)]
+            : [
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed")
+            ];
+
         UsingNode($$"""
             partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
             """,
-            expectedParsingDiagnostics: [
-                // (1,16): error CS1002: ; expected
-                // partial closed class C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
-            ],
-            expectedBindingDiagnostics: [
-                // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                // partial closed interface C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
-                // (1,9): warning CS0168: The variable 'closed' is declared but never used
-                // partial closed interface C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "closed").WithArguments("closed").WithLocation(1, 9),
-                // (1,14): error CS1002: ; expected
-                // partial closed {{SyntaxFacts.GetText(typeKeyword)}} C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 16)
-            ]);
+            expectedBindingDiagnostics: expectedBindingDiagnostics);
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "closed");
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
             N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
             {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.ClosedKeyword);
                 N(typeKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -326,50 +302,17 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             closed partial ref struct C { }
             """,
             options: TestOptions.Regular14,
-            expectedParsingDiagnostics: [
-                // (1,16): error CS1003: Syntax error, ',' expected
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 16),
-                // (1,20): error CS1002: ; expected
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 20)
-            ],
             expectedBindingDiagnostics: [
-                // (1,1): error CS0246: The type or namespace name 'closed' could not be found (are you missing a using directive or an assembly reference?)
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "closed").WithArguments("closed").WithLocation(1, 1),
-                // (1,8): warning CS0168: The variable 'partial' is declared but never used
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "partial").WithArguments("partial").WithLocation(1, 8),
-                // (1,16): error CS1003: Syntax error, ',' expected
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 16),
-                // (1,20): error CS1002: ; expected
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 20)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 8),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed")
             ]);
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "closed");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
             N(SyntaxKind.StructDeclaration);
             {
+                N(SyntaxKind.ClosedKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.RefKeyword);
                 N(SyntaxKind.StructKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -386,51 +329,18 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         UsingNode($$"""
             closed partial ref struct C { }
             """,
-            expectedParsingDiagnostics: [
-                // (1,16): error CS1003: Syntax error, ',' expected
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 16),
-                // (1,20): error CS1002: ; expected
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 20)
-            ],
             expectedBindingDiagnostics: [
-                // (1,1): error CS0246: The type or namespace name 'closed' could not be found (are you missing a using directive or an assembly reference?)
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "closed").WithArguments("closed").WithLocation(1, 1),
-                // (1,8): warning CS0168: The variable 'partial' is declared but never used
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "partial").WithArguments("partial").WithLocation(1, 8),
-                // (1,16): error CS1003: Syntax error, ',' expected
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 16),
-                // (1,20): error CS1002: ; expected
-                // closed partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 20)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 8),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed")
             ]);
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "closed");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
             N(SyntaxKind.StructDeclaration);
             {
+                N(SyntaxKind.ClosedKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.RefKeyword);
                 N(SyntaxKind.StructKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -447,51 +357,18 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         UsingNode($$"""
             partial closed ref struct C { }
             """,
-            expectedParsingDiagnostics: [
-                // (1,16): error CS1003: Syntax error, ',' expected
-                // partial closed ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 16),
-                // (1,20): error CS1002: ; expected
-                // partial closed ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 20)
-            ],
             expectedBindingDiagnostics: [
-                // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                // partial closed ref struct C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
-                // (1,9): warning CS0168: The variable 'closed' is declared but never used
-                // partial closed ref struct C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "closed").WithArguments("closed").WithLocation(1, 9),
-                // (1,16): error CS1003: Syntax error, ',' expected
-                // partial closed ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 16),
-                // (1,20): error CS1002: ; expected
-                // partial closed ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 20)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("closed")
             ]);
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "closed");
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
             N(SyntaxKind.StructDeclaration);
             {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.ClosedKeyword);
+                N(SyntaxKind.RefKeyword);
                 N(SyntaxKind.StructKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);

@@ -1567,6 +1567,16 @@
         <target state="translated">"#!" 必须是文件第一行的第一个字符</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefNotMemberModifier">
+        <source>The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</source>
+        <target state="new">The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefMisplacedOnType">
+        <source>The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</source>
+        <target state="new">The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberSafeDifference">
         <source>Both partial member declarations must be marked 'safe' or neither may be marked 'safe'</source>
         <target state="translated">这两个部分成员声明都必须标记为 'safe'，或者两者都不能标记为 'safe'</target>
