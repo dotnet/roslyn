@@ -42,6 +42,50 @@ public sealed partial class RelaxedModifierOrderingTests
 {
     #region ref modifier
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84734")]
+    public void MisplacedRefModifierOnStructDeclaration()
+    {
+        var source = "ref public struct MyStruct;";
+
+        UsingTree(source);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.StructDeclaration);
+            {
+                N(SyntaxKind.RefKeyword);
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "MyStruct");
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation(source).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_RefMisplacedOnType, "ref").WithLocation(1, 1));
+
+        source = "partial ref struct MyStruct;";
+
+        UsingTree(source);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.StructDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.RefKeyword);
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "MyStruct");
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation(source).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
+    }
+
     // ---------- ref on struct (canonical positions, legal on every language version) ----------
 
     [Fact]
