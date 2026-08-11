@@ -69,6 +69,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
     private readonly ILanguageInfoProvider _languageInfoProvider;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
+    private ImmutableArray<ILspDocumentContextProvider> _documentContextProviders;
 
     public LspWorkspaceManager(
         ILspLogger logger,
@@ -83,6 +84,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         _languageInfoProvider = languageInfoProvider;
+    }
+
+    internal void InitializeDocumentContextProviders(ImmutableArray<ILspDocumentContextProvider> documentContextProviders)
+    {
+        Contract.ThrowIfFalse(_documentContextProviders.IsDefault);
+        Contract.ThrowIfTrue(documentContextProviders.IsDefaultOrEmpty);
+        _documentContextProviders = documentContextProviders;
     }
 
     public EventHandler<EventArgs>? LspTextChanged;
@@ -256,21 +264,18 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         bool useCache,
         CancellationToken cancellationToken)
     {
-        // Get the LSP view of all the workspace solutions.
         var uri = textDocumentIdentifier.DocumentUri;
-        var lspSolutions = await GetLspSolutionsAsync(trackedDocuments, useCache, cancellationToken).ConfigureAwait(false);
+        var context = new LspDocumentContextLookupContext(textDocumentIdentifier, trackedDocuments, useCache, cancellationToken);
 
-        // Find the matching document from the LSP solutions.
-        foreach (var (workspace, lspSolution, isForked) in lspSolutions)
+        foreach (var provider in _documentContextProviders)
         {
-            var documents = await lspSolution.GetTextDocumentsAsync(textDocumentIdentifier.DocumentUri, cancellationToken).ConfigureAwait(false);
-
-            if (documents.Length > 0)
+            try
             {
-                // We have at least one document, so find the one in the right project context.
-                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
+                var result = await provider.TryGetDocumentContextAsync(context).ConfigureAwait(false);
+                if (result is not { } documentContext)
+                    continue;
 
-                if (workspace.Kind != WorkspaceKind.MiscellaneousFiles && _lspMiscellaneousFilesWorkspaceProvider is not null)
+                if (documentContext.workspace.Kind != WorkspaceKind.MiscellaneousFiles && _lspMiscellaneousFilesWorkspaceProvider is not null)
                 {
                     // Found the document in a non-miscellaneous files workspace.
                     // Unload it from the miscellaneous files workspace.
@@ -278,37 +283,44 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 }
 
                 // Record metadata on how we got this document.
-                var workspaceKind = document.Project.Solution.WorkspaceKind;
+                var workspaceKind = documentContext.solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
-                _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
-                _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}; project {document.Project.Name}");
+                _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(documentContext.solution != documentContext.workspace.CurrentSolution);
+                _logger.LogDebug($"{documentContext.document.FilePath} found in workspace {workspaceKind}; project {documentContext.document.Project.Name}");
 
-                return (workspace, document.Project.Solution, document);
+                return documentContext;
             }
-        }
-
-        // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
-        // Depending on the host, this can be entirely normal (e.g. opening a loose file)
-        var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
-        _logger.LogDebug($"Could not find '{textDocumentIdentifier.DocumentUri}'.  Searched {searchedWorkspaceKinds}");
-        _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
-
-        // Add the document to our loose files workspace (if we have one) if it is open.
-        if (trackedDocuments.TryGetValue(uri, out var trackedDocument) && _lspMiscellaneousFilesWorkspaceProvider is not null)
-        {
-            try
-            {
-                var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddDocumentAsync(uri, trackedDocument).ConfigureAwait(false);
-                if (miscDocument is not null)
-                    return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
             {
                 _logger.LogException(ex);
             }
         }
 
+        // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
+        // Depending on the host, this can be entirely normal (e.g. opening a loose file)
+        var searchedWorkspaceKinds = string.Join(";", _lspWorkspaceRegistrationService.GetAllRegistrations().SelectAsArray(workspace => workspace.Kind));
+        _logger.LogDebug($"Could not find '{textDocumentIdentifier.DocumentUri}'.  Searched {searchedWorkspaceKinds}");
+        _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
+
         return default;
+    }
+
+    internal async ValueTask<(Workspace workspace, Solution solution, TextDocument document)?> TryGetRegisteredDocumentContextAsync(
+        LspDocumentContextLookupContext context)
+    {
+        var lspSolutions = await GetLspSolutionsAsync(context.TrackedDocuments, context.UseCache, context.CancellationToken).ConfigureAwait(false);
+        foreach (var (workspace, lspSolution, _) in lspSolutions)
+        {
+            var documents = await lspSolution.GetTextDocumentsAsync(context.TextDocumentIdentifier.DocumentUri, context.CancellationToken).ConfigureAwait(false);
+            if (documents.IsEmpty)
+                continue;
+
+            var document = documents.FindDocumentInProjectContext(
+                context.TextDocumentIdentifier, (solution, documentId) => solution.GetRequiredTextDocument(documentId));
+            return (workspace, document.Project.Solution, document);
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -610,6 +622,11 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         public bool IsWorkspaceRegistered(Workspace workspace)
         {
             return _manager._lspWorkspaceRegistrationService.GetAllRegistrations().Contains(workspace);
+        }
+
+        public void PrependDocumentContextProvider(ILspDocumentContextProvider provider)
+        {
+            _manager._documentContextProviders = [provider, .. _manager._documentContextProviders];
         }
     }
 }

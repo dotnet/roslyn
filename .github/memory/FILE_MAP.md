@@ -22,7 +22,7 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 | `Workspaces/` | ide | Solution/Project/Document model, MSBuild loading, Remote (OOP). |
 | `Features/`, `EditorFeatures/` | ide | IDE feature logic and editor integration. |
 | `Analyzers/`, `CodeStyle/` | ide | IDE0xxx code-style analyzers & fixes. |
-| `LanguageServer/` | ide | LSP server; canonical loading and its `LanguageServerProjectLoad*` types live in `Microsoft.CodeAnalysis.LanguageServer/HostWorkspace/`, while the shared `IOnDemandProjectLoader`, `OnDemandProjectLoadOperation`, and `OnDemandProjectLoadResult` contracts live in `Protocol/Workspaces/`. |
+| `LanguageServer/` | ide | LSP server; canonical loading and its `LanguageServerProjectLoad*` types live in `Microsoft.CodeAnalysis.LanguageServer/HostWorkspace/`, while shared on-demand loading contracts and the ordered `ILspDocumentContextProvider` lookup pipeline live in `Protocol/Workspaces/`. |
 | `VisualStudio/` | ide | VS language services & UI. |
 | `Razor/src/` | razor | Razor compiler + tooling (own sub-tree layout). |
 | `Scripting/`, `Interactive/` | — | C#/VB scripting engine and REPL. |
