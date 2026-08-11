@@ -119,7 +119,7 @@ During initialization, the discovery service records workspace-folder paths and 
 
 When a workspace folder is removed, the service removes its cached candidates and disposes logical watcher contexts beneath that root. Already loaded projects remain owned by the project-system lifecycle.
 
-Path keys use platform filesystem semantics: case-insensitive on Windows and case-sensitive on Unix. Discovery uses normalized lexical full paths and does not resolve symbolic links.
+Path keys use ordinal case-insensitive identity on every platform, independent of the underlying filesystem's case sensitivity. Discovery uses normalized lexical full paths and does not resolve symbolic links.
 
 ### Ancestor Lookup
 
@@ -305,7 +305,7 @@ No paths are added to telemetry. A dedicated telemetry schema for discovery and 
 - Empty directories are not retained in the cache.
 - Concurrent lookups coalesce per-directory enumeration.
 - Enumeration errors log and continue upward.
-- Platform path semantics apply to workspace add/remove and duplicate handling.
+- Case-insensitive path identity applies to workspace add/remove and duplicate handling on every platform.
 - Workspace-folder removal drops matching cache and watcher state.
 - Created and deleted project files update positive subtree caches.
 - Enumeration racing a watcher event returns a validated merged result.
