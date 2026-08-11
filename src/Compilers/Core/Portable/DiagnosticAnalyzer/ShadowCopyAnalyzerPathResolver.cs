@@ -217,6 +217,10 @@ namespace Microsoft.CodeAnalysis
 
             void pruneCacheIfNeeded()
             {
+                // Avoid first chance exception
+                if (!Directory.Exists(CacheDirectory))
+                    return;
+
                 using var cacheMutex = new Mutex(initiallyOwned: false, name: $"RoslynShadowCopyCache-{HashToHex(CacheDirectory)}");
                 bool lockTaken = false;
                 try

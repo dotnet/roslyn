@@ -1664,11 +1664,11 @@ Delta.2: Test D2
             });
         }
 
-        [Theory]
-        [InlineData(AnalyzerTestKind.ShadowLoad)]
-        public void AssemblyLoading_StressTest(AnalyzerTestKind kind)
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AssemblyLoading_StressTest()
         {
-            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            var shadowMirror = Temp.CreateDirectory();
+            Run(AnalyzerTestKind.ShadowLoad, state: shadowMirror.Path, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
                 var shadowResolver = (ShadowCopyAnalyzerPathResolver)loader.AnalyzerPathResolvers.Single();
                 shadowResolver.DeleteLeftoverDirectoriesTask.Wait();
@@ -1697,12 +1697,29 @@ Delta.2: Test D2
                 Assert.Equal(300, Directory.EnumerateFiles(path: shadowResolver.CacheDirectory).Count());
                 Assert.Equal(300, Directory.EnumerateFiles(shadowResolver.CacheDirectory, "Delta*.dll").Count());
 
-                // Now prune the cache
-                var shadowResolver2 = new ShadowCopyAnalyzerPathResolver(shadowResolver.BaseDirectory);
-                shadowResolver2.DeleteLeftoverDirectoriesTask.Wait();
+                // Mirror the BaseDirectory to new location before exercising cache pruning.
+                // We need to do this because the test harness itself wants to clean the original BaseDirectory, and,
+                // we can't guarantee the assemblies in the original directory will get unloaded during the test, which can disrupt pruning behavior.
+                var mirrorBaseDirectory = (string)state;
+                foreach (var sourceDirectory in Directory.EnumerateDirectories(shadowResolver.BaseDirectory, "*", SearchOption.AllDirectories))
+                {
+                    var relativePath = PathUtilities.GetRelativePath(shadowResolver.BaseDirectory, sourceDirectory);
+                    Directory.CreateDirectory(Path.Combine(mirrorBaseDirectory, relativePath));
+                }
 
-                Assert.Equal(200, Directory.EnumerateFiles(shadowResolver.CacheDirectory).Count());
+                foreach (var sourceFile in Directory.EnumerateFiles(shadowResolver.BaseDirectory, "*", SearchOption.AllDirectories))
+                {
+                    var relativePath = PathUtilities.GetRelativePath(shadowResolver.BaseDirectory, sourceFile);
+                    File.Copy(sourceFile, Path.Combine(mirrorBaseDirectory, relativePath));
+                }
             });
+
+            var mirroredCacheDirectory = Path.Combine(shadowMirror.Path, "v1", "cache");
+            Assert.Equal(300, Directory.EnumerateFiles(mirroredCacheDirectory).Count());
+
+            var pruningResolver = new ShadowCopyAnalyzerPathResolver(shadowMirror.Path);
+            pruningResolver.DeleteLeftoverDirectoriesTask.Wait();
+            Assert.Equal(200, Directory.EnumerateFiles(pruningResolver.CacheDirectory).Count());
         }
 
 #if NET
