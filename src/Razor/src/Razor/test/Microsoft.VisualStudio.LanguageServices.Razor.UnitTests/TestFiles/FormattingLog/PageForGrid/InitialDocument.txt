@@ -1,0 +1,352 @@
+@using Eis.Infrastructure.Extensions
+@using Eis.WebHost.Areas.Basis.Models
+@model SinglePageModel
+
+@{
+    Layout = null;
+    var pageInfo = Model.Page;
+    var grid = Model.PageGrid;
+    var buttons = Model.PageButtons;
+    var rowButtons = Model.PageGridRowButtons;
+    var searchbars = Model.PageSearchbars;
+    bool hasQuickSearch = grid.QuickSearch is not null;
+
+    var jsFiles = new List<string> { "null" };
+    if (pageInfo.JscriptFiles.IsPresent())
+    {
+        jsFiles.AddRange(pageInfo.JscriptFiles.SplitComma().Select(s => $"\"{s}\""));
+    }
+    jsFiles.Add("null");
+    string scriptsArrayJson = $"[{string.Join(", ", jsFiles)}]";
+}
+
+<pg-title>@Html.Raw(pageInfo.Title)</pg-title>
+
+@if (pageInfo.CssFiles.IsPresent())
+{
+    foreach (var cssFile in pageInfo.CssFiles.SplitComma())
+    {
+        <link href="@cssFile" rel="stylesheet" />
+    }
+}
+
+<script>
+    @if (grid.GridJsFunc.IsPresent())
+    {
+        @Html.Raw(System.Net.WebUtility.HtmlDecode(grid.GridJsFunc))
+        @:;
+    }
+</script>
+
+<div class="page-header">
+    <h1>
+        <pg-header subject="@Html.Raw(pageInfo.Title)">@Html.Raw(pageInfo.Description)</pg-header>
+        <small class="pull-right">
+            @foreach (var btn in buttons)
+            {
+                <button id="@btn.Id"
+                        title="@btn.Name"
+                        data-bind-grid="@btn.BindGridId"
+                        data-bind-eventflow="@btn.BindEventflow"
+                        class="btn page-button @btn.ClassName @(btn.BindEventflow.IsPresent() ? "btn-eventflow" : "")">
+                    <i class="ace-icon fa @btn.Icon bigger-120"></i>
+                    @Html.Raw(btn.Name)
+                </button>
+            }
+            @foreach (var searchbar in searchbars)
+            {
+                <select class="search-bar"
+                        asp-items="searchbar.Sources"
+                        style="width:280px"
+                        data-cn="@searchbar.ColName.FirstLetterLowercase()"
+                        data-placeholder="@searchbar.Placeholder">
+                    <option></option>
+                </select>
+            }
+        </small>
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <jq-grid grid-model="grid.GridControlModel"
+                 show-searchbar="grid.ShowSearchBar"
+                 is-desensitization="grid.IsDesensitization"
+                 source-datatype="Local">
+        </jq-grid>
+
+        @if (hasQuickSearch)
+        {
+            <div id="right-menu"
+                 class="modal aside"
+                 data-body-scroll="false"
+                 data-offset="true"
+                 data-placement="right"
+                 data-fixed="true"
+                 data-backdrop="invisible"
+                 tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="pull-right onpage-help-modal-buttons">
+                                <button type="button"
+                                        class="bootbox-close-button close"
+                                        data-dismiss="modal"
+                                        aria-hidden="true">×</button>
+                            </div>
+                            <h4 class="modal-title">
+                                <i class="ace-icon fa fa-search"></i>
+                                <localizer>快速过滤</localizer>
+                            </h4>
+                        </div>
+                        <div class="modal-body">
+                            <div id="quick-search-@grid.Id" class="quick-search" data-grid="@grid.Id">
+                                @foreach (var dic in grid.QuickSearch!.DictionaryList)
+                                {
+                                    <div>
+                                        <label class="control-label bolder blue">@dic.Key.Name :</label>
+                                        <div>
+                                            @foreach (var item in dic.Value)
+                                            {
+                                                <label><input data-field="@dic.Key.Code"
+                                                              value="@item.Value"
+                                                              type="checkbox"
+                                                              class="ace qs-in-type" /><span class="lbl">@item.Text</span></label>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                @foreach (var chkbox in grid.QuickSearch.CheckboxList)
+                                {
+                                    <div>
+                                        <label class="control-label bolder blue">@chkbox.Name :</label>
+                                        <div>
+                                            <label><input data-field="@chkbox.Code"
+                                                          value="1"
+                                                          type="checkbox"
+                                                          class="ace qs-bool-type" /><span class="lbl">是</span></label>
+                                            <label><input data-field="@chkbox.Code"
+                                                          value="0"
+                                                          type="checkbox"
+                                                          class="ace qs-bool-type" /><span class="lbl">否</span></label>
+                                            <label><input data-field="@chkbox.Code"
+                                                          value="99"
+                                                          type="checkbox"
+                                                          class="ace qs-bool-type" /><span class="lbl">未指定</span></label>
+                                        </div>
+                                    </div>
+                                }
+
+                                @foreach (var dic in grid.QuickSearch.TextList)
+                                {
+                                    <div>
+                                        <label class="control-label bolder blue">@dic.Key.Name :</label>
+                                        <div>
+                                            @foreach (var item in dic.Value)
+                                            {
+                                                <label><input data-field="@dic.Key.Code"
+                                                              value="@item"
+                                                              type="checkbox"
+                                                              class="ace qs-in-type" /><span class="lbl">@item</span></label>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                @foreach (var item in grid.QuickSearch.TreeModelList)
+                                {
+                                    <label class="control-label bolder blue">@item.Key.Name :</label>
+                                    <div class="scrollable">
+                                        <js-tree id="tree-@item.Key.Code" tree-model="item.Value"></js-tree>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <button class="aside-trigger btn btn-pink btn-app btn-xs ace-settings-btn"
+                            data-target="#right-menu"
+                            data-toggle="modal"
+                            type="button">
+                        <i data-icon1="fa-search-plus"
+                           data-icon2="fa-search-minus"
+                           class="ace-icon fa fa-search-plus bigger-110 icon-only"></i>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('.page-content-area').ace_ajax('loadScripts', @Html.Raw(scriptsArrayJson), function(){
+        const $grid = $('#grid-@grid.Id');
+
+        $('.modal.aside').ace_aside();
+        $(document).one('ajaxloadstart.page', function(){
+            $('.modal.aside').remove();
+            $(window).off('.aside');
+        });
+
+        $(".search-bar").select2({ allowClear: true });
+
+        @if (grid.GridCompleteEvent.IsPresent())
+        {
+            <text>
+                $grid.on("jqGridGridComplete",function(){
+                    @Html.Raw(System.Net.WebUtility.HtmlDecode(grid.GridCompleteEvent))
+                });
+            </text>
+        }
+
+        @if (rowButtons.Count > 0)
+        {
+            <text>
+                $grid.on("jqGridGridComplete", function(){
+                    const ids = $grid.jqGrid('getDataIDs');
+                    ids.forEach(function (rowId) {
+                        $grid.jqGrid(
+                            'setCell',
+                            rowId,
+                            'oper',
+                            `@Html.Raw(rowButtons.Select(b => $"<button type='button' class='btn btn-white btn-xs btn-row-oper' data-eventflow='{b.BindEventflow}' data-id='{b.Id}' data-rowid='${{rowId}}'>{b.Name}</button>").JoinString("  "))`
+                        );
+                    });
+                });
+
+                $grid.on('click', '.btn-row-oper', function(e){
+                    e.stopPropagation();
+                    const { rowid, id, eventflow } = $(this).data();
+                    const oper = $(this).text().trim();
+                    const rowData = $grid.jqGrid('getRowData', rowid);
+                    if (eventflow) {
+                        bootbox.confirm($.lang("confirm_to_execute", `确认执行【{0}】操作吗?`).replace("{0}", oper), function(result){
+                            if (result) {
+                                $.workflow.executeEventflow(eventflow, [rowData.fid], () => $grid.refresh());
+                            }
+                        });
+                    }else{
+                        @foreach(var btn in rowButtons.Where(b => b.JsFunc.IsPresent()))
+                        {
+                            <text>
+                                if (id === "@btn.Id") {
+                                    @Html.Raw(btn.JsFunc)
+                                }
+                            </text>
+                        }
+                    }
+
+                    console.log(rowid, id, eventflow, rowData);
+                });
+            </text>
+        }
+
+        @foreach (var btn in buttons.Where(b => b.JsFunc.IsPresent()))
+        {
+            <text>$("#@btn.Id").on(ace.click_event, function(){ @Html.Raw(btn.JsFunc) });</text>
+        }
+
+        $('.btn-eventflow').on(ace.click_event, function(){
+            const $btn = $(this);
+            const { bindGrid, bindEventflow } = $btn.data();
+            const $targetGrid = bindGrid ? $(`#grid-${bindGrid}`) : $grid;
+            const rowDatas = $targetGrid.getSelectedRows();
+
+            if (!rowDatas || rowDatas.length === 0) return;
+
+            const oper = $btn.text();
+            bootbox.confirm(`确认执行【${oper}】吗?`, function(result){
+                if (result) {
+                    const fids = rowDatas.map(r => r.fid);
+                    $.workflow.executeEventflow(bindEventflow, fids, () => $targetGrid.refresh());
+                }
+            });
+        });
+
+        $(".search-bar").on('change', function(){
+            const filters = $.groups('AND');
+            $(".search-bar").each(function(){
+                const $item = $(this);
+                const value = $item.val();
+                if (value) {
+                    filters.rule($item.data('cn'), 'eq', value);
+                }
+            });
+            $grid.search(filters.getFilters());
+        });
+
+        @if (hasQuickSearch)
+        {
+            <text>
+                const $rightMenu = $("#right-menu");
+                const $quickSearch = $("#quick-search-@grid.Id");
+
+                $rightMenu.on('change', "input[type='checkbox']", function(){
+                    triggerSearch($quickSearch);
+                });
+
+                $rightMenu.on("changed.jstree", "[id^='tree-']", function(e, data){
+                    if (data && data.selected && data.node) {
+                        triggerSearch($quickSearch);
+                    }
+                });
+
+                function triggerSearch($container) {
+                    const filters = { groupOp: "AND", rules: [], groups: [] };
+                    const inValues = {};
+
+                    $container.find(".qs-in-type:checked").each(function(){
+                        const field = $.firstToLowerCase($(this).data("field"));
+                        inValues[field] = inValues[field] || [];
+                        inValues[field].push($(this).val());
+                    });
+
+                    for (const [key, values] of Object.entries(inValues)) {
+                        filters.rules.push({ field: key, op: "in", data: values });
+                    }
+
+                    const boolGroups = {};
+                    $container.find(".qs-bool-type:checked").each(function(){
+                        const field = $.firstToLowerCase($(this).data("field"));
+                        boolGroups[field] = boolGroups[field] || [];
+                        boolGroups[field].push($(this).val());
+                    });
+
+                    for (const [field, values] of Object.entries(boolGroups)) {
+                        if (values.length > 0 && values.length < 3) {
+                            filters.groups.push({
+                                groupOp: "OR",
+                                rules: values.map(value => value === "99"
+                                    ? { field: field, op: "nu", data: "1" }
+                                    : { field: field, op: "eq", data: value })
+                            });
+                        }
+                    }
+
+                    $container.find(".jstree").each(function(){
+                        const field = $(this).attr("id").replace("tree-", "");
+                        const ids = buildTreeCondition($(this));
+                        if (ids.length > 0) {
+                            filters.rules.push({ field: $.firstToLowerCase(field), op: "in", data: ids });
+                        }
+                    });
+
+                    $grid.search(filters);
+                }
+
+                function buildTreeCondition($tree) {
+                    const treeIns = $tree.jstree(true);
+                    const nodes = treeIns.get_selected(true);
+                    if (nodes.length === 0) return [];
+
+                    const node = nodes[0];
+                    if (node.parent === "#" && treeIns.get_node("#").children.length === 1) return [];
+
+                    return [node.data.fid, ...node.children_d.map(childId => treeIns.get_node(childId).data.fid)];
+                }
+            </text>
+        }
+
+        $grid.refresh();
+    });
+</script>

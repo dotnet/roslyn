@@ -63,7 +63,6 @@
     "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics": "vs-impl",
-    "Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.Xaml": "vs-impl",
     "Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot": "vs-impl",
     "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
@@ -120,6 +119,6 @@
     ],
     "vsBranch": "main",
     "insertionCreateDraftPR": false,
-    "insertionTitlePrefix": "[Main 18.10]"
+    "insertionTitlePrefix": "[Main 18.11]"
   }
 }
