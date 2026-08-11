@@ -146,11 +146,11 @@ extends:
     - ES365AIMigrationTooling
     stages:
 
-    - stage: localization
-      displayName: Localization
+    - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
+      - stage: localization
+        displayName: Localization
 
-      jobs:
-      - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
+        jobs:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
