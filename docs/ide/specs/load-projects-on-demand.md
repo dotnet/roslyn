@@ -338,9 +338,14 @@ No paths are added to telemetry. A dedicated telemetry schema for discovery and 
 
 ### Integration Validation
 
-Use a controlled synthetic workspace containing deep source paths, multiple sibling candidates, transitive and cyclic references, an unrelated blocked load, unsupported and failing projects, and dynamic workspace-folder changes.
+Integration validation is split across deterministic synthetic tests at the service boundaries:
 
-The primary release criterion is no global LSP queue stall. While project evaluation is deliberately blocked, later mutating and non-mutating requests must start. Avoid fixed wall-clock performance assertions.
+- `WorkspaceProjectDiscoveryServiceTests` covers deep source paths, multiple sibling candidates, unsupported extensions, and dynamic workspace-folder changes.
+- `OnDemandProjectLoaderTests` covers transitive and cyclic references, overlapping dependency graphs, and partial load failure.
+- `LanguageServerProjectLoaderTests` covers unrelated blocked loads plus unsupported and failing project evaluations.
+- `HandlerTests.DeferredContextDoesNotBlockLaterRequestsAndUsesRequestTimeText` holds preferred loading behind a gate, applies a later `didChange`, and runs later mutating and non-mutating requests before releasing the load.
+
+The primary release criterion is no global LSP queue stall. The tests use explicit gates rather than fixed wall-clock performance assertions.
 
 Required validation includes focused Protocol unit tests, LanguageServer unit tests, and builds for the touched language-server and protocol projects.
 

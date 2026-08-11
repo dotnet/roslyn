@@ -65,7 +65,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
-    public async Task DeferredContextUsesRequestTimeTextAfterLaterChange()
+    public async Task DeferredContextDoesNotBlockLaterRequestsAndUsesRequestTimeText()
     {
         var composition = Composition.AddParts(typeof(TestPreferredContextOnDemandProjectLoaderFactory));
         await using var server = await CreateTestLspServerAsync(
@@ -93,7 +93,16 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         var loader = Assert.IsType<TestPreferredContextOnDemandProjectLoader>(server.GetRequiredLspService<IOnDemandProjectLoader>());
         await loader.PreferredLoadStarted.Task.WithTimeout(TestHelpers.HangMitigatingTimeout);
 
+        var controlRequest = new TestRequestTypeOne(new TextDocumentIdentifier { DocumentUri = documentUri });
+        var mutatingResponse = await server.ExecuteRequest0Async<string>(TestRequestHandlerWithNoParams.MethodName, CancellationToken.None);
+        var nonMutatingResponse = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(
+            TestNonMutatingDocumentHandler.MethodName, controlRequest, CancellationToken.None);
         await server.InsertTextAsync(documentUri, (0, 0, "later "));
+
+        Assert.Equal(nameof(TestRequestHandlerWithNoParams), mutatingResponse);
+        Assert.Equal(nameof(TestNonMutatingDocumentHandler), nonMutatingResponse);
+        Assert.False(responseTask.IsCompleted);
+
         loader.Complete(document.Project.FilePath!);
 
         var response = await responseTask;
@@ -470,11 +479,12 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class TestNonMutatingDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+    internal sealed class TestNonMutatingDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>, ISolutionContextPreference
     {
         public const string MethodName = nameof(TestNonMutatingDocumentHandler);
 
         public bool MutatesSolutionState => false;
+        public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
         public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)
