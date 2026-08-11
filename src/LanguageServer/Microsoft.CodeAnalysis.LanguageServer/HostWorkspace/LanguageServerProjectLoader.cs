@@ -219,7 +219,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
                 // - Reloading file-based app projects, where edits were performed to e.g. delete all `#:` directives,
                 //   making the file no longer a file-based app entry point.
                 _logger.LogDebug("Reload of '{projectPath}' was canceled.", projectPath);
-                await CompleteInitialLoadAsync(projectToLoad, ProjectLoadStatus.Unsupported, cancellationToken);
+                await CompleteInitialLoadAsync(projectToLoad, LanguageServerProjectLoadStatus.Unsupported, cancellationToken);
                 return null;
             }
 
@@ -234,7 +234,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
                 // We have total failures in evaluation, no point in continuing.
-                await CompleteInitialLoadAsync(projectToLoad, ProjectLoadStatus.Failed, cancellationToken);
+                await CompleteInitialLoadAsync(projectToLoad, LanguageServerProjectLoadStatus.Failed, cancellationToken);
                 return null;
             }
 
@@ -245,7 +245,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
             var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
             if (projectLanguage != null && projectFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
             {
-                await CompleteInitialLoadAsync(projectToLoad, ProjectLoadStatus.Unsupported, cancellationToken);
+                await CompleteInitialLoadAsync(projectToLoad, LanguageServerProjectLoadStatus.Unsupported, cancellationToken);
                 return null;
             }
 
@@ -318,8 +318,8 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
                 // throwing here would mean we don't remember the LoadedProjects we created, and the next update will create more and things will get really broken.
                 Debug.Assert(newProjectTargets.All(target => target.ProjectFactory == projectFactory));
                 _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(newProjectTargets);
-                projectToLoad.LoadOperation?.Handle.Complete(new ProjectLoadResult(
-                    ProjectLoadStatus.Loaded,
+                projectToLoad.LoadOperation?.Handle.Complete(new LanguageServerProjectLoadResult(
+                    LanguageServerProjectLoadStatus.Loaded,
                     newProjectTargets.SelectAsArray(static target => target.ProjectId)));
             }
 
@@ -345,12 +345,12 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
             var diagnosticLogItem = new DiagnosticLogItem(DiagnosticLogItemKind.Error, message, projectPath);
             await LogDiagnosticsAsync([diagnosticLogItem]);
 
-            await CompleteInitialLoadAsync(projectToLoad, ProjectLoadStatus.Failed, CancellationToken.None);
+            await CompleteInitialLoadAsync(projectToLoad, LanguageServerProjectLoadStatus.Failed, CancellationToken.None);
 
             return null;
         }
 
-        async Task CompleteInitialLoadAsync(ProjectToLoad projectToLoad, ProjectLoadStatus status, CancellationToken cancellationToken)
+        async Task CompleteInitialLoadAsync(ProjectToLoad projectToLoad, LanguageServerProjectLoadStatus status, CancellationToken cancellationToken)
         {
             if (projectToLoad.LoadOperation is null)
                 return;
@@ -359,7 +359,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
             {
                 if (_loadedProjects.TryGetValue(projectPath, out var loadState) && HasLoadOperation(loadState, projectToLoad.LoadOperation))
                 {
-                    var result = new ProjectLoadResult(status, []);
+                    var result = new LanguageServerProjectLoadResult(status, []);
                     _loadedProjects[projectPath] = loadState is ProjectLoadState.Primordial(var projectFactory, var projectId, _)
                         ? new ProjectLoadState.Failed(result, projectFactory, projectId)
                         : new ProjectLoadState.Failed(result);
@@ -486,7 +486,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
     /// <summary>
     /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
     /// </summary>
-    protected async Task<ProjectLoadHandle> BeginLoadingProjectAsync(string projectPath, string? projectGuid)
+    protected async Task<LanguageServerProjectLoadHandle> BeginLoadingProjectAsync(string projectPath, string? projectGuid)
     {
         projectPath = NormalizeProjectPath(projectPath);
 
@@ -512,7 +512,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
 
                 // Unsupported is a structural outcome (e.g. no language service for the project) and won't change on retry,
                 // so only re-attempt projects that failed for a reason that might no longer apply (e.g. an environmental issue).
-                if (loadState is ProjectLoadState.Failed { Result.Status: ProjectLoadStatus.Failed } failed)
+                if (loadState is ProjectLoadState.Failed { Result.Status: LanguageServerProjectLoadStatus.Failed } failed)
                 {
                     var retryLoadOperation = new ProjectLoadOperation(projectGuid);
                     _loadedProjects[projectPath] = failed is { PrimordialProjectFactory: { } primordialProjectFactory, PrimordialProjectId: { } primordialProjectId }
@@ -535,11 +535,11 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
     protected static Task WaitForProjectLoadsAsync(
-        ImmutableArray<ProjectLoadHandle> handles, WorkDoneProgressTracker? progressTracker, CancellationToken cancellationToken = default)
+        ImmutableArray<LanguageServerProjectLoadHandle> handles, WorkDoneProgressTracker? progressTracker, CancellationToken cancellationToken = default)
         => Task.WhenAll(handles.SelectAsArray(handle => ObserveProjectLoadAsync(handle, progressTracker, cancellationToken)));
 
     private static async Task ObserveProjectLoadAsync(
-        ProjectLoadHandle handle, WorkDoneProgressTracker? progressTracker, CancellationToken cancellationToken)
+        LanguageServerProjectLoadHandle handle, WorkDoneProgressTracker? progressTracker, CancellationToken cancellationToken)
     {
         try
         {
@@ -622,7 +622,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
 
         if (loadState is ProjectLoadState.Primordial(var projectFactory, var projectId, _))
         {
-            TryGetLoadOperation(loadState)?.Handle.Complete(new ProjectLoadResult(ProjectLoadStatus.Unloaded, []));
+            TryGetLoadOperation(loadState)?.Handle.Complete(new LanguageServerProjectLoadResult(LanguageServerProjectLoadStatus.Unloaded, []));
             await projectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId));
         }
         else if (loadState is ProjectLoadState.LoadedTargets(var existingProjects))
@@ -635,7 +635,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
         }
         else if (loadState is ProjectLoadState.Loading(var loadOperation))
         {
-            loadOperation.Handle.Complete(new ProjectLoadResult(ProjectLoadStatus.Unloaded, []));
+            loadOperation.Handle.Complete(new LanguageServerProjectLoadResult(LanguageServerProjectLoadStatus.Unloaded, []));
         }
         else if (loadState is ProjectLoadState.Failed { PrimordialProjectFactory: { } failedProjectFactory, PrimordialProjectId: { } failedProjectId })
         {
@@ -700,17 +700,17 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
     private static bool HasLoadOperation(ProjectLoadState loadState, ProjectLoadOperation operation)
         => ReferenceEquals(TryGetLoadOperation(loadState), operation);
 
-    private ProjectLoadHandle CreateCompletedHandle(ProjectLoadState loadState)
+    private LanguageServerProjectLoadHandle CreateCompletedHandle(ProjectLoadState loadState)
     {
         var result = loadState switch
         {
-            ProjectLoadState.LoadedTargets(var targets) => new ProjectLoadResult(ProjectLoadStatus.Loaded, targets.SelectAsArray(static target => target.ProjectId)),
+            ProjectLoadState.LoadedTargets(var targets) => new LanguageServerProjectLoadResult(LanguageServerProjectLoadStatus.Loaded, targets.SelectAsArray(static target => target.ProjectId)),
             ProjectLoadState.Failed(var failedResult, _, _) => failedResult,
             ProjectLoadState.Primordial => throw new InvalidOperationException("A primordial project without an active load operation cannot be treated as loaded."),
             _ => throw ExceptionUtilities.UnexpectedValue(loadState),
         };
 
-        var handle = new ProjectLoadHandle();
+        var handle = new LanguageServerProjectLoadHandle();
         handle.Complete(result);
         return handle;
     }

@@ -23,6 +23,7 @@ internal sealed class WillRenameHandler(
 {
     public bool MutatesSolutionState => true;
     public bool RequiresLSPSolution => true;
+    public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
 

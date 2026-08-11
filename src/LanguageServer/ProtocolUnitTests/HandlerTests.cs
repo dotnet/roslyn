@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -13,10 +15,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -41,6 +45,54 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         typeof(TestFSharpOnlyNotificationHandler),
         typeof(TestConfigurableDocumentHandler));
 
+    [Theory]
+    [InlineData(false, (int)LspSolutionContextPreference.NoPreference)]
+    [InlineData(true, (int)LspSolutionContextPreference.ProjectAndDependencies)]
+    public void SolutionContextPreferenceDefaultsBasedOnSolutionRequirement(
+        bool requiresLspSolution, int expectedPreference)
+    {
+        ISolutionRequiredHandler handler = new TestSolutionRequiredHandler(requiresLspSolution);
+
+        Assert.Equal((LspSolutionContextPreference)expectedPreference, handler.SolutionContextPreference);
+    }
+
+    [Fact]
+    public async Task DeferredContextUsesRequestTimeTextAfterLaterChange()
+    {
+        var composition = Composition.AddParts(typeof(TestPreferredContextOnDemandProjectLoaderFactory));
+        await using var server = await CreateTestLspServerAsync(
+            "request text",
+            mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var document = server.GetCurrentSolution().Projects.Single().Documents.Single();
+        var documentUri = document.GetURI();
+        await server.OpenDocumentAsync(documentUri, "request text");
+
+        TestConfigurableDocumentHandler.ConfigureHandler(
+            server,
+            mutatesSolutionState: false,
+            requiresLspSolution: true,
+            async context =>
+            {
+                var text = await context.GetRequiredDocument().GetTextAsync(CancellationToken.None);
+                return new TestConfigurableResponse($"{text}|{context.SolutionContextCompleteness}");
+            });
+
+        var request = new TestRequestWithDocument(new TextDocumentIdentifier { DocumentUri = documentUri });
+        var responseTask = server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(
+            TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None);
+        var loader = Assert.IsType<TestPreferredContextOnDemandProjectLoader>(server.GetRequiredLspService<IOnDemandProjectLoader>());
+        await loader.PreferredLoadStarted.Task.WithTimeout(TestHelpers.HangMitigatingTimeout);
+
+        await server.InsertTextAsync(documentUri, (0, 0, "later "));
+        loader.Complete(document.Project.FilePath!);
+
+        var response = await responseTask;
+        Assert.NotNull(response);
+        Assert.Equal("request text|ProjectAndDependencies", response.Response);
+    }
+
     [Theory, CombinatorialData]
     public async Task CanExecuteRequestHandler(bool mutatingLspWorkspace)
     {
@@ -53,6 +105,42 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
         Assert.Equal(typeof(TestDocumentHandler).Name, response);
+    }
+
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(IOnDemandProjectLoader)), PartNotDiscoverable, Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class TestPreferredContextOnDemandProjectLoaderFactory() : ILspServiceFactory
+    {
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+            => new TestPreferredContextOnDemandProjectLoader();
+    }
+
+    private sealed class TestPreferredContextOnDemandProjectLoader : IOnDemandProjectLoader
+    {
+        private readonly TaskCompletionSource<OnDemandProjectLoadResult> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _startCount;
+
+        public TaskCompletionSource<bool> PreferredLoadStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public OnDemandProjectLoadOperation StartLoading(DocumentUri uri)
+        {
+            if (Interlocked.Increment(ref _startCount) == 2)
+                PreferredLoadStarted.TrySetResult(true);
+
+            return new OnDemandProjectLoadOperation(_completion.Task, dependencyCompletionFactory: null);
+        }
+
+        public OnDemandProjectLoadOperation GetWorkspaceLoadOperation()
+            => OnDemandProjectLoadOperation.Completed;
+
+        public void Complete(string projectFilePath)
+        {
+            var completeness = ImmutableDictionary<string, bool>.Empty
+                .WithComparers(PathUtilities.Comparer)
+                .Add(projectFilePath, true);
+            _completion.TrySetResult(new OnDemandProjectLoadResult(completeness));
+        }
     }
 
     [Theory, CombinatorialData]
@@ -402,6 +490,11 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
     internal sealed record TestRequestTypeThree([property: JsonPropertyName("someValue")] string SomeValue);
 
+    private sealed class TestSolutionRequiredHandler(bool requiresLspSolution) : ISolutionRequiredHandler
+    {
+        public bool RequiresLSPSolution => requiresLspSolution;
+    }
+
     [ExportCSharpVisualBasicStatelessLspService(typeof(TestDocumentHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     [method: ImportingConstructor]
@@ -411,6 +504,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public const string MethodName = nameof(TestDocumentHandler);
 
         public bool MutatesSolutionState => true;
+        public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
         public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)
@@ -455,6 +549,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public const string MethodName = nameof(TestRequestHandlerWithNoParams);
 
         public bool MutatesSolutionState => true;
+        public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
         public bool RequiresLSPSolution => true;
 
         public async Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
@@ -470,6 +565,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public readonly TaskCompletionSource<string> ResultSource = new();
 
         public bool MutatesSolutionState => true;
+        public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
         public bool RequiresLSPSolution => true;
 
         public async Task HandleNotificationAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
@@ -499,6 +595,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public readonly TaskCompletionSource<string> ResultSource = new();
 
         public bool MutatesSolutionState => true;
+        public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
         public bool RequiresLSPSolution => true;
 
         public async Task HandleNotificationAsync(RequestContext context, CancellationToken cancellationToken)
@@ -531,6 +628,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     internal sealed class TestLanguageSpecificHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
     {
         public bool MutatesSolutionState => true;
+        public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
         public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeOne request)
@@ -555,6 +653,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     internal sealed class TestLanguageSpecificHandlerWithDifferentParams() : ILspServiceDocumentRequestHandler<TestRequestTypeTwo, string>
     {
         public bool MutatesSolutionState => true;
+        public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
         public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestTypeTwo request)
@@ -618,6 +717,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     internal sealed class TestDuplicateLanguageSpecificHandler() : ILspServiceRequestHandler<string>
     {
         public bool MutatesSolutionState => true;
+        public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
         public bool RequiresLSPSolution => true;
 
         public async Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
