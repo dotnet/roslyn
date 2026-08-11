@@ -34,7 +34,9 @@ internal sealed class OnDemandProjectLoaderFactory(
 internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposable
 {
     private readonly WorkspaceProjectDiscoveryService _discoveryService;
-    private readonly Func<ImmutableArray<string>, CancellationToken, Task> _loadProjectsAsync;
+    private readonly Func<string, Task<LanguageServerProjectLoadHandle>> _beginLoadingProjectAsync;
+    private readonly Func<ImmutableArray<ProjectId>, ImmutableArray<string>> _getProjectReferences;
+    private readonly Func<ImmutableArray<LanguageServerProjectLoadHandle>> _getPendingProjectLoadHandles;
     private readonly Func<bool> _isEnabled;
     private readonly Func<bool> _isUsingDevKit;
     private readonly IAsynchronousOperationListener _listener;
@@ -51,7 +53,9 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
         ILoggerFactory loggerFactory)
         : this(
             discoveryService,
-            (projectFilePaths, cancellationToken) => projectSystem.LoadProjectsAsync(projectFilePaths, progressTracker: null, cancellationToken),
+            projectSystem.BeginLoadingProjectAsync,
+            projectSystem.GetProjectReferences,
+            projectSystem.GetPendingProjectLoadHandles,
             () => globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand),
             () => globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures),
             listener,
@@ -61,14 +65,18 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
 
     internal OnDemandProjectLoader(
         WorkspaceProjectDiscoveryService discoveryService,
-        Func<ImmutableArray<string>, CancellationToken, Task> loadProjectsAsync,
+        Func<string, Task<LanguageServerProjectLoadHandle>> beginLoadingProjectAsync,
+        Func<ImmutableArray<ProjectId>, ImmutableArray<string>> getProjectReferences,
+        Func<ImmutableArray<LanguageServerProjectLoadHandle>> getPendingProjectLoadHandles,
         Func<bool> isEnabled,
         Func<bool> isUsingDevKit,
         IAsynchronousOperationListener listener,
         ILoggerFactory loggerFactory)
     {
         _discoveryService = discoveryService;
-        _loadProjectsAsync = loadProjectsAsync;
+        _beginLoadingProjectAsync = beginLoadingProjectAsync;
+        _getProjectReferences = getProjectReferences;
+        _getPendingProjectLoadHandles = getPendingProjectLoadHandles;
         _isEnabled = isEnabled;
         _isUsingDevKit = isUsingDevKit;
         _listener = listener;
@@ -94,10 +102,11 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
             if (_operations.TryGetValue(key, out var operation))
                 return operation;
 
-            var task = Task.Run(() => LoadProjectsAsync(normalizedFilePath), CancellationToken.None);
-            operation = new(task);
+            var candidateProjectsTask = Task.Run(() => GetCandidateProjectsAsync(normalizedFilePath), CancellationToken.None);
+            var projectCompletion = LoadProjectsAsync(candidateProjectsTask, includeDependencies: false, normalizedFilePath);
+            operation = new(projectCompletion, () => LoadProjectsAsync(candidateProjectsTask, includeDependencies: true, normalizedFilePath));
             _operations.Add(key, operation);
-            _ = task.ContinueWith(
+            _ = projectCompletion.ContinueWith(
                 _ => RemoveOperation(key),
                 CancellationToken.None,
                 TaskContinuationOptions.ExecuteSynchronously,
@@ -106,30 +115,120 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
         }
     }
 
+    public OnDemandProjectLoadOperation GetWorkspaceLoadOperation()
+    {
+        var completion = WaitForPendingProjectLoadsAsync(_shutdownSource.Token);
+        return new OnDemandProjectLoadOperation(completion, dependencyCompletionFactory: null);
+    }
+
+    private async Task<OnDemandProjectLoadResult> WaitForPendingProjectLoadsAsync(CancellationToken cancellationToken)
+    {
+        var handles = _getPendingProjectLoadHandles();
+        await Task.WhenAll(handles.SelectAsArray(handle => handle.Completion.WaitAsync(cancellationToken))).ConfigureAwait(false);
+        return OnDemandProjectLoadResult.Empty;
+    }
+
     private void RemoveOperation(DocumentKey key)
     {
         lock (_gate)
             _operations.Remove(key);
     }
 
-    private async Task LoadProjectsAsync(string filePath)
+    private async Task<ImmutableArray<string>> GetCandidateProjectsAsync(string filePath)
+        => await _discoveryService.GetCandidateProjectsAsync(filePath, _shutdownSource.Token).ConfigureAwait(false);
+
+    private async Task<OnDemandProjectLoadResult> LoadProjectsAsync(
+        Task<ImmutableArray<string>> candidateProjectsTask, bool includeDependencies, string filePath)
     {
         using var token = _listener.BeginAsyncOperation(nameof(LoadProjectsAsync));
         try
         {
-            var candidateProjects = await _discoveryService.GetCandidateProjectsAsync(filePath, _shutdownSource.Token).ConfigureAwait(false);
+            var candidateProjects = await candidateProjectsTask.ConfigureAwait(false);
             if (candidateProjects.IsEmpty)
-                return;
+                return OnDemandProjectLoadResult.Empty;
 
             _logger.LogInformation("Loading {ProjectCount} project(s) on demand for '{DocumentPath}'.", candidateProjects.Length, filePath);
-            await _loadProjectsAsync(candidateProjects, _shutdownSource.Token).ConfigureAwait(false);
+            return await LoadProjectClosureAsync(candidateProjects, includeDependencies, _shutdownSource.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (_shutdownSource.IsCancellationRequested)
         {
+            return OnDemandProjectLoadResult.Empty;
         }
         catch (Exception exception) when (FatalError.ReportAndCatch(exception))
         {
             _logger.LogError(exception, "Failed to load projects on demand for '{DocumentPath}'.", filePath);
+            return OnDemandProjectLoadResult.Empty;
+        }
+    }
+
+    private async Task<OnDemandProjectLoadResult> LoadProjectClosureAsync(
+        ImmutableArray<string> projectFilePaths, bool includeDependencies, CancellationToken cancellationToken)
+    {
+        var pendingLoads = new List<Task<(string ProjectPath, LanguageServerProjectLoadResult Result)>>();
+        var visitedPaths = new HashSet<string>(PathUtilities.Comparer);
+        var loadedProjects = new Dictionary<string, (bool Loaded, ImmutableArray<string> References)>(PathUtilities.Comparer);
+
+        foreach (var projectFilePath in projectFilePaths)
+            QueueProject(projectFilePath);
+
+        while (pendingLoads.Count > 0)
+        {
+            // Process loads as they complete, rather than in enqueue order, so a slow project doesn't hold up
+            // ones that already finished from expanding the dependency closure.
+            var completedTask = await Task.WhenAny(pendingLoads).WaitAsync(cancellationToken).ConfigureAwait(false);
+            pendingLoads.Remove(completedTask);
+
+            var (projectPath, result) = await completedTask.ConfigureAwait(false);
+            var references = includeDependencies && result.Status == LanguageServerProjectLoadStatus.Loaded
+                ? _getProjectReferences(result.ProjectIds)
+                : [];
+            loadedProjects.Add(projectPath, (result.Status == LanguageServerProjectLoadStatus.Loaded, references));
+
+            foreach (var reference in references)
+                QueueProject(reference);
+        }
+
+        var completeness = ImmutableDictionary.CreateBuilder<string, bool>(PathUtilities.Comparer);
+        var loadedRoots = ImmutableHashSet.CreateBuilder<string>(PathUtilities.Comparer);
+        foreach (var projectFilePath in projectFilePaths)
+        {
+            var normalizedPath = Path.GetFullPath(projectFilePath);
+            completeness[normalizedPath] = IsComplete(normalizedPath, []);
+            if (loadedProjects.TryGetValue(normalizedPath, out var project) && project.Loaded)
+                loadedRoots.Add(normalizedPath);
+        }
+
+        return new OnDemandProjectLoadResult(completeness.ToImmutable(), loadedRoots.ToImmutable());
+
+        void QueueProject(string projectFilePath)
+        {
+            projectFilePath = Path.GetFullPath(projectFilePath);
+            if (visitedPaths.Add(projectFilePath))
+                pendingLoads.Add(LoadProjectAsync(projectFilePath));
+        }
+
+        async Task<(string, LanguageServerProjectLoadResult)> LoadProjectAsync(string projectFilePath)
+        {
+            var handle = await _beginLoadingProjectAsync(projectFilePath).ConfigureAwait(false);
+            return (projectFilePath, await handle.Completion.WaitAsync(cancellationToken).ConfigureAwait(false));
+        }
+
+        bool IsComplete(string projectFilePath, HashSet<string> visiting)
+        {
+            if (!loadedProjects.TryGetValue(projectFilePath, out var project) || !project.Loaded)
+                return false;
+
+            if (!visiting.Add(projectFilePath))
+                return true;
+
+            foreach (var reference in project.References)
+            {
+                if (!IsComplete(reference, visiting))
+                    return false;
+            }
+
+            visiting.Remove(projectFilePath);
+            return true;
         }
     }
 

@@ -778,5 +778,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             TrackedTextWhenStarted = workspaceManager.GetTrackedLspText()[uri].SourceText.ToString();
             return new OnDemandProjectLoadOperation(LoadCompletion.Task);
         }
+
+        public OnDemandProjectLoadOperation GetWorkspaceLoadOperation()
+            => OnDemandProjectLoadOperation.Completed;
     }
 }

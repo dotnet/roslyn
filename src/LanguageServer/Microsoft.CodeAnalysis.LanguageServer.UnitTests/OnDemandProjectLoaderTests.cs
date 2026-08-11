@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.Logging.Abstractions;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -31,9 +33,9 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         using var loader = CreateLoader(
             workspace.Path,
             directory => [project.Path],
-            async (projects, cancellationToken) =>
+            async (projectPath, cancellationToken) =>
             {
-                AssertEx.Equal([project.Path], projects);
+                Assert.Equal(project.Path, projectPath);
                 Interlocked.Increment(ref loadCount);
                 loadStarted.SetResult();
                 await loadCompletion.Task.WaitAsync(cancellationToken);
@@ -69,7 +71,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
                 Interlocked.Increment(ref enumerationCount);
                 return [];
             },
-            (projects, cancellationToken) => throw new InvalidOperationException(),
+            (projectPath, cancellationToken) => throw new InvalidOperationException(),
             isEnabled,
             isUsingDevKit);
 
@@ -86,20 +88,20 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         var firstProject = workspace.CreateFile("First.csproj");
         var secondProject = workspace.CreateFile("Second.csproj");
         var document = workspace.CreateFile("Program.cs");
-        ImmutableArray<string> loadedProjects = default;
+        var loadedProjects = new ConcurrentSet<string>(PathUtilities.Comparer);
         using var loader = CreateLoader(
             workspace.Path,
             directory => [secondProject.Path, firstProject.Path],
-            (projects, cancellationToken) =>
+            (projectPath, cancellationToken) =>
             {
-                loadedProjects = projects;
+                loadedProjects.Add(projectPath);
                 return Task.CompletedTask;
             });
 
         var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path));
         await operation.WaitAsync(CancellationToken.None).WaitAsync(TestHelpers.HangMitigatingTimeout);
 
-        AssertEx.Equal([firstProject.Path, secondProject.Path], loadedProjects);
+        AssertEx.SetEqual([firstProject.Path, secondProject.Path], loadedProjects);
     }
 
     [Fact]
@@ -115,7 +117,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
                 Interlocked.Increment(ref enumerationCount);
                 return [];
             },
-            (projects, cancellationToken) => throw new InvalidOperationException());
+            (projectPath, cancellationToken) => throw new InvalidOperationException());
         var uri = ProtocolConversions.CreateAbsoluteDocumentUri(document.Path);
 
         await loader.StartLoading(uri).WaitAsync(CancellationToken.None);
@@ -124,10 +126,64 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         Assert.Equal(2, Volatile.Read(ref enumerationCount));
     }
 
+    [Fact]
+    public async Task DependencyClosureStartsOnlyForDependencyPreferenceAndIsShared()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var project = workspace.CreateFile("App.csproj");
+        var dependency = workspace.CreateFile("Dependency.csproj");
+        var document = workspace.CreateFile("Program.cs");
+        var projectId = ProjectId.CreateNewId();
+        var dependencyLoadCount = 0;
+        using var loader = CreateLoader(
+            workspace.Path,
+            directory => [project.Path],
+            projectPath =>
+            {
+                if (PathUtilities.Comparer.Equals(projectPath, dependency.Path))
+                    Interlocked.Increment(ref dependencyLoadCount);
+
+                return new LanguageServerProjectLoadResult(
+                    LanguageServerProjectLoadStatus.Loaded,
+                    PathUtilities.Comparer.Equals(projectPath, project.Path) ? [projectId] : []);
+            },
+            projectIds => projectIds.Contains(projectId) ? [dependency.Path] : []);
+
+        var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path));
+        await operation.WaitAsync(LspSolutionContextPreference.Project, CancellationToken.None);
+        Assert.Equal(0, Volatile.Read(ref dependencyLoadCount));
+
+        await Task.WhenAll(
+            operation.WaitAsync(LspSolutionContextPreference.ProjectAndDependencies, CancellationToken.None),
+            operation.WaitAsync(LspSolutionContextPreference.ProjectAndDependencies, CancellationToken.None));
+        Assert.Equal(1, Volatile.Read(ref dependencyLoadCount));
+    }
+
+    [Fact]
+    public async Task WorkspaceLoadWaitsForAllExplicitProjectLoads()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var firstHandle = new LanguageServerProjectLoadHandle();
+        var secondHandle = new LanguageServerProjectLoadHandle();
+        using var loader = CreateLoader(
+            workspace.Path,
+            directory => [],
+            projectPath => throw new InvalidOperationException(),
+            getProjectReferences: _ => [],
+            getPendingProjectLoadHandles: () => [firstHandle, secondHandle]);
+
+        var completion = loader.GetWorkspaceLoadOperation().WaitAsync(CancellationToken.None);
+        firstHandle.Complete(new LanguageServerProjectLoadResult(LanguageServerProjectLoadStatus.Loaded, []));
+        Assert.False(completion.IsCompleted);
+
+        secondHandle.Complete(new LanguageServerProjectLoadResult(LanguageServerProjectLoadStatus.Loaded, []));
+        await completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
+    }
+
     private static OnDemandProjectLoader CreateLoader(
         string workspaceFolder,
         Func<string, ImmutableArray<string>> enumerateFiles,
-        Func<ImmutableArray<string>, CancellationToken, Task> loadProjectsAsync,
+        Func<string, CancellationToken, Task> loadProjectAsync,
         bool isEnabled = true,
         bool isUsingDevKit = false)
     {
@@ -139,11 +195,58 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         discoveryService.GetTestAccessor().Initialize([workspaceFolder]);
         return new OnDemandProjectLoader(
             discoveryService,
-            loadProjectsAsync,
+            projectPath => BeginLoadAsync(projectPath, loadProjectAsync),
+            _ => [],
+            static () => [],
             () => isEnabled,
             () => isUsingDevKit,
             AsynchronousOperationListenerProvider.NullListener,
             NullLoggerFactory.Instance);
+    }
+
+    private static OnDemandProjectLoader CreateLoader(
+        string workspaceFolder,
+        Func<string, ImmutableArray<string>> enumerateFiles,
+        Func<string, LanguageServerProjectLoadResult> loadProject,
+        Func<ImmutableArray<ProjectId>, ImmutableArray<string>> getProjectReferences,
+        Func<ImmutableArray<LanguageServerProjectLoadHandle>>? getPendingProjectLoadHandles = null)
+    {
+        var discoveryService = new WorkspaceProjectDiscoveryService(
+            NullLoggerFactory.Instance,
+            new TestFileChangeWatcher(),
+            supportedProjectFileExtensions: ["csproj"],
+            enumerateFiles);
+        discoveryService.GetTestAccessor().Initialize([workspaceFolder]);
+        return new OnDemandProjectLoader(
+            discoveryService,
+            projectPath => Task.FromResult(CreateCompletedHandle(loadProject(projectPath))),
+            getProjectReferences,
+            getPendingProjectLoadHandles ?? (static () => []),
+            () => true,
+            () => false,
+            AsynchronousOperationListenerProvider.NullListener,
+            NullLoggerFactory.Instance);
+    }
+
+    private static Task<LanguageServerProjectLoadHandle> BeginLoadAsync(
+        string projectPath, Func<string, CancellationToken, Task> loadProjectAsync)
+    {
+        var handle = new LanguageServerProjectLoadHandle();
+        _ = CompleteAsync();
+        return Task.FromResult(handle);
+
+        async Task CompleteAsync()
+        {
+            await loadProjectAsync(projectPath, CancellationToken.None);
+            handle.Complete(new LanguageServerProjectLoadResult(LanguageServerProjectLoadStatus.Loaded, []));
+        }
+    }
+
+    private static LanguageServerProjectLoadHandle CreateCompletedHandle(LanguageServerProjectLoadResult result)
+    {
+        var handle = new LanguageServerProjectLoadHandle();
+        handle.Complete(result);
+        return handle;
     }
 
     private sealed class TestFileChangeWatcher : IFileChangeWatcher

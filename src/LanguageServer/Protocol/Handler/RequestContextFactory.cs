@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
@@ -59,27 +60,103 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
         }
 
         bool requiresLSPSolution;
+        LspSolutionContextPreference solutionContextPreference;
         if (methodHandler is ISolutionRequiredHandler requiredHandler)
         {
             requiresLSPSolution = requiredHandler.RequiresLSPSolution;
+            solutionContextPreference = requiresLSPSolution && textDocumentIdentifier is not null
+                ? requiredHandler.SolutionContextPreference
+                : LspSolutionContextPreference.NoPreference;
         }
         else
         {
             throw new InvalidOperationException($"{nameof(IMethodHandler)} implementation {methodHandler.GetType()} does not implement {nameof(ISolutionRequiredHandler)}");
         }
 
-        var requestContext = await RequestContext.CreateAsync(
-            methodHandler.MutatesSolutionState,
-            requiresLSPSolution,
-            textDocumentIdentifier,
-            serverInfoProvider.ServerKind,
-            clientCapabilities,
-            serverInfoProvider.SupportedLanguages,
-            _lspServices,
-            logger,
-            queueItem.MethodName,
-            cancellationToken).ConfigureAwait(false);
+        if (methodHandler.MutatesSolutionState && solutionContextPreference != LspSolutionContextPreference.NoPreference)
+        {
+            throw new InvalidOperationException(
+                $"Mutating handler {methodHandler.GetType()} must declare {nameof(LspSolutionContextPreference)}.{nameof(LspSolutionContextPreference.NoPreference)}.");
+        }
 
-        return new RequestContextInfo<RequestContext>(requestContext);
+        if (solutionContextPreference == LspSolutionContextPreference.NoPreference)
+        {
+            var requestContext = await RequestContext.CreateAsync(
+                methodHandler.MutatesSolutionState,
+                requiresLSPSolution,
+                textDocumentIdentifier,
+                serverInfoProvider.ServerKind,
+                clientCapabilities,
+                serverInfoProvider.SupportedLanguages,
+                _lspServices,
+                logger,
+                queueItem.MethodName,
+                LspSolutionContextPreference.NoPreference,
+                OnDemandProjectLoadResult.Empty,
+                trackedDocuments: null,
+                cancellationToken).ConfigureAwait(false);
+
+            return new RequestContextInfo<RequestContext>(requestContext);
+        }
+
+        var onDemandProjectLoader = _lspServices.GetService<IOnDemandProjectLoader>();
+        var loadOperation = solutionContextPreference == LspSolutionContextPreference.Workspace
+            ? onDemandProjectLoader?.GetWorkspaceLoadOperation() ?? OnDemandProjectLoadOperation.Completed
+            : onDemandProjectLoader?.StartLoading(textDocumentIdentifier!.DocumentUri) ?? OnDemandProjectLoadOperation.Completed;
+        var trackedDocuments = _lspServices.GetRequiredService<LspWorkspaceManager>().GetTrackedLspText();
+
+        // Never resolves a document/solution: the framework only observes this value if PrepareContextAsync
+        // is never invoked, so there is no reason to pay for the real (potentially expensive) resolution here.
+        var placeholderContext = await CreateContextAsync(requiresSolution: false, cancellationToken).ConfigureAwait(false);
+
+        return new RequestContextInfo<RequestContext>(placeholderContext, PrepareContextAsync);
+
+        Task<RequestContext> CreateContextAsync(bool requiresSolution, CancellationToken ct)
+            => RequestContext.CreateAsync(
+                mutatesSolutionState: false,
+                requiresSolution,
+                textDocumentIdentifier,
+                serverInfoProvider.ServerKind,
+                clientCapabilities,
+                serverInfoProvider.SupportedLanguages,
+                _lspServices,
+                logger,
+                queueItem.MethodName,
+                LspSolutionContextPreference.NoPreference,
+                OnDemandProjectLoadResult.Empty,
+                trackedDocuments: null,
+                ct);
+
+        async Task<RequestContext> PrepareContextAsync(CancellationToken preparationCancellationToken)
+        {
+            try
+            {
+                var loadResult = await loadOperation.WaitAsync(solutionContextPreference, preparationCancellationToken).ConfigureAwait(false);
+                return await RequestContext.CreateAsync(
+                    mutatesSolutionState: false,
+                    requiresLSPSolution,
+                    textDocumentIdentifier,
+                    serverInfoProvider.ServerKind,
+                    clientCapabilities,
+                    serverInfoProvider.SupportedLanguages,
+                    _lspServices,
+                    logger,
+                    queueItem.MethodName,
+                    solutionContextPreference,
+                    loadResult,
+                    trackedDocuments,
+                    preparationCancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (preparationCancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception exception) when (FatalError.ReportAndCatch(exception))
+            {
+                logger.LogException(exception);
+                // Fall back to the cache-based resolution used by non-deferred requests instead of the cheap placeholder.
+                return await CreateContextAsync(requiresSolution: requiresLSPSolution, preparationCancellationToken).ConfigureAwait(false);
+            }
+        }
     }
 }

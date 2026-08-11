@@ -162,6 +162,8 @@ internal readonly struct RequestContext
 
     public readonly CancellationToken QueueCancellationToken;
 
+    public LspSolutionContextCompleteness SolutionContextCompleteness { get; }
+
     public RequestContext(
         Workspace? workspace,
         Solution? solution,
@@ -174,6 +176,7 @@ internal readonly struct RequestContext
         ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
         ILspServices lspServices,
+        LspSolutionContextCompleteness solutionContextCompleteness,
         CancellationToken queueCancellationToken)
     {
         if (workspace is not null)
@@ -195,6 +198,7 @@ internal readonly struct RequestContext
         Logger = logger;
         _trackedDocuments = trackedDocuments;
         _lspServices = lspServices;
+        SolutionContextCompleteness = solutionContextCompleteness;
         QueueCancellationToken = queueCancellationToken;
         Method = method;
     }
@@ -230,6 +234,9 @@ internal readonly struct RequestContext
         ILspServices lspServices,
         ILspLogger logger,
         string method,
+        LspSolutionContextPreference solutionContextPreference,
+        OnDemandProjectLoadResult loadResult,
+        ImmutableDictionary<DocumentUri, TrackedDocumentInfo>? trackedDocuments,
         CancellationToken cancellationToken)
     {
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
@@ -237,7 +244,7 @@ internal readonly struct RequestContext
 
         // Retrieve the current LSP tracked text as of this request.
         // This is safe as all creation of request contexts cannot happen concurrently.
-        var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
+        trackedDocuments ??= lspWorkspaceManager.GetTrackedLspText();
 
         // If the handler doesn't need an LSP solution we do two important things:
         // 1. We don't bother building the LSP solution for perf reasons
@@ -249,6 +256,7 @@ internal readonly struct RequestContext
             context = new RequestContext(
                 workspace: null, solution: null, logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
                 documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
+                solutionContextCompleteness: LspSolutionContextCompleteness.NotEvaluated,
                 queueCancellationToken: cancellationToken);
         }
         else
@@ -262,7 +270,9 @@ internal readonly struct RequestContext
                 // There are certain cases where we may be asked for a document that does not exist (for example a
                 // document is removed) For example, document pull diagnostics can ask us after removal to clear
                 // diagnostics for a document.
-                (workspace, solution, document) = await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, cancellationToken).ConfigureAwait(false);
+                (workspace, solution, document) = solutionContextPreference == LspSolutionContextPreference.NoPreference
+                    ? await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, cancellationToken).ConfigureAwait(false)
+                    : await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, trackedDocuments, cancellationToken).ConfigureAwait(false);
             }
 
             if (workspace is null)
@@ -289,10 +299,40 @@ internal readonly struct RequestContext
                 trackedDocuments,
                 supportedLanguages,
                 lspServices,
+                GetSolutionContextCompleteness(solutionContextPreference, document, loadResult),
                 cancellationToken);
         }
 
         return context;
+    }
+
+    private static LspSolutionContextCompleteness GetSolutionContextCompleteness(
+        LspSolutionContextPreference preference,
+        TextDocument? document,
+        OnDemandProjectLoadResult loadResult)
+    {
+        if (preference == LspSolutionContextPreference.NoPreference)
+            return LspSolutionContextCompleteness.NotEvaluated;
+
+        if (document is null)
+            return LspSolutionContextCompleteness.None;
+
+        if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
+            return LspSolutionContextCompleteness.Miscellaneous;
+
+        return preference switch
+        {
+            LspSolutionContextPreference.Project => loadResult.IsProjectLoaded(document.Project.FilePath)
+                ? LspSolutionContextCompleteness.Project
+                : LspSolutionContextCompleteness.None,
+            LspSolutionContextPreference.ProjectAndDependencies => !loadResult.IsProjectLoaded(document.Project.FilePath)
+                ? LspSolutionContextCompleteness.None
+                : loadResult.HasCompleteDependencies(document.Project.FilePath)
+                    ? LspSolutionContextCompleteness.ProjectAndDependencies
+                    : LspSolutionContextCompleteness.Project,
+            LspSolutionContextPreference.Workspace => LspSolutionContextCompleteness.Workspace,
+            _ => throw ExceptionUtilities.UnexpectedValue(preference),
+        };
     }
 
     /// <summary>

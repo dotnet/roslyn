@@ -43,7 +43,7 @@ internal abstract partial class LanguageServerProjectLoader
         public sealed record LoadedTargets(ImmutableArray<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
 
         public sealed record Failed(
-            ProjectLoadResult Result,
+            LanguageServerProjectLoadResult Result,
             ProjectSystemProjectFactory? PrimordialProjectFactory = null,
             ProjectId? PrimordialProjectId = null) : ProjectLoadState;
 

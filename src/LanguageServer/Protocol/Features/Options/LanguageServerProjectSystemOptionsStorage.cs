@@ -23,7 +23,7 @@ internal static class LanguageServerProjectSystemOptionsStorage
     /// <summary>
     /// Whether projects containing requested documents should be loaded on demand.
     /// </summary>
-    public static readonly Option2<bool> LoadProjectsOnDemand = new("dotnet_load_on_demand", defaultValue: false, s_optionGroup);
+    public static readonly Option2<bool> LoadProjectsOnDemand = new("dotnet_load_on_demand", defaultValue: true, s_optionGroup);
 
     /// <summary>
     /// Whether to use the new 'dotnet run app.cs' (file-based programs) experience.

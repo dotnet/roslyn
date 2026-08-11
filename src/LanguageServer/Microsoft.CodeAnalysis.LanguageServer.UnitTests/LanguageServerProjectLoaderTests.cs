@@ -58,7 +58,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         evaluation.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
         var result = await firstHandle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
 
-        Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Loaded, result.Status);
+        Assert.Equal(LanguageServerProjectLoadStatus.Loaded, result.Status);
         Assert.NotEmpty(result.ProjectIds);
         Assert.All(result.ProjectIds, projectId => Assert.NotNull(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.GetProject(projectId)));
     }
@@ -125,7 +125,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         await failedEvaluation.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
         failedEvaluation.Fail(new InvalidOperationException("Expected test failure"));
         var firstResult = await firstHandle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Failed, firstResult.Status);
+        Assert.Equal(LanguageServerProjectLoadStatus.Failed, firstResult.Status);
 
         var retryHandle = await loader.BeginLoadAsync(projectPath);
         Assert.NotSame(firstHandle, retryHandle);
@@ -135,7 +135,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         retryEvaluation.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
         var retryResult = await retryHandle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
 
-        Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Loaded, retryResult.Status);
+        Assert.Equal(LanguageServerProjectLoadStatus.Loaded, retryResult.Status);
         Assert.Equal(2, loader.EvaluationCount);
     }
 
@@ -158,8 +158,8 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         var failedResult = await failedHandle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
         var successfulResult = await successfulHandle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Failed, failedResult.Status);
-        Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Loaded, successfulResult.Status);
+        Assert.Equal(LanguageServerProjectLoadStatus.Failed, failedResult.Status);
+        Assert.Equal(LanguageServerProjectLoadStatus.Loaded, successfulResult.Status);
     }
 
     [Fact]
@@ -258,7 +258,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var result = await handle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
 
         var laterHandle = await loader.BeginLoadAsync(projectPath);
-        Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Unsupported, result.Status);
+        Assert.Equal(LanguageServerProjectLoadStatus.Unsupported, result.Status);
         Assert.True(laterHandle.Completion.IsCompletedSuccessfully);
         Assert.Equal(result, await laterHandle.Completion);
         Assert.Equal(1, loader.EvaluationCount);
@@ -276,7 +276,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         await evaluation.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
         Assert.True(await loader.UnloadAsync(projectPath));
         var result = await handle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Unloaded, result.Status);
+        Assert.Equal(LanguageServerProjectLoadStatus.Unloaded, result.Status);
 
         evaluation.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
         await loader.WaitForLoadsAsync();
@@ -296,13 +296,13 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var currentHandle = await loader.BeginLoadAsync(projectPath);
 
         Assert.NotSame(staleHandle, currentHandle);
-        Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Unloaded, (await staleHandle.Completion).Status);
+        Assert.Equal(LanguageServerProjectLoadStatus.Unloaded, (await staleHandle.Completion).Status);
         await currentEvaluation.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
 
         currentEvaluation.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
         var currentResult = await currentHandle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
 
-        Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Loaded, currentResult.Status);
+        Assert.Equal(LanguageServerProjectLoadStatus.Loaded, currentResult.Status);
         Assert.Equal(1, loader.EvaluationCount);
         Assert.Single(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
     }
@@ -373,7 +373,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         evaluation.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
 
         var result = await handle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.Equal(LanguageServerProjectLoader.ProjectLoadStatus.Loaded, result.Status);
+        Assert.Equal(LanguageServerProjectLoadStatus.Loaded, result.Status);
         Assert.Null(loader.WorkspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace.CurrentSolution.GetProject(primordialProject.Id));
         Assert.DoesNotContain(primordialProject.Id, result.ProjectIds);
         Assert.All(result.ProjectIds, projectId => Assert.NotNull(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.GetProject(projectId)));
@@ -425,13 +425,13 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
             return evaluation;
         }
 
-        public Task<ProjectLoadHandle> BeginLoadAsync(string projectPath, string? projectGuid = null)
+        public Task<LanguageServerProjectLoadHandle> BeginLoadAsync(string projectPath, string? projectGuid = null)
             => BeginLoadingProjectAsync(projectPath, projectGuid);
 
         public Task WaitForLoadsAsync()
             => WaitForProjectsToFinishLoadingAsync();
 
-        public Task WaitForExplicitLoadsAsync(ImmutableArray<ProjectLoadHandle> handles, WorkDoneProgressTracker? progressTracker = null)
+        public Task WaitForExplicitLoadsAsync(ImmutableArray<LanguageServerProjectLoadHandle> handles, WorkDoneProgressTracker? progressTracker = null)
             => WaitForProjectLoadsAsync(handles, progressTracker);
 
         public ValueTask<bool> UnloadAsync(string projectPath)

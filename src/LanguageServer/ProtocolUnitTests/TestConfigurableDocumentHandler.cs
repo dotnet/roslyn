@@ -29,21 +29,27 @@ internal sealed class TestConfigurableDocumentHandler() : ILspServiceDocumentReq
 
     private bool? _mutatesSolutionState;
     private bool? _requiresLSPSolution;
-    private Task<TestConfigurableResponse>? _response;
+    private Func<RequestContext, Task<TestConfigurableResponse>>? _responseFactory;
 
     public bool MutatesSolutionState => _mutatesSolutionState ?? throw new InvalidOperationException($"{nameof(ConfigureHandler)} has not been called");
     public bool RequiresLSPSolution => _requiresLSPSolution ?? throw new InvalidOperationException($"{nameof(ConfigureHandler)} has not been called");
+    public LspSolutionContextPreference SolutionContextPreference => MutatesSolutionState
+        ? LspSolutionContextPreference.NoPreference
+        : LspSolutionContextPreference.ProjectAndDependencies;
 
     public void ConfigureHandler(bool mutatesSolutionState, bool requiresLspSolution, Task<TestConfigurableResponse> response)
+        => ConfigureHandler(mutatesSolutionState, requiresLspSolution, _ => response);
+
+    public void ConfigureHandler(bool mutatesSolutionState, bool requiresLspSolution, Func<RequestContext, Task<TestConfigurableResponse>> responseFactory)
     {
-        if (_mutatesSolutionState is not null || _requiresLSPSolution is not null || _response is not null)
+        if (_mutatesSolutionState is not null || _requiresLSPSolution is not null || _responseFactory is not null)
         {
             throw new InvalidOperationException($"{nameof(ConfigureHandler)} has already been called");
         }
 
         _mutatesSolutionState = mutatesSolutionState;
         _requiresLSPSolution = requiresLspSolution;
-        _response = response;
+        _responseFactory = responseFactory;
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequestWithDocument request)
@@ -53,8 +59,8 @@ internal sealed class TestConfigurableDocumentHandler() : ILspServiceDocumentReq
 
     public Task<TestConfigurableResponse> HandleRequestAsync(TestRequestWithDocument request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(_response, $"{nameof(ConfigureHandler)} has not been called");
-        return _response;
+        Contract.ThrowIfNull(_responseFactory, $"{nameof(ConfigureHandler)} has not been called");
+        return _responseFactory(context);
     }
 
     public static void ConfigureHandler(TestLspServer server, bool mutatesSolutionState, bool requiresLspSolution, Task<TestConfigurableResponse> response)
@@ -62,5 +68,16 @@ internal sealed class TestConfigurableDocumentHandler() : ILspServiceDocumentReq
         var handler = (TestConfigurableDocumentHandler)server.GetQueueAccessor()!.Value.GetHandlerProvider().GetMethodHandler(TestConfigurableDocumentHandler.MethodName,
             TypeRef.From(typeof(TestRequestWithDocument)), TypeRef.From(typeof(TestConfigurableResponse)), LanguageServerConstants.DefaultLanguageName);
         handler.ConfigureHandler(mutatesSolutionState, requiresLspSolution, response);
+    }
+
+    public static void ConfigureHandler(
+        TestLspServer server,
+        bool mutatesSolutionState,
+        bool requiresLspSolution,
+        Func<RequestContext, Task<TestConfigurableResponse>> responseFactory)
+    {
+        var handler = (TestConfigurableDocumentHandler)server.GetQueueAccessor()!.Value.GetHandlerProvider().GetMethodHandler(TestConfigurableDocumentHandler.MethodName,
+            TypeRef.From(typeof(TestRequestWithDocument)), TypeRef.From(typeof(TestConfigurableResponse)), LanguageServerConstants.DefaultLanguageName);
+        handler.ConfigureHandler(mutatesSolutionState, requiresLspSolution, responseFactory);
     }
 }

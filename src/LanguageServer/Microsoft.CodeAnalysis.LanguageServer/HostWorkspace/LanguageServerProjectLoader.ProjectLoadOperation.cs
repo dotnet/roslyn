@@ -8,7 +8,7 @@ internal abstract partial class LanguageServerProjectLoader
 {
     internal sealed class ProjectLoadOperation(string? projectGuid)
     {
-        public ProjectLoadHandle Handle { get; } = new();
+        public LanguageServerProjectLoadHandle Handle { get; } = new();
         public string? ProjectGuid { get; private set; } = projectGuid;
         public bool EvaluationStarted { get; private set; }
 
