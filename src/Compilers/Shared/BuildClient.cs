@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 buildRequest,
                 pipeName,
                 GetClientDirectory(),
-                Environment.GetEnvironmentVariablesTyped(),
+                Environment.GetEnvironmentVariablesAsDictionary(),
                 logger,
                 cancellationToken);
         };
@@ -369,5 +369,4 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false).Skip(1);
         }
     }
-
 }

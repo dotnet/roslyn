@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     buildRequest,
                     pipeName,
                     clientDirectory,
-                    Environment.GetEnvironmentVariablesTyped(),
+                    Environment.GetEnvironmentVariablesAsDictionary(),
                     logger,
                     cancellationToken);
 #endif
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Gets the environment variables that should be passed to the server process.
         /// </summary>
         internal static Dictionary<string, string> GetServerEnvironmentVariables(ICompilerServerLogger? logger = null)
-            => GetServerEnvironmentVariables(Environment.GetEnvironmentVariablesTyped(), logger);
+            => GetServerEnvironmentVariables(Environment.GetEnvironmentVariablesAsDictionary(), logger);
 #endif
 
         /// <summary>
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             out int processId) => TryCreateServer(
                 clientDirectory,
                 pipeName,
-                Environment.GetEnvironmentVariablesTyped(),
+                Environment.GetEnvironmentVariablesAsDictionary(),
                 logger,
                 out processId);
 #endif

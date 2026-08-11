@@ -190,6 +190,5 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
             ? VisualBasicCommandLineParser.Default.Parse(arguments, Directory.GetCurrentDirectory(), sdkDirectory: null, additionalReferenceDirectories: null).ParseOptions.Features
             : CSharpCommandLineParser.Default.Parse(arguments, baseDirectory: Directory.GetCurrentDirectory(), sdkDirectory: null, additionalReferenceDirectories: null).ParseOptions.Features;
     }
-
 }
 #endif

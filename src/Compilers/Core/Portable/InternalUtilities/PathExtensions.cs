@@ -52,9 +52,9 @@ internal static class PathExtensions
             return path.Length >= 3
                 && path[1] == ':'
                 && path[2] == Path.DirectorySeparatorChar
-                && IsValidDriveChar(path[0]);
+                && isValidDriveChar(path[0]);
 
-            static bool IsValidDriveChar(char value)
+            static bool isValidDriveChar(char value)
                 => (uint)((value | 0x20) - 'a') <= 'z' - 'a';
         }
     }
