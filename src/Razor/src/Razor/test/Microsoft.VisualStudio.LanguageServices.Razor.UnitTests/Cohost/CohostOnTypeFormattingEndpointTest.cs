@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using WorkItemAttribute = Microsoft.AspNetCore.Razor.Test.Common.WorkItemAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -75,6 +76,7 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public async Task CSharp_UsesEditorConfig_Razor()
     {
         await VerifyOnTypeFormattingAsync(
@@ -102,6 +104,7 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public async Task CSharp_UsesEditorConfig_Cshtml()
     {
         await VerifyOnTypeFormattingAsync(

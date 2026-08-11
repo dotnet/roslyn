@@ -632,6 +632,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public async Task CSharp_OnEnter_UsesEditorConfig_Razor()
     {
         await VerifyOnAutoInsertAsync(
@@ -661,6 +662,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public async Task CSharp_OnEnter_UsesEditorConfig_Cshtml()
     {
         await VerifyOnAutoInsertAsync(

@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public Task DocumentFormatting_UsesNestedEditorConfigs_Razor()
         => RunFormattingTestAsync(
             input: """
@@ -69,6 +70,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             documentFilePath: FilePath("Nested/File1.razor"));
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public Task DocumentFormatting_UsesEditorConfig_Cshtml()
         => RunFormattingTestAsync(
             input: """
@@ -112,6 +114,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             ]);
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public Task RangeFormatting_UsesEditorConfig_Razor()
         => RunFormattingTestAsync(
             input: """
@@ -146,6 +149,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             ]);
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public Task RangeFormatting_UsesEditorConfig_Cshtml()
         => RunFormattingTestAsync(
             input: """

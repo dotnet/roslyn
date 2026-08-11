@@ -557,6 +557,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public async Task CSharpOverrideMethods_UsesEditorConfig_Razor()
     {
         await VerifyCompletionListAsync(
@@ -606,6 +607,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public async Task CSharpOverrideMethods_UsesEditorConfig_Cshtml()
     {
         await VerifyCompletionListAsync(
