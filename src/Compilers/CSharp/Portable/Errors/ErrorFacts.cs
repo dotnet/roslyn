@@ -1550,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.FTL_BadChecksumAlgorithm
                 or ErrorCode.ERR_BadAwaitArgIntrinsic
                 or ErrorCode.ERR_BadAwaitAsIdentifier
-                or ErrorCode.ERR_AwaitInUnsafeContext
+                or ErrorCode.ERR_BadAwaitInFixed
                 or ErrorCode.ERR_UnsafeAsyncArgType
                 or ErrorCode.ERR_VarargsAsync
                 or ErrorCode.ERR_BadAwaitArgVoidCall

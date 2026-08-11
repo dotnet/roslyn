@@ -222,6 +222,11 @@
         <target state="translated">Argument {0} nie może być przekazywany ze słowem kluczowym „ref” w wersji językowej {1}. Aby przekazać argumenty „ref” do parametrów „in”, uaktualnij do wersji językowej {2} lub nowszej.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="new">Cannot await in context of a 'fixed' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">Nie można zastosować operatora „{0}” do argumentów operacji typu „{1}” i „{2}”, które nie są reprezentacjami bajtów UTF-8</target>
@@ -11434,11 +11439,6 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">Operatora „await” nie można użyć w inicjalizatorze statycznej zmiennej skryptu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">Nie można zdefiniować oczekiwania w kontekście słowa kluczowego „unsafe”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

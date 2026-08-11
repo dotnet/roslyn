@@ -222,6 +222,11 @@
         <target state="translated">Argument {0} nelze předat s klíčovým slovem ref v jazykové verzi {1}. Pokud chcete argumenty ref předat parametrům in, upgradujte na verzi jazyka {2} nebo vyšší.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="new">Cannot await in context of a 'fixed' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">Operátor {0} nejde použít pro operandy typu {1} a {2}, které nejsou bajtovým vyjádřením UTF-8.</target>
@@ -11434,11 +11439,6 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">Operátor await nejde použít v inicializátoru proměnné statického skriptu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">Operátor await nejde použít v nezabezpečeném kontextu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

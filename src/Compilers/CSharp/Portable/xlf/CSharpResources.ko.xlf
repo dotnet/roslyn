@@ -222,6 +222,11 @@
         <target state="translated">{0} 인수는 언어 버전 {1}의 'ref' 키워드와 함께 전달될 수 없습니다. 'ref' 인수를 'in' 매개 변수에 전달하려면 언어 버전 {2} 이상으로 업그레이드하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="new">Cannot await in context of a 'fixed' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">연산자 '{0}'은(는) UTF-8 바이트 표현이 아닌 '{1}' 및 '{2}' 유형의 피연산자에 적용할 수 없습니다.</target>
@@ -11434,11 +11439,6 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">await' 연산자는 정적 스크립트 변수 이니셜라이저에서 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">안전하지 않은 컨텍스트에서는 await를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

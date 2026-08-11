@@ -222,6 +222,11 @@
         <target state="translated">Das Argument "{0}" darf nicht mit dem Schlüsselwort "ref" in der Sprachversion {1} übergeben werden. Um ref-Argumente an in-Parameter zu übergeben, führen Sie ein Upgrade auf die Sprachversion {2} oder höher durch.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="new">Cannot await in context of a 'fixed' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">Der Operator ‚{0}‘ kann nicht auf Operanden des Typs ‚{1}‘ und ‚{2}‘ angewendet werden, die keine UTF-8-Bytedarstellungen sind</target>
@@ -11434,11 +11439,6 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">Der Operator "await" kann nicht in einem statischen Skriptvariableninitialisierer verwendet werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">Kann nicht in unsicherem Kontext warten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

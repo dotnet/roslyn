@@ -222,6 +222,11 @@
         <target state="translated">引數 {0} 可能無法以語言版本 {1} 中的 'ref' 關鍵字傳遞。若要將 'ref' 引數傳遞至 'in' 參數，請升級為語言版本 {2} 或更新版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="new">Cannot await in context of a 'fixed' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">運算子 '{0}' 無法套用到型別為 '{1}' 的運算元，而 '{2}' 不是 UTF-8 位元組標記法</target>
@@ -11434,11 +11439,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">await' 運算子不可用於靜態指令碼變數初始設定式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">無法在不安全的內容中等候</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">
