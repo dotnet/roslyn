@@ -61,6 +61,7 @@ internal sealed partial class RenameProjectTreeHandler(
             using var timeoutSource = new CancellationTokenSource();
             timeoutSource.CancelAfter(s_willRenameFilesTimeout);
             using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(unloadCancellationToken, timeoutSource.Token);
+            var linkedCancellationToken = linkedSource.Token;
 
             try
             {
@@ -78,7 +79,7 @@ internal sealed partial class RenameProjectTreeHandler(
                             }
                         ]
                     },
-                    linkedSource.Token)).Task.WithCancellation(linkedSource.Token);
+                    linkedCancellationToken)).JoinAsync(linkedCancellationToken);
 
                 if (response.Result is null)
                 {
@@ -95,6 +96,9 @@ internal sealed partial class RenameProjectTreeHandler(
             catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested && !unloadCancellationToken.IsCancellationRequested)
             {
                 _logger.LogWarning("Timed out waiting for workspace edits during Razor component rename. The file will still be renamed.");
+            }
+            catch (OperationCanceledException) when (unloadCancellationToken.IsCancellationRequested)
+            {
             }
         }
         catch (Exception ex)
