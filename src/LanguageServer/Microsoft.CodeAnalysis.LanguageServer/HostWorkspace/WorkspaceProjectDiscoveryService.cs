@@ -323,7 +323,8 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
 
     private IFileChangeContext CreateWatcher(string directory)
     {
-        var watcher = _fileChangeWatcher.CreateContext([new WatchedDirectory(directory, extensionFilters: [])]);
+        var extensionFilters = _supportedProjectFileExtensions.SelectAsArray(static extension => "." + extension);
+        var watcher = _fileChangeWatcher.CreateContext([new WatchedDirectory(directory, extensionFilters)]);
         watcher.FileChanged += OnProjectFileChanged;
         return watcher;
     }

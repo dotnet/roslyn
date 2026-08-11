@@ -457,6 +457,9 @@ public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
         var accessor = service.GetTestAccessor();
         accessor.Initialize([workspace.Path]);
         AssertEx.Equal([firstProject.Path], await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        var watchedDirectory = Assert.Single(watcher.Contexts).WatchedDirectories.Single();
+        Assert.Equal(workspace.Path + Path.DirectorySeparatorChar, watchedDirectory.Path);
+        AssertEx.Equal([".csproj"], watchedDirectory.ExtensionFilters);
 
         var secondProject = workspace.CreateFile("Second.csproj");
         watcher.Notify(secondProject.Path);
@@ -517,7 +520,7 @@ public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
 
         public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         {
-            var context = new TestFileChangeContext();
+            var context = new TestFileChangeContext(watchedDirectories);
             Contexts.Add(context);
             return context;
         }
@@ -529,11 +532,12 @@ public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
         }
     }
 
-    private sealed class TestFileChangeContext : IFileChangeContext
+    private sealed class TestFileChangeContext(ImmutableArray<WatchedDirectory> watchedDirectories) : IFileChangeContext
     {
         private int _disposalCount;
 
         public event EventHandler<string>? FileChanged;
+        public ImmutableArray<WatchedDirectory> WatchedDirectories { get; } = watchedDirectories;
         public bool IsDisposed => DisposalCount > 0;
         public int DisposalCount => Volatile.Read(ref _disposalCount);
 
