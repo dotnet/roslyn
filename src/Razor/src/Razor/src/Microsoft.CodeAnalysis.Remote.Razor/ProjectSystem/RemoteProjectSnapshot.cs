@@ -12,11 +12,12 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal sealed class RemoteProjectSnapshot
+internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 {
     public RemoteSolutionSnapshot SolutionSnapshot { get; }
 
@@ -106,7 +107,7 @@ internal sealed class RemoteProjectSnapshot
         return false;
     }
 
-    public bool TryGetDocument(string filePath, [NotNullWhen(true)] out RemoteDocumentSnapshot? document)
+    public bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
     {
         if (!filePath.IsRazorFilePath())
         {
@@ -129,7 +130,7 @@ internal sealed class RemoteProjectSnapshot
         return false;
     }
 
-    internal async Task<RazorCodeDocument> GetRequiredCodeDocumentAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    internal async Task<RazorCodeDocument> GetRequiredCodeDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         var generatorResult = await GeneratorRunResult.CreateAsync(throwIfNotFound: true, _project, cancellationToken).ConfigureAwait(false);
 
@@ -138,26 +139,13 @@ internal sealed class RemoteProjectSnapshot
         return generatorResult.GetRequiredCodeDocument(documentSnapshot.FilePath);
     }
 
-    internal async Task<SourceGeneratedDocument> GetRequiredGeneratedDocumentAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    internal async Task<SourceGeneratedDocument> GetRequiredGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         var generatorResult = await GeneratorRunResult.CreateAsync(throwIfNotFound: true, _project, cancellationToken).ConfigureAwait(false);
 
         Assumed.False(generatorResult.IsDefault);
 
         return await generatorResult.GetRequiredSourceGeneratedDocumentForRazorFilePathAsync(documentSnapshot.FilePath, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Returns the decl-half source generated document for the document, or <see langword="null"/> when the
-    /// source generator did not emit a decl-half for it.
-    /// </summary>
-    internal async Task<SourceGeneratedDocument?> TryGetDeclGeneratedDocumentAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
-    {
-        var generatorResult = await GeneratorRunResult.CreateAsync(throwIfNotFound: true, _project, cancellationToken).ConfigureAwait(false);
-
-        Assumed.False(generatorResult.IsDefault);
-
-        return await generatorResult.TryGetDeclSourceGeneratedDocumentForRazorFilePathAsync(documentSnapshot.FilePath, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<RazorCodeDocument?> TryGetCodeDocumentForGeneratedDocumentAsync(SourceGeneratedDocumentIdentity identity, CancellationToken cancellationToken)

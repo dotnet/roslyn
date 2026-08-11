@@ -9,5 +9,4 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal record CodeActionRequestInfo(
     [property: JsonPropertyName("languageKind")] RazorLanguageKind LanguageKind,
-    [property: JsonPropertyName("csharpRequest")] VSCodeActionParams? CSharpRequest,
-    [property: JsonPropertyName("csharpDeclRequest")] VSCodeActionParams? CSharpDeclRequest);
+    [property: JsonPropertyName("csharpRequest")] VSCodeActionParams? CSharpRequest);

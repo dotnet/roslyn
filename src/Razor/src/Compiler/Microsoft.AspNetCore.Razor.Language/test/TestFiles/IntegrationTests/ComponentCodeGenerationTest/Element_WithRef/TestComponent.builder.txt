@@ -1,5 +1,0 @@
-﻿[0000] OpenElement("elem")
-[0001] AddAttribute("attributebefore", "before")
-[0002] AddAttribute("attributeafter", "after")
-[0003] AddElementReferenceCapture((__value) => { myElem = __value; })
-[0004] AddContent("Hello")

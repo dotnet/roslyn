@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,7 +27,7 @@ internal sealed class FoldingRangeService(
     private readonly IEnumerable<IRazorFoldingRangeProvider> _foldingRangeProviders = foldingRangeProviders;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<FoldingRangeService>();
 
-    public ImmutableArray<FoldingRange> GetFoldingRanges(RazorCodeDocument codeDocument, FoldingRange[] csharpRanges, FoldingRange[]? declCSharpRanges, ImmutableArray<FoldingRange> htmlRanges, CancellationToken cancellationToken)
+    public ImmutableArray<FoldingRange> GetFoldingRanges(RazorCodeDocument codeDocument, FoldingRange[] csharpRanges, ImmutableArray<FoldingRange> htmlRanges, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilderPool<FoldingRange>.GetPooledObject(out var mappedRanges);
 
@@ -35,30 +35,20 @@ internal sealed class FoldingRangeService(
         // but we will at least have one per html range so can avoid some initial resizing of the backing data store.
         mappedRanges.SetCapacityIfLarger(htmlRanges.Length);
 
-        AddMappedCSharpRanges(csharpRanges, declarationDocument: false);
-        AddMappedCSharpRanges(declCSharpRanges, declarationDocument: true);
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
-        void AddMappedCSharpRanges(FoldingRange[]? ranges, bool declarationDocument)
+        foreach (var foldingRange in csharpRanges)
         {
-            if (ranges is null)
+            var span = GetLinePositionSpan(foldingRange);
+
+            if (_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, span, out var mappedSpan))
             {
-                return;
-            }
+                foldingRange.StartLine = mappedSpan.Start.Line;
+                foldingRange.StartCharacter = mappedSpan.Start.Character;
+                foldingRange.EndLine = mappedSpan.End.Line;
+                foldingRange.EndCharacter = mappedSpan.End.Character;
 
-            var csharpDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument);
-            foreach (var foldingRange in ranges)
-            {
-                var span = GetLinePositionSpan(foldingRange);
-
-                if (_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, span, out var mappedSpan))
-                {
-                    foldingRange.StartLine = mappedSpan.Start.Line;
-                    foldingRange.StartCharacter = mappedSpan.Start.Character;
-                    foldingRange.EndLine = mappedSpan.End.Line;
-                    foldingRange.EndCharacter = mappedSpan.End.Character;
-
-                    mappedRanges.Add(foldingRange);
-                }
+                mappedRanges.Add(foldingRange);
             }
         }
 

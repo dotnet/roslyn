@@ -19,6 +19,21 @@ namespace Test
         {
         }
         #pragma warning restore 1998
+#nullable restore
+#line (1,8)-(9,1) "x:\dir\subdir\Test\TestComponent.razor"
+
+    public class Person
+    {
+        public required string Name { get; init; }
+    }
+    
+    public static string Value()
+        => new Person { Name = "Razor" }.Name;
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591

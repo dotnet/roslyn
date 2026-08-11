@@ -52,13 +52,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
             BaseType = new BaseTypeWithModel($"global::{ComponentsApi.RenderModeAttribute.FullTypeName}"),
             Modifiers = useFileScopedClass
                 ? CommonModifiers.FileSealed
-                : CommonModifiers.PrivateSealed,
-            // The helper class and its [__PrivateComponentRenderModeAttribute] decoration
-            // (added below) are both compiler plumbing rather than user API surface.
-            // Marking them lets the decl/impl partial-file split keep both together in the
-            // impl half so the file-scoped variant stays in a single file and the nested
-            // variant keeps its decoration colocated with its definition.
-            IsSynthesizedHelper = true,
+                : CommonModifiers.PrivateSealed
         };
 
         classDecl.Children.Add(new CSharpCodeIntermediateNode()
@@ -103,7 +97,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         }
 
         // generate the attribute usage on top of the class
-        var attributeNode = new CSharpCodeIntermediateNode { IsSynthesizedHelper = true };
+        var attributeNode = new CSharpCodeIntermediateNode();
         var namespaceSeparator = string.IsNullOrEmpty(@namespace.Name) ? string.Empty : ".";
         var attributeContents = useFileScopedClass
             ? GeneratedRenderModeAttributeName

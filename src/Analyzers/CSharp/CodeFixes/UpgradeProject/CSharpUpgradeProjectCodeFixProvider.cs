@@ -57,7 +57,7 @@ internal sealed class CSharpUpgradeProjectCodeFixProvider() : AbstractUpgradePro
         "CS9202",
         "CS9260",
         "CS9327",
-        "CS9398"
+        "CS9399"
     ];
 
     public override string UpgradeThisProjectResource => CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0;

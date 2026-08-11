@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.VisualStudio.Razor.Settings;
@@ -20,10 +21,12 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper) : CohostTestBase(testOutputHelper)
 {
     private TestRemoteServiceInvoker? _remoteServiceInvoker;
+    private IFilePathService? _filePathService;
     private ISemanticTokensLegendService? _semanticTokensLegendService;
 
     private protected override IRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected TestRemoteServiceInvoker TestRemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
+    private protected override IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected ISemanticTokensLegendService SemanticTokensLegendService => _semanticTokensLegendService.AssumeNotNull();
 
     private protected override TestComposition LocalComposition => TestComposition.Roslyn;
@@ -34,6 +37,8 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
         _remoteServiceInvoker = new TestRemoteServiceInvoker(JoinableTaskContext, OOPExportProvider, LoggerFactory);
         AddDisposable(_remoteServiceInvoker);
+
+        _filePathService = new VisualStudioFilePathService();
 
         _semanticTokensLegendService = new CohostSemanticTokensLegendService(new TestClientCapabilitiesService(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true }));
     }

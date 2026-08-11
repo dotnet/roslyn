@@ -8,9 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.CohostingShared;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -91,7 +92,7 @@ internal sealed class CohostWrapWithTagEndpoint(
             }
 
             var htmlSourceText = htmlDocument.Snapshot.AsText();
-            htmlResponse.TextEdits = htmlSourceText.FixHtmlTextEdits(edits);
+            htmlResponse.TextEdits = FormattingUtilities.FixHtmlTextEdits(htmlSourceText, edits);
         }
 
         return htmlResponse;
