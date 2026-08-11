@@ -29,7 +29,7 @@ internal sealed class WorkspaceProjectDiscoveryServiceFactory(
 
 internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IOnInitialized, IDisposable
 {
-    private static readonly StringComparison s_pathComparison = PathUtilities.IsUnixLikePlatform ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+    private const StringComparison s_pathComparison = StringComparison.OrdinalIgnoreCase;
 
     private readonly ILogger _logger;
     private readonly IFileChangeWatcher _fileChangeWatcher;

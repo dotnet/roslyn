@@ -44,7 +44,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
 
         var uri = ProtocolConversions.CreateAbsoluteDocumentUri(document.Path);
         var firstOperation = loader.StartLoading(uri);
-        var secondOperation = loader.StartLoading(uri);
+        var secondOperation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path.ToUpperInvariant()));
         await loadStarted.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
 
         using var requestCancellationSource = new CancellationTokenSource();

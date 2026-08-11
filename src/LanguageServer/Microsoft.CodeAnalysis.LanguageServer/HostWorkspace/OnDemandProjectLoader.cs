@@ -289,9 +289,10 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
     private readonly record struct DocumentKey(string FilePath, string WorkspaceFolder)
     {
         public bool Equals(DocumentKey other)
-            => PathUtilities.Comparer.Equals(FilePath, other.FilePath) && PathUtilities.Comparer.Equals(WorkspaceFolder, other.WorkspaceFolder);
+            => StringComparer.OrdinalIgnoreCase.Equals(FilePath, other.FilePath) &&
+               StringComparer.OrdinalIgnoreCase.Equals(WorkspaceFolder, other.WorkspaceFolder);
 
         public override int GetHashCode()
-            => Hash.Combine(PathUtilities.Comparer.GetHashCode(FilePath), PathUtilities.Comparer.GetHashCode(WorkspaceFolder));
+            => Hash.Combine(StringComparer.OrdinalIgnoreCase.GetHashCode(FilePath), StringComparer.OrdinalIgnoreCase.GetHashCode(WorkspaceFolder));
     }
 }

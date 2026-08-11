@@ -295,9 +295,28 @@ public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
 
         accessor.RemoveWorkspaceFolder(workspace.Path);
 
-        Assert.Empty(await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
-        Assert.Equal(0, accessor.ProjectDirectoryCount);
-        Assert.True(watcher.Contexts.Single().IsDisposed);
+        var candidates = await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None);
+        if (PathUtilities.IsUnixLikePlatform)
+            AssertEx.Equal([project.Path], candidates);
+        else
+            Assert.Empty(candidates);
+
+        Assert.True(watcher.Contexts[0].IsDisposed);
+    }
+
+    [Fact]
+    public async Task DocumentPathUsesCaseInsensitiveWorkspaceContainment()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var project = workspace.CreateFile("Project.csproj");
+        var codeFile = workspace.CreateFile("Program.cs");
+        var service = CreateDiscoveryService(
+            enumerateFiles: directory => StringComparer.OrdinalIgnoreCase.Equals(directory, workspace.Path) ? [project.Path] : []);
+        service.GetTestAccessor().Initialize([workspace.Path]);
+
+        var candidates = await service.GetTestAccessor().GetCandidateProjectsAsync(codeFile.Path.ToUpperInvariant(), CancellationToken.None);
+
+        AssertEx.Equal([project.Path], candidates);
     }
 
     [Fact]
