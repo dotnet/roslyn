@@ -194,7 +194,7 @@ public sealed class SetKeywordRecommenderTests : KeywordRecommenderTests
                    int this[int j] { $$
                }
             }
-            """, CSharp15ParseOptions);
+            """);
 
     [Fact]
     public Task TestAfterIndexerPrivate()
