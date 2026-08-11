@@ -162,7 +162,7 @@
 
   <Target Name="GenerateMSBuildEditorConfigFile"
           BeforeTargets="BeforeCompile;CoreCompile"
-          DependsOnTargets="PrepareForBuild;GenerateMSBuildEditorConfigFileShouldRun;GenerateMSBuildEditorConfigFileCore" />
+          DependsOnTargets="PrepareForBuild;GenerateMSBuildEditorConfigFileShouldRun;_SetPathMapFromSourceRoots;GenerateMSBuildEditorConfigFileCore" />
 
   <Target Name="GenerateMSBuildEditorConfigFileShouldRun">
     <PropertyGroup>
@@ -195,9 +195,45 @@
     </ItemGroup>
 
     <!-- Transform the collected properties and items into an editor config file -->
+    <PropertyGroup>
+      <!--
+        Path mapping of the generated config is opt-in (off by default) so it never changes a
+        build that has not asked for it. Set these when the config must be independent of the
+        build's directory (deterministic / cacheable builds):
+          MapGeneratedMSBuildEditorConfigPaths          - map the section-header file paths.
+          MapGeneratedMSBuildEditorConfigPropertyValues - map path-valued property values
+                                                          (e.g. build_property.ProjectDir).
+        The compiler resolves options against both the real and mapped path, so mapping the
+        section headers stays correct; the property-value knob is separate because a generator
+        that opens or embeds such a value would receive a non-openable mapped path.
+      -->
+      <MapGeneratedMSBuildEditorConfigPaths Condition="'$(MapGeneratedMSBuildEditorConfigPaths)' == ''">false</MapGeneratedMSBuildEditorConfigPaths>
+      <MapGeneratedMSBuildEditorConfigPropertyValues Condition="'$(MapGeneratedMSBuildEditorConfigPropertyValues)' == ''">false</MapGeneratedMSBuildEditorConfigPropertyValues>
+      <_GeneratedEditorConfigUsePathMap Condition="'$(MapGeneratedMSBuildEditorConfigPaths)' == 'true' or '$(MapGeneratedMSBuildEditorConfigPropertyValues)' == 'true'">true</_GeneratedEditorConfigUsePathMap>
+    </PropertyGroup>
+
+    <!--
+      Two invocations, one of which runs. The path-mapping parameters are passed only when a
+      mapping knob is set, so the default (no mapping) invocation carries only the original
+      parameters and works with any GenerateMSBuildEditorConfig version, including a task older
+      than these targets (e.g. a bootstrap or pinned-toolset build). The opt-in invocation uses the
+      newer parameters and therefore requires a task build that supports them, which is the same
+      build that provides these targets.
+    -->
     <GenerateMSBuildEditorConfig
+      Condition="'$(_GeneratedEditorConfigUsePathMap)' != 'true'"
       PropertyItems="@(_GeneratedEditorConfigProperty)"
       MetadataItems="@(_GeneratedEditorConfigMetadata)"
+      FileName="$(GeneratedMSBuildEditorConfigFile)">
+    </GenerateMSBuildEditorConfig>
+
+    <GenerateMSBuildEditorConfig
+      Condition="'$(_GeneratedEditorConfigUsePathMap)' == 'true'"
+      PropertyItems="@(_GeneratedEditorConfigProperty)"
+      MetadataItems="@(_GeneratedEditorConfigMetadata)"
+      PathMap="$(PathMap)"
+      MapSectionHeaderPaths="$(MapGeneratedMSBuildEditorConfigPaths)"
+      MapPropertyValues="$(MapGeneratedMSBuildEditorConfigPropertyValues)"
       FileName="$(GeneratedMSBuildEditorConfigFile)">
     </GenerateMSBuildEditorConfig>
 

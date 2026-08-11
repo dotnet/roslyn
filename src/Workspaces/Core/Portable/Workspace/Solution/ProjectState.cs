@@ -90,7 +90,7 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         // We need to compute our AnalyerConfigDocumentStates first, since we use those to produce our DocumentStates
         AnalyzerConfigDocumentStates = new TextDocumentStates<AnalyzerConfigDocumentState>(projectInfoFixed.AnalyzerConfigDocuments, info => new AnalyzerConfigDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
-        _analyzerConfigOptionsCache = new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, fallbackAnalyzerOptions);
+        _analyzerConfigOptionsCache = new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, fallbackAnalyzerOptions, GetAnalyzerConfigPathMap(projectInfoFixed.CompilationOptions));
 
         // Add analyzer config information to the compilation options
         if (projectInfoFixed.CompilationOptions != null)
@@ -764,6 +764,17 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
     private TextDocumentStates<DocumentState> UpdateDocumentsChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
         => DocumentStates.UpdateStates(static (state, checksumAlgorithm) => state.UpdateChecksumAlgorithm(checksumAlgorithm), checksumAlgorithm);
 
+    private static ImmutableArray<KeyValuePair<string, string>> GetAnalyzerConfigPathMap(CompilationOptions? compilationOptions)
+        => (compilationOptions?.SourceReferenceResolver as SourceFileResolver)?.PathMap ?? [];
+
+    private static bool AnalyzerConfigPathMapEquals(ImmutableArray<KeyValuePair<string, string>> x, ImmutableArray<KeyValuePair<string, string>> y)
+    {
+        if (x.IsDefaultOrEmpty || y.IsDefaultOrEmpty)
+            return x.IsDefaultOrEmpty && y.IsDefaultOrEmpty;
+
+        return x.SequenceEqual(y);
+    }
+
     public ProjectState WithCompilationOptions(CompilationOptions? options)
     {
         if (options == CompilationOptions)
@@ -776,10 +787,20 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
             throw new NotSupportedException(WorkspacesResources.Removing_compilation_options_is_not_supported);
         }
 
-        var newProvider = new ProjectSyntaxTreeOptionsProvider(_analyzerConfigOptionsCache);
+        // The generated global analyzer config can encode file paths and property values through
+        // the compiler path map; rebuild the analyzer config cache when that map changes so option
+        // lookups keep matching the source paths.
+        var optionsCache = _analyzerConfigOptionsCache;
+        if (!AnalyzerConfigPathMapEquals(GetAnalyzerConfigPathMap(options), GetAnalyzerConfigPathMap(CompilationOptions)))
+        {
+            optionsCache = new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, _analyzerConfigOptionsCache.FallbackOptions, GetAnalyzerConfigPathMap(options));
+        }
+
+        var newProvider = new ProjectSyntaxTreeOptionsProvider(optionsCache);
 
         return With(projectInfo: ProjectInfo.WithCompilationOptions(options.WithSyntaxTreeOptionsProvider(newProvider))
-                   .WithVersion(Version.GetNewerVersion()));
+                   .WithVersion(Version.GetNewerVersion()),
+                   analyzerConfigOptionsCache: optionsCache);
     }
 
     public ProjectState WithParseOptions(ParseOptions? options)
@@ -901,7 +922,7 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
 
     private ProjectState CreateNewStateForChangedAnalyzerConfig(TextDocumentStates<AnalyzerConfigDocumentState> newAnalyzerConfigDocumentStates, StructuredAnalyzerConfigOptions fallbackOptions)
     {
-        var newOptionsCache = new AnalyzerConfigOptionsCache(newAnalyzerConfigDocumentStates, fallbackOptions);
+        var newOptionsCache = new AnalyzerConfigOptionsCache(newAnalyzerConfigDocumentStates, fallbackOptions, GetAnalyzerConfigPathMap(CompilationOptions));
         var projectInfo = ProjectInfo.WithVersion(Version.GetNewerVersion());
 
         // Changing analyzer configs changes compilation options
@@ -928,7 +949,7 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         return With(
             projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
             documentStates: DocumentStates.RemoveRange(documentIds),
-            analyzerConfigOptionsCache: new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, _analyzerConfigOptionsCache.FallbackOptions));
+            analyzerConfigOptionsCache: new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, _analyzerConfigOptionsCache.FallbackOptions, GetAnalyzerConfigPathMap(CompilationOptions)));
     }
 
     public ProjectState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
@@ -961,7 +982,7 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         return With(
             projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
             documentStates: TextDocumentStates<DocumentState>.Empty,
-            analyzerConfigOptionsCache: new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, _analyzerConfigOptionsCache.FallbackOptions));
+            analyzerConfigOptionsCache: new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, _analyzerConfigOptionsCache.FallbackOptions, GetAnalyzerConfigPathMap(CompilationOptions)));
     }
 
     public ProjectState UpdateDocument(DocumentState newDocument)

@@ -1,5 +1,6 @@
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha384 = 3 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha512 = 4 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
+static Microsoft.CodeAnalysis.AnalyzerConfigSet.Create<TList>(TList analyzerConfigs, System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string!, string!>> pathMap, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!> diagnostics) -> Microsoft.CodeAnalysis.AnalyzerConfigSet!
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypeInfo() -> void
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>

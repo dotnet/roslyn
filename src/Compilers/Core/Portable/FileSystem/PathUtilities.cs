@@ -733,33 +733,7 @@ namespace Roslyn.Utilities
                 return filePath;
             }
 
-            // find the first key in the path map that matches a prefix of the normalized path.
-            // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
-            foreach (var kv in pathMap)
-            {
-                var oldPrefix = kv.Key;
-                if (!(oldPrefix?.Length > 0)) continue;
-
-                // oldPrefix always ends with a path separator, so there's no need to check if it was a partial match
-                // e.g. for the map /goo=/bar and filename /goooo
-                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal))
-                {
-                    var replacementPrefix = kv.Value;
-
-                    // Replace that prefix.
-                    var replacement = replacementPrefix + filePath.Substring(oldPrefix.Length);
-
-                    // Normalize the path separators if used uniformly in the replacement
-                    bool hasSlash = replacementPrefix.IndexOf('/') >= 0;
-                    bool hasBackslash = replacementPrefix.IndexOf('\\') >= 0;
-                    return
-                        (hasSlash && !hasBackslash) ? replacement.Replace('\\', '/') :
-                        (hasBackslash && !hasSlash) ? replacement.Replace('/', '\\') :
-                        replacement;
-                }
-            }
-
-            return filePath;
+            return PathMapParser.NormalizePathPrefix(filePath, pathMap);
         }
 
 #endif

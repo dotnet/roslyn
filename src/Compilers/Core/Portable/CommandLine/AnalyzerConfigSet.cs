@@ -36,6 +36,14 @@ namespace Microsoft.CodeAnalysis
         private readonly GlobalAnalyzerConfig _globalConfig;
 
         /// <summary>
+        /// The path map (as passed to the compiler via <c>/pathmap</c>) applied to a source path
+        /// before matching it against the global config's named sections. This allows a generated
+        /// global config whose sections were written with mapped (deterministic) paths to match the
+        /// real, local source paths. Empty when no path map is in effect.
+        /// </summary>
+        private readonly ImmutableArray<KeyValuePair<string, string>> _pathMap;
+
+        /// <summary>
         /// <see cref="SectionNameMatcher"/>s for each section. The entries in the outer array correspond to entries in <see cref="_analyzerConfigs"/>, and each inner array
         /// corresponds to each <see cref="AnalyzerConfig.NamedSections"/>.
         /// </summary>
@@ -125,18 +133,31 @@ namespace Microsoft.CodeAnalysis
 
         public static AnalyzerConfigSet Create<TList>(TList analyzerConfigs, out ImmutableArray<Diagnostic> diagnostics) where TList : IReadOnlyCollection<AnalyzerConfig>
         {
+            return Create(analyzerConfigs, ImmutableArray<KeyValuePair<string, string>>.Empty, out diagnostics);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="AnalyzerConfigSet"/> that applies <paramref name="pathMap"/> (the
+        /// compiler's <c>/pathmap</c>) when matching a source path against a global config's named
+        /// sections. This lets a generated global config whose section paths were written in mapped
+        /// (deterministic) form still match the real, local source paths. A source file's real path
+        /// is always tried as well, so configs written with unmapped paths continue to match.
+        /// </summary>
+        public static AnalyzerConfigSet Create<TList>(TList analyzerConfigs, ImmutableArray<KeyValuePair<string, string>> pathMap, out ImmutableArray<Diagnostic> diagnostics) where TList : IReadOnlyCollection<AnalyzerConfig>
+        {
             var sortedAnalyzerConfigs = ArrayBuilder<AnalyzerConfig>.GetInstance(analyzerConfigs.Count);
             sortedAnalyzerConfigs.AddRange(analyzerConfigs);
             sortedAnalyzerConfigs.Sort(AnalyzerConfig.DirectoryLengthComparer);
 
             var globalConfig = MergeGlobalConfigs(sortedAnalyzerConfigs, out diagnostics);
-            return new AnalyzerConfigSet(sortedAnalyzerConfigs.ToImmutableAndFree(), globalConfig);
+            return new AnalyzerConfigSet(sortedAnalyzerConfigs.ToImmutableAndFree(), globalConfig, pathMap);
         }
 
-        private AnalyzerConfigSet(ImmutableArray<AnalyzerConfig> analyzerConfigs, GlobalAnalyzerConfig globalConfig)
+        private AnalyzerConfigSet(ImmutableArray<AnalyzerConfig> analyzerConfigs, GlobalAnalyzerConfig globalConfig, ImmutableArray<KeyValuePair<string, string>> pathMap)
         {
             _analyzerConfigs = analyzerConfigs;
             _globalConfig = globalConfig;
+            _pathMap = pathMap;
 
             var allMatchers = ArrayBuilder<ImmutableArray<SectionNameMatcher?>>.GetInstance(_analyzerConfigs.Length);
 
@@ -187,11 +208,34 @@ namespace Microsoft.CodeAnalysis
             normalizedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedPath);
             normalizedPath = PathUtilities.NormalizeDriveLetter(normalizedPath);
 
+            // If a path map is in effect (e.g. deterministic builds pass /pathmap), a generated
+            // global config identifies files by their mapped path rather than their absolute local
+            // path. Compute the mapped equivalent of this source path so those sections still match.
+            // The map is applied to the original source path (mirroring GenerateMSBuildEditorConfig,
+            // which maps the item's FullPath) so the path-map prefixes line up before the path is
+            // normalized to forward slashes.
+            string? mappedPath = null;
+            if (!_pathMap.IsDefaultOrEmpty)
+            {
+                var mapped = PathUtilities.NormalizePathPrefix(sourcePath, _pathMap);
+                if (!ReferenceEquals(mapped, sourcePath))
+                {
+                    mapped = PathUtilities.CollapseWithForwardSlash(mapped.AsSpan());
+                    mapped = PathUtilities.ExpandAbsolutePathWithRelativeParts(mapped);
+                    mapped = PathUtilities.NormalizeDriveLetter(mapped);
+                    if (!string.Equals(mapped, normalizedPath, StringComparison.Ordinal))
+                    {
+                        mappedPath = mapped;
+                    }
+                }
+            }
+
             // If we have a global config, add any sections that match the full path. We can have at most one section since
             // we would have merged them earlier.
             foreach (var section in _globalConfig.NamedSections)
             {
-                if (normalizedPath.Equals(section.Name, Section.NameComparer))
+                if (normalizedPath.Equals(section.Name, Section.NameComparer) ||
+                    (mappedPath is not null && mappedPath.Equals(section.Name, Section.NameComparer)))
                 {
                     sectionKey.Add(section);
                     break;

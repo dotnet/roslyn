@@ -25,6 +25,7 @@ Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult.get_TreeOptions
 Microsoft.CodeAnalysis.AnalyzerConfigSet
 Microsoft.CodeAnalysis.AnalyzerConfigSet.Create``1(``0)
 Microsoft.CodeAnalysis.AnalyzerConfigSet.Create``1(``0,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostic}@)
+Microsoft.CodeAnalysis.AnalyzerConfigSet.Create``1(``0,System.Collections.Immutable.ImmutableArray{System.Collections.Generic.KeyValuePair{System.String,System.String}},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostic}@)
 Microsoft.CodeAnalysis.AnalyzerConfigSet.GetOptionsForSourcePath(System.String)
 Microsoft.CodeAnalysis.AnalyzerConfigSet.get_GlobalConfigOptions
 Microsoft.CodeAnalysis.AnnotationExtensions

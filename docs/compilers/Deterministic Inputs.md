@@ -28,6 +28,7 @@ The following are considered inputs to the compiler for the purpose of determini
 - The version of the zlib library that the CLR uses to implement compression (when `/embed` or `/debug:embedded` is used).
 - The value of `%LIBPATH%`, as it can affect reference discovery if not fully qualified and how the runtime handles analyzer / generator dependency loading.
 - The full path of source files although `/pathmap` can be used to normalize this between compiles of the same code in different root directories.
+- The full path of files referenced in section headers of a global analyzer config (for example the config MSBuild generates from `CompilerVisibleItemMetadata`). `/pathmap` is applied to a source file's path before it is matched against these section headers, and the MSBuild `GenerateMSBuildEditorConfig` task writes the section headers using the same map, so the generated config is identical regardless of the root directory it was produced in.
 
 At the moment the compiler also depends on the time of day and random numbers for GUIDs, so it is not deterministic unless you specify `/deterministic`.
 

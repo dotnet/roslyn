@@ -1237,6 +1237,12 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
             return filePaths.Select(f => set.GetOptionsForSourcePath(f)).ToArray();
         }
 
+        private AnalyzerConfigOptionsResult[] GetAnalyzerConfigOptions(string[] filePaths, ArrayBuilder<AnalyzerConfig> configs, ImmutableArray<KeyValuePair<string, string>> pathMap)
+        {
+            var set = AnalyzerConfigSet.Create(configs, pathMap, out _);
+            return filePaths.Select(f => set.GetOptionsForSourcePath(f)).ToArray();
+        }
+
         private static void VerifyAnalyzerOptions(
             (string key, string value)[][] expected,
             AnalyzerConfigOptionsResult[] options)
@@ -2062,6 +2068,106 @@ dotnet_diagnostic.cs000.severity = error
 
             Assert.Equal(new[] {
                 SyntaxTree.EmptyDiagnosticOptions,
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error))
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
+        public void GlobalConfigSectionMatchesPathMappedSourcePath()
+        {
+            // A generated global config identifies files by their mapped path; the compiler applies
+            // the same path map when resolving options, so the (real) source path still matches.
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+
+[/_/src/file.cs]
+dotnet_diagnostic.cs000.severity = error
+", "/.globalconfig"));
+
+            var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>("/machine/repo/", "/_/"));
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/machine/repo/src/file.cs", "/machine/repo/src/other.cs" },
+                configs,
+                pathMap);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                SyntaxTree.EmptyDiagnosticOptions
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void GlobalConfigSectionMatchesPathMappedSourcePath_Windows()
+        {
+            // Real Windows source paths use backslashes and the map's local prefix is a backslash
+            // path, while the mapped section is forward-slashed; matching must still succeed.
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+
+[/_/src/file.cs]
+dotnet_diagnostic.cs000.severity = error
+", "/.globalconfig"));
+
+            var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(@"C:\repo\", "/_/"));
+            var options = GetAnalyzerConfigOptions(
+                new[] { @"C:\repo\src\file.cs", @"C:\repo\src\other.cs" },
+                configs,
+                pathMap);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                SyntaxTree.EmptyDiagnosticOptions
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
+        public void GlobalConfigWithUnmappedSectionStillMatchesWhenPathMapSet()
+        {
+            // A global config section written with the real absolute path must still match even
+            // when a path map is in effect (the raw path is tried in addition to the mapped path).
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+
+[/machine/repo/src/file.cs]
+dotnet_diagnostic.cs000.severity = error
+", "/.globalconfig"));
+
+            var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>("/machine/repo/", "/_/"));
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/machine/repo/src/file.cs" },
+                configs,
+                pathMap);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error))
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
+        public void PathMapDoesNotAffectRegularEditorConfigMatching()
+        {
+            // A directory-scoped .editorconfig keys off the real on-disk directory, so a path map
+            // must not be applied when matching it (only global full-path sections are mapped).
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = error
+", "/machine/repo/.editorconfig"));
+
+            var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>("/machine/repo/", "/_/"));
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/machine/repo/src/file.cs" },
+                configs,
+                pathMap);
+            configs.Free();
+
+            Assert.Equal(new[] {
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error))
             }, options.Select(o => o.TreeOptions).ToArray());
         }

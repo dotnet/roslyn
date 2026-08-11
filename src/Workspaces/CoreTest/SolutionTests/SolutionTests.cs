@@ -5746,6 +5746,53 @@ public sealed class SolutionTests : TestBase
         Assert.Equal(appliedToEntireProject, projectOptions?.ConfigOptionsWithFallback.TryGetValue("indent_style", out value) == true && value == "tab");
     }
 
+    [Theory]
+    [InlineData(true, true)]   // With a path map, the mapped global-config section matches the real source path.
+    [InlineData(false, false)] // Without a path map, the mapped section does not match, so the option is not applied.
+    public async Task GlobalConfigSectionMatchesPathMappedSourcePath(bool withPathMap, bool optionApplied)
+    {
+        using var workspace = CreateWorkspace();
+        var projectId = ProjectId.CreateNewId();
+
+        var root = TempRoot.Root;
+        var mappedRoot = root.Length > 0 && root[root.Length - 1] == Path.DirectorySeparatorChar ? root : root + Path.DirectorySeparatorChar;
+        var sourcePath = Path.Combine(root, "test.cs");
+
+        var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        if (withPathMap)
+        {
+            var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(mappedRoot, "/_/"));
+            compilationOptions = compilationOptions.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, root, pathMap));
+        }
+
+        var projectInfo = ProjectInfo.Create(
+            projectId,
+            VersionStamp.Default,
+            name: "proj1",
+            assemblyName: "proj1.dll",
+            language: LanguageNames.CSharp,
+            filePath: Path.Combine(root, "proj1.csproj"),
+            compilationOptions: compilationOptions);
+
+        var documentId = DocumentId.CreateNewId(projectId);
+
+        // A generated global config identifies the file by its mapped (deterministic) path.
+        var globalConfig = "is_global = true\n[/_/test.cs]\nindent_style = tab\n";
+
+        var solution = workspace.CurrentSolution
+            .AddProject(projectInfo)
+            .AddDocument(documentId, "test.cs", SourceText.From("public class C { }"), filePath: sourcePath)
+            .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), ".globalconfig", SourceText.From(globalConfig), filePath: Path.Combine(root, ".globalconfig"));
+
+        var document = solution.GetRequiredDocument(documentId);
+        var syntaxTree = await document.GetSyntaxTreeAsync();
+        var options = document.Project.State.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree!);
+
+        var found = options.TryGetValue("indent_style", out var value) && value == "tab";
+        Assert.Equal(optionApplied, found);
+    }
+
     [Fact]
     public void GetRelatedDocumentsDoesNotReturnOtherTypesOfDocuments()
     {
