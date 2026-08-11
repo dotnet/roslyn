@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 var itemSpec = reference.ItemSpec;
 
-                if (string.IsNullOrEmpty(itemSpec) || !File.Exists(TaskEnvironment.GetFullPath(itemSpec)))
+                if (string.IsNullOrEmpty(itemSpec) || !File.Exists(Utilities.GetFullPathNoThrow(itemSpec, TaskEnvironment)))
                 {
                     success = false;
                     Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", itemSpec);

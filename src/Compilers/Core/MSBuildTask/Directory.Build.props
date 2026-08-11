@@ -60,6 +60,7 @@
       <PackageCopyToOutput>true</PackageCopyToOutput>
       <PackagePath>contentFiles\any\any</PackagePath>
     </Content>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.MSBuildMT.txt" />
   </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)..\..\..\NuGet\Microsoft.CodeAnalysis.BuildClient.Package\Microsoft.CodeAnalysis.BuildClient.targets" />

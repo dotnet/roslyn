@@ -15,7 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="..\BannedSymbols.MSBuildMT.txt" />
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
   </ItemGroup>
 
