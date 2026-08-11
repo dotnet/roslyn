@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -157,6 +158,55 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             operation.WaitAsync(LspSolutionContextPreference.ProjectAndDependencies, CancellationToken.None),
             operation.WaitAsync(LspSolutionContextPreference.ProjectAndDependencies, CancellationToken.None));
         Assert.Equal(1, Volatile.Read(ref dependencyLoadCount));
+    }
+
+    [Fact]
+    public async Task DependencyClosureHandlesTransitiveCyclesOverlapAndPartialFailure()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var firstProject = workspace.CreateFile("First.csproj");
+        var secondProject = workspace.CreateFile("Second.csproj");
+        var sharedDependency = workspace.CreateFile("Shared.csproj");
+        var failedDependency = workspace.CreateFile("Failed.csproj");
+        var document = workspace.CreateDirectory("src").CreateDirectory("nested").CreateFile("Program.cs");
+        var projectIds = ImmutableDictionary.CreateRange(PathUtilities.Comparer, new[]
+        {
+            KeyValuePair.Create(firstProject.Path, ProjectId.CreateNewId()),
+            KeyValuePair.Create(secondProject.Path, ProjectId.CreateNewId()),
+            KeyValuePair.Create(sharedDependency.Path, ProjectId.CreateNewId()),
+            KeyValuePair.Create(failedDependency.Path, ProjectId.CreateNewId()),
+        });
+        var references = ImmutableDictionary<ProjectId, ImmutableArray<string>>.Empty
+            .Add(projectIds[firstProject.Path], [sharedDependency.Path])
+            .Add(projectIds[secondProject.Path], [sharedDependency.Path, failedDependency.Path])
+            .Add(projectIds[sharedDependency.Path], [firstProject.Path]);
+        var loadCounts = new ConcurrentDictionary<string, int>(PathUtilities.Comparer);
+        using var loader = CreateLoader(
+            workspace.Path,
+            directory => [firstProject.Path, secondProject.Path],
+            projectPath =>
+            {
+                loadCounts.AddOrUpdate(projectPath, 1, static (_, count) => count + 1);
+                return new LanguageServerProjectLoadResult(
+                    PathUtilities.Comparer.Equals(projectPath, failedDependency.Path)
+                        ? LanguageServerProjectLoadStatus.Failed
+                        : LanguageServerProjectLoadStatus.Loaded,
+                    [projectIds[projectPath]]);
+            },
+            loadedProjectIds => loadedProjectIds.SelectManyAsArray(projectId => references.GetValueOrDefault(projectId, [])));
+
+        var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path));
+        var result = await operation.WaitAsync(LspSolutionContextPreference.ProjectAndDependencies, CancellationToken.None);
+
+        Assert.True(result.IsProjectLoaded(firstProject.Path));
+        Assert.True(result.IsProjectLoaded(secondProject.Path));
+        Assert.True(result.HasCompleteDependencies(firstProject.Path));
+        Assert.False(result.HasCompleteDependencies(secondProject.Path));
+        Assert.Equal(4, loadCounts.Count);
+        Assert.Equal(2, loadCounts[firstProject.Path]);
+        Assert.Equal(2, loadCounts[secondProject.Path]);
+        Assert.Equal(1, loadCounts[sharedDependency.Path]);
+        Assert.Equal(1, loadCounts[failedDependency.Path]);
     }
 
     [Fact]
