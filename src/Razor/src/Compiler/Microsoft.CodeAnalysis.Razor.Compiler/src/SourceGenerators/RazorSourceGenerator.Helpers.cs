@@ -26,6 +26,56 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             return builder.ToString();
         }
 
+        /// <summary>
+        /// A tag helper descriptor's <see cref="TagHelperDescriptor.TypeName"/> with any generic type
+        /// arguments removed -- e.g. <c>MyApp.Counter&lt;T&gt;</c> becomes <c>MyApp.Counter</c> -- so it
+        /// can be matched against the fallback components' type names, which carry no arity.
+        /// </summary>
+        internal static string StripGenericArity(string typeName)
+        {
+            var baseName = TypeNameHelper.GetNonGenericTypeName(typeName, out _);
+            return baseName.Length == typeName.Length ? typeName : baseName.ToString();
+        }
+
+        /// <summary>
+        /// Returns the name of the component type a descriptor belongs to. A component descriptor's owning
+        /// type is itself, but descriptors derived from a component -- child content and bind, for example --
+        /// carry the owning component's namespace and identifier while their own <see cref="TagHelperDescriptor.TypeName"/>
+        /// is suffixed (e.g. <c>Ns.Card.Header</c> for the <c>Header</c> child content of <c>Ns.Card</c>).
+        /// Reconstructing the owning name from the namespace and identifier lets ownership filtering keep or
+        /// exclude a fallback component and all its derived descriptors together, rather than only the
+        /// component descriptor whose <see cref="TagHelperDescriptor.TypeName"/> matches exactly.
+        /// </summary>
+        internal static string GetOwningTypeName(TagHelperDescriptor descriptor)
+        {
+            var identifier = descriptor.TypeNameIdentifier;
+            if (identifier is null)
+            {
+                return descriptor.TypeName;
+            }
+
+            return descriptor.TypeNamespace is { Length: > 0 } typeNamespace
+                ? typeNamespace + "." + identifier
+                : identifier;
+        }
+
+        /// <summary>
+        /// Returns the hint name for the decl half of a Razor component generated source given
+        /// the impl half's hint name. The decl file substitutes <c>.decl.g.cs</c> for the
+        /// trailing <c>.g.cs</c> -- e.g. <c>Component1_razor.g.cs</c> →
+        /// <c>Component1_razor.decl.g.cs</c> -- so both halves keep the <c>.g.cs</c> suffix
+        /// (which the editor and MSBuild use to identify generated files) without stacking it.
+        /// </summary>
+        internal static string GetDeclIdentifierFromHintName(string implHintName)
+        {
+            const string ImplSuffix = ".g.cs";
+            const string DeclSuffix = ".decl.g.cs";
+
+            return implHintName.EndsWith(ImplSuffix, StringComparison.Ordinal)
+                ? implHintName.Substring(0, implHintName.Length - ImplSuffix.Length) + DeclSuffix
+                : implHintName + DeclSuffix;
+        }
+
         internal static void BuildIdentifierFromPath(StringBuilder builder, ReadOnlySpan<char> filePath)
         {
             for (var i = 0; i < filePath.Length; i++)

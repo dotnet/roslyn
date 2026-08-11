@@ -17,5 +17,3 @@
                 MarkupElement - (178:6,0 [51] x:\dir\subdir\Test\TestComponent.razor) - p
                     CSharpExpression - (182:6,4 [43] x:\dir\subdir\Test\TestComponent.razor)
                         LazyIntermediateToken - (182:6,4 [43] x:\dir\subdir\Test\TestComponent.razor) - CSharp - CountValues([with(capacity: 32), "f", "g"])
-            CSharpCode - (240:8,7 [112] x:\dir\subdir\Test\TestComponent.razor)
-                LazyIntermediateToken - (240:8,7 [112] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    private static int CountValues(System.Collections.Generic.List<string> values)\n        => values.Count;\n
