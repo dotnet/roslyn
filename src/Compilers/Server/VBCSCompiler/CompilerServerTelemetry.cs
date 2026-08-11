@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
@@ -112,7 +113,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public void StartStoreTimer() => StartTimer();
         public void StopStoreTimer() => StoreMilliseconds = StopTimer();
 
-        private void StartTimer() => _stopwatch.Restart();
+        private void StartTimer([CallerMemberName] string? callerName = null)
+        {
+            Debug.Assert(!_stopwatch.IsRunning, $"A telemetry timer is already running when {callerName} was called.");
+            _stopwatch.Restart();
+        }
 
         private long StopTimer()
         {
