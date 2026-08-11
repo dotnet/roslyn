@@ -150,6 +150,11 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var fallbackDeclTrees = processedDocuments
                 .Select(static (item, _) => item.fallbackDecl)
                 .Where(static decl => decl is not null)
+                // Match the split-decl path (DeclSources): a fallback component's discovery decl is
+                // markup-free and checksum-suppressed, so a markup-only edit leaves it byte-identical.
+                // Comparing on text keeps a new-but-equal instance from re-parsing here and, through the
+                // Collect below, from re-running slow discovery over every fallback component.
+                .WithLambdaComparer(static (a, b) => a!.Text.ContentEquals(b!.Text))
                 .Combine(parseOptions)
                 .Select(static (pair, ct) =>
                     CSharpSyntaxTree.ParseText(pair.Left!.Text, (CSharpParseOptions)pair.Right, cancellationToken: ct))
@@ -523,3 +528,5 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         }
     }
 }
+
+

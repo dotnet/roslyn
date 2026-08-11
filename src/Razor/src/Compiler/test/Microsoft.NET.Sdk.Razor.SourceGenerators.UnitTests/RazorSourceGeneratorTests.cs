@@ -719,6 +719,42 @@ namespace MyApp.Pages
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task IncrementalCompilation_WhenFallbackComponentMarkupChanges_SlowDiscoveryStaysCached()
+        {
+            // A fallback component (one the split can't partition -- here via @inherits) has its descriptor
+            // produced by slow discovery over the fallback decl trees. Its decl is markup-free and
+            // checksum-suppressed, so a markup-only edit leaves it byte-identical. Slow discovery must stay
+            // cached across that edit rather than re-parsing every fallback decl and re-discovering.
+            var project = CreateTestProject(new()
+            {
+                ["Shared/MyBase.razor"] = "@inherits MyApp.MyComponentBase\n<h1>Base component</h1>",
+            }, new()
+            {
+                ["MyComponentBase.cs"] = """
+                    namespace MyApp;
+                    public class MyComponentBase : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // Change only the markup of the fallback component.
+            var updated = new TestAdditionalText("Shared/MyBase.razor",
+                SourceText.From("@inherits MyApp.MyComponentBase\n<h2>Base component changed</h2>", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.First(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // The decl is byte-identical across the markup edit, so slow discovery does not re-run.
+            result.VerifyIncrementalSteps("FallbackDeclTrees", IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalSteps("SlowTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task IncrementalCompilation_RazorFiles_WhenNewTypeIsAdded()
         {
             // Arrange
