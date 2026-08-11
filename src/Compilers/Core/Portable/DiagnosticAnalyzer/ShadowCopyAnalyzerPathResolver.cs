@@ -402,6 +402,8 @@ namespace Microsoft.CodeAnalysis
                 var cacheInfo = new FileInfo(cachePath);
                 try
                 {
+                    // Sometimes differing assemblies will have same mvid, e.g. before and after Ready2Run compilation.
+                    // To defend against this, we require both length and mvid match in order to use the cached file.
                     if (originalInfo.Length != cacheInfo.Length)
                         return false;
 
