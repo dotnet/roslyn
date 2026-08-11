@@ -1733,8 +1733,9 @@ Delta.2: Test D2
 
                     // Record creation timestamps of remaining cache items
                     var cacheCreationTimes = Directory.EnumerateFiles(shadowResolver.CacheDirectory)
-                        .ToDictionary(static path => path, static path => File.GetCreationTimeUtc(path));
-                    Assert.Equal(200, cacheCreationTimes.Count);
+                        .Select(static path => (path, File.GetCreationTimeUtc(path)))
+                        .ToArray();
+                    Assert.Equal(200, cacheCreationTimes.Length);
 
                     var analyzerPaths = Directory.EnumerateFiles((string)state, "Delta.dll", SearchOption.AllDirectories).Order().ToArray();
                     Assert.Equal(count, analyzerPaths.Length);
