@@ -95,6 +95,37 @@ public class [|$$RegularClass|]
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/84847")>
+        Public Sub RenameWithUnrelatedGeneratedDocumentContainingReplacementText(host As RenameTestHost)
+            ' Regression test: a source-generated document that is unrelated to the rename can still be pulled into
+            ' the candidate set of documents to check because it happens to contain text matching the replacement
+            ' name. If that document ends up not actually needing any rename edits, it is dropped from the set of
+            ' documents being annotated/renamed, but it remains part of the full per-project document set that is
+            ' consulted when looking for declaration conflicts. That path used to call the DocumentId overload of
+            ' GetRequiredDocument, which throws for source-generated DocumentIds instead of returning the document -
+            ' this crashed with "GetRequiredDocument was given a source-generated DocumentId".
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
+                            <Document>
+public class TypeData
+{
+    public int [|$$Type|];
+}
+                            </Document>
+                            <DocumentFromSourceGenerator>
+public class Unrelated
+{
+    public int Value;
+}
+                            </DocumentFromSourceGenerator>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="Value")
+
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/51537")>
         Public Sub RenameWithCascadeIntoGeneratedFile(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
