@@ -399,7 +399,7 @@
       </trans-unit>
       <trans-unit id="Use_labeled_jump_statement">
         <source>Use labeled jump statement</source>
-        <target state="new">Use labeled jump statement</target>
+        <target state="translated">레이블이 지정된 점프 문 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_local_function">

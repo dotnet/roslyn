@@ -69,6 +69,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NoMessagePumpSyncContext.cs" Link="Utilities\NoMessagePumpSyncContext.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedSyncContext.cs" Link="Utilities\SpecializedSyncContext.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs" Link="Utilities\SemaphoreSlimExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReaderWriterLockSlimExtensions.cs" Link="Utilities\ReaderWriterLockSlimExtensions.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Symbols\LanguageNames.cs" Link="Compiler\LanguageNames.cs" />
     <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="Utilities\NamedPipeUtil.cs" />
 

@@ -108,7 +108,7 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
             Contract.ThrowIfTrue(_workspaceFolders.IsDefault, $"{nameof(OnInitializedAsync)} must be called before removing workspace folders.");
             _workspaceFolders = _workspaceFolders.Remove(workspaceFolder, PathUtilities.Comparer);
 
-            foreach (var (directory, projectDirectory) in _projectDirectories)
+            foreach (var (directory, projectDirectory) in _projectDirectories.ToArray())
             {
                 if (PathUtilities.Comparer.Equals(projectDirectory.WorkspaceFolder, workspaceFolder))
                 {
@@ -118,7 +118,7 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
                 }
             }
 
-            foreach (var (directory, enumeration) in _directoryEnumerations)
+            foreach (var (directory, enumeration) in _directoryEnumerations.ToArray())
             {
                 if (PathUtilities.Comparer.Equals(enumeration.WorkspaceFolder, workspaceFolder))
                 {

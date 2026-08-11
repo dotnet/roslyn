@@ -2431,7 +2431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitInterfaceMemberTypeMismatch = 9333,
         ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9334,
 
-        HDN_RedundantPattern = 9335,
+        // HDN_RedundantPattern = 9335,  // no longer reported
         WRN_RedundantPattern = 9336,
         HDN_RedundantPatternStackGuard = 9337,
 
@@ -2480,7 +2480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnionConstructorCallsDefaultConstructor = 9375,
 
         ERR_UnsafeConstructorConstraint = 9376,
-        WRN_UnsafeMeaningless = 9377,
+        ERR_UnsafeMeaningless = 9377,
 
         ERR_PPShebangNotOnFirstLine = 9378,
 
@@ -2504,6 +2504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_NoBreakId = 9393,
         ERR_NoContinueId = 9394,
+        ERR_ClosedBadDerivedTypesProperty = 9395,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
