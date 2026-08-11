@@ -21,11 +21,19 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
 {
     private readonly Compilation _compilation;
     private readonly BindTagHelperProducer? _bindTagHelperProducer;
+    private readonly INamedTypeSymbol? _dictionaryOfStringObject;
 
     private ComponentTagHelperProducer(Compilation compilation, BindTagHelperProducer? bindTagHelperProducer)
     {
         _compilation = compilation;
         _bindTagHelperProducer = bindTagHelperProducer;
+
+        if (compilation.GetTypeByMetadataName(ComponentsApi.Dictionary.MetadataName) is { } dictionaryType)
+        {
+            _dictionaryOfStringObject = dictionaryType.Construct(
+                compilation.GetSpecialType(SpecialType.System_String),
+                compilation.GetSpecialType(SpecialType.System_Object));
+        }
     }
 
     public override TagHelperProducerKind Kind => TagHelperProducerKind.Component;
@@ -47,15 +55,18 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
         // First, compute the relevant properties for this type so that we
         // don't need to compute them twice.
         var properties = GetProperties(type);
+        var acceptsUnmatchedAttributes = AcceptsUnmatchedAttributes(properties);
 
-        var shortNameMatchingDescriptor = CreateShortNameMatchingDescriptor(_compilation, type, properties);
+        var shortNameMatchingDescriptor = CreateShortNameMatchingDescriptor(
+            _compilation, type, properties, acceptsUnmatchedAttributes);
         results.Add(shortNameMatchingDescriptor);
 
         // If the component is in the global namespace, skip adding this descriptor which will be the same as the short name one.
         TagHelperDescriptor? fullyQualifiedNameMatchingDescriptor = null;
         if (!type.ContainingNamespace.IsGlobalNamespace)
         {
-            fullyQualifiedNameMatchingDescriptor = CreateFullyQualifiedNameMatchingDescriptor(_compilation, type, properties);
+            fullyQualifiedNameMatchingDescriptor = CreateFullyQualifiedNameMatchingDescriptor(
+                _compilation, type, properties, acceptsUnmatchedAttributes);
             results.Add(fullyQualifiedNameMatchingDescriptor);
         }
 
@@ -84,19 +95,22 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
     private static TagHelperDescriptor CreateShortNameMatchingDescriptor(
         Compilation compilation,
         INamedTypeSymbol type,
-        ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties)
-        => CreateNameMatchingDescriptor(compilation, type, properties, fullyQualified: false);
+        ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties,
+        bool acceptsUnmatchedAttributes)
+        => CreateNameMatchingDescriptor(compilation, type, properties, acceptsUnmatchedAttributes, fullyQualified: false);
 
     private static TagHelperDescriptor CreateFullyQualifiedNameMatchingDescriptor(
         Compilation compilation,
         INamedTypeSymbol type,
-        ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties)
-        => CreateNameMatchingDescriptor(compilation, type, properties, fullyQualified: true);
+        ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties,
+        bool acceptsUnmatchedAttributes)
+        => CreateNameMatchingDescriptor(compilation, type, properties, acceptsUnmatchedAttributes, fullyQualified: true);
 
     private static TagHelperDescriptor CreateNameMatchingDescriptor(
         Compilation compilation,
         INamedTypeSymbol type,
         ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties,
+        bool acceptsUnmatchedAttributes,
         bool fullyQualified)
     {
         var typeName = TypeNameObject.From(type);
@@ -109,6 +123,7 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
         builder.SetTypeName(typeName);
 
         var metadata = new ComponentMetadata.Builder();
+        metadata.AcceptsUnmatchedAttributes = acceptsUnmatchedAttributes;
 
         builder.CaseSensitive = true;
 
@@ -191,6 +206,59 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
         builder.SetMetadata(metadata.Build());
 
         return builder.Build();
+    }
+
+    private bool AcceptsUnmatchedAttributes(ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties)
+    {
+        IPropertySymbol? captureUnmatchedValuesProperty = null;
+
+        foreach (var (property, kind) in properties)
+        {
+            if (kind == PropertyKind.Ignored || !HasCaptureUnmatchedValues(property))
+            {
+                continue;
+            }
+
+            if (captureUnmatchedValuesProperty is not null)
+            {
+                // A component cannot have multiple parameters that capture unmatched values.
+                return false;
+            }
+
+            captureUnmatchedValuesProperty = property;
+        }
+
+        if (captureUnmatchedValuesProperty is null || _dictionaryOfStringObject is null)
+        {
+            return false;
+        }
+
+        var conversion = _compilation.ClassifyConversion(_dictionaryOfStringObject, captureUnmatchedValuesProperty.Type);
+
+        // The runtime assigns this dictionary through reflection, so user-defined conversions do not apply.
+        return conversion.IsIdentity || (conversion.IsImplicit && conversion.IsReference);
+
+        static bool HasCaptureUnmatchedValues(IPropertySymbol property)
+        {
+            var parameterAttribute = property.GetAttributes().FirstOrDefault(
+                static attribute => attribute.HasFullName(ComponentsApi.ParameterAttribute.MetadataName));
+
+            if (parameterAttribute is null)
+            {
+                return false;
+            }
+
+            foreach (var (name, value) in parameterAttribute.NamedArguments)
+            {
+                if (name == ComponentsApi.ParameterAttribute.CaptureUnmatchedValues &&
+                    value.Value is true)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     private static void CreateProperty(Compilation compilation, TagHelperDescriptorBuilder builder, INamedTypeSymbol containingSymbol, IPropertySymbol property, PropertyKind kind)

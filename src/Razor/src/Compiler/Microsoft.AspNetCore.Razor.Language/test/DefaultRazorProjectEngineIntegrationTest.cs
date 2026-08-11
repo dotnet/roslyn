@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -89,6 +90,45 @@ public class DefaultRazorProjectEngineIntegrationTest
         var csharpDocument = codeDocument.GetRequiredCSharpDocument();
         Assert.NotNull(csharpDocument);
         Assert.Empty(csharpDocument.Diagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/12810")]
+    public void Process_EmptyOuterTag_DoesNotReportWarningAtRazorWarningLevel10()
+    {
+        // Arrange
+        var projectItem = new TestRazorProjectItem("Index.cshtml")
+        {
+            Content = "@{<>foo</>}"
+        };
+        var configuration = RazorConfiguration.Default with { RazorWarningLevel = 10 };
+        var projectEngine = RazorProjectEngine.Create(configuration, TestRazorProjectFileSystem.Empty);
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert
+        Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/12810")]
+    public void Process_EmptyOuterTag_ReportsWarningAtRazorWarningLevel11()
+    {
+        // Arrange
+        var projectItem = new TestRazorProjectItem("Index.cshtml")
+        {
+            Content = "@{<>foo</>}"
+        };
+        var configuration = RazorConfiguration.Default with { RazorWarningLevel = 11 };
+        var projectEngine = RazorProjectEngine.Create(configuration, TestRazorProjectFileSystem.Empty);
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert
+        var diagnostic = Assert.Single(codeDocument.GetRequiredCSharpDocument().Diagnostics);
+        Assert.Equal("RZ1022", diagnostic.Id);
+        Assert.Equal(RazorDiagnosticSeverity.Warning, diagnostic.Severity);
+        Assert.Equal(11, diagnostic.WarningLevel);
     }
 
     [Fact]

@@ -4714,6 +4714,20 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             }
             """, "x");
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82750")]
+    public Task TypeWithSameNameAsInstancePropertyInStaticMethod()
+        => VerifyItemExistsAsync("""
+            public sealed record SourceContainer(Source Source)
+            {
+                public static SourceContainer From(string source)
+                {
+                    Sour$$
+                }
+            }
+
+            public sealed record Source(string Content);
+            """, "Source", expectedDescriptionOrNull: "record Source");
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")]
     public Task NoInstanceFieldsInStaticFieldInitializer()
         => VerifyItemIsAbsentAsync("""

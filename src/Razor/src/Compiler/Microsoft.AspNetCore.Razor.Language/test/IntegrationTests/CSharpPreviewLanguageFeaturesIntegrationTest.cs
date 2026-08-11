@@ -96,4 +96,70 @@ public sealed class CSharpPreviewLanguageFeaturesIntegrationTest()
         CompileToAssembly(generated);
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/9856")]
+    public void ExtensionIndexers()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            public sealed class TextValue
+            {
+                public TextValue(string value)
+                {
+                    Value = value;
+                }
+
+                public string Value { get; }
+            }
+
+            public static class TextValueExtensions
+            {
+                extension(TextValue value)
+                {
+                    public char this[int index] => value.Value[index];
+                }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            @{
+                var value = new TextValue("Razor");
+                _ = value[0];
+            }
+
+            <p>@(new TextValue("Razor")[1])</p>
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/csharplang/issues/9875")]
+    public void LabeledBreakAndContinue()
+    {
+        var generated = CompileToCSharp("""
+            @{
+                var count = 0;
+            outer:
+                while (true)
+                {
+                    count++;
+                    <p>Iteration @count</p>
+
+                    if (count == 1)
+                    {
+                        continue outer;
+                    }
+
+                    break outer;
+                }
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
 }

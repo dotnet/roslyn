@@ -16,6 +16,12 @@ internal sealed class UnresolvedAttributeIntermediateNode : IntermediateNode
     /// <summary>Whether this is a minimized attribute (no value).</summary>
     public bool IsMinimized { get; set; }
 
+    /// <summary>
+    /// Whether the parser treated the leading <c>@</c> as a Razor transition rather than an escaped
+    /// literal. Semantic resolution determines whether the candidate binds to a directive attribute.
+    /// </summary>
+    public bool IsDirectiveAttributeCandidate { get; set; }
+
     /// <summary>The raw value content of the attribute (for all-literal values only).</summary>
     public string? ValueContent { get; set; }
 
