@@ -81,7 +81,15 @@ internal sealed class HelixTestRunner
         try
         {
             await process.WaitForExitAsync(cts.Token);
-            return process.ExitCode;
+            var exitCode = process.ExitCode;
+            if (exitCode == 0)
+            {
+                ConsoleUtil.WriteLine(
+                    ConsoleColor.Green,
+                    "Helix jobs were submitted successfully. Follow the 'Monitor Helix Jobs' job in this stage for status and automatic retries.");
+            }
+
+            return exitCode;
         }
         finally
         {
