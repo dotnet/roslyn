@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -55,41 +54,7 @@ internal sealed class ProjectFileExtensionRegistry
     }
 
     public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName, out bool isFileBasedApp)
-    {
-        var extension = Path.GetExtension(projectFilePath);
-        if (extension is null)
-        {
-            languageName = null;
-            isFileBasedApp = false;
-            _diagnosticReporter.Report(mode, $"Project file path was 'null'");
-            return false;
-        }
-
-        Debug.Assert(projectFilePath != null);
-
-        if (extension is ['.', .. var rest])
-            extension = rest;
-
-        using (_dataGuard.DisposableWait())
-        {
-            if (_extensionToLanguageMap.TryGetValue(extension, out languageName))
-            {
-                isFileBasedApp = false;
-                return true;
-            }
-        }
-
-        if (_fileBasedProgramService?.IsValidEntryPointPath(projectFilePath) == true)
-        {
-            languageName = LanguageNames.CSharp;
-            isFileBasedApp = true;
-            return true;
-        }
-
-        isFileBasedApp = false;
-        _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
-        return false;
-    }
+        => TryGetLanguageNameFromProjectPath(projectFilePath, mode, allowFileBasedApp: true, out languageName, out isFileBasedApp);
 
     public bool TryGetLanguageNameFromExtension(string extension, [NotNullWhen(true)] out string? languageName)
     {
@@ -100,22 +65,44 @@ internal sealed class ProjectFileExtensionRegistry
     }
 
     public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName)
+        => TryGetLanguageNameFromProjectPath(projectFilePath, mode, allowFileBasedApp: false, out languageName, out _);
+
+    private bool TryGetLanguageNameFromProjectPath(
+        string? projectFilePath,
+        DiagnosticReportingMode mode,
+        bool allowFileBasedApp,
+        [NotNullWhen(true)] out string? languageName,
+        out bool isFileBasedApp)
     {
-        var extension = Path.GetExtension(projectFilePath);
-        if (extension is null)
+        if (projectFilePath is null)
         {
             languageName = null;
-            _diagnosticReporter.Report(mode, $"Project file path was 'null'");
+            isFileBasedApp = false;
+            _diagnosticReporter.Report(mode, "Project file path is null.");
             return false;
         }
+
+        var projectFileExtension = Path.GetExtension(projectFilePath);
+        var extension = projectFileExtension;
 
         if (extension is ['.', .. var rest])
             extension = rest;
 
         if (TryGetLanguageNameFromExtension(extension, out languageName))
+        {
+            isFileBasedApp = false;
             return true;
+        }
 
-        _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
+        if (allowFileBasedApp && _fileBasedProgramService?.IsValidEntryPointPath(projectFilePath) == true)
+        {
+            languageName = LanguageNames.CSharp;
+            isFileBasedApp = true;
+            return true;
+        }
+
+        isFileBasedApp = false;
+        _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, projectFileExtension));
         return false;
     }
 }
