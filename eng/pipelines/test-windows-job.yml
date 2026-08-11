@@ -53,6 +53,7 @@ jobs:
           arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }} -collectDumps
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
     - template: publish-logs.yml
       parameters:
         configuration: ${{ parameters.configuration }}

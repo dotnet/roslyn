@@ -50,9 +50,10 @@ jobs:
           args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}        
         ${{ else }}:
           args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
+      displayName: Test
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      displayName: Test
+
     - template: publish-logs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
