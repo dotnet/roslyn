@@ -58,9 +58,9 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
     public void DirectoriesAreDerivedFromVersionedBaseDirectory()
     {
         var versionDirectory = Path.Combine(ResolverDirectory, "v1");
-        Assert.Equal(Path.Combine(versionDirectory, "shadow"), PathResolver.BaseDirectory);
+        Assert.Equal(ResolverDirectory, PathResolver.BaseDirectory);
+        Assert.Equal(Path.Combine(versionDirectory, "shadow"), PathResolver.ShadowDirectory);
         Assert.Equal(Path.Combine(versionDirectory, "cache"), PathResolver.CacheDirectory);
-        Assert.Equal(PathResolver.BaseDirectory, Path.GetDirectoryName(PathResolver.ShadowDirectory));
     }
 
     /// <summary>
