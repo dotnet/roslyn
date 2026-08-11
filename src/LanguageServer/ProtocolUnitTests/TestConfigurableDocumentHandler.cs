@@ -23,7 +23,7 @@ internal sealed record TestConfigurableResponse([property: JsonPropertyName("res
 [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class TestConfigurableDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestWithDocument, TestConfigurableResponse>
+internal sealed class TestConfigurableDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestWithDocument, TestConfigurableResponse>, ISolutionContextPreference
 {
     public const string MethodName = nameof(TestConfigurableDocumentHandler);
 

@@ -25,7 +25,9 @@ internal enum LspSolutionContextCompleteness
 internal interface ISolutionRequiredHandler
 {
     bool RequiresLSPSolution { get; }
+}
 
-    LspSolutionContextPreference SolutionContextPreference
-        => RequiresLSPSolution ? LspSolutionContextPreference.ProjectAndDependencies : LspSolutionContextPreference.NoPreference;
+internal interface ISolutionContextPreference
+{
+    LspSolutionContextPreference SolutionContextPreference { get; }
 }

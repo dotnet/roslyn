@@ -65,7 +65,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
         {
             requiresLSPSolution = requiredHandler.RequiresLSPSolution;
             solutionContextPreference = requiresLSPSolution && textDocumentIdentifier is not null
-                ? requiredHandler.SolutionContextPreference
+                ? GetSolutionContextPreference(requiredHandler)
                 : LspSolutionContextPreference.NoPreference;
         }
         else
@@ -159,4 +159,11 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             }
         }
     }
+
+    internal static LspSolutionContextPreference GetSolutionContextPreference(ISolutionRequiredHandler handler)
+        => handler is ISolutionContextPreference preferenceHandler
+            ? preferenceHandler.SolutionContextPreference
+            : handler.RequiresLSPSolution
+                ? LspSolutionContextPreference.ProjectAndDependencies
+                : LspSolutionContextPreference.NoPreference;
 }

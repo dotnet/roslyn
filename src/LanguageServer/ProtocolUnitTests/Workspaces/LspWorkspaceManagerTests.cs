@@ -28,6 +28,28 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     [Fact]
+    public async Task TestProviderFailureAllowsMiscellaneousFallbackAsync()
+    {
+        var composition = Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
+        await using var testLspServer = await CreateTestLspServerAsync(
+            [], mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var documentUri = CreateAbsoluteDocumentUri("LooseFile.cs");
+        await testLspServer.OpenDocumentAsync(documentUri, "class C { }");
+
+        var throwingProvider = new ThrowingDocumentContextProvider();
+        testLspServer.GetManagerAccessor().PrependDocumentContextProvider(throwingProvider);
+
+        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(
+            CreateTextDocumentIdentifier(documentUri), CancellationToken.None);
+
+        Assert.True(throwingProvider.WasInvoked);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
+        Assert.NotNull(document);
+    }
+
+    [Fact]
     public async Task DidOpenTracksTextBeforeStartingOnDemandLoadAndDoesNotWaitForCompletion()
     {
         var composition = Composition.AddParts(typeof(TestOnDemandProjectLoaderFactory));
@@ -753,6 +775,18 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     private static Task<(Workspace?, Solution?)> GetLspHostWorkspaceAndSolutionAsync(TestLspServer testLspServer)
     {
         return testLspServer.GetManager().GetLspSolutionInfoAsync(CancellationToken.None);
+    }
+
+    private sealed class ThrowingDocumentContextProvider : ILspDocumentContextProvider
+    {
+        public bool WasInvoked { get; private set; }
+
+        public ValueTask<(Workspace workspace, Solution solution, TextDocument document)?> TryGetDocumentContextAsync(
+            LspDocumentContextLookupContext context)
+        {
+            WasInvoked = true;
+            throw new InvalidOperationException("Test provider failure");
+        }
     }
 
     [ExportCSharpVisualBasicLspServiceFactory(typeof(IOnDemandProjectLoader)), PartNotDiscoverable, Shared]

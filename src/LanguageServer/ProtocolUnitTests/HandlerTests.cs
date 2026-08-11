@@ -44,12 +44,24 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     [Theory]
     [InlineData(false, (int)LspSolutionContextPreference.NoPreference)]
     [InlineData(true, (int)LspSolutionContextPreference.ProjectAndDependencies)]
-    public void SolutionContextPreferenceDefaultsBasedOnSolutionRequirement(
+    public void SolutionContextPreferenceDefaultsWhenNotImplemented(
         bool requiresLspSolution, int expectedPreference)
     {
         ISolutionRequiredHandler handler = new TestSolutionRequiredHandler(requiresLspSolution);
 
-        Assert.Equal((LspSolutionContextPreference)expectedPreference, handler.SolutionContextPreference);
+        Assert.Equal(
+            (LspSolutionContextPreference)expectedPreference,
+            RequestContextFactory.GetSolutionContextPreference(handler));
+    }
+
+    [Fact]
+    public void SolutionContextPreferenceUsesExplicitImplementation()
+    {
+        ISolutionRequiredHandler handler = new TestSolutionContextPreferenceHandler();
+
+        Assert.Equal(
+            LspSolutionContextPreference.NoPreference,
+            RequestContextFactory.GetSolutionContextPreference(handler));
     }
 
     [Fact]
@@ -425,11 +437,17 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public bool RequiresLSPSolution => requiresLspSolution;
     }
 
+    private sealed class TestSolutionContextPreferenceHandler : ISolutionRequiredHandler, ISolutionContextPreference
+    {
+        public bool RequiresLSPSolution => true;
+        public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
+    }
+
     [ExportCSharpVisualBasicStatelessLspService(typeof(TestDocumentHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class TestDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+    internal sealed class TestDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>, ISolutionContextPreference
     {
         public const string MethodName = nameof(TestDocumentHandler);
 
@@ -474,7 +492,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class TestRequestHandlerWithNoParams() : ILspServiceRequestHandler<string>
+    internal sealed class TestRequestHandlerWithNoParams() : ILspServiceRequestHandler<string>, ISolutionContextPreference
     {
         public const string MethodName = nameof(TestRequestHandlerWithNoParams);
 
@@ -489,7 +507,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
-    internal sealed class TestNotificationHandler() : ILspServiceNotificationHandler<TestRequestTypeOne>
+    internal sealed class TestNotificationHandler() : ILspServiceNotificationHandler<TestRequestTypeOne>, ISolutionContextPreference
     {
         public const string MethodName = nameof(TestNotificationHandler);
         public readonly TaskCompletionSource<string> ResultSource = new();
@@ -519,7 +537,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
-    internal sealed class TestNotificationWithoutParamsHandler() : ILspServiceNotificationHandler
+    internal sealed class TestNotificationWithoutParamsHandler() : ILspServiceNotificationHandler, ISolutionContextPreference
     {
         public const string MethodName = nameof(TestNotificationWithoutParamsHandler);
         public readonly TaskCompletionSource<string> ResultSource = new();
@@ -555,7 +573,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.FSharp)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class TestLanguageSpecificHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+    internal sealed class TestLanguageSpecificHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>, ISolutionContextPreference
     {
         public bool MutatesSolutionState => true;
         public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
@@ -580,7 +598,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.VisualBasic)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class TestLanguageSpecificHandlerWithDifferentParams() : ILspServiceDocumentRequestHandler<TestRequestTypeTwo, string>
+    internal sealed class TestLanguageSpecificHandlerWithDifferentParams() : ILspServiceDocumentRequestHandler<TestRequestTypeTwo, string>, ISolutionContextPreference
     {
         public bool MutatesSolutionState => true;
         public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
@@ -605,7 +623,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.FSharp)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class TestDuplicateLanguageSpecificHandler() : ILspServiceRequestHandler<string>
+    internal sealed class TestDuplicateLanguageSpecificHandler() : ILspServiceRequestHandler<string>, ISolutionContextPreference
     {
         public bool MutatesSolutionState => true;
         public LspSolutionContextPreference SolutionContextPreference => LspSolutionContextPreference.NoPreference;
