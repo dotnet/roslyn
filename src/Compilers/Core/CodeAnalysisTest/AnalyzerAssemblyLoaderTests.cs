@@ -1665,7 +1665,7 @@ Delta.2: Test D2
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        public void AssemblyLoading_StressTest()
+        public void AssemblyLoading_CacheStressTest()
         {
             Debug.Assert(PlatformInformation.IsWindows);
             const int count = 300;
@@ -1767,6 +1767,62 @@ Delta.2: Test D2
                         Assert.Equal(creationTime, File.GetCreationTimeUtc(cachePath));
                     }
                 });
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AssemblyLoading_NoCacheStressTest()
+        {
+            // Verify that loader functions properly even when caching is disabled (EnableHardLinks = false).
+            Debug.Assert(PlatformInformation.IsWindows);
+            const int count = 300;
+            const string source = """
+                using System.Text;
+
+                namespace Delta
+                {
+                    public class D
+                    {
+                        public void Write(StringBuilder sb, string s)
+                        {
+                            sb.AppendLine("Delta: " + s);
+                        }
+                    }
+                }
+                """;
+
+            using var temp = new TempRoot();
+            var tempDir = temp.CreateDirectory();
+            for (var i = 0; i < count; i++)
+            {
+                var assemblyName = $"Delta{i:D3}";
+                AssemblyLoadTestFixture.GenerateDll(assemblyName, tempDir.CreateDirectory(assemblyName), source, publicKeyOpt: default);
+            }
+
+            var shadowMirror = Temp.CreateDirectory();
+            Run(AnalyzerTestKind.ShadowLoad, state: (tempDir.Path, shadowMirror.Path), static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
+            {
+                var shadowResolver = (ShadowCopyAnalyzerPathResolver)loader.AnalyzerPathResolvers.Single();
+                shadowResolver.EnableHardLinks = false;
+                shadowResolver.DeleteLeftoverDirectoriesTask.Wait();
+
+                var stringBuilder = new StringBuilder();
+                var (analyzerDirectory, mirrorBaseDirectory) = ((string, string))state;
+                var analyzerPaths = Directory.EnumerateFiles(analyzerDirectory, "Delta*.dll", SearchOption.AllDirectories).Order().ToArray();
+                Assert.Equal(count, analyzerPaths.Length);
+                foreach (var analyzerPath in analyzerPaths)
+                {
+                    loader.AddDependencyLocation(analyzerPath);
+                    var assembly = loader.LoadFromPath(analyzerPath);
+                    var delta = assembly.CreateInstance("Delta.D")!;
+                    delta.GetType().GetMethod("Write")!.Invoke(delta, [stringBuilder, "Test D"]);
+                }
+
+                Assert.Equal(string.Join("", Enumerable.Repeat("Delta: Test D" + Environment.NewLine, analyzerPaths.Length)), stringBuilder.ToString());
+                VerifyDependencyAssemblies(loader, copyCount: count, analyzerPaths);
+
+                // Cache is empty since hard links couldn't be created.
+                Assert.Empty(Directory.EnumerateFiles(path: shadowResolver.CacheDirectory));
+            });
         }
 
 #if NET

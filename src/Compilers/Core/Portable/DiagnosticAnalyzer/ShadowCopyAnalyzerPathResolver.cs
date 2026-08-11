@@ -83,6 +83,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private ConcurrentDictionary<string, Task<string>> CopyMap { get; } = new(AnalyzerAssemblyLoader.OriginalPathComparer);
 
+        /// <summary>Whether to hard link assemblies to/from <see cref="CacheDirectory"/>.</summary>
+        /// <remarks>Internal for testing only.</remarks>
+        internal bool EnableHardLinks = true;
+
         /// <summary>
         /// This is the number of shadow copies that have occurred in this instance.
         /// </summary>
@@ -376,7 +380,7 @@ namespace Microsoft.CodeAnalysis
 
             // Optimization for antivirus scanning on Windows:
             // - Shadow copied files are hard-linked to/from a cache directory if possible.
-            // - We continue to use per-session 'ShadowDirectory' for ease of implementing correct loading semantics and cleanup.
+            // - We continue to load from 'SessionDirectory' for ease of implementing correct loading semantics and cleanup.
             // - Hard linking a file from the cache instead of copying it is empirically observed to reduce time spent running AV scans when loading assemblies.
             static void linkFromCacheOrFallbackToCopy(ShadowCopyAnalyzerPathResolver @this, string originalPath, string shadowCopyPath)
             {
@@ -391,7 +395,7 @@ namespace Microsoft.CodeAnalysis
                         try { File.Delete(cachePath); } catch { }
                         File.Copy(originalPath, shadowCopyPath);
                     }
-                    else if (!TryCreateHardLink(cachePath, shadowCopyPath))
+                    else if (!@this.TryCreateHardLink(cachePath, shadowCopyPath))
                     {
                         File.Copy(originalPath, shadowCopyPath);
                     }
@@ -405,7 +409,7 @@ namespace Microsoft.CodeAnalysis
                     if (cachePath is not null)
                     {
                         Directory.CreateDirectory(@this.CacheDirectory);
-                        TryCreateHardLink(shadowCopyPath, cachePath);
+                        @this.TryCreateHardLink(shadowCopyPath, cachePath);
                     }
                 }
             }
@@ -482,9 +486,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Create a hard link to a file.</summary>
         /// <seealso href="https://learn.microsoft.com/en-us/dotnet/api/system.io.file.createhardlink?view=net-11.0" />
-        private static bool TryCreateHardLink(string path, string pathToTarget)
+        private bool TryCreateHardLink(string path, string pathToTarget)
         {
-            return CreateHardLink(pathToTarget, path, IntPtr.Zero);
+            return EnableHardLinks && CreateHardLink(pathToTarget, path, IntPtr.Zero);
 
             // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createhardlinkw
             [DllImport("Kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
