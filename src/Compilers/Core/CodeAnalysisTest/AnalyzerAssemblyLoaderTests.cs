@@ -1669,15 +1669,27 @@ Delta.2: Test D2
         {
             Debug.Assert(PlatformInformation.IsWindows);
             const int count = 300;
+            const string source = """
+                using System.Text;
+
+                namespace Delta
+                {
+                    public class D
+                    {
+                        public void Write(StringBuilder sb, string s)
+                        {
+                            sb.AppendLine("Delta: " + s);
+                        }
+                    }
+                }
+                """;
 
             using var temp = new TempRoot();
             var tempDir = temp.CreateDirectory();
             for (var i = 0; i < count; i++)
             {
-                tempDir
-                    .CreateDirectory($"Delta{i:D3}")
-                    .CreateFile("Delta.dll")
-                    .CopyContentFrom(TestFixture.Delta1);
+                var assemblyName = $"Delta{i:D3}";
+                AssemblyLoadTestFixture.GenerateDll(assemblyName, tempDir.CreateDirectory(assemblyName), source, publicKeyOpt: default);
             }
 
             var shadowMirror = Temp.CreateDirectory();
@@ -1688,7 +1700,7 @@ Delta.2: Test D2
 
                 var stringBuilder = new StringBuilder();
                 var (analyzerDirectory, mirrorBaseDirectory) = ((string, string))state;
-                var analyzerPaths = Directory.EnumerateFiles(analyzerDirectory, "Delta.dll", SearchOption.AllDirectories).Order().ToArray();
+                var analyzerPaths = Directory.EnumerateFiles(analyzerDirectory, "Delta*.dll", SearchOption.AllDirectories).Order().ToArray();
                 Assert.Equal(count, analyzerPaths.Length);
                 foreach (var analyzerPath in analyzerPaths)
                 {
@@ -1721,14 +1733,17 @@ Delta.2: Test D2
                 }
             });
 
-            var pruningResolver = new ShadowCopyAnalyzerPathResolver(shadowMirror.Path);
             Run(
                 AnalyzerTestKind.LoadDirect,
-                state: tempDir.Path,
-                static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
+                state: (tempDir.Path, shadowMirror.Path),
+                static (AnalyzerAssemblyLoader _, AssemblyLoadTestFixture _, object state) =>
                 {
+                    Debug.Assert(PlatformInformation.IsWindows);
+                    var (analyzerDirectory, mirrorBaseDirectory) = ((string, string))state;
+                    var shadowResolver = new ShadowCopyAnalyzerPathResolver(mirrorBaseDirectory);
+                    using var pruningLoader = new AnalyzerAssemblyLoader([shadowResolver]);
+
                     // Prune the cache
-                    var shadowResolver = (ShadowCopyAnalyzerPathResolver)loader.AnalyzerPathResolvers.Single();
                     shadowResolver.DeleteLeftoverDirectoriesTask.Wait();
 
                     // Record creation timestamps of remaining cache items
@@ -1737,12 +1752,12 @@ Delta.2: Test D2
                         .ToArray();
                     Assert.Equal(200, cacheCreationTimes.Length);
 
-                    var analyzerPaths = Directory.EnumerateFiles((string)state, "Delta.dll", SearchOption.AllDirectories).Order().ToArray();
+                    var analyzerPaths = Directory.EnumerateFiles(analyzerDirectory, "Delta*.dll", SearchOption.AllDirectories).Order().ToArray();
                     Assert.Equal(count, analyzerPaths.Length);
                     foreach (var analyzerPath in analyzerPaths)
                     {
-                        loader.AddDependencyLocation(analyzerPath);
-                        _ = loader.LoadFromPath(analyzerPath);
+                        pruningLoader.AddDependencyLocation(analyzerPath);
+                        _ = pruningLoader.LoadFromPath(analyzerPath);
                     }
 
                     Assert.Equal(count, Directory.EnumerateFiles(shadowResolver.CacheDirectory).Count());
@@ -1751,8 +1766,7 @@ Delta.2: Test D2
                     {
                         Assert.Equal(creationTime, File.GetCreationTimeUtc(cachePath));
                     }
-                },
-                pathResolvers: [pruningResolver]);
+                });
         }
 
 #if NET
