@@ -52,5 +52,8 @@
         "Unregistrations",
         "worktree",
         "Xunit"
-    ]
+    ],
+    "chat.tools.terminal.autoApprove": {
+        "dotnet tool": true
+    }
 }
