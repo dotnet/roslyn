@@ -177,7 +177,7 @@ extends:
           displayName: Setup branch for insertion validation
           inputs:
             filePath: 'eng\setup-pr-validation.ps1'
-            arguments: "-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
+            arguments: "-prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
           condition: succeeded()
 
         - task: Powershell@2
@@ -226,14 +226,6 @@ extends:
 
         # Authenticate to DevDiv feeds
         - task: NuGetAuthenticate@1
-
-        # Needed because the build fails the NuGet Tools restore without it
-        - task: UseDotNet@2
-          displayName: 'Use .NET Core sdk'
-          inputs:
-            packageType: sdk
-            useGlobalJson: true
-            workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: MicroBuildSigningPlugin@4
           inputs:

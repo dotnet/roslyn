@@ -65,6 +65,7 @@ Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerat
 - Language services are exported **per-language** (`[ExportLanguageService(..., LanguageNames.CSharp), Shared]`), never shared across C#/VB.
 - No `TODO`/`TODO2` comments — track follow-ups as linked GitHub issues in code; existing `TODO2`s are only a frozen enforcement baseline. No `PROTOTYPE` comments in PRs to `main`.
 - Update `PublicAPI.Unshipped.txt` for public API changes. Never hand-edit generated code or `eng/common`.
+- It is acceptable to have async methods with no awaits. CS1998 is not active for this repository.
 
 Full conventions: `.github/memory/CONVENTIONS.md` and `.github/instructions/{Compiler,IDE,Razor}.instructions.md`.
 
@@ -119,17 +120,27 @@ Write the plan to `plan.md` in your session folder (see the session context) and
 
 **Post the plan and wait for approval before writing the implementing diff** — the plan is meant to be reviewed now, not after a large diff already exists.
 
-Then implement, keeping the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. If the plan changes materially while implementing, update it rather than silently diverging. Only after the plan's **Acceptance** and **Validation** are satisfied (and the Validation Checklist below passes) is the work "done."
+Then implement, keeping the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. If the plan changes materially while implementing, update it rather than silently diverging. Only after the plan's **Acceptance** and **Validation** are satisfied (and the Definition of Done below passes) is the work "done."
 
-Trivial changes don't need a written plan — go straight to the Validation Checklist.
+Trivial changes don't need a written plan — go straight to the Definition of Done.
 
-## Validation Checklist
+### Keep changes reviewable
 
-When making changes:
-1. **Read `.github/memory/INDEX.md` first.**
-2. For non-trivial tasks, read `ARCHITECTURE.md` and `CONVENTIONS.md`, and the `.github/instructions/<area>.instructions.md` for the area you're editing.
-3. **Build the specific project(s) modified** (`Compilers.slnf` / `Ide.slnf` / `Razor.slnf` / the project).
-4. **Run targeted tests** for affected test project(s).
-5. If you edited a `.resx`, run `/t:UpdateXlf`; if you edited Syntax/BoundNodes XML, regenerate code. Update `PublicAPI.Unshipped.txt` for public API changes.
-6. Follow existing patterns in similar files.
-7. **Doc pass** (mandatory) — run the `update-agent-docs` skill and apply the Doc Update Obligation above.
+- Keep each change focused on one coherent concern. Do not mix behavior changes with unrelated cleanup, broad renames, or opportunistic refactoring.
+- Split work when parts can be reviewed, validated, merged, or reverted independently; when they affect unrelated areas or owners; or when a preparatory refactoring can land before the behavior change.
+- Checkpoint after each independently valid slice rather than accumulating one large unreviewed diff. Each checkpoint must build on the previous one and leave the branch in a coherent state.
+- Do not optimize for an arbitrary line-count limit: generated files and mechanical updates can be large. Optimize for reviewer cognitive load, clear intent, and independent validation.
+- If a change cannot be split without making it less correct or harder to validate, explain that constraint in the plan and keep the commits logically separated.
+
+## Definition of Done
+
+Work is done only when every applicable step below is complete:
+
+1. **Format:** Run the repository's existing formatter for changed files when applicable.
+2. **Lint/analyzers:** Run the smallest existing lint or analyzer command that covers the changed files when applicable.
+3. **Build:** Build the specific affected project or solution filter (`Compilers.slnf`, `Ide.slnf`, `Razor.slnf`, or the project). Documentation-only changes do not require a product build.
+4. **Targeted tests:** Run the affected test project or focused test filter. Add or update tests when behavior changes; explain when no relevant automated test exists.
+5. **Generated/resource/API updates:** Regenerate Syntax/BoundNodes outputs when their XML changes, run `/t:UpdateXlf` after `.resx` edits, and update `PublicAPI.Unshipped.txt` for public API changes.
+6. **Diff review:** Review the final diff and confirm it matches the approved plan, contains no unrelated edits, and follows nearby patterns.
+7. **Docs:** Run the `update-agent-docs` skill and apply the Doc Update Obligation above.
+8. **Final evidence:** Inspect repository status and the final diff, then report the exact validation performed. Do not claim completion while required validation is failing or was silently skipped.

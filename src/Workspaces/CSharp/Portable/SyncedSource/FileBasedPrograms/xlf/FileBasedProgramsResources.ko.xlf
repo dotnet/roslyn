@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../FileBasedProgramsResources.resx">
     <body>
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="EmptyTempPath">
         <source>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</source>
-        <target state="new">Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</target>
+        <target state="translated">임시 디렉터리 경로를 확인할 수 없습니다. Windows에서는 TEMP 환경 변수를, Unix에서는 로컬 앱 데이터 폴더를 설정하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExperimentalFeatureDisabled">
         <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="new">This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</target>
+        <target state="translated">이 기능은 실험적인 기능입니다. 사용하려면 MSBuild 속성 '{0}'을(를) 'true'로 설정하세요.</target>
         <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
       </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="IncludedFileNotFound">
         <source>File included via #:include directive (or Compile item) not found: {0}</source>
-        <target state="new">File included via #:include directive (or Compile item) not found: {0}</target>
+        <target state="translated">#:include 지시문(또는 Compile 항목)을 통해 포함된 파일을 찾을 수 없음: {0}</target>
         <note>{Locked="#:include"}{Locked="Compile"}. {0} is file path.</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">

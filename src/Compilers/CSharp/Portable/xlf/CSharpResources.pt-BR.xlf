@@ -222,6 +222,11 @@
         <target state="translated">O argumento {0} não pode ser passado com o palavra-chave 'ref' na versão {1} da linguagem. Para passar argumentos 'ref' para parâmetros 'in', atualize para a versão {2} ou superior da linguagem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="new">Cannot await in context of a 'fixed' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">O operador '{0}' não pode ser aplicado a operandos do tipo '{1}' e '{2}' que não são representações de bytes UTF-8</target>
@@ -1522,6 +1527,11 @@
         <target state="translated">O argumento diagnosticId para o atributo 'Experimental' deve ser um identificador válido</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyUnsafeMods">
+        <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="translated">Não é possível especificar os modificadores 'unsafe' ou 'safe' na propriedade ou no indexador '{0}' e em seu acessador. Remova um deles.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
         <target state="translated">Uma declaração 'union' não pode usar uma interface de provedor de membro de união.</target>
@@ -2517,10 +2527,15 @@
         <target state="translated">O runtime de destino não dá suporte a convenções de chamada padrão extensíveis ou de ambiente de runtime.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="translated">O modificador 'safe' só pode ser usado em membros que não estão marcados como 'unsafe' e são 'extern' ou semelhantes a campos em tipos com layout explícito ou estendido.</target>
-        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
+        <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
+        <target state="translated">Os modificadores 'safe' e 'unsafe' não podem ser usados juntos.</target>
+        <note>'safe' and 'unsafe' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_SamePropertyUnsafeAccessorMods">
+        <source>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</source>
+        <target state="translated">Não é possível especificar o mesmo modificador 'unsafe' ou 'safe' em todos os acessadores de uma propriedade ou de um indexador '{0}'. Em vez disso, coloque esse modificador na própria propriedade.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
@@ -11424,11 +11439,6 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">O operador 'await' não pode ser usado em um inicializador de variável de script estático.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">Não é possível esperar em um contexto sem segurança</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

@@ -1335,6 +1335,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property ISymbol_RequiresUnsafeContext As Boolean Implements ISymbol.RequiresUnsafeContext
+            Get
+                Return False
+            End Get
+        End Property
+
         Private Function ISymbol_ToDisplayString(Optional format As SymbolDisplayFormat = Nothing) As String Implements ISymbol.ToDisplayString
             Return Display.ToDisplayString(Me, format)
         End Function

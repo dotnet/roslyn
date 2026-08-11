@@ -1550,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.FTL_BadChecksumAlgorithm
                 or ErrorCode.ERR_BadAwaitArgIntrinsic
                 or ErrorCode.ERR_BadAwaitAsIdentifier
-                or ErrorCode.ERR_AwaitInUnsafeContext
+                or ErrorCode.ERR_BadAwaitInFixed
                 or ErrorCode.ERR_UnsafeAsyncArgType
                 or ErrorCode.ERR_VarargsAsync
                 or ErrorCode.ERR_BadAwaitArgVoidCall
@@ -1999,7 +1999,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_AutoSetterCantBeReadOnly
                 or ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly
                 or ErrorCode.ERR_InvalidPropertyReadOnlyMods
+                or ErrorCode.ERR_InvalidPropertyUnsafeMods
                 or ErrorCode.ERR_DuplicatePropertyReadOnlyMods
+                or ErrorCode.ERR_SamePropertyUnsafeAccessorMods
                 or ErrorCode.ERR_FieldLikeEventCantBeReadOnly
                 or ErrorCode.ERR_PartialMemberReadOnlyDifference
                 or ErrorCode.ERR_ReadOnlyModMissingAccessor
@@ -2592,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_MissingUnionCaseTypes
                 or ErrorCode.ERR_MissingUnionValueProperty
                 or ErrorCode.ERR_MemberProviderInUnionDeclaration
-                or ErrorCode.ERR_SafeModifierUnsupportedTarget
+                or ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
                 or ErrorCode.ERR_PartialMemberSafeDifference
                 or ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe

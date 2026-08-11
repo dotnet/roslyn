@@ -77,6 +77,7 @@ sealed class C4 : C1
             NamedTypeSymbol s1 = comp.GetTypeByMetadataName("S1");
             Assert.True(s1.IsUnionType);
             Assert.True(s1.GetPublicSymbol().IsUnion);
+            AssertEx.SequenceEqual(["System.Int32"], s1.GetPublicSymbol().UnionCaseTypes.ToTestDisplayStrings());
             Assert.True(comp.GetTypeByMetadataName("C1").IsUnionType);
             Assert.True(comp.GetTypeByMetadataName("C2").IsUnionType);
             Assert.False(comp.GetTypeByMetadataName("C4").IsUnionType);
@@ -84,8 +85,18 @@ sealed class C4 : C1
             NamedTypeSymbol i1 = comp.GetTypeByMetadataName("I1");
             Assert.False(i1.IsUnionType);
             Assert.False(i1.GetPublicSymbol().IsUnion);
+            Assert.Empty(i1.GetPublicSymbol().UnionCaseTypes);
             Assert.False(comp.GetTypeByMetadataName("S2").IsUnionType);
             Assert.False(comp.GetTypeByMetadataName("C3").IsUnionType);
+
+            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard).Concat(comp.EmitToImageReference()));
+            INamedTypeSymbol s1VB = vbComp.GetTypeByMetadataName("S1");
+            Assert.False(s1VB.IsUnion);
+            Assert.Empty(s1VB.UnionCaseTypes);
+
+            INamedTypeSymbol i1VB = vbComp.GetTypeByMetadataName("I1");
+            Assert.False(i1VB.IsUnion);
+            Assert.Empty(i1VB.UnionCaseTypes);
         }
 
         [Fact]
@@ -39872,7 +39883,7 @@ class Program
             CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
         }
 
-        [Theory(Skip = "There is metadata vs. source difference for this scenario")] // https://github.com/dotnet/roslyn/issues/82636
+        [Theory]
         [CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/82636")]
         public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_37_ImplicitReferenceConversion_Determinism(
