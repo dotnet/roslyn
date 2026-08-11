@@ -21,7 +21,8 @@ $benchmarkProjects = @(
   @{ Project = "src/Razor/src/Razor/benchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.csproj"; Framework = "net10.0"; HasValidationMode = $true }
   @{ Project = "src/Razor/src/Compiler/perf/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj"; HasValidationMode = $true }
   # Use a representative type to exercise the generated runner build without running the full benchmark suite.
-  @{ Project = "src/Tools/IdeCoreBenchmarks/IdeCoreBenchmarks.csproj"; Framework = "net10.0"; Filter = "*SegmentedArrayBenchmarks_Indexer*" }
+  # This project uses BenchmarkDotNet 0.15 for the VS DiagnosticsHub adapter, so keep both its host and generated runner on .NET 10.
+  @{ Project = "src/Tools/IdeCoreBenchmarks/IdeCoreBenchmarks.csproj"; Framework = "net10.0"; Filter = "*SegmentedArrayBenchmarks_Indexer*"; RollForward = "LatestPatch"; RollForwardToPrerelease = "0" }
 
   # These projects are excluded because their current benchmark harnesses do not
   # complete a Dry validation run in this script's execution model.
@@ -72,9 +73,26 @@ foreach ($entry in $benchmarkProjects) {
 
   Write-Host "dotnet $($args -join ' ')"
 
-  & dotnet @args
+  $previousRollForward = $env:DOTNET_ROLL_FORWARD
+  $previousRollForwardToPrerelease = $env:DOTNET_ROLL_FORWARD_TO_PRERELEASE
+  try {
+    # CI sets these variables to LatestMajor globally; scope project-specific overrides to this process and its benchmark children.
+    if ($entry.ContainsKey("RollForward")) {
+      $env:DOTNET_ROLL_FORWARD = $entry["RollForward"]
+    }
+    if ($entry.ContainsKey("RollForwardToPrerelease")) {
+      $env:DOTNET_ROLL_FORWARD_TO_PRERELEASE = $entry["RollForwardToPrerelease"]
+    }
 
-  if ($LASTEXITCODE -ne 0) {
+    & dotnet @args
+    $exitCode = $LASTEXITCODE
+  }
+  finally {
+    $env:DOTNET_ROLL_FORWARD = $previousRollForward
+    $env:DOTNET_ROLL_FORWARD_TO_PRERELEASE = $previousRollForwardToPrerelease
+  }
+
+  if ($exitCode -ne 0) {
     Write-Host "FAILED: $projectName" -ForegroundColor Red
     $failed += $projectName
   }

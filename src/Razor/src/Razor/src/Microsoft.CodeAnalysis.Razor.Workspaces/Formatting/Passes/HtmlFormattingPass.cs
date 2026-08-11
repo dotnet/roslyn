@@ -108,6 +108,7 @@ internal sealed partial class HtmlFormattingPass(
         // there could be one edit to replace the whole line.
         changes = SourceTextDiffer.GetMinimalTextChanges(originalText, formattedText, DiffKind.Char);
         changes = FilterChangesInUnsupportedSpans(changes, razorCommentSpans);
+        changes = FilterOutNonWhitespaceChanges(changes);
 
         // Re-apply the changes to get the new formatted text
         formattedText = originalText.WithChanges(changes);
@@ -194,6 +195,54 @@ internal sealed partial class HtmlFormattingPass(
                 return changes;
             }
 
+            return validChanges.ToImmutableAndClear();
+        }
+
+        ImmutableArray<TextChange> FilterOutNonWhitespaceChanges(ImmutableArray<TextChange> candidateChanges)
+        {
+            if (candidateChanges.IsEmpty)
+            {
+                return candidateChanges;
+            }
+
+            // The character differ can split a collectively safe rewrite into changes that do not compare safely in isolation.
+            if (originalText.NonWhitespaceContentEquals(candidateChanges))
+            {
+                return candidateChanges;
+            }
+
+            var changedText = originalText.WithChanges(candidateChanges);
+            using var validChanges = new PooledArrayBuilder<TextChange>(capacity: candidateChanges.Length);
+
+            var positionDelta = 0;
+            var previousStart = -1;
+            foreach (var change in candidateChanges)
+            {
+                Debug.Assert(change.Span.Start >= previousStart);
+                previousStart = change.Span.Start;
+
+                var replacementLength = change.NewText?.Length ?? 0;
+                var changedStart = change.Span.Start + positionDelta;
+                var changedEnd = changedStart + replacementLength;
+                if (originalText.NonWhitespaceContentEquals(
+                    changedText,
+                    change.Span.Start,
+                    change.Span.End,
+                    changedStart,
+                    changedEnd))
+                {
+                    validChanges.Add(change);
+                }
+
+                positionDelta += replacementLength - change.Span.Length;
+            }
+
+            if (candidateChanges.Length == validChanges.Count)
+            {
+                return candidateChanges;
+            }
+
+            _logger.LogWarning("Ignoring non-whitespace changes returned by the HTML formatter.");
             return validChanges.ToImmutableAndClear();
         }
     }
