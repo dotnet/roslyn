@@ -1670,6 +1670,9 @@ Delta.2: Test D2
         {
             Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
+                var shadowResolver = (ShadowCopyAnalyzerPathResolver)loader.AnalyzerPathResolvers.Single();
+                shadowResolver.DeleteLeftoverDirectoriesTask.Wait();
+
                 const int count = 300;
 
                 using var temp = new TempRoot();
@@ -1691,7 +1694,6 @@ Delta.2: Test D2
                 VerifyDependencyAssemblies(loader, copyCount: count, analyzerPaths);
 
                 // All Delta files were added to cache
-                var shadowResolver = (ShadowCopyAnalyzerPathResolver)loader.AnalyzerPathResolvers.Single();
                 Assert.Equal(300, Directory.EnumerateFiles(path: shadowResolver.CacheDirectory).Count());
                 Assert.Equal(300, Directory.EnumerateFiles(shadowResolver.CacheDirectory, "Delta*.dll").Count());
 

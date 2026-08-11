@@ -32,16 +32,28 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConcurrentDictionary<string, DirectoryCleanupState> s_directoryCleanupStates = new(AnalyzerAssemblyLoader.OriginalPathComparer);
 
         /// <summary>
-        /// The base directory for shadow copies. Each instance of
-        /// <see cref="ShadowCopyAnalyzerPathResolver"/> gets its own
-        /// subdirectory under this directory. This is also the starting point
-        /// for scavenge operations.
+        /// The base directory for shadow copies.
+        /// Layout:
+        ///   baseDirectory/
+        ///   └── v1/
+        ///       ├── shadow/
+        ///       │   └── (per-session directories)
+        ///       └── cache/
+        ///           └── (cached dlls)
         /// </summary>
         internal string BaseDirectory { get; }
 
+        /// <summary>Directory denoted by '$BaseDirectory/$DirectoryVersion/shadow/'.</summary>
         internal string ShadowDirectory { get; }
 
-        /// <summary>Shared cache for shadow copied assemblies. Used to amortize cost of antivirus scans.</summary>
+        /// <summary>Directory for the current session. Directory denoted by '$BaseDirectory/$DirectoryVersion/shadow/$sessionId/'.</summary>
+        internal string SessionDirectory { get; }
+
+        /// <summary>
+        /// Shared cache for shadow copied assemblies.
+        /// Used to amortize cost of antivirus scans.
+        /// Denoted by '$BaseDirectory/$DirectoryVersion/cache/'.
+        /// </summary>
         internal string CacheDirectory { get; }
 
         /// <summary>
@@ -99,17 +111,19 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException($"Must be a full path: {baseDirectory}", nameof(baseDirectory));
             }
 
-            var versionDirectory = Path.Combine(baseDirectory, DirectoryVersion);
-            BaseDirectory = Path.Combine(versionDirectory, "shadow");
-            CacheDirectory = Path.Combine(versionDirectory, "cache");
-
-            var shadowDirectoryName = Guid.NewGuid().ToString("N").ToLowerInvariant();
-
-            // The directory is deliberately _not_ created at this point. It will only be created when the first
+            // The directories are deliberately _not_ created at this point. They will only be created when the first
             // request comes in. This avoids creating unnecessary directories when no analyzers are loaded 
             // via the shadow layer.
-            ShadowDirectory = Path.Combine(BaseDirectory, shadowDirectoryName);
-            Mutex = new Mutex(initiallyOwned: false, name: shadowDirectoryName);
+            BaseDirectory = baseDirectory;
+
+            var versionDirectory = Path.Combine(baseDirectory, DirectoryVersion);
+            ShadowDirectory = Path.Combine(versionDirectory, "shadow");
+            CacheDirectory = Path.Combine(versionDirectory, "cache");
+
+            var sessionDirectoryName = Guid.NewGuid().ToString("N").ToLowerInvariant();
+            SessionDirectory = Path.Combine(ShadowDirectory, sessionDirectoryName);
+            Mutex = new Mutex(initiallyOwned: false, name: sessionDirectoryName);
+
             DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
         }
 
@@ -125,13 +139,13 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 // Avoid first chance exception
-                if (!Directory.Exists(BaseDirectory))
+                if (!Directory.Exists(ShadowDirectory))
                     return;
 
                 IEnumerable<string> subDirectories;
                 try
                 {
-                    subDirectories = Directory.EnumerateDirectories(BaseDirectory);
+                    subDirectories = Directory.EnumerateDirectories(ShadowDirectory);
                 }
                 catch (DirectoryNotFoundException)
                 {
@@ -288,7 +302,7 @@ namespace Microsoft.CodeAnalysis
         {
             var originalDirName = Path.GetDirectoryName(analyzerFilePath)!;
             var shadowDirName = OriginalDirectoryMap.GetOrAdd(originalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString(System.Globalization.CultureInfo.InvariantCulture);
-            return Path.Combine(ShadowDirectory, shadowDirName);
+            return Path.Combine(SessionDirectory, shadowDirName);
         }
 
         /// <summary>
