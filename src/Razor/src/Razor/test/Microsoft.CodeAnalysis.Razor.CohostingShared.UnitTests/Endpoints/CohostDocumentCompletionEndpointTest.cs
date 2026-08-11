@@ -556,6 +556,103 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             ]);
     }
 
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    public async Task CSharpOverrideMethods_UsesEditorConfig_Razor()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @inherits TestBase
+                @code {
+                    public override $$
+                }
+                """,
+            expected: """
+                @inherits TestBase
+                @code {
+                    public override void M()
+                    {
+                    base.M();
+                    }
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["M()"],
+            itemToResolve: "M()",
+            expectedResolvedItemDescription: "void TestBase.M()",
+            additionalFiles:
+            [
+                ("TestBase.cs", """
+                    using Microsoft.AspNetCore.Components;
+
+                    public abstract class TestBase : ComponentBase
+                    {
+                        public virtual void M()
+                        {
+                        }
+                    }
+                    """),
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
+    }
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    public async Task CSharpOverrideMethods_UsesEditorConfig_Cshtml()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @inherits TestBase
+                @functions {
+                    public override $$
+                }
+                """,
+            expected: """
+                @inherits TestBase
+                @functions {
+                    public override void M()
+                    {
+                    base.M();
+                    }
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["M()"],
+            itemToResolve: "M()",
+            expectedResolvedItemDescription: "void TestBase.M()",
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                ("TestBase.cs", """
+                    public abstract class TestBase : Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
+                    {
+                        public virtual void M()
+                        {
+                        }
+                    }
+                    """),
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
+    }
+
     // Tests MarkupTransitionCompletionItemProvider
     [Fact]
     public async Task CSharpMarkupTransitionAndTagHelpersInCodeBlock()
@@ -2017,7 +2114,10 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         TimeSpan? retryTimeout = null,
         (string fileName, string contents)[]? additionalFiles = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(
+            input.Text,
+            fileKind,
+            additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { AutoInsertAttributeQuotes = autoInsertAttributeQuotes, CommitElementsWithSpace = commitElementsWithSpace });

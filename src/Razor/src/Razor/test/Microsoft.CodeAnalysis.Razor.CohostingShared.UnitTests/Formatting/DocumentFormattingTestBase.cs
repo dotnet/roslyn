@@ -42,9 +42,16 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         bool allowDiagnostics = false,
         bool debugAssertsEnabled = true,
         bool validateHtmlFormattedMatchesWebTools = true,
-        (string fileName, string contents)[]? additionalFiles = null)
+        (string fileName, string contents)[]? additionalFiles = null,
+        string? documentFilePath = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, inGlobalNamespace: inGlobalNamespace, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(
+            input.Text,
+            fileKind,
+            documentFilePath,
+            inGlobalNamespace: inGlobalNamespace,
+            additionalFiles: additionalFiles);
+
         if (!allowDiagnostics)
         {
             //TODO: Tests in LanguageServer have extra components that are not present in this project, like Counter, etc.

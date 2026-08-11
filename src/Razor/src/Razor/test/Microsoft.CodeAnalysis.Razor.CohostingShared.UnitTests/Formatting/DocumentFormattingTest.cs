@@ -14,6 +14,173 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
     [Fact]
+    public Task DocumentFormatting_UsesNestedEditorConfigs_Razor()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                class C
+                {
+                    void M()
+                    {
+                        if (true)
+                        {
+                        }
+                    }
+                }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                class C
+                {
+                    void M()
+                    {
+                        if (true)
+                        {
+                        }
+                    }
+                }
+                }
+                """,
+            expected: """
+                @code {
+                    class C {
+                        void M() {
+                            if(true) {
+                            }
+                        }
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """),
+                ("Nested/.editorconfig", """
+                    [*.razor]
+                    csharp_space_after_keywords_in_control_flow_statements = false
+                    """)
+            ],
+            documentFilePath: FilePath("Nested/File1.razor"));
+
+    [Fact]
+    public Task DocumentFormatting_UsesEditorConfig_Cshtml()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                class C
+                {
+                    void M()
+                    {
+                    }
+                }
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                class C
+                {
+                    void M()
+                    {
+                    }
+                }
+                }
+                """,
+            expected: """
+                @functions {
+                    class C {
+                        void M() {
+                        }
+                    }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+
+    [Fact]
+    public Task RangeFormatting_UsesEditorConfig_Razor()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                    private void M(string [|value|])
+                    {
+                    }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                    private void M(string value)
+                    {
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private void M(string value) {
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+
+    [Fact]
+    public Task RangeFormatting_UsesEditorConfig_Cshtml()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                    private void M(string [|value|])
+                    {
+                    }
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                    private void M(string value)
+                    {
+                    }
+                }
+                """,
+            expected: """
+                @functions {
+                    private void M(string value) {
+                    }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/9658#issuecomment-3943605712")]
     public async Task MultilineIfStatement()
     {

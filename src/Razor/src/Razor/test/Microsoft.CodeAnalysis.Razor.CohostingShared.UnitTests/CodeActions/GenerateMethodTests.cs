@@ -45,6 +45,94 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
     }
 
     [Fact]
+    public async Task GenerateMethod_UsesEditorConfig_Razor()
+    {
+        var input = """
+            @code
+            {
+                private void M()
+                {
+                    [||]NewMethod();
+                }
+            }
+            """;
+
+        var expected = """
+            @using System
+            @code
+            {
+                private void M()
+                {
+                NewMethod();
+                }
+
+                private void NewMethod()
+                {
+                throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeFixProviderNames.GenerateMethod,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
+    }
+
+    [Fact]
+    public async Task GenerateMethod_UsesEditorConfig_Cshtml()
+    {
+        var input = """
+            @functions
+            {
+                private void M()
+                {
+                    [||]NewMethod();
+                }
+            }
+            """;
+
+        var expected = """
+            @functions
+            {
+                private void M()
+                {
+                NewMethod();
+                }
+
+                private void NewMethod()
+                {
+                throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeFixProviderNames.GenerateMethod,
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
+    }
+
+    [Fact]
     public async Task GenerateMethod_FromCodeBlock_ExistingCodeBlock_WithParameter()
     {
         var input = """
