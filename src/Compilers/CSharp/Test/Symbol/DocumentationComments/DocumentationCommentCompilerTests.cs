@@ -9097,32 +9097,13 @@ record Rec(string Item)
                 }
                 """;
 
-            var compilation = CreateCompilation(
-                source,
-                assemblyName: "csdoccomment",
-                options: TestOptions.ReleaseDll);
-
-            using var peStream = new MemoryStream();
-            using var xmlStream = new MemoryStream();
-
-            var emitResult = compilation.Emit(
-                peStream: peStream,
-                xmlDocumentationStream: xmlStream);
-
-            emitResult.Diagnostics.Verify();
-            Assert.True(emitResult.Success);
-
-            static string normalizeLineEndings(string value) =>
-                value.Replace("\r\n", "\n").Replace('\r', '\n');
-
-            var actual = normalizeLineEndings(
-                System.Text.Encoding.UTF8.GetString(xmlStream.ToArray()));
-
-            var expected = normalizeLineEndings("""
+            var comp = CreateCompilationUtil(source);
+            var actual = GetDocumentationCommentText(comp).NormalizeLineEndings();
+            var expected = """
                 <?xml version="1.0"?>
                 <doc>
                     <assembly>
-                        <name>csdoccomment</name>
+                        <name>Test</name>
                     </assembly>
                     <members>
                         <member name="T:C">
@@ -9139,7 +9120,7 @@ record Rec(string Item)
                         </member>
                     </members>
                 </doc>
-                """) + "\n";
+                """.NormalizeLineEndings();
 
             AssertEx.Equal(expected, actual);
         }

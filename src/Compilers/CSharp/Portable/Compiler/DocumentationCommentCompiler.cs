@@ -1066,16 +1066,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int end = IndexOfNewLine(text, start, out newLineLength);
                 int trimStart = GetIndexOfFirstNonWhitespaceChar(text, start, end) + substringStart;
 
-                if (inCDataSection)
-                {
-                    WriteSubStringLineWithoutIndent(text, trimStart, end - trimStart);
-                }
-                else
-                {
-                    WriteSubStringLine(text, trimStart, end - trimStart);
-                }
+                // Whitespace inside a CDATA section is authored character data, so the generated
+                // member indent must not be prepended to lines that start inside one.
+                WriteSubStringLine(text, trimStart, end - trimStart, indent: !inCDataSection);
 
-                inCDataSection = IsInCDataSectionAfter(text, trimStart, end, inCDataSection);
+                inCDataSection = IsInCDataSectionAfter(text.AsSpan(trimStart, end - trimStart), inCDataSection);
                 start = end + newLineLength;
             }
         }
@@ -1084,26 +1079,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns whether the text is inside a CDATA section after the given line.
         /// This only tracks the section state; it writes nothing.
         /// </summary>
-        private static bool IsInCDataSectionAfter(string text, int start, int end, bool inCDataSection)
+        private static bool IsInCDataSectionAfter(ReadOnlySpan<char> line, bool inCDataSection)
         {
             const string CDataStartString = "<![CDATA[";
             const string CDataEndString = "]]>";
 
-            Debug.Assert(start >= 0 && start <= text.Length);
-            Debug.Assert(end >= start && end <= text.Length);
-
-            int current = start;
-            while (current < end)
+            while (line.Length > 0)
             {
                 string delimiter = inCDataSection ? CDataEndString : CDataStartString;
-                int index = text.IndexOf(delimiter, current, end - current, StringComparison.Ordinal);
+                int index = line.IndexOf(delimiter.AsSpan());
                 if (index < 0)
                 {
                     break;
                 }
 
                 inCDataSection = !inCDataSection;
-                current = index + delimiter.Length;
+                line = line[(index + delimiter.Length)..];
             }
 
             return inCDataSection;
@@ -1464,40 +1455,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void WriteSubStringLine(string message, int start, int length)
+        /// <param name="indent">
+        /// Whether to prepend the generated indent. Pass <see langword="false"/> for lines whose
+        /// leading whitespace is authored content rather than formatting.
+        /// </param>
+        private void WriteSubStringLine(string message, int start, int length, bool indent = true)
         {
             if (_temporaryStringBuilders?.Count > 0)
             {
                 StringBuilder builder = _temporaryStringBuilders.Peek().Pooled.Builder;
-                builder.Append(MakeIndent(_indentDepth));
-                builder.Append(message, start, length);
-                builder.AppendLine();
-            }
-            else if (_writer != null)
-            {
-                _writer.Write(MakeIndent(_indentDepth));
-                for (int i = 0; i < length; i++)
+                if (indent)
                 {
-                    _writer.Write(message[start + i]);
+                    builder.Append(MakeIndent(_indentDepth));
                 }
-                _writer.WriteLine();
-            }
-        }
-
-        /// <summary>
-        /// Same as <see cref="WriteSubStringLine"/> without the generated indent, for
-        /// lines whose leading whitespace is authored content rather than formatting.
-        /// </summary>
-        private void WriteSubStringLineWithoutIndent(string message, int start, int length)
-        {
-            if (_temporaryStringBuilders?.Count > 0)
-            {
-                StringBuilder builder = _temporaryStringBuilders.Peek().Pooled.Builder;
                 builder.Append(message, start, length);
                 builder.AppendLine();
             }
             else if (_writer != null)
             {
+                if (indent)
+                {
+                    _writer.Write(MakeIndent(_indentDepth));
+                }
                 for (int i = 0; i < length; i++)
                 {
                     _writer.Write(message[start + i]);
