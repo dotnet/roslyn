@@ -5,7 +5,7 @@
 using System.Collections.Concurrent;
 using System.Composition;
 using System.Diagnostics;
-using System.Text.Json.Nodes;
+using System.Text;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -43,8 +43,11 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
             ? new TelemetrySession(CreateDevKitSessionSettings(telemetryLevel, sessionId))
             : VisualStudio.Telemetry.TelemetryService.DefaultSession;
 
-        // The keyless VS default session is opted out until the standalone host supplies consent.
-        session.IsOptedIn = telemetryLevel != "off";
+        if (!useDevKitTelemetry)
+        {
+            // The keyless VS default session is opted out until the standalone host supplies consent.
+            session.IsOptedIn = telemetryLevel != "off";
+        }
 
         if (isDefaultSession && useDevKitTelemetry)
         {
@@ -129,20 +132,51 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
 
     internal static string CreateDevKitSessionSettings(string telemetryLevel, string? sessionId)
     {
-        var settings = new JsonObject
+        sessionId ??= Guid.NewGuid().ToString();
+
+        // Generate a new startTime for process to be consumed by Telemetry Settings
+        using var curProcess = Process.GetCurrentProcess();
+        var processStartTime = curProcess.StartTime.ToFileTimeUtc().ToString();
+
+        var sb = new StringBuilder();
+
+        var kvp = new Dictionary<string, string>
         {
-            ["Id"] = sessionId ?? Guid.NewGuid().ToString(),
-            ["HostName"] = "Default",
-            ["TelemetryLevel"] = telemetryLevel,
-            ["IsInitialSession"] = true,
-            ["CollectorApiKey"] = VSCodeCollectorApiKey,
-            ["AppId"] = 1010,
+            { "Id", StringToJsonValue(sessionId) },
+            { "HostName", StringToJsonValue("Default") },
+
+            // Insert Telemetry Level instead of Opt-Out status. The telemetry service handles
+            // validation of this value so there is no need to do so on this end. If it's invalid,
+            // it defaults to off.
+            { "TelemetryLevel", StringToJsonValue(telemetryLevel) },
+
+            // this sets the Telemetry Session Created by LSP Server to be the Root Initial session
+            // This means that the SessionID set here by "Id" will be the SessionID used by cloned session
+            // further down stream
+            { "IsInitialSession", "true" },
+            { "CollectorApiKey", StringToJsonValue(VSCodeCollectorApiKey) },
+
+            // using 1010 to indicate VS Code and not to match it to devenv 1000
+            { "AppId", "1010" },
+            { "ProcessStartTime", processStartTime },
         };
 
-        using var currentProcess = Process.GetCurrentProcess();
-        settings["ProcessStartTime"] = currentProcess.StartTime.ToFileTimeUtc();
+        foreach (var keyValue in kvp)
+        {
+            sb.AppendFormat("\"{0}\":{1},", keyValue.Key, keyValue.Value);
+        }
 
-        return settings.ToJsonString();
+        return $"{{{sb.ToString().TrimEnd(',')}}}";
+
+        static string StringToJsonValue(string? value)
+        {
+            if (value == null)
+            {
+                return "null";
+            }
+
+            return '"' + value + '"';
+        }
     }
 
     private static TelemetryEvent GetEndEvent(object scope)
