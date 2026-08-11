@@ -35,8 +35,7 @@ public sealed class CodeRenderingContext : IDisposable
         IntermediateNodeWriter nodeWriter,
         RazorSourceDocument sourceDocument,
         DocumentIntermediateNode documentNode,
-        RazorCodeGenerationOptions options,
-        bool reportDiagnostics = true)
+        RazorCodeGenerationOptions options)
     {
         ArgHelper.ThrowIfNull(nodeWriter);
         ArgHelper.ThrowIfNull(sourceDocument);
@@ -53,12 +52,9 @@ public sealed class CodeRenderingContext : IDisposable
 
         _diagnostics = ArrayBuilderPool<RazorDiagnostic>.Default.Get();
 
-        if (reportDiagnostics)
+        foreach (var diagnostic in _documentNode.GetAllDiagnostics())
         {
-            foreach (var diagnostic in _documentNode.GetAllDiagnostics())
-            {
-                _diagnostics.Add(diagnostic);
-            }
+            _diagnostics.Add(diagnostic);
         }
 
         _linePragmas = ArrayBuilderPool<LinePragma>.Default.Get();

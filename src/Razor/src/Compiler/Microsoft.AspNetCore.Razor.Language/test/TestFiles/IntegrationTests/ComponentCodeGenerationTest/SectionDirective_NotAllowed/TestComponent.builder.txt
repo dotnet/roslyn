@@ -1,3 +1,0 @@
-﻿[0000] AddContent(section)
-[0001] AddContent(" One { ")
-[0002] AddMarkupContent("<p>Content</p> }")

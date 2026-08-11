@@ -35,30 +35,28 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
     public ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        LspDiagnostic[] csharpImplDiagnostics,
-        LspDiagnostic[] csharpDeclDiagnostics,
+        LspDiagnostic[] csharpDiagnostics,
         LspDiagnostic[] htmlDiagnostics,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            snapshot => GetDiagnosticsAsync(snapshot, csharpImplDiagnostics, csharpDeclDiagnostics, htmlDiagnostics, cancellationToken),
+            context => GetDiagnosticsAsync(context, csharpDiagnostics, htmlDiagnostics, cancellationToken),
             cancellationToken);
 
     private async ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
-        RemoteDocumentSnapshot snapshot,
-        LspDiagnostic[] csharpImplDiagnostics,
-        LspDiagnostic[] csharpDeclDiagnostics,
+        RemoteDocumentContext context,
+        LspDiagnostic[] csharpDiagnostics,
         LspDiagnostic[] htmlDiagnostics,
         CancellationToken cancellationToken)
     {
         // We've got C# and Html, lets get Razor diagnostics
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         ImmutableArray<LspDiagnostic> allDiagnostics = [
-            .. GetRazorDiagnostics(snapshot, codeDocument),
-            .. await _translateDiagnosticsService.TranslateCSharpAsync(csharpImplDiagnostics, csharpDeclDiagnostics, snapshot, cancellationToken).ConfigureAwait(false),
-            .. await _translateDiagnosticsService.TranslateHtmlAsync(htmlDiagnostics, snapshot, cancellationToken).ConfigureAwait(false)
+            .. GetRazorDiagnostics(context, codeDocument),
+            .. await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, csharpDiagnostics, context.Snapshot, cancellationToken).ConfigureAwait(false),
+            .. await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, htmlDiagnostics, context.Snapshot, cancellationToken).ConfigureAwait(false)
         ];
 
         // Our final pass is to update all unused directive errors to ensure they display how we want in the IDE. Doing it here
@@ -106,15 +104,13 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         return allDiagnostics;
     }
 
-    private static ImmutableArray<LspDiagnostic> GetRazorDiagnostics(RemoteDocumentSnapshot snapshot, RazorCodeDocument codeDocument)
+    private static ImmutableArray<LspDiagnostic> GetRazorDiagnostics(RemoteDocumentContext context, RazorCodeDocument codeDocument)
     {
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
 
         // First, RZ diagnostics. Yes, CSharpDocument.Documents are the Razor diagnostics. Don't ask.
-        // Right now Razor diagnostics are duplicated on both decl and impl documents, so it doesn't matter which
-        // one we use.
-        var razorDiagnostics = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics;
-        var convertedDiagnostics = RazorDiagnosticHelper.Convert(razorDiagnostics, codeDocument.Source.Text, snapshot);
+        var razorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics;
+        var convertedDiagnostics = RazorDiagnosticHelper.Convert(razorDiagnostics, codeDocument.Source.Text, context.Snapshot);
         diagnostics.AddRange(convertedDiagnostics);
 
         // For legacy files, that aren't imports, we also want to raise unused directive diagnostics. We only do this for
@@ -155,33 +151,24 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
     public ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        LspDiagnostic[] csharpImplTaskItems,
-        LspDiagnostic[] csharpDeclTaskItems,
+        LspDiagnostic[] csharpTaskItems,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            snapshot => GetTaskListDiagnosticsAsync(snapshot, csharpImplTaskItems, csharpDeclTaskItems, cancellationToken),
+            context => GetTaskListDiagnosticsAsync(context, csharpTaskItems, cancellationToken),
             cancellationToken);
 
     private async ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
-        RemoteDocumentSnapshot snapshot,
-        LspDiagnostic[] csharpImplTaskItems,
-        LspDiagnostic[] csharpDeclTaskItems,
+        RemoteDocumentContext context,
+        LspDiagnostic[] csharpTaskItems,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
         diagnostics.AddRange(TaskListDiagnosticProvider.GetTaskListDiagnostics(codeDocument, _clientSettingsManager.GetClientSettings().AdvancedSettings.TaskListDescriptors));
-
-        diagnostics.AddRange(_translateDiagnosticsService.MapCSharpDiagnostics(csharpImplTaskItems, codeDocument.GetRequiredCSharpDocument(declarationDocument: false)));
-
-        if (csharpDeclTaskItems.Length > 0)
-        {
-            diagnostics.AddRange(_translateDiagnosticsService.MapCSharpDiagnostics(csharpDeclTaskItems, codeDocument.GetRequiredCSharpDocument(declarationDocument: true)));
-        }
-
+        diagnostics.AddRange(_translateDiagnosticsService.MapDiagnostics(RazorLanguageKind.CSharp, csharpTaskItems, context.Snapshot, codeDocument));
         return diagnostics.ToImmutableAndClear();
     }
 }

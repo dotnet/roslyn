@@ -1,14 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
@@ -38,15 +38,15 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            snapshot => GetImplementationAsync(snapshot, position, cancellationToken),
+            context => GetImplementationAsync(context, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<LspLocation[]?>> GetImplementationAsync(
-        RemoteDocumentSnapshot snapshot,
+        RemoteDocumentContext context,
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
         {
@@ -66,8 +66,8 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
         }
 
         // Finally, call into C#.
-        var generatedDocument = await snapshot
-            .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
+        var generatedDocument = await context.Snapshot
+            .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
         var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
@@ -88,23 +88,16 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
 
         // Map the C# locations back to the Razor file.
         using var mappedLocations = new PooledArrayBuilder<LspLocation>(locations.Length);
-        var seenLocations = new HashSet<(DocumentUri DocumentUri, LinePositionSpan Range)>();
 
         foreach (var location in locations)
         {
             var (uri, range) = location;
 
             var (mappedDocumentUri, mappedRange) = await DocumentMappingService
-                .MapToHostDocumentUriAndRangeAsync(snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
+                .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
                 .ConfigureAwait(false);
 
-            // Impl and decl generated documents can both contain a generated class declaration that maps to the same Razor location.
-            if (!seenLocations.Add((mappedDocumentUri, mappedRange)))
-            {
-                continue;
-            }
-
-            var mappedLocation = LspFactory.CreateLocation(mappedDocumentUri, mappedRange);
+            var mappedLocation = LspFactory.CreateLocation(mappedDocumentUri.CreateDocumentUriFromSystemUri(), mappedRange);
 
             mappedLocations.Add(mappedLocation);
         }
