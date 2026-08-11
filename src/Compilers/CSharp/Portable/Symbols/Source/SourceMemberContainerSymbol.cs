@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Class:
                     case TypeKind.Submission:
                         allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
-                            | DeclarationModifiers.Unsafe | DeclarationModifiers.Closed;
+                            | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe | DeclarationModifiers.Closed;
 
                         if (!this.IsRecord)
                         {
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         break;
                     case TypeKind.Struct:
-                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
+                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
 
                         if (!this.IsRecordStruct && !this.IsUnionDeclaration)
                         {
@@ -347,10 +347,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         break;
                     case TypeKind.Interface:
-                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
                         break;
                     case TypeKind.Delegate:
-                        allowedModifiers |= DeclarationModifiers.Unsafe;
+                        allowedModifiers |= DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
                         break;
                 }
             }
@@ -2143,10 +2143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected virtual void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
         {
-            foreach (var member in GetMembers())
-            {
-                member.AfterTypeMembersCompletedChecks(diagnostics);
-            }
         }
 
         private void CheckMemberNamesDistinctFromType(BindingDiagnosticBag diagnostics)
@@ -3828,15 +3824,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>? builder = null;
 
+                bool reportMultipleUnits = declaration.Declarations.Count(static d => d.IsSimpleProgram) > 1;
+
                 foreach (var singleDecl in declaration.Declarations)
                 {
                     if (singleDecl.IsSimpleProgram)
                     {
-                        if (builder is null)
-                        {
-                            builder = ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
-                        }
-                        else
+                        builder ??= ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
+
+                        if (reportMultipleUnits)
                         {
                             Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, singleDecl.NameLocation);
                         }

@@ -53,12 +53,16 @@ public sealed class ProjectDependencyHelperTests : IDisposable
     {
         var projectAssetsPath = WriteAssetsFile("""{"version":3,"libraries":{"Package/1.0.0":{}}""");
         var logger = new TestLogger();
+        var expectedMessage = string.Format(
+            LanguageServerResources.Failed_to_read_project_assets_file_0_version_1_2,
+            projectAssetsPath,
+            "3",
+            string.Empty);
 
         Assert.True(NeedsRestore(projectAssetsPath, logger, ("Package", "1.0.0")));
 
         var message = Assert.Single(logger.Messages);
-        Assert.Contains(projectAssetsPath, message);
-        Assert.Contains("(version 3)", message);
+        Assert.StartsWith(expectedMessage, message);
     }
 
     [Fact]
@@ -66,10 +70,16 @@ public sealed class ProjectDependencyHelperTests : IDisposable
     {
         var projectAssetsPath = WriteAssetsFile("""{"libraries":{"Package/1.0.0":{}}""");
         var logger = new TestLogger();
+        var expectedMessage = string.Format(
+            LanguageServerResources.Failed_to_read_project_assets_file_0_version_1_2,
+            projectAssetsPath,
+            ProjectDependencyHelper.UnknownVersion,
+            string.Empty);
 
         Assert.True(NeedsRestore(projectAssetsPath, logger, ("Package", "1.0.0")));
 
-        Assert.Contains("(version <unknown>)", Assert.Single(logger.Messages));
+        var message = Assert.Single(logger.Messages);
+        Assert.StartsWith(expectedMessage, message);
     }
 
     [Theory]

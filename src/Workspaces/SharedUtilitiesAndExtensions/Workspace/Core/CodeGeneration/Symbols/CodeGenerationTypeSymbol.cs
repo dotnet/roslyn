@@ -84,6 +84,8 @@ internal abstract class CodeGenerationTypeSymbol(
 
     public virtual bool IsUnion => false;
 
+    public virtual ImmutableArray<ITypeSymbol> UnionCaseTypes => [];
+
     public virtual bool IsClosed => false;
 
 #if !OLDER_ROSLYN

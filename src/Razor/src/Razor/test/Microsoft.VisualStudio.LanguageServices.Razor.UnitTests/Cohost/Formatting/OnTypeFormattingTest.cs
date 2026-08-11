@@ -265,6 +265,62 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
     }
 
     [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/7962")]
+    public async Task CloseCurly_DoesNotIndentPropertyAfterCursorAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @code {
+                        private void Current()
+                        {
+                            if(true)
+                            {
+                            }$$
+                        [Parameter] public int Value { get; set; }
+                        private void Later()
+                        {
+                        }
+                    }
+                    """,
+            expected: """
+                    @code {
+                        private void Current()
+                        {
+                            if (true)
+                            {
+                            }
+                        [Parameter] public int Value { get; set; }
+                        private void Later()
+                        {
+                        }
+                    }
+                    """,
+            triggerCharacter: '}');
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12627")]
+    public async Task CloseCurly_Method_RestoresCodeBlockClosingBraceAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    @code {
+                        private void Test()
+                        {
+                        }$$
+                        }
+                    """,
+            expected: """
+                    @code {
+                        private void Test()
+                        {
+                        }
+                    }
+                    """,
+            triggerCharacter: '}');
+    }
+
+    [FormattingTestFact]
     public async Task CloseCurly_Property_SingleLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
