@@ -161,6 +161,31 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
     }
 
     [Fact]
+    public async Task DependencyPreferenceDoesNotRetryFailedRootWithinOperation()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var project = workspace.CreateFile("App.csproj");
+        var document = workspace.CreateFile("Program.cs");
+        var loadCount = 0;
+        using var loader = CreateLoader(
+            workspace.Path,
+            directory => [project.Path],
+            projectPath =>
+            {
+                Assert.Equal(project.Path, projectPath);
+                Interlocked.Increment(ref loadCount);
+                return new LanguageServerProjectLoadResult(LanguageServerProjectLoadStatus.Failed, []);
+            },
+            getProjectReferences: _ => []);
+
+        var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path));
+        await operation.WaitAsync(LspSolutionContextPreference.Project, CancellationToken.None);
+        await operation.WaitAsync(LspSolutionContextPreference.ProjectAndDependencies, CancellationToken.None);
+
+        Assert.Equal(1, Volatile.Read(ref loadCount));
+    }
+
+    [Fact]
     public async Task DependencyClosureHandlesTransitiveCyclesOverlapAndPartialFailure()
     {
         var workspace = _tempRoot.CreateDirectory();
@@ -203,8 +228,8 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         Assert.True(result.HasCompleteDependencies(firstProject.Path));
         Assert.False(result.HasCompleteDependencies(secondProject.Path));
         Assert.Equal(4, loadCounts.Count);
-        Assert.Equal(2, loadCounts[firstProject.Path]);
-        Assert.Equal(2, loadCounts[secondProject.Path]);
+        Assert.Equal(1, loadCounts[firstProject.Path]);
+        Assert.Equal(1, loadCounts[secondProject.Path]);
         Assert.Equal(1, loadCounts[sharedDependency.Path]);
         Assert.Equal(1, loadCounts[failedDependency.Path]);
     }
