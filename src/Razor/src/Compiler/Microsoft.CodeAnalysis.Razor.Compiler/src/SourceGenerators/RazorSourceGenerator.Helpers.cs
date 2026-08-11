@@ -101,6 +101,40 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             }
         }
 
+        private static RazorCSharpDocument GetFallbackDiscoveryDeclDocument(
+            RazorCodeDocument codeDocument,
+            SourceGeneratorProjectItem item,
+            ImmutableArray<SourceGeneratorProjectItem> imports,
+            RazorSourceGenerationOptions razorSourceGeneratorOptions,
+            CancellationToken cancellationToken)
+        {
+            // Reuse the discoverable decl the split phase built from the already-parsed document and lower
+            // it here, so a fallback component's descriptor comes from the initial parse instead of
+            // re-parsing the source through a separate declaration engine. The generator processes each
+            // document before running discovery over the set, so this lowers ahead of the tag-helper
+            // rewrite that mutates the shared IR.
+            if (codeDocument.GetRequiredDocumentNode().FallbackDiscoveryDeclDocumentNode is { } declDocumentNode)
+            {
+                // Mirror DefaultRazorDeclCSharpLoweringPhase: the decl is lowered before the rewrite phase,
+                // so seed the rewritten-tree back-reference with the canonical (markup-free) syntax tree.
+                var declCodeDocument = codeDocument.GetTagHelperRewrittenSyntaxTree() is null
+                    ? codeDocument.WithTagHelperRewrittenSyntaxTree(codeDocument.GetRequiredSyntaxTree())
+                    : codeDocument;
+
+                return RazorCSharpDocumentWriter.Write(
+                    declDocumentNode,
+                    declCodeDocument,
+                    reportDiagnostics: false,
+                    isDeclarationDocument: true,
+                    isStubDocument: false,
+                    cancellationToken);
+            }
+
+            // Rare fallback shapes (no render method or namespace) leave no discovery decl; re-parse those.
+            var declEngine = GetDeclarationProjectEngine(item, imports, razorSourceGeneratorOptions);
+            return declEngine.Process(item, cancellationToken).GetRequiredCSharpDocument(declarationDocument: false);
+        }
+
         private static RazorProjectEngine GetDeclarationProjectEngine(
             SourceGeneratorProjectItem item,
             ImmutableArray<SourceGeneratorProjectItem> imports,

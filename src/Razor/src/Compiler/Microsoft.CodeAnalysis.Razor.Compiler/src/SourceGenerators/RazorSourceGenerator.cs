@@ -106,8 +106,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                         FileUtilities.IsRazorComponentFilePath(sourceItem.FilePath, StringComparison.OrdinalIgnoreCase))
                     {
                         RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
-                        var declEngine = GetDeclarationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
-                        fallbackDecl = declEngine.Process(sourceItem, cancellationToken).GetRequiredCSharpDocument(declarationDocument: false);
+                        fallbackDecl = GetFallbackDiscoveryDeclDocument(document.CodeDocument, sourceItem, imports, razorSourceGeneratorOptions, cancellationToken);
                         fallbackTypeName = typeName;
                         RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.FilePath);
                     }
