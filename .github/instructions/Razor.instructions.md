@@ -15,6 +15,9 @@ their original sub-tree layout
   The bug is more likely in existing logic than a missing feature.
 - **Helpers**: Review existing helpers (`UsingDirectiveHelper`, `AddUsingsHelper`, etc.)
   before writing new utility methods. Don't duplicate.
+- **Warning levels**: Track warnings with non-zero `RazorWarningLevel` values in
+  [`docs/razor/warning-levels.md`](../../docs/razor/warning-levels.md), including the diagnostic
+  ID, warning level, exact message, and trigger condition.
 
 ## File Types
 

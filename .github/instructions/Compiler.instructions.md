@@ -18,7 +18,7 @@ Roslyn follows a **layered compiler architecture**:
 - `src/Compilers/Server/` - `VBCSCompiler` build server
 - `src/Dependencies/` - High-performance collections (`PooledObjects`, `Threading`)
 - `src/ExpressionEvaluator/` - Debugger expression evaluation (uses special `LexerMode.DebuggerSyntax`)
-- `src/Tools/` - Compiler tooling (BuildBoss, format tools, analyzers)
+- `src/Tools/` - Compiler tooling (BuildBoss, format tools, analyzers) and benchmark harnesses; `IdeCoreBenchmarks/BenchmarkDotNet.Directory.Packages.props` supplies the package policy copied beside generated BDN runners
 
 ### Essential Files for Context
 - `src/Compilers/CSharp/Portable/Errors/ErrorCode.cs` - All C# compiler error codes
