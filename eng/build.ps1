@@ -227,7 +227,7 @@ function Process-Arguments() {
   }
 
   foreach ($property in $properties) {
-    if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase")) {
+    if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase") -and !$property.StartsWith("/clp:", "InvariantCultureIgnoreCase")) {
       Write-Host "Invalid argument: $property"
       Print-Usage
       exit 1

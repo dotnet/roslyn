@@ -207,6 +207,9 @@ while [[ $# > 0 ]]; do
     /p:*)
       properties+=("$1")
       ;;
+    /clp:*)
+      properties+=("$1")
+      ;;
     *)
       echo "Invalid argument: $1"
       usage
