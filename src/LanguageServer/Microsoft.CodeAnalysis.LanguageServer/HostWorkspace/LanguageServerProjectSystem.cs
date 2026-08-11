@@ -158,14 +158,18 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ? new WorkDoneProgressTracker(progressReporter, projectFilePaths.Length)
             : null;
 
+        await LoadProjectsAsync(projectFilePaths, progressTracker, CancellationToken.None);
+        await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
+    }
+
+    internal async Task LoadProjectsAsync(
+        ImmutableArray<string> projectFilePaths, WorkDoneProgressTracker? progressTracker, CancellationToken cancellationToken)
+    {
         var handles = ImmutableArray.CreateBuilder<ProjectLoadHandle>(projectFilePaths.Length);
         foreach (var path in projectFilePaths)
-        {
             handles.Add(await BeginLoadingProjectAsync(path, projectGuid: null));
-        }
 
-        await WaitForProjectLoadsAsync(handles.MoveToImmutable(), progressTracker);
-        await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
+        await WaitForProjectLoadsAsync(handles.MoveToImmutable(), progressTracker, cancellationToken);
     }
 
     internal ImmutableArray<string> GetSupportedProjectFileExtensions()
