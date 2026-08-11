@@ -299,8 +299,11 @@ internal readonly struct RequestContext
     /// Allows a mutating request to open a document and start it being tracked.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
-    public ValueTask StartTrackingAsync(DocumentUri uri, SourceText initialText, string languageId, int lspVersion, CancellationToken cancellationToken)
-        => _documentChangeTracker.StartTrackingAsync(uri, initialText, languageId, lspVersion, cancellationToken);
+    public async ValueTask StartTrackingAsync(DocumentUri uri, SourceText initialText, string languageId, int lspVersion, CancellationToken cancellationToken)
+    {
+        await _documentChangeTracker.StartTrackingAsync(uri, initialText, languageId, lspVersion, cancellationToken).ConfigureAwait(false);
+        _ = GetService<IOnDemandProjectLoader>()?.StartLoading(uri);
+    }
 
     /// <summary>
     /// Allows a mutating request to update the contents of a tracked document.

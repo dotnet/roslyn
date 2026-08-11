@@ -175,6 +175,18 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
         return [];
     }
 
+    internal bool TryGetWorkspaceFolder(string filePath, out string normalizedFilePath, out string? workspaceFolder)
+    {
+        normalizedFilePath = filePath;
+        workspaceFolder = null;
+        if (!PathUtilities.IsAbsolute(filePath))
+            return false;
+
+        normalizedFilePath = NormalizePath(filePath);
+        workspaceFolder = GetDeepestContainingWorkspaceFolder(normalizedFilePath);
+        return workspaceFolder is not null;
+    }
+
     private string? GetDeepestContainingWorkspaceFolder(string filePath)
     {
         lock (_gate)

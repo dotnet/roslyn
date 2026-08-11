@@ -21,6 +21,11 @@ internal static class LanguageServerProjectSystemOptionsStorage
     public static readonly Option2<bool> EnableAutomaticRestore = new("dotnet_enable_automatic_restore", defaultValue: true, s_optionGroup);
 
     /// <summary>
+    /// Whether projects containing requested documents should be loaded on demand.
+    /// </summary>
+    public static readonly Option2<bool> LoadProjectsOnDemand = new("dotnet_load_on_demand", defaultValue: false, s_optionGroup);
+
+    /// <summary>
     /// Whether to use the new 'dotnet run app.cs' (file-based programs) experience.
     /// </summary>
     public static readonly Option2<bool> EnableFileBasedPrograms = new("dotnet_enable_file_based_programs", defaultValue: true, s_optionGroup);

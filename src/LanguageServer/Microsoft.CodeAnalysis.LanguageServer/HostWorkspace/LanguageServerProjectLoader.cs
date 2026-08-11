@@ -522,14 +522,16 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
-    protected static Task WaitForProjectLoadsAsync(ImmutableArray<ProjectLoadHandle> handles, WorkDoneProgressTracker? progressTracker)
-        => Task.WhenAll(handles.SelectAsArray(handle => ObserveProjectLoadAsync(handle, progressTracker)));
+    protected static Task WaitForProjectLoadsAsync(
+        ImmutableArray<ProjectLoadHandle> handles, WorkDoneProgressTracker? progressTracker, CancellationToken cancellationToken = default)
+        => Task.WhenAll(handles.SelectAsArray(handle => ObserveProjectLoadAsync(handle, progressTracker, cancellationToken)));
 
-    private static async Task ObserveProjectLoadAsync(ProjectLoadHandle handle, WorkDoneProgressTracker? progressTracker)
+    private static async Task ObserveProjectLoadAsync(
+        ProjectLoadHandle handle, WorkDoneProgressTracker? progressTracker, CancellationToken cancellationToken)
     {
         try
         {
-            await handle.Completion;
+            await handle.Completion.WaitAsync(cancellationToken);
         }
         finally
         {
