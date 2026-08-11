@@ -21,7 +21,6 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -322,21 +321,16 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     }
 
     [Fact]
-    public async Task ProjectPathIdentityUsesPlatformSemantics()
+    public async Task ProjectPathIdentityIsCaseInsensitive()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
         _ = loader.QueueEvaluation();
-        if (PathUtilities.IsUnixLikePlatform)
-            _ = loader.QueueEvaluation();
 
         var lowerCaseHandle = await loader.BeginLoadAsync(Path.Combine(TempRoot.Root, "project.csproj"));
         var upperCaseHandle = await loader.BeginLoadAsync(Path.Combine(TempRoot.Root, "PROJECT.csproj"));
 
-        if (PathUtilities.IsUnixLikePlatform)
-            Assert.NotSame(lowerCaseHandle, upperCaseHandle);
-        else
-            Assert.Same(lowerCaseHandle, upperCaseHandle);
+        Assert.Same(lowerCaseHandle, upperCaseHandle);
     }
 
     [Fact]

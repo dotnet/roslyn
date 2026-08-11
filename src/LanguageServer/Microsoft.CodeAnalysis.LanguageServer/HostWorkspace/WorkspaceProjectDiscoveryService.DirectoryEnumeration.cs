@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.ProjectSystem;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -17,7 +16,7 @@ internal sealed partial class WorkspaceProjectDiscoveryService
 
         public string WorkspaceFolder { get; } = workspaceFolder;
         public IFileChangeContext Watcher { get; } = watcher;
-        public Dictionary<string, bool> Changes { get; } = new(PathUtilities.Comparer);
+        public Dictionary<string, bool> Changes { get; } = new(StringComparer.OrdinalIgnoreCase);
         public TaskCompletionSource<ImmutableArray<string>> Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public bool TryStart()

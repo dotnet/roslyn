@@ -89,7 +89,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         var firstProject = workspace.CreateFile("First.csproj");
         var secondProject = workspace.CreateFile("Second.csproj");
         var document = workspace.CreateFile("Program.cs");
-        var loadedProjects = new ConcurrentSet<string>(PathUtilities.Comparer);
+        var loadedProjects = new ConcurrentSet<string>(StringComparer.OrdinalIgnoreCase);
         using var loader = CreateLoader(
             workspace.Path,
             directory => [secondProject.Path, firstProject.Path],
@@ -141,12 +141,12 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             directory => [project.Path],
             projectPath =>
             {
-                if (PathUtilities.Comparer.Equals(projectPath, dependency.Path))
+                if (StringComparer.OrdinalIgnoreCase.Equals(projectPath, dependency.Path))
                     Interlocked.Increment(ref dependencyLoadCount);
 
                 return new LanguageServerProjectLoadResult(
                     LanguageServerProjectLoadStatus.Loaded,
-                    PathUtilities.Comparer.Equals(projectPath, project.Path) ? [projectId] : []);
+                    StringComparer.OrdinalIgnoreCase.Equals(projectPath, project.Path) ? [projectId] : []);
             },
             projectIds => projectIds.Contains(projectId) ? [dependency.Path] : []);
 
@@ -194,7 +194,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         var sharedDependency = workspace.CreateFile("Shared.csproj");
         var failedDependency = workspace.CreateFile("Failed.csproj");
         var document = workspace.CreateDirectory("src").CreateDirectory("nested").CreateFile("Program.cs");
-        var projectIds = ImmutableDictionary.CreateRange(PathUtilities.Comparer, new[]
+        var projectIds = ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, new[]
         {
             KeyValuePair.Create(firstProject.Path, ProjectId.CreateNewId()),
             KeyValuePair.Create(secondProject.Path, ProjectId.CreateNewId()),
@@ -205,7 +205,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             .Add(projectIds[firstProject.Path], [sharedDependency.Path])
             .Add(projectIds[secondProject.Path], [sharedDependency.Path, failedDependency.Path])
             .Add(projectIds[sharedDependency.Path], [firstProject.Path]);
-        var loadCounts = new ConcurrentDictionary<string, int>(PathUtilities.Comparer);
+        var loadCounts = new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         using var loader = CreateLoader(
             workspace.Path,
             directory => [firstProject.Path, secondProject.Path],
@@ -213,7 +213,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             {
                 loadCounts.AddOrUpdate(projectPath, 1, static (_, count) => count + 1);
                 return new LanguageServerProjectLoadResult(
-                    PathUtilities.Comparer.Equals(projectPath, failedDependency.Path)
+                    StringComparer.OrdinalIgnoreCase.Equals(projectPath, failedDependency.Path)
                         ? LanguageServerProjectLoadStatus.Failed
                         : LanguageServerProjectLoadStatus.Loaded,
                     [projectIds[projectPath]]);

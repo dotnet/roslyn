@@ -55,7 +55,7 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
     /// Absence of an entry indicates the project is not tracked, e.g. it was never loaded, or it was unloaded.
     /// <see cref="_gate"/> must be held when modifying the dictionary or objects contained in it.
     /// </summary>
-    private readonly Dictionary<string, ProjectLoadState> _loadedProjects = new(PathUtilities.Comparer);
+    private readonly Dictionary<string, ProjectLoadState> _loadedProjects = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Indicates whether loads should report UI progress to the client for this loader.

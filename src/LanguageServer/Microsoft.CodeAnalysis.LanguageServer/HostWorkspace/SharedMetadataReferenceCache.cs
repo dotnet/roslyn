@@ -173,13 +173,13 @@ internal sealed class SharedMetadataReferenceCache(int cleanupThreshold = 500)
 
         public bool Equals(CacheKey other)
             => _kind == other._kind
-                && PathUtilities.Comparer.Equals(_fullPath, other._fullPath);
+                && StringComparer.OrdinalIgnoreCase.Equals(_fullPath, other._fullPath);
 
         public override bool Equals(object? obj)
             => obj is CacheKey other && Equals(other);
 
         public override int GetHashCode()
-            => Hash.Combine((int)_kind, PathUtilities.Comparer.GetHashCode(_fullPath));
+            => Hash.Combine((int)_kind, StringComparer.OrdinalIgnoreCase.GetHashCode(_fullPath));
     }
 
     internal readonly struct TestAccessor(SharedMetadataReferenceCache cache)

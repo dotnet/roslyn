@@ -187,9 +187,9 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
         CancellationToken cancellationToken)
     {
         var pendingLoads = new List<Task<(string ProjectPath, LanguageServerProjectLoadResult Result)>>();
-        var visitedPaths = new HashSet<string>(PathUtilities.Comparer);
-        var loadedProjects = new Dictionary<string, (bool Loaded, ImmutableArray<string> References)>(PathUtilities.Comparer);
-        var projectResults = new Dictionary<string, LanguageServerProjectLoadResult>(PathUtilities.Comparer);
+        var visitedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var loadedProjects = new Dictionary<string, (bool Loaded, ImmutableArray<string> References)>(StringComparer.OrdinalIgnoreCase);
+        var projectResults = new Dictionary<string, LanguageServerProjectLoadResult>(StringComparer.OrdinalIgnoreCase);
 
         if (initialProjectResults is not null)
         {
@@ -214,8 +214,8 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
             RecordResult(projectPath, result);
         }
 
-        var completeness = ImmutableDictionary.CreateBuilder<string, bool>(PathUtilities.Comparer);
-        var loadedRoots = ImmutableHashSet.CreateBuilder<string>(PathUtilities.Comparer);
+        var completeness = ImmutableDictionary.CreateBuilder<string, bool>(StringComparer.OrdinalIgnoreCase);
+        var loadedRoots = ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var projectFilePath in projectFilePaths)
         {
             var normalizedPath = Path.GetFullPath(projectFilePath);
@@ -225,7 +225,7 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
         }
 
         var loadResult = new OnDemandProjectLoadResult(completeness.ToImmutable(), loadedRoots.ToImmutable());
-        return new(loadResult, ImmutableDictionary.CreateRange(PathUtilities.Comparer, projectResults));
+        return new(loadResult, ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, projectResults));
 
         void RecordResult(string projectPath, LanguageServerProjectLoadResult result)
         {
@@ -277,7 +277,7 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
     {
         public static ProjectClosureLoadResult Empty { get; } = new(
             OnDemandProjectLoadResult.Empty,
-            ImmutableDictionary<string, LanguageServerProjectLoadResult>.Empty.WithComparers(PathUtilities.Comparer));
+            ImmutableDictionary<string, LanguageServerProjectLoadResult>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase));
     }
 
     public void Dispose()

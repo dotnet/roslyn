@@ -23,7 +23,7 @@ internal sealed record ProjectToLoad(
     {
         public bool Equals(ProjectToLoad? x, ProjectToLoad? y)
         {
-            if (!PathUtilities.Comparer.Equals(x?.Path, y?.Path))
+            if (!StringComparer.OrdinalIgnoreCase.Equals(x?.Path, y?.Path))
                 return false;
 
             if (x?.LoadOperation is null && y?.LoadOperation is null)
@@ -36,7 +36,7 @@ internal sealed record ProjectToLoad(
         {
             return Hash.Combine(
                 obj.LoadOperation is null ? 0 : RuntimeHelpers.GetHashCode(obj.LoadOperation),
-                PathUtilities.Comparer.GetHashCode(obj.Path));
+                StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Path));
         }
     }
 }

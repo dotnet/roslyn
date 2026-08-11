@@ -21,3 +21,4 @@ M:System.Uri.#ctor(System.Uri,System.String,System.Boolean); Use Extensions.GetU
 M:System.Uri.TryCreate(System.String,System.UriKind,System.Uri@); Use Extensions.GetURI() if you have a document, or ProtocolConversions.CreateAbsoluteUri if you are sure the path is a real file path and not a generated file path
 M:System.Uri.TryCreate(System.Uri,System.String,System.Uri@); Use Extensions.GetURI() if you have a document, or ProtocolConversions.CreateAbsoluteUri if you are sure the path is a real file path and not a generated file path
 M:System.Uri.TryCreate(System.Uri,System.Uri,System.Uri@); Use Extensions.GetURI() if you have a document, or ProtocolConversions.CreateAbsoluteUri if you are sure the path is a real file path and not a generated file path
+F:Roslyn.Utilities.PathUtilities.Comparer; Use StringComparer.OrdinalIgnoreCase for path comparisons in the Language Server

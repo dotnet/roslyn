@@ -101,7 +101,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         try
         {
             var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionPath, DiagnosticReportingMode.Throw, cancellationToken);
-            solutionProjectPaths = projects.Select(static p => p.ProjectPath).ToImmutableHashSet(PathUtilities.Comparer);
+            solutionProjectPaths = projects.Select(static p => p.ProjectPath).ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
@@ -223,7 +223,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             }
         }
 
-        return references.Distinct(PathUtilities.Comparer).ToImmutableArray();
+        return references.Distinct(StringComparer.OrdinalIgnoreCase).ToImmutableArray();
     }
 
     internal ImmutableArray<string> GetSupportedProjectFileExtensions()

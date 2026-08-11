@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -14,8 +14,8 @@ internal readonly record struct OnDemandProjectLoadResult
     public ImmutableHashSet<string> LoadedProjects { get; }
 
     public static OnDemandProjectLoadResult Empty { get; } = new(
-        ImmutableDictionary<string, bool>.Empty.WithComparers(PathUtilities.Comparer),
-        ImmutableHashSet<string>.Empty.WithComparer(PathUtilities.Comparer));
+        ImmutableDictionary<string, bool>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase),
+        ImmutableHashSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase));
 
     public OnDemandProjectLoadResult(ImmutableDictionary<string, bool> projectCompleteness)
         : this(
@@ -23,7 +23,7 @@ internal readonly record struct OnDemandProjectLoadResult
             projectCompleteness
                 .Where(static pair => pair.Value)
                 .Select(static pair => pair.Key)
-                .ToImmutableHashSet(PathUtilities.Comparer))
+                .ToImmutableHashSet(StringComparer.OrdinalIgnoreCase))
     {
     }
 

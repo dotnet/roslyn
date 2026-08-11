@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.Logging.Abstractions;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -265,7 +264,7 @@ public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
         var service = CreateDiscoveryService(
             enumerateFiles: directory =>
             {
-                if (PathUtilities.Comparer.Equals(directory, childDirectory.Path))
+                if (StringComparer.OrdinalIgnoreCase.Equals(directory, childDirectory.Path))
                     throw new IOException("Expected test failure");
 
                 return EnumerateFiles(directory);
@@ -278,7 +277,7 @@ public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task WorkspaceChangesUsePlatformPathSemanticsAndCleanCachedState()
+    public async Task WorkspaceChangesUseCaseInsensitivePathsAndCleanCachedState()
     {
         var workspace = _tempRoot.CreateDirectory();
         var project = workspace.CreateFile("Project.csproj");
@@ -291,17 +290,13 @@ public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
 
         var alternateCasePath = workspace.Path.ToUpperInvariant();
         accessor.AddWorkspaceFolder(alternateCasePath);
-        Assert.Equal(PathUtilities.IsUnixLikePlatform ? 2 : 1, accessor.WorkspaceFolderCount);
+        Assert.Equal(1, accessor.WorkspaceFolderCount);
 
         accessor.RemoveWorkspaceFolder(workspace.Path);
 
-        var candidates = await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None);
-        if (PathUtilities.IsUnixLikePlatform)
-            AssertEx.Equal([project.Path], candidates);
-        else
-            Assert.Empty(candidates);
-
-        Assert.True(watcher.Contexts[0].IsDisposed);
+        Assert.Empty(await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+        Assert.Equal(0, accessor.ProjectDirectoryCount);
+        Assert.True(watcher.Contexts.Single().IsDisposed);
     }
 
     [Fact]

@@ -77,13 +77,13 @@ internal sealed class InitializeManager : IInitializeManager
         // Remove old folders
         foreach (var removedFolder in removedFolders)
         {
-            builder.Remove(removedFolder);
+            builder.Remove(removedFolder, StringComparer.OrdinalIgnoreCase);
         }
 
         // Add new folders
         foreach (var addedFolder in addedFolders)
         {
-            if (!builder.Contains(addedFolder))
+            if (builder.IndexOf(addedFolder, 0, builder.Count, StringComparer.OrdinalIgnoreCase) < 0)
             {
                 builder.Add(addedFolder);
             }

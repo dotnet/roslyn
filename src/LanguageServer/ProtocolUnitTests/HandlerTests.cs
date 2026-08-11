@@ -45,6 +45,26 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         typeof(TestFSharpOnlyNotificationHandler),
         typeof(TestConfigurableDocumentHandler));
 
+    [Fact]
+    public void UpdateWorkspaceFoldersUsesCaseInsensitivePaths()
+    {
+        var workspaceFolderUri = new DocumentUri("file:///Workspace");
+        var workspaceFolderPath = workspaceFolderUri.GetDocumentFilePathFromUri();
+        var manager = new InitializeManager();
+        manager.SetInitializeParams(new InitializeParams
+        {
+            WorkspaceFolders = [new() { DocumentUri = workspaceFolderUri, Name = "Workspace" }],
+        });
+
+        manager.UpdateWorkspaceFolders([workspaceFolderPath.ToUpperInvariant()], []);
+
+        Assert.Equal(workspaceFolderPath, Assert.Single(manager.GetRequiredWorkspaceFolderPaths()));
+
+        manager.UpdateWorkspaceFolders([], [workspaceFolderPath.ToUpperInvariant()]);
+
+        Assert.Empty(manager.GetRequiredWorkspaceFolderPaths());
+    }
+
     [Theory]
     [InlineData(false, (int)LspSolutionContextPreference.NoPreference)]
     [InlineData(true, (int)LspSolutionContextPreference.ProjectAndDependencies)]
@@ -158,7 +178,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public void Complete(string projectFilePath)
         {
             var completeness = ImmutableDictionary<string, bool>.Empty
-                .WithComparers(PathUtilities.Comparer)
+                .WithComparers(StringComparer.OrdinalIgnoreCase)
                 .Add(projectFilePath, true);
             _completion.TrySetResult(new OnDemandProjectLoadResult(completeness));
         }

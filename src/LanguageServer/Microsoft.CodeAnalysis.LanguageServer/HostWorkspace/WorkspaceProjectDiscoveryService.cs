@@ -38,8 +38,8 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
     private readonly object _gate = new();
 
     private ImmutableArray<string> _workspaceFolders;
-    private readonly Dictionary<string, ProjectDirectory> _projectDirectories = new(PathUtilities.Comparer);
-    private readonly Dictionary<string, DirectoryEnumeration> _directoryEnumerations = new(PathUtilities.Comparer);
+    private readonly Dictionary<string, ProjectDirectory> _projectDirectories = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, DirectoryEnumeration> _directoryEnumerations = new(StringComparer.OrdinalIgnoreCase);
     private IInitializeManager? _initializeManager;
     private bool _isDisposed;
 
@@ -89,7 +89,7 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
                 return;
 
             Contract.ThrowIfTrue(_workspaceFolders.IsDefault, $"{nameof(OnInitializedAsync)} must be called before adding workspace folders.");
-            if (!_workspaceFolders.Contains(workspaceFolder, PathUtilities.Comparer))
+            if (!_workspaceFolders.Contains(workspaceFolder, StringComparer.OrdinalIgnoreCase))
                 _workspaceFolders = _workspaceFolders.Add(workspaceFolder);
         }
     }
@@ -106,11 +106,11 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
                 return;
 
             Contract.ThrowIfTrue(_workspaceFolders.IsDefault, $"{nameof(OnInitializedAsync)} must be called before removing workspace folders.");
-            _workspaceFolders = _workspaceFolders.Remove(workspaceFolder, PathUtilities.Comparer);
+            _workspaceFolders = _workspaceFolders.Remove(workspaceFolder, StringComparer.OrdinalIgnoreCase);
 
             foreach (var (directory, projectDirectory) in _projectDirectories)
             {
-                if (PathUtilities.Comparer.Equals(projectDirectory.WorkspaceFolder, workspaceFolder))
+                if (StringComparer.OrdinalIgnoreCase.Equals(projectDirectory.WorkspaceFolder, workspaceFolder))
                 {
                     watchersToDispose ??= [];
                     watchersToDispose.Add(projectDirectory.Watcher);
@@ -120,7 +120,7 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
 
             foreach (var (directory, enumeration) in _directoryEnumerations)
             {
-                if (PathUtilities.Comparer.Equals(enumeration.WorkspaceFolder, workspaceFolder))
+                if (StringComparer.OrdinalIgnoreCase.Equals(enumeration.WorkspaceFolder, workspaceFolder))
                 {
                     enumerationsToAbandon ??= [];
                     enumerationsToAbandon.Add(enumeration);
@@ -166,7 +166,7 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
             if (!projects.IsEmpty)
                 return projects;
 
-            if (PathUtilities.Comparer.Equals(directory, workspaceFolder))
+            if (StringComparer.OrdinalIgnoreCase.Equals(directory, workspaceFolder))
                 break;
 
             directory = PathUtilities.GetDirectoryName(directory);
@@ -215,7 +215,7 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
         DirectoryEnumeration? enumeration;
         lock (_gate)
         {
-            if (_isDisposed || !_workspaceFolders.Contains(workspaceFolder, PathUtilities.Comparer))
+            if (_isDisposed || !_workspaceFolders.Contains(workspaceFolder, StringComparer.OrdinalIgnoreCase))
                 return [];
 
             if (_projectDirectories.TryGetValue(directory, out var cachedDirectory))
@@ -287,7 +287,7 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
 
         // Validate the enumerated snapshot. Watcher changes are merged below while atomically transitioning
         // the directory from an in-flight enumeration to either a positive cache entry or no state.
-        var projects = enumeratedProjects.Where(IsExistingSupportedProject).ToHashSet(PathUtilities.Comparer);
+        var projects = enumeratedProjects.Where(IsExistingSupportedProject).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var result = ImmutableArray<string>.Empty;
         var disposeWatcher = true;
         lock (_gate)
@@ -305,7 +305,7 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
                 result = [.. projects.Order(StringComparer.Ordinal)];
                 _directoryEnumerations.Remove(directory);
 
-                if (_isDisposed || !_workspaceFolders.Contains(enumeration.WorkspaceFolder, PathUtilities.Comparer))
+                if (_isDisposed || !_workspaceFolders.Contains(enumeration.WorkspaceFolder, StringComparer.OrdinalIgnoreCase))
                 {
                     result = [];
                 }
@@ -365,8 +365,8 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
                 // in the directory, so this stays free of blocking I/O while holding the lock.
                 var projects = projectDirectory.Projects;
                 var updatedProjects = exists
-                    ? (projects.Contains(projectFilePath, PathUtilities.Comparer) ? projects : [.. projects.Add(projectFilePath).Order(StringComparer.Ordinal)])
-                    : projects.Remove(projectFilePath, PathUtilities.Comparer);
+                    ? (projects.Contains(projectFilePath, StringComparer.OrdinalIgnoreCase) ? projects : [.. projects.Add(projectFilePath).Order(StringComparer.Ordinal)])
+                    : projects.Remove(projectFilePath, StringComparer.OrdinalIgnoreCase);
 
                 if (updatedProjects.IsEmpty)
                 {
