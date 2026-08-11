@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using CompletionResponse = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.Completion.CompletionResult>;
@@ -48,7 +47,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     private readonly IRazorFormattingService _formattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
     private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
     private readonly ITelemetryReporter _telemetryReporter = args.ExportProvider.GetExportedValue<ITelemetryReporter>();
-    private readonly IClientSettingsManager _clientSettingsManager = args.ExportProvider.GetExportedValue<IClientSettingsManager>();
 
     public ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
@@ -402,16 +400,18 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         VSInternalCompletionItem request,
+        RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => ResolveCompletionItemAsync(context, request, cancellationToken),
+            context => ResolveCompletionItemAsync(context, request, formattingOptions, cancellationToken),
             cancellationToken);
 
     private ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
         RemoteDocumentContext context,
         VSInternalCompletionItem request,
+        RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
         if (!_completionListCache.TryGetOriginalRequestData(request, out var containingCompletionList, out var originalRequestContext))
@@ -422,7 +422,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         return originalRequestContext switch
         {
-            DelegatedCompletionResolutionContext resolutionContext => ResolveCSharpCompletionItemAsync(context, request, containingCompletionList, resolutionContext, cancellationToken),
+            DelegatedCompletionResolutionContext resolutionContext => ResolveCSharpCompletionItemAsync(context, request, containingCompletionList, resolutionContext, formattingOptions, cancellationToken),
             RazorCompletionResolveContext razorResolutionContext => ResolveRazorCompletionItemAsync(context, request, razorResolutionContext, cancellationToken),
             LocalHtmlCompletionResolveContext localHtmlResolveContext => new(ResolveLocalHtmlCompletionItem(request, localHtmlResolveContext)),
             _ => LogAndReturnUnresolvedAsync(request),
@@ -469,7 +469,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return request;
     }
 
-    private async ValueTask<VSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, CancellationToken cancellationToken)
+    private async ValueTask<VSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         var oldData = request.Data;
         try
@@ -494,8 +494,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 cancellationToken).ConfigureAwait(false);
 
             var item = JsonHelpers.Convert<CompletionItem, VSInternalCompletionItem>(result).AssumeNotNull();
-
-            var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
 
             item = await DelegatedCompletionHelper.FormatCSharpCompletionItemAsync(
                 item,

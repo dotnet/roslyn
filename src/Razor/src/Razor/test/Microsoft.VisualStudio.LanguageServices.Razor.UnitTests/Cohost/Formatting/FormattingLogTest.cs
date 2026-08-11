@@ -116,7 +116,7 @@ public partial class FormattingLogTest(ITestOutputHelper testOutput) : DocumentF
         var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
         formattingService.GetTestAccessor().SetFormattingLoggerFactory(new TestFormattingLoggerFactory(TestOutputHelper));
 
-        var edits = await GetFormattingEditsAsync(document, htmlEdits, span, options.CodeBlockBraceOnNextLine, options.AttributeIndentStyle, options.InsertSpaces, options.TabSize, options.CSharpSyntaxFormattingOptions.AssumeNotNull());
+        var edits = await GetFormattingEditsAsync(document, htmlEdits, span, options.CodeBlockBraceOnNextLine, options.AttributeIndentStyle, options.InsertSpaces, options.TabSize, options.CSharpSyntaxFormattingOptions);
 
         // If we have a FinalFormattedDocument from the user, then we want this test to fail until the bug is fixed, and the output changes
         if (edits is not null && GetResource(testName, "FinalFormattedDocument.txt") is { } finalFormattedDocumentFile)

@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
@@ -22,13 +21,11 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 [method: ImportingConstructor]
 internal sealed class CSharpCodeActionResolver(
     IRazorFormattingService razorFormattingService,
-    IClientSettingsManager clientSettingsManager,
     IFilePathService filePathService,
     RemoteSnapshotManager snapshotManager,
     ILoggerFactory loggerFactory) : ICSharpCodeActionResolver
 {
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
-    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IFilePathService _filePathService = filePathService;
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpCodeActionResolver>();
@@ -38,6 +35,7 @@ internal sealed class CSharpCodeActionResolver(
     public async Task<CodeAction> ResolveAsync(
         RemoteDocumentContext documentContext,
         CodeAction codeAction,
+        RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
         if (codeAction.Edit?.DocumentChanges is null)
@@ -47,7 +45,6 @@ internal sealed class CSharpCodeActionResolver(
         }
 
         var snapshot = documentContext.Snapshot;
-        var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
 
         foreach (var textDocumentEdit in codeAction.Edit.EnumerateTextDocumentEdits())
         {
