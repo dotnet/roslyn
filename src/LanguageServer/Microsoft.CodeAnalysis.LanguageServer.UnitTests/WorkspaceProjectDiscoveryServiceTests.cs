@@ -301,6 +301,22 @@ public sealed class WorkspaceProjectDiscoveryServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ReplacingWorkspaceFolderPreservesDiscovery()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var project = workspace.CreateFile("Project.csproj");
+        var codeFile = workspace.CreateFile("Program.cs");
+        var service = CreateDiscoveryService();
+        var accessor = service.GetTestAccessor();
+        accessor.Initialize([workspace.Path]);
+
+        accessor.OnWorkspaceFoldersChanged(addedFolders: [workspace.Path], removedFolders: [workspace.Path]);
+
+        Assert.Equal(1, accessor.WorkspaceFolderCount);
+        AssertEx.Equal([project.Path], await accessor.GetCandidateProjectsAsync(codeFile.Path, CancellationToken.None));
+    }
+
+    [Fact]
     public async Task RemovingOuterWorkspacePreservesNestedWorkspaceCache()
     {
         var outerWorkspace = _tempRoot.CreateDirectory();

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -22,6 +23,9 @@ internal sealed partial class WorkspaceProjectDiscoveryService
 
         internal void RemoveWorkspaceFolder(string workspaceFolder)
             => instance.RemoveWorkspaceFolder(workspaceFolder);
+
+        internal void OnWorkspaceFoldersChanged(ImmutableArray<string> addedFolders, ImmutableArray<string> removedFolders)
+            => instance.OnWorkspaceFoldersChanged(instance, new WorkspaceFoldersChangedEventArgs(addedFolders, removedFolders));
 
         internal void NotifyProjectFileChanged(string projectFilePath)
             => instance.OnProjectFileChanged(sender: null, projectFilePath);

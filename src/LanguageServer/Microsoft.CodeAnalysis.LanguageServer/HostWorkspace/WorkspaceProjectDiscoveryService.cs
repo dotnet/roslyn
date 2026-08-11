@@ -72,11 +72,11 @@ internal sealed partial class WorkspaceProjectDiscoveryService : ILspService, IO
 
     private void OnWorkspaceFoldersChanged(object? sender, WorkspaceFoldersChangedEventArgs e)
     {
-        foreach (var addedFolder in e.AddedFolders)
-            AddWorkspaceFolder(addedFolder);
-
         foreach (var removedFolder in e.RemovedFolders)
             RemoveWorkspaceFolder(removedFolder);
+
+        foreach (var addedFolder in e.AddedFolders)
+            AddWorkspaceFolder(addedFolder);
     }
 
     private void AddWorkspaceFolder(string workspaceFolder)

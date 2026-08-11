@@ -48,7 +48,10 @@ internal sealed class ProjectFileExtensionRegistry
 
     public ImmutableArray<string> GetRegisteredProjectFileExtensions()
     {
-        return TryGetLanguageNameFromProjectPath(projectFilePath, mode, out languageName, out _);
+        using (_dataGuard.DisposableWait())
+        {
+            return [.. _extensionToLanguageMap.Keys];
+        }
     }
 
     public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName, out bool isFileBasedApp)
