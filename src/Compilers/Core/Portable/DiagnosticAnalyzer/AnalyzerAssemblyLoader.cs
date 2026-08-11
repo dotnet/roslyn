@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -459,5 +460,13 @@ namespace Microsoft.CodeAnalysis
             return new AnalyzerAssemblyLoader([.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsBasePath)]);
         }
 #endif
+
+        internal static void CleanLegacyShadowCopyDirectoryIfNeeded(string legacyShadowDirectory)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _ = Task.Run(() => ShadowCopyAnalyzerPathResolver.CleanLegacyShadowDirectory(legacyShadowDirectory));
+            }
+        }
     }
 }

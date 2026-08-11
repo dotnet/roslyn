@@ -127,25 +127,35 @@ namespace Microsoft.CodeAnalysis
             DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
         }
 
+        internal static void CleanLegacyShadowDirectory(string legacyShadowDirectory)
+        {
+            DeleteLeftoverDirectories(baseDirectory: legacyShadowDirectory, shadowDirectory: legacyShadowDirectory, cacheDirectory: null);
+        }
+
         private void DeleteLeftoverDirectories()
         {
-            if (!s_directoryCleanupStates.TryAdd(BaseDirectory, DirectoryCleanupState.InProgress))
+            DeleteLeftoverDirectories(BaseDirectory, ShadowDirectory, CacheDirectory);
+        }
+
+        private static void DeleteLeftoverDirectories(string baseDirectory, string shadowDirectory, string? cacheDirectory)
+        {
+            if (!s_directoryCleanupStates.TryAdd(baseDirectory, DirectoryCleanupState.InProgress))
             {
                 // Someone else is already cleaning up this directory. Wait until it's completed
-                SpinWait.SpinUntil(() => s_directoryCleanupStates[BaseDirectory] == DirectoryCleanupState.Completed, millisecondsTimeout: -1);
+                SpinWait.SpinUntil(() => s_directoryCleanupStates[baseDirectory] == DirectoryCleanupState.Completed, millisecondsTimeout: -1);
                 return;
             }
 
             try
             {
                 // Avoid first chance exception
-                if (!Directory.Exists(ShadowDirectory))
+                if (!Directory.Exists(shadowDirectory))
                     return;
 
                 IEnumerable<string> subDirectories;
                 try
                 {
-                    subDirectories = Directory.EnumerateDirectories(ShadowDirectory);
+                    subDirectories = Directory.EnumerateDirectories(shadowDirectory);
                 }
                 catch (DirectoryNotFoundException)
                 {
@@ -212,16 +222,16 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
-                s_directoryCleanupStates[BaseDirectory] = DirectoryCleanupState.Completed;
+                s_directoryCleanupStates[baseDirectory] = DirectoryCleanupState.Completed;
             }
 
             void pruneCacheIfNeeded()
             {
                 // Avoid first chance exception
-                if (!Directory.Exists(CacheDirectory))
+                if (!Directory.Exists(cacheDirectory))
                     return;
 
-                using var cacheMutex = new Mutex(initiallyOwned: false, name: $"RoslynShadowCopyCache-{HashToHex(CacheDirectory)}");
+                using var cacheMutex = new Mutex(initiallyOwned: false, name: $"RoslynShadowCopyCache-{HashToHex(cacheDirectory)}");
                 bool lockTaken = false;
                 try
                 {
@@ -242,7 +252,7 @@ namespace Microsoft.CodeAnalysis
                         // and that a user would likely be working on several different solutions/worktrees regularly.
                         // The value can and should be adjusted in future based on empirical measurements.
                         const int maxUnlinkedCount = 200;
-                        var filesToEvict = Directory.EnumerateFiles(CacheDirectory)
+                        var filesToEvict = Directory.EnumerateFiles(cacheDirectory)
                             .Select(static file => (file, fileInformationOpt: TryGetWindowsFileInformation(file)))
                             .Where(static pair => pair.fileInformationOpt is { NumberOfLinks: 1 })
                             .OrderByDescending(static pair =>
