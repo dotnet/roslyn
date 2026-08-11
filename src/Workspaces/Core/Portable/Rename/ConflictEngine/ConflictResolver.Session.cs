@@ -324,9 +324,6 @@ internal static partial class ConflictResolver
                 {
                     foreach (var documentId in documentIdsForConflictResolution)
                     {
-                        // documentIdsForConflictResolution may contain ids for source-generated documents (for
-                        // example, a rename location that lives in Razor-generated code), so we must use the
-                        // overload that knows how to look those up instead of throwing on them.
                         var newDocument = await conflictResolution.CurrentSolution.GetRequiredDocumentAsync(
                             documentId, includeSourceGenerated: true, _cancellationToken).ConfigureAwait(false);
                         var syntaxRoot = await newDocument.GetRequiredSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
