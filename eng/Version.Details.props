@@ -20,8 +20,10 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsOptionsPackageVersion>10.0.10</MicrosoftExtensionsOptionsPackageVersion>
     <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>10.0.10</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
     <MicrosoftExtensionsPrimitivesPackageVersion>10.0.10</MicrosoftExtensionsPrimitivesPackageVersion>
+    <RoslynDiagnosticsAnalyzersPackageVersion>5.11.0-1.26411.119</RoslynDiagnosticsAnalyzersPackageVersion>
+    <SystemCodeDomPackageVersion>11.0.0-rc.1.26411.119</SystemCodeDomPackageVersion>
     <SystemCollectionsImmutablePackageVersion>10.0.10</SystemCollectionsImmutablePackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-preview.6.26324.102</SystemCommandLinePackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-rc.1.26411.119</SystemCommandLinePackageVersion>
     <SystemComponentModelCompositionPackageVersion>10.0.10</SystemComponentModelCompositionPackageVersion>
     <SystemCompositionPackageVersion>10.0.10</SystemCompositionPackageVersion>
     <SystemConfigurationConfigurationManagerPackageVersion>10.0.10</SystemConfigurationConfigurationManagerPackageVersion>
@@ -35,6 +37,7 @@ This file should be imported by eng/Versions.props
     <SystemSecurityPermissionsPackageVersion>10.0.10</SystemSecurityPermissionsPackageVersion>
     <SystemTextEncodingsWebPackageVersion>10.0.10</SystemTextEncodingsWebPackageVersion>
     <SystemTextJsonPackageVersion>10.0.10</SystemTextJsonPackageVersion>
+    <SystemThreadingChannelsPackageVersion>11.0.0-rc.1.26411.119</SystemThreadingChannelsPackageVersion>
     <SystemThreadingTasksDataflowPackageVersion>10.0.10</SystemThreadingTasksDataflowPackageVersion>
     <SystemWindowsExtensionsPackageVersion>10.0.10</SystemWindowsExtensionsPackageVersion>
     <!-- dotnet-roslyn dependencies -->
@@ -42,7 +45,6 @@ This file should be imported by eng/Versions.props
     <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.10.0-1.26365.3</MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.10.0-1.26365.3</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>5.10.0-1.26365.3</MicrosoftNetCompilersToolsetPackageVersion>
-    <RoslynDiagnosticsAnalyzersPackageVersion>5.10.0-1.26365.3</RoslynDiagnosticsAnalyzersPackageVersion>
     <!-- dotnet-symreader dependencies -->
     <MicrosoftDiaSymReaderPackageVersion>2.2.10</MicrosoftDiaSymReaderPackageVersion>
   </PropertyGroup>
@@ -63,6 +65,8 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsOptionsVersion>$(MicrosoftExtensionsOptionsPackageVersion)</MicrosoftExtensionsOptionsVersion>
     <MicrosoftExtensionsOptionsConfigurationExtensionVersion>$(MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion)</MicrosoftExtensionsOptionsConfigurationExtensionVersion>
     <MicrosoftExtensionsPrimitivesVersion>$(MicrosoftExtensionsPrimitivesPackageVersion)</MicrosoftExtensionsPrimitivesVersion>
+    <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsAnalyzersPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
+    <SystemCodeDomVersion>$(SystemCodeDomPackageVersion)</SystemCodeDomVersion>
     <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutablePackageVersion)</SystemCollectionsImmutableVersion>
     <SystemCommandLineVersion>$(SystemCommandLinePackageVersion)</SystemCommandLineVersion>
     <SystemComponentModelCompositionVersion>$(SystemComponentModelCompositionPackageVersion)</SystemComponentModelCompositionVersion>
@@ -78,6 +82,7 @@ This file should be imported by eng/Versions.props
     <SystemSecurityPermissionsVersion>$(SystemSecurityPermissionsPackageVersion)</SystemSecurityPermissionsVersion>
     <SystemTextEncodingsWebVersion>$(SystemTextEncodingsWebPackageVersion)</SystemTextEncodingsWebVersion>
     <SystemTextJsonVersion>$(SystemTextJsonPackageVersion)</SystemTextJsonVersion>
+    <SystemThreadingChannelsVersion>$(SystemThreadingChannelsPackageVersion)</SystemThreadingChannelsVersion>
     <SystemThreadingTasksDataflowVersion>$(SystemThreadingTasksDataflowPackageVersion)</SystemThreadingTasksDataflowVersion>
     <SystemWindowsExtensionsVersion>$(SystemWindowsExtensionsPackageVersion)</SystemWindowsExtensionsVersion>
     <!-- dotnet-roslyn dependencies -->
@@ -85,7 +90,6 @@ This file should be imported by eng/Versions.props
     <MicrosoftCodeAnalysisAnalyzersVersion>$(MicrosoftCodeAnalysisAnalyzersPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>$(MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion)</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftNetCompilersToolsetVersion>$(MicrosoftNetCompilersToolsetPackageVersion)</MicrosoftNetCompilersToolsetVersion>
-    <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsAnalyzersPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <!-- dotnet-symreader dependencies -->
     <MicrosoftDiaSymReaderVersion>$(MicrosoftDiaSymReaderPackageVersion)</MicrosoftDiaSymReaderVersion>
   </PropertyGroup>
