@@ -110,26 +110,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string.Equals(parameterValue, "!on", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(parameterValue, "!yes", StringComparison.OrdinalIgnoreCase);
 
-        internal static string GetFullPathNoThrow(string path)
-        {
-            try
-            {
-                path = Path.GetFullPath(path);
-            }
-            catch (Exception e) when (IsIoRelatedException(e)) { }
-            return path;
-        }
-
-        internal static string GetFullPathNoThrow(string path, TaskEnvironment taskEnvironment)
-        {
-            try
-            {
-                path = taskEnvironment.GetFullPath(path);
-            }
-            catch (Exception e) when (IsIoRelatedException(e)) { }
-            return path;
-        }
-
         internal static bool TryCombine(string path1, string path2, [NotNullWhen(returnValue: true)] out string? combined)
         {
             try
@@ -172,5 +152,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args));
         }
+
     }
 }

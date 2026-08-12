@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var requestId = getRequestId();
                 logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
 
-                string? tempDirectory = Path.GetTempPath();
+                string? tempDirectory = TaskEnvironment.GetTempPath();
 
                 if (!UseSharedCompilation ||
                     !UsingBuiltinTool ||
@@ -1106,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             foreach (var item in taskItems)
             {
-                item.ItemSpec = Utilities.GetFullPathNoThrow(item.ItemSpec, TaskEnvironment);
+                item.ItemSpec = TaskEnvironment.GetFullPathNoThrow(item.ItemSpec);
             }
         }
 
@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 var itemSpec = reference.ItemSpec;
 
-                if (string.IsNullOrEmpty(itemSpec) || !File.Exists(Utilities.GetFullPathNoThrow(itemSpec, TaskEnvironment)))
+                if (string.IsNullOrEmpty(itemSpec) || !File.Exists(TaskEnvironment.GetFullPathNoThrow(itemSpec)))
                 {
                     success = false;
                     Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", itemSpec);

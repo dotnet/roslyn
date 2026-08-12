@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             if (RuntimeHostInfo.ShouldDisableTieredCompilation &&
-                this.TaskEnvironment.GetEnvironmentVariable(RuntimeHostInfo.DotNetTieredCompilationEnvironmentName) == null)
+                TaskEnvironment.GetEnvironmentVariable(RuntimeHostInfo.DotNetTieredCompilationEnvironmentName) == null)
             {
                 var value = "0";
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetTieredCompilationEnvironmentName, value);

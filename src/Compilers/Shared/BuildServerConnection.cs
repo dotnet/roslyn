@@ -844,7 +844,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static string GetMutexDirectory()
         {
+            // This is a Mono only code path and it will be deleted when we move to the 
+            // .NET 11 tree
+#pragma warning disable RS0030 // Do not use banned APIs
             var tempPath = Path.GetTempPath();
+#pragma warning restore RS0030 // Do not use banned APIs
             var result = Path.Combine(tempPath, ".roslyn");
             Directory.CreateDirectory(result);
             return result;

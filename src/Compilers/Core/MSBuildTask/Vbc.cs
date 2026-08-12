@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (!SkipCompilerExecution)
             {
-                MovePdbFileIfNecessary(OutputAssembly?.ItemSpec);
+                MovePdbFileIfNecessary();
             }
 
             return !Log.HasLoggedErrors;
@@ -292,10 +292,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// 
         /// If at some future point VBC.exe offers a /pdbfile switch, this function can be removed.
         /// </summary>
-        internal void MovePdbFileIfNecessary(string? outputAssembly)
+        internal void MovePdbFileIfNecessary()
         {
-            // Get the name of the output assembly because the pdb will be written beside it and will have the same name
-            if (RoslynString.IsNullOrEmpty(PdbFile) || String.IsNullOrEmpty(outputAssembly))
+            // Get the name of the output assemf bly because the pdb will be written beside it and will have the same name
+            if (string.IsNullOrEmpty(PdbFile) ||
+                string.IsNullOrEmpty(OutputAssembly?.ItemSpec) ||
+                TaskEnvironment.GetFullPathNoThrow(OutputAssembly!.ItemSpec) is not string outputAssembly)
             {
                 return;
             }

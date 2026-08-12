@@ -6,3 +6,6 @@ M:System.Environment.GetFolderPath();
 M:System.Environment.GetLogicalDrives();
 M:System.Environment.SetEnvironmentVariable();
 M:System.IO.Directory.GetCurrentDirectory();
+M:System.IO.Path.GetTempPath();
+M:System.IO.Path.GetFullPath(System.String);
+M:System.IO.Path.GetFullPath(System.String, System.String);
