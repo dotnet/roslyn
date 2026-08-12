@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // When adding new fields/properties, you should update
         // Equals, GetHashCode, CSharpDeterministicKeyBuilder, and the following tests:
         // - CSharpCompilationOptionsTests.TestFieldsForEqualsAndGetHashCode
+        // - CSharpCompilationOptionsTests.Invariants
         // - CSharpDeterministicKeyBuilderTests.CSharpCompilationOptionsCombination
         // - CSharpDeterministicKeyBuilderTests.VerifyUpToDate
 
@@ -33,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public bool AllowUnsafe { get; private set; }
 
-        // https://github.com/dotnet/roslyn/issues/82546: public API
-        internal int MemorySafetyRules { get; private set; }
+        [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
+        public MemorySafetyRulesVersion MemorySafetyRulesVersion { get; private set; }
 
         /// <summary>
         /// Global namespace usings.
@@ -51,6 +53,58 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global Nullable context options.
         /// </summary>
         public override NullableContextOptions NullableContextOptions { get; protected set; }
+
+        // https://github.com/dotnet/roslyn/issues/82789: add this overload and turn the below one into non-optional back-compat overload
+        // public CSharpCompilationOptions(
+        //     OutputKind outputKind,
+        //     bool reportSuppressedDiagnostics = false,
+        //     string? moduleName = null,
+        //     string? mainTypeName = null,
+        //     string? scriptClassName = null,
+        //     IEnumerable<string>? usings = null,
+        //     OptimizationLevel optimizationLevel = OptimizationLevel.Debug,
+        //     bool checkOverflow = false,
+        //     bool allowUnsafe = false,
+        //     string? cryptoKeyContainer = null,
+        //     string? cryptoKeyFile = null,
+        //     ImmutableArray<byte> cryptoPublicKey = default,
+        //     bool? delaySign = null,
+        //     Platform platform = Platform.AnyCpu,
+        //     ReportDiagnostic generalDiagnosticOption = ReportDiagnostic.Default,
+        //     int warningLevel = Diagnostic.DefaultWarningLevel,
+        //     IEnumerable<KeyValuePair<string, ReportDiagnostic>>? specificDiagnosticOptions = null,
+        //     bool concurrentBuild = true,
+        //     bool deterministic = false,
+        //     XmlReferenceResolver? xmlReferenceResolver = null,
+        //     SourceReferenceResolver? sourceReferenceResolver = null,
+        //     MetadataReferenceResolver? metadataReferenceResolver = null,
+        //     AssemblyIdentityComparer? assemblyIdentityComparer = null,
+        //     StrongNameProvider? strongNameProvider = null,
+        //     bool publicSign = false,
+        //     MetadataImportOptions metadataImportOptions = MetadataImportOptions.Public,
+        //     NullableContextOptions nullableContextOptions = NullableContextOptions.Disable,
+        //     MemorySafetyRulesVersion memorySafetyRulesVersion = MemorySafetyRulesVersion.Version0)
+        //     : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
+        //            usings, optimizationLevel, checkOverflow, allowUnsafe,
+        //            cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
+        //            generalDiagnosticOption, warningLevel,
+        //            specificDiagnosticOptions, concurrentBuild, deterministic,
+        //            currentLocalTime: default,
+        //            debugPlusMode: false,
+        //            xmlReferenceResolver: xmlReferenceResolver,
+        //            sourceReferenceResolver: sourceReferenceResolver,
+        //            syntaxTreeOptionsProvider: null,
+        //            metadataReferenceResolver: metadataReferenceResolver,
+        //            assemblyIdentityComparer: assemblyIdentityComparer,
+        //            strongNameProvider: strongNameProvider,
+        //            metadataImportOptions: metadataImportOptions,
+        //            referencesSupersedeLowerVersions: false,
+        //            publicSign: publicSign,
+        //            topLevelBinderFlags: BinderFlags.None,
+        //            nullableContextOptions: nullableContextOptions,
+        //            memorySafetyRulesVersion: memorySafetyRulesVersion)
+        // {
+        // }
 
         // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
@@ -99,7 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: publicSign,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: nullableContextOptions)
+                   nullableContextOptions: nullableContextOptions,
+                   memorySafetyRulesVersion: MemorySafetyRulesVersion.Version0)
         {
         }
 
@@ -223,7 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool referencesSupersedeLowerVersions,
             bool publicSign,
             BinderFlags topLevelBinderFlags,
-            NullableContextOptions nullableContextOptions)
+            NullableContextOptions nullableContextOptions,
+            MemorySafetyRulesVersion memorySafetyRulesVersion)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
@@ -235,6 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.AllowUnsafe = allowUnsafe;
             this.TopLevelBinderFlags = topLevelBinderFlags;
             this.NullableContextOptions = nullableContextOptions;
+            this.MemorySafetyRulesVersion = memorySafetyRulesVersion;
         }
 
         private CSharpCompilationOptions(CSharpCompilationOptions other) : this(
@@ -269,10 +326,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics,
             publicSign: other.PublicSign,
             topLevelBinderFlags: other.TopLevelBinderFlags,
-            nullableContextOptions: other.NullableContextOptions)
+            nullableContextOptions: other.NullableContextOptions,
+            memorySafetyRulesVersion: other.MemorySafetyRulesVersion)
         {
-            // https://github.com/dotnet/roslyn/issues/82546: should be in the constructor
-            MemorySafetyRules = other.MemorySafetyRules;
         }
 
         public override string Language => LanguageNames.CSharp;
@@ -431,24 +487,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { AllowUnsafe = enabled };
         }
 
-        // https://github.com/dotnet/roslyn/issues/82546: public API
-        internal CSharpCompilationOptions WithMemorySafetyRules(int version)
+        [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
+        public CSharpCompilationOptions WithMemorySafetyRulesVersion(MemorySafetyRulesVersion version)
         {
-            if (version == this.MemorySafetyRules)
+            if (version == this.MemorySafetyRulesVersion)
             {
                 return this;
             }
 
-            return new CSharpCompilationOptions(this) { MemorySafetyRules = version };
+            return new CSharpCompilationOptions(this) { MemorySafetyRulesVersion = version };
         }
 
-        // https://github.com/dotnet/roslyn/issues/82546: determine what the "updated" number should be
-        internal const int UpdatedMemorySafetyRulesVersion = 2;
-
         internal CSharpCompilationOptions WithUpdatedMemorySafetyRules(bool enabled = true)
-            => WithMemorySafetyRules(enabled ? UpdatedMemorySafetyRulesVersion : 0);
+            => WithMemorySafetyRulesVersion(enabled ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version0);
 
-        internal bool UseUpdatedMemorySafetyRules => MemorySafetyRules >= UpdatedMemorySafetyRulesVersion;
+        internal bool UseUpdatedMemorySafetyRules => MemorySafetyRulesVersion == MemorySafetyRulesVersion.Version2;
 
         public new CSharpCompilationOptions WithPlatform(Platform platform)
         {
@@ -752,7 +805,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(MetadataImportOptions), MetadataImportOptions.ToString()));
             }
 
-            // https://github.com/dotnet/roslyn/issues/82546: validate the value of MemorySafetyRules?
+            if (MemorySafetyRulesVersion is not (MemorySafetyRulesVersion.Version0 or MemorySafetyRulesVersion.Version2))
+            {
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValueAccepted, nameof(MemorySafetyRules), MemorySafetyRulesVersion, string.Join(", ", [(int)MemorySafetyRulesVersion.Version0, (int)MemorySafetyRulesVersion.Version2])));
+            }
 
             // TODO: add check for 
             //          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
@@ -772,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return this.AllowUnsafe == other.AllowUnsafe &&
-                   this.MemorySafetyRules == other.MemorySafetyRules &&
+                   this.MemorySafetyRulesVersion == other.MemorySafetyRulesVersion &&
                    this.TopLevelBinderFlags == other.TopLevelBinderFlags &&
                    (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal) &&
                    this.NullableContextOptions == other.NullableContextOptions);
@@ -786,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override int ComputeHashCode()
         {
             return Hash.Combine(GetHashCodeHelper(),
-                   Hash.Combine(this.MemorySafetyRules,
+                   Hash.Combine((int)this.MemorySafetyRulesVersion,
                    Hash.Combine(this.AllowUnsafe,
                    Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal),
                    Hash.Combine(((uint)TopLevelBinderFlags).GetHashCode(), ((int)this.NullableContextOptions).GetHashCode())))));
@@ -970,7 +1026,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: false,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: NullableContextOptions.Disable)
+                   nullableContextOptions: NullableContextOptions.Disable,
+                   memorySafetyRulesVersion: MemorySafetyRulesVersion.Version0)
         {
         }
     }

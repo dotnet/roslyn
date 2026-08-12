@@ -6,6 +6,7 @@ Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypes.get -> System.Co
 Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.IsComplete.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.GetClosedDerivedTypeInfo(System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
 Microsoft.CodeAnalysis.ITypeSymbol.IsClosed.get -> bool
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.IModuleSymbol.MemorySafetyRulesVersion.get -> Microsoft.CodeAnalysis.MemorySafetyRulesVersion
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ISymbol.RequiresUnsafeContext.get -> bool
 Microsoft.CodeAnalysis.OperationKind.CollectionExpressionElementsPlaceholder = 129 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
@@ -18,6 +19,9 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.TryGetValueMethodName = "TryGe
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsUnion.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsUnion.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.UnionCaseTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol!>
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.MemorySafetyRulesVersion
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version0 = 0 -> Microsoft.CodeAnalysis.MemorySafetyRulesVersion
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version2 = 2 -> Microsoft.CodeAnalysis.MemorySafetyRulesVersion
 [RSEXPERIMENTAL007]Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterPreCompilationSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.PreCompilationSourceProductionContext, TSource>! action) -> void
 [RSEXPERIMENTAL007]Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterPreCompilationSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.PreCompilationSourceProductionContext, TSource>! action) -> void
 [RSEXPERIMENTAL007]Microsoft.CodeAnalysis.PreCompilationSourceProductionContext

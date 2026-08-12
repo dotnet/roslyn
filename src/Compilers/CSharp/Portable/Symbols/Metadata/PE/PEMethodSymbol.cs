@@ -1545,12 +1545,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 if (diagnosticInfo == null &&
-                    _containingType.ContainingPEModule.MemorySafetyRulesVersion == PEModuleSymbol.MemorySafetyRulesAttributeVersion.UnrecognizedAttribute)
+                    _containingType.ContainingPEModule.MemorySafetyRulesVersionFromAttribute == PEModuleSymbol.MemorySafetyRulesAttributeVersion.UnrecognizedAttribute)
                 {
                     diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_UnrecognizedAttributeVersion,
                         this,
                         WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute),
-                        CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion.ToString(CultureInfo.InvariantCulture));
+                        ((int)MemorySafetyRulesVersion.Version2).ToString(CultureInfo.InvariantCulture));
                 }
 
                 if (diagnosticInfo == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)

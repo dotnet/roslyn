@@ -310,6 +310,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IModuleSymbol_MemorySafetyRulesVersion As MemorySafetyRulesVersion Implements IModuleSymbol.MemorySafetyRulesVersion
+            Get
+                Return MemorySafetyRulesVersion.Version0
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitModule(Me)
         End Sub

@@ -274,20 +274,20 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [CombinatorialData]
         public void CSharpCompilationOptionsCombination(
             bool @unsafe,
-            [CombinatorialValues(0, 2)] int memorySafetyRules,
+            MemorySafetyRulesVersion memorySafetyRulesVersion,
             NullableContextOptions nullableContextOptions)
         {
             foreach (BinderFlags binderFlags in Enum.GetValues(typeof(BinderFlags)))
             {
                 var options = Options
                     .WithAllowUnsafe(@unsafe)
-                    .WithMemorySafetyRules(memorySafetyRules)
+                    .WithMemorySafetyRulesVersion(memorySafetyRulesVersion)
                     .WithTopLevelBinderFlags(binderFlags)
                     .WithNullableContextOptions(nullableContextOptions);
 
                 var value = GetCompilationOptionsValue(options);
                 Assert.Equal(@unsafe, value.Value<bool>("unsafe"));
-                Assert.Equal(memorySafetyRules, value.Value<int>("memorySafetyRules"));
+                Assert.Equal(memorySafetyRulesVersion, value.Value<MemorySafetyRulesVersion>("memorySafetyRulesVersion"));
                 Assert.Equal(binderFlags.ToString(), value.Value<string>("topLevelBinderFlags"));
                 Assert.Equal(nullableContextOptions.ToString(), value.Value<string>("nullableContextOptions"));
             }
