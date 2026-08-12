@@ -2519,7 +2519,7 @@
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
         <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="translated">Der Modifizierer „sicher“ darf nur für Member verwendet werden, die nicht als „unsicher“ markiert sind und entweder „extern“ oder in Typen mit explizitem oder erweitertem Layout feldähnlich sind.</target>
+        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
@@ -2944,7 +2944,7 @@
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern">
         <source>The pattern is redundant.</source>
-        <target state="translated">Das Muster ist redundant.</target>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
@@ -2959,7 +2959,7 @@
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern_Title">
         <source>The pattern is redundant.</source>
-        <target state="translated">Das Muster ist redundant.</target>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
