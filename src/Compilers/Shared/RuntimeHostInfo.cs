@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static IEnumerable<string> SplitPath(string path)
         {
-            var separator = PlatformInformation.IsWindows ? ';' : ':';
+            char[] separator = PlatformInformation.IsWindows ? [';'] : [':'];
             foreach (var item in path.Split(separator, StringSplitOptions.RemoveEmptyEntries))
             {
                 if (Path.IsPathFullyQualified(item))
