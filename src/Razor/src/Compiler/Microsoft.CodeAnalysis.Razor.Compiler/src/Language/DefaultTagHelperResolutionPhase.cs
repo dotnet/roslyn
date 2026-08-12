@@ -537,11 +537,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             if (child is UnresolvedElementIntermediateNode unresolvedElement)
             {
                 var childTagName = unresolvedElement.TagName;
-                if (unresolvedElement.IsEscaped)
-                {
-                    childTagName = "!" + childTagName;
-                }
-                else if (prefix != null &&
+                if (prefix != null &&
                     childTagName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
                     binder.GetBinding(
                         childTagName,

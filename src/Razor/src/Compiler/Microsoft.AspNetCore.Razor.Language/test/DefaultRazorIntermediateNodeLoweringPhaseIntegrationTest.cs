@@ -385,6 +385,64 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
     }
 
     [Fact]
+    public void Lower_TagHelperWithAllowedChildren_AllowsEscapedAllowedChild()
+    {
+        // Arrange
+        var contactListTagHelper = CreateTagHelperDescriptorWithAllowedChild(
+            tagName: "my-contact-list",
+            typeName: "ContactListTagHelper",
+            assemblyName: "TestAssembly",
+            allowedChildTag: "my-contact");
+
+        var codeDocument = ProjectEngine.CreateCodeDocument(
+            """
+            @addTagHelper *, TestAssembly
+            <my-contact-list>
+                <!my-contact></!my-contact>
+            </my-contact-list>
+            """,
+            [contactListTagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        var documentNode = processor.GetDocumentNode();
+
+        // Assert
+        Assert.Empty(documentNode.GetAllDiagnostics());
+    }
+
+    [Fact]
+    public void Lower_TagHelperWithAllowedChildren_ReportsEscapedDisallowedChild()
+    {
+        // Arrange
+        var contactListTagHelper = CreateTagHelperDescriptorWithAllowedChild(
+            tagName: "my-contact-list",
+            typeName: "ContactListTagHelper",
+            assemblyName: "TestAssembly",
+            allowedChildTag: "my-contact");
+
+        var codeDocument = ProjectEngine.CreateCodeDocument(
+            """
+            @addTagHelper *, TestAssembly
+            <my-contact-list>
+                <!div></!div>
+            </my-contact-list>
+            """,
+            [contactListTagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        var documentNode = processor.GetDocumentNode();
+
+        // Assert
+        var diagnostic = Assert.Single(documentNode.GetAllDiagnostics());
+        Assert.Equal("RZ2010", diagnostic.Id);
+        Assert.Contains("<div>", diagnostic.GetMessage());
+    }
+
+    [Fact]
     public void Lower_TagHelperWithAllowedChildren_ReportsNonTagContent()
     {
         // Arrange
