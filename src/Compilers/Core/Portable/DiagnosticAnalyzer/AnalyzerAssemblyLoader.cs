@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                ShadowCopyAnalyzerPathResolver.CleanLegacyShadowDirectory(legacyShadowDirectory);
+                _ = ShadowCopyAnalyzerPathResolver.CleanLegacyShadowDirectoryAsync(legacyShadowDirectory);
             }
         }
     }

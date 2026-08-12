@@ -131,12 +131,20 @@ namespace Microsoft.CodeAnalysis
             DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
         }
 
-        internal static void CleanLegacyShadowDirectory(string legacyShadowDirectory)
+        internal static Task CleanLegacyShadowDirectoryAsync(string legacyShadowDirectory)
         {
             if (Directory.Exists(legacyShadowDirectory))
             {
-                Task.Run(() => DeleteLeftoverDirectories(baseDirectory: legacyShadowDirectory, shadowDirectory: legacyShadowDirectory, cacheDirectory: null));
+                return Task.Run(() =>
+                {
+                    DeleteLeftoverDirectories(baseDirectory: legacyShadowDirectory, shadowDirectory: legacyShadowDirectory, cacheDirectory: null);
+                    // Delete the legacyShadowDirectory if empty, otherwise do nothing.
+                    try { Directory.Delete(legacyShadowDirectory, recursive: false); }
+                    catch { }
+                });
             }
+
+            return Task.CompletedTask;
         }
 
         private void DeleteLeftoverDirectories()
