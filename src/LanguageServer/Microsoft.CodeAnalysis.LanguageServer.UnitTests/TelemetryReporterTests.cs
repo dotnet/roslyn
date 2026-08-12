@@ -65,6 +65,22 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
         Assert.False(string.IsNullOrWhiteSpace(settings["CollectorApiKey"]!.GetValue<string>()));
     }
 
+    [Theory]
+    [InlineData("all", true)]
+    [InlineData("off", false)]
+    [InlineData("error", false)]
+    [InlineData("crash", false)]
+    [InlineData("ALL", false)]
+    [InlineData("OFF", false)]
+    [InlineData("", false)]
+    [InlineData(" ", false)]
+    [InlineData("invalid", false)]
+    [InlineData(null, false)]
+    public void TestCopilotCliTelemetryLevelFailsClosed(string? telemetryLevel, bool expected)
+    {
+        Assert.Equal(expected, LanguageServerTelemetryReporter.IsCopilotCliTelemetryEnabled(telemetryLevel));
+    }
+
     [Fact]
     public void TestDevKitSessionPreservesVSCodeSettings()
     {

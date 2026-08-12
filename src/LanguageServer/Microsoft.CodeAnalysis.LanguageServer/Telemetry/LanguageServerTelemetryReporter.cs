@@ -39,6 +39,8 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
         Debug.Assert(_telemetrySession is null);
 
         var useDevKitTelemetry = _serverConfiguration.DevKitDependencyPath is not null;
+        Debug.Assert(useDevKitTelemetry || _serverConfiguration.IsCopilotCli);
+
         var session = useDevKitTelemetry
             ? new TelemetrySession(CreateDevKitSessionSettings(telemetryLevel, sessionId))
             : VisualStudio.Telemetry.TelemetryService.DefaultSession;
@@ -46,7 +48,12 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
         if (!useDevKitTelemetry)
         {
             // The keyless VS default session is opted out until the standalone host supplies consent.
-            session.IsOptedIn = telemetryLevel != "off";
+            session.IsOptedIn = IsCopilotCliTelemetryEnabled(telemetryLevel);
+
+            if (telemetryLevel is not ("all" or "off"))
+            {
+                _logger.LogWarning("Unsupported Copilot CLI telemetry level. Telemetry will remain disabled.");
+            }
         }
 
         if (isDefaultSession && useDevKitTelemetry)
@@ -70,6 +77,9 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
         FaultReporter.IncludeServiceHubLogFiles = false;
         FaultReporter.RegisterTelemetrySesssion(session);
     }
+
+    internal static bool IsCopilotCliTelemetryEnabled(string? telemetryLevel)
+        => telemetryLevel == "all";
 
     public void Log(string name, List<KeyValuePair<string, object?>> properties)
     {

@@ -563,6 +563,15 @@ public partial class AbstractLanguageServerClientTests
             processStartInfo.ArgumentList.Add(Guid.NewGuid().ToString());
         }
 
+        if (launchOptions.CopilotTelemetryLevel is { } copilotTelemetryLevel)
+        {
+            processStartInfo.Environment[LanguageServerCommandLine.CopilotTelemetryLevelEnvironmentVariable] = copilotTelemetryLevel;
+        }
+        else
+        {
+            processStartInfo.Environment.Remove(LanguageServerCommandLine.CopilotTelemetryLevelEnvironmentVariable);
+        }
+
         if (launchOptions.AutoLoadProjects)
         {
             processStartInfo.ArgumentList.Add("--autoLoadProjects");

@@ -128,8 +128,9 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
     }
 
-    // Initialize the fault handler if it's available
-    var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
+    var telemetryReporter = serverConfiguration.DevKitDependencyPath is not null || serverConfiguration.IsCopilotCli
+        ? exportProvider.GetExportedValue<ITelemetryReporter>()
+        : null;
     RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
 
     // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields

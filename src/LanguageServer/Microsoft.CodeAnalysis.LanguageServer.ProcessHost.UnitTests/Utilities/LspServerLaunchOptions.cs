@@ -11,6 +11,7 @@ internal sealed record LspServerLaunchOptions
     public bool AutoLoadProjects { get; init; }
     public bool IncludeDevKitComponents { get; init; }
     public bool DebugLsp { get; init; }
+    public string? CopilotTelemetryLevel { get; init; }
     public string? TelemetryLevel { get; init; }
 
     /// <summary>

@@ -44,6 +44,7 @@ internal sealed class ServerConfigurationFactory
 internal sealed record class ServerConfiguration(
     bool LaunchDebugger,
     LogLevel InitialLogLevel,
+    bool IsCopilotCli,
     string? TelemetryLevel,
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,

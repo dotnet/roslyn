@@ -18,10 +18,8 @@ Roslyn uses a **layered service architecture** built on MEF (Managed Extensibili
 
 ### Language Server Telemetry
 
-- `src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Telemetry/LanguageServerTelemetryReporter.cs` owns the server process's VsTelemetryApi session.
-- Standalone hosts use `TelemetryService.DefaultSession`, which routes to the VS Raw pipeline; C# Dev Kit configurations preserve the VS Code collector session.
-- The reporter is process-scoped and is initialized/disposed by `Program.cs` through `RoslynLogger`. Keep telemetry failures isolated from LSP request handling.
-- The shared Visual Studio telemetry aggregation and fault-reporting sources are linked into the language-server project so the standalone published output contains the complete telemetry implementation.
+- `LanguageServerTelemetryReporter` owns server telemetry. Dev Kit uses its existing VS Code collector; Copilot CLI uses the VS default telemetry session.
+- `COPILOT_TELEMETRY_LEVEL` identifies Copilot CLI and controls its telemetry consent. Only `all` enables telemetry.
 
 ### Service Resolution
 ```csharp
