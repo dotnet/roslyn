@@ -52,6 +52,7 @@ internal partial class GitHub : IRepositoryHost
         // Exclude commits from bots
         if (commit.Author is "dotnet-maestro[bot]"
             or "dotnet-policy-service[bot]"
+            or "dotnet-oneloc-localization[bot]"
             or "dotnet-bot")
         {
             mergePRFound = true;
