@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 return Task.CompletedTask;
             }
 
-            private async Task<Document> CreateChangedDocument(
+            private static async Task<Document> CreateChangedDocument(
                 Document document,
                 TextSpan sourceSpan,
                 CancellationToken cancellationToken)
