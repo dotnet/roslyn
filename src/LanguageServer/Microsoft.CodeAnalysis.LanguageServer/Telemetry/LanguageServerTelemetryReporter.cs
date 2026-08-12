@@ -102,8 +102,8 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
 
         s_pendingScopes[blockId] = kind switch
         {
-            0 => _telemetrySession.StartOperation(eventName),
-            1 => _telemetrySession.StartUserTask(eventName),
+            0 => _telemetrySession.StartOperation(eventName), // LogType.Trace
+            1 => _telemetrySession.StartUserTask(eventName),  // LogType.UserAction
             _ => new InvalidOperationException($"Unknown BlockStart kind: {kind}")
         };
     }
@@ -130,6 +130,7 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
 
     public void Dispose()
     {
+        // Ensure that we flush any pending telemetry *before* we dispose of the telemetry session.
         TelemetryLogging.Flush();
 
         if (_telemetrySession is { } session)
