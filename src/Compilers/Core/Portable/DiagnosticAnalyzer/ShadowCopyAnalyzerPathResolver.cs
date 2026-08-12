@@ -133,7 +133,10 @@ namespace Microsoft.CodeAnalysis
 
         internal static void CleanLegacyShadowDirectory(string legacyShadowDirectory)
         {
-            DeleteLeftoverDirectories(baseDirectory: legacyShadowDirectory, shadowDirectory: legacyShadowDirectory, cacheDirectory: null);
+            if (Directory.Exists(legacyShadowDirectory))
+            {
+                Task.Run(() => DeleteLeftoverDirectories(baseDirectory: legacyShadowDirectory, shadowDirectory: legacyShadowDirectory, cacheDirectory: null));
+            }
         }
 
         private void DeleteLeftoverDirectories()
