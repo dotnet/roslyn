@@ -52,6 +52,11 @@ parameters:
   type: boolean
   default: false
 
+- name: PublishPrereleaseRoslynLspWhatIf
+  displayName: WhatIf Publish Prerelease Roslyn LSP
+  type: boolean
+  default: true
+
 # An optional VS commit SHA that will be automatically cherry-picked
 # to the insertion PR created by this build.
 - name: VisualStudioCherryPickSHA
@@ -426,6 +431,57 @@ extends:
           pool:
             name: $(DncEngInternalBuildPool)
             demands: ImageOverride -equals windows.vs2022.amd64
+
+    - stage: publish_prerelease_roslyn_lsp
+      displayName: Publish Prerelease Roslyn LSP
+      trigger: manual
+
+      jobs:
+      - deployment: publish_prerelease_roslyn_lsp
+        displayName: Publish Prerelease Roslyn LSP
+        environment: roslyn-nuget-publishing-approvers
+        pool:
+          name: $(DncEngInternalBuildPool)
+          image: build.azurelinux.3.amd64
+          os: linux
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - checkout: self
+
+              - task: DownloadBuildArtifacts@1
+                displayName: Download Package Artifacts
+                inputs:
+                  buildType: current
+                  downloadType: single
+                  artifactName: PackageArtifacts
+                  downloadPath: $(Pipeline.Workspace)
+
+              - template: /eng/pipelines/steps/get-nuget-api-key.yml@self
+                parameters:
+                  azureServiceConnection: roslyn-team-nuget-wif
+                  nuGetUsername: jorobich
+
+              - ${{ if parameters.PublishPrereleaseRoslynLspWhatIf }}:
+                - task: PowerShell@2
+                  displayName: Publish Prerelease Roslyn LSP (WhatIf)
+                  inputs:
+                    filePath: '$(Build.SourcesDirectory)/scripts/publish-prerelease-roslyn-lsp.ps1'
+                    arguments: '-PackageDirectory "$(Pipeline.Workspace)/PackageArtifacts" -WhatIf'
+                    pwsh: true
+                  env:
+                    NUGET_API_KEY: $(NuGetApiKey)
+
+              - ${{ else }}:
+                - task: PowerShell@2
+                  displayName: Publish Prerelease Roslyn LSP
+                  inputs:
+                    filePath: '$(Build.SourcesDirectory)/scripts/publish-prerelease-roslyn-lsp.ps1'
+                    arguments: '-PackageDirectory "$(Pipeline.Workspace)/PackageArtifacts"'
+                    pwsh: true
+                  env:
+                    NUGET_API_KEY: $(NuGetApiKey)
 
     - stage: insert
       dependsOn:
