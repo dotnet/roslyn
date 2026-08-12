@@ -232,7 +232,8 @@
     <PackageVersion Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
 
     <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
+    <!-- Setting this separately because no matching package version exists -->
+    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.linux" Version="$(SqliteVersion)" />
