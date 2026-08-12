@@ -119,6 +119,7 @@
     <PackageVersion Include="Nerdbank.Streams" Version="2.12.87" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="StreamJsonRpc" Version="2.23.41-alpha" />
+    <!-- This branch is not used for VS servicing, so we do not need to keep in sync -->
     <PackageVersion Include="MessagePack" Version="2.5.302" />
 
     <!--
