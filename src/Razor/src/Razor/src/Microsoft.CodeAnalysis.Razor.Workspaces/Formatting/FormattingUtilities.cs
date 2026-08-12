@@ -369,7 +369,7 @@ internal static class FormattingUtilities
                     // the formatter may have inserted a blank line after the current line too. In that case we need to make sure
                     // we advance the formatted line pointer past it, but also include it. This only applies if the line after the
                     // blank line matches the next original line and the next original line isn't blank (ie, an actual insertion)
-                    if (iFormatted + 1 < formattedText.Lines.Count &&
+                    while (iFormatted + 1 < formattedText.Lines.Count &&
                         formattedText.Lines[iFormatted + 1].Span.Length == 0 &&
                         iOriginal + 1 < originalText.Lines.Count &&
                         originalText.Lines[iOriginal + 1] is { } nextOriginalLine &&
@@ -382,6 +382,20 @@ internal static class FormattingUtilities
                         iFormatted++;
                         formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), context.NewLineString));
                     }
+                }
+            }
+            else if (originalText.Lines[iOriginal] is { } blankOriginalLine &&
+                blankOriginalLine.GetFirstNonWhitespaceOffset() is null)
+            {
+                // The current lines are an aligned blank pair. Consume any additional formatted blank lines
+                // before the next non-blank original line so the line mapping remains synchronized.
+                while (iFormatted + 1 < formattedText.Lines.Count &&
+                    formattedText.Lines[iFormatted + 1].Span.Length == 0 &&
+                    iOriginal + 1 < originalText.Lines.Count &&
+                    originalText.Lines[iOriginal + 1].GetFirstNonWhitespaceOffset() is not null)
+                {
+                    iFormatted++;
+                    formattingChanges.Add(new TextChange(new(blankOriginalLine.EndIncludingLineBreak, 0), context.NewLineString));
                 }
             }
 

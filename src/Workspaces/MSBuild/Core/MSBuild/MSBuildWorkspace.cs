@@ -357,27 +357,18 @@ public sealed class MSBuildWorkspace : Workspace
 
                 if (_loader.ProjectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Log, out var languageName, out var isFileBasedApp))
                 {
+                    if (isFileBasedApp)
+                    {
+                        Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure,
+                            string.Format(WorkspaceMSBuildResources.Applying_updates_to_file_based_apps_is_not_supported_0, projectPath),
+                            projectChanges.ProjectId));
+                        return;
+                    }
+
                     try
                     {
-                        var preferredBuildHostKind = isFileBasedApp
-                            ? BuildHostProcessKind.NetCore
-                            : BuildHostProcessManager.GetKindForProject(projectPath);
-                        var (buildHost, _) = _applyChangesBuildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, CancellationToken.None).Result;
-
-                        if (isFileBasedApp)
-                        {
-                            var fileBasedProgramService = this.Services.GetRequiredService<IFileBasedProgramService>();
-                            _applyChangesProjectFile = FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
-                                buildHost,
-                                fileBasedProgramService,
-                                projectPath,
-                                (error) => Reporter.Report(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, error)),
-                                CancellationToken.None).Result;
-                        }
-                        else
-                        {
-                            _applyChangesProjectFile = buildHost.LoadProjectFileAsync(projectPath, languageName, CancellationToken.None).Result;
-                        }
+                        var buildHost = _applyChangesBuildHostProcessManager.GetBuildHostWithFallbackAsync(projectPath, CancellationToken.None).Result;
+                        _applyChangesProjectFile = buildHost.LoadProjectFileAsync(projectPath, languageName, CancellationToken.None).Result;
                     }
                     catch (IOException exception)
                     {

@@ -957,12 +957,15 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84721")]
     public async Task TestOpenProject_FileBasedApp_AddProjectReference()
     {
+        var programSource = """
+            Util.M();
+            """;
+
         CreateFiles(new FileSet(
-            ("Program.cs", """
-                Util.M();
-                """),
+            ("Program.cs", programSource),
             ("Util.cs", """
                 #:property OutputType=Library
                 public static class Util
@@ -978,8 +981,14 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Equal(["Program"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
         Assert.Empty(programProject.ProjectReferences);
 
-        var diag = Assert.Single((await programProject.GetCompilationAsync()).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error && d.GetMessage().Contains("Util")));
-        Assert.Equal("CS0103", diag.Id); // The name 'Util' does not exist in the current context
+        var expectedDiagnostics = new[]
+        {
+            // (1,1): error CS0103: The name 'Util' does not exist in the current context
+            // Util.M();
+            Diagnostic(103, "Util").WithArguments("Util").WithLocation(1, 1),
+        };
+
+        (await GetDiagnosticsAsync(programProject)).Verify(expectedDiagnostics);
 
         var utilProject = await workspace.OpenProjectAsync(GetSolutionFileName("Util.cs"));
 
@@ -992,14 +1001,34 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         var solution = programProject.AddProjectReference(new ProjectReference(utilProject.Id)).Solution;
         Assert.True(workspace.TryApplyChanges(solution));
 
-        Assert.Empty(workspace.Diagnostics);
+        Assert.Collection(workspace.Diagnostics,
+            d =>
+            {
+                Assert.Equal(WorkspaceDiagnosticKind.Failure, d.Kind);
+                Assert.Contains(string.Format(WorkspaceMSBuildResources.Applying_updates_to_file_based_apps_is_not_supported_0, Path.Combine(SolutionDirectory.Path, "Program.cs")), d.Message);
+            });
+
         Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
 
-        programProject = workspace.CurrentSolution.Projects.Single(p => p.Name == "Program");
-        var projRef = Assert.Single(programProject.ProjectReferences);
-        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
+        var programText = await programProject.Documents.Single(d => d.Name == "Program.cs").GetTextAsync();
+        AssertEx.Equal(programSource, programText.ToString());
 
-        Assert.Empty((await programProject.GetCompilationAsync()).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error && d.GetMessage().Contains("Util")));
+        Assert.Collection(Directory.EnumerateFileSystemEntries(SolutionDirectory.Path).Order(),
+            entry => Assert.Equal(Path.Combine(SolutionDirectory.Path, ".packages"), entry),
+            entry => Assert.Equal(Path.Combine(SolutionDirectory.Path, "Program.cs"), entry),
+            entry => Assert.Equal(Path.Combine(SolutionDirectory.Path, "Util.cs"), entry));
+
+        programProject = workspace.CurrentSolution.Projects.Single(p => p.Name == "Program");
+        Assert.Empty(programProject.ProjectReferences);
+
+        (await GetDiagnosticsAsync(programProject)).Verify(expectedDiagnostics);
+
+        static async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(Project project)
+        {
+            return (await project.GetCompilationAsync())
+                .GetDiagnostics()
+                .Where(d => d.Severity == DiagnosticSeverity.Error && d.GetMessage().Contains("Util"));
+        }
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
