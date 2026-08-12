@@ -384,6 +384,46 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
         Assert.Equal("RZ2009", diagnostic.Id);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/13219")]
+    public void Lower_TagHelperWithAllowedChildren_AllowsContentInsideAllowedMarkupChild()
+    {
+        // Arrange
+        var formTableTagHelper = CreateTagHelperDescriptor(
+            tagName: "form-table",
+            typeName: "FormTableTagHelper",
+            assemblyName: "TestAssembly");
+
+        var formTableHeadTagHelper = CreateTagHelperDescriptorWithAllowedChild(
+            tagName: "form-table-head",
+            typeName: "FormTableHeadTagHelper",
+            assemblyName: "TestAssembly",
+            allowedChildTag: "th",
+            parentTag: "form-table");
+
+        var codeDocument = ProjectEngine.CreateCodeDocument(
+            """
+            @addTagHelper *, TestAssembly
+            <form-table>
+                <form-table-head>
+                    <th>Id</th>
+                </form-table-head>
+            </form-table>
+            """,
+            [formTableTagHelper, formTableHeadTagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        var documentNode = processor.GetDocumentNode();
+
+        // Assert
+        Assert.Collection(
+            documentNode.FindDescendantNodes<TagHelperIntermediateNode>(),
+            node => Assert.Equal("form-table", node.TagName),
+            node => Assert.Equal("form-table-head", node.TagName));
+        Assert.Empty(documentNode.GetAllDiagnostics());
+    }
+
     [Fact]
     public void Lower_TagHelpersWithBoundAttribute()
     {
@@ -552,11 +592,20 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
         string tagName,
         string typeName,
         string assemblyName,
-        string allowedChildTag)
+        string allowedChildTag,
+        string? parentTag = null)
     {
         var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
         builder.SetTypeName(typeName, typeNamespace: null, typeNameIdentifier: null);
-        builder.TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder.RequireTagName(tagName));
+        builder.TagMatchingRuleDescriptor(ruleBuilder =>
+        {
+            ruleBuilder.RequireTagName(tagName);
+
+            if (parentTag is not null)
+            {
+                ruleBuilder.RequireParentTag(parentTag);
+            }
+        });
         builder.AllowChildTag(allowedChildTag);
 
         return builder.Build();
