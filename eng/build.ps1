@@ -43,6 +43,7 @@ param (
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
+  [string]$warnNotAsError = "",
   [switch][Alias('pb')]$productBuild = $false,
   [switch]$fromVMR = $false,
   [switch]$oop64bit = $true,
@@ -115,6 +116,7 @@ function Print-Usage() {
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
+  Write-Host "  -warnNotAsError <codes>   Suppress specific warnings from being treated as errors (semi-colon delimited)"
   Write-Host "  -productBuild             Build the repository in product-build mode"
   Write-Host "  -fromVMR                  Set when building from within the VMR"
   Write-Host "  -solution                 Solution to build (default is Roslyn.slnx)"
@@ -262,6 +264,7 @@ function BuildSolution() {
   # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
   # that MSBuild output as well as ones that custom tasks output.
   $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
+  $msbuildWarnNotAsError = if ($warnAsError -and $warnNotAsError -ne "") { "/warnNotAsError:$warnNotAsError" } else { "" }
 
   # Workaround for some machines in the AzDO pool not allowing long paths
   $ibcDir = $RepoRoot
@@ -295,6 +298,7 @@ function BuildSolution() {
       /p:DotNetBuildFromVMR=$fromVMR `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
+      $msbuildWarnNotAsError `
       $generateDocumentationFile `
       $roslynUseHardLinks `
       $dotnetBuildTests `
