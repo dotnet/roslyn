@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Debugging;
 using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -32,24 +31,24 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            snapshot => ValidateBreakableRangeAsync(snapshot, span, cancellationToken),
+            context => ValidateBreakableRangeAsync(context, span, cancellationToken),
             cancellationToken);
 
-    public async ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(RemoteDocumentSnapshot snapshot, LinePositionSpan span, CancellationToken cancellationToken)
+    public async ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(RemoteDocumentContext context, LinePositionSpan span, CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
-        if (!_documentMappingService.TryMapToCSharpDocumentLinePositionSpan(codeDocument, span, out var mappedSpan, out var inDeclDocument))
+        if (!_documentMappingService.TryMapToCSharpDocumentRange(csharpDocument, span, out var mappedSpan))
         {
             return null;
         }
 
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
-        var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var result = await GetBreakableRangeAsync(generatedDocument, mappedSpan, cancellationToken).ConfigureAwait(false);
         if (result is { } csharpSpan &&
-            _documentMappingService.TryMapToRazorDocumentRange(csharpDocument, csharpSpan, MappingBehavior.Inclusive, out var hostSpan))
+            _documentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), csharpSpan, MappingBehavior.Inclusive, out var hostSpan))
         {
             return hostSpan;
         }
@@ -61,28 +60,29 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            snapshot => ResolveBreakpointRangeAsync(snapshot, position, cancellationToken),
+            context => ResolveBreakpointRangeAsync(context, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(RemoteDocumentSnapshot snapshot, LinePosition position, CancellationToken cancellationToken)
+    private async ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(RemoteDocumentContext context, LinePosition position, CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        if (!TryGetUsableProjectedIndex(codeDocument, position, out var projectedIndex, out var csharpDocument))
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        if (!TryGetUsableProjectedIndex(codeDocument, position, out var projectedIndex))
         {
             return null;
         }
 
         // Now ask Roslyn to adjust the breakpoint to a valid location in the code
-        var syntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await context.Snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         if (!BreakpointSpans.TryGetBreakpointSpan(syntaxTree, projectedIndex, cancellationToken, out var csharpBreakpointSpan))
         {
             return null;
         }
 
-        var projectedRange = csharpDocument.Text.GetLinePositionSpan(csharpBreakpointSpan);
+        var csharpText = codeDocument.GetCSharpSourceText();
+        var projectedRange = csharpText.GetLinePositionSpan(csharpBreakpointSpan);
 
         // Inclusive mapping means we are lenient to portions of the breakpoint that might be outside of use code in the Razor file
-        if (!_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, projectedRange, MappingBehavior.Inclusive, out var hostDocumentRange))
+        if (!_documentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), projectedRange, MappingBehavior.Inclusive, out var hostDocumentRange))
         {
             return null;
         }
@@ -96,39 +96,38 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            snapshot => ResolveProximityExpressionsAsync(snapshot, position, cancellationToken),
+            context => ResolveProximityExpressionsAsync(context, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<string[]?> ResolveProximityExpressionsAsync(RemoteDocumentSnapshot snapshot, LinePosition position, CancellationToken cancellationToken)
+    private async ValueTask<string[]?> ResolveProximityExpressionsAsync(RemoteDocumentContext context, LinePosition position, CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        if (!TryGetUsableProjectedIndex(codeDocument, position, out var projectedIndex, out var csharpDocument))
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        if (!TryGetUsableProjectedIndex(codeDocument, position, out var projectedIndex))
         {
             return null;
         }
 
         // Now ask Roslyn to adjust the breakpoint to a valid location in the code
-        var syntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await context.Snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var result = CSharpProximityExpressionsService.GetProximityExpressions(syntaxTree, projectedIndex, cancellationToken);
 
         return result?.ToArray();
     }
 
-    private bool TryGetUsableProjectedIndex(RazorCodeDocument codeDocument, LinePosition hostDocumentPosition, out int projectedIndex, [NotNullWhen(true)] out RazorCSharpDocument? csharpDocument)
+    private bool TryGetUsableProjectedIndex(RazorCodeDocument codeDocument, LinePosition hostDocumentPosition, out int projectedIndex)
     {
-        csharpDocument = null;
         projectedIndex = 0;
 
         var sourceText = codeDocument.Source.Text;
         var hostDocumentIndex = sourceText.GetPosition(hostDocumentPosition);
         var syntaxRoot = codeDocument.GetRequiredSyntaxRoot();
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
         // We want to find a position that maps to C# on the same line as the original request, but we might have to skip over
         // some Razor/HTML nodes to find valid C#.
-        while (hostDocumentIndex <= sourceText.Length &&
-            sourceText.GetLinePosition(hostDocumentIndex).Line == hostDocumentPosition.Line)
+        while (sourceText.GetLinePosition(hostDocumentIndex).Line == hostDocumentPosition.Line)
         {
-            if (TryMapToCSharpPositionOrNext(codeDocument, hostDocumentIndex, out _, out projectedIndex, out csharpDocument))
+            if (_documentMappingService.TryMapToCSharpPositionOrNext(csharpDocument, hostDocumentIndex, out _, out projectedIndex))
             {
                 if (syntaxRoot.FindInnermostNode(hostDocumentIndex) is not { } node)
                 {
@@ -146,13 +145,8 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
                 hostDocumentIndex = node.Span.End + 1;
             }
 
-            if (hostDocumentIndex > sourceText.Length)
-            {
-                return false;
-            }
-
             // See if there is more C# on the line to map to, for example "$$<p>@DateTime.Now</p>"
-            if (!TryMapToCSharpPositionOrNext(codeDocument, hostDocumentIndex, out _, out projectedIndex, out csharpDocument))
+            if (!_documentMappingService.TryMapToCSharpPositionOrNext(csharpDocument, hostDocumentIndex, out _, out projectedIndex))
             {
                 return false;
             }
@@ -165,69 +159,6 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         }
 
         return false;
-    }
-
-    private bool TryMapToCSharpPositionOrNext(RazorCodeDocument codeDocument, int razorIndex, out LinePosition csharpPosition, out int csharpIndex, [NotNullWhen(true)] out RazorCSharpDocument? csharpDocument)
-    {
-        // Fast path: Can we just directly map?
-        if (_documentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, razorIndex, out csharpPosition, out csharpIndex, out var inDeclDocument))
-        {
-            csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
-            return true;
-        }
-
-        // If we can't map directly, then we need to find the next C# on the line, but each transition to C# could map to a different
-        // C# document, which makes this a little more complicated than you might think.
-
-        var hostDocumentLine = codeDocument.Source.Text.GetLinePosition(razorIndex).Line;
-
-        var selectedDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
-        var selectedMapping = GetNextMapping(selectedDocument, razorIndex, hostDocumentLine);
-
-        if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declDocument)
-        {
-            var declMapping = GetNextMapping(declDocument, razorIndex, hostDocumentLine);
-            if (declMapping is not null &&
-                (selectedMapping is null ||
-                    declMapping.OriginalSpan.AbsoluteIndex < selectedMapping.OriginalSpan.AbsoluteIndex))
-            {
-                selectedMapping = declMapping;
-                selectedDocument = declDocument;
-            }
-        }
-
-        if (selectedMapping is null)
-        {
-            csharpDocument = null;
-            csharpPosition = default;
-            csharpIndex = default;
-            return false;
-        }
-
-        csharpDocument = selectedDocument;
-        csharpIndex = selectedMapping.GeneratedSpan.AbsoluteIndex;
-        csharpPosition = selectedDocument.Text.GetLinePosition(csharpIndex);
-        return true;
-
-        static SourceMapping? GetNextMapping(RazorCSharpDocument document, int razorIndex, int hostDocumentLine)
-        {
-            foreach (var mapping in document.SourceMappingsSortedByOriginal)
-            {
-                if (mapping.OriginalSpan.AbsoluteIndex < razorIndex)
-                {
-                    continue;
-                }
-
-                if (mapping.OriginalSpan.LineIndex != hostDocumentLine)
-                {
-                    break;
-                }
-
-                return mapping;
-            }
-
-            return null;
-        }
     }
 
     private static async Task<LinePositionSpan?> GetBreakableRangeAsync(

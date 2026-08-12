@@ -278,6 +278,6 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
             importSources: [],
             tagHelpers: null);
 
-        return codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+        return codeDocument.GetRequiredCSharpDocument();
     }
 }

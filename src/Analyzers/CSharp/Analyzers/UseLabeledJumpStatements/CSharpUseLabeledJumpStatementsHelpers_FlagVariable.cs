@@ -10,9 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-// Reads BreakStatementSyntax.Name/ContinueStatementSyntax.Name, which are preview (labeled break/continue) APIs.
-#pragma warning disable RSEXPERIMENTAL006
-
 namespace Microsoft.CodeAnalysis.CSharp.UseLabeledJumpStatements;
 
 internal static partial class CSharpUseLabeledJumpStatementsHelpers

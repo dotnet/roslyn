@@ -31,14 +31,14 @@ internal sealed class RemoteRemoveAndSortUsingsService(in ServiceArgs args) : Ra
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            snapshot => GetRemoveAndSortUsingsEditsAsync(snapshot, cancellationToken),
+            context => GetRemoveAndSortUsingsEditsAsync(context, cancellationToken),
             cancellationToken);
 
     private static async ValueTask<ImmutableArray<TextChange>> GetRemoveAndSortUsingsEditsAsync(
-        RemoteDocumentSnapshot snapshot,
+        RemoteDocumentContext context,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = codeDocument.Source.Text;
         var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
         var allUsingDirectives = syntaxTree.GetUsingDirectives();
@@ -76,14 +76,14 @@ internal sealed class RemoteRemoveAndSortUsingsService(in ServiceArgs args) : Ra
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            snapshot => GetSortUsingsEditsAsync(snapshot, cancellationToken),
+            context => GetSortUsingsEditsAsync(context, cancellationToken),
             cancellationToken);
 
     private static async ValueTask<ImmutableArray<TextChange>> GetSortUsingsEditsAsync(
-        RemoteDocumentSnapshot snapshot,
+        RemoteDocumentContext context,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var textEdits = UsingDirectiveHelper.GetSortAndConsolidateEdits(codeDocument);
         return textEdits.SelectAsArray(codeDocument.Source.Text.GetTextChange);

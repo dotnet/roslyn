@@ -30,7 +30,7 @@ internal sealed class ExtractToCssCodeActionResolver(
 
     public string Action => LanguageServerConstants.CodeActions.ExtractToCss;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<ExtractToCssCodeActionParams>();
         if (actionParams is null)
@@ -38,17 +38,17 @@ internal sealed class ExtractToCssCodeActionResolver(
             return null;
         }
 
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        var cssFilePath = $"{FilePathNormalizer.Normalize(documentSnapshot.Uri.GetAbsoluteOrUNCPath())}.css";
+        var cssFilePath = $"{FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath())}.css";
         var cssFileUri = LspFactory.CreateFilePathUri(cssFilePath);
 
-        var text = codeDocument.Source.Text;
+        var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
         var cssContent = text.ToString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentSnapshot.Uri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentContext.Uri };
         var cssDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = cssFileUri };
 
         using var changes = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(capacity: 3);

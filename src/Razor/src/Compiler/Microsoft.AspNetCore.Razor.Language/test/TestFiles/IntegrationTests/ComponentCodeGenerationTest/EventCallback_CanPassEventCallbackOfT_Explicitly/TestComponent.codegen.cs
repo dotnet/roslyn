@@ -44,6 +44,18 @@ EventCallback.Factory.Create<MouseEventArgs>(this, Increment)
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
+#nullable restore
+#line (4,8)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
+    private int counter;
+    private void Increment() {
+        counter++;
+    }
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591

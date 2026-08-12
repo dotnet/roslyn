@@ -1,23 +1,23 @@
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha384 = 3 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha512 = 4 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypeInfo() -> void
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.IsComplete.get -> bool
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ITypeSymbol.GetClosedDerivedTypeInfo(System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ITypeSymbol.IsClosed.get -> bool
+Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
+Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypeInfo() -> void
+Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
+Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.IsComplete.get -> bool
+Microsoft.CodeAnalysis.ITypeSymbol.GetClosedDerivedTypeInfo(System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
+Microsoft.CodeAnalysis.ITypeSymbol.IsClosed.get -> bool
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ISymbol.RequiresUnsafeContext.get -> bool
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.OperationKind.CollectionExpressionElementsPlaceholder = 129 -> Microsoft.CodeAnalysis.OperationKind
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation
-[RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation) -> void
-[RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation, TArgument argument) -> TResult?
+Microsoft.CodeAnalysis.OperationKind.CollectionExpressionElementsPlaceholder = 129 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation, TArgument argument) -> TResult?
 
-[RSEXPERIMENTAL006]const Microsoft.CodeAnalysis.WellKnownMemberNames.HasValuePropertyName = "HasValue" -> string!
-[RSEXPERIMENTAL006]const Microsoft.CodeAnalysis.WellKnownMemberNames.TryGetValueMethodName = "TryGetValue" -> string!
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.CommonConversion.IsUnion.get -> bool
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ITypeSymbol.IsUnion.get -> bool
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ITypeSymbol.UnionCaseTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol!>
+const Microsoft.CodeAnalysis.WellKnownMemberNames.HasValuePropertyName = "HasValue" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.TryGetValueMethodName = "TryGetValue" -> string!
+Microsoft.CodeAnalysis.Operations.CommonConversion.IsUnion.get -> bool
+Microsoft.CodeAnalysis.ITypeSymbol.IsUnion.get -> bool
+Microsoft.CodeAnalysis.ITypeSymbol.UnionCaseTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol!>
 [RSEXPERIMENTAL007]Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterPreCompilationSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.PreCompilationSourceProductionContext, TSource>! action) -> void
 [RSEXPERIMENTAL007]Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterPreCompilationSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.PreCompilationSourceProductionContext, TSource>! action) -> void
 [RSEXPERIMENTAL007]Microsoft.CodeAnalysis.PreCompilationSourceProductionContext

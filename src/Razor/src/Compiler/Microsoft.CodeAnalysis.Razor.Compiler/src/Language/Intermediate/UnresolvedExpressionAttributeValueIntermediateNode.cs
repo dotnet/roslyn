@@ -35,18 +35,6 @@ internal sealed class UnresolvedExpressionAttributeValueIntermediateNode : Inter
         visitor.VisitDefault(this);
     }
 
-    protected override IntermediateNode CloneNode()
-    {
-        var clone = new UnresolvedExpressionAttributeValueIntermediateNode
-        {
-            Prefix = Prefix,
-            ContainsExpression = ContainsExpression,
-            IsSynthesizedHelper = IsSynthesizedHelper,
-        };
-
-        return clone;
-    }
-
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteChildren(Children);

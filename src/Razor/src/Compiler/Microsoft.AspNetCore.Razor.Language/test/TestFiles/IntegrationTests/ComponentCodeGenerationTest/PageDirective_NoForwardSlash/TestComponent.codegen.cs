@@ -10,6 +10,16 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
+    [global::Microsoft.AspNetCore.Components.RouteAttribute(
+    // language=Route,Component
+#nullable restore
+#line (1,7)-(1,15) "x:\dir\subdir\Test\TestComponent.cshtml"
+"MyPage"
+
+#line default
+#line hidden
+#nullable disable
+    )]
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable

@@ -1,3 +1,0 @@
-﻿[0000] OpenComponent<global::Test.Col>()
-[0001] OpenComponent<global::Test.Col>()
-[0002] OpenComponent<global::Test.Col>()

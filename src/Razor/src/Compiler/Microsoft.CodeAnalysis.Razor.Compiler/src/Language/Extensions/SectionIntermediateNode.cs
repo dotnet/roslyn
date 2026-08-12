@@ -25,17 +25,6 @@ public sealed class SectionIntermediateNode : ExtensionIntermediateNode
         AcceptExtensionNode<SectionIntermediateNode>(this, visitor);
     }
 
-    protected override IntermediateNode CloneNode()
-    {
-        var clone = new SectionIntermediateNode
-        {
-            SectionName = SectionName,
-            IsSynthesizedHelper = IsSynthesizedHelper,
-        };
-
-        return clone;
-    }
-
     public override void WriteNode(CodeTarget target, CodeRenderingContext context)
     {
         if (target == null)

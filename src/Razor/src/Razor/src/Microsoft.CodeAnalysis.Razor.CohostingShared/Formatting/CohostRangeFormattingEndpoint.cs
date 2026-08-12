@@ -83,7 +83,7 @@ internal sealed class CohostRangeFormattingEndpoint(
         var sourceText = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var htmlChanges = htmlEdits.SelectAsArray(sourceText.GetTextChange);
 
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
+        var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
         var options = RazorFormattingOptions.From(
             request.Options,
             _clientSettingsManager.GetClientSettings().AdvancedSettings.CodeBlockBraceOnNextLine,

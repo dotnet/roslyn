@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -13,6 +15,21 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 
 internal static class RazorDiagnosticHelper
 {
+    public static async Task<LspDiagnostic[]?> GetRazorDiagnosticsAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    {
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var diagnostics = csharpDocument.Diagnostics;
+
+        if (diagnostics.Length == 0)
+        {
+            return null;
+        }
+
+        return Convert(diagnostics, sourceText, documentSnapshot);
+    }
+
     public static VSDiagnosticProjectInformation[] GetProjectInformation(RemoteDocumentSnapshot? documentSnapshot)
     {
         if (documentSnapshot is null)
@@ -23,8 +40,8 @@ internal static class RazorDiagnosticHelper
         return [new VSDiagnosticProjectInformation()
                 {
                     Context = null,
-                    ProjectIdentifier = documentSnapshot.ProjectSnapshot.IntermediateOutputPath,
-                    ProjectName = documentSnapshot.ProjectSnapshot.DisplayName
+                    ProjectIdentifier = documentSnapshot.Project.IntermediateOutputPath,
+                    ProjectName = documentSnapshot.Project.DisplayName
                 }];
     }
 

@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -31,22 +30,6 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
     }
 
     [Fact]
-    public async Task Handle_CSharpInHtml_ValidBreakpoint_Legacy()
-    {
-        var input = """
-                <div></div>
-
-                @{
-                    var currentCount = 1;
-                }
-
-                <p>@{|breakpoint:{|expected:currentCount|}|}</p>
-                """;
-
-        await VerifyBreakableRangeAsync(input, RazorFileKind.Legacy);
-    }
-
-    [Fact]
     public async Task Handle_CSharpInAttribute_ValidBreakpoint()
     {
         var input = """
@@ -60,22 +43,6 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
                 """;
 
         await VerifyBreakableRangeAsync(input);
-    }
-
-    [Fact]
-    public async Task Handle_CSharpInAttribute_ValidBreakpoint_Legacy()
-    {
-        var input = """
-                <div></div>
-
-                @{
-                    var currentCount = 1;
-                }
-
-                <button class="btn btn-primary" disabled="@({|breakpoint:{|expected:currentCount > 3|}|})">Click me</button>
-                """;
-
-        await VerifyBreakableRangeAsync(input, RazorFileKind.Legacy);
     }
 
     [Fact]
@@ -93,56 +60,6 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
     }
 
     [Fact]
-    public async Task Handle_CSharp_ValidBreakpoint_Legacy()
-    {
-        var input = """
-                <div></div>
-
-                @{
-                    {|breakpoint:{|expected:var x = GetX();|}|}
-                }
-                """;
-
-        await VerifyBreakableRangeAsync(input, RazorFileKind.Legacy);
-    }
-
-    [Fact]
-    public async Task Handle_CodeBlock_ValidBreakpoint()
-    {
-        var input = """
-                @code
-                {
-                    private void M()
-                    {
-                        {|breakpoint:{|expected:currentCount++;|}|}
-                    }
-
-                    private int currentCount;
-                }
-                """;
-
-        await VerifyBreakableRangeAsync(input);
-    }
-
-    [Fact]
-    public async Task Handle_FunctionsBlock_ValidBreakpoint_Legacy()
-    {
-        var input = """
-                @functions
-                {
-                    private void M()
-                    {
-                        {|breakpoint:{|expected:currentCount++;|}|}
-                    }
-
-                    private int currentCount;
-                }
-                """;
-
-        await VerifyBreakableRangeAsync(input, RazorFileKind.Legacy);
-    }
-
-    [Fact]
     public async Task Handle_CSharp_InvalidBreakpointRemoved()
     {
         var input = """
@@ -154,20 +71,6 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
                 """;
 
         await VerifyBreakableRangeAsync(input);
-    }
-
-    [Fact]
-    public async Task Handle_CSharp_InvalidBreakpointRemoved_Legacy()
-    {
-        var input = """
-                <div></div>
-
-                @{
-                    //{|breakpoint:var x = GetX();|}
-                }
-                """;
-
-        await VerifyBreakableRangeAsync(input, RazorFileKind.Legacy);
     }
 
     [Fact]
@@ -186,21 +89,6 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
     }
 
     [Fact]
-    public async Task Handle_CSharp_ValidBreakpointMoved_Legacy()
-    {
-        var input = """
-                <div></div>
-
-                @{
-                    {|breakpoint:var x = Goo;
-                    {|expected:Goo;|}|}
-                }
-                """;
-
-        await VerifyBreakableRangeAsync(input, RazorFileKind.Legacy);
-    }
-
-    [Fact]
     public async Task Handle_Html_BreakpointRemoved()
     {
         var input = """
@@ -214,23 +102,9 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
         await VerifyBreakableRangeAsync(input);
     }
 
-    [Fact]
-    public async Task Handle_Html_BreakpointRemoved_Legacy()
+    private async Task VerifyBreakableRangeAsync(TestCode input)
     {
-        var input = """
-                {|breakpoint:<div></div>|}
-
-                @{
-                    var x = GetX();
-                }
-                """;
-
-        await VerifyBreakableRangeAsync(input, RazorFileKind.Legacy);
-    }
-
-    private async Task VerifyBreakableRangeAsync(TestCode input, RazorFileKind? fileKind = null)
-    {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         Assert.True(input.TryGetNamedSpans("breakpoint", out var breakpointSpans), "Test authoring failure: Expected at least one span named 'breakpoint'.");

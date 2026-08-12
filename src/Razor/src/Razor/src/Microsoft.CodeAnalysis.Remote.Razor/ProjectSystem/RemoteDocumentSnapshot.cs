@@ -2,33 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal sealed class RemoteDocumentSnapshot
+internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 {
-    private RazorCodeDocument? _codeDocument;
-    private SourceGeneratedDocument? _generatedDocument;
-    private SourceGeneratedDocument? _declGeneratedDocument;
-    private bool _declGeneratedDocumentInitialized;
-
     public TextDocument TextDocument { get; }
     public RemoteProjectSnapshot ProjectSnapshot { get; }
 
-    public DocumentUri Uri
-    {
-        get
-        {
-            field ??= TextDocument.GetURI();
-            return field;
-        }
-    }
+    private RazorCodeDocument? _codeDocument;
+    private SourceGeneratedDocument? _generatedDocument;
 
     public RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot)
     {
@@ -43,13 +33,34 @@ internal sealed class RemoteDocumentSnapshot
 
     public RazorFileKind FileKind => FileKinds.GetFileKindFromPath(FilePath);
     public string FilePath => TextDocument.FilePath.AssumeNotNull();
+    public string TargetPath => TextDocument.FilePath.AssumeNotNull();
+
+    public IProjectSnapshot Project => ProjectSnapshot;
+
+    public int Version => -999; // We don't expect to use this in cohosting, but plenty of existing code logs it's value
 
     public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {
-        return TextDocument.TryGetText(out var result)
+        return TryGetText(out var result)
             ? new(result)
             : new(TextDocument.GetTextAsync(cancellationToken));
     }
+
+    public ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
+    {
+        return TryGetTextVersion(out var result)
+            ? new(result)
+            : new(TextDocument.GetTextVersionAsync(cancellationToken));
+    }
+
+    public bool TryGetText([NotNullWhen(true)] out SourceText? result)
+        => TextDocument.TryGetText(out result);
+
+    public bool TryGetTextVersion(out VersionStamp result)
+        => TextDocument.TryGetTextVersion(out result);
+
+    public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
+        => (result = _codeDocument) is not null;
 
     public async ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(CancellationToken cancellationToken)
     {
@@ -62,7 +73,7 @@ internal sealed class RemoteDocumentSnapshot
         return InterlockedOperations.Initialize(ref _codeDocument, document);
     }
 
-    public RemoteDocumentSnapshot WithText(SourceText text)
+    public IDocumentSnapshot WithText(SourceText text)
     {
         var id = TextDocument.Id;
         var newDocument = TextDocument.Project.Solution
@@ -74,21 +85,7 @@ internal sealed class RemoteDocumentSnapshot
         return snapshotManager.GetSnapshot(newDocument);
     }
 
-    public async ValueTask<SourceGeneratedDocument?> TryGetGeneratedDocumentAsync(bool declarationDocument, CancellationToken cancellationToken)
-    {
-        return declarationDocument
-            ? await TryGetDeclGeneratedDocumentInternalAsync(cancellationToken).ConfigureAwait(false)
-            : await GetGeneratedDocumentInternalAsync(cancellationToken).ConfigureAwait(false);
-    }
-
-    public async ValueTask<SourceGeneratedDocument> GetGeneratedDocumentAsync(bool declarationDocument, CancellationToken cancellationToken)
-    {
-        return declarationDocument
-            ? (await TryGetDeclGeneratedDocumentInternalAsync(cancellationToken).ConfigureAwait(false)).AssumeNotNull()
-            : await GetGeneratedDocumentInternalAsync(cancellationToken).ConfigureAwait(false);
-    }
-
-    private async ValueTask<SourceGeneratedDocument> GetGeneratedDocumentInternalAsync(CancellationToken cancellationToken)
+    public async ValueTask<SourceGeneratedDocument> GetGeneratedDocumentAsync(CancellationToken cancellationToken)
     {
         if (_generatedDocument is not null)
         {
@@ -99,23 +96,9 @@ internal sealed class RemoteDocumentSnapshot
         return InterlockedOperations.Initialize(ref _generatedDocument, generatedDocument);
     }
 
-    private async ValueTask<SourceGeneratedDocument?> TryGetDeclGeneratedDocumentInternalAsync(CancellationToken cancellationToken)
+    public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
     {
-        if (Volatile.Read(ref _declGeneratedDocumentInitialized))
-        {
-            return _declGeneratedDocument;
-        }
-
-        var declDocument = await ProjectSnapshot.TryGetDeclGeneratedDocumentAsync(this, cancellationToken).ConfigureAwait(false);
-
-        _declGeneratedDocument = declDocument;
-        Volatile.Write(ref _declGeneratedDocumentInitialized, true);
-        return declDocument;
-    }
-
-    public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(bool declarationDocument, CancellationToken cancellationToken)
-    {
-        var document = declarationDocument ? _declGeneratedDocument : _generatedDocument;
+        var document = _generatedDocument;
         if (document is not null &&
             document.TryGetSyntaxTree(out var tree))
         {
@@ -126,7 +109,7 @@ internal sealed class RemoteDocumentSnapshot
 
         async ValueTask<SyntaxTree> GetCSharpSyntaxTreeCoreAsync(Document? document, CancellationToken cancellationToken)
         {
-            document ??= await GetGeneratedDocumentAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
+            document ??= await GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return tree.AssumeNotNull();

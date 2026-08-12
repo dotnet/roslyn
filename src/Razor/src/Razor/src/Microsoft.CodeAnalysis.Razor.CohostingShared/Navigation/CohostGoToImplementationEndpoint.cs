@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -25,11 +25,13 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal sealed class CohostGoToImplementationEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
-    IHtmlRequestInvoker requestInvoker)
+    IHtmlRequestInvoker requestInvoker,
+    IFilePathService filePathService)
     : AbstractCohostDocumentEndpoint<TextDocumentPositionParams, SumType<LspLocation[], VSInternalReferenceItem[]>?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
+    private readonly IFilePathService _filePathService = filePathService;
 
     protected override bool MutatesSolutionState => false;
 
@@ -116,10 +118,10 @@ internal sealed class CohostGoToImplementationEndpoint(
 
     private void RemapVirtualHtmlUri(LspLocation? location)
     {
-        if (location is not null &&
-            location.DocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
+        if (location?.DocumentUri.GetSystemUri() is { } uri &&
+            _filePathService.IsVirtualHtmlFile(uri))
         {
-            location.DocumentUri = razorDocumentUri;
+            location.DocumentUri = _filePathService.GetRazorDocumentUri(uri).CreateDocumentUriFromSystemUri();
         }
     }
 

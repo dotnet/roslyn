@@ -1,3 +1,0 @@
-﻿[0000] OpenElement("elem")
-[0001] AddAttribute("data-abc", "Literal value")
-[0002] AddAttribute("data-def", myValue)
