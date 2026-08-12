@@ -174,11 +174,12 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         // Build the tag helper node (binding validation + node creation + diagnostics + body).
         var (tagHelperNode, bodyNode) = BuildTagHelperNode(elementNode, binding, tagName, prefix, usedHelpers, in context);
 
+        // Check AllowedChildren constraints (RZ2009, RZ2010) while unresolved child elements
+        // still retain their tag names. Legacy resolution flattens unmatched elements to HTML content.
+        ValidateAllowedChildren(tagHelperNode, bodyNode, binding, binder, prefix);
+
         // Resolve any body children that are still UnresolvedElementIntermediateNode.
         ResolveBodyChildren(bodyNode, binder, prefix, usedHelpers, in context, tagHelperNode);
-
-        // Check AllowedChildren constraints (RZ2009, RZ2010).
-        ValidateAllowedChildren(tagHelperNode, bodyNode, binding, prefix);
 
         // Replace the UnresolvedElement with the TagHelperIntermediateNode.
         parent.Children[index] = tagHelperNode;
@@ -498,6 +499,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         TagHelperIntermediateNode tagHelperNode,
         TagHelperBodyIntermediateNode bodyNode,
         TagHelperBinding binding,
+        TagHelperBinder binder,
         string prefix)
     {
         // Collect allowed child tag names from all descriptors.
@@ -518,19 +520,52 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         var allowedChildrenString = string.Join(", ", allowedNames.ToArray());
         var parentTagName = tagHelperNode.TagName;
 
-        ValidateAllowedChildren(parentTagName, bodyNode.Children, in allowedNames, allowedChildrenString, prefix);
+        ValidateAllowedChildren(tagHelperNode, parentTagName, bodyNode.Children, in allowedNames, allowedChildrenString, binder, prefix);
     }
 
     private static void ValidateAllowedChildren(
+        TagHelperIntermediateNode diagnosticTarget,
         string parentTagName,
         IntermediateNodeCollection children,
         in PooledArrayBuilder<string> allowedNames,
         string allowedChildrenString,
+        TagHelperBinder binder,
         string prefix)
     {
         foreach (var child in children)
         {
-            if (child is TagHelperIntermediateNode childTagHelper)
+            if (child is UnresolvedElementIntermediateNode unresolvedElement)
+            {
+                var childTagName = unresolvedElement.TagName;
+                if (unresolvedElement.IsEscaped)
+                {
+                    childTagName = "!" + childTagName;
+                }
+                else if (prefix != null &&
+                    childTagName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
+                    binder.GetBinding(
+                        childTagName,
+                        unresolvedElement.AttributeData,
+                        prefix + parentTagName,
+                        parentIsTagHelper: true) != null)
+                {
+                    childTagName = childTagName.Substring(prefix.Length);
+                }
+
+                if (string.IsNullOrEmpty(childTagName))
+                {
+                    diagnosticTarget.AddDiagnostic(
+                        RazorDiagnosticFactory.CreateTagHelper_CannotHaveNonTagContent(
+                            child.Source ?? SourceSpan.Undefined, parentTagName, allowedChildrenString));
+                }
+                else if (!IsAllowedChild(childTagName, in allowedNames))
+                {
+                    diagnosticTarget.AddDiagnostic(
+                        RazorDiagnosticFactory.CreateTagHelper_InvalidNestedTag(
+                            child.Source ?? SourceSpan.Undefined, childTagName, parentTagName, allowedChildrenString));
+                }
+            }
+            else if (child is TagHelperIntermediateNode childTagHelper)
             {
                 var childTagName = childTagHelper.TagName;
                 if (!IsAllowedChild(childTagName, in allowedNames))
@@ -578,7 +613,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             else if (child is CSharpCodeIntermediateNode)
             {
                 // Razor code blocks can contain markup children, so validate their children instead of the block itself.
-                ValidateAllowedChildren(parentTagName, child.Children, in allowedNames, allowedChildrenString, prefix);
+                ValidateAllowedChildren(diagnosticTarget, parentTagName, child.Children, in allowedNames, allowedChildrenString, binder, prefix);
             }
         }
     }
