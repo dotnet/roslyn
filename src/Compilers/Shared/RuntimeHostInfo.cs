@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 #if !NET
 // On .NET Framework, File.ResolveLinkTarget is provided as an extension member in this namespace
@@ -106,20 +107,14 @@ namespace Microsoft.CodeAnalysis
                 return pathToDotNetExperimental;
             }
 
-            var (fileName, sep) = PlatformInformation.IsWindows
-                ? ("dotnet.exe", new char[] { ';' })
-                : ("dotnet", new char[] { ':' });
+            var isWindows = PlatformInformation.IsWindows;
+            var fileName = isWindows ? "dotnet.exe" : "dotnet";
 
             var path = getEnvironmentVariable("PATH") ?? "";
-            foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var item in SplitPath(path))
             {
                 try
                 {
-                    if (!Path.IsPathFullyQualified(item))
-                    {
-                        continue;
-                    }
-
                     var filePath = Path.Combine(item, fileName);
                     if (File.Exists(filePath))
                     {
@@ -133,6 +128,18 @@ namespace Microsoft.CodeAnalysis
             }
 
             return fileName;
+        }
+
+        internal static IEnumerable<string> SplitPath(string path)
+        {
+            var separator = PlatformInformation.IsWindows ? ';' : ':';
+            foreach (var item in path.Split(separator, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (Path.IsPathFullyQualified(item))
+                {
+                    yield return item;
+                }
+            }
         }
 
         internal static string GetDotNetExecCommandLine(string toolFilePath, string commandLineArguments) =>

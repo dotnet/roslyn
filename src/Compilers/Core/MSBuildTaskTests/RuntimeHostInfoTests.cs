@@ -118,20 +118,26 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         Assert.Equal(dotNetPath, result);
     }
 
-    [Fact]
-    public void DotNetInPath_SkipsRelativePaths()
+    [ConditionalTheory(typeof(WindowsOnly))]
+    [InlineData("", new string[0])]
+    [InlineData(@"C:\dotnet", new[] { @"C:\dotnet" })]
+    [InlineData(@"relative;C:drive-relative;\root-relative", new string[0])]
+    [InlineData(@";C:\one;;D:/two;", new[] { @"C:\one", "D:/two" })]
+    [InlineData(@"relative;C:\one;C:drive-relative;\root-relative;\\server\share;D:/two", new[] { @"C:\one", @"\\server\share", "D:/two" })]
+    public void SplitPath_Windows(string path, string[] expected)
     {
-        var result = RuntimeHostInfo.GetDotNetPathOrDefault(name => name switch
-        {
-            "PATH" => PlatformInformation.IsWindows
-                ? @"relative;C:drive-relative;\root-relative"
-                : "relative",
-            RuntimeHostInfo.DotNetHostPathEnvironmentName => "",
-            RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName => "",
-            _ => null,
-        });
+        AssertEx.Equal(expected, RuntimeHostInfo.SplitPath(path));
+    }
 
-        Assert.Equal($"dotnet{PlatformInformation.ExeExtension}", result);
+    [ConditionalTheory(typeof(LinuxOnly))]
+    [InlineData("", new string[0])]
+    [InlineData("/usr/bin", new[] { "/usr/bin" })]
+    [InlineData("relative:./local:../other", new string[0])]
+    [InlineData(":/usr/bin::/opt/dotnet:", new[] { "/usr/bin", "/opt/dotnet" })]
+    [InlineData("relative:/usr/bin:../other:/opt/dotnet", new[] { "/usr/bin", "/opt/dotnet" })]
+    public void SplitPath_Linux(string path, string[] expected)
+    {
+        AssertEx.Equal(expected, RuntimeHostInfo.SplitPath(path));
     }
 }
 
