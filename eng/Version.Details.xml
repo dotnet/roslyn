@@ -153,5 +153,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>3d32d464e2949f054086fbb5346e4beea0c6df56</Sha>
     </Dependency>
+    <Dependency Name="Microsoft.DotNet.Helix.JobMonitor" Version="11.0.0-beta.26412.4">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>41232a67a0c1a77d425a6bef59ded8a81a2fdf3c</Sha>
+    </Dependency>
   </ToolsetDependencies>
 </Dependencies>

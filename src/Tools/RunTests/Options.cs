@@ -76,7 +76,7 @@ namespace RunTests
         public bool Sequential { get; set; }
 
         /// <summary>
-        /// Whether to run test partitions as Helix work items.
+        /// Whether to submit test partitions as Helix work items for the external job monitor.
         /// </summary>
         public bool UseHelix { get; set; }
 
@@ -170,7 +170,7 @@ namespace RunTests
                 { "arch=", "Architecture to test on: x86, x64 or arm64", s => architecture = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
-                { "helix", "Run tests on Helix", o => helix = o is object },
+                { "helix", "Submit tests to Helix for the external job monitor", o => helix = o is object },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", s => helixQueueName = s },
                 { "helixApiAccessToken=", "Access token for internal helix queues", s => helixApiAccessToken = s },
                 { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", s => testFilter = s },
