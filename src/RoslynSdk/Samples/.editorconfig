@@ -1,4 +1,3 @@
-
 # Avoid "this." and "Me." if not necessary
 dotnet_style_qualification_for_field = true:error
 dotnet_style_qualification_for_property = true:error
@@ -29,3 +28,6 @@ csharp_style_pattern_matching_over_as_with_null_check = true:error
 csharp_style_inlined_variable_declaration = true:error
 csharp_style_throw_expression = true:error
 csharp_style_conditional_delegate_call = true:error
+
+# Samples preserve unused parameters to demonstrate extensibility points.
+dotnet_diagnostic.IDE0060.severity = none
