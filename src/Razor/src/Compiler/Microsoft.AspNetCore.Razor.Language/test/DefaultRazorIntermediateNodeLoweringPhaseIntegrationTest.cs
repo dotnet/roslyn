@@ -381,6 +381,35 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
 
         // Assert
         var diagnostic = Assert.Single(documentNode.GetAllDiagnostics());
+        Assert.Equal("RZ2010", diagnostic.Id);
+    }
+
+    [Fact]
+    public void Lower_TagHelperWithAllowedChildren_ReportsNonTagContent()
+    {
+        // Arrange
+        var contactListTagHelper = CreateTagHelperDescriptorWithAllowedChild(
+            tagName: "my-contact-list",
+            typeName: "ContactListTagHelper",
+            assemblyName: "TestAssembly",
+            allowedChildTag: "my-contact");
+
+        var codeDocument = ProjectEngine.CreateCodeDocument(
+            """
+            @addTagHelper *, TestAssembly
+            <my-contact-list>
+                Text
+            </my-contact-list>
+            """,
+            [contactListTagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        var documentNode = processor.GetDocumentNode();
+
+        // Assert
+        var diagnostic = Assert.Single(documentNode.GetAllDiagnostics());
         Assert.Equal("RZ2009", diagnostic.Id);
     }
 
