@@ -15,7 +15,7 @@
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)../../../../Directory.Build.props" />
+  <Import Project="$(MSBuildThisFileDirectory)../../../Directory.Build.props" />
 
   <ItemGroup>
     <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" PrivateAssets="all" ExcludeAssets="all" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Testing
             var markup = "first$$second";
             var expected = "firstsecond";
 
-            TestFileMarkupParser.GetSpans(markup, treatPositionIndicatorsAsCode: false, out var output, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetSpans(markup, treatPositionIndicatorsAsCode: false, out var output, out var spans);
             Assert.Equal(expected, output);
 
             // Test round-trip
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Testing
             var markup = "first$$second";
             var expected = "first$$second";
 
-            TestFileMarkupParser.GetSpans(markup, treatPositionIndicatorsAsCode: true, out var output, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetSpans(markup, treatPositionIndicatorsAsCode: true, out var output, out var spans);
             Assert.Equal(expected, output);
 
             // Test round-trip
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public void MissingOptionalPosition3()
         {
             var markup = "[|first|] {|x:second|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out var positions, out var spans);
             Assert.Empty(positions);
 
             // Test round-trip
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public void NonOverlappingSpans1()
         {
             var markup = "{|x:first|} {|y:second|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out var positions, out var spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public void OverlappingSpans1()
         {
             var markup = "{|x:first {|y:second|}|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out var positions, out var spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public void OverlappingSpans2()
         {
             var markup = "{|x:first {|y:seco|}nd|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out var positions, out var spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public void OverlappingSpans3A()
         {
             var markup = "{|#0:first {|y:seco|}nd|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out var positions, out var spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("#0", out var xs));
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public void OverlappingSpans3B()
         {
             var markup = "{|#0:first {|y:seco|}nd|#0}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out var positions, out var spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("#0", out var xs));
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public void OverlappingSpans3C()
         {
             var markup = "{|#0:first {|y:seco|#0}nd|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out var positions, out var spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("#0", out var xs));
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public void OverlappingSpans4A()
         {
             var markup = "{|x:first {|#0:seco|}nd|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out var positions, out var spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public void OverlappingSpans4B()
         {
             var markup = "{|x:first {|#0:seco|#0}nd|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out var positions, out var spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public void OverlappingSpans4C()
         {
             var markup = "{|x:first {|#0:seco|}nd|#0}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out var positions, out var spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             var markup = "{|X:[|<![CDATA[|]|}text[|]]>|]";
             var expected = "<![CDATA[text]]>";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var result, out var positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var result, out var positions, out var spans);
             Assert.Equal(expected, result);
 
             Assert.Empty(positions);
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             var markup = @"[|<![CDATA[|]text{|X:[|]]>|]|}";
             var expected = @"<![CDATA[text]]>";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var result, out var positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var result, out var positions, out var spans);
             Assert.Equal(expected, result);
 
             Assert.Empty(positions);
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             var markup = "class C { }\r{|b:\n|}";
             var expected = "class C { }\r\n";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out var result, out var positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var result, out var positions, out var spans);
             Assert.Equal(expected, result);
 
             Assert.Empty(positions);

@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 return Task.CompletedTask;
             }
 
-            private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+            private static async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
             {
                 var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
                 var root = await tree.GetRootAsync(cancellationToken);
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 return Task.CompletedTask;
             }
 
-            private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+            private static async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
             {
                 var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
                 var root = await tree.GetRootAsync(cancellationToken);
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 return Task.CompletedTask;
             }
 
-            private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+            private static async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
             {
                 var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
                 var root = await tree.GetRootAsync(cancellationToken);
