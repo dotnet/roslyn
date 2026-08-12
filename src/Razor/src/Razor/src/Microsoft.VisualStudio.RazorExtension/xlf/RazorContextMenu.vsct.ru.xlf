@@ -97,11 +97,6 @@
         <target state="translated">Показать созданный C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidShowGeneratedDeclarationCode|ButtonText">
-        <source>Show Generated C# Declaration</source>
-        <target state="translated">Показать сгенерированную декларацию C#</target>
-        <note />
-      </trans-unit>
       <trans-unit id="cmdidShowGeneratedHtml|ButtonText">
         <source>Show Generated HTML</source>
         <target state="translated">Показать созданный HTML</target>
@@ -120,16 +115,6 @@
       <trans-unit id="cmdidViewPageEditor|LocCanonicalName">
         <source>ViewPageEditor</source>
         <target state="translated">ViewPageEditor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="menuidShowGenerated|ButtonText">
-        <source>Show Generated File</source>
-        <target state="translated">Показать созданный файл</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="menuidShowTagHelpers|ButtonText">
-        <source>Show Tag Helpers</source>
-        <target state="translated">Показать помощники по тегам</target>
         <note />
       </trans-unit>
       <trans-unit id="menuidToolWindowToolbar|ButtonText">

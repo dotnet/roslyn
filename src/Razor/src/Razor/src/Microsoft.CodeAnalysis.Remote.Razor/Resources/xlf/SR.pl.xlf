@@ -12,31 +12,6 @@
         <target state="translated">dyrektywa @addTagHelper jest niepotrzebna.</target>
         <note>@addTagHelper is a keyword</note>
       </trans-unit>
-      <trans-unit id="Baseline_Newly_Available">
-        <source>🆕 Newly available across major browsers{0}</source>
-        <target state="translated">🆕 Nowo dostępne w głównych przeglądarkach{0}</target>
-        <note>{0} is " (Baseline since YYYY)" or empty</note>
-      </trans-unit>
-      <trans-unit id="Baseline_Since">
-        <source> (Baseline since {0})</source>
-        <target state="translated"> (Punkt odniesienia od {0})</target>
-        <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
-      </trans-unit>
-      <trans-unit id="Baseline_Widely_Available">
-        <source>✅ Widely available across major browsers{0}</source>
-        <target state="translated">✅ Powszechnie dostępne w głównych przeglądarkach{0}</target>
-        <note>{0} is " (Baseline since YYYY)" or empty</note>
-      </trans-unit>
-      <trans-unit id="Blazor_directive_attributes">
-        <source>Blazor directive attributes</source>
-        <target state="translated">Atrybut dyrektywy Blazor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
-        <source>{0} (and req'd attributes...)</source>
-        <target state="translated">{0} (i atrybuty req'd...)</target>
-        <note>The term "req'd" is an abbreviation for "required"</note>
-      </trans-unit>
       <trans-unit id="Couldnt_get_a_source_generator_run_result">
         <source>Couldn't get a source generator run result for project '{0}'.</source>
         <target state="translated">Nie można pobrać wyniku działania generatora źródła dla projektu „{0}”.</target>
@@ -52,28 +27,6 @@
         <target state="translated">Utwórz składnik z tagu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Diagnostics_after">
-        <source>Diagnostics after:</source>
-        <target state="translated">Diagnostyka po:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Diagnostics_before">
-        <source>Diagnostics before:</source>
-        <target state="translated">Diagnostyka przed:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Directive">
-        <source>directive</source>
-        <target state="translated">dyrektywa</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DirectiveSnippetDescription">
-        <source>Insert a directive code snippet
-[Tab] to navigate between elements, [Enter] to complete</source>
-        <target state="translated">Wstaw fragment kodu dyrektywy
-klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zakończyć</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Document_does_not_belong_to_this_project">
         <source>Document does not belong to this project.</source>
         <target state="translated">Dokument nie należy do tego projektu.</target>
@@ -82,16 +35,6 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
       <trans-unit id="Document_is_not_a_Razor_document">
         <source>Document is not a Razor document.</source>
         <target state="translated">Dokument nie jest dokumentem Razor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_adds">
-        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
-        <target state="translated">Edycja na stronie {0} dodaje zawartość bez białych znaków „{1}”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_deletes">
-        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
-        <target state="translated">Edycja na stronie {0} usuwa zawartość bez białych znaków „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
@@ -109,21 +52,6 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
         <target state="translated">Wyodrębnij do {0}.css</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_operation_changed_diagnostics">
-        <source>A format operation is being abandoned because it would introduce or remove one or more diagnostics.</source>
-        <target state="translated">Operacja formatowania jest porzucana, ponieważ spowodowałaby wprowadzenie lub usunięcie co najmniej jednej diagnostyki.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_nonwhitespace">
-        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
-        <target state="translated">Operacja formatowania jest porzucana, ponieważ doda lub usunie zawartość bez białych znaków.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_Error">
-        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
-        <target state="translated">Błąd formatowania. Porzucanie dalszej pracy, aby nie uszkodzić pliku, zgłoś ten problem. Zobacz: https://aka.ms/razor-formatting-issue</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
         <source>Generate Async Event Handler '{0}'</source>
         <target state="translated">Generuj asynchroniczny program obsługi zdarzeń „{0}”</target>
@@ -138,16 +66,6 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
         <source>Generator run result did not contain a code document for '{0}'.</source>
         <target state="translated">Wynik działania generatora nie zawierał dokumentu kodu dla „{0}”.</target>
         <note />
-      </trans-unit>
-      <trans-unit id="KeywordDescription">
-        <source>{0} Keyword</source>
-        <target state="translated">Słowo kluczowe {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="MDN_Reference">
-        <source>MDN Reference</source>
-        <target state="translated">Referencje MDN</target>
-        <note>Link text for MDN documentation URL in HTML completion tooltips</note>
       </trans-unit>
       <trans-unit id="Project_does_not_belong_to_this_solution">
         <source>Project does not belong to this solution.</source>
@@ -184,11 +102,6 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
         <target state="translated">Generator źródła Razor jest odwoływany z „{0}”, ale oczekujemy „{1}” dla projektu „{2}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ReTrigger_Completions_Title">
-        <source>"Re-trigger completions..."</source>
-        <target state="translated">"Ponownie wyzwalaj uzupełniania..."</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_directives">
         <source>Remove unnecessary directives</source>
         <target state="translated">Usuń niepotrzebne dyrektywy</target>
@@ -212,11 +125,6 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
       <trans-unit id="Unknown_RazorMetaCode">
         <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
         <target state="translated">Podjęto próbę odwiedzenia elementu RazorMetaCode innego niż '{' or '}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">Nieznane zachowanie mapowania</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_type_0">
