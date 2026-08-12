@@ -40,7 +40,7 @@ internal static class LanguageServerCommandLine
 
         var telemetryLevelOption = new Option<string?>("--telemetryLevel")
         {
-            Description = "Telemetry level. Dev Kit supports 'all', 'crash', 'error', or 'off'; Copilot CLI supports 'all' or 'off'. Defaults to 'off'.",
+            Description = "Telemetry level for Dev Kit. Supported values are 'all', 'crash', 'error', or 'off'. Defaults to 'off'.",
             Required = false,
         };
         var extensionLogDirectoryOption = new Option<string?>("--extensionLogDirectory")
@@ -187,11 +187,10 @@ internal static class LanguageServerCommandLine
         {
             var launchDebugger = parseResult.GetValue(debugOption);
             var logLevel = parseResult.GetValue(logLevelOption);
-            var commandLineTelemetryLevel = parseResult.GetValue(telemetryLevelOption);
+            var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
             var sessionId = parseResult.GetValue(sessionIdOption);
             var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
             var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
-            var copilotTelemetryLevel = Environment.GetEnvironmentVariable(CopilotTelemetryLevelEnvironmentVariable);
             var csharpDesignTimePath = parseResult.GetValue(csharpDesignTimePathOption);
             var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption);
             var serverPipeName = parseResult.GetValue(serverPipeNameOption);
@@ -201,15 +200,9 @@ internal static class LanguageServerCommandLine
             var clientProcessId = parseResult.GetValue(clientProcessIdOption);
             var isDaemon = parseResult.GetValue(daemonOption);
             var daemonKeepAlive = ResolveDaemonKeepAlive(parseResult.GetValue(daemonKeepAliveOption));
-            var (isCopilotCli, telemetryLevel) = ResolveTelemetryConfiguration(
-                commandLineTelemetryLevel,
-                devKitDependencyPath,
-                copilotTelemetryLevel);
-
             var serverConfiguration = new ServerConfiguration(
                 LaunchDebugger: launchDebugger,
                 InitialLogLevel: logLevel ?? LogLevel.Information,
-                IsCopilotCli: isCopilotCli,
                 TelemetryLevel: telemetryLevel,
                 SessionId: sessionId,
                 ExtensionAssemblyPaths: extensionAssemblyPaths,
@@ -234,22 +227,6 @@ internal static class LanguageServerCommandLine
     /// The default amount of time a daemon stays alive after its last client disconnects.
     /// </summary>
     internal const int DefaultDaemonKeepAliveSeconds = 15 * 60;
-
-    internal const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
-
-    internal static (bool IsCopilotCli, string? TelemetryLevel) ResolveTelemetryConfiguration(
-        string? commandLineTelemetryLevel,
-        string? devKitDependencyPath,
-        string? copilotTelemetryLevel)
-    {
-        if (devKitDependencyPath is not null)
-            return (IsCopilotCli: false, commandLineTelemetryLevel);
-
-        if (copilotTelemetryLevel is not null)
-            return (IsCopilotCli: true, copilotTelemetryLevel);
-
-        return (IsCopilotCli: false, commandLineTelemetryLevel);
-    }
 
     /// <summary>
     /// Environment variable that can override the daemon keepalive (in seconds) when the

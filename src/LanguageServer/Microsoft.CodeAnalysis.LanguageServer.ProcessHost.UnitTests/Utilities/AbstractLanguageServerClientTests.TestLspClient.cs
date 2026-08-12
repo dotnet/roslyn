@@ -8,6 +8,7 @@ using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -565,11 +566,11 @@ public partial class AbstractLanguageServerClientTests
 
         if (launchOptions.CopilotTelemetryLevel is { } copilotTelemetryLevel)
         {
-            processStartInfo.Environment[LanguageServerCommandLine.CopilotTelemetryLevelEnvironmentVariable] = copilotTelemetryLevel;
+            processStartInfo.Environment[LanguageServerTelemetryReporter.CopilotTelemetryLevelEnvironmentVariable] = copilotTelemetryLevel;
         }
         else
         {
-            processStartInfo.Environment.Remove(LanguageServerCommandLine.CopilotTelemetryLevelEnvironmentVariable);
+            processStartInfo.Environment.Remove(LanguageServerTelemetryReporter.CopilotTelemetryLevelEnvironmentVariable);
         }
 
         if (launchOptions.AutoLoadProjects)

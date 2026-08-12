@@ -38,7 +38,6 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
     internal static ServerConfiguration DefaultServerConfiguration => new(
         LaunchDebugger: false,
         InitialLogLevel: LogLevel.Trace,
-        IsCopilotCli: false,
         TelemetryLevel: null,
         SessionId: null,
         ExtensionAssemblyPaths: Array.Empty<string>(),
