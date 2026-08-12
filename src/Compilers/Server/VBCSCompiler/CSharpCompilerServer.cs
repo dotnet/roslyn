@@ -51,6 +51,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return result;
         }
 
+        protected override void OnCompilationStarted()
+        {
+            _cacheTelemetry.StartCompileTimer();
+        }
+
+        protected override void OnCompilationCompleted(bool succeeded)
+        {
+            _cacheTelemetry.StopCompileTimer(succeeded);
+        }
+
         protected override void OnCompilationSucceeded(
             Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,

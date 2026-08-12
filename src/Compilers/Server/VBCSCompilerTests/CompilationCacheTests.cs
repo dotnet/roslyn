@@ -498,6 +498,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 Status = CompilationCacheStatus.Miss,
                 StoreResult = CompilationCacheStoreResult.Stored,
+                CompileResult = CompilationCacheCompileResult.Succeeded,
                 KeyComputeMilliseconds = 5,
                 RestoreMilliseconds = 6,
                 StoreMilliseconds = 7,
@@ -509,6 +510,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(CompilationCacheTelemetry.EventName, telemetryEvent.EventName);
             Assert.Equal("miss", telemetryEvent.Properties["cachestatus"]);
             Assert.Equal("stored", telemetryEvent.Properties["storeresult"]);
+            Assert.Equal("succeeded", telemetryEvent.Properties["compileresult"]);
             Assert.Equal(LanguageNames.CSharp, telemetryEvent.Properties["language"]);
             Assert.Equal("5", telemetryEvent.Properties["keycomputems"]);
             Assert.Equal("6", telemetryEvent.Properties["restorems"]);
@@ -533,6 +535,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             Assert.Equal("hit", telemetryEvent.Properties["cachestatus"]);
             Assert.Equal("none", telemetryEvent.Properties["storeresult"]);
+            Assert.False(telemetryEvent.Properties.ContainsKey("compileresult"));
             Assert.Equal("3", telemetryEvent.Properties["keycomputems"]);
             Assert.Equal("4", telemetryEvent.Properties["restorems"]);
             Assert.False(telemetryEvent.Properties.ContainsKey("storems"));
@@ -549,13 +552,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             telemetry.StartRestoreTimer();
             telemetry.StopRestoreTimer();
             telemetry.StartCompileTimer();
-            telemetry.StopCompileTimer();
+            telemetry.StopCompileTimer(succeeded: true);
             telemetry.StartStoreTimer();
             telemetry.StopStoreTimer();
 
             Assert.True(telemetry.KeyComputeMilliseconds >= 0);
             Assert.True(telemetry.RestoreMilliseconds >= 0);
             Assert.True(telemetry.CompileMilliseconds >= 0);
+            Assert.Equal(CompilationCacheCompileResult.Succeeded, telemetry.CompileResult);
             Assert.True(telemetry.StoreMilliseconds >= 0);
         }
 
@@ -564,9 +568,30 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             var telemetry = new CompilationCacheTelemetry();
 
-            telemetry.StopCompileTimer();
+            telemetry.StopCompileTimer(succeeded: true);
 
             Assert.Null(telemetry.CompileMilliseconds);
+            Assert.Equal(CompilationCacheCompileResult.None, telemetry.CompileResult);
+        }
+
+        [Fact]
+        public void CompilationCacheTelemetry_CompileTimer_FailedCompilation_RecordsElapsedAndResult()
+        {
+            var telemetry = new CompilationCacheTelemetry();
+
+            telemetry.StartCompileTimer();
+            telemetry.StopCompileTimer(succeeded: false);
+
+            Assert.True(telemetry.CompileMilliseconds >= 0);
+            Assert.Equal(CompilationCacheCompileResult.Failed, telemetry.CompileResult);
+
+            telemetry.StartKeyComputeTimer();
+            telemetry.StopKeyComputeTimer();
+            Assert.True(telemetry.KeyComputeMilliseconds >= 0);
+
+            var telemetryEvent = telemetry.ToTelemetryEvent(LanguageNames.CSharp);
+            Assert.Equal("failed", telemetryEvent.Properties["compileresult"]);
+            Assert.True(long.Parse(telemetryEvent.Properties["compilems"]) >= 0);
         }
 
         [Fact]

@@ -186,11 +186,12 @@ The event carries these properties:
 |----------|---------|
 | `cachestatus` | `hit` or `miss` (always present) |
 | `storeresult` | `none`, `stored`, `skippedrace`, `skippedexists`, or `failed` (always present) |
+| `compileresult` | `succeeded` or `failed`; omitted on a cache hit |
 | `language` | the compiler language (`C#` / `Visual Basic`) (always present) |
 | `keycomputems` | milliseconds spent computing the deterministic key (always present) |
 | `restorems` | milliseconds spent attempting to restore a cached result (always present) |
 | `storems` | milliseconds spent storing the result; omitted when no store was attempted (a hit, or a miss whose compilation failed) |
-| `compilems` | milliseconds spent compiling and emitting on a miss (the time a hit would have saved); omitted on a hit and when the compilation failed |
+| `compilems` | milliseconds spent compiling and emitting on a miss; omitted on a hit |
 
 ## Cache management
 

@@ -62,6 +62,21 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     }
 
     /// <summary>
+    /// Outcome of compilation and emit after a cache miss.
+    /// </summary>
+    internal enum CompilationCacheCompileResult
+    {
+        /// <summary>No compilation ran (for example, on a cache hit).</summary>
+        None,
+
+        /// <summary>Compilation and emit completed successfully.</summary>
+        Succeeded,
+
+        /// <summary>Compilation or emit failed.</summary>
+        Failed,
+    }
+
+    /// <summary>
     /// Accumulates compilation-cache statistics for a single request and converts them into a
     /// generic <see cref="BuildTelemetryEvent"/>.
     /// </summary>
@@ -75,14 +90,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public CompilationCacheStatus Status { get; set; }
         public CompilationCacheStoreResult StoreResult { get; set; }
+        public CompilationCacheCompileResult CompileResult { get; set; }
         public long KeyComputeMilliseconds { get; set; }
         public long RestoreMilliseconds { get; set; }
         public long? StoreMilliseconds { get; set; }
 
         /// <summary>
         /// Wall-clock time spent compiling and emitting on a cache miss, or <see langword="null"/>
-        /// when no compilation ran (a cache hit) or the compilation failed (a failed result is never
-        /// stored). This is the time a corresponding cache hit would have saved.
+        /// when no compilation ran (a cache hit).
         /// </summary>
         public long? CompileMilliseconds { get; set; }
 
@@ -101,11 +116,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _compileTimerRunning = true;
         }
 
-        public void StopCompileTimer()
+        public void StopCompileTimer(bool succeeded)
         {
             if (_compileTimerRunning)
             {
                 CompileMilliseconds = StopTimer();
+                CompileResult = succeeded
+                    ? CompilationCacheCompileResult.Succeeded
+                    : CompilationCacheCompileResult.Failed;
                 _compileTimerRunning = false;
             }
         }
@@ -132,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public BuildTelemetryEvent ToTelemetryEvent(string language)
         {
-            var properties = new Dictionary<string, string>(7)
+            var properties = new Dictionary<string, string>(8)
             {
                 ["cachestatus"] = Status switch
                 {
@@ -152,6 +170,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 ["keycomputems"] = KeyComputeMilliseconds.ToString(CultureInfo.InvariantCulture),
                 ["restorems"] = RestoreMilliseconds.ToString(CultureInfo.InvariantCulture),
             };
+
+            if (CompileResult != CompilationCacheCompileResult.None)
+            {
+                properties["compileresult"] = CompileResult == CompilationCacheCompileResult.Succeeded
+                    ? "succeeded"
+                    : "failed";
+            }
 
             if (StoreMilliseconds is { } storeMs)
             {

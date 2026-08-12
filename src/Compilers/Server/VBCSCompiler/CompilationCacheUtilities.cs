@@ -91,7 +91,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             telemetry.Status = CompilationCacheStatus.Miss;
-            telemetry.StartCompileTimer();
             cache.LogCacheMiss(dllName, hashKey, deterministicKey, logger);
             return null;
         }
@@ -107,10 +106,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string? hashKey,
             CompilationCacheTelemetry telemetry)
         {
-            // Record how long the compilation took now that it has completed. This runs even when
-            // the result cannot be stored, so the compile time is captured regardless.
-            telemetry.StopCompileTimer();
-
             if (cache is null || arguments.OutputFileName is null || deterministicKey is null || hashKey is null)
             {
                 return;
