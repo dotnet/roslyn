@@ -58,10 +58,13 @@ extends:
           runOnce:
             deploy:
               steps:
+              - download: none
+
               - checkout: self
                 fetchDepth: 1
+                fetchFilter: blob:none
                 fetchTags: false
-                sparseCheckoutPatterns: /scripts/publish-prerelease-roslyn-lsp.ps1
+                sparseCheckoutDirectories: scripts
 
               - template: /eng/pipelines/steps/get-nuget-api-key.yml@self
                 parameters:
