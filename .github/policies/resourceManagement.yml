@@ -155,6 +155,10 @@ configuration:
             isActivitySender:
               user: github-actions[bot]
               issueAuthor: False
+        - not:
+            isActivitySender:
+              user: dotnet-oneloc-localization[bot]
+              issueAuthr: False
       then:
       - addLabel:
           label: Community
