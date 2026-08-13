@@ -52,6 +52,8 @@ jobs:
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
+      # RunTests uses the same output paths for every Helix submission. Move each submission's
+      # outputs aside so the next sequential submission cannot overwrite or mix its diagnostics.
       - task: PowerShell@2
         displayName: Preserve ${{ testRun.displayName }} submission logs
         condition: succeededOrFailed()
