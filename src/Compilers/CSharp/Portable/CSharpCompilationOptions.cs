@@ -24,11 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode().
     {
         // When adding new fields/properties, you should update
-        // Equals, GetHashCode, CSharpDeterministicKeyBuilder, and the following tests:
+        // - Equals
+        // - GetHashCode
+        // - CSharpDeterministicKeyBuilder
         // - CSharpCompilationOptionsTests.TestFieldsForEqualsAndGetHashCode
         // - CSharpCompilationOptionsTests.Invariants
         // - CSharpDeterministicKeyBuilderTests.CSharpCompilationOptionsCombination
         // - CSharpDeterministicKeyBuilderTests.VerifyUpToDate
+        // - CSharpOptionsSerializationService
 
         /// <summary>
         /// Allow unsafe regions (i.e. unsafe modifiers on members and unsafe blocks).
