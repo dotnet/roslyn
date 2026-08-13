@@ -75,11 +75,11 @@ extends:
                 - task: PowerShell@2
                   displayName: Publish Roslyn LSP
                   inputs:
-                    filePath: '$(Build.SourcesDirectory)/scripts/publish-prerelease-roslyn-lsp.ps1'
+                    filePath: '$(Build.SourcesDirectory)/scripts/publish-roslyn-lsp.ps1'
                     ${{ if eq(parameters.DryRun, true) }}:
-                      arguments: '-PackageDirectory "$(Pipeline.Workspace)/PackageArtifacts" -WhatIf'
+                      arguments: '-PackageDirectory "$(Pipeline.Workspace)/PackageArtifacts" -Prerelease -WhatIf'
                     ${{ else }}:
-                      arguments: '-PackageDirectory "$(Pipeline.Workspace)/PackageArtifacts"'
+                      arguments: '-PackageDirectory "$(Pipeline.Workspace)/PackageArtifacts" -Prerelease'
                     pwsh: true
                   env:
                     NUGET_API_KEY: $(NuGetApiKey)

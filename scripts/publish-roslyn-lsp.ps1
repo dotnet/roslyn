@@ -1,17 +1,22 @@
 <#
 .SYNOPSIS
-  Publishes prerelease roslyn-language-server packages to NuGet.org.
+  Publishes roslyn-language-server packages to NuGet.org.
 
 .DESCRIPTION
-  Validates that every roslyn-language-server package in the given directory is a prerelease package and pushes it
-  to the configured NuGet source. Supports -WhatIf so a run can validate the packages without publishing them.
+  Publishes release packages from the Release subdirectory of the given directory. When -Prerelease is specified,
+  publishes prerelease packages from the given directory. Supports -WhatIf to validate packages without publishing
+  them.
 
 .EXAMPLE
-  ./publish-prerelease-roslyn-lsp.ps1 -PackageDirectory ./artifacts/packages/Release -WhatIf
+  ./publish-roslyn-lsp.ps1 -PackageDirectory ./PackageArtifacts -WhatIf
+
+.EXAMPLE
+  ./publish-roslyn-lsp.ps1 -PackageDirectory ./PackageArtifacts -Prerelease -WhatIf
 #>
 [CmdletBinding(SupportsShouldProcess, PositionalBinding = $false)]
 param (
   [Parameter(Mandatory = $true)][string]$PackageDirectory,
+  [switch]$Prerelease,
   [string]$NuGetApiKey = $env:NUGET_API_KEY,
   [string]$NuGetSource = "https://www.nuget.org/api/v2/package"
 )
@@ -19,22 +24,25 @@ param (
 Set-StrictMode -version 3.0
 $ErrorActionPreference = "Stop"
 
-if (-not (Test-Path -Path $PackageDirectory -PathType Container)) {
-  Write-Error "Package directory '$PackageDirectory' does not exist."
+$resolvedPackageDirectory = if ($Prerelease) { $PackageDirectory } else { Join-Path $PackageDirectory "Release" }
+$packageKind = if ($Prerelease) { "prerelease" } else { "release" }
+
+if (-not (Test-Path -Path $resolvedPackageDirectory -PathType Container)) {
+  Write-Error "Package directory '$resolvedPackageDirectory' does not exist."
   exit 1
 }
 
-Write-Host "Looking for prerelease roslyn-language-server packages in '$PackageDirectory'"
+Write-Host "Looking for $packageKind roslyn-language-server packages in '$resolvedPackageDirectory'"
 
 # Only look at the root of the package directory. Symbol packages are published separately and are excluded here.
-$packages = @(Get-ChildItem -Path $PackageDirectory -Filter "roslyn-language-server.*.nupkg" -File |
+$packages = @(Get-ChildItem -Path $resolvedPackageDirectory -Filter "roslyn-language-server.*.nupkg" -File |
   Where-Object { $_.Name -notlike "*.symbols.nupkg" } |
   Sort-Object -Property Name)
 
 if ($packages.Count -eq 0) {
-  Write-Host "Files found in '$PackageDirectory':"
-  Get-ChildItem -Path $PackageDirectory -File | ForEach-Object { Write-Host "  $($_.Name)" }
-  Write-Error "No roslyn-language-server packages were found in '$PackageDirectory'."
+  Write-Host "Files found in '$resolvedPackageDirectory':"
+  Get-ChildItem -Path $resolvedPackageDirectory -File | ForEach-Object { Write-Host "  $($_.Name)" }
+  Write-Error "No roslyn-language-server packages were found in '$resolvedPackageDirectory'."
   exit 1
 }
 
@@ -48,9 +56,13 @@ foreach ($package in $packages) {
   $packageId = $Matches['id'] + $Matches['rid']
   $packageVersion = $Matches['version']
 
-  # A prerelease version always contains a hyphen, e.g. 5.11.0-1.26412.5
-  if (-not $packageVersion.Contains('-')) {
+  if ($Prerelease -and -not $packageVersion.Contains('-')) {
     Write-Error "Package '$($package.Name)' has version '$packageVersion' which is not a prerelease version. Only prerelease packages may be published by this script."
+    exit 1
+  }
+
+  if (-not $Prerelease -and $packageVersion.Contains('-')) {
+    Write-Error "Package '$($package.Name)' has version '$packageVersion' which is not a release version. Only release packages may be published by this script."
     exit 1
   }
 
