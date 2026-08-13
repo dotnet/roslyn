@@ -228,7 +228,7 @@
     <PackageVersion Include="System.Text.Encodings.Web" Version="$(SystemTextEncodingsWebVersion)" />
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <PackageVersion Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
-    <PackageVersion Include="System.Threading.Channels" Version="10.0.10" />
+    <PackageVersion Include="System.Threading.Channels" Version="$(SystemThreadingChannelsVersion)" />
 
     <PackageVersion Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
 
@@ -271,7 +271,7 @@
     <PackageVersion Include="System.Drawing.Common" Version="10.0.10" />
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
     <PackageVersion Include="Moq" Version="4.10.1" />
-    <PackageVersion Include="System.CodeDom" Version="10.0.10" />
+    <PackageVersion Include="System.CodeDom" Version="$(SystemCodeDomVersion)" />
     <PackageVersion Include="InputSimulatorPlus" Version="1.0.7" />
     <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
