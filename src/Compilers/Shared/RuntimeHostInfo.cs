@@ -107,9 +107,7 @@ namespace Microsoft.CodeAnalysis
                 return pathToDotNetExperimental;
             }
 
-            var isWindows = PlatformInformation.IsWindows;
-            var fileName = isWindows ? "dotnet.exe" : "dotnet";
-
+            var fileName = $"dotnet{PlatformInformation.ExeExtension}";
             var path = getEnvironmentVariable("PATH") ?? "";
             foreach (var item in SplitPath(path))
             {

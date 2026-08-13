@@ -47,9 +47,6 @@ internal static class Extensions
             {
                 // Unix temp path is fine: it does not use the working directory
                 // (it uses ${TMPDIR} if set, otherwise, it returns /tmp)
-                //
-                // https://github.com/dotnet/roslyn/issues/65415 tracks moving to a directory 
-                // to a per user location.
                 var tempPath = taskEnvironment.GetEnvironmentVariable("TMPDIR");
                 return !string.IsNullOrEmpty(tempPath) ? tempPath : "/tmp";
             }
