@@ -14540,7 +14540,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS9274: 'MemorySafetyRules' version '2' is not available in C# 14.0. Please use language version 'preview' or greater.
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
     }
 
