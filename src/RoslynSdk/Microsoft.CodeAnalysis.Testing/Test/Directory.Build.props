@@ -11,11 +11,8 @@
   <Import Project="$(MSBuildThisFileDirectory)../../../../Directory.Build.props" />
 
   <PropertyGroup>
-    <SupportsNet10Targeting>$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '18.0'))</SupportsNet10Targeting>
-    <TestTargetFrameworks>net9.0;net472</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(TestTargetFrameworks)</TestTargetFrameworks>
-    <SourceGeneratorTestTargetFrameworks>net9.0;net472</SourceGeneratorTestTargetFrameworks>
-    <SourceGeneratorTestTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(SourceGeneratorTestTargetFrameworks)</SourceGeneratorTestTargetFrameworks>
+    <TestTargetFrameworks>net10.0;net472</TestTargetFrameworks>
+    <SourceGeneratorTestTargetFrameworks>net10.0;net472</SourceGeneratorTestTargetFrameworks>
 
     <!-- Some legacy test dependencies require compatible framework fallback. -->
     <NoWarn>NU1701;$(NoWarn)</NoWarn>
