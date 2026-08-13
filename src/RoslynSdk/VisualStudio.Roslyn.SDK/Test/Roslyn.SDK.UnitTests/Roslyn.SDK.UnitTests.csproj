@@ -12,7 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Explicit reference to avoid missing package warning -->
-    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
-    <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Interop" />
+    <PackageReference Include="VSLangProj" />
   </ItemGroup>
 </Project>

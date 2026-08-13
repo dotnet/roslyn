@@ -5,9 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.0.0" />
-    <PackageReference Include="Moq " Version="4.7.142" />
-    <PackageReference Include="xunit.assert" Version="$(XUnitVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="xunit.assert" />
   </ItemGroup>
 
 </Project>
