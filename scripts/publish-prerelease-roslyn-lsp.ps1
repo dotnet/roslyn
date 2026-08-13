@@ -39,13 +39,13 @@ if ($packages.Count -eq 0) {
 }
 
 foreach ($package in $packages) {
-  # Package file names have the form roslyn-language-server.<version>.nupkg
-  if ($package.Name -notmatch '^(?<id>roslyn-language-server)\.(?<version>.+)\.nupkg$') {
+  # Package file names have the form roslyn-language-server.[<rid>.]<version>.nupkg
+  if ($package.Name -notmatch '^(?<id>roslyn-language-server)\.(?:(?<rid>[a-z0-9]+(?:-[a-z0-9]+)+)\.)?(?<version>.+)\.nupkg$') {
     Write-Error "Unable to parse the version from package '$($package.Name)'."
     exit 1
   }
 
-  $packageId = $Matches['id']
+  $packageId = $Matches['id'] + $Matches['rid']
   $packageVersion = $Matches['version']
 
   # A prerelease version always contains a hyphen, e.g. 5.11.0-1.26412.5
