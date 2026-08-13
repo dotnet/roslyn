@@ -560,7 +560,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     VerifyDiagnosticLocation(analyzers, actual.diagnostic, expected, actual.diagnostic.Location, expected.Spans[0], verifier);
                     int[] unnecessaryIndices = { };
-                    if (actual.diagnostic.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var encodedUnnecessaryLocations))
+                    if (actual.diagnostic.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var encodedUnnecessaryLocations)
+                        && encodedUnnecessaryLocations is not null)
                     {
                         verifier.True(actual.diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary), "Diagnostic reported extended unnecessary locations, but the descriptor is not marked as unnecessary code.");
                         var match = EncodedIndicesSyntax.Match(encodedUnnecessaryLocations);
@@ -886,7 +887,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     AppendLocation(diagnostic.Location, isUnnecessary: false);
 
                     int[] unnecessaryIndices = { };
-                    if (diagnostic.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var encodedUnnecessaryLocations))
+                    if (diagnostic.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var encodedUnnecessaryLocations)
+                        && encodedUnnecessaryLocations is not null)
                     {
                         var match = EncodedIndicesSyntax.Match(encodedUnnecessaryLocations);
                         if (match.Success)
@@ -1274,7 +1276,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 _ => throw new NotSupportedException(),
             };
 
-            var assembly = project.CompilationOptions.GetType().GetTypeInfo().Assembly;
+            var compilationOptions = project.CompilationOptions
+                ?? throw new InvalidOperationException("The project does not have compilation options.");
+            var parseOptions = project.ParseOptions
+                ?? throw new InvalidOperationException("The project does not have parse options.");
+            var assembly = compilationOptions.GetType().GetTypeInfo().Assembly;
             var generatorDriverType = assembly.GetType(generatorDriverTypeName);
             verifier.True(generatorDriverType is not null, "Failed to locate language-specific source generator driver");
 
@@ -1289,8 +1295,8 @@ namespace Microsoft.CodeAnalysis.Testing
             var createMethod = (from method in generatorDriverType.GetTypeInfo().GetMethods()
                                 where method is { Name: "Create", IsPublic: true, IsStatic: true }
                                 let parameterTypes = method.GetParameters().Select(static parameter => parameter.ParameterType)
-                                where parameterTypes.SequenceEqual(new[] { ienumerableOfISourceGeneratorType, typeof(IEnumerable<AdditionalText>), project.ParseOptions.GetType(), analyzerConfigOptionsProviderType })
-                                    || parameterTypes.SequenceEqual(new[] { immutableArrayOfISourceGeneratorType, typeof(ImmutableArray<AdditionalText>), project.ParseOptions.GetType(), analyzerConfigOptionsProviderType })
+                                where parameterTypes.SequenceEqual(new[] { ienumerableOfISourceGeneratorType, typeof(IEnumerable<AdditionalText>), parseOptions.GetType(), analyzerConfigOptionsProviderType })
+                                    || parameterTypes.SequenceEqual(new[] { immutableArrayOfISourceGeneratorType, typeof(ImmutableArray<AdditionalText>), parseOptions.GetType(), analyzerConfigOptionsProviderType })
                                 select method).SingleOrDefault();
             verifier.True(createMethod is not null, "Failed to locate factory method for diagnostic driver");
 
@@ -1460,16 +1466,18 @@ namespace Microsoft.CodeAnalysis.Testing
                     xmlReferenceResolver.XmlReferences.Add(xmlReference.Key, xmlReference.Value);
                 }
 
+                var additionalProject = solution.GetProject(additionalProjectId)
+                    ?? throw new InvalidOperationException($"Failed to create project '{projectState.Name}'.");
                 solution = solution.WithProjectCompilationOptions(
                     additionalProjectId,
-                    solution.GetProject(additionalProjectId).CompilationOptions
+                    additionalProject.CompilationOptions!
                         .WithOutputKind(projectState.OutputKind)
                         .WithXmlReferenceResolver(xmlReferenceResolver)
                         .WithAssemblyIdentityComparer(referenceAssemblies.AssemblyIdentityComparer));
 
                 solution = solution.WithProjectParseOptions(
                     additionalProjectId,
-                    solution.GetProject(additionalProjectId).ParseOptions
+                    additionalProject.ParseOptions!
                         .WithDocumentationMode(projectState.DocumentationMode));
 
                 var metadataReferences = await referenceAssemblies.ResolveAsync(projectState.Language, cancellationToken);
@@ -1532,7 +1540,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 solution = transform(solution, projectId);
             }
 
-            return solution.GetProject(projectId);
+            return solution.GetProject(projectId)
+                ?? throw new InvalidOperationException($"Failed to retrieve project '{primaryProject.Name}'.");
 
             // Local functions
             static Solution AddProjectReferences(Solution solution, ProjectId sourceProject, IEnumerable<ProjectId> targetProjects)
@@ -1617,9 +1626,15 @@ namespace Microsoft.CodeAnalysis.Testing
                 .WithDocumentationMode(projectState.DocumentationMode);
 
             var workspace = await CreateWorkspaceAsync().ConfigureAwait(false);
+            var options = workspace.Options;
             foreach (var transform in OptionsTransforms)
             {
-                workspace.Options = transform(workspace.Options);
+                options = transform(options);
+            }
+
+            if (!workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options)))
+            {
+                throw new InvalidOperationException("Failed to apply workspace option transforms.");
             }
 
             var solution = workspace
@@ -1682,11 +1697,14 @@ namespace Microsoft.CodeAnalysis.Testing
             }
 
             // update the project compilation options
-            var modifiedSpecificDiagnosticOptions = supportedDiagnosticsSpecificOptions.ToImmutableDictionary().SetItems(project.CompilationOptions.SpecificDiagnosticOptions);
-            var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
+            var compilationOptions = project.CompilationOptions
+                ?? throw new InvalidOperationException("The project does not have compilation options.");
+            var modifiedSpecificDiagnosticOptions = supportedDiagnosticsSpecificOptions.ToImmutableDictionary().SetItems(compilationOptions.SpecificDiagnosticOptions);
+            var modifiedCompilationOptions = compilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
 
             var solution = project.Solution.WithProjectCompilationOptions(project.Id, modifiedCompilationOptions);
-            return solution.GetProject(project.Id);
+            return solution.GetProject(project.Id)
+                ?? throw new InvalidOperationException($"Failed to retrieve project '{project.Name}'.");
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]

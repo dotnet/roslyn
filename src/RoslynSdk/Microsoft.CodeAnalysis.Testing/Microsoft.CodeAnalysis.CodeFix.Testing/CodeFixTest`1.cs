@@ -643,7 +643,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     var actions = ImmutableArray.CreateBuilder<CodeAction>();
 
-                    var fixableDocument = project.Solution.GetDocument(diagnostic.Location.SourceTree);
+                    var fixableDocument = project.Solution.GetDocument(diagnostic.Location.SourceTree)
+                        ?? throw new InvalidOperationException("The diagnostic source document is not part of the solution.");
                     foreach (var codeFixProvider in codeFixProviders)
                     {
                         if (!codeFixProvider.FixableDiagnosticIds.Contains(diagnostic.Id))
@@ -668,7 +669,8 @@ namespace Microsoft.CodeAnalysis.Testing
                         if (fixedProject != fixableDocument.Project)
                         {
                             done = false;
-                            project = fixedProject.Solution.GetProject(originalProjectId);
+                            project = fixedProject.Solution.GetProject(originalProjectId)
+                                ?? throw new InvalidOperationException($"The fixed solution does not contain project '{originalProjectId}'.");
                             break;
                         }
                     }
@@ -709,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 return (project, firstValidationError ?? ExceptionDispatchInfo.Capture(ex));
             }
 
-            return (project, firstValidationError ?? null);
+            return (project, firstValidationError);
         }
 
         private Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)> FixAllAnalyzerDiagnosticsInDocumentAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Action<CodeAction, IVerifier>? codeActionVerifier, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
@@ -797,7 +799,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     var actions = new List<(CodeAction, CodeFixProvider)>();
 
-                    var diagnosticDocument = project.Solution.GetDocument(diagnostic.Location.SourceTree);
+                    var diagnosticDocument = project.Solution.GetDocument(diagnostic.Location.SourceTree)
+                        ?? throw new InvalidOperationException("The diagnostic source document is not part of the solution.");
                     foreach (var codeFixProvider in codeFixProviders)
                     {
                         if (!codeFixProvider.FixableDiagnosticIds.Contains(diagnostic.Id))
@@ -837,9 +840,11 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 var fixableDocument = project.Solution.GetDocument(firstDiagnostic.Value.diagnostic.Location.SourceTree);
                 var diagnosticSpan = fixableDocument is not null ? firstDiagnostic.Value.diagnostic.Location.SourceSpan : (TextSpan?)null;
-                var relevantIds = fixAllProvider.GetSupportedFixAllDiagnosticIds(effectiveCodeFixProvider);
+                var selectedCodeFixProvider = effectiveCodeFixProvider
+                    ?? throw new InvalidOperationException("A code fix provider was not selected.");
+                var relevantIds = fixAllProvider.GetSupportedFixAllDiagnosticIds(selectedCodeFixProvider);
                 var minimumSeverity = firstDiagnostic.Value.diagnostic.Severity;
-                var fixAllContext = CreateFixAllContext(fixableDocument, diagnosticSpan, firstDiagnostic.Value.project, effectiveCodeFixProvider!, scope, equivalenceKey, relevantIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken);
+                var fixAllContext = CreateFixAllContext(fixableDocument, diagnosticSpan, firstDiagnostic.Value.project, selectedCodeFixProvider, scope, equivalenceKey, relevantIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken);
 
                 var action = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 if (action == null)
@@ -853,7 +858,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 if (fixedProject != firstDiagnostic.Value.project)
                 {
                     done = false;
-                    project = fixedProject.Solution.GetProject(originalProjectId);
+                    project = fixedProject.Solution.GetProject(originalProjectId)
+                        ?? throw new InvalidOperationException($"The fixed solution does not contain project '{originalProjectId}'.");
                 }
 
                 if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
@@ -898,7 +904,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
             foreach (var document in project.Documents)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false)
+                    ?? throw new InvalidOperationException($"Document '{document.Name}' does not have a semantic model.");
                 allDiagnostics = allDiagnostics.AddRange(semanticModel.GetDiagnostics(cancellationToken: cancellationToken));
             }
 

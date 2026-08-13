@@ -264,7 +264,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 var actions = ImmutableArray.CreateBuilder<CodeAction>();
 
                 var location = await GetTriggerLocationAsync();
-                var triggerDocument = project.Solution.GetDocument(location.SourceTree);
+                var triggerDocument = project.Solution.GetDocument(location.SourceTree)
+                    ?? throw new InvalidOperationException("The refactoring source document is not part of the solution.");
 
                 foreach (var codeRefactoringProvider in codeRefactoringProviders)
                 {
@@ -284,7 +285,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     if (fixedProject != triggerDocument.Project)
                     {
                         done = false;
-                        project = fixedProject.Solution.GetProject(originalProjectId);
+                        project = fixedProject.Solution.GetProject(originalProjectId)
+                            ?? throw new InvalidOperationException($"The fixed solution does not contain project '{originalProjectId}'.");
                         break;
                     }
                 }
@@ -323,9 +325,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 var span = triggerSpan.Spans[0].Span.Span;
 
                 var documentIds = project.Solution.GetDocumentIdsWithFilePath(triggerSpan.Spans[0].Span.Path);
-                var document = project.Solution.GetDocument(documentIds.Single());
+                var document = project.Solution.GetDocument(documentIds.Single())
+                    ?? throw new InvalidOperationException($"The project does not contain document '{path}'.");
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
+                    ?? throw new InvalidOperationException($"Document '{document.Name}' does not have a syntax tree.");
 
                 return Location.Create(tree, text.Lines.GetTextSpan(span));
             }
@@ -343,7 +347,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
             foreach (var document in project.Documents)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false)
+                    ?? throw new InvalidOperationException($"Document '{document.Name}' does not have a semantic model.");
                 allDiagnostics = allDiagnostics.AddRange(semanticModel.GetDiagnostics(cancellationToken: cancellationToken));
             }
 

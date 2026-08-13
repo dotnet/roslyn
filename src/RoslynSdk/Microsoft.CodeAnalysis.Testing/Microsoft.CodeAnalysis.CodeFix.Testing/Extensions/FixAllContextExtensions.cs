@@ -39,7 +39,7 @@ internal static class FixAllContextExtensions
             else
             {
                 s_createFixAllContextDocument = (document, diagnosticSpan, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken) =>
-                    new FixAllContext(document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken);
+                    new FixAllContext(document!, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken);
             }
         }
 

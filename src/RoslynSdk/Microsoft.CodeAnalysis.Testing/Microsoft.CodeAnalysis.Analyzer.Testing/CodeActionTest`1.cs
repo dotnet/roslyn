@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             var solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
-            var changedProject = solution.GetProject(project.Id);
+            var changedProject = solution.GetProject(project.Id)
+                ?? throw new InvalidOperationException($"The changed solution does not contain project '{project.Name}'.");
             ExceptionDispatchInfo? validationError = null;
             if (changedProject != project)
             {
@@ -222,10 +223,13 @@ namespace Microsoft.CodeAnalysis.Testing
             ExceptionDispatchInfo? validationError = null;
             foreach (var documentId in project.DocumentIds)
             {
-                var document = project.GetDocument(documentId);
-                var initialTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var document = project.GetDocument(documentId)
+                    ?? throw new InvalidOperationException($"The project does not contain document '{documentId}'.");
+                var initialTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
+                    ?? throw new InvalidOperationException($"Document '{document.Name}' does not have a syntax tree.");
                 document = await RecreateDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-                var recreatedTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var recreatedTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
+                    ?? throw new InvalidOperationException($"Document '{document.Name}' does not have a syntax tree.");
                 if (CodeActionValidationMode != CodeActionValidationMode.None && validationError is null)
                 {
                     try
@@ -427,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     else
                     {
                         _verifier.True(actualChild.IsNode);
-                        AssertNodesEqual(expectedChild.AsNode(), actualChild.AsNode(), checkTrivia);
+                        AssertNodesEqual(expectedChild.AsNode()!, actualChild.AsNode()!, checkTrivia);
                     }
                 }
             }
@@ -470,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 _verifier.Equal(expected.GetAnnotations(), actual.GetAnnotations());
                 if (expected.HasStructure)
                 {
-                    AssertNodesEqual(expected.GetStructure(), actual.GetStructure(), checkTrivia);
+                    AssertNodesEqual(expected.GetStructure()!, actual.GetStructure()!, checkTrivia);
                 }
             }
 

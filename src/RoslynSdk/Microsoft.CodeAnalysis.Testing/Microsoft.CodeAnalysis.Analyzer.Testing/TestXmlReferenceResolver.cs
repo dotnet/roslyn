@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public Dictionary<string, string> XmlReferences { get; } =
             new Dictionary<string, string>();
 
-        public override bool Equals(object other)
+        public override bool Equals(object? other)
         {
             return ReferenceEquals(this, other);
         }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Testing
             return new MemoryStream(Encoding.UTF8.GetBytes(content));
         }
 
-        public override string? ResolveReference(string path, string baseFilePath)
+        public override string? ResolveReference(string path, string? baseFilePath)
         {
             if (!XmlReferences.ContainsKey(path))
             {

@@ -14,9 +14,6 @@
     <TestTargetFrameworks>net10.0;net472</TestTargetFrameworks>
     <SourceGeneratorTestTargetFrameworks>net10.0;net472</SourceGeneratorTestTargetFrameworks>
 
-    <!-- Some legacy test dependencies require compatible framework fallback. -->
-    <NoWarn>NU1701;$(NoWarn)</NoWarn>
-
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>

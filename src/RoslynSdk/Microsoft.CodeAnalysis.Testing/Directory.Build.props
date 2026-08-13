@@ -15,13 +15,13 @@
     <!--
       net8.0: Modern .NET target with current NuGet APIs
       net10.0: Included when building with MSBuild 18.0+ toolsets
-      netstandard2.0/net472: Roslyn 3.x
+      All targets compile against Roslyn 4.12.
     -->
-    <TestingLibraryTargetFrameworks>net8.0;netstandard2.0;net461;net472</TestingLibraryTargetFrameworks>
+    <TestingLibraryTargetFrameworks>net8.0;netstandard2.0;net472</TestingLibraryTargetFrameworks>
     <TestingLibraryTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(TestingLibraryTargetFrameworks)</TestingLibraryTargetFrameworks>
 
     <!--
-      netstandard2.0/net472: Roslyn 3.x, starting with 3.8.0
+      Source generator testing libraries compile against Roslyn 4.12.
     -->
     <TestingLibrarySourceGeneratorTargetFrameworks>netstandard2.0;net472</TestingLibrarySourceGeneratorTargetFrameworks>
   </PropertyGroup>
@@ -40,20 +40,8 @@
     </When>
   </Choose>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.6' OR '$(TargetFramework)' == 'netstandard2.0'">
-    <!--
-      The original Microsoft.CodeAnalysis packages targeted the PCL instead of .NET Standard. Rather than
-      drop support for the packages, we use AssetTargetFallback to configure the NuGet restore behavior to
-      work properly.
-    -->
-    <AssetTargetFallback>portable-net45+win8</AssetTargetFallback>
-  </PropertyGroup>
-
   <PropertyGroup>
-    <!--
-      NU1701: Package 'name' was restored using 'moniker' instead of the project target framework 'moniker'. This package may not be fully compatible with your project.
-    -->
-    <NoWarn>$(NoWarn);NU1701;NU3005;NU5125</NoWarn>
+    <NoWarn>$(NoWarn);NU3005;NU5125</NoWarn>
   </PropertyGroup>
 
   <!-- We always want a good debugging experience in tests -->

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -22,56 +21,25 @@ namespace Microsoft.CodeAnalysis.Testing.Extensions
 
         static CompilationWithAnalyzersExtensions()
         {
-            Type? taskOfAnalysisResult;
-            var methodInfo = typeof(CompilationWithAnalyzers).GetMethod(nameof(GetAllDiagnosticsAsync), new[] { typeof(CancellationToken) });
-            if (methodInfo is not null)
+            s_getAllDiagnosticsAsync = (compilationWithAnalyzers, cancellationToken) =>
+                compilationWithAnalyzers.GetAllDiagnosticsAsync(cancellationToken);
+            s_getAnalysisResultAsync = (compilationWithAnalyzers, cancellationToken) =>
+                compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken);
+            s_createCompilationWithAnalyzers = (compilation, analyzers, options, cancellationToken) =>
             {
-                s_getAllDiagnosticsAsync = (Func<CompilationWithAnalyzers, CancellationToken, Task<ImmutableArray<Diagnostic>>>)methodInfo.CreateDelegate(typeof(Func<CompilationWithAnalyzers, CancellationToken, Task<ImmutableArray<Diagnostic>>>), target: null);
-            }
-            else
-            {
-                s_getAllDiagnosticsAsync = (compilationWithAnalyzers, cancellationToken) => compilationWithAnalyzers.GetAllDiagnosticsAsync();
-            }
+                var analysisOptions = new CompilationWithAnalyzersOptions(
+                    options,
+                    onAnalyzerException: null,
+                    concurrentAnalysis: true,
+                    logAnalyzerExecutionTime: true,
+                    reportSuppressedDiagnostics: true);
+                return compilation.WithAnalyzers(analyzers, analysisOptions);
+            };
 
-            methodInfo = typeof(CompilationWithAnalyzers).GetMethod(nameof(GetAnalysisResultAsync), new[] { typeof(CancellationToken) });
-            if (methodInfo is not null)
-            {
-                s_getAnalysisResultAsync = (Func<CompilationWithAnalyzers, CancellationToken, Task>)methodInfo.CreateDelegate(typeof(Func<CompilationWithAnalyzers, CancellationToken, Task>), target: null);
-
-                // We know AnalysisResult exists because GetAnalysisResultAsync exists
-                RoslynDebug.AssertNotNull(AnalysisResultWrapper.WrappedType);
-                taskOfAnalysisResult = typeof(Task<>).MakeGenericType(AnalysisResultWrapper.WrappedType);
-            }
-            else
-            {
-                s_getAnalysisResultAsync = (compilationWithAnalyzers, cancellationToken) => throw new NotSupportedException();
-                taskOfAnalysisResult = null;
-            }
-
-            var compilationWithAnalyzersOptionsType = typeof(CompilationWithAnalyzers).GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions");
-            var constructorInfo = compilationWithAnalyzersOptionsType is not null
-                ? typeof(CompilationWithAnalyzers).GetConstructor(new[] { typeof(Compilation), typeof(ImmutableArray<DiagnosticAnalyzer>), compilationWithAnalyzersOptionsType })
-                : null;
-            if (constructorInfo is not null)
-            {
-                RoslynDebug.AssertNotNull(compilationWithAnalyzersOptionsType);
-                s_createCompilationWithAnalyzers = (compilation, analyzers, options, cancellationToken) =>
-                {
-                    Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException = null;
-                    var concurrentAnalysis = true;
-                    var logAnalyzerExecutionTime = true;
-                    var reportSuppressedDiagnostics = true;
-                    var analysisOptions = Activator.CreateInstance(compilationWithAnalyzersOptionsType, options, onAnalyzerException, concurrentAnalysis, logAnalyzerExecutionTime, reportSuppressedDiagnostics);
-                    return (CompilationWithAnalyzers)Activator.CreateInstance(typeof(CompilationWithAnalyzers), compilation, analyzers, analysisOptions)!;
-                };
-            }
-            else
-            {
-                s_createCompilationWithAnalyzers = (compilation, analyzers, options, cancellationToken) =>
-                    compilation.WithAnalyzers(analyzers, options, cancellationToken);
-            }
-
-            s_getTaskOfAnalysisResultResult = LightupHelpers.CreatePropertyAccessor<Task, object>(taskOfAnalysisResult, nameof(Task<object>.Result), s_invalidResultSentinel);
+            s_getTaskOfAnalysisResultResult = LightupHelpers.CreatePropertyAccessor<Task, object>(
+                typeof(Task<AnalysisResult>),
+                nameof(Task<object>.Result),
+                s_invalidResultSentinel);
         }
 
         public static CompilationWithAnalyzers Create(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
