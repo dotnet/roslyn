@@ -459,7 +459,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var comp = CreateCompilation("",
             options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)value))
             .VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRules", value, $"{(int)MemorySafetyRulesVersion.Version0}, {(int)MemorySafetyRulesVersion.Version2}").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", value, $"{(int)MemorySafetyRulesVersion.Version0}, {(int)MemorySafetyRulesVersion.Version2}").WithLocation(1, 1));
 
         Assert.Equal((MemorySafetyRulesVersion)value, comp.Options.MemorySafetyRulesVersion);
         Assert.False(comp.Options.UseUpdatedMemorySafetyRules);

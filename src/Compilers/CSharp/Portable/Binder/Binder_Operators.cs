@@ -4088,7 +4088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!result.HasErrors)
             {
-                ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);
+                ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRulesVersion.Version2);
             }
 
             return result;

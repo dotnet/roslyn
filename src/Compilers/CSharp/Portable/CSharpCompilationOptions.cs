@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (MemorySafetyRulesVersion is not (MemorySafetyRulesVersion.Version0 or MemorySafetyRulesVersion.Version2))
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValueAccepted, nameof(MemorySafetyRules), MemorySafetyRulesVersion, string.Join(", ", [(int)MemorySafetyRulesVersion.Version0, (int)MemorySafetyRulesVersion.Version2])));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValueAccepted, nameof(MemorySafetyRulesVersion), MemorySafetyRulesVersion, string.Join(", ", [(int)MemorySafetyRulesVersion.Version0, (int)MemorySafetyRulesVersion.Version2])));
             }
 
             // TODO: add check for 
