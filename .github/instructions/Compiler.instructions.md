@@ -81,6 +81,12 @@ Compiler tasks are in `src/Compilers/Core/MSBuildTask/`:
 - `Csc.cs` - C# compiler task
 - `Vbc.cs` - VB compiler task  
 - `ManagedCompiler.cs` - Base compiler task functionality
+- `Extensions.cs` - `TaskEnvironment`-based path and temporary-directory helpers
+
+Multithreaded MSBuild tasks must read process-dependent state through their `TaskEnvironment`
+rather than directly using `Environment`, `Directory`, or working-directory-sensitive `Path`
+APIs. Shared compatibility helpers for environment and path behavior live under
+`src/Compilers/Core/Portable/InternalUtilities/`.
 
 ## Performance Considerations
 
