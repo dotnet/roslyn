@@ -50,6 +50,8 @@ extends:
         displayName: Publish Packages
         environment: roslyn-nuget-publishing
         templateContext:
+          type: releaseJob
+          isProduction: true
           inputs:
           - input: pipelineArtifact
             pipeline: officialBuild
