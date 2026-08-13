@@ -1,0 +1,88 @@
+trigger: none
+pr: none
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+  pipelines:
+  - pipeline: officialBuild
+    source: dotnet-roslyn-official
+    trigger: none
+
+parameters:
+- name: PublishingType
+  displayName: Publishing type
+  type: string
+  default: Roslyn LSP
+  values:
+  - Roslyn LSP
+- name: DryRun
+  displayName: Dry run
+  type: boolean
+  default: true
+
+variables:
+- template: /eng/common/templates-official/variables/pool-providers.yml@self
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    settings:
+      networkIsolationPolicy: Preferred, NuGet
+    sdl:
+      enableAllTools: false
+    pool:
+      name: $(DncEngInternalBuildPool)
+      image: build.azurelinux.3.amd64
+      os: linux
+    stages:
+    - stage: publish_prerelease_roslyn_lsp
+      displayName: Publish Prerelease Roslyn LSP
+
+      jobs:
+      - deployment: publish_prerelease_roslyn_lsp
+        displayName: Publish Prerelease Roslyn LSP
+        environment: roslyn-nuget-publishing
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - checkout: self
+
+              - task: DownloadBuildArtifacts@1
+                displayName: Download Package Artifacts
+                inputs:
+                  buildType: specific
+                  project: $(resources.pipeline.officialBuild.projectID)
+                  definition: $(resources.pipeline.officialBuild.pipelineID)
+                  buildVersionToDownload: specific
+                  buildId: $(resources.pipeline.officialBuild.runID)
+                  downloadType: single
+                  artifactName: PackageArtifacts
+                  downloadPath: $(Pipeline.Workspace)
+
+              - template: /eng/pipelines/steps/get-nuget-api-key.yml@self
+                parameters:
+                  azureServiceConnection: roslyn-team-nuget-wif
+                  nuGetUsername: jorobich
+
+              - ${{ if eq(parameters.PublishingType, 'Roslyn LSP') }}:
+                - task: PowerShell@2
+                  displayName: Publish Prerelease Roslyn LSP
+                  inputs:
+                    filePath: '$(Build.SourcesDirectory)/scripts/publish-prerelease-roslyn-lsp.ps1'
+                    ${{ if eq(parameters.DryRun, true) }}:
+                      arguments: '-PackageDirectory "$(Pipeline.Workspace)/PackageArtifacts" -WhatIf'
+                    ${{ else }}:
+                      arguments: '-PackageDirectory "$(Pipeline.Workspace)/PackageArtifacts"'
+                    pwsh: true
+                  env:
+                    NUGET_API_KEY: $(NuGetApiKey)
+              - ${{ else }}:
+                - pwsh: throw "Invalid publishing type '$env:PUBLISHING_TYPE'."
+                  displayName: Report invalid publishing type
+                  env:
+                    PUBLISHING_TYPE: ${{ parameters.PublishingType }}

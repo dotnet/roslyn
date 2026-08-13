@@ -427,46 +427,6 @@ extends:
             name: $(DncEngInternalBuildPool)
             demands: ImageOverride -equals windows.vs2022.amd64
 
-    - stage: publish_prerelease_roslyn_lsp
-      displayName: Publish Prerelease Roslyn LSP
-      trigger: manual
-
-      jobs:
-      - deployment: publish_prerelease_roslyn_lsp
-        displayName: Publish Prerelease Roslyn LSP
-        environment: roslyn-nuget-publishing
-        pool:
-          name: $(DncEngInternalBuildPool)
-          image: build.azurelinux.3.amd64
-          os: linux
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-              - checkout: self
-
-              - task: DownloadBuildArtifacts@1
-                displayName: Download Package Artifacts
-                inputs:
-                  buildType: current
-                  downloadType: single
-                  artifactName: PackageArtifacts
-                  downloadPath: $(Pipeline.Workspace)
-
-              - template: /eng/pipelines/steps/get-nuget-api-key.yml@self
-                parameters:
-                  azureServiceConnection: roslyn-team-nuget-wif
-                  nuGetUsername: jorobich
-
-              - task: PowerShell@2
-                displayName: Publish Prerelease Roslyn LSP (dry-run)
-                inputs:
-                  filePath: '$(Build.SourcesDirectory)/scripts/publish-prerelease-roslyn-lsp.ps1'
-                  arguments: '-PackageDirectory "$(Pipeline.Workspace)/PackageArtifacts" -WhatIf'
-                  pwsh: true
-                env:
-                  NUGET_API_KEY: $(NuGetApiKey)
-
     - stage: insert
       dependsOn:
       - build
