@@ -385,6 +385,111 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
     }
 
     [Fact]
+    public void Lower_TagHelperWithAllowedChildren_AllowsPrefixedTagHelperChild()
+    {
+        // Arrange
+        var contactListTagHelper = CreateTagHelperDescriptorWithAllowedChild(
+            tagName: "my-contact-list",
+            typeName: "ContactListTagHelper",
+            assemblyName: "TestAssembly",
+            allowedChildTag: "my-contact");
+
+        var contactTagHelper = CreateTagHelperDescriptor(
+            tagName: "my-contact",
+            typeName: "ContactTagHelper",
+            assemblyName: "TestAssembly");
+
+        var codeDocument = ProjectEngine.CreateCodeDocument(
+            """
+            @addTagHelper *, TestAssembly
+            @tagHelperPrefix th:
+            <th:my-contact-list>
+                <th:my-contact></th:my-contact>
+            </th:my-contact-list>
+            """,
+            [contactListTagHelper, contactTagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        var documentNode = processor.GetDocumentNode();
+
+        // Assert
+        Assert.Collection(
+            documentNode.FindDescendantNodes<TagHelperIntermediateNode>(),
+            node => Assert.Equal("my-contact-list", node.TagName),
+            node => Assert.Equal("my-contact", node.TagName));
+        Assert.Empty(documentNode.GetAllDiagnostics());
+    }
+
+    [Fact]
+    public void Lower_TagHelperWithAllowedChildren_ReportsDisallowedPrefixedTagHelperChild()
+    {
+        // Arrange
+        var contactListTagHelper = CreateTagHelperDescriptorWithAllowedChild(
+            tagName: "my-contact-list",
+            typeName: "ContactListTagHelper",
+            assemblyName: "TestAssembly",
+            allowedChildTag: "my-contact");
+
+        var otherContactTagHelper = CreateTagHelperDescriptor(
+            tagName: "other-contact",
+            typeName: "OtherContactTagHelper",
+            assemblyName: "TestAssembly");
+
+        var codeDocument = ProjectEngine.CreateCodeDocument(
+            """
+            @addTagHelper *, TestAssembly
+            @tagHelperPrefix th:
+            <th:my-contact-list>
+                <th:other-contact></th:other-contact>
+            </th:my-contact-list>
+            """,
+            [contactListTagHelper, otherContactTagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        var documentNode = processor.GetDocumentNode();
+
+        // Assert
+        var diagnostic = Assert.Single(documentNode.GetAllDiagnostics());
+        Assert.Equal("RZ2010", diagnostic.Id);
+        Assert.Contains("<other-contact>", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public void Lower_TagHelperWithAllowedChildren_ReportsPrefixLookingPlainChild()
+    {
+        // Arrange
+        var contactListTagHelper = CreateTagHelperDescriptorWithAllowedChild(
+            tagName: "my-contact-list",
+            typeName: "ContactListTagHelper",
+            assemblyName: "TestAssembly",
+            allowedChildTag: "div");
+
+        var codeDocument = ProjectEngine.CreateCodeDocument(
+            """
+            @addTagHelper *, TestAssembly
+            @tagHelperPrefix th:
+            <th:my-contact-list>
+                <th:div></th:div>
+            </th:my-contact-list>
+            """,
+            [contactListTagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        var documentNode = processor.GetDocumentNode();
+
+        // Assert
+        var diagnostic = Assert.Single(documentNode.GetAllDiagnostics());
+        Assert.Equal("RZ2010", diagnostic.Id);
+        Assert.Contains("<th:div>", diagnostic.GetMessage());
+    }
+
+    [Fact]
     public void Lower_TagHelperWithAllowedChildren_AllowsEscapedAllowedChild()
     {
         // Arrange
