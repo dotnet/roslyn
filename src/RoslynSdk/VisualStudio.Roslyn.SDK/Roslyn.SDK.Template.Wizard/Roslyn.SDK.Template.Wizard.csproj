@@ -15,7 +15,7 @@
     <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" />
     <PackageReference Include="Microsoft.VisualStudio.Utilities.Internal" />
-    <PackageReference Include="Microsoft.Visualstudio.Validation" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="StreamJsonRpc" />
     <PackageReference Include="System.Text.Json" />
     <PackageReference Include="VSLangProj" />

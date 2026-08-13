@@ -35,6 +35,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" VersionOverride="$(MicrosoftVisualStudioShellPackagesVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" PrivateAssets="all" />
     <PackageReference Include="System.Text.Json" />
-    <PackageReference Include="System.Threading.Tasks.DataFlow" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" />
   </ItemGroup>
 </Project>
