@@ -158,7 +158,7 @@ configuration:
         - not:
             isActivitySender:
               user: dotnet-oneloc-localization[bot]
-              issueAuthr: False
+              issueAuthor: False
       then:
       - addLabel:
           label: Community
