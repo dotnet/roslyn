@@ -32,6 +32,11 @@ extends:
   parameters:
     settings:
       networkIsolationPolicy: Preferred, NuGet
+    sdl:
+      sourceAnalysisPool:
+        name: $(DncEngInternalBuildPool)
+        image: 1es-windows-2022
+        os: windows
     pool:
       name: $(DncEngInternalBuildPool)
       image: build.azurelinux.3.amd64
