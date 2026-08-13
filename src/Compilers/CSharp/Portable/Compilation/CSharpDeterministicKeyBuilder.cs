@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.WriteCompilationOptionsCore(writer, options);
 
             writer.Write("unsafe", csharpOptions.AllowUnsafe);
-            writer.Write("memorySafetyRulesVersion", csharpOptions.MemorySafetyRulesVersion);
+            writer.Write("memorySafetyRulesVersion", (int)csharpOptions.MemorySafetyRulesVersion);
             writer.Write("topLevelBinderFlags", csharpOptions.TopLevelBinderFlags);
             writer.WriteKey("usings");
             writer.WriteArrayStart();

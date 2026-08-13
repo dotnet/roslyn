@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
-      ""memorySafetyRules"": 0,
+      ""memorySafetyRulesVersion"": 0,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     },
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
-      ""memorySafetyRules"": 0,
+      ""memorySafetyRulesVersion"": 0,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     }}
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
                 var value = GetCompilationOptionsValue(options);
                 Assert.Equal(@unsafe, value.Value<bool>("unsafe"));
-                Assert.Equal(memorySafetyRulesVersion, value.Value<MemorySafetyRulesVersion>("memorySafetyRulesVersion"));
+                Assert.Equal((int)memorySafetyRulesVersion, value.Value<int>("memorySafetyRulesVersion"));
                 Assert.Equal(binderFlags.ToString(), value.Value<string>("topLevelBinderFlags"));
                 Assert.Equal(nullableContextOptions.ToString(), value.Value<string>("nullableContextOptions"));
             }
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
-      ""memorySafetyRules"": 0,
+      ""memorySafetyRulesVersion"": 0,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     },
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "specificDiagnosticOptions": [],
       "localtime": null,
       "unsafe": false,
-      "memorySafetyRules": 0,
+      "memorySafetyRulesVersion": 0,
       "topLevelBinderFlags": "None",
       "usings": []
     },
