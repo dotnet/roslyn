@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var pipeName = Guid.NewGuid().ToString("N");
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
 
-            bool holdsMutex;
-            using (var mutex = BuildServerConnection.OpenOrCreateMutex(
-                                         name: mutexName,
-                                         createdNew: out holdsMutex))
+            using (var mutex = new ServerNamedMutex(mutexName, out var holdsMutex))
             {
                 Assert.True(holdsMutex);
                 try
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var tcs = new TaskCompletionSource<IClientConnection>();
                 var thread = new Thread(_ =>
                 {
-                    wasServerMutexOpen = BuildServerConnection.WasServerMutexOpen(mutexName);
+                    wasServerMutexOpen = ServerNamedMutex.WasOpen(mutexName);
 
                     var client = new TestableClientConnection()
                     {

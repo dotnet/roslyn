@@ -118,9 +118,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // pipename and consuming excess resources. If someone else holds the mutex
             // exit immediately with a non-zero exit code
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
-            bool createdNew;
-            using (var serverMutex = BuildServerConnection.OpenOrCreateMutex(name: mutexName,
-                                                                             createdNew: out createdNew))
+            using (var serverMutex = new ServerNamedMutex(mutexName, out var createdNew))
             {
                 if (!createdNew)
                 {

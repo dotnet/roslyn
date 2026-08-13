@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             using var currentProcess = Process.GetCurrentProcess();
             using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             Assert.False(currentProcess.HasExited);
-            Assert.False(BuildServerConnection.WasServerMutexOpen(mutexName));
+            Assert.False(ServerNamedMutex.WasOpen(mutexName));
 
             var waitTask = BuildServerConnection.WaitForServerProcessExitAsync(pipeName, currentProcess.Id, cancellationTokenSource.Token);
             var completedTask = await Task.WhenAny(waitTask, Task.Delay(TimeSpan.FromSeconds(5), cancellationTokenSource.Token));

@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             // The contract of this function is that it will return once the server has started.  Spin here until
             // we can verify the server has started or simply failed to start.
             var mutexName = BuildServerConnection.GetServerMutexName(PipeName);
-            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && !ServerTask.IsCompleted)
+            while (ServerNamedMutex.WasOpen(mutexName) != true && !ServerTask.IsCompleted)
             {
                 await Task.Yield();
             }

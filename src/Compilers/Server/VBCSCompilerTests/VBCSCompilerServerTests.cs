@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                     var thread = new Thread(() =>
                     {
-                        using (var mutex = BuildServerConnection.OpenOrCreateMutex(name: mutexName, createdNew: out created))
+                        using (var mutex = new ServerNamedMutex(mutexName, out created))
                         using (var stream = NamedPipeUtil.CreateServer(pipeName))
                         {
                             readyMre.Set();
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     {
                         using (var stream = NamedPipeUtil.CreateServer(pipeName))
                         {
-                            var mutex = BuildServerConnection.OpenOrCreateMutex(name: mutexName, createdNew: out created);
+                            var mutex = new ServerNamedMutex(mutexName, out created);
                             readyMre.Set();
 
                             stream.WaitForConnection();

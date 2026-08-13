@@ -78,10 +78,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 // the client believe that a server is active and it will try
                 // to connect. When it fails it should fall back to in-proc
                 // compilation.
-                bool holdsMutex;
-                using (var serverMutex = BuildServerConnection.OpenOrCreateMutex(
-                                                   name: BuildServerConnection.GetServerMutexName(_pipeName),
-                                                   createdNew: out holdsMutex))
+                using (var serverMutex = new ServerNamedMutex(
+                    BuildServerConnection.GetServerMutexName(_pipeName),
+                    out var holdsMutex))
                 {
                     Assert.True(holdsMutex);
                     var ranLocal = false;
