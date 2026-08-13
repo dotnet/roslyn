@@ -5001,6 +5001,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 writeValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
             }
 
+            // https://github.com/dotnet/roslyn/issues/82546: serialize MemorySafetyRulesVersion here when it's no longer experimental
+
             void writeValue(string key, string value)
             {
                 builder.WriteUTF8(key);

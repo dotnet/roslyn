@@ -62,7 +62,7 @@ internal sealed class CSharpOptionsSerializationService : AbstractOptionsSeriali
             cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, concurrentBuild,
             deterministic, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, strongNameProvider, publicSign,
             metadataImportOptions, nullableContextOptions)
-            // https://github.com/dotnet/roslyn/issues/82789: use constructor parameter instead when available
+            // https://github.com/dotnet/roslyn/issues/82546: use constructor parameter instead when available
             .WithMemorySafetyRulesVersion(memorySafetyRulesVersion);
     }
 

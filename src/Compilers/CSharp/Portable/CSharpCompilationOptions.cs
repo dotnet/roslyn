@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // - CSharpDeterministicKeyBuilderTests.CSharpCompilationOptionsCombination
         // - CSharpDeterministicKeyBuilderTests.VerifyUpToDate
         // - CSharpOptionsSerializationService
+        // - CSharpCompilation.SerializePdbEmbeddedCompilationOptions
+        // - CSharpCompilationFactory.CreateCSharpCompilationOptions
 
         /// <summary>
         /// Allow unsafe regions (i.e. unsafe modifiers on members and unsafe blocks).
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override NullableContextOptions NullableContextOptions { get; protected set; }
 
-        // https://github.com/dotnet/roslyn/issues/82789: add this overload and turn the below one into non-optional back-compat overload
+        // https://github.com/dotnet/roslyn/issues/82546: add this overload and turn the below one into non-optional back-compat overload
         // public CSharpCompilationOptions(
         //     OutputKind outputKind,
         //     bool reportSuppressedDiagnostics = false,
