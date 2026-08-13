@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         internal void MovePdbFileIfNecessary()
         {
-            // Get the name of the output assemf bly because the pdb will be written beside it and will have the same name
+            // Get the name of the output assembly because the pdb will be written beside it and will have the same name
             if (string.IsNullOrEmpty(PdbFile) ||
                 string.IsNullOrEmpty(OutputAssembly?.ItemSpec) ||
                 TaskEnvironment.GetFullPathNoThrow(OutputAssembly!.ItemSpec) is not string outputAssembly)
