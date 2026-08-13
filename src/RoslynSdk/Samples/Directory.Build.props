@@ -5,7 +5,7 @@
     <ImportNetSdkFromRepoToolset>false</ImportNetSdkFromRepoToolset>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
 
-    <!-- Workaround dependencies that do not yet support netcoreapp3.1 https://github.com/dotnet/roslyn/issues/45114 -->
+    <!-- Some legacy sample dependencies require compatible framework fallback. -->
     <NoWarn>NU1701;$(NoWarn)</NoWarn>
 
     <!-- Workaround for https://github.com/dotnet/sdk/issues/24747 -->
