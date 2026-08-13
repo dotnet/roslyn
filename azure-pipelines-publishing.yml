@@ -42,30 +42,26 @@ extends:
       image: build.azurelinux.3.amd64
       os: linux
     stages:
-    - stage: publish_packages
-      displayName: Publish Packages
+    - stage: publish
+      displayName: Publish
 
       jobs:
       - deployment: publish_
-        displayName: Publish
+        displayName: Publish Packages
         environment: roslyn-nuget-publishing
+        templateContext:
+          inputs:
+          - input: pipelineArtifact
+            pipeline: officialBuild
+            artifactName: PackageArtifacts
         strategy:
           runOnce:
             deploy:
               steps:
               - checkout: self
-
-              - task: DownloadBuildArtifacts@1
-                displayName: Download Package Artifacts
-                inputs:
-                  buildType: specific
-                  project: $(resources.pipeline.officialBuild.projectID)
-                  definition: $(resources.pipeline.officialBuild.pipelineID)
-                  buildVersionToDownload: specific
-                  buildId: $(resources.pipeline.officialBuild.runID)
-                  downloadType: single
-                  artifactName: PackageArtifacts
-                  downloadPath: $(Pipeline.Workspace)
+                fetchDepth: 1
+                fetchTags: false
+                sparseCheckoutPatterns: /scripts/publish-prerelease-roslyn-lsp.ps1
 
               - template: /eng/pipelines/steps/get-nuget-api-key.yml@self
                 parameters:
@@ -74,7 +70,7 @@ extends:
 
               - ${{ if eq(parameters.PublishingType, 'Roslyn LSP') }}:
                 - task: PowerShell@2
-                  displayName: Publish Prerelease Roslyn LSP
+                  displayName: Publish Roslyn LSP
                   inputs:
                     filePath: '$(Build.SourcesDirectory)/scripts/publish-prerelease-roslyn-lsp.ps1'
                     ${{ if eq(parameters.DryRun, true) }}:
