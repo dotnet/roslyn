@@ -153,9 +153,6 @@ configuration:
               issueAuthor: False
         - not:
             isActivitySender:
-              user: github-actions[bot]
-        - not:
-            isActivitySender:
               user: dotnet-oneloc-localization[bot]
               issueAuthor: False
       then:
