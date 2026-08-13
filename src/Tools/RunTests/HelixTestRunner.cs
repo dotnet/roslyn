@@ -536,7 +536,7 @@ internal sealed class HelixTestRunner
         builder.AppendLine($@"/Platform:{platform}");
 
         // The xml file must end in test-results.xml for the Azure Pipelines reporter to pick it up.
-        builder.AppendLine($@"/Logger:xunit;LogFilePath=work-item-test-results.xml");
+        builder.AppendLine($@"/Logger:xunit;LogFilePath=test-results.xml");
 
         // Also add a console logger so that the helix log reports results as we go.
         builder.AppendLine($@"/Logger:console;verbosity=detailed");
