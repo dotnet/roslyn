@@ -38,12 +38,12 @@ internal static class PathExtensions
                 return false;
             }
 
-            if (path[0] == Path.DirectorySeparatorChar)
+            if (isDirectorySeparator(path[0]))
             {
                 // Two leading slashes is UNC or device (\\?\); a single slash followed
                 // by '?' is \??\, which is equivalent to \\?\. '?' is not legal in a
                 // drive-relative path, so both forms are fully qualified.
-                return path[1] == '?' || path[1] == Path.DirectorySeparatorChar;
+                return path[1] == '?' || isDirectorySeparator(path[1]);
             }
 
             // Otherwise the only fully qualified form is drive + colon + separator (C:\).
@@ -51,8 +51,11 @@ internal static class PathExtensions
             // default data stream of a file named "=", not a rooted path.
             return path.Length >= 3
                 && path[1] == ':'
-                && path[2] == Path.DirectorySeparatorChar
+                && isDirectorySeparator(path[2])
                 && isValidDriveChar(path[0]);
+
+            static bool isDirectorySeparator(char value)
+                => value == Path.DirectorySeparatorChar || value == Path.AltDirectorySeparatorChar;
 
             static bool isValidDriveChar(char value)
                 => (uint)((value | 0x20) - 'a') <= 'z' - 'a';

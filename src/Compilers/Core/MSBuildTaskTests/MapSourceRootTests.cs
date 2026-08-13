@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
     public sealed class MapSourceRootsTests
     {
         private static string GetFullPathNoThrow(string path)
-            => TaskEnvironment.Fallback.GetFullPathNoThrow(path);
+            => MapSourceRoots.GetFullPathNoThrow(path);
 
         private string InspectSourceRoot(ITaskItem sourceRoot)
             => $"'{sourceRoot.ItemSpec}'" +
