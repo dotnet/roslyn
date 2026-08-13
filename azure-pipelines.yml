@@ -216,35 +216,29 @@ stages:
       poolParameters: ${{ parameters.windowsPool }}
       testRuns:
       - name: desktop-debug-x64
-        jobName: Test_Windows_Desktop_Debug_64
         displayName: Test Windows Desktop Debug 64
         testArguments: -testDesktop -testArch x64
         helixQueueName: $(HelixWindowsVsQueueName)
       - name: coreclr-debug
-        jobName: Test_Windows_CoreClr_Debug
         displayName: Test Windows CoreClr Debug
         testArguments: -testCoreClr
         helixQueueName: $(HelixWindowsQueueName)
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - name: coreclr-debug-spanish
-          jobName: Test_Windows_CoreClr_Debug_Spanish
           displayName: Test Windows CoreClr Debug Spanish
           testArguments: -testCoreClr
           helixQueueName: $(HelixWindowsSpanishQueueName)
       - name: coreclr-ioperation-debug
-        jobName: Test_Windows_CoreClr_IOperation_Debug
         displayName: Test Windows CoreCLR IOperation Debug
         testArguments: -testCoreClr -testIOperation -testCompilerOnly
         helixQueueName: $(HelixWindowsQueueName)
       - name: coreclr-runtimeasync-debug
-        jobName: Test_Windows_CoreClr_RuntimeAsync_Debug
         displayName: Test Windows CoreCLR RuntimeAsync Debug
         testArguments: -testCoreClr -testRuntimeAsync -testCompilerOnly
         helixQueueName: $(HelixWindowsQueueName)
       # This submission runs almost all the compiler tests supported on CoreCLR, but
       # with additional validation for used assemblies and GetEmitDiagnostics.
       - name: coreclr-usedassemblies-debug
-        jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
         displayName: Test Windows CoreCLR UsedAssemblies Debug
         testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
         helixQueueName: $(HelixWindowsQueueName)
@@ -279,23 +273,19 @@ stages:
       testRuns:
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - name: desktop-release-x86
-          jobName: Test_Windows_Desktop_Release_32
           displayName: Test Windows Desktop Release 32
           testArguments: -testDesktop -testArch x86
           helixQueueName: $(HelixWindowsVsQueueName)
       - name: desktop-release-x64
-        jobName: Test_Windows_Desktop_Release_64
         displayName: Test Windows Desktop Release 64
         testArguments: -testDesktop -testArch x64
         helixQueueName: $(HelixWindowsVsQueueName)
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - name: desktop-release-spanish-x64
-          jobName: Test_Windows_Desktop_Spanish_Release_64
           displayName: Test Windows Desktop Spanish Release 64
           testArguments: -testDesktop -testArch x64
           helixQueueName: $(HelixWindowsSpanishQueueName)
       - name: coreclr-release
-        jobName: Test_Windows_CoreClr_Release
         displayName: Test Windows CoreClr Release
         testArguments: -testCoreClr
         helixQueueName: $(HelixWindowsQueueName)

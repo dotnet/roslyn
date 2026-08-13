@@ -51,8 +51,6 @@ jobs:
             arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ testRun.helixQueueName }} ${{ testRun.testArguments }} -collectDumps
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-          SYSTEM_JOBDISPLAYNAME: ${{ testRun.jobName }}
-          SYSTEM_PHASENAME: ${{ testRun.jobName }}
 
       - task: PowerShell@2
         displayName: Preserve ${{ testRun.displayName }} submission logs
