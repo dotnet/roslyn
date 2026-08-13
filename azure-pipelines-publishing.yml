@@ -32,19 +32,17 @@ extends:
   parameters:
     settings:
       networkIsolationPolicy: Preferred, NuGet
-    sdl:
-      enableAllTools: false
     pool:
       name: $(DncEngInternalBuildPool)
       image: build.azurelinux.3.amd64
       os: linux
     stages:
-    - stage: publish_prerelease_roslyn_lsp
-      displayName: Publish Prerelease Roslyn LSP
+    - stage: publish_packages
+      displayName: Publish Packages
 
       jobs:
-      - deployment: publish_prerelease_roslyn_lsp
-        displayName: Publish Prerelease Roslyn LSP
+      - deployment: publish_
+        displayName: Publish
         environment: roslyn-nuget-publishing
         strategy:
           runOnce:
