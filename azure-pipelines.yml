@@ -37,6 +37,8 @@ pr:
       - '*.md'
 
 variables:
+  - template: /eng/common/templates/variables/pool-providers.yml
+
   # This value is conditionally overriden by the variable group DotNet-HelixApi-Access.
   # ADO only lets us conditionally include a variable group on individual stages.
   - name: HelixApiAccessToken
@@ -199,7 +201,7 @@ stages:
           name: 'Managed'
           container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9'
 
-- stage: Windows_Debug_Desktop
+- stage: Windows_Debug_Tests
   dependsOn: Windows_Debug_Build
   variables:
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
@@ -216,53 +218,6 @@ stages:
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
-- stage: Windows_Release_Desktop
-  dependsOn: Windows_Release_Build
-  variables:
-  - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-    - group: DotNet-HelixApi-Access
-  jobs:
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - template: eng/pipelines/test-windows-job.yml
-      parameters:
-        testRunName: 'Test Windows Desktop Release 32'
-        jobName: Test_Windows_Desktop_Release_32
-        testArtifactName: Transport_Artifacts_Windows_Release
-        configuration: Release
-        testArguments: -testDesktop -testArch x86
-        helixQueueName: $(HelixWindowsVsQueueName)
-        helixApiAccessToken: $(HelixApiAccessToken)
-        poolParameters: ${{ parameters.windowsPool }}
-
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows Desktop Release 64'
-      jobName: Test_Windows_Desktop_Release_64
-      testArtifactName: Transport_Artifacts_Windows_Release
-      configuration: Release
-      testArguments: -testDesktop -testArch x64
-      helixQueueName: $(HelixWindowsVsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
-
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - template: eng/pipelines/test-windows-job.yml
-      parameters:
-        testRunName: 'Test Windows Desktop Spanish Release 64'
-        jobName: Test_Windows_Desktop_Spanish_Release_64
-        testArtifactName: Transport_Artifacts_Windows_Release
-        configuration: Release
-        testArguments: -testDesktop -testArch x64
-        helixQueueName: $(HelixWindowsSpanishQueueName)
-        helixApiAccessToken: $(HelixApiAccessToken)
-        poolParameters: ${{ parameters.windowsPool }}
-
-- stage: Windows_Debug_CoreClr
-  dependsOn: Windows_Debug_Build
-  variables:
-  - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-    - group: DotNet-HelixApi-Access
-  jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows CoreClr Debug'
@@ -331,12 +286,51 @@ stages:
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
-- stage: Windows_Release_CoreClr
+  - template: /eng/common/core-templates/job/helix-job-monitor.yml
+    parameters:
+      helixAccessToken: $(HelixApiAccessToken)
+
+- stage: Windows_Release_Tests
   dependsOn: Windows_Release_Build
   variables:
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
   jobs:
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-windows-job.yml
+      parameters:
+        testRunName: 'Test Windows Desktop Release 32'
+        jobName: Test_Windows_Desktop_Release_32
+        testArtifactName: Transport_Artifacts_Windows_Release
+        configuration: Release
+        testArguments: -testDesktop -testArch x86
+        helixQueueName: $(HelixWindowsVsQueueName)
+        helixApiAccessToken: $(HelixApiAccessToken)
+        poolParameters: ${{ parameters.windowsPool }}
+
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows Desktop Release 64'
+      jobName: Test_Windows_Desktop_Release_64
+      testArtifactName: Transport_Artifacts_Windows_Release
+      configuration: Release
+      testArguments: -testDesktop -testArch x64
+      helixQueueName: $(HelixWindowsVsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.windowsPool }}
+
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-windows-job.yml
+      parameters:
+        testRunName: 'Test Windows Desktop Spanish Release 64'
+        jobName: Test_Windows_Desktop_Spanish_Release_64
+        testArtifactName: Transport_Artifacts_Windows_Release
+        configuration: Release
+        testArguments: -testDesktop -testArch x64
+        helixQueueName: $(HelixWindowsSpanishQueueName)
+        helixApiAccessToken: $(HelixApiAccessToken)
+        poolParameters: ${{ parameters.windowsPool }}
+
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows CoreClr Release'
@@ -347,6 +341,10 @@ stages:
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
+
+  - template: /eng/common/core-templates/job/helix-job-monitor.yml
+    parameters:
+      helixAccessToken: $(HelixApiAccessToken)
 
 - stage: Unix_Debug_CoreClr
   dependsOn: Unix_Build
@@ -391,6 +389,10 @@ stages:
         helixQueueName: $(HelixMacOsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.ubuntuPool }}
+
+    - template: /eng/common/core-templates/job/helix-job-monitor.yml
+      parameters:
+        helixAccessToken: $(HelixApiAccessToken)
 
 - stage: Correctness
   dependsOn: []
