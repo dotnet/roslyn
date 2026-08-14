@@ -119,7 +119,7 @@ A new required parameter `Compilation` has been added. Existing overloads withou
 
 The value of `preserveLocalVariables` passed to the constructors is no longer used.
 
-# Version 5.10.0
+# Version 5.11.0
 
 ### Change of a `default` value of `Microsoft.CodeAnalysis.CSharp.Conversion`
 
