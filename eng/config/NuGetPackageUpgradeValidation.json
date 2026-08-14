@@ -1,0 +1,25 @@
+{
+  "description": "Roslyn NuGet packages validated by the legacy packages.config upgrade integration test. 'previousReleaseVersion' is the last stable version published to nuget.org; the test installs it into a legacy project and then upgrades to the locally built packages.",
+  "packages": [
+    {
+      "id": "Microsoft.CodeAnalysis",
+      "previousReleaseVersion": "5.10.0"
+    },
+    {
+      "id": "Microsoft.CodeAnalysis.CSharp",
+      "previousReleaseVersion": "5.10.0"
+    },
+    {
+      "id": "Microsoft.CodeAnalysis.VisualBasic",
+      "previousReleaseVersion": "5.10.0"
+    },
+    {
+      "id": "Microsoft.CodeAnalysis.CSharp.Workspaces",
+      "previousReleaseVersion": "5.10.0"
+    },
+    {
+      "id": "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
+      "previousReleaseVersion": "5.10.0"
+    }
+  ]
+}

@@ -33,6 +33,6 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 
 | Path | Status | Purpose |
 |------|--------|---------|
-| `eng/` | Config / Generated | Arcade build engineering. `eng/common/` is DARC-synced — do not hand-edit. `eng/generate-compiler-code.cs` regenerates compiler code. `eng/config/NuGetPackageUpgradePayload.json` and `eng/prepare-nuget-package-upgrade-payload.ps1` define/stage the Release integration NuGet upgrade payload artifact. |
+| `eng/` | Config / Generated | Arcade build engineering. `eng/common/` is DARC-synced — do not hand-edit. `eng/generate-compiler-code.cs` regenerates compiler code. `eng/config/NuGetPackageUpgradePayload.json` and `eng/prepare-nuget-package-upgrade-payload.ps1` define/stage the Release integration NuGet upgrade payload artifact; `eng/config/NuGetPackageUpgradeValidation.json` lists the packages (and their previously released versions) validated by the legacy packages.config upgrade integration test. |
 | `docs/` | Active | Contributor & design docs. New docs use kebab-case filenames in the right subdirectory. |
 | Root | Config | Entry points & solution filters: `build.sh`/`Build.cmd`, `test.sh`/`Test.cmd`, `Roslyn.slnx`, `Compilers.slnf`, `Ide.slnf`, `Razor.slnf`, `global.json`, `Directory.*.props/targets`, `Directory.Packages.props`. |
