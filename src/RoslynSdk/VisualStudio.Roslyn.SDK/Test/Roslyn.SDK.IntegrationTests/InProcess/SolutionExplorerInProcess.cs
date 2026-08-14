@@ -39,6 +39,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
             Directory.CreateDirectory(solutionPath);
 
+            // Stable Visual Studio releases ignore preview SDKs by default, and temporary solutions are
+            // outside the repository so they do not inherit its global.json settings.
+            File.WriteAllText(
+                Path.Combine(solutionPath, "global.json"),
+                "{\r\n  \"sdk\": {\r\n    \"allowPrerelease\": true\r\n  }\r\n}\r\n");
+
             var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
             ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
             ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
