@@ -1118,7 +1118,7 @@ hasRelatedInterfaces:
             }
 
             // Check the constructor constraint.
-            if (typeParameter.HasConstructorConstraint)
+            if (typeParameter.HasConstructorConstraint || typeParameter.IsValueType)
             {
                 if (errorIfNotSatisfiesConstructorConstraint(constructedContainingSymbol, typeParameter, typeArgument, diagnosticsBuilder))
                 {

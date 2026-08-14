@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 for (int i = 0; i < arity; i++)
                                 {
                                     var typeParameter = typeParameters[i];
-                                    if (typeParameter.HasConstructorConstraint &&
+                                    if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
                                         typeArguments[i].Type is NamedTypeSymbol typeArgument)
                                     {
                                         checkTypeArgumentWithConstructorConstraint(this, typeParameter, typeArgument, symbol, arg, location, diagnostics);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             for (int i = 0; i < arity; i++)
                             {
                                 var typeParameter = typeSymbol.TypeParameters[i];
-                                if (typeParameter.HasConstructorConstraint &&
+                                if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
                                     typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type is NamedTypeSymbol typeArgument)
                                 {
                                     checkTypeArgumentWithConstructorConstraint(this, typeParameter, typeArgument, symbol, arg, location, diagnostics);
