@@ -51,13 +51,19 @@ jobs:
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build ${{ iif(eq(parameters.prepareNuGetPackageUpgradePayload, true), '-pack', '') }} -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
 
     - template: post-cache-roslyn-outputs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
 
     - ${{ if eq(parameters.prepareNuGetPackageUpgradePayload, true) }}:
+      - task: PowerShell@2
+        displayName: Pack NuGet Packages
+        inputs:
+          filePath: eng/build.ps1
+          arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -pack -binaryLogName Pack.binlog -skipDocumentation -msbuildEngine vs
+
       - task: PowerShell@2
         displayName: Prepare NuGet Package Upgrade Payload
         inputs:
