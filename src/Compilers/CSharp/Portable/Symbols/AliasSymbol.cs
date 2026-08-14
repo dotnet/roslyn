@@ -239,7 +239,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var corLibrary = this.ContainingAssembly.CorLibrary;
                 var conversions = corLibrary.TypeConversions;
-                target.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics);
+                // Unsafe new() constructor constraints for using aliases are reported (honoring `using unsafe`)
+                // by the caller via ReportDiagnosticsIfUnsafeMemberAccess, so opt out of reporting them here.
+                target.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics, reportUnsafeConstructorConstraintErrors: false);
             }
         }
 

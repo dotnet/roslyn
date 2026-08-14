@@ -490,10 +490,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             ConversionsBase conversions,
             Location location,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool reportUnsafeConstructorConstraintErrors = true)
         {
             bool includeNullability = compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability, location, diagnostics);
+            var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability, location, diagnostics, reportUnsafeConstructorConstraintErrors);
             type.CheckAllConstraints(boxedArgs);
             boxedArgs.Free();
         }
@@ -507,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Nullability checks can only add warnings here so skip them for this check as we are only
             // concerned with errors.
-            var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics);
+            var boxedArgs = CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics, reportUnsafeConstructorConstraintErrors: false);
             type.CheckAllConstraints(boxedArgs);
             bool ok = !diagnostics.HasAnyErrors();
             boxedArgs.Free();
@@ -532,17 +533,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly BindingDiagnosticBag Diagnostics;
             public readonly CompoundUseSiteInfo<AssemblySymbol> Template;
 
-            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics) :
-                this(currentCompilation, conversions, currentCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes), location, diagnostics)
+            /// <summary>
+            /// When true, an unsafe type argument constructor (see <see cref="CallerUnsafeMode"/>) used to satisfy a
+            /// <see langword="new()"/> constraint is reported as <see cref="ErrorCode.ERR_UnsafeConstructorConstraint"/>
+            /// under the updated memory safety rules. This is set only for declaration/signature-position checks;
+            /// expression-position checks report this diagnostic from the binder instead
+            /// (via <c>Binder.ReportDiagnosticsIfUnsafeMemberAccess</c>), where the surrounding unsafe context is honored.
+            /// </summary>
+            public readonly bool ReportUnsafeConstructorConstraintErrors;
+
+            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics, bool reportUnsafeConstructorConstraintErrors = false) :
+                this(currentCompilation, conversions, currentCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes), location, diagnostics, reportUnsafeConstructorConstraintErrors)
             {
             }
 
-            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics) :
-                this(currentCompilation, conversions, includeNullability, location, diagnostics, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly))
+            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics, bool reportUnsafeConstructorConstraintErrors = false) :
+                this(currentCompilation, conversions, includeNullability, location, diagnostics, template: new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, currentCompilation.Assembly), reportUnsafeConstructorConstraintErrors)
             {
             }
 
-            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics, CompoundUseSiteInfo<AssemblySymbol> template)
+            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics, CompoundUseSiteInfo<AssemblySymbol> template, bool reportUnsafeConstructorConstraintErrors = false)
             {
                 this.CurrentCompilation = currentCompilation;
                 this.Conversions = conversions;
@@ -550,6 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.Location = location;
                 this.Diagnostics = diagnostics;
                 this.Template = template;
+                this.ReportUnsafeConstructorConstraintErrors = reportUnsafeConstructorConstraintErrors;
             }
         }
 
@@ -560,18 +571,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public CheckConstraintsArgs Args;
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public static CheckConstraintsArgsBoxed Allocate(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics)
+            public static CheckConstraintsArgsBoxed Allocate(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, BindingDiagnosticBag diagnostics, bool reportUnsafeConstructorConstraintErrors)
             {
                 var boxedArgs = s_checkConstraintsArgsBoxedPool.Allocate();
-                boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, location, diagnostics);
+                boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, location, diagnostics, reportUnsafeConstructorConstraintErrors);
                 return boxedArgs;
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public static CheckConstraintsArgsBoxed Allocate(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics)
+            public static CheckConstraintsArgsBoxed Allocate(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, BindingDiagnosticBag diagnostics, bool reportUnsafeConstructorConstraintErrors)
             {
                 var boxedArgs = s_checkConstraintsArgsBoxedPool.Allocate();
-                boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, includeNullability, location, diagnostics);
+                boxedArgs.Args = new CheckConstraintsArgs(currentCompilation, conversions, includeNullability, location, diagnostics, reportUnsafeConstructorConstraintErrors);
                 return boxedArgs;
             }
 
@@ -1107,9 +1118,17 @@ hasRelatedInterfaces:
             }
 
             // Check the constructor constraint.
-            if (typeParameter.HasConstructorConstraint && errorIfNotSatisfiesConstructorConstraint(constructedContainingSymbol, typeParameter, typeArgument, diagnosticsBuilder))
+            if (typeParameter.HasConstructorConstraint)
             {
-                return false;
+                if (errorIfNotSatisfiesConstructorConstraint(constructedContainingSymbol, typeParameter, typeArgument, diagnosticsBuilder))
+                {
+                    return false;
+                }
+
+                if (args.ReportUnsafeConstructorConstraintErrors)
+                {
+                    errorIfUnsafeConstructorConstraint(constructedContainingSymbol, args.CurrentCompilation, typeParameter, typeArgument, diagnosticsBuilder);
+                }
             }
 
             return !hasError;
@@ -1133,6 +1152,29 @@ hasRelatedInterfaces:
                         return true;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(error);
+                }
+            }
+
+            static void errorIfUnsafeConstructorConstraint(Symbol containingSymbol, CSharpCompilation compilation, TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder)
+            {
+                if (compilation?.SourceModule.UseUpdatedMemorySafetyRules != true ||
+                    typeArgument.Type is not NamedTypeSymbol namedTypeArgument)
+                {
+                    return;
+                }
+
+                foreach (var constructor in namedTypeArgument.InstanceConstructors)
+                {
+                    if (constructor.ParameterCount == 0)
+                    {
+                        if (constructor.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+                        {
+                            // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
+                            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_UnsafeConstructorConstraint, constructor, typeParameter, containingSymbol.OriginalDefinition))));
+                        }
+
+                        break;
+                    }
                 }
             }
         }

@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var typeSymbol = (TypeSymbol)target;
                         var location = usingDirective.NamespaceOrType.Location;
-                        typeSymbol.CheckAllConstraints(compilation, conversions, location, diagnostics);
+                        typeSymbol.CheckAllConstraints(compilation, conversions, location, diagnostics, reportUnsafeConstructorConstraintErrors: false);
 
                         if (usingDirective.UnsafeKeyword == default)
                         {
