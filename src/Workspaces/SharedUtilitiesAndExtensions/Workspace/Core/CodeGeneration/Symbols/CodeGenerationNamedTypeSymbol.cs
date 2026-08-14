@@ -54,8 +54,7 @@ internal sealed class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractName
         return new CodeGenerationNamedTypeSymbol(
             this.ContainingAssembly, this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
             this.Modifiers, this.IsRecord, this.TypeKind, this.Name, _typeParameters, this.BaseType,
-            _interfaces, this.SpecialType,
-            nullableAnnotation, _members, this.TypeMembers,
+            _interfaces, this.SpecialType, nullableAnnotation, _members, this.TypeMembers,
             this.EnumUnderlyingType);
     }
 
