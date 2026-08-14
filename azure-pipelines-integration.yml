@@ -91,6 +91,8 @@ stages:
     queueName: ${{ parameters.queueName }}
     buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
+    # NuGet package upgrade validation runs in a dedicated job, not in ordinary integration runs.
+    testFilter: TestGate!=NuGetPackageUpgrade
     configuration: Debug
     testRuns:
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
@@ -107,6 +109,8 @@ stages:
     queueName: ${{ parameters.queueName }}
     buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
+    # NuGet package upgrade validation runs in a dedicated job, not in ordinary integration runs.
+    testFilter: TestGate!=NuGetPackageUpgrade
     configuration: Release
     testRuns:
       - oop64bit: false

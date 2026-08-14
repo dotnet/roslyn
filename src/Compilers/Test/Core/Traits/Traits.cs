@@ -21,6 +21,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static class TestGates
         {
             public const string RoslynVSIntegration = nameof(RoslynVSIntegration);
+
+            /// <summary>
+            /// Gate for integration tests which validate upgrading Roslyn NuGet packages in legacy
+            /// (packages.config) projects. These tests are only run by a dedicated pipeline job; ordinary
+            /// integration jobs exclude them with <c>TestGate!=NuGetPackageUpgrade</c>, and DartLab runs are
+            /// already scoped to <see cref="RoslynVSIntegration"/>.
+            /// </summary>
+            public const string NuGetPackageUpgrade = nameof(NuGetPackageUpgrade);
         }
 
         public const string Feature = nameof(Feature);

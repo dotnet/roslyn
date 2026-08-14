@@ -11,6 +11,12 @@ parameters:
     values: [ 'Debug', 'Release' ]
   - name: timeout
     type: number
+  # Test filter applied to every test run in this stage. Ordinary integration runs exclude the
+  # NuGet package upgrade validation tests, which are only run by a dedicated job that opts in
+  # with 'TestGate=NuGetPackageUpgrade'.
+  - name: testFilter
+    type: string
+    default: 'TestGate!=NuGetPackageUpgrade'
   - name: testRuns
     type: object
     default:
@@ -43,6 +49,11 @@ stages:
   variables:
   - name: XUNIT_LOGS
     value: $(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}
+  - name: TestFilterArgument
+    ${{ if ne(parameters.testFilter, '') }}:
+      value: -testFilter "${{ parameters.testFilter }}"
+    ${{ else }}:
+      value: ''
   jobs:
   - ${{ each testParameters in parameters.testRuns }}:
     - job: ${{ testParameters.runName }}
@@ -115,7 +126,7 @@ stages:
         displayName: Run Integration Tests
         inputs:
           filePath: eng/build.ps1
-          arguments: -ci -prepareMachine -testVsi -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
+          arguments: -ci -prepareMachine -testVsi -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }} $(TestFilterArgument)
 
       # These are temporary publishing steps - once the tests run on helix, the artifacts will be attached to the helix payload.
       - task: PublishTestResults@2
