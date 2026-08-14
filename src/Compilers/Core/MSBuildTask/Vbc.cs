@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 string actualPdb = Path.ChangeExtension(outputAssembly, ".pdb"); // This is the pdb that the compiler generated
 
-                FileInfo actualPdbInfo = new FileInfo(actualPdb);
+                FileInfo actualPdbInfo = TaskEnvironment.CreateFileInfo(actualPdb);
 
                 string desiredLocation = PdbFile;
                 if (!desiredLocation.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     desiredLocation += ".pdb";
                 }
 
-                FileInfo desiredPdbInfo = new FileInfo(desiredLocation);
+                FileInfo desiredPdbInfo = TaskEnvironment.CreateFileInfo(desiredLocation);
 
                 // If the compiler generated a pdb..
                 if (actualPdbInfo.Exists)
@@ -325,11 +325,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         // Delete the existing one if it's already there, as Move would otherwise fail
                         if (desiredPdbInfo.Exists)
                         {
-                            Utilities.DeleteNoThrow(desiredPdbInfo.FullName);
+                            TaskEnvironment.DeleteNoThrow(desiredPdbInfo.FullName);
                         }
 
                         // Move the file to where we actually wanted VBC to put it
-                        File.Move(actualPdbInfo.FullName, desiredLocation);
+                        TaskEnvironment.FileMove(actualPdbInfo.FullName, desiredLocation);
                     }
                 }
             }
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 if (!NoConfig)
                 {
                     var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "vbc.rsp");
-                    if (File.Exists(rspFile))
+                    if (TaskEnvironment.FileExists(rspFile))
                     {
                         commandLine.AppendSwitchIfNotNull("@", rspFile);
                     }

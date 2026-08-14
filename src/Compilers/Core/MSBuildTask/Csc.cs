@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 if (!NoConfig)
                 {
                     var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "csc.rsp");
-                    if (File.Exists(rspFile))
+                    if (TaskEnvironment.FileExists(rspFile))
                     {
                         commandLine.AppendSwitchIfNotNull("@", rspFile);
                     }

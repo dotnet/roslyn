@@ -124,15 +124,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        internal static void DeleteNoThrow(string path)
-        {
-            try
-            {
-                File.Delete(path);
-            }
-            catch (Exception e) when (IsIoRelatedException(e)) { }
-        }
-
         internal static bool IsIoRelatedException(Exception e) =>
             e is UnauthorizedAccessException ||
             e is NotSupportedException ||

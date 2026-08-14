@@ -199,7 +199,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 buildRequest,
                 pipeName,
                 GetClientDirectory(),
-                Environment.GetEnvironmentVariablesAsDictionary(),
                 logger,
                 cancellationToken);
         };

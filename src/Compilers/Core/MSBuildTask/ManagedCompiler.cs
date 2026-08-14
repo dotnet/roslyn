@@ -506,11 +506,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            using var innerLogger = new CompilerServerLogger(
-                $"MSBuild {Process.GetCurrentProcess().Id}",
-                loggingFilePath: null,
-                TaskEnvironment.GetEnvironmentVariable,
-                TaskEnvironment.GetFullPath);
+            using var innerLogger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}", TaskEnvironment);
             var logger = new TaskCompilerServerLogger(Log, innerLogger);
             return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
         }
@@ -577,8 +573,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var responseTask = BuildServerConnection.RunServerBuildRequestAsync(
                     buildRequest,
                     pipeName,
-                    clientDirectory,
-                    TaskEnvironment.GetEnvironmentVariables(),
+                    TaskEnvironment.GetAbsolutePath(clientDirectory),
+                    TaskEnvironment,
                     logger,
                     _sharedCompileCts.Token);
 
@@ -1229,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 var itemSpec = reference.ItemSpec;
 
-                if (string.IsNullOrEmpty(itemSpec) || !File.Exists(TaskEnvironment.GetFullPathNoThrow(itemSpec)))
+                if (string.IsNullOrEmpty(itemSpec) || !TaskEnvironment.FileExists(itemSpec))
                 {
                     success = false;
                     Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", itemSpec);

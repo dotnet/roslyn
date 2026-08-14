@@ -17,6 +17,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
+#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+using Microsoft.Build.Framework;
+#endif
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
 
 namespace Microsoft.CodeAnalysis.CommandLine
@@ -174,27 +178,31 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
         internal static Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
             string pipeName,
-            string clientDirectory,
+            AbsolutePath clientDirectory,
+            TaskEnvironment taskEnvironment,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken) =>
                 RunServerBuildRequestAsync(
                     buildRequest,
                     pipeName,
-                    clientDirectory,
-                    Environment.GetEnvironmentVariablesAsDictionary(),
+                    timeoutOverride: null,
+                    tryCreateServerFunc: (pipeName, logger) => TryCreateServer(
+                        clientDirectory,
+                        pipeName,
+                        taskEnvironment,
+                        logger,
+                        out int _),
                     logger,
                     cancellationToken);
-#endif
-
+#else
         internal static Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
             string pipeName,
             string clientDirectory,
-            IReadOnlyDictionary<string, string> envMap,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken)
                 => RunServerBuildRequestAsync(
@@ -204,11 +212,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     tryCreateServerFunc: (pipeName, logger) => TryCreateServer(
                         clientDirectory,
                         pipeName,
-                        envMap,
                         logger,
                         out int _),
                     logger,
                     cancellationToken);
+#endif
 
         internal static async Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
@@ -469,27 +477,34 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-
+#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+        internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
+            AbsolutePath clientDir,
+            string pipeName,
+            TaskEnvironment taskEnvironment) =>
+            GetServerProcessInfo(clientDir.Value, pipeName, RuntimeHostInfo.GetDotNetPathOrDefault(taskEnvironment).Value);
+#else
         internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
             string clientDir,
             string pipeName) =>
-            GetServerProcessInfo(clientDir, pipeName, Environment.GetEnvironmentVariable);
+            GetServerProcessInfo(clientDir, pipeName, RuntimeHostInfo.GetDotNetPathOrDefault());
 #endif
 
-        internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
+        private static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
             string clientDir,
             string pipeName,
-            Func<string, string?> getEnvironmentVariable)
+            string dotnetFilePath)
         {
             var processFilePath = Path.Combine(clientDir, $"VBCSCompiler{PlatformInformation.ExeExtension}");
             var commandLineArgs = $@"""-pipename:{pipeName}""";
 
+#pragma warning disable RS0030 // MSBuild Task path guarantees full path
             if (!File.Exists(processFilePath))
+#pragma warning restore RS0030
             {
                 // Fallback to not use the apphost if it is not present (can happen in compiler toolset scenarios for example).
                 commandLineArgs = RuntimeHostInfo.GetDotNetExecCommandLine(Path.ChangeExtension(processFilePath, ".dll"), commandLineArgs);
-                processFilePath = RuntimeHostInfo.GetDotNetPathOrDefault(getEnvironmentVariable);
+                processFilePath = dotnetFilePath;
             }
 
             return (processFilePath, commandLineArgs);
@@ -523,14 +538,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // Convert to Unicode and allocate unmanaged memory
             return Marshal.StringToHGlobalUni(envBlock.ToString());
         }
-
-#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-        /// <summary>
-        /// Gets the environment variables that should be passed to the server process.
-        /// </summary>
-        internal static Dictionary<string, string> GetServerEnvironmentVariables(ICompilerServerLogger? logger = null)
-            => GetServerEnvironmentVariables(Environment.GetEnvironmentVariablesAsDictionary(), logger);
-#endif
 
         /// <summary>
         /// Gets the environment variables that should be passed to the server process.
@@ -584,14 +591,26 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return environmentVariables;
         }
 
-#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+        internal static bool TryCreateServer(
+            AbsolutePath clientDirectory,
+            string pipeName,
+            TaskEnvironment taskEnvironment,
+            ICompilerServerLogger logger,
+            out int processId) => TryCreateServer(
+                clientDirectory.Value,
+                GetServerProcessInfo(clientDirectory, pipeName, taskEnvironment),
+                taskEnvironment.GetEnvironmentVariables(),
+                logger,
+                out processId);
+#else
         internal static bool TryCreateServer(
             string clientDirectory,
             string pipeName,
             ICompilerServerLogger logger,
             out int processId) => TryCreateServer(
                 clientDirectory,
-                pipeName,
+                GetServerProcessInfo(clientDirectory, pipeName),
                 Environment.GetEnvironmentVariablesAsDictionary(),
                 logger,
                 out processId);
@@ -603,20 +622,22 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// compiler server process was successful, it does not state whether the server successfully
         /// started or not (it could crash on startup).
         /// </summary>
-        internal static bool TryCreateServer(
+        private static bool TryCreateServer(
             string clientDirectory,
-            string pipeName,
+            (string processFilePath, string commandLineArguments) serverInfo,
             IReadOnlyDictionary<string, string> envMap,
             ICompilerServerLogger logger,
             out int processId)
         {
-            processId = 0;
-            var serverInfo = GetServerProcessInfo(
-                clientDirectory,
-                pipeName,
-                x => envMap.TryGetValue(x, out var value) ? value : null);
+            Debug.Assert(Path.IsPathFullyQualified(clientDirectory));
+            Debug.Assert(Path.IsPathFullyQualified(serverInfo.processFilePath));
 
+            processId = 0;
+
+            // The MSBuild entry point forces a full path
+#pragma warning disable RS0030 // Do not used banned APIs
             if (!File.Exists(serverInfo.processFilePath))
+#pragma warning restore RS0030 // Do not used banned APIs
             {
                 return false;
             }
@@ -824,6 +845,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         bool IsDisposed { get; }
     }
 
+#pragma warning disable RS0030 // This will all be deleted when we move to the .NET 12 tree
     /// <summary>
     /// An interprocess mutex abstraction based on file sharing permission (FileShare.None).
     /// If multiple processes running as the same user create FileMutex instances with the same name,
@@ -844,11 +866,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static string GetMutexDirectory()
         {
-            // This is a Mono only code path and it will be deleted when we move to the 
-            // .NET 11 tree
-#pragma warning disable RS0030 // Do not use banned APIs
             var tempPath = Path.GetTempPath();
-#pragma warning restore RS0030 // Do not use banned APIs
             var result = Path.Combine(tempPath, ".roslyn");
             Directory.CreateDirectory(result);
             return result;
@@ -1026,6 +1044,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
     }
+#pragma warning restore RS0030 // Do not use banned APIs
 
     internal sealed class ServerNamedMutex : IServerMutex
     {

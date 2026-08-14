@@ -11,6 +11,7 @@ using System.Resources;
 using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 if (_useAppHost is not { } useAppHost)
                 {
-                    _useAppHost = useAppHost = File.Exists(Path.Combine(GetToolDirectory(), AppHostToolName));
+                    _useAppHost = useAppHost = TaskEnvironment.FileExists(Path.Combine(GetToolDirectory(), AppHostToolName));
                     Debug.Assert(IsBuiltinToolRunningOnCoreClr || useAppHost);
                 }
 
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 return UseAppHost
                     ? PathToBuiltInTool
-                    : RuntimeHostInfo.GetDotNetPathOrDefault(TaskEnvironment.GetEnvironmentVariable);
+                    : RuntimeHostInfo.GetDotNetPathOrDefault(TaskEnvironment);
             }
 
             return Path.Combine(ToolPath ?? "", ToolExe);
@@ -322,9 +323,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // Set DOTNET_ROOT so that the apphost executables launch properly.
             // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
             if (IsBuiltinToolRunningOnCoreClr &&
-                RuntimeHostInfo.GetToolDotNetRoot(
-                    TaskEnvironment.GetEnvironmentVariable,
-                    Log.LogMessage) is { } dotNetRoot)
+                RuntimeHostInfo.GetToolDotNetRoot(TaskEnvironment, Log.LogMessage) is { } dotNetRoot)
             {
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 EnvironmentVariables =

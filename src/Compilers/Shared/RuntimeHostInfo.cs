@@ -7,10 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-#if !NET
+#if !NET || MICROSOFT_CODEANALYSIS_MSBUILD_TASK
 // On .NET Framework, File.ResolveLinkTarget is provided as an extension member in this namespace
 // (see NativeMethods.cs). On .NET it is a native BCL method, so this using is unnecessary there.
 using Microsoft.CodeAnalysis.CommandLine;
+#endif
+#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+using Microsoft.Build.Framework;
 #endif
 using Roslyn.Utilities;
 
@@ -42,28 +45,38 @@ namespace Microsoft.CodeAnalysis
         internal const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
         internal const string DotNetTieredCompilationEnvironmentName = "DOTNET_TieredCompilation";
 
-#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-        /// <summary>
-        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
-        /// </summary>
-        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger) =>
-            GetToolDotNetRoot(Environment.GetEnvironmentVariable, logger);
-#endif
-
+#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
         /// <summary>
         /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
         /// </summary>
         internal static string? GetToolDotNetRoot(
-            Func<string, string?> getEnvironmentVariable,
-            Action<string, object[]>? logger) =>
-            GetToolDotNetRoot(GetDotNetPathOrDefault(getEnvironmentVariable), logger);
+            TaskEnvironment taskEnvironment,
+            Action<string, object[]>? logger)
+        {
+            var dotnetpath = GetDotNetPathOrDefault(taskEnvironment);
+            return GetToolDotNetRootCore(
+                taskEnvironment.GetFullPath(dotnetpath),
+                logger);
+        }
+#else
+        /// <summary>
+        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
+        /// </summary>
+        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger) =>
+            GetToolDotNetRootCore(GetDotNetPathOrDefault(), logger);
+#endif
 
-        internal static string? GetToolDotNetRoot(string dotNetPath, Action<string, object[]>? logger)
+        internal static string? GetToolDotNetRoot(Func<string, string?> getEnvFunc, Action<string, object[]>? logger) =>
+            GetToolDotNetRootCore(GetDotNetPathOrDefault(getEnvFunc), logger);
+
+        private static string? GetToolDotNetRootCore(string dotNetPath, Action<string, object[]>? logger)
         {
             // Resolve symlinks to dotnet
             try
             {
+#pragma warning disable RS0030 // MSBuild Task path guarantees full path
                 var resolvedPath = File.ResolveLinkTarget(dotNetPath, returnFinalTarget: true);
+#pragma warning restore RS0030
                 if (resolvedPath != null)
                 {
                     dotNetPath = resolvedPath.FullName;
@@ -84,15 +97,24 @@ namespace Microsoft.CodeAnalysis
             return directoryName;
         }
 
-#if !MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-
+#if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
+        /// <summary>
+        /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
+        /// in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
+        /// this will return simply "dotnet".
+        /// </summary>
+        internal static AbsolutePath GetDotNetPathOrDefault(TaskEnvironment taskEnvironment)
+        {
+            var path = GetDotNetPathOrDefault(taskEnvironment.GetEnvironmentVariable);
+            return taskEnvironment.GetAbsolutePath(path);
+        }
+#else
         /// <summary>
         /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
         /// in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
         /// this will return simply "dotnet".
         /// </summary>
         internal static string GetDotNetPathOrDefault() => GetDotNetPathOrDefault(Environment.GetEnvironmentVariable);
-
 #endif
 
         internal static string GetDotNetPathOrDefault(Func<string, string?> getEnvironmentVariable)
@@ -114,7 +136,9 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     var filePath = Path.Combine(item, fileName);
+#pragma warning disable RS0030 // SplitPaths only returns fully qualified paths
                     if (File.Exists(filePath))
+#pragma warning restore RS0030
                     {
                         return filePath;
                     }
@@ -128,10 +152,16 @@ namespace Microsoft.CodeAnalysis
             return fileName;
         }
 
-        internal static IEnumerable<string> SplitPath(string path)
+        /// <summary>
+        /// This method splits a PATH environment variable into its constituent paths, filtering out any relative paths.
+        /// </summary>
+        /// <remarks>
+        /// This method will only return fully qualified paths
+        /// </remarks>
+        internal static IEnumerable<string> SplitPath(string pathEnvVariable)
         {
             char[] separator = PlatformInformation.IsWindows ? [';'] : [':'];
-            foreach (var item in path.Split(separator, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var item in pathEnvVariable.Split(separator, StringSplitOptions.RemoveEmptyEntries))
             {
                 if (Path.IsPathFullyQualified(item))
                 {

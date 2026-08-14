@@ -23,7 +23,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ConsoleUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\ReflectionUtilities.cs" />
