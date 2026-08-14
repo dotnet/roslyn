@@ -8,7 +8,7 @@ parameters:
   - name: configuration
     type: string
     default: 'Debug'
-    values: [ 'Debug', 'Release' ] 
+    values: [ 'Debug', 'Release' ]
   - name: timeout
     type: number
   - name: testRuns
@@ -17,7 +17,7 @@ parameters:
       - oop64bit: true
         lspEditor: false
         runName: 64
-  
+
 
 stages:
 - stage: Windows_${{ parameters.configuration }}_Build
@@ -28,11 +28,15 @@ stages:
       jobName: Build_Windows_${{ parameters.configuration }}
       testArtifactName: Transport_Artifacts_Windows_${{ parameters.configuration }}
       configuration: ${{ parameters.configuration }}
-      poolParameters: 
+      poolParameters:
         name: ${{ parameters.poolName }}
         demands: ImageOverride -equals ${{ parameters.buildQueueName }}
       restoreArguments: -msbuildEngine vs
       buildArguments: -msbuildEngine vs /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject.csproj"'
+      # Release integration builds also stage Roslyn NuGet packages for legacy packages.config
+      # upgrade validation. DartLab integration gates use separate templates and intentionally
+      # do not include this payload publication path.
+      buildNuGetUpgradePayload: ${{ eq(parameters.configuration, 'Release') }}
 
 - stage: ${{ parameters.configuration }}_Integration
   dependsOn: Windows_${{ parameters.configuration }}_Build
@@ -60,7 +64,7 @@ stages:
           filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/rehydrate.cmd
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
-      
+
       # This is a temporary step until the actual test run moves to helix (then we would need to rehydrate the tests there instead)
       - task: BatchScript@1
         displayName: Rehydrate Microsoft.VisualStudio.LanguageServices.New.IntegrationTests
@@ -132,7 +136,7 @@ stages:
           publishLocation: Container
         continueOnError: true
         condition: not(succeeded())
-    
+
       - task: PublishBuildArtifacts@1
         displayName: Publish Logs
         inputs:

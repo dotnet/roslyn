@@ -1,0 +1,27 @@
+{
+  "sourceOfTruth": "Keep this list synchronized with active RoslynPackageIds in dotnet/roslyn-tools/src/dotnet-roslyn-tools/NuGet/NuGetPublish.cs (currently lines 16-39).",
+  "description": "Packages staged for legacy packages.config upgrade validation payloads in non-DartLab Release integration pipelines.",
+  "packageIds": [
+    "Microsoft.CodeAnalysis",
+    "Microsoft.CodeAnalysis.Analyzers",
+    "Microsoft.CodeAnalysis.Common",
+    "Microsoft.CodeAnalysis.Compilers",
+    "Microsoft.CodeAnalysis.CSharp",
+    "Microsoft.CodeAnalysis.CSharp.CodeStyle",
+    "Microsoft.CodeAnalysis.CSharp.Features",
+    "Microsoft.CodeAnalysis.CSharp.Scripting",
+    "Microsoft.CodeAnalysis.CSharp.Workspaces",
+    "Microsoft.CodeAnalysis.Features",
+    "Microsoft.CodeAnalysis.Scripting",
+    "Microsoft.CodeAnalysis.Scripting.Common",
+    "Microsoft.CodeAnalysis.VisualBasic",
+    "Microsoft.CodeAnalysis.VisualBasic.CodeStyle",
+    "Microsoft.CodeAnalysis.VisualBasic.Features",
+    "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
+    "Microsoft.CodeAnalysis.Workspaces.Common",
+    "Microsoft.CodeAnalysis.Workspaces.MSBuild",
+    "Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts",
+    "Microsoft.Net.Compilers.Toolset",
+    "Microsoft.Net.Compilers.Toolset.Framework"
+  ]
+}
