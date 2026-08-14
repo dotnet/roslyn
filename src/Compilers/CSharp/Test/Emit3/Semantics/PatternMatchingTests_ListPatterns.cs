@@ -3054,13 +3054,13 @@ class X
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
-            // (8,26): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+            // (8,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
             //             case not [{} y, .. {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y").WithLocation(8, 26),
-            // (8,35): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+            // (8,35): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
             //             case not [{} y, .. {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(8, 35),
-            // (8,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+            // (8,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
             //             case not [{} y, .. {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(8, 38),
             // (8,46): error CS0165: Use of unassigned local variable 'x'
@@ -3075,10 +3075,10 @@ class X
             // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
             //             case [not {} y, .. not {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[not {} y, .. not {} z] x").WithLocation(9, 18),
-            // (9,26): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+            // (9,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
             //             case [not {} y, .. not {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y").WithLocation(9, 26),
-            // (9,39): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+            // (9,39): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
             //             case [not {} y, .. not {} z] x: _ = (x, y, z); break;
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(9, 39),
             // (9,53): error CS0165: Use of unassigned local variable 'y'
@@ -3126,10 +3126,10 @@ class X
             // (13,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
             //         if (a is [not {} y, .. not {} z] x)
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [not {} y, .. not {} z] x").WithArguments("int[]").WithLocation(13, 13),
-            // (13,26): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+            // (13,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
             //         if (a is [not {} y, .. not {} z] x)
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y").WithLocation(13, 26),
-            // (13,39): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+            // (13,39): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
             //         if (a is [not {} y, .. not {} z] x)
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(13, 39),
             // (16,19): error CS0165: Use of unassigned local variable 'x'
@@ -8902,7 +8902,7 @@ if ((b is [var z] and z and z) is [true])
 ";
         var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
         comp.VerifyEmitDiagnostics(
-            // 0.cs(4,16): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+            // 0.cs(4,16): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
             // if ((b is [var x] and x or x) is [true])
             Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(4, 16),
             // 0.cs(4,23): error CS0029: Cannot implicitly convert type 'bool' to 'bool[]'
