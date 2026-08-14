@@ -17,6 +17,9 @@ parameters:
 - name: buildArguments
   type: string
   default: ''
+- name: prepareNuGetPackageUpgradePayload
+  type: boolean
+  default: false
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -48,11 +51,24 @@ jobs:
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build ${{ iif(eq(parameters.prepareNuGetPackageUpgradePayload, true), '-pack', '') }} -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
 
     - template: post-cache-roslyn-outputs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
+
+    - ${{ if eq(parameters.prepareNuGetPackageUpgradePayload, true) }}:
+      - task: PowerShell@2
+        displayName: Prepare NuGet Package Upgrade Payload
+        inputs:
+          filePath: eng/prepare-nuget-package-upgrade-payload.ps1
+          arguments: -PackageDirectory '$(Build.SourcesDirectory)\artifacts\packages\${{ parameters.configuration }}\Shipping' -OutputDirectory '$(Build.SourcesDirectory)\artifacts\packageValidation\${{ parameters.configuration }}'
+
+      - task: PublishPipelineArtifact@1
+        displayName: Publish NuGet Package Upgrade Payload
+        inputs:
+          targetPath: '$(Build.SourcesDirectory)\artifacts\packageValidation\${{ parameters.configuration }}'
+          artifactName: Roslyn_NuGet_Packages_${{ parameters.configuration }}
 
     - task: PowerShell@2
       displayName: Prepare Unit Tests
@@ -72,4 +88,3 @@ jobs:
       parameters:
         configuration: ${{ parameters.configuration }}
         jobName: ${{ parameters.jobName }}
-

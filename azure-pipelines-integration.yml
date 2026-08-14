@@ -97,9 +97,13 @@ stages:
         - oop64bit: false
           lspEditor: false
           runName: VS_Integration_Debug_32
+          testFilter: TestGate!=NuGetPackageUpgrade
+          useNuGetPackageUpgradePayload: false
       - oop64bit: true
         lspEditor: false
         runName: VS_Integration_Debug_64
+        testFilter: TestGate!=NuGetPackageUpgrade
+        useNuGetPackageUpgradePayload: false
 
 - template: eng/pipelines/test-integration-helix.yml
   parameters:
@@ -108,11 +112,22 @@ stages:
     buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Release
+    prepareNuGetPackageUpgradePayload: true
     testRuns:
       - oop64bit: false
         lspEditor: false
         runName: VS_Integration_Release_32
+        testFilter: TestGate!=NuGetPackageUpgrade
+        useNuGetPackageUpgradePayload: false
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - oop64bit: true
           lspEditor: false
           runName: VS_Integration_Release_64
+          testFilter: TestGate!=NuGetPackageUpgrade
+          useNuGetPackageUpgradePayload: false
+      # This job consumes the payload published by the shared Release build above.
+      - oop64bit: false
+        lspEditor: false
+        runName: NuGet_Package_Upgrade_Release
+        testFilter: TestGate=NuGetPackageUpgrade
+        useNuGetPackageUpgradePayload: true
