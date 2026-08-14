@@ -177,6 +177,14 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             return result;
         }
 
+        /// <summary>
+        /// Sends a request with no <c>params</c> member, which is how clients send parameterless requests.
+        /// </summary>
+        public Task<TResponseType?> ExecuteRequest0Async<TResponseType>(string methodName, CancellationToken cancellationToken)
+        {
+            return _clientRpc.InvokeWithParameterObjectAsync<TResponseType?>(methodName, argument: null, cancellationToken: cancellationToken);
+        }
+
         public Task ExecuteNotificationAsync<RequestType>(string methodName, RequestType request) where RequestType : class
         {
             return _clientRpc.NotifyWithParameterObjectAsync(methodName, request);

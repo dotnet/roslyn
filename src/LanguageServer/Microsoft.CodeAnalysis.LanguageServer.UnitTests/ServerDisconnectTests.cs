@@ -4,6 +4,9 @@
 
 using System.Text;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
+using StreamJsonRpc;
+using StreamJsonRpc.Protocol;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -80,5 +83,59 @@ public sealed class ServerDisconnectTests(ITestOutputHelper testOutputHelper) : 
 
         // Unexpected exceptions should propagate to WaitForExitAsync callers.
         await Assert.ThrowsAsync<InvalidOperationException>(() => server.ServerExitTask);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84890")]
+    public async Task ServerReturnsMethodNotFoundForUnknownRequest()
+    {
+        await using var server = await CreateLanguageServerAsync();
+
+        // An unknown request (for example one that a different language server implements) must not take down the
+        // server - it must be answered with a JSON-RPC MethodNotFound (-32601) error response.
+        var exception = await Assert.ThrowsAsync<RemoteMethodNotFoundException>(
+            () => server.ExecuteRequest0Async<object>("rust-analyzer/reloadWorkspace", CancellationToken.None));
+        Assert.Equal(JsonRpcErrorCode.MethodNotFound, exception.ErrorCode);
+
+        // The server must still be alive and able to serve subsequent requests.
+        Assert.False(server.ServerExitTask.IsCompleted);
+        var response = await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, new DidOpenTextDocumentParams
+        {
+            TextDocument = new TextDocumentItem
+            {
+                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri("C:\\test.cs"),
+                Text = "class C { }",
+            }
+        }, CancellationToken.None);
+        Assert.Null(response);
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/84890"), WorkItem("https://github.com/dotnet/roslyn/issues/84890")]
+    public async Task ServerSurvivesUnknownRequestWithNullParams()
+    {
+        await using var server = await CreateLanguageServerAsync();
+
+        // Some clients send an explicit 'null' params member instead of omitting it. Today this crashes the server:
+        // StreamJsonRpc's SystemTextJsonFormatter throws InvalidOperationException("Unexpected value kind: Null")
+        // while deserializing the message, which faults the JSON-RPC read loop and terminates the process with an
+        // unhandled exception instead of responding with MethodNotFound (-32601).
+        var body = Encoding.UTF8.GetBytes("""{"jsonrpc":"2.0","id":9999,"method":"rust-analyzer/reloadWorkspace","params":null}""");
+        var header = Encoding.ASCII.GetBytes($"Content-Length: {body.Length}\r\n\r\n");
+        var message = new byte[header.Length + body.Length];
+        header.CopyTo(message, 0);
+        body.CopyTo(message, header.Length);
+        await server.ClientToServerPipe.Writer.WriteAsync(message);
+
+        // The server must remain alive and keep handling requests. The error response for id 9999 is not observed
+        // here because it was not sent by this test's JSON-RPC client, so it has no pending request to match it.
+        var response = await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, new DidOpenTextDocumentParams
+        {
+            TextDocument = new TextDocumentItem
+            {
+                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri("C:\\test.cs"),
+                Text = "class C { }",
+            }
+        }, CancellationToken.None);
+        Assert.Null(response);
+        Assert.False(server.ServerExitTask.IsCompleted);
     }
 }
