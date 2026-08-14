@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddBound(
             TypeWithAnnotations addedBound,
-            HashSet<TypeWithAnnotations>[] nonConstraintBounds,
+            HashSet<TypeWithAnnotations>[] ordinaryBounds,
             HashSet<TypeWithAnnotations>[] constraintBounds,
             TypeWithAnnotations methodTypeParameterWithAnnotations)
         {
@@ -569,11 +569,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodTypeParameter = (TypeParameterSymbol)methodTypeParameterWithAnnotations.Type;
             int methodTypeParameterIndex = GetOrdinal(methodTypeParameter);
-            var collectedBounds = nonConstraintBounds;
+            var collectedBounds = ordinaryBounds;
 
             if (_isInferringFromConstraint)
             {
-                if (HasNonConstraintBound(methodTypeParameterIndex))
+                if (HasOrdinaryBound(methodTypeParameterIndex))
                 {
                     return;
                 }
@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             collectedBounds[methodTypeParameterIndex].Add(addedBound);
         }
 
-        private bool HasNonConstraintBound(int methodTypeParameterIndex)
+        private bool HasOrdinaryBound(int methodTypeParameterIndex)
         {
             Debug.Assert(ValidIndex(methodTypeParameterIndex));
             return _lowerBounds[methodTypeParameterIndex] != null ||
@@ -598,10 +598,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _exactBounds[methodTypeParameterIndex] != null;
         }
 
-        private bool HasBound(int methodTypeParameterIndex)
+        private bool HasEffectiveBound(int methodTypeParameterIndex)
         {
             Debug.Assert(ValidIndex(methodTypeParameterIndex));
-            return HasNonConstraintBound(methodTypeParameterIndex) ||
+            return HasOrdinaryBound(methodTypeParameterIndex) ||
                 (_constraintLowerBounds != null &&
                  (_constraintLowerBounds[methodTypeParameterIndex] != null ||
                   _constraintUpperBounds[methodTypeParameterIndex] != null ||
@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = InferenceResult.NoProgress;
             for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
-                if (IsUnfixed(param) && HasBound(param) && predicate(ref this, param))
+                if (IsUnfixed(param) && HasEffectiveBound(param) && predicate(ref this, param))
                 {
                     needsFixing[param] = true;
                     result = InferenceResult.MadeProgress;
@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (IsFeatureTypeParameterInferenceFromConstraintsEnabled)
             {
-                if (!FixBatch(needsFixing, ref useSiteInfo))
+                if (!FixSelectedParameters(needsFixing, ref useSiteInfo))
                 {
                     result = InferenceResult.InferenceFailed;
                 }
@@ -2938,15 +2938,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Fixes the parameters selected by <paramref name="needsFixing"/> as a single wave.
-        /// Results are calculated from the same bounds snapshot, committed together, and only
-        /// then propagated through constraints, so parameter order cannot affect the wave.
+        /// Fixes the parameters selected by <paramref name="needsFixing"/>.
+        /// Results are calculated from the same bounds state, committed together, and only
+        /// then propagated through constraints, so parameter order cannot affect the result.
         /// </summary>
         /// <returns>
         /// <see langword="true"/> if every selected parameter was fixed; otherwise,
         /// <see langword="false"/>. Successful fixes are still committed for error recovery.
         /// </returns>
-        private bool FixBatch(BitVector needsFixing, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool FixSelectedParameters(BitVector needsFixing, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(IsFeatureTypeParameterInferenceFromConstraintsEnabled);
 
@@ -2956,7 +2956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Calculate every result from the same bounds snapshot before committing any
             // of them. Constraint propagation from one result therefore cannot affect
-            // another parameter selected in the same fixing wave.
+            // another parameter selected by the same fixing step.
             for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
                 if (!needsFixing[param])
@@ -3021,7 +3021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<TypeWithAnnotations> exact;
             HashSet<TypeWithAnnotations> lower;
             HashSet<TypeWithAnnotations> upper;
-            if (HasNonConstraintBound(iParam))
+            if (HasOrdinaryBound(iParam))
             {
                 exact = _exactBounds[iParam];
                 lower = _lowerBounds[iParam];
@@ -3525,7 +3525,7 @@ OuterBreak:
                     }
 
                     Debug.Assert(IsUnfixed(iParam));
-                    if (!HasBound(iParam) || !FixParameter(iParam, ref useSiteInfo))
+                    if (!HasEffectiveBound(iParam) || !FixParameter(iParam, ref useSiteInfo))
                     {
                         return false;
                     }
@@ -3545,7 +3545,7 @@ OuterBreak:
                     continue;
                 }
                 Debug.Assert(IsUnfixed(iParam));
-                if (!HasBound(iParam))
+                if (!HasEffectiveBound(iParam))
                 {
                     return false;
                 }
@@ -3553,7 +3553,7 @@ OuterBreak:
                 needsFixing[iParam] = true;
             }
 
-            return FixBatch(needsFixing, ref useSiteInfo);
+            return FixSelectedParameters(needsFixing, ref useSiteInfo);
         }
 
 #nullable enable
@@ -3758,4 +3758,3 @@ OuterBreak:
         }
     }
 }
-
