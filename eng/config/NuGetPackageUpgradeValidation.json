@@ -3,23 +3,23 @@
   "packages": [
     {
       "id": "Microsoft.CodeAnalysis",
-      "previousReleaseVersion": "5.10.0"
+      "previousReleaseVersion": "5.6.0"
     },
     {
       "id": "Microsoft.CodeAnalysis.CSharp",
-      "previousReleaseVersion": "5.10.0"
+      "previousReleaseVersion": "5.6.0"
     },
     {
       "id": "Microsoft.CodeAnalysis.VisualBasic",
-      "previousReleaseVersion": "5.10.0"
+      "previousReleaseVersion": "5.6.0"
     },
     {
       "id": "Microsoft.CodeAnalysis.CSharp.Workspaces",
-      "previousReleaseVersion": "5.10.0"
+      "previousReleaseVersion": "5.6.0"
     },
     {
       "id": "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
-      "previousReleaseVersion": "5.10.0"
+      "previousReleaseVersion": "5.6.0"
     }
   ]
 }
