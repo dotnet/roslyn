@@ -1176,7 +1176,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
 
         <Fact>
         Public Sub TypeLayouts()
-            Dim compilation = CType(CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+            Dim code =
                 <compilation name="TypeLayouts">
                     <file name="a.vb">
                         <![CDATA[
@@ -1255,47 +1255,53 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                         Class ClassWithSizeAndPack
                             Public x As Integer
                         End Class
-                        ]]>
+                    ]]>
                     </file>
-                </compilation>), Compilation)
+                </compilation>
 
-            Dim structType = compilation.GlobalNamespace.GetMembers("Struct").OfType(Of INamedTypeSymbol)().Single()
-            Dim structNoFieldsType = compilation.GlobalNamespace.GetMembers("StructNoFields").OfType(Of INamedTypeSymbol)().Single()
-            Dim structSequentialType = compilation.GlobalNamespace.GetMembers("StructSequential").OfType(Of INamedTypeSymbol)().Single()
-            Dim structAutoType = compilation.GlobalNamespace.GetMembers("StructAuto").OfType(Of INamedTypeSymbol)().Single()
-            Dim structExplicitType = compilation.GlobalNamespace.GetMembers("StructExplicit").OfType(Of INamedTypeSymbol)().Single()
-            Dim structWithSizeType = compilation.GlobalNamespace.GetMembers("StructWithSize").OfType(Of INamedTypeSymbol)().Single()
-            Dim structWithPackType = compilation.GlobalNamespace.GetMembers("StructWithPack").OfType(Of INamedTypeSymbol)().Single()
-            Dim structWithSizeAndPackType = compilation.GlobalNamespace.GetMembers("StructWithSizeAndPack").OfType(Of INamedTypeSymbol)().Single()
-            Dim classType = compilation.GlobalNamespace.GetMembers("Class").OfType(Of INamedTypeSymbol)().Single()
-            Dim classNoFieldsType = compilation.GlobalNamespace.GetMembers("ClassNoFields").OfType(Of INamedTypeSymbol)().Single()
-            Dim classSequentialType = compilation.GlobalNamespace.GetMembers("ClassSequential").OfType(Of INamedTypeSymbol)().Single()
-            Dim classAutoType = compilation.GlobalNamespace.GetMembers("ClassAuto").OfType(Of INamedTypeSymbol)().Single()
-            Dim classExplicitType = compilation.GlobalNamespace.GetMembers("ClassExplicit").OfType(Of INamedTypeSymbol)().Single()
-            Dim classWithSizeType = compilation.GlobalNamespace.GetMembers("ClassWithSize").OfType(Of INamedTypeSymbol)().Single()
-            Dim classWithPackType = compilation.GlobalNamespace.GetMembers("ClassWithPack").OfType(Of INamedTypeSymbol)().Single()
-            Dim classWithSizeAndPackType = compilation.GlobalNamespace.GetMembers("ClassWithSizeAndPack").OfType(Of INamedTypeSymbol)().Single()
+            Dim verify =
+                Sub(m As ModuleSymbol)
+                    Dim structType = m.GlobalNamespace.GetMembers("Struct").OfType(Of INamedTypeSymbol)().Single()
+                    Dim structNoFieldsType = m.GlobalNamespace.GetMembers("StructNoFields").OfType(Of INamedTypeSymbol)().Single()
+                    Dim structSequentialType = m.GlobalNamespace.GetMembers("StructSequential").OfType(Of INamedTypeSymbol)().Single()
+                    Dim structAutoType = m.GlobalNamespace.GetMembers("StructAuto").OfType(Of INamedTypeSymbol)().Single()
+                    Dim structExplicitType = m.GlobalNamespace.GetMembers("StructExplicit").OfType(Of INamedTypeSymbol)().Single()
+                    Dim structWithSizeType = m.GlobalNamespace.GetMembers("StructWithSize").OfType(Of INamedTypeSymbol)().Single()
+                    Dim structWithPackType = m.GlobalNamespace.GetMembers("StructWithPack").OfType(Of INamedTypeSymbol)().Single()
+                    Dim structWithSizeAndPackType = m.GlobalNamespace.GetMembers("StructWithSizeAndPack").OfType(Of INamedTypeSymbol)().Single()
+                    Dim classType = m.GlobalNamespace.GetMembers("Class").OfType(Of INamedTypeSymbol)().Single()
+                    Dim classNoFieldsType = m.GlobalNamespace.GetMembers("ClassNoFields").OfType(Of INamedTypeSymbol)().Single()
+                    Dim classSequentialType = m.GlobalNamespace.GetMembers("ClassSequential").OfType(Of INamedTypeSymbol)().Single()
+                    Dim classAutoType = m.GlobalNamespace.GetMembers("ClassAuto").OfType(Of INamedTypeSymbol)().Single()
+                    Dim classExplicitType = m.GlobalNamespace.GetMembers("ClassExplicit").OfType(Of INamedTypeSymbol)().Single()
+                    Dim classWithSizeType = m.GlobalNamespace.GetMembers("ClassWithSize").OfType(Of INamedTypeSymbol)().Single()
+                    Dim classWithPackType = m.GlobalNamespace.GetMembers("ClassWithPack").OfType(Of INamedTypeSymbol)().Single()
+                    Dim classWithSizeAndPackType = m.GlobalNamespace.GetMembers("ClassWithSizeAndPack").OfType(Of INamedTypeSymbol)().Single()
 
-            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), structType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 1, 0), structNoFieldsType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Auto, 5, 0), structWithSizeType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classNoFieldsType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classAutoType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 0), classExplicitType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Explicit, 5, 0), classWithSizeType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 4), classWithPackType.TypeLayout)
-            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 5, 4), classWithSizeAndPackType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), structType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Sequential, 1, 0), structNoFieldsType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Auto, 5, 0), structWithSizeType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classNoFieldsType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classAutoType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 0), classExplicitType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Explicit, 5, 0), classWithSizeType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 4), classWithPackType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Sequential, 5, 4), classWithSizeAndPackType.TypeLayout)
 
-            Assert.Equal(LayoutKind.Sequential, classWithSizeAndPackType.TypeLayout.Kind)
-            Assert.Equal(5, classWithSizeAndPackType.TypeLayout.Size)
-            Assert.Equal(4, classWithSizeAndPackType.TypeLayout.PackingSize)
+                    Assert.Equal(LayoutKind.Sequential, classWithSizeAndPackType.TypeLayout.Kind)
+                    Assert.Equal(5, classWithSizeAndPackType.TypeLayout.Size)
+                    Assert.Equal(4, classWithSizeAndPackType.TypeLayout.PackingSize)
+                End Sub
+
+            Dim verifier = CompileAndVerify(code, symbolValidator:=verify, sourceSymbolValidator:=verify)
+            verifier.VerifyDiagnostics()
         End Sub
 
         <Fact>
