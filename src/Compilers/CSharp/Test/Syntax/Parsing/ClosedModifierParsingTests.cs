@@ -17,13 +17,13 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     public static readonly TheoryData<LanguageVersion> LanguageVersions_14_15_Preview = new TheoryData<LanguageVersion>()
     {
         LanguageVersion.CSharp14, // latest which lacks 'closed classes' feature
-        LanguageVersionFacts.CSharpNext, // first which has 'closed classes' feature
+        LanguageVersion.CSharp15, // first which has 'closed classes' feature
         LanguageVersion.Preview
     };
 
     public static readonly TheoryData<LanguageVersion> LanguageVersions_15_Preview = new TheoryData<LanguageVersion>()
     {
-        LanguageVersionFacts.CSharpNext,
+        LanguageVersion.CSharp15,
         LanguageVersion.Preview
     };
 
@@ -672,9 +672,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             """,
             options: TestOptions.Regular14,
             expectedBindingDiagnostics: [
-                // (1,14): error CS8652: The feature 'closed classes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,14): error CS9327: Feature 'closed classes' is not available in C# 14.0. Please use language version 15.0 or greater.
                 // closed class C { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("closed classes").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "C").WithArguments("closed classes", "15.0").WithLocation(1, 14)
             ]);
         N(SyntaxKind.CompilationUnit);
         {

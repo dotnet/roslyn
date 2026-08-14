@@ -1,5 +1,5 @@
-jobs:
-- template: /eng/common/core-templates/jobs/codeql-build.yml
+steps:
+- template: /eng/common/core-templates/steps/get-github-app-token.yml
   parameters:
     is1ESPipeline: false
 
