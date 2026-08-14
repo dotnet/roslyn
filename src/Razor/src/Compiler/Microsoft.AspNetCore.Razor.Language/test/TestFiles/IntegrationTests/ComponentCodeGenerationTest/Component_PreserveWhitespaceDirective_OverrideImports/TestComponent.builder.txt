@@ -1,3 +1,0 @@
-﻿[0000] OpenElement("parent")
-[0001] OpenElement("child")
-[0002] AddContent(DateTime.Now)

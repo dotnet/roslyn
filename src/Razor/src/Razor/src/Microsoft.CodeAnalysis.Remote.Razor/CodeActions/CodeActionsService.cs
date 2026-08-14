@@ -16,12 +16,11 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
@@ -38,15 +37,26 @@ internal sealed class CodeActionsService(
     private readonly IEnumerable<ICSharpCodeActionProvider> _csharpCodeActionProviders = csharpCodeActionProviders;
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders = htmlCodeActionProviders;
 
-    public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, RemoteDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] htmlCodeActions, RazorVSInternalCodeAction[] csharpCodeActions, RazorVSInternalCodeAction[] csharpDeclCodeActions, bool supportsCodeActionResolve, CancellationToken cancellationToken)
+    public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, RemoteDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] delegatedCodeActions, Uri? delegatedDocumentUri, bool supportsCodeActionResolve, CancellationToken cancellationToken)
     {
-        var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentSnapshot, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
+        var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentSnapshot, delegatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
         if (razorCodeActionContext is null)
         {
             return null;
         }
 
+        delegatedCodeActions = razorCodeActionContext.LanguageKind switch
+        {
+            RazorLanguageKind.CSharp => ExtractCSharpCodeActionNamesFromData(delegatedCodeActions),
+            RazorLanguageKind.Html => delegatedCodeActions,
+            _ => []
+        };
+
         var razorCodeActions = await GetRazorCodeActionsAsync(razorCodeActionContext, cancellationToken).ConfigureAwait(false);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var filteredCodeActions = await FilterDelegatedCodeActionsAsync(razorCodeActionContext, [.. delegatedCodeActions], cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
         using var commandsOrCodeActions = new PooledArrayBuilder<SumType<Command, CodeAction>>();
@@ -55,43 +65,11 @@ internal sealed class CodeActionsService(
         // by title. The latter is bad for us because it can put "Remove <div>" at the top in some locales, and our fully
         // qualify component code action at the bottom, depending on the users namespace.
         ConvertCodeActionsToSumType(razorCodeActions, "A-Razor");
-
-        if (razorCodeActionContext.LanguageKind == RazorLanguageKind.Html)
-        {
-            var filteredHtmlCodeActions = await FilterDelegatedCodeActionsAsync(razorCodeActionContext, [.. htmlCodeActions], cancellationToken).ConfigureAwait(false);
-            ConvertCodeActionsToSumType(filteredHtmlCodeActions, "B-Delegated");
-        }
-        else if (razorCodeActionContext.LanguageKind == RazorLanguageKind.CSharp)
-        {
-            // Code actions from the impl and decl C# documents can be duplicates after mapping. If a Razor position maps to both C#
-            // documents, we assume those generated positions represent the same Razor thing semantically. So code actions with the same
-            // title reported by Roslyn should perform actions in different C# documents that map back to the same Razor action.
-            // It should be safe to dedupe based on title.
-            using var _ = SpecializedPools.StringHashSet.GetPooledObject(out var seenTitles);
-
-            if (csharpCodeActions.Length > 0)
-            {
-                await ProcessCSharpCodeActionsAsync(seenTitles, csharpCodeActions, declarationDocument: false).ConfigureAwait(false);
-            }
-
-            if (csharpDeclCodeActions.Length > 0)
-            {
-                await ProcessCSharpCodeActionsAsync(seenTitles, csharpDeclCodeActions, declarationDocument: true).ConfigureAwait(false);
-            }
-        }
+        ConvertCodeActionsToSumType(filteredCodeActions, "B-Delegated");
 
         return commandsOrCodeActions.ToArray();
 
-        async Task ProcessCSharpCodeActionsAsync(HashSet<string> seenTitles, RazorVSInternalCodeAction[] codeActions, bool declarationDocument)
-        {
-            var csharpDocument = await documentSnapshot.GetGeneratedDocumentAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
-            var csharpDocumentUri = csharpDocument.GetURI();
-            var context = razorCodeActionContext with { DelegatedDocumentUri = csharpDocumentUri };
-            var filteredCodeActions = await FilterDelegatedCodeActionsAsync(context, [.. ExtractCSharpCodeActionNamesFromData(codeActions)], cancellationToken).ConfigureAwait(false);
-            ConvertCodeActionsToSumType(filteredCodeActions, "B-Delegated", csharpDocumentUri, seenTitles);
-        }
-
-        void ConvertCodeActionsToSumType(ImmutableArray<RazorVSInternalCodeAction> codeActions, string groupName, DocumentUri? csharpDocumentUri = null, HashSet<string>? seenTitles = null)
+        void ConvertCodeActionsToSumType(ImmutableArray<RazorVSInternalCodeAction> codeActions, string groupName)
         {
             // We must cast the RazorCodeAction into a platform compliant code action
             // For VS (SupportsCodeActionResolve = true) this means just encapsulating the RazorCodeAction in the `CommandOrCodeAction` struct
@@ -100,11 +78,6 @@ internal sealed class CodeActionsService(
             {
                 foreach (var action in codeActions)
                 {
-                    if (seenTitles is not null && !seenTitles.Add(action.Title ?? string.Empty))
-                    {
-                        continue;
-                    }
-
                     // Make sure we honour the grouping that a delegated server may have created
                     action.Group = groupName + (action.Group ?? string.Empty);
                     commandsOrCodeActions.Add(action);
@@ -114,12 +87,7 @@ internal sealed class CodeActionsService(
             {
                 foreach (var action in codeActions)
                 {
-                    if (seenTitles is not null && !seenTitles.Add(action.Title ?? string.Empty))
-                    {
-                        continue;
-                    }
-
-                    commandsOrCodeActions.Add(action.AsVSCodeCommandOrCodeAction(request.TextDocument, csharpDocumentUri));
+                    commandsOrCodeActions.Add(action.AsVSCodeCommandOrCodeAction(request.TextDocument, delegatedDocumentUri));
                 }
             }
         }
@@ -128,6 +96,7 @@ internal sealed class CodeActionsService(
     private async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(
         VSCodeActionParams request,
         RemoteDocumentSnapshot documentSnapshot,
+        Uri? delegatedDocumentUri,
         bool supportsCodeActionResolve,
         CancellationToken cancellationToken)
     {
@@ -149,7 +118,7 @@ internal sealed class CodeActionsService(
             request,
             documentSnapshot,
             codeDocument,
-            DelegatedDocumentUri: null,
+            delegatedDocumentUri,
             startLocation,
             endLocation,
             languageKind,
@@ -159,11 +128,11 @@ internal sealed class CodeActionsService(
         return context;
     }
 
-    public async Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(RemoteDocumentSnapshot documentSnapshot, VSCodeActionParams request, bool inDeclDocument, CancellationToken cancellationToken)
+    public async Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(RemoteDocumentSnapshot documentSnapshot, VSCodeActionParams request, CancellationToken cancellationToken)
     {
         // For C# we have to map the ranges to the generated document
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
         if (!_documentMappingService.TryMapToCSharpDocumentRange(csharpDocument, request.Range, out var projectedRange))
         {
             return null;
@@ -179,7 +148,7 @@ internal sealed class CodeActionsService(
 
         // @inherits projects onto the base type only (ie, just "Base" in `Component : Base`), but some Roslyn code actions are only
         // offered on the class declaration itself (ie, "Component" in above). In this case we widen the request to the whole declaration.
-        if (await TryExpandInheritsDirectiveRangeToWholeDeclarationAsync(documentSnapshot, codeDocument, inDeclDocument, request.Range, projectedRange, cancellationToken).ConfigureAwait(false) is { } inheritsDirectiveRange)
+        if (await TryExpandInheritsDirectiveRangeToWholeDeclarationAsync(documentSnapshot, codeDocument, request.Range, projectedRange, cancellationToken).ConfigureAwait(false) is { } inheritsDirectiveRange)
         {
             projectedRange = inheritsDirectiveRange;
 
@@ -205,7 +174,6 @@ internal sealed class CodeActionsService(
     private static async Task<LspRange?> TryExpandInheritsDirectiveRangeToWholeDeclarationAsync(
         RemoteDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument,
-        bool inDeclDocument,
         LspRange razorRange,
         LspRange projectedRange,
         CancellationToken cancellationToken)
@@ -219,7 +187,7 @@ internal sealed class CodeActionsService(
             return null;
         }
 
-        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var csharpRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var csharpText = await csharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var projectedStart = csharpText.GetRequiredAbsoluteIndex(projectedRange.Start);

@@ -31,6 +31,16 @@ namespace Test
 
         }
         #pragma warning restore 1998
+#nullable restore
+#line (1,8)-(4,1) "x:\dir\subdir\Test\TestComponent.razor"
+
+    public static int Sum(int first = 0, int second = 0)
+        => first + second;
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591

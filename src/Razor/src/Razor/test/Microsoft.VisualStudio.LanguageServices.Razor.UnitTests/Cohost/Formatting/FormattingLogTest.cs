@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -117,7 +116,7 @@ public partial class FormattingLogTest(ITestOutputHelper testOutput) : DocumentF
         var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
         formattingService.GetTestAccessor().SetFormattingLoggerFactory(new TestFormattingLoggerFactory(TestOutputHelper));
 
-        var edits = await GetFormattingEditsAsync(document, htmlEdits, span, options.CodeBlockBraceOnNextLine, options.AttributeIndentStyle, options.InsertSpaces, options.TabSize, options.CSharpSyntaxFormattingOptions);
+        var edits = await GetFormattingEditsAsync(document, htmlEdits, span, options.CodeBlockBraceOnNextLine, options.AttributeIndentStyle, options.InsertSpaces, options.TabSize, options.CSharpSyntaxFormattingOptions.AssumeNotNull());
 
         // If we have a FinalFormattedDocument from the user, then we want this test to fail until the bug is fixed, and the output changes
         if (edits is not null && GetResource(testName, "FinalFormattedDocument.txt") is { } finalFormattedDocumentFile)

@@ -1,2 +1,0 @@
-﻿[0000] OpenComponent<global::Test.TestComponent>()
-[0001] AddComponentParameter(nameof(global::Test.TestComponent. Data ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.List<global::System.String>>( null ))

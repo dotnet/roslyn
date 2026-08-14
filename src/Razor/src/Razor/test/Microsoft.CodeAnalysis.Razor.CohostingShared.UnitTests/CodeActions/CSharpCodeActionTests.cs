@@ -3,7 +3,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
@@ -128,62 +127,6 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             """;
 
         await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers);
-    }
-
-    [Fact]
-    public async Task InvertIf_UsesCSharpFormattingOptions()
-    {
-        var input = """
-            @(booleanValue ?@<br /> : @<br />)
-
-            @{
-                [||]if (true)
-                {
-                    // true
-                }
-                else
-                {
-                    // false
-                }
-            }
-
-            @code
-            {
-                private bool booleanValue = true;
-            }
-            """;
-
-        var expected = """
-            @(booleanValue ?@<br /> : @<br />)
-
-            @{
-                if (false)
-                    {
-                    // false
-                    }
-                else
-                    {
-                    // true
-                    }
-            }
-
-            @code
-            {
-                private bool booleanValue = true;
-            }
-            """;
-
-        var advancedSettings = ClientSettingsManager.GetClientSettings().AdvancedSettings;
-        ClientSettingsManager.Update(advancedSettings with { ShowAllCSharpCodeActions = true });
-
-        await VerifyCodeActionAsync(
-            input,
-            expected,
-            PredefinedCodeRefactoringProviderNames.InvertIf,
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                Indentation = CSharpSyntaxFormattingOptions.Default.Indentation | IndentationPlacement.Braces
-            });
     }
 
     [Fact]

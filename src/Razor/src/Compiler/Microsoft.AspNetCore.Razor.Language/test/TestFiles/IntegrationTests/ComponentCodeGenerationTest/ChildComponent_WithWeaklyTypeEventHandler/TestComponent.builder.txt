@@ -1,2 +1,0 @@
-﻿[0000] OpenComponent<global::Test.DynamicElement>()
-[0001] AddComponentParameter("onclick", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, OnClick ))

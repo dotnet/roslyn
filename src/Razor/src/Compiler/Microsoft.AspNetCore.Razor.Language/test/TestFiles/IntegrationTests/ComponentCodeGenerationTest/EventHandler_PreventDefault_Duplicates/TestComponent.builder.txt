@@ -1,3 +1,0 @@
-﻿[0000] OpenElement("input")
-[0001] AddEventPreventDefaultAttribute("onclick", true)
-[0002] AddAttribute("@onclick:preventDefault")

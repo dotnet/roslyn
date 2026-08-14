@@ -21,7 +21,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
 {
     public string Action => LanguageServerConstants.CodeActions.AddUsing;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<AddUsingsCodeActionParams>();
         if (actionParams is null)
@@ -29,8 +29,10 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
             return null;
         }
 
+        var documentSnapshot = documentContext.Snapshot;
+
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri };
 
         using var documentChanges = new PooledArrayBuilder<TextDocumentEdit>();
 
@@ -53,7 +55,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         };
     }
 
-    internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, VSTextDocumentIdentifier textDocument, TextDocumentEdit? additionalEdit, DocumentUri? delegatedDocumentUri, [NotNullWhen(true)] out string? @namespace, [NotNullWhen(true)] out RazorCodeActionResolutionParams? resolutionParams)
+    internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, VSTextDocumentIdentifier textDocument, TextDocumentEdit? additionalEdit, Uri? delegatedDocumentUri, [NotNullWhen(true)] out string? @namespace, [NotNullWhen(true)] out RazorCodeActionResolutionParams? resolutionParams)
     {
         @namespace = GetNamespaceFromFQN(fullyQualifiedName);
         if (string.IsNullOrEmpty(@namespace))
@@ -67,7 +69,7 @@ internal sealed class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         return true;
     }
 
-    internal static RazorCodeActionResolutionParams CreateAddUsingResolutionParams(string @namespace, VSTextDocumentIdentifier textDocument, TextDocumentEdit? additionalEdit, DocumentUri? delegatedDocumentUri)
+    internal static RazorCodeActionResolutionParams CreateAddUsingResolutionParams(string @namespace, VSTextDocumentIdentifier textDocument, TextDocumentEdit? additionalEdit, Uri? delegatedDocumentUri)
     {
         var actionParams = new AddUsingsCodeActionParams
         {

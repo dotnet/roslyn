@@ -170,7 +170,7 @@ public class ComponentWhitespacePassTest
     {
         foreach (var phase in Engine.Phases)
         {
-            if (phase is DefaultRazorCSharpLoweringPhase)
+            if (phase is IRazorCSharpLoweringPhase)
             {
                 break;
             }

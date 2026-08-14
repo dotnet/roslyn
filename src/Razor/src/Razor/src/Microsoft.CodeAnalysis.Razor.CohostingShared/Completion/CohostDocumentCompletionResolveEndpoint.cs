@@ -7,17 +7,14 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -37,7 +34,6 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     CompletionListCache completionListCache,
     IRemoteServiceInvoker remoteServiceInvoker,
-    IClientSettingsManager clientSettingsManager,
     IHtmlRequestInvoker requestInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
 #pragma warning disable RS0030 // Do not use banned APIs
@@ -48,7 +44,6 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
 {
     private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly ISnippetCompletionItemProvider? _snippetCompletionItemProvider = snippetCompletionItemProvider;
@@ -85,19 +80,9 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         return null;
     }
 
-    protected override Task<VSInternalCompletionItem?> HandleRequestAsync(
+    protected override async Task<VSInternalCompletionItem?> HandleRequestAsync(
         VSInternalCompletionItem completionItem,
         TextDocument razorDocument,
-        CancellationToken cancellationToken)
-    {
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
-        return HandleRequestAsync(completionItem, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
-    }
-
-    private async Task<VSInternalCompletionItem?> HandleRequestAsync(
-        VSInternalCompletionItem completionItem,
-        TextDocument razorDocument,
-        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
         CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
@@ -150,11 +135,8 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
                 return completionItem;
             }
         }
+
         // Couldn't find an associated completion list, so its either Razor or C#. Either way, over to OOP
-        var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions() with
-        {
-            CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
-        };
         var result = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, VSInternalCompletionItem>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken)
@@ -162,7 +144,6 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
                     solutionInfo,
                     razorDocument.Id,
                     completionItem,
-                    formattingOptions,
                     cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
@@ -195,8 +176,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         public Task<VSInternalCompletionItem?> HandleRequestAsync(
             VSInternalCompletionItem request,
             TextDocument razorDocument,
-            CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
             CancellationToken cancellationToken)
-                => instance.HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
+                => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }
 }

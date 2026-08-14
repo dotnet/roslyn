@@ -1,2 +1,0 @@
-﻿[0000] OpenComponent<global::Test.MyComponent>()
-[0001] AddComponentParameter(nameof(global::Test.MyComponent. OnClick ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, Increment )))

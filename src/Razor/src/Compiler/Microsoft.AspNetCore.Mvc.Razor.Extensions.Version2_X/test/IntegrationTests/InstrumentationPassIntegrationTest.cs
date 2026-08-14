@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -75,7 +75,7 @@ public class InstrumentationPassIntegrationTest : IntegrationTestBase
         // Assert
         AssertDocumentNodeMatchesBaseline(document.GetDocumentNode());
 
-        var csharpDocument = document.GetImplCSharpDocument();
+        var csharpDocument = document.GetCSharpDocument();
         AssertCSharpDocumentMatchesBaseline(csharpDocument);
         Assert.Empty(csharpDocument.Diagnostics);
     }

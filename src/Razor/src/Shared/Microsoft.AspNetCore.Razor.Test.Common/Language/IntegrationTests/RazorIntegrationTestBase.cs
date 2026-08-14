@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -207,29 +207,6 @@ public class RazorIntegrationTestBase
             expectedCSharpDiagnostics: expectedCSharpDiagnostics);
     }
 
-    // Runs the engine's phases over a component built from <paramref name="content"/>, stopping
-    // immediately before the first phase of type <typeparamref name="TStopBefore"/>. Lets a test observe
-    // intermediate pipeline state -- e.g. that the decl document already exists before a later phase runs.
-    private protected RazorCodeDocument ProcessComponentUpToPhase<TStopBefore>(string content)
-        where TStopBefore : IRazorEnginePhase
-    {
-        var projectEngine = CreateProjectEngine(Configuration, Array.Empty<MetadataReference>(), supportLocalizedComponentNames: false, csharpParseOptions: null);
-        var projectItem = CreateProjectItem("TestComponent.razor", content, RazorFileKind.Component);
-        var codeDocument = projectEngine.CreateCodeDocument(projectItem);
-
-        foreach (var phase in projectEngine.Engine.Phases)
-        {
-            if (phase is TStopBefore)
-            {
-                break;
-            }
-
-            codeDocument = phase.Execute(codeDocument);
-        }
-
-        return codeDocument;
-    }
-
     protected CompileToCSharpResult CompileToCSharp(
         string cshtmlContent,
         string? cssScope = null,
@@ -290,9 +267,9 @@ public class RazorIntegrationTestBase
             {
                 // Result of generating declarations
                 codeDocument = projectEngine.ProcessDeclarationOnly(item);
-                Assert.Empty(codeDocument.GetRequiredImplCSharpDocument().Diagnostics);
+                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
 
-                var syntaxTree = Parse(codeDocument.GetRequiredImplCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
@@ -303,8 +280,8 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredImplCSharpDocument().Text.ToString(),
-                RazorDiagnostics = codeDocument.GetRequiredImplCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
+                RazorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
 
@@ -320,19 +297,12 @@ public class RazorIntegrationTestBase
             {
                 // Result of generating definition
                 codeDocument = projectEngine.Process(item);
-                Assert.Empty(codeDocument.GetRequiredImplCSharpDocument().Diagnostics);
+                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
 
-                // Replace the 'declaration' syntax tree(s). When the document is splittable,
-                // the decl phase emits a separate decl C# document; both partial halves must
-                // make it into the compilation so observers see the full type.
+                // Replace the 'declaration' syntax tree
+                var syntaxTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.RemoveAll(st => st.FilePath == item.FilePath);
-                var implTree = Parse(codeDocument.GetRequiredImplCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
-                AdditionalSyntaxTrees.Add(implTree);
-                if (codeDocument.GetDeclCSharpDocument() is { } declDocument)
-                {
-                    var declTree = Parse(declDocument.Text, csharpParseOptions, path: item.FilePath + ".decl");
-                    AdditionalSyntaxTrees.Add(declTree);
-                }
+                AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
             // Result of real code generation for the document under test
@@ -341,9 +311,8 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredImplCSharpDocument().Text.ToString(),
-                DeclCode = codeDocument.GetDeclCSharpDocument()?.Text.ToString(),
-                RazorDiagnostics = codeDocument.GetRequiredImplCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
+                RazorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
         }
@@ -369,9 +338,8 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredImplCSharpDocument().Text.ToString(),
-                DeclCode = codeDocument.GetDeclCSharpDocument()?.Text.ToString(),
-                RazorDiagnostics = codeDocument.GetRequiredImplCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
+                RazorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
         }
@@ -390,18 +358,10 @@ public class RazorIntegrationTestBase
 
     protected static CompileToAssemblyResult CompileToAssembly(CompileToCSharpResult cSharpResult, Action<IEnumerable<Diagnostic>> verifyDiagnostics)
     {
-        var primaryPath = cSharpResult.CodeDocument.Source.FilePath ?? string.Empty;
-        var syntaxTrees = new List<SyntaxTree>
+        var syntaxTrees = new[]
         {
-            Parse(cSharpResult.Code, cSharpResult.ParseOptions, path: primaryPath),
+            Parse(cSharpResult.Code, cSharpResult.ParseOptions),
         };
-
-        if (cSharpResult.DeclCode is { } declCode)
-        {
-            // The two halves must have distinct paths so C# can keep file-local types
-            // (e.g. __PrivateComponentRenderModeAttribute) unambiguous.
-            syntaxTrees.Add(Parse(declCode, cSharpResult.ParseOptions, path: primaryPath + ".decl.g.cs"));
-        }
 
         var compilation = cSharpResult.BaseCompilation.AddSyntaxTrees(syntaxTrees);
 
@@ -475,23 +435,6 @@ public class RazorIntegrationTestBase
         return Parse(SourceText.From(text, Encoding.UTF8), parseOptions, path);
     }
 
-    /// <summary>
-    /// Adds the generated C# half (and the decl half, when the document was split by the
-    /// decl phase) of <paramref name="result"/> to <see cref="AdditionalSyntaxTrees"/>
-    /// so the partial class halves are both visible to subsequent compilations. Both syntax
-    /// trees get distinct paths so file-local types (e.g. <c>__PrivateComponentRenderModeAttribute</c>)
-    /// remain unambiguous.
-    /// </summary>
-    protected void AddGeneratedSyntaxTrees(CompileToCSharpResult result, string? primaryPath = null)
-    {
-        var implPath = primaryPath ?? result.CodeDocument.Source.FilePath ?? string.Empty;
-        AdditionalSyntaxTrees.Add(Parse(result.Code, result.ParseOptions, path: implPath));
-        if (result.DeclCode is { } declCode)
-        {
-            AdditionalSyntaxTrees.Add(Parse(declCode, result.ParseOptions, path: implPath + ".decl.g.cs"));
-        }
-    }
-
     protected static void AssertSourceEquals(string expected, CompileToCSharpResult generated)
     {
         // Normalize the paths inside the expected result to match the OS paths
@@ -511,11 +454,6 @@ public class RazorIntegrationTestBase
         public required Compilation BaseCompilation { get; set; }
         public required RazorCodeDocument CodeDocument { get; set; }
         public required string Code { get; set; }
-        // The decl half produced by the decl phase. Null when the document wasn't split
-        // (non-component, design time, ProcessDeclarationOnly, etc.). When non-null, both
-        // Code (the impl half) and DeclCode must end up in the C# compilation as separate
-        // syntax trees so the partial class halves rejoin and observers see the full type.
-        public string? DeclCode { get; set; }
         public required IEnumerable<RazorDiagnostic> RazorDiagnostics { get; set; }
         public CSharpParseOptions? ParseOptions { get; set; }
     }
