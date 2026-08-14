@@ -26,12 +26,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             get
             {
-                // Since mscorlib may not be loaded from the GAC on Mono, also check if the platform is Mono which supports a GAC.
-                return
 #if !NETCOREAPP
-                typeof(object).Assembly.GlobalAssemblyCache ||
+                return typeof(object).Assembly.GlobalAssemblyCache;
+#else
+                return false;
 #endif
-                PlatformInformation.IsRunningOnMono;
             }
         }
 

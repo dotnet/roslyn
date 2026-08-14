@@ -222,9 +222,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
                 var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
                 ServerNamedMutex? clientMutex = null;
-                var holdsMutex = false;
                 try
                 {
+                    var holdsMutex = false;
+
                     try
                     {
                         var clientMutexName = GetClientMutexName(pipeName);
@@ -747,7 +748,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 throw new ObjectDisposedException(nameof(ServerNamedMutex));
             }
 
-            Debug.Assert(!_isLocked);
+            if (!_isLocked)
+            {
+                throw new InvalidOperationException("Recursive locks are not supported.");
+            }
 
             try
             {
@@ -784,5 +788,4 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
     }
-
 }

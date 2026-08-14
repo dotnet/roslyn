@@ -255,7 +255,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including
         // Mono) and .NET Core Windows. For non-Windows .NET Core scenarios, we return null to enable create the memory
         // mapped file (just not in a way that can be shared across processes).
-        return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
+        return PlatformInformation.IsWindows
             ? $"Roslyn Shared File: Size={size} Id={Guid.NewGuid():N}"
             : null;
     }

@@ -25,9 +25,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
     {
         private readonly MetadataShadowCopyProvider _provider;
 
-        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = IsRunningOnMono
-            ? ImmutableArray<string>.Empty
-            : ImmutableArray.Create(
+        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories =
+            ImmutableArray.Create(
                 FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows)),
                 FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)),
                 FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)),
@@ -65,14 +64,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy(@"\bar.dll"));
             Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy(@"../bar.dll"));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadataShadowCopy(IsRunningOnMono ? "/goo.dll" : @"c:\goo.dll", (MetadataImageKind)Byte.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadataShadowCopy(@"c:\goo.dll", (MetadataImageKind)Byte.MaxValue));
             Assert.Throws<ArgumentNullException>(() => _provider.GetMetadataShadowCopy(null, MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy("c:goo.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy("bar.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy(@"\bar.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy(@"../bar.dll", MetadataImageKind.Assembly));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadata(IsRunningOnMono ? "/goo.dll" : @"c:\goo.dll", (MetadataImageKind)Byte.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadata(@"c:\goo.dll", (MetadataImageKind)Byte.MaxValue));
             Assert.Throws<ArgumentNullException>(() => _provider.GetMetadata(null, MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadata("c:goo.dll", MetadataImageKind.Assembly));
         }
@@ -153,12 +152,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             foreach (var sc in scFiles)
             {
                 Assert.True(_provider.IsShadowCopy(sc));
-
-                if (!IsRunningOnMono)
-                {
-                    // files should be locked:
-                    Assert.Throws<IOException>(() => File.Delete(sc));
-                }
+                // files should be locked:
+                Assert.Throws<IOException>(() => File.Delete(sc));
             }
 
             // should get the same metadata:

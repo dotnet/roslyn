@@ -24,7 +24,7 @@ internal sealed partial class TemporaryStorageService
             // Only use the memory mapped file version of the temporary storage service on Windows.
             // It is only required for OOP communication (Windows only) and can cause issues on Linux containers
             // due to a small amount of space allocated by default to store memory mapped files.
-            if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
+            if (PlatformInformation.IsWindows)
             {
                 var textFactory = workspaceServices.GetRequiredService<ITextFactoryService>();
 

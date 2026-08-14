@@ -209,11 +209,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             BuildResponse buildResponse;
 
-            if (!AreNamedPipesSupported())
-            {
-                return null;
-            }
-
             try
             {
                 var requestId = Guid.NewGuid().ToString();
@@ -292,11 +287,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
-            if (PlatformInformation.IsRunningOnMono)
-            {
-                return false;
-            }
-
             if (RuntimeHostInfo.IsCoreClrRuntime)
             {
                 // The native invoke ends up giving us both CoreRun and the exe file.
@@ -307,32 +297,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             return true;
-        }
-
-        private static bool AreNamedPipesSupported()
-        {
-            if (!PlatformInformation.IsRunningOnMono)
-                return true;
-
-            IDisposable? npcs = null;
-            try
-            {
-                var testPipeName = $"mono-{Guid.NewGuid()}";
-                // Mono configurations without named pipe support will throw a PNSE at some point in this process.
-                npcs = new NamedPipeClientStream(".", testPipeName, PipeDirection.InOut);
-                npcs.Dispose();
-                return true;
-            }
-            catch (PlatformNotSupportedException)
-            {
-                if (npcs != null)
-                {
-                    // Compensate for broken finalizer in older builds of mono
-                    // https://github.com/mono/mono/commit/2a731f29b065392ca9b44d6613abee2aa413a144
-                    GC.SuppressFinalize(npcs);
-                }
-                return false;
-            }
         }
 
         /// <summary>

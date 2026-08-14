@@ -102,9 +102,7 @@ namespace Microsoft.CodeAnalysis
         /// Mono supports CurrentUserOnly even though it's not exposed on the reference assemblies for net472. This 
         /// must be used because ACL security does not work.
         /// </summary>
-        private static readonly PipeOptions CurrentUserOption = PlatformInformation.IsRunningOnMono
-            ? (PipeOptions)s_currentUserOnlyValue
-            : PipeOptions.None;
+        private static readonly PipeOptions CurrentUserOption = PipeOptions.None;
 
         private static NamedPipeServerStream CreateServer(
             string pipeName,
@@ -147,15 +145,6 @@ namespace Microsoft.CodeAnalysis
 
         internal static PipeSecurity? CreatePipeSecurity()
         {
-            if (PlatformInformation.IsRunningOnMono)
-            {
-                // Pipe security and additional access rights constructor arguments
-                //  are not supported by Mono 
-                // https://github.com/dotnet/roslyn/pull/30810
-                // https://github.com/mono/mono/issues/11406
-                return null;
-            }
-
             var security = new PipeSecurity();
             SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
 

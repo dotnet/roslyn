@@ -44,16 +44,7 @@ internal static class Program
         AbstractBuildHost buildHost;
 
 #if NETFRAMEWORK
-
-        if (PlatformInformation.IsRunningOnMono)
-        {
-            server = new RpcServer(pipeServer);
-            buildHost = new MonoBuildHost(logger, server);
-        }
-        else
-        {
-            (buildHost, server) = NetFrameworkBuildHost.Create(logger, pipeServer);
-        }
+        (buildHost, server) = NetFrameworkBuildHost.Create(logger, pipeServer);
 #else
         server = new RpcServer(pipeServer);
         buildHost = new NetCoreBuildHost(logger, server);
