@@ -1,11 +1,13 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
 using System.IO;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -45,7 +47,19 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
 
             try
             {
-                return MetadataReference.CreateFromFile(path, properties, documentationProvider);
+                var peStream = FileUtilities.OpenRead(path);
+                // Assemblies only need prefetching metadata.
+                var options = properties.Kind == MetadataImageKind.Assembly ? PEStreamOptions.PrefetchMetadata : PEStreamOptions.PrefetchEntireImage;
+                var module = ModuleMetadata.CreateFromStream(peStream, options);
+
+                if (properties.Kind == MetadataImageKind.Module)
+                {
+                    return module.GetReference(documentationProvider, filePath: path, display: null).WithProperties(properties);
+                }
+
+                // any additional modules constituting the assembly will be read lazily:
+                var assembly = AssemblyMetadata.Create(module);
+                return assembly.GetReference(documentationProvider, filePath: path, display: null).WithProperties(properties);
             }
             catch (IOException e)
             {
