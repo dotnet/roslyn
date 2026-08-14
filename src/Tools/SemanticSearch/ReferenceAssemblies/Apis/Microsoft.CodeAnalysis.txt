@@ -4011,6 +4011,8 @@ Microsoft.CodeAnalysis.TypeLayout.GetHashCode
 Microsoft.CodeAnalysis.TypeLayout.get_Kind
 Microsoft.CodeAnalysis.TypeLayout.get_PackingSize
 Microsoft.CodeAnalysis.TypeLayout.get_Size
+Microsoft.CodeAnalysis.TypeLayout.op_Equality(Microsoft.CodeAnalysis.TypeLayout,Microsoft.CodeAnalysis.TypeLayout)
+Microsoft.CodeAnalysis.TypeLayout.op_Inequality(Microsoft.CodeAnalysis.TypeLayout,Microsoft.CodeAnalysis.TypeLayout)
 Microsoft.CodeAnalysis.TypeParameterKind
 Microsoft.CodeAnalysis.TypeParameterKind.Cref
 Microsoft.CodeAnalysis.TypeParameterKind.Method

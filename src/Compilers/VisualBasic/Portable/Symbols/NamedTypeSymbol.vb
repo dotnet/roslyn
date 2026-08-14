@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Type layout information (ClassLayout metadata and layout kind flags).
         ''' </summary>
-        Friend MustOverride ReadOnly Property Layout As TypeLayout Implements INamedTypeSymbol.TypeLayout
+        Friend MustOverride ReadOnly Property Layout As TypeLayout
 
         ''' <summary>
         ''' The default charset used for type marshalling. 
@@ -1455,6 +1455,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property INamedTypeSymbol_NativeIntegerUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.NativeIntegerUnderlyingType
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property INamedTypeSymbol_TypeLayout As TypeLayout Implements INamedTypeSymbol.TypeLayout
+            Get
+                Return Layout
             End Get
         End Property
 

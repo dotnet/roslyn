@@ -10,7 +10,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Type layout information.
+    /// <para>
+    /// Type layout information - this retrieves the <see cref="StructLayoutAttribute" /> information from the type definition.
+    /// </para>
+    /// <para>
+    /// In particular, it has the layout kind, the packing size, and the size of the type, as defined in metadata or source - it does not compute the actual size of a type for example.
+    /// </para>
     /// </summary>
     public readonly struct TypeLayout : IEquatable<TypeLayout>
     {
@@ -73,6 +78,22 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return Hash.Combine(Hash.Combine(this.Size, this.PackingSize), (int)this.Kind);
+        }
+
+        /// <summary>
+        /// Compares two <see cref="TypeLayout" /> instances for equality.
+        /// </summary>
+        public static bool operator ==(TypeLayout left, TypeLayout right)
+        {
+            return left.Equals(right);
+        }
+
+        /// <summary>
+        /// Compares two <see cref="TypeLayout" /> instances for inequality.
+        /// </summary>
+        public static bool operator !=(TypeLayout left, TypeLayout right)
+        {
+            return !left.Equals(right);
         }
     }
 }

@@ -9,6 +9,8 @@ Microsoft.CodeAnalysis.TypeLayout.Size.get -> int
 Microsoft.CodeAnalysis.TypeLayout.TypeLayout() -> void
 override Microsoft.CodeAnalysis.TypeLayout.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.TypeLayout.GetHashCode() -> int
+static Microsoft.CodeAnalysis.TypeLayout.operator !=(Microsoft.CodeAnalysis.TypeLayout left, Microsoft.CodeAnalysis.TypeLayout right) -> bool
+static Microsoft.CodeAnalysis.TypeLayout.operator ==(Microsoft.CodeAnalysis.TypeLayout left, Microsoft.CodeAnalysis.TypeLayout right) -> bool
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypeInfo() -> void
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>

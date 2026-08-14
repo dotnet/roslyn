@@ -22,9 +22,6 @@ internal sealed class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationA
         : base(constructedFrom.ContainingAssembly, constructedFrom.ContainingType, constructedFrom.GetAttributes(),
                constructedFrom.DeclaredAccessibility, constructedFrom.Modifiers,
                constructedFrom.Name, constructedFrom.SpecialType,
-#if !OLDER_ROSLYN
-               constructedFrom.TypeLayout,
-#endif
                constructedFrom.NullableAnnotation, typeMembers)
     {
         _constructedFrom = constructedFrom;

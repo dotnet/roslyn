@@ -19,7 +19,6 @@ internal sealed class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractName
     private readonly ImmutableArray<INamedTypeSymbol> _interfaces;
     private readonly ImmutableArray<ISymbol> _members;
 
-#if !OLDER_ROSLYN
     public CodeGenerationNamedTypeSymbol(
         IAssemblySymbol containingAssembly,
         INamedTypeSymbol containingType,
@@ -33,39 +32,11 @@ internal sealed class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractName
         INamedTypeSymbol baseType,
         ImmutableArray<INamedTypeSymbol> interfaces,
         SpecialType specialType,
-        NullableAnnotation nullableAnnotation,
-        ImmutableArray<ISymbol> members,
-        ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
-        INamedTypeSymbol enumUnderlyingType) : this(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, isRecord, typeKind, name, typeParameters, baseType, interfaces, specialType, default, nullableAnnotation, members, typeMembers, enumUnderlyingType)
-    {
-    }
-#endif
-
-    public CodeGenerationNamedTypeSymbol(
-        IAssemblySymbol containingAssembly,
-        INamedTypeSymbol containingType,
-        ImmutableArray<AttributeData> attributes,
-        Accessibility declaredAccessibility,
-        DeclarationModifiers modifiers,
-        bool isRecord,
-        TypeKind typeKind,
-        string name,
-        ImmutableArray<ITypeParameterSymbol> typeParameters,
-        INamedTypeSymbol baseType,
-        ImmutableArray<INamedTypeSymbol> interfaces,
-        SpecialType specialType,
-#if !OLDER_ROSLYN
-        TypeLayout typeLayout,
-#endif
         NullableAnnotation nullableAnnotation,
         ImmutableArray<ISymbol> members,
         ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
         INamedTypeSymbol enumUnderlyingType)
-        : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType,
-#if !OLDER_ROSLYN
-            typeLayout,
-#endif
-            nullableAnnotation, typeMembers)
+        : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation, typeMembers)
     {
         IsRecord = isRecord;
         TypeKind = typeKind;
@@ -84,9 +55,6 @@ internal sealed class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractName
             this.ContainingAssembly, this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
             this.Modifiers, this.IsRecord, this.TypeKind, this.Name, _typeParameters, this.BaseType,
             _interfaces, this.SpecialType,
-#if !OLDER_ROSLYN
-            this.TypeLayout,
-#endif
             nullableAnnotation, _members, this.TypeMembers,
             this.EnumUnderlyingType);
     }
