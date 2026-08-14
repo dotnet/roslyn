@@ -87,7 +87,7 @@ internal sealed partial class PackageManagerConsoleInProcess
             errorPath);
     }
 
-    private async Task<PackageManagerConsoleResult> WaitForResultAsync(
+    private static async Task<PackageManagerConsoleResult> WaitForResultAsync(
         string command,
         string resultPath,
         string errorPath,
