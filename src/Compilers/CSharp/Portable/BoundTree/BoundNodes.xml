@@ -2471,7 +2471,7 @@
       of any bound node, except another BoundPatternWithUnionMatching node. In which case,
       it must be the LeftOfPendingConjunction child.
 
-      The ValueProperty and ValuePattern represents a Union matching operation
+      The ValueProperty and ValuePattern represent a Union matching operation
       pending a rewrite to a BoundRecursivePattern. 
 
       The BoundPatternWithUnionMatching node represents either a standalone Union matching operation
@@ -2488,7 +2488,7 @@
       Etc.
 
       InputType is LeftOfPendingConjunction.InputType ?? UnionMatchingInputType 
-      NarrowedType is Pattern.NarrowedType
+      NarrowedType is ValuePattern.NarrowedType
   -->
   <Node Name="BoundPatternWithUnionMatching" Base="BoundPattern" HasValidate="true" DoesNotSurvive="InitialBinding">
     <!-- The Union or Nullable<Union> type matched -->
