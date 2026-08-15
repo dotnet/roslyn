@@ -53,7 +53,10 @@ foreach ($package in $packages) {
     exit 1
   }
 
-  $packageId = $Matches['id'] + $Matches['rid']
+  $packageId = $Matches['id']
+  if ($Matches['rid']) {
+    $packageId += "." + $Matches['rid']
+  }
   $packageVersion = $Matches['version']
 
   if ($Prerelease -and -not $packageVersion.Contains('-')) {
