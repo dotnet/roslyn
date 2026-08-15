@@ -987,8 +987,10 @@ class ClassWithSizeAndPack
             var verifier = CompileAndVerify(text, sourceSymbolValidator: verify, symbolValidator: verify);
             verifier.VerifyDiagnostics();
 
-            static void verify(ModuleSymbol m)
+            static void verify(ModuleSymbol module)
             {
+                IModuleSymbol m = module.GetPublicSymbol();
+
                 var structType = m.GlobalNamespace.GetMembers("Struct").OfType<INamedTypeSymbol>().Single();
                 var structNoFieldsType = m.GlobalNamespace.GetMembers("StructNoFields").OfType<INamedTypeSymbol>().Single();
                 var structSequentialType = m.GlobalNamespace.GetMembers("StructSequential").OfType<INamedTypeSymbol>().Single();

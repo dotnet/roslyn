@@ -1260,7 +1260,9 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                 </compilation>
 
             Dim verify =
-                Sub(m As ModuleSymbol)
+                Sub([module] As ModuleSymbol)
+                    Dim m = DirectCast([module], IModuleSymbol)
+
                     Dim structType = m.GlobalNamespace.GetMembers("Struct").OfType(Of INamedTypeSymbol)().Single()
                     Dim structNoFieldsType = m.GlobalNamespace.GetMembers("StructNoFields").OfType(Of INamedTypeSymbol)().Single()
                     Dim structSequentialType = m.GlobalNamespace.GetMembers("StructSequential").OfType(Of INamedTypeSymbol)().Single()
