@@ -1,0 +1,104 @@
+parameters:
+- name: poolName
+  type: string
+- name: queueName
+  type: string
+- name: timeout
+  type: number
+
+# Dedicated stage which runs only the legacy packages.config NuGet package upgrade validation tests
+# (tagged 'TestGate=NuGetPackageUpgrade' via src/VisualStudio/IntegrationTest/New.IntegrationTests/PackageValidation/NuGetPackageUpgrade.cs).
+# Ordinary integration jobs from test-integration-helix.yml explicitly exclude these tests
+# ('TestGate!=NuGetPackageUpgrade'), so this stage is the only place they run. It only runs for the
+# Release configuration, since only Release builds stage a local NuGet package upgrade payload
+# (see 'buildNuGetUpgradePayload' in build-windows-job.yml).
+stages:
+- stage: NuGetPackageUpgrade_Integration
+  dependsOn: Windows_Release_Build
+  variables:
+  - name: XUNIT_LOGS
+    value: $(Build.SourcesDirectory)\artifacts\log\Release
+  - name: ROSLYN_PACKAGE_VALIDATION_SOURCE
+    value: $(Build.SourcesDirectory)\artifacts\packageValidation\Release
+  jobs:
+  - job: NuGetPackageUpgrade
+    timeoutInMinutes: ${{ parameters.timeout }}
+    pool:
+      name: ${{ parameters.poolName }}
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+    steps:
+    - checkout: none
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Test Payload
+      inputs:
+        artifact: Transport_Artifacts_Windows_Release
+        path: '$(Build.SourcesDirectory)'
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download NuGet Package Upgrade Payload
+      inputs:
+        artifact: Roslyn_NuGet_Packages_Release
+        path: '$(ROSLYN_PACKAGE_VALIDATION_SOURCE)'
+
+    - task: BatchScript@1
+      displayName: Rehydrate RunTests
+      inputs:
+        filename: ./artifacts/bin/RunTests/Release/net10.0/rehydrate.cmd
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+    # This is a temporary step until the actual test run moves to helix (then we would need to rehydrate the tests there instead)
+    - task: BatchScript@1
+      displayName: Rehydrate Microsoft.VisualStudio.LanguageServices.New.IntegrationTests
+      inputs:
+        filename: ./artifacts/bin/Microsoft.VisualStudio.LanguageServices.New.IntegrationTests/Release/net472/rehydrate.cmd
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+    - task: BatchScript@1
+      displayName: Rehydrate Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
+      inputs:
+        filename: ./artifacts\bin\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests/Release/net472/rehydrate.cmd
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+    - task: UseDotNet@2
+      displayName: 'Install .NET 9 Runtime'
+      inputs:
+        packageType: runtime
+        version: '9.0.0'
+        includePreviewVersions: true
+        installationPath: '$(Build.SourcesDirectory)/.dotnet'
+
+    - task: PowerShell@2
+      displayName: Run NuGet Package Upgrade Validation Tests
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -prepareMachine -testVsi -configuration Release -oop64bit:$true -collectDumps -lspEditor:$false -testFilter "TestGate=NuGetPackageUpgrade"
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\Release\*.xml
+        mergeTestResults: true
+        testRunTitle: '$(System.JobAttempt)-NuGetPackageUpgrade'
+      condition: always()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Test Results Directory
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\TestResults\Release'
+        ArtifactName: '$(System.JobAttempt)-Logs NuGetPackageUpgrade $(Build.BuildNumber)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Release'
+        ArtifactName: '$(System.JobAttempt)-Logs NuGetPackageUpgrade $(Build.BuildNumber)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())

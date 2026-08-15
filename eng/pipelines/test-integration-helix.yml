@@ -12,8 +12,8 @@ parameters:
   - name: timeout
     type: number
   # Test filter applied to every test run in this stage. Ordinary integration runs exclude the
-  # NuGet package upgrade validation tests, which are only run by a dedicated job that opts in
-  # with 'TestGate=NuGetPackageUpgrade'.
+  # NuGet package upgrade validation tests, which are only run by the dedicated, opt-in
+  # NuGetPackageUpgrade_Integration stage (see eng/pipelines/test-integration-nuget-upgrade.yml).
   - name: testFilter
     type: string
     default: 'TestGate!=NuGetPackageUpgrade'
