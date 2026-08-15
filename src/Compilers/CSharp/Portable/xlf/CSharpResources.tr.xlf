@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInFixed">
         <source>Cannot await in context of a 'fixed' statement</source>
-        <target state="new">Cannot await in context of a 'fixed' statement</target>
+        <target state="translated">'fixed' deyimi bağlamında await kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
@@ -1039,7 +1039,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion15">
         <source>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</target>
+        <target state="translated">'{0}' özelliği C# 15.0 sürümünde kullanılamıyor. Lütfen {1} veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
