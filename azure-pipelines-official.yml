@@ -239,6 +239,10 @@ extends:
             scriptLocation: inlineScript
             inlineScript: |
               $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+              if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($token)) {
+                throw "Failed to acquire a DevDiv drop access token."
+              }
+
               Write-Host "##vso[task.setvariable variable=_DevDivDropAccessToken;issecret=true]$token"
               Write-Host "##vso[task.setvariable variable=ArtifactServices.Drop.PAT;issecret=true]$token"
           condition: succeeded()
@@ -364,14 +368,22 @@ extends:
             targetType: inline
             script: |
               $feedUrl = "https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json"
-              $packages = Get-ChildItem -Path "$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages" -Recurse -Filter "*.nupkg"
+              $packagePath = "$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages"
+              if (-not (Test-Path -LiteralPath $packagePath -PathType Container)) {
+                throw "CoreXT package directory does not exist: $packagePath"
+              }
+
+              $packages = @(Get-ChildItem -LiteralPath $packagePath -Recurse -Filter "*.nupkg" -File -ErrorAction Stop)
+              if ($packages.Count -eq 0) {
+                throw "No CoreXT packages were found under: $packagePath"
+              }
+
               Write-Host "Found $($packages.Count) packages to push"
               foreach ($pkg in $packages) {
                 Write-Host "Pushing $($pkg.Name)..."
                 & dotnet nuget push $pkg.FullName --source $feedUrl --api-key AzureDevOps --skip-duplicate
                 if ($LASTEXITCODE -ne 0) {
-                  Write-Error "Failed to push $($pkg.Name)"
-                  exit 1
+                  throw "Failed to push $($pkg.Name)"
                 }
               }
               Write-Host "Successfully pushed $($packages.Count) packages"
