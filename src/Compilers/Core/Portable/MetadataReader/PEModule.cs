@@ -945,6 +945,9 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
+                // CLI Spec 22.8.3:
+                // The Class or ValueType indexed by Parent shall be SequentialLayout or ExplicitLayout. 
+                // That is, AutoLayout types shall not own any rows in the ClassLayout table.
                 var def = MetadataReader.GetTypeDefinition(typeDef);
 
                 LayoutKind kind;
@@ -959,8 +962,7 @@ namespace Microsoft.CodeAnalysis
                         break;
 
                     case TypeAttributes.AutoLayout:
-                        kind = LayoutKind.Auto;
-                        break;
+                        return default(TypeLayout);
 
                     default:
                         if ((def.Attributes & TypeAttributes.LayoutMask) == TypeAttributes.ExtendedLayout)
