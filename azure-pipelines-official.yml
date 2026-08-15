@@ -31,7 +31,10 @@ parameters:
 
 - name: SkipApplyOptimizationData
   type: boolean
-  default: false
+# This branch no longer inserts into VS, so it doesn't need opt-prof
+- name: SkipApplyOptimizationData
+type: boolean
+default: true
 
 - name: SkipTests
   type: boolean
