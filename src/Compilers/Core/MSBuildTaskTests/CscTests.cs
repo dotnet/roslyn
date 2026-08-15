@@ -520,11 +520,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
         }
 
+        /// <summary>
+        /// A relative path will be resolved off of <see cref="TaskEnvironment.ProjectDirectory"/>.
+        /// </summary>
         [Fact]
-        public void BuiltInToolUsesTaskEnvironmentDotNetHostPath()
+        public void BuiltInToolUsesTaskEnvironmentDotNetHostPathRelative()
         {
             var projectDirectory = Temp.CreateDirectory();
-            var dotNetHost = projectDirectory.CreateFile("dotnet-host");
             var csc = new Csc
             {
                 UseAppHost_TestOnly = false,
@@ -532,11 +534,33 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     projectDirectory.Path,
                     new Dictionary<string, string>
                     {
-                        [RuntimeHostInfo.DotNetHostPathEnvironmentName] = Path.GetFileName(dotNetHost.Path),
+                        [RuntimeHostInfo.DotNetHostPathEnvironmentName] = "dotnet-host"
                     }),
             };
 
-            Assert.Equal(Path.GetFileName(dotNetHost.Path), csc.GeneratePathToTool());
+            Assert.Equal(Path.Combine(projectDirectory.Path, "dotnet-host"), csc.GeneratePathToTool());
+        }
+
+        /// <summary>
+        /// A full path will be returned as is.
+        /// </summary>
+        [Fact]
+        public void BuiltInToolUsesTaskEnvironmentDotNetHostPathFull()
+        {
+            var projectDirectory = Temp.CreateDirectory();
+            var dotnetPath = Path.Combine(TestHelpers.Root, "dotnet-host");
+            var csc = new Csc
+            {
+                UseAppHost_TestOnly = false,
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+                    projectDirectory.Path,
+                    new Dictionary<string, string>
+                    {
+                        [RuntimeHostInfo.DotNetHostPathEnvironmentName] = dotnetPath
+                    }),
+            };
+
+            Assert.Equal(dotnetPath, csc.GeneratePathToTool());
         }
 
         [Fact]

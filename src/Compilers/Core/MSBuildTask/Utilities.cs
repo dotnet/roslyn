@@ -143,6 +143,5 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args));
         }
-
     }
 }

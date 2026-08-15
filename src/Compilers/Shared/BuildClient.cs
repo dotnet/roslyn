@@ -194,14 +194,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         public static CompileOnServerFunc GetCompileOnServerFunc(ICompilerServerLogger logger) => (buildRequest, pipeName, cancellationToken) =>
-        {
-            return BuildServerConnection.RunServerBuildRequestAsync(
+            BuildServerConnection.RunServerBuildRequestAsync(
                 buildRequest,
                 pipeName,
                 GetClientDirectory(),
                 logger,
                 cancellationToken);
-        };
 
         /// <summary>
         /// Runs the provided compilation on the server.  If the compilation cannot be completed on the server then null

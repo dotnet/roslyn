@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     requestId,
                     Language,
                     buildRequestArguments,
-                    workingDirectory: CurrentDirectoryToUse(),
+                    workingDirectory: TaskEnvironment.ProjectDirectory,
                     tempDirectory: tempDirectory,
                     keepAlive: null,
                     libDirectory: LibDirectoryToUse());
@@ -625,21 +625,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             _sharedCompileCts?.Cancel();
 
             base.Cancel();
-        }
-
-        /// <summary>
-        /// Get the current directory that the compiler should run in.
-        /// </summary>
-        private string CurrentDirectoryToUse()
-        {
-            // ToolTask has a method for this. But it may return null. Use the task's project
-            // directory if ToolTask didn't override. This resolves against the task's execution environment.
-            string workingDirectory = GetWorkingDirectory();
-            if (string.IsNullOrEmpty(workingDirectory))
-            {
-                workingDirectory = TaskEnvironment.ProjectDirectory;
-            }
-            return workingDirectory;
         }
 
         /// <summary>
