@@ -439,6 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         unionMatchingInputType = leftUnionPattern.UnionMatchingInputType;
                         valueProperty = leftUnionPattern.ValueProperty;
                         leftOfPendingConjunction = leftUnionPattern.LeftOfPendingConjunction;
+                        syntax = leftUnionPattern.Syntax;
                         valuePattern = MakeBinaryAnd(syntax, leftUnionPattern.ValuePattern, result, makeCompilerGenerated: true);
                         continue;
                     }
