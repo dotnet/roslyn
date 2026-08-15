@@ -4851,13 +4851,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inputType?.IsUnionMatchingInputType(unionType: out _) == true)
             {
                 var tryUnionMatchingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-                CompoundUseSiteInfo<AssemblySymbol> tryUnionMatchingUseSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 NamedTypeSymbol unionType = null;
-                bool permitDesignations = true;
-                BoundTypePattern typePattern = BindTypePattern(node, node.Right, ref unionType, inputType, ref permitDesignations, typeExpression, hasErrors: false, tryUnionMatchingDiagnostics, ref tryUnionMatchingUseSiteInfo, out bool hasUnionMatching);
-                diagnostics.Add(node.Right, tryUnionMatchingUseSiteInfo);
+                BoundTypePattern typePattern = BindTypePattern(node, node.Right, ref unionType, inputType, typeExpression, hasErrors: false, tryUnionMatchingDiagnostics, out bool hasUnionMatching);
 
-                if (typePattern.UnionMatchingMode != UnionMatchingMode.None)
+                if (typePattern.IsUnionMatching)
                 {
                     Debug.Assert(hasUnionMatching);
                     diagnostics.AddRangeAndFree(tryUnionMatchingDiagnostics);
