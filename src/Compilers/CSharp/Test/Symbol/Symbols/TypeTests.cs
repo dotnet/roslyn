@@ -892,7 +892,9 @@ Goo();
         public void TypeLayouts()
         {
             var text =
-@"using System.Runtime.InteropServices;
+@"#pragma warning disable CS0169 // Field is never used
+
+using System.Runtime.InteropServices;
 
 struct Struct
 {
@@ -921,7 +923,7 @@ struct StructExplicit
     [FieldOffset(0)] int x;
 }
 
-[StructLayout(LayoutKind.Auto, Size = 5)]
+[StructLayout(LayoutKind.Sequential, Size = 5)]
 struct StructWithSize
 {
     int x;
@@ -972,7 +974,7 @@ class ClassWithSize
     [FieldOffset(0)] int x;
 }
 
-[StructLayout(LayoutKind.Auto, Pack = 4)]
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
 class ClassWithPack
 {
     int x;
@@ -1013,7 +1015,7 @@ class ClassWithSizeAndPack
                 Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.TypeLayout);
-                Assert.Equal(new TypeLayout(LayoutKind.Auto, 5, 0), structWithSizeType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Sequential, 5, 0), structWithSizeType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout);
@@ -1022,7 +1024,7 @@ class ClassWithSizeAndPack
                 Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classAutoType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 0), classExplicitType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 0), classWithSizeType.TypeLayout);
-                Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 4), classWithPackType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 4), classWithPackType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Sequential, 5, 4), classWithSizeAndPackType.TypeLayout);
 
                 Assert.Equal(LayoutKind.Sequential, classWithSizeAndPackType.TypeLayout.Kind);

@@ -1204,7 +1204,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                             Public x As Integer
                         End Structure
 
-                        <StructLayout(LayoutKind.Auto, Size:=5)>
+                        <StructLayout(LayoutKind.Sequential, Size:=5)>
                         Structure StructWithSize
                             Public x As Integer
                         End Structure
@@ -1246,7 +1246,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                             Public x As Integer
                         End Class
 
-                        <StructLayout(LayoutKind.Auto, Pack:=4)>
+                        <StructLayout(LayoutKind.Sequential, Pack:=4)>
                         Class ClassWithPack
                             Public x As Integer
                         End Class
@@ -1285,7 +1285,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                     Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), structSequentialType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), structAutoType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 0), structExplicitType.TypeLayout)
-                    Assert.Equal(New TypeLayout(LayoutKind.Auto, 5, 0), structWithSizeType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Sequential, 5, 0), structWithSizeType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout)
@@ -1294,7 +1294,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                     Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classAutoType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 0), classExplicitType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Explicit, 5, 0), classWithSizeType.TypeLayout)
-                    Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 4), classWithPackType.TypeLayout)
+                    Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 4), classWithPackType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Sequential, 5, 4), classWithSizeAndPackType.TypeLayout)
 
                     Assert.Equal(LayoutKind.Sequential, classWithSizeAndPackType.TypeLayout.Kind)
