@@ -403,6 +403,7 @@ extends:
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self
         parameters:
           publishUsingPipelines: true
+          publishAssetsImmediately: true
           dependsOn:
           - OfficialBuild
           pool:
@@ -437,6 +438,9 @@ extends:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
           publishingInfraVersion: 3
+          publishAssetsImmediately: true
+          enableSigningValidation: false
+          enableNugetValidation: false
           # Symbol validation is not entirely reliable as of yet, so should be turned off until
           # https://github.com/dotnet/arcade/issues/2871 is resolved.
           enableSymbolValidation: false
