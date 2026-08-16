@@ -67,7 +67,6 @@ variables:
     value: ''
   - name: ArtifactServices.Drop.PAT
     value: ''
-  - group: AzureDevOps-Artifact-Feeds-Pats
 
   - name: BuildConfiguration
     value: release
