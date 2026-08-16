@@ -34,14 +34,14 @@ function GetPublishData() {
   return $global:_PublishData = ConvertFrom-Json $content
 }
 
-function GetBranchPublishData([string]$branchName) {
+function GetBranchPublishData() {
   $data = GetPublishData
 
-  if (Get-Member -InputObject $data.branches -Name $branchName) {
-    return $data.branches.$branchName
-  } else {
-    return $null
+  if ($data.branchInfo -eq $null) {
+    throw "No branchInfo entry found in PublishData.json"
   }
+
+  return $data.branchInfo
 }
 
 function GetFeedPublishData() {
@@ -49,13 +49,14 @@ function GetFeedPublishData() {
   return $data.feeds
 }
 
-function GetPackagesPublishData([string]$packageFeeds) {
+function GetPackagesPublishData() {
   $data = GetPublishData
-  if (Get-Member -InputObject $data.packages -Name $packageFeeds) {
-    return $data.packages.$packageFeeds
-  } else {
-    return $null
+
+  if ($data.packages -eq $null) {
+    throw "No packages entry found in PublishData.json"
   }
+
+  return $data.packages
 }
 
 function GetReleasePublishData([string]$releaseName) {
