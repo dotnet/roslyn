@@ -148,9 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var typeSymbol = (TypeSymbol)target;
                         var location = NoLocation.Singleton;
-                        // Global usings from options cannot be `unsafe` and have no location to report on, so preserve
-                        // the existing behavior of not reporting unsafe new() constructor constraints for them.
-                        typeSymbol.CheckAllConstraints(compilation, conversions, location, diagnostics, reportUnsafeConstructorConstraintErrors: false);
+                        typeSymbol.CheckAllConstraints(compilation, conversions, location, diagnostics);
                     }
 
                     semanticDiagnostics.AddRange(diagnostics.DiagnosticBag);
