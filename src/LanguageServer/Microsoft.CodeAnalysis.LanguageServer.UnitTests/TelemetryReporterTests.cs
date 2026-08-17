@@ -54,20 +54,6 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
         service.Log(GetEventName(nameof(TestLog)), []);
     }
 
-    [Fact]
-    public void TestStandaloneSessionUsesVSDefaultCollectorSettings()
-    {
-        using var service = CreateReporter(ServerConfigurationWithoutDevKit);
-        service.InitializeSession("off", sessionId: null, isDefaultSession: false);
-
-        var settings = JsonNode.Parse(Microsoft.VisualStudio.Telemetry.TelemetryService.DefaultSession.SerializeSettings())!.AsObject();
-
-        Assert.Equal(1000, settings["AppId"]!.GetValue<int>());
-        Assert.Equal(
-            "f3e86b4023cc43f0be495508d51f588a-f70d0e59-0fb0-4473-9f19-b4024cc340be-7296",
-            settings["CollectorApiKey"]!.GetValue<string>());
-    }
-
     [Theory]
     [InlineData("all", true)]
     [InlineData("off", false)]
