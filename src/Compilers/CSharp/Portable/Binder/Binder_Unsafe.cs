@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 for (int i = 0; i < arity; i++)
                                 {
                                     var typeParameter = typeParameters[i];
-                                    if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
-                                        typeArguments[i].Type is NamedTypeSymbol typeArgument)
+                                    if (typeArguments[i].Type is { } typeArgument)
                                     {
                                         checkTypeArgumentWithConstructorConstraint(this, typeParameter, typeArgument, symbol, arg, location, diagnostics);
                                     }
@@ -83,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             for (int i = 0; i < arity; i++)
                             {
                                 var typeParameter = typeSymbol.TypeParameters[i];
-                                if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
-                                    typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type is NamedTypeSymbol typeArgument)
+                                if (typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type is { } typeArgument)
                                 {
                                     checkTypeArgumentWithConstructorConstraint(this, typeParameter, typeArgument, symbol, arg, location, diagnostics);
                                 }
@@ -94,16 +92,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, NamedTypeSymbol typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics)
+            static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, TypeSymbol typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics)
             {
-                foreach (var ctor in typeArgument.InstanceConstructors)
+                var error = ConstraintsHelper.SatisfiesConstructorConstraint(
+                    typeParameter,
+                    typeArgument,
+                    checkConstructorSatisfiability: false,
+                    checkUnsafeConstructor: true,
+                    out var unsafeConstructor);
+
+                if (error == ConstraintsHelper.ConstructorConstraintError.UnsafeConstructor)
                 {
-                    if (ctor.ParameterCount == 0)
-                    {
-                        // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
-                        @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, ctor, ctor.GetCallerUnsafeMode(@this.FieldsBeingBound), arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
-                        break;
-                    }
+                    Debug.Assert(unsafeConstructor is not null);
+                    // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
+                    @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, unsafeConstructor, CallerUnsafeMode.Explicit, arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
                 }
             }
         }

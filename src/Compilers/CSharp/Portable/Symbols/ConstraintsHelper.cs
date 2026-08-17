@@ -1117,24 +1117,34 @@ hasRelatedInterfaces:
                 hasError = true;
             }
 
-            // Check the constructor constraint.
-            if (typeParameter.HasConstructorConstraint && errorIfNotSatisfiesConstructorConstraint(constructedContainingSymbol, typeParameter, typeArgument, diagnosticsBuilder))
+            if (reportConstructorConstraintError(
+                constructedContainingSymbol,
+                args.CurrentCompilation,
+                args.ReportUnsafeConstructorConstraintErrors,
+                typeParameter,
+                typeArgument,
+                diagnosticsBuilder))
             {
                 return false;
-            }
-
-            if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
-                args.ReportUnsafeConstructorConstraintErrors)
-            {
-                errorIfUnsafeConstructorConstraint(constructedContainingSymbol, args.CurrentCompilation, typeParameter, typeArgument, diagnosticsBuilder);
             }
 
             return !hasError;
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            static bool errorIfNotSatisfiesConstructorConstraint(Symbol containingSymbol, TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder)
+            static bool reportConstructorConstraintError(
+                Symbol containingSymbol,
+                CSharpCompilation compilation,
+                bool reportUnsafeConstructorConstraintErrors,
+                TypeParameterSymbol typeParameter,
+                TypeWithAnnotations typeArgument,
+                ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder)
             {
-                var error = SatisfiesConstructorConstraint(typeArgument.Type);
+                var error = SatisfiesConstructorConstraint(
+                    typeParameter,
+                    typeArgument.Type,
+                    checkConstructorSatisfiability: true,
+                    checkUnsafeConstructor: reportUnsafeConstructorConstraintErrors && compilation?.SourceModule.UseUpdatedMemorySafetyRules == true,
+                    out var unsafeConstructor);
 
                 switch (error)
                 {
@@ -1148,31 +1158,13 @@ hasRelatedInterfaces:
                         // '{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.
                         diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
                         return true;
+                    case ConstructorConstraintError.UnsafeConstructor:
+                        Debug.Assert(unsafeConstructor is not null);
+                        // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
+                        diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_UnsafeConstructorConstraint, unsafeConstructor, typeParameter, containingSymbol.OriginalDefinition))));
+                        return false;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(error);
-                }
-            }
-
-            static void errorIfUnsafeConstructorConstraint(Symbol containingSymbol, CSharpCompilation compilation, TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder)
-            {
-                if (compilation?.SourceModule.UseUpdatedMemorySafetyRules != true ||
-                    typeArgument.Type is not NamedTypeSymbol namedTypeArgument)
-                {
-                    return;
-                }
-
-                foreach (var constructor in namedTypeArgument.InstanceConstructors)
-                {
-                    if (constructor.ParameterCount == 0)
-                    {
-                        if (constructor.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
-                        {
-                            // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
-                            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_UnsafeConstructorConstraint, constructor, typeParameter, containingSymbol.OriginalDefinition))));
-                        }
-
-                        break;
-                    }
                 }
             }
         }
@@ -1508,37 +1500,54 @@ hasRelatedInterfaces:
             }
         }
 
-        private enum ConstructorConstraintError
+        internal enum ConstructorConstraintError
         {
             None,
             NoPublicParameterlessConstructorOrAbstractType,
             HasRequiredMembers,
+            UnsafeConstructor,
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static ConstructorConstraintError SatisfiesConstructorConstraint(TypeSymbol typeArgument)
+        internal static ConstructorConstraintError SatisfiesConstructorConstraint(
+            TypeParameterSymbol typeParameter,
+            TypeSymbol typeArgument,
+            bool checkConstructorSatisfiability,
+            bool checkUnsafeConstructor,
+            out MethodSymbol unsafeConstructor)
         {
+            unsafeConstructor = null;
+            checkConstructorSatisfiability &= typeParameter.HasConstructorConstraint;
+            checkUnsafeConstructor &= typeParameter.HasConstructorConstraint || typeParameter.IsValueType;
+
+            if (!checkConstructorSatisfiability && !checkUnsafeConstructor)
+            {
+                return ConstructorConstraintError.None;
+            }
+
             switch (typeArgument.TypeKind)
             {
                 case TypeKind.Struct:
-                    return SatisfiesPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: true);
+                    return SatisfiesPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: true, checkConstructorSatisfiability, checkUnsafeConstructor, out unsafeConstructor);
 
                 case TypeKind.Enum:
                 case TypeKind.Dynamic:
                     return ConstructorConstraintError.None;
 
                 case TypeKind.Class:
-                    if (typeArgument.IsAbstract)
+                    if (checkConstructorSatisfiability && typeArgument.IsAbstract)
                     {
                         return ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType;
                     }
 
-                    return SatisfiesPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: false);
+                    return SatisfiesPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: false, checkConstructorSatisfiability, checkUnsafeConstructor, out unsafeConstructor);
 
                 case TypeKind.TypeParameter:
                     {
-                        var typeParameter = (TypeParameterSymbol)typeArgument;
-                        return typeParameter.HasConstructorConstraint || typeParameter.IsValueType ? ConstructorConstraintError.None : ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType;
+                        var typeArgumentParameter = (TypeParameterSymbol)typeArgument;
+                        return !checkConstructorSatisfiability || typeArgumentParameter.HasConstructorConstraint || typeArgumentParameter.IsValueType
+                            ? ConstructorConstraintError.None
+                            : ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType;
                     }
 
                 case TypeKind.Submission:
@@ -1546,33 +1555,51 @@ hasRelatedInterfaces:
                     throw ExceptionUtilities.UnexpectedValue(typeArgument.TypeKind);
 
                 default:
-                    return ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType;
+                    return checkConstructorSatisfiability
+                        ? ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType
+                        : ConstructorConstraintError.None;
             }
         }
 
-        private static ConstructorConstraintError SatisfiesPublicParameterlessConstructor(NamedTypeSymbol type, bool synthesizedIfMissing)
+        private static ConstructorConstraintError SatisfiesPublicParameterlessConstructor(
+            NamedTypeSymbol type,
+            bool synthesizedIfMissing,
+            bool checkConstructorSatisfiability,
+            bool checkUnsafeConstructor,
+            out MethodSymbol unsafeConstructor)
         {
             Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
 
+            unsafeConstructor = null;
             bool hasAnyRequiredMembers = type.HasAnyRequiredMembers;
 
             foreach (var constructor in type.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)
                 {
-                    if (constructor.DeclaredAccessibility != Accessibility.Public)
+                    if (checkConstructorSatisfiability && constructor.DeclaredAccessibility != Accessibility.Public)
                     {
                         return ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType;
                     }
-                    else if (hasAnyRequiredMembers && constructor.ShouldCheckRequiredMembers())
+                    else if (checkConstructorSatisfiability && hasAnyRequiredMembers && constructor.ShouldCheckRequiredMembers())
                     {
                         return ConstructorConstraintError.HasRequiredMembers;
+                    }
+                    else if (checkUnsafeConstructor && constructor.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+                    {
+                        unsafeConstructor = constructor;
+                        return ConstructorConstraintError.UnsafeConstructor;
                     }
                     else
                     {
                         return ConstructorConstraintError.None;
                     }
                 }
+            }
+
+            if (!checkConstructorSatisfiability)
+            {
+                return ConstructorConstraintError.None;
             }
 
             return (synthesizedIfMissing, hasAnyRequiredMembers) switch
