@@ -33,7 +33,6 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
-  - group: DotNet-Roslyn-Insertion-Variables
   - name: Codeql.Enabled
     value: false
   - name: Codeql.SkipTaskAutoInjection
@@ -267,7 +266,7 @@ extends:
           displayName: Publish Assets
           inputs:
             filePath: 'eng\publish-assets.ps1'
-            arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -prValidation'
+            arguments: '-configuration $(BuildConfiguration) -prValidation'
           condition: succeeded()
 
         - task: PublishTestResults@2
