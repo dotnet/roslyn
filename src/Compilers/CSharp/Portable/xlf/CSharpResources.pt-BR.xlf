@@ -11108,7 +11108,7 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
       </trans-unit>
       <trans-unit id="ERR_AwaitInUnsafeContext">
         <source>Cannot await in an unsafe context</source>
-        <target state="translated">Não é possível esperar em um contexto sem segurança</target>
+        <target state="new">Cannot await in an unsafe context</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">
