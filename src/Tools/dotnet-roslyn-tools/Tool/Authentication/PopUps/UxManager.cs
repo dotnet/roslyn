@@ -12,18 +12,15 @@ namespace Microsoft.RoslynTools.Authentication.PopUps;
 
 internal class UxManager
 {
-    private readonly Lazy<string> _editorPath;
     private readonly ILogger _logger;
     private readonly IProcessManager _processManager;
+    private string? _editorPath;
     private bool _popUpClosed = false;
 
     public UxManager(string gitLocation, ILogger logger)
     {
         _logger = logger;
         _processManager = new ProcessManager(logger, gitLocation);
-        _editorPath = new(
-            () => GetEditorPathAsync().GetAwaiter().GetResult(),
-            LazyThreadSafetyMode.PublicationOnly);
     }
 
     /// <summary>
@@ -79,7 +76,8 @@ internal class UxManager
     /// <returns>Success or error code</returns>
     public int PopUp(EditorPopUp popUp)
     {
-        if (string.IsNullOrEmpty(_editorPath.Value))
+        _editorPath ??= GetEditorPathAsync().GetAwaiter().GetResult();
+        if (string.IsNullOrEmpty(_editorPath))
         {
             _logger.LogError("Failed to define an editor for the pop ups. Please verify that your git settings (`git config core.editor`) specify the path correctly.");
             return Constants.ErrorCode;
@@ -88,7 +86,7 @@ internal class UxManager
         var result = Constants.ErrorCode;
         var tries = Constants.MaxPopupTries;
 
-        var parsedCommand = GetParsedCommand(_editorPath.Value);
+        var parsedCommand = GetParsedCommand(_editorPath);
 
         try
         {

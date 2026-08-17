@@ -61,8 +61,8 @@ internal abstract class EditorPopUp(string path, IList<Line>? contents = null)
     /// </summary>
     /// <param name="inputSetting">Input string from the file</param>
     /// <returns>
-    /// - Original setting if the setting is secret and value is still all ***
-    /// - Empty string if the setting starts+ends with <>
+    /// - Original setting if the setting is secret and value is still all <c>***</c>
+    /// - Empty string if the setting starts and ends with angle brackets
     /// - New value if anything else.
     /// </returns>
     protected static string ParseSetting(string inputSetting, string originalSetting, bool isSecret)

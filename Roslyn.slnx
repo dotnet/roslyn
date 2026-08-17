@@ -302,6 +302,8 @@
     <Project Path="src/Test/Perf/Utilities/Roslyn.Test.Performance.Utilities.csproj" />
   </Folder>
   <Folder Name="/Tools/">
+    <Project Path="src/Tools/dotnet-roslyn-tools/Test/Microsoft.RoslynTools.UnitTests.csproj" />
+    <Project Path="src/Tools/dotnet-roslyn-tools/Tool/Microsoft.RoslynTools.csproj" />
     <Project Path="src/Tools/AnalyzerRunner/AnalyzerRunner.csproj">
       <BuildDependency Project="src/EditorFeatures/Core/Microsoft.CodeAnalysis.EditorFeatures.csproj" />
       <BuildDependency Project="src/EditorFeatures/CSharp/Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />

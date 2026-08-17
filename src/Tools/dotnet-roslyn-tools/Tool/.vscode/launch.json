@@ -6,7 +6,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
+      "program": "${workspaceFolder}/../../../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
       "args": [
         "pr-finder",
         "-s",
@@ -14,7 +14,7 @@
         "-e",
         "main",
         "--path",
-        "src/dotnet-roslyn-tools",
+        "src/Tools/dotnet-roslyn-tools/Tool",
         "-v",
         "diag"
       ],
@@ -27,7 +27,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
+      "program": "${workspaceFolder}/../../../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
       "args": [
         "pr-finder",
         "-s",
@@ -39,7 +39,7 @@
         "-v",
         "diag"
       ],
-      "cwd": "${workspaceFolder}/../../../roslyn",
+      "cwd": "${workspaceFolder}/../../../..",
       "console": "internalConsole",
       "stopAtEntry": false
     },
@@ -48,7 +48,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
+      "program": "${workspaceFolder}/../../../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
       "args": [
         "pr-finder",
         "-s",
@@ -60,7 +60,7 @@
         "-v",
         "diag"
       ],
-      "cwd": "${workspaceFolder}/../../../razor",
+      "cwd": "${workspaceFolder}/../../../..",
       "console": "internalConsole",
       "stopAtEntry": false
     },
@@ -69,7 +69,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
+      "program": "${workspaceFolder}/../../../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
       "args": ["vsbranchinfo", "--branch", "rel/d17.11", "-v", "diag"],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
@@ -80,9 +80,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
+      "program": "${workspaceFolder}/../../../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
       "args": ["create-release-tags", "-p", "roslyn"],
-      "cwd": "${workspaceFolder}/../../../roslyn",
+      "cwd": "${workspaceFolder}/../../../..",
       "console": "internalConsole",
       "stopAtEntry": false
     },
@@ -91,9 +91,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
+      "program": "${workspaceFolder}/../../../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
       "args": ["create-release-tags", "-p", "razor"],
-      "cwd": "${workspaceFolder}/../../../razor",
+      "cwd": "${workspaceFolder}/../../../..",
       "console": "internalConsole",
       "stopAtEntry": false
     },
@@ -102,7 +102,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
+      "program": "${workspaceFolder}/../../../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
       "args": ["authenticate", "--clear"],
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
@@ -113,7 +113,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
+      "program": "${workspaceFolder}/../../../../artifacts/bin/Microsoft.RoslynTools/Debug/net8.0/Microsoft.RoslynTools.dll",
       "args": [
         "create-insertion",
         "--vs-branch",

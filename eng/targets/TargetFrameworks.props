@@ -11,8 +11,10 @@
       - NetRoslynSourceBuild must include NetRoslyn
       - NetRoslynAll must include all .NET Core TFMs in any property below (OS-specific TFMs like
         NetRoslynWindowsTests are excluded as they are not cross-platform).
-        Exception: NetRoslynBuildHostNetCoreVersion is excluded because the BuildHost is an isolated
-        executable that does not share test utilities or broadly-consumed library layers.
+        Exceptions:
+          - NetRoslynBuildHostNetCoreVersion is excluded because the BuildHost is an isolated
+            executable that does not share test utilities or broadly-consumed library layers.
+          - NetRoslynTools is excluded because Microsoft.RoslynTools is an isolated infrastructure tool.
   -->
   <PropertyGroup>
     <NetRoslyn>net10.0</NetRoslyn>
@@ -22,6 +24,7 @@
     <NetVSCode>net10.0</NetVSCode>
     <NetVSShared>net10.0</NetVSShared>
     <NetRoslynBuildHostNetCoreVersion>net8.0</NetRoslynBuildHostNetCoreVersion>
+    <NetRoslynTools>net8.0</NetRoslynTools>
     <NetRoslynNext>net10.0</NetRoslynNext>
   </PropertyGroup>
 
@@ -41,6 +44,7 @@
         <NetVSCode>$(NetCurrent)</NetVSCode>
         <NetVSShared>$(NetCurrent)</NetVSShared>
         <NetRoslynBuildHostNetCoreVersion>$(NetCurrent)</NetRoslynBuildHostNetCoreVersion>
+        <NetRoslynTools>$(NetCurrent)</NetRoslynTools>
         <NetRoslynNext>$(NetCurrent)</NetRoslynNext>
       </PropertyGroup>
     </When>

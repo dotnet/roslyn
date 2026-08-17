@@ -1,6 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the License.txt file in the project root for more information.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -463,7 +463,7 @@ internal static partial class RoslynInsertionTool
                     // Previously we were able to use the ID of the user who requested the build (buildToInsert.RequestedBy.Id),
                     // however we now use a managed identity to queue validations runs from GitHub and using that ID throws
                     // when creating the PR.
-    
+
                     var reviewerId = hasReviewer
                         ? Options.ReviewerGUID
                         : null;
