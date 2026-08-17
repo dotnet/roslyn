@@ -11438,7 +11438,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       </trans-unit>
       <trans-unit id="ERR_AwaitInUnsafeContext">
         <source>Cannot await in an unsafe context</source>
-        <target state="translated">Kann nicht in unsicherem Kontext warten.</target>
+        <target state="new">Cannot await in an unsafe context</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">
