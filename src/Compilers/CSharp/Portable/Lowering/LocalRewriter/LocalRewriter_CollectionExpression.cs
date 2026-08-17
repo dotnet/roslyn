@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Note that in general, we expect well-known collection types and methods to lack constraints on their type parameter(s).
                     // Because an array element type may not be a valid type argument for unconstrained type parameter, we still check constraints here regardless.
                     var linqToArrayMethod = linqToArrayMethodGeneric.Construct([arrayType.ElementTypeWithAnnotations]);
-                    if (linqToArrayMethod.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, Location.None, BindingDiagnosticBag.Discarded))
+                    if (linqToArrayMethod.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, Location.None, BindingDiagnosticBag.Discarded, reportUnsafeConstructorConstraintErrors: false))
                         && ShouldUseIEnumerableBulkAddMethod(spreadExpression.Type!, linqToArrayMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
                     {
                         return _factory.Call(receiver: null, linqToArrayMethod, VisitExpression(spreadExpression));
@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && _factory.WellKnownMethod(writableOnly ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array, isOptional: true) is { } spanCtorArray)
             {
                 var spanOfElementType = spanCtorArray.ContainingType.Construct(arrayType.ElementType);
-                if (spanOfElementType.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, Location.None, BindingDiagnosticBag.Discarded)))
+                if (spanOfElementType.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, Location.None, BindingDiagnosticBag.Discarded, reportUnsafeConstructorConstraintErrors: false)))
                 {
                     asSpanMethod = spanCtorArray.AsMember(spanOfElementType);
                     return true;

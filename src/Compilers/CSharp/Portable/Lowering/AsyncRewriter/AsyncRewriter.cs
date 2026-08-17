@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var startMethod = methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType);
             if (methodScopeAsyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
             {
-                startMethod.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(F.Compilation, F.Compilation.Conversions, includeNullability: false, F.Syntax.Location, diagnostics));
+                startMethod.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(F.Compilation, F.Compilation.Conversions, includeNullability: false, F.Syntax.Location, diagnostics, reportUnsafeConstructorConstraintErrors: false));
             }
             bodyBuilder.Add(
                 F.ExpressionStatement(

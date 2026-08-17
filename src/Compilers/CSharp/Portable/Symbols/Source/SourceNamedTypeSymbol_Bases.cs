@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var conversions = corLibrary.TypeConversions;
                 var location = singleDeclaration.NameLocation;
 
-                localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+                localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics, reportUnsafeConstructorConstraintErrors: true);
             }
 
             // Records can only inherit from other records or object
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     foreach (var @interface in set)
                     {
-                        @interface.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+                        @interface.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics, reportUnsafeConstructorConstraintErrors: true);
                     }
 
                     if (set.Count > 1)

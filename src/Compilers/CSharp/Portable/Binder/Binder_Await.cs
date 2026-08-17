@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var tempDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                         if (!ConstraintsHelper.CheckConstraints(
                             substitutedMethod,
-                            new ConstraintsHelper.CheckConstraintsArgs(@this.Compilation, @this.Conversions, includeNullability: false, node.Location, tempDiagnostics)))
+                            new ConstraintsHelper.CheckConstraintsArgs(@this.Compilation, @this.Conversions, includeNullability: false, node.Location, tempDiagnostics, reportUnsafeConstructorConstraintErrors: false)))
                         {
                             tempDiagnostics.Free();
                             return false;
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var runtimeAwaitAwaiterMethod = awaitMethod.Construct(awaiterType);
                 ConstraintsHelper.CheckConstraints(
                     runtimeAwaitAwaiterMethod,
-                    new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, diagnostics));
+                    new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, diagnostics, reportUnsafeConstructorConstraintErrors: false));
 
                 reportObsoleteAndUnsafeDiagnostics(this, diagnostics, runtimeAwaitAwaiterMethod, syntax);
 

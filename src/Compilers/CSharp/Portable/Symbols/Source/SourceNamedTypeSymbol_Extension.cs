@@ -1238,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var result = extension.Construct(typeArgsForConstruct);
 
                 var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
-                    NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
+                    NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded, reportUnsafeConstructorConstraintErrors: false);
 
                 bool success = result.CheckConstraints(constraintArgs);
                 if (!success)

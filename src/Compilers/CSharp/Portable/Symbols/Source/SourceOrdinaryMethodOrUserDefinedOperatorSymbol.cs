@@ -234,11 +234,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // type errors but for parameter errors, we'll use the parameter location.
             CheckConstraintsForExplicitInterfaceType(conversions, diagnostics);
 
-            this.ReturnType.CheckAllConstraints(compilation, conversions, this.GetFirstLocation(), diagnostics);
+            this.ReturnType.CheckAllConstraints(compilation, conversions, this.GetFirstLocation(), diagnostics, reportUnsafeConstructorConstraintErrors: true);
 
             foreach (var parameter in this.Parameters)
             {
-                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
+                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics, reportUnsafeConstructorConstraintErrors: true);
             }
 
             PartialMethodChecks(diagnostics);

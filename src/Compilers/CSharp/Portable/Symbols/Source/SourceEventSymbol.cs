@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = this.GetFirstLocation();
 
             this.CheckModifiersAndType(diagnostics);
-            this.Type.CheckAllConstraints(compilation, conversions, location, diagnostics);
+            this.Type.CheckAllConstraints(compilation, conversions, location, diagnostics, reportUnsafeConstructorConstraintErrors: true);
 
             if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {

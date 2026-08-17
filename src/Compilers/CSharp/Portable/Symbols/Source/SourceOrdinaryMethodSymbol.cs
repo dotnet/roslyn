@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var syntax = this.GetSyntax();
                     Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
-                    _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
+                    _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics, reportUnsafeConstructorConstraintErrors: true);
                 }
             }
 

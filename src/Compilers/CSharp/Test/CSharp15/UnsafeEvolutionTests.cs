@@ -9591,6 +9591,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Constructor_NewConstraint_Union()
+    {
+        CSharpTestSource source =
+        [
+            """
+            public class C
+            {
+                unsafe public C() { }
+            }
+            public class D<T> where T : new();
+            public union U(D<C>);
+            """,
+            IUnionSource,
+            UnionAttributeSource,
+        ];
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (6,16): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            // public union U(D<C>);
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(6, 16));
+    }
+
+    [Fact]
     public void Member_Constructor_StructConstraint()
     {
         CompileAndVerifyUnsafe(

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            this.Parameters[0].Type.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics);
+            this.Parameters[0].Type.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics, reportUnsafeConstructorConstraintErrors: true);
         }
     }
 }

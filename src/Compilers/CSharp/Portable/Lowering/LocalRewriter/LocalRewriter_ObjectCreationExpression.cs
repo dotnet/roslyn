@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)method != null);
             method = method.Construct(ImmutableArray.Create<TypeSymbol>(typeParameter));
 
-            method.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, syntax.GetLocation(), _diagnostics));
+            method.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, syntax.GetLocation(), _diagnostics, reportUnsafeConstructorConstraintErrors: false));
 
             var createInstanceCall = new BoundCall(
                 syntax,

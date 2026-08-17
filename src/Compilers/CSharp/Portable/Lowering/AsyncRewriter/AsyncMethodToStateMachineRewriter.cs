@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _asyncMethodBuilderMemberCollection.AwaitOnCompleted).Construct(loweredAwaiterType, F.This().Type);
             if (_asyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
             {
-                onCompleted.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(F.Compilation, F.Compilation.Conversions, includeNullability: false, F.Syntax.Location, this.Diagnostics));
+                onCompleted.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(F.Compilation, F.Compilation.Conversions, includeNullability: false, F.Syntax.Location, this.Diagnostics, reportUnsafeConstructorConstraintErrors: false));
             }
 
             BoundExpression result =

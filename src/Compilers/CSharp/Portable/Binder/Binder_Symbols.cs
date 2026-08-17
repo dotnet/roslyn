@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportUseSite(constructedType.Type.OriginalDefinition, diagnostics, syntax);
                     var type = (NamedTypeSymbol)constructedType.Type;
                     var location = syntax.Location;
-                    type.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics));
+                    type.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics, reportUnsafeConstructorConstraintErrors: false));
                 }
                 else if (GetNullableUnconstrainedTypeParameterDiagnosticIfNecessary(Compilation.LanguageVersion, constructedType) is { } diagnosticInfo)
                 {
@@ -1642,7 +1642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(type))
             {
                 bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-                type.CheckConstraintsForNamedType(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability, typeSyntax.Location, diagnostics),
+                type.CheckConstraintsForNamedType(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability, typeSyntax.Location, diagnostics, reportUnsafeConstructorConstraintErrors: false),
                                                   typeSyntax, typeArgumentsSyntax, basesBeingResolved);
             }
 

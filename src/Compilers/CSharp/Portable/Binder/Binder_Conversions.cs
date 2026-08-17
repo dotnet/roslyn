@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             castUpMethod?
                                 .AsMember((NamedTypeSymbol)destination)
                                 .Construct([((NamedTypeSymbol)source.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]])
-                                .CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, includeNullability: false, syntax.Location, diagnostics));
+                                .CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, includeNullability: false, syntax.Location, diagnostics, reportUnsafeConstructorConstraintErrors: false));
                         }
                     }
 
@@ -1639,7 +1639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Do not include nullability constraint checking.  That will be done in the nullable-walker when it checks
             // the actual call to the collection builder method.
             collectionBuilderMethod.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(
-                Compilation, Conversions, includeNullability: false, syntax.Location, diagnostics));
+                Compilation, Conversions, includeNullability: false, syntax.Location, diagnostics, reportUnsafeConstructorConstraintErrors: false));
 
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
@@ -3333,7 +3333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // applicable candidate set, so the applicable candidate set consists solely of
             // M(object, object) and is therefore the best match.
 
-            return !methodSymbol.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, node.Location, diagnostics));
+            return !methodSymbol.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, node.Location, diagnostics, reportUnsafeConstructorConstraintErrors: false));
         }
 
         /// <summary>

@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // This check prevents redundant ManagedAddr diagnostics on the underlying pointer field of a fixed-size buffer
             if (!IsFixedSizeBuffer)
             {
-                Type.CheckAllConstraints(DeclaringCompilation, conversions, ErrorLocation, diagnostics);
+                Type.CheckAllConstraints(DeclaringCompilation, conversions, ErrorLocation, diagnostics, reportUnsafeConstructorConstraintErrors: true);
             }
 
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
