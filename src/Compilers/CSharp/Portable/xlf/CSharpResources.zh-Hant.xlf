@@ -11438,7 +11438,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_AwaitInUnsafeContext">
         <source>Cannot await in an unsafe context</source>
-        <target state="translated">無法在不安全的內容中等候</target>
+        <target state="new">Cannot await in an unsafe context</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">
