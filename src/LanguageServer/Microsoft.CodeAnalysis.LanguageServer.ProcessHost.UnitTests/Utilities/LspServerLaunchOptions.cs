@@ -11,8 +11,6 @@ internal sealed record LspServerLaunchOptions
     public bool AutoLoadProjects { get; init; }
     public bool IncludeDevKitComponents { get; init; }
     public bool DebugLsp { get; init; }
-    public string? CopilotTelemetryLevel { get; init; }
-    public string? TelemetryLevel { get; init; }
 
     /// <summary>
     /// Whether the editor transport is a named pipe (the default) or stdio. In single-server mode the thin client

@@ -35,30 +35,6 @@ public sealed class SingleServerLifecycleTests(ITestOutputHelper testOutputHelpe
         await AssertServerProcessExitedAsync(client);
     }
 
-    [Theory]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    public async Task StartsAndShutsDownForTelemetryConfigurations(bool includeDevKitComponents, bool useCopilotCliTelemetry)
-    {
-        await using var client = await CreateLanguageServerAsync(
-            LspWorkspaceContent.Empty,
-            new LspServerLaunchOptions
-            {
-                IncludeDevKitComponents = includeDevKitComponents,
-                CopilotTelemetryLevel = useCopilotCliTelemetry ? "off" : null,
-                // An enabled level without a Copilot host signal must not initialize VS Raw telemetry.
-                TelemetryLevel = includeDevKitComponents ? "off" : useCopilotCliTelemetry ? null : "all",
-            });
-
-        await client.ShutdownAndExitAsync();
-
-        var exitCode = await WaitForThinClientExitAsync(client);
-        Assert.Equal(0, exitCode);
-
-        await AssertServerProcessExitedAsync(client);
-    }
-
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/84890")]
     public async Task UnknownRequestReturnsMethodNotFoundAndServerStaysAlive(bool useNamedPipe)

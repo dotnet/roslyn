@@ -16,11 +16,6 @@ Roslyn uses a **layered service architecture** built on MEF (Managed Extensibili
 - **EditorFeatures** (`src/EditorFeatures/`): VS Editor integration and text manipulation
 - **VisualStudio** (`src/VisualStudio/`): Visual Studio-specific implementations
 
-### Language Server Telemetry
-
-- `LanguageServerTelemetryReporter` owns server telemetry. Dev Kit uses its existing VS Code collector; Copilot CLI uses the VS default telemetry session.
-- `COPILOT_TELEMETRY_LEVEL` identifies Copilot CLI and controls its telemetry consent. Only `all` enables telemetry.
-
 ### Service Resolution
 ```csharp
 // Workspace services

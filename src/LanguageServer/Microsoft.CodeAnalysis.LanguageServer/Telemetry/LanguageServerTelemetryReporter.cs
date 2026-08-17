@@ -20,7 +20,14 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
 {
     internal const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
 
+    /// <summary>
+    /// Collector key used by C# Dev Kit to send language server telemetry to the VS Code cluster.
+    /// </summary>
     private const string VSCodeCollectorApiKey = "0c6ae279ed8443289764825290e4f9e2-1a736e7c-1324-4338-be46-fc2a58ae4d14-7255";
+
+    /// <summary>
+    /// Collector key used by standalone hosts to send language server telemetry to the Visual Studio cluster.
+    /// </summary>
     private const string VSCollectorApiKey = "f3e86b4023cc43f0be495508d51f588a-f70d0e59-0fb0-4473-9f19-b4024cc340be-7296";
 
     private static readonly ConcurrentDictionary<int, object> s_pendingScopes = new(concurrencyLevel: 2, capacity: 10);
@@ -54,7 +61,7 @@ internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
 
             if (telemetryLevel is not ("all" or "off"))
             {
-                _logger.LogWarning("Unsupported Copilot CLI telemetry level. Telemetry will remain disabled.");
+                _logger.LogInformation("Unsupported Copilot CLI telemetry level. Telemetry will remain disabled.");
             }
         }
 
