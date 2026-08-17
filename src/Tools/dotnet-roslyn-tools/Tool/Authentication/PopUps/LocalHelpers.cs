@@ -3,54 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.RoslynTools.Authentication.PopUps;
 
 internal static class LocalHelpers
 {
-    public static string GetEditorPath(string gitLocation, ILogger logger)
-    {
-        var editor = ExecuteCommand(gitLocation, "config --get core.editor", logger);
-
-        // If there is nothing set in core.editor we try to default it to code
-        if (string.IsNullOrEmpty(editor))
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                editor = ExecuteCommand("where", "code", logger);
-            }
-            else
-            {
-                editor = ExecuteCommand("which", "code", logger);
-            }
-        }
-
-        // If there is nothing set in core.editor we try to default it to notepad if running in Windows, if not default it to
-        // vim
-        if (string.IsNullOrEmpty(editor))
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                editor = ExecuteCommand("where", "notepad", logger);
-            }
-            else
-            {
-                editor = ExecuteCommand("which", "vim", logger);
-            }
-        }
-
-        // Split this by newline in case where are multiple paths;
-        var newlineIndex = editor.IndexOf(Environment.NewLine);
-        if (newlineIndex != -1)
-        {
-            editor = editor[..newlineIndex];
-        }
-
-        return editor;
-    }
-
     public static string GetRootDir(string gitLocation, ILogger logger)
     {
         var dir = ExecuteCommand(gitLocation, "rev-parse --show-toplevel", logger);

@@ -19,7 +19,7 @@ internal static class VSBranchInfo
     {
         try
         {
-            using var remoteConnections = new RemoteConnections(settings);
+            using var remoteConnections = new RemoteConnections(settings, logger);
             var devdivConnection = remoteConnections.DevDivConnection;
             var dncengConnection = remoteConnections.DncEngConnection;
 

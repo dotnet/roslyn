@@ -22,6 +22,7 @@
     <!-- enable building symbol packages -->
     <DebugType>portable</DebugType>
     <IncludeSymbols>true</IncludeSymbols>
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

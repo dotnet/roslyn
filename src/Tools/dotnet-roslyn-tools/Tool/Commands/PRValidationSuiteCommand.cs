@@ -73,10 +73,9 @@ internal static class PRValidationSuiteCommand
             var settings = parseResult.LoadSettings(logger);
 
             var isMissingAzDOToken = string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) || string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken);
-            if (string.IsNullOrEmpty(settings.GitHubToken) ||
-                (settings.IsCI && isMissingAzDOToken))
+            if (settings.IsCI && isMissingAzDOToken)
             {
-                logger.LogError("Missing authentication token.");
+                logger.LogError("Missing Azure DevOps authentication token.");
                 return -1;
             }
 
@@ -92,7 +91,7 @@ internal static class PRValidationSuiteCommand
 
             var branch = parseResult.GetValue(BranchOption);
 
-            using var remoteConnections = new RemoteConnections(settings);
+            using var remoteConnections = new RemoteConnections(settings, logger);
             var dartResult = await Validation.DartTest.RunDartPipeline(product, remoteConnections, logger, pr, shaFromPR).ConfigureAwait(false);
             var prValResult = await Validation.PRValidation.RunPRValidationPipeline(product, remoteConnections, logger, pr, shaFromPR, branch).ConfigureAwait(false);
 

@@ -4,6 +4,7 @@
 
 using Maestro.Common;
 using Maestro.Common.AzureDevOpsTokens;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.RoslynTools.Authentication;
 
@@ -14,7 +15,7 @@ internal class RoslynToolsSettings
     public string DncEngAzureDevOpsToken { get; set; } = string.Empty;
     public bool IsCI { get; set; }
 
-    public IRemoteTokenProvider GetGitHubTokenProvider() => new ResolvedTokenProvider(GitHubToken);
+    public IRemoteTokenProvider GetGitHubTokenProvider(ILogger logger) => new GitHubCliTokenProvider(GitHubToken, logger);
     public IAzureDevOpsTokenProvider GetDevDivAzDOTokenProvider() => GetAzdoTokenProvider(DevDivAzureDevOpsToken);
     public IAzureDevOpsTokenProvider GetDncEngAzDOTokenProvider() => GetAzdoTokenProvider(DncEngAzureDevOpsToken);
 

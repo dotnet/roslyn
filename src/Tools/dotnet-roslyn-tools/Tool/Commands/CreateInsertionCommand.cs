@@ -137,7 +137,7 @@ internal static class CreateInsertionCommand
                 return -1;
             }
 
-            using var remoteConnections = new RemoteConnections(settings);
+            using var remoteConnections = new RemoteConnections(settings, logger);
 
             return await CommonInsertionOptions.ExecuteAsync(
                 insertionOptions,

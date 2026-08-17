@@ -52,7 +52,7 @@ internal class CreateReleaseTagsCommand
 
             var product = parseResult.GetValue(ProductOption)!;
 
-            using var remoteConnections = new RemoteConnections(settings);
+            using var remoteConnections = new RemoteConnections(settings, logger);
             return await CreateReleaseTags.CreateReleaseTags.CreateReleaseTagsAsync(
                 product,
                 remoteConnections,

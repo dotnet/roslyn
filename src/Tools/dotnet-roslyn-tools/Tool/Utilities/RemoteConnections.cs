@@ -7,6 +7,7 @@ using Azure.Core;
 using Azure.Identity;
 using Maestro.Common;
 using Maestro.Common.AzureDevOpsTokens;
+using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Authentication;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.OAuth;
@@ -29,7 +30,7 @@ internal record RemoteConnections : IDisposable
 
     public HttpClient GitHubClient { get; }
 
-    public RemoteConnections(RoslynToolsSettings settings, bool loginToAzureDevOps = true)
+    public RemoteConnections(RoslynToolsSettings settings, ILogger logger, bool loginToAzureDevOps = true)
     {
         if (loginToAzureDevOps)
         {
@@ -40,7 +41,7 @@ internal record RemoteConnections : IDisposable
             _dncEngConnection = CreateDncEngAzdoConnection(_dncEngTokenProvider);
         }
 
-        var gitHubTokenProvider = settings.GetGitHubTokenProvider();
+        var gitHubTokenProvider = settings.GetGitHubTokenProvider(logger);
         GitHubClient = CreateGitHubClient(gitHubTokenProvider);
     }
 
@@ -99,9 +100,11 @@ internal record RemoteConnections : IDisposable
         client.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
         client.DefaultRequestHeaders.Add("User-Agent", "dotnet-roslyn-tools");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            tokenProvider.GetTokenForRepository(GitHubApiUri));
+        var token = tokenProvider.GetTokenForRepository(GitHubApiUri);
+        if (!string.IsNullOrEmpty(token))
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
 
         return client;
     }

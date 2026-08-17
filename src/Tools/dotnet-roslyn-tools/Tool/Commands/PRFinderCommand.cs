@@ -83,12 +83,7 @@ internal static class PRFinderCommand
             ArgumentNullException.ThrowIfNull(labels);
 
             var settings = parseResult.LoadSettings(logger);
-            if (string.IsNullOrEmpty(settings.GitHubToken))
-            {
-                logger.LogWarning("Missing GitHub authentication token.");
-            }
-
-            using var remoteConnections = new RemoteConnections(settings, loginToAzureDevOps: false);
+            using var remoteConnections = new RemoteConnections(settings, logger, loginToAzureDevOps: false);
             return await PRFinder.PRFinder.FindPRsAsync(startRef, endRef, path, format, labels, remoteConnections, logger, repoPath);
         }
     }

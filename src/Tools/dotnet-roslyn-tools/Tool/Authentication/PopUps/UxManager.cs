@@ -5,15 +5,26 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.DotNet.DarcLib.Helpers;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.RoslynTools.Authentication.PopUps;
 
-internal class UxManager(string gitLocation, ILogger logger)
+internal class UxManager
 {
-    private readonly string _editorPath = LocalHelpers.GetEditorPath(gitLocation, logger);
-    private readonly ILogger _logger = logger;
+    private readonly Lazy<string> _editorPath;
+    private readonly ILogger _logger;
+    private readonly IProcessManager _processManager;
     private bool _popUpClosed = false;
+
+    public UxManager(string gitLocation, ILogger logger)
+    {
+        _logger = logger;
+        _processManager = new ProcessManager(logger, gitLocation);
+        _editorPath = new(
+            () => GetEditorPathAsync().GetAwaiter().GetResult(),
+            LazyThreadSafetyMode.PublicationOnly);
+    }
 
     /// <summary>
     /// Rather than popping up the window, read the result of the popup from
@@ -68,7 +79,7 @@ internal class UxManager(string gitLocation, ILogger logger)
     /// <returns>Success or error code</returns>
     public int PopUp(EditorPopUp popUp)
     {
-        if (string.IsNullOrEmpty(_editorPath))
+        if (string.IsNullOrEmpty(_editorPath.Value))
         {
             _logger.LogError("Failed to define an editor for the pop ups. Please verify that your git settings (`git config core.editor`) specify the path correctly.");
             return Constants.ErrorCode;
@@ -77,7 +88,7 @@ internal class UxManager(string gitLocation, ILogger logger)
         var result = Constants.ErrorCode;
         var tries = Constants.MaxPopupTries;
 
-        var parsedCommand = GetParsedCommand(_editorPath);
+        var parsedCommand = GetParsedCommand(_editorPath.Value);
 
         try
         {
@@ -154,16 +165,12 @@ internal class UxManager(string gitLocation, ILogger logger)
         if (command.StartsWith('\'') || command.StartsWith('"'))
         {
             var start = 1;
-            var end = command.IndexOf('\'', start);
+            var end = command.IndexOf(command[0], start);
             if (end == -1)
             {
-                end = command.IndexOf('"', start);
-                if (end == -1)
-                {
-                    // Unterminated quoted string.  Use full command as file name
-                    fileName = command[1..];
-                    return new(fileName, arguments);
-                }
+                // Unterminated quoted string.  Use full command as file name
+                fileName = command[1..];
+                return new(fileName, arguments);
             }
             fileName = command[start..end];
             arguments = command[(end + 1)..];
@@ -185,6 +192,35 @@ internal class UxManager(string gitLocation, ILogger logger)
             }
             return new(fileName, arguments);
         }
+    }
+
+    private async Task<string> GetEditorPathAsync()
+    {
+        var result = await _processManager.ExecuteGit(
+            Environment.CurrentDirectory,
+            ["config", "--get", "core.editor"]);
+        var editor = result.Succeeded ? result.StandardOutput.Trim() : string.Empty;
+
+        if (string.IsNullOrEmpty(editor))
+        {
+            editor = await FindExecutableAsync("code");
+        }
+
+        if (string.IsNullOrEmpty(editor))
+        {
+            editor = await FindExecutableAsync(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "notepad" : "vim");
+        }
+
+        var newlineIndex = editor.IndexOf(Environment.NewLine, StringComparison.Ordinal);
+        return newlineIndex == -1 ? editor : editor[..newlineIndex];
+    }
+
+    private async Task<string> FindExecutableAsync(string executable)
+    {
+        var locator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "where" : "which";
+        var result = await _processManager.Execute(locator, [executable]);
+        return result.Succeeded ? result.StandardOutput.Trim() : string.Empty;
     }
 }
 

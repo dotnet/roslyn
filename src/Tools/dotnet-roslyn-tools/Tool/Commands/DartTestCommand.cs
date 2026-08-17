@@ -64,10 +64,9 @@ It works by cloning the PR into the internal mirror and then running the dartlab
             var settings = parseResult.LoadSettings(logger);
 
             var isMissingAzDOToken = string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) || string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken);
-            if (string.IsNullOrEmpty(settings.GitHubToken) ||
-                (settings.IsCI && isMissingAzDOToken))
+            if (settings.IsCI && isMissingAzDOToken)
             {
-                logger.LogError("Missing authentication token.");
+                logger.LogError("Missing Azure DevOps authentication token.");
                 return -1;
             }
 
@@ -81,7 +80,7 @@ It works by cloning the PR into the internal mirror and then running the dartlab
 
             var product = parseResult.GetValue(ProductOption)!;
 
-            using var remoteConnections = new RemoteConnections(settings);
+            using var remoteConnections = new RemoteConnections(settings, logger);
 
             return await Validation.DartTest.RunDartPipeline(
                 product,

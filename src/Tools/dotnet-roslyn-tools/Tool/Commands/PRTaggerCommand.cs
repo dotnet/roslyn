@@ -54,10 +54,9 @@ The checking build list is created:
             var settings = parseResult.LoadSettings(logger);
 
             var isMissingAzDOToken = string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) || string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken);
-            if (string.IsNullOrEmpty(settings.GitHubToken) ||
-                (settings.IsCI && isMissingAzDOToken))
+            if (settings.IsCI && isMissingAzDOToken)
             {
-                logger.LogError("Missing authentication token.");
+                logger.LogError("Missing Azure DevOps authentication token.");
                 return -1;
             }
 
@@ -70,7 +69,7 @@ The checking build list is created:
                 logger.LogInformation("Check VS Build: {VsBuild}", vsBuild);
             }
 
-            using var remoteConnections = new RemoteConnections(settings);
+            using var remoteConnections = new RemoteConnections(settings, logger);
             return await PRTagger.PRTagger.TagPRs(
                 remoteConnections,
                 logger,
