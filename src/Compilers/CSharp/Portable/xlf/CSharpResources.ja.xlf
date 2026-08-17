@@ -1577,6 +1577,16 @@
         <target state="translated">'#!' はファイルの最初の行の先頭に使用する必要があります</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefNotMemberModifier">
+        <source>The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</source>
+        <target state="new">The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefMisplacedOnType">
+        <source>The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</source>
+        <target state="new">The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberSafeDifference">
         <source>Both partial member declarations must be marked 'safe' or neither may be marked 'safe'</source>
         <target state="translated">部分メンバー宣言は両方とも 'safe' とマークする必要があります。または、いずれも 'safe' とマークされなくても構いません</target>

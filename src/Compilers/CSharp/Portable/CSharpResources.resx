@@ -8140,6 +8140,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PPShebangNotOnFirstLine" xml:space="preserve">
     <value>'#!' must be the first characters on the first line of the file</value>
   </data>
+  <data name="ERR_RefNotMemberModifier" xml:space="preserve">
+    <value>The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</value>
+  </data>
+  <data name="ERR_RefMisplacedOnType" xml:space="preserve">
+    <value>The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</value>
+  </data>
   <data name="ERR_RequiresUnsafeAttributeInSource" xml:space="preserve">
     <value>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</value>
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>

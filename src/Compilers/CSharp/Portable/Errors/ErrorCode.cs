@@ -2510,6 +2510,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitInFixed = 9398,
         ERR_FeatureNotAvailableInVersion15 = 9399,
 
+        ERR_RefNotMemberModifier = 9398,
+        ERR_RefMisplacedOnType = 9399,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx
