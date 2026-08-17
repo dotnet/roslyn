@@ -42,7 +42,7 @@ internal static class Extensions
             var path = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? getTempPathWindows()
                 : getTempPathLinux();
-            return taskEnvironment.GetFullPath(path);
+            return path is null ? path : taskEnvironment.GetFullPath(path);
 
             string? getTempPathLinux()
             {
