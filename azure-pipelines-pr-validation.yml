@@ -33,7 +33,6 @@ variables:
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
-  - group: DotNet-Roslyn-Insertion-Variables
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
@@ -88,10 +87,20 @@ stages:
       inputs:
         versionSpec: '4.9.2'
 
-    # Authenticate with service connections to be able to publish packages to external nuget feeds.
-    - task: NuGetAuthenticate@0
+    # Authenticate to azure-public/vs-impl feed via WIF service connection
+    - task: NuGetAuthenticate@1
       inputs:
-        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
+        azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+        feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json
+
+    # Authenticate to azure-public/vssdk feed via WIF service connection
+    - task: NuGetAuthenticate@1
+      inputs:
+        azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
+        feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json
+
+    # Authenticate to feeds in the current Azure DevOps organization.
+    - task: NuGetAuthenticate@1
 
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2
@@ -261,11 +270,9 @@ stages:
         createDraftPR: true
         autoComplete: false
         insertToolset: ${{ parameters.InsertToolset }}
-        devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
         dncEngAzureSubscription: 'DncEng Insertion: Roslyn and Razor'
         vsBranchName: ${{ parameters.VisualStudioBranchName }}
         titlePrefix: ${{ parameters.OptionalTitlePrefix }}
         sourceBranch: $(SourceBranchName)
         publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/$(SourceBranchName)/eng/config/PublishData.json"
         queueSpeedometerValidation: true
-
