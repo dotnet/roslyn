@@ -1118,17 +1118,15 @@ hasRelatedInterfaces:
             }
 
             // Check the constructor constraint.
-            if (typeParameter.HasConstructorConstraint || typeParameter.IsValueType)
+            if (typeParameter.HasConstructorConstraint && errorIfNotSatisfiesConstructorConstraint(constructedContainingSymbol, typeParameter, typeArgument, diagnosticsBuilder))
             {
-                if (errorIfNotSatisfiesConstructorConstraint(constructedContainingSymbol, typeParameter, typeArgument, diagnosticsBuilder))
-                {
-                    return false;
-                }
+                return false;
+            }
 
-                if (args.ReportUnsafeConstructorConstraintErrors)
-                {
-                    errorIfUnsafeConstructorConstraint(constructedContainingSymbol, args.CurrentCompilation, typeParameter, typeArgument, diagnosticsBuilder);
-                }
+            if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
+                args.ReportUnsafeConstructorConstraintErrors)
+            {
+                errorIfUnsafeConstructorConstraint(constructedContainingSymbol, args.CurrentCompilation, typeParameter, typeArgument, diagnosticsBuilder);
             }
 
             return !hasError;
