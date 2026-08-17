@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Testing
         private class ReportCompilationDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
-                new("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: WellKnownDiagnosticTags.CompilationEnd);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 

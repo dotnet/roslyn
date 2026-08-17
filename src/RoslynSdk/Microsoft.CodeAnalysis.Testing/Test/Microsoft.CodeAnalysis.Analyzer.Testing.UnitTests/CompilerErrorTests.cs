@@ -440,69 +440,6 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Theory]
-        [InlineData("netstandard1.1", Skip = "https://github.com/dotnet/roslyn-sdk/issues/471")]
-        [InlineData("netstandard2.0", Skip = "https://github.com/dotnet/roslyn-sdk/issues/471")]
-        [InlineData("netstandard2.1", Skip = "https://github.com/dotnet/roslyn-sdk/issues/471")]
-        [InlineData("net452")]
-        [InlineData("net472")]
-        public async Task TestRoslynCompilerUsage_1(string targetFramework)
-        {
-            var testCode =
-                """
-
-                using Microsoft.CodeAnalysis.CSharp;
-                class TestClass {
-                  SyntaxKind TestMethod() => SyntaxKind.CloseBraceToken;
-                }
-
-                """;
-
-            await new CSharpTest
-            {
-                TestState =
-                {
-                    Sources = { testCode },
-                },
-                ReferenceAssemblies = MetadataReferenceTests.ReferenceAssembliesForTargetFramework(targetFramework)
-                    .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "1.0.1"))),
-            }.RunAsync();
-        }
-
-        [Theory]
-        [InlineData("netstandard1.3")]
-        [InlineData("netstandard2.0")]
-        [InlineData("netstandard2.1")]
-        [InlineData("net46")]
-        [InlineData("net472")]
-        [InlineData("netcoreapp3.0")]
-        [InlineData("netcoreapp3.1")]
-#if !(NETCOREAPP1_1 || NET46)
-        [InlineData("net5.0")]
-#endif
-        public async Task TestRoslynCompilerUsage_2(string targetFramework)
-        {
-            var testCode =
-                """
-
-                using Microsoft.CodeAnalysis.CSharp;
-                class TestClass {
-                  SyntaxKind TestMethod() => SyntaxKind.TupleType;
-                }
-
-                """;
-
-            await new CSharpTest
-            {
-                TestState =
-                {
-                    Sources = { testCode },
-                },
-                ReferenceAssemblies = MetadataReferenceTests.ReferenceAssembliesForTargetFramework(targetFramework)
-                    .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "2.8.2"))),
-            }.RunAsync();
-        }
-
-        [Theory]
         [InlineData("netstandard2.0")]
         [InlineData("netstandard2.1")]
         [InlineData("net472")]
@@ -510,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Testing
 #if !(NETCOREAPP1_1 || NET46)
         [InlineData("net5.0")]
 #endif
-        public async Task TestRoslynCompilerUsage_3(string targetFramework)
+        public async Task TestRoslynCompilerUsage(string targetFramework)
         {
             var testCode =
                 """
@@ -529,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources = { testCode },
                 },
                 ReferenceAssemblies = MetadataReferenceTests.ReferenceAssembliesForTargetFramework(targetFramework)
-                    .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.3.1"))),
+                    .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "4.12.0"))),
             }.RunAsync();
         }
 
