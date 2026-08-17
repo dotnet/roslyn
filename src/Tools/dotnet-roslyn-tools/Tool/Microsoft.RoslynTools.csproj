@@ -49,26 +49,4 @@
     <InternalsVisibleTo Include="Microsoft.RoslynTools.UnitTests" />
     <None Include="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
-
-  <!-- Native Linux libraries cause errors when the symbols package is published. -->
-  <Target Name="StripNativeLibrariesFromSymbolsPackage" AfterTargets="Pack">
-    <ItemGroup>
-      <SymbolsPackage Include="$(ArtifactsNonShippingPackagesDir)/Microsoft.RoslynTools.*.symbols.nupkg" />
-    </ItemGroup>
-
-    <PropertyGroup>
-      <SymbolsPackageTempPath>$([System.IO.Path]::GetTempPath())/$([System.Guid]::NewGuid())</SymbolsPackageTempPath>
-    </PropertyGroup>
-
-    <MakeDir Directories="$(SymbolsPackageTempPath)" />
-    <Unzip SourceFiles="%(SymbolsPackage.Identity)" DestinationFolder="$(SymbolsPackageTempPath)" />
-
-    <ItemGroup>
-      <NativeLibrariesToStrip Include="$(SymbolsPackageTempPath)/tools/$(TargetFramework)/any/runtimes/*/native/libgit2*.so" />
-    </ItemGroup>
-
-    <Delete Files="%(NativeLibrariesToStrip.Identity)" />
-    <ZipDirectory SourceDirectory="$(SymbolsPackageTempPath)" DestinationFile="%(SymbolsPackage.Identity)" Overwrite="true" />
-    <RemoveDir Directories="$(SymbolsPackageTempPath)" />
-  </Target>
 </Project>
