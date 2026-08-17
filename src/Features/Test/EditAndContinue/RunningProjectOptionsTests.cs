@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.EditAndContinue;
 
+[UseExportProvider]
 public class RunningProjectOptionsTests
 {
     private static IEnumerable<string> Inspect(ImmutableDictionary<ProjectId, RunningProjectOptions> options)
