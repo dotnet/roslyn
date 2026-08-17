@@ -1,3 +1,0 @@
-﻿Document - 
-    NamespaceDeclaration -  - Test
-        ClassDeclaration -  - public partial - TestComponent -  -  - TParam

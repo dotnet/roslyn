@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
@@ -48,30 +47,6 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
                 """);
 
     [Fact]
-    public Task Constructor_Legacy()
-        => VerifyInlineCompletionAsync(
-            input: """
-                <div></div>
-
-                @functions
-                {
-                    ctor$$
-                }
-                """,
-            output: """
-                <div></div>
-
-                @functions
-                {
-                    public File1()
-                    {
-                        $0
-                    }
-                }
-                """,
-            fileKind: RazorFileKind.Legacy);
-
-    [Fact]
     public Task Constructor_SmallIndent()
         => VerifyInlineCompletionAsync(
             input: """
@@ -96,83 +71,15 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
             tabSize: 2);
 
     [Fact]
-    public Task Constructor_SmallIndent_Legacy()
-        => VerifyInlineCompletionAsync(
-            input: """
-                <div></div>
-
-                @functions
-                {
-                  ctor$$
-                }
-                """,
-            output: """
-                <div></div>
-
-                @functions
-                {
-                  public File1()
-                  {
-                    $0
-                  }
-                }
-                """,
-            tabSize: 2,
-            fileKind: RazorFileKind.Legacy);
-
-    [Fact]
-    public Task ForLoopInExplicitCodeBlock()
-        => VerifyInlineCompletionAsync(
-            input: """
-                <div></div>
-
-                @{
-                    for$$
-                }
-                """,
-            output: """
-                <div></div>
-
-                @{
-                    for (int ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++)
-                    {
-                        $0
-                    }
-                }
-                """);
-
-    [Fact]
-    public Task ForLoopInExplicitCodeBlock_Legacy()
-        => VerifyInlineCompletionAsync(
-            input: """
-                <div></div>
-
-                @{
-                    for$$
-                }
-                """,
-            output: """
-                <div></div>
-
-                @{
-                    for (int ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++)
-                    {
-                        $0
-                    }
-                }
-                """,
-            fileKind: RazorFileKind.Legacy);
-
-    [Fact]
     public Task InHtml_DoesNothing()
         => VerifyInlineCompletionAsync(
             input: """
                 <div>ctor$$</div>
                 """);
 
-    private async Task VerifyInlineCompletionAsync(TestCode input, string? output = null, int tabSize = 4, RazorFileKind fileKind = RazorFileKind.Component)
+    private async Task VerifyInlineCompletionAsync(TestCode input, string? output = null, int tabSize = 4)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetLinePosition(input.Position);
 

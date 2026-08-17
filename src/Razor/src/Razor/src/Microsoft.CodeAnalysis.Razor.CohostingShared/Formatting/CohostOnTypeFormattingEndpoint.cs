@@ -15,8 +15,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Text;
-using System.Collections.Frozen;
-using System;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -35,10 +33,6 @@ internal sealed class CohostOnTypeFormattingEndpoint(
     ILoggerFactory loggerFactory)
     : AbstractCohostDocumentEndpoint<DocumentOnTypeFormattingParams, TextEdit[]?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
-    internal const string FirstTriggerCharacter = "}";
-    internal static readonly string[] MoreTriggerCharacters = [";", "\n", "{"];
-    internal static readonly FrozenSet<string> AllTriggerCharacterSet = FrozenSet.ToFrozenSet([FirstTriggerCharacter, .. MoreTriggerCharacters], StringComparer.Ordinal);
-
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
@@ -57,8 +51,8 @@ internal sealed class CohostOnTypeFormattingEndpoint(
                 Method = Methods.TextDocumentOnTypeFormattingName,
                 RegisterOptions = new DocumentOnTypeFormattingRegistrationOptions()
                 {
-                    FirstTriggerCharacter = FirstTriggerCharacter,
-                    MoreTriggerCharacter = MoreTriggerCharacters
+                    FirstTriggerCharacter = RazorFormattingService.FirstTriggerCharacter,
+                    MoreTriggerCharacter = RazorFormattingService.MoreTriggerCharacters
                 }
             }];
         }
@@ -78,7 +72,7 @@ internal sealed class CohostOnTypeFormattingEndpoint(
             return null;
         }
 
-        if (!AllTriggerCharacterSet.Contains(request.Character))
+        if (!RazorFormattingService.AllTriggerCharacterSet.Contains(request.Character))
         {
             _logger.LogWarning($"Unexpected trigger character '{request.Character}'.");
             return null;
@@ -118,7 +112,7 @@ internal sealed class CohostOnTypeFormattingEndpoint(
             htmlChanges = htmlEdits.SelectAsArray(sourceText.GetTextChange);
         }
 
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
+        var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
         var options = RazorFormattingOptions.From(request.Options, clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine, clientSettings.AdvancedSettings.AttributeIndentStyle, csharpSyntaxFormattingOptions);
 
         _logger.LogDebug($"Calling OOP with the {htmlChanges.Length} html edits, so it can fill in the rest");

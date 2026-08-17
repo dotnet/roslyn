@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -357,7 +357,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode(), testName);
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredImplCSharpDocument(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredCSharpDocument(), testName);
         AssertLinePragmas(codeDocument);
         AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
     }
@@ -377,7 +377,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode(), testName);
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredImplCSharpDocument(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredCSharpDocument(), testName);
         AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
     }
 
@@ -402,7 +402,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode(), testName);
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredImplCSharpDocument(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredCSharpDocument(), testName);
         AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
     }
 

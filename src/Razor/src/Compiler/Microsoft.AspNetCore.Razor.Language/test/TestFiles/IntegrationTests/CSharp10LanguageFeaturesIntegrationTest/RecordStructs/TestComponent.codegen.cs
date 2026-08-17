@@ -19,6 +19,15 @@ namespace Test
         {
         }
         #pragma warning restore 1998
+#nullable restore
+#line (1,8)-(3,1) "x:\dir\subdir\Test\TestComponent.razor"
+
+    public readonly record struct Point(int X, int Y);
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591

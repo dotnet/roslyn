@@ -28,17 +28,6 @@ internal sealed class UnresolvedAttributeValueIntermediateNode : IntermediateNod
         visitor.VisitDefault(this);
     }
 
-    protected override IntermediateNode CloneNode()
-    {
-        var clone = new UnresolvedAttributeValueIntermediateNode
-        {
-            Prefix = Prefix,
-            IsSynthesizedHelper = IsSynthesizedHelper,
-        };
-
-        return clone;
-    }
-
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteChildren(Children);

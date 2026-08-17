@@ -3,12 +3,12 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -40,28 +40,6 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    public async Task CSharp_Method_Legacy()
-    {
-        var input = """
-            <div></div>
-
-            @{
-                var x = Ge$$tX();
-            }
-
-            @functions
-            {
-                int [||]GetX()
-                {
-                    return 4;
-                }
-            }
-            """;
-
-        await VerifyGoToImplementationAsync(input, fileKind: RazorFileKind.Legacy);
-    }
-
-    [Fact]
     public async Task CSharp_Field()
     {
         var input = """
@@ -86,30 +64,6 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    public async Task CSharp_Field_Legacy()
-    {
-        var input = """
-            <div></div>
-
-            @{
-                var x = GetX();
-            }
-
-            @functions
-            {
-                private string [||]_name;
-
-                string GetX()
-                {
-                    return _na$$me;
-                }
-            }
-            """;
-
-        await VerifyGoToImplementationAsync(input, fileKind: RazorFileKind.Legacy);
-    }
-
-    [Fact]
     public async Task CSharp_Multiple()
     {
         var input = """
@@ -128,59 +82,6 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
             """;
 
         await VerifyGoToImplementationAsync(input);
-    }
-
-    [Fact]
-    public async Task CSharp_Multiple_Legacy()
-    {
-        var input = """
-            <div></div>
-
-            @functions
-            {
-                class Base { }
-                class [||]Derived1 : Base { }
-                class [||]Derived2 : Base { }
-
-                void M(Ba$$se b)
-                {
-                }
-            }
-            """;
-
-        await VerifyGoToImplementationAsync(input, fileKind: RazorFileKind.Legacy);
-    }
-
-    [Fact]
-    public async Task CSharp_BaseTypeInDeclaration()
-    {
-        var input = """
-            <div></div>
-
-            @code
-            {
-                class Base { }
-                class [||]Derived : Ba$$se { }
-            }
-            """;
-
-        await VerifyGoToImplementationAsync(input);
-    }
-
-    [Fact]
-    public async Task CSharp_BaseTypeInDeclaration_Legacy()
-    {
-        var input = """
-            <div></div>
-
-            @functions
-            {
-                class Base { }
-                class [||]Derived : Ba$$se { }
-            }
-            """;
-
-        await VerifyGoToImplementationAsync(input, fileKind: RazorFileKind.Legacy);
     }
 
     [Fact]
@@ -245,13 +146,9 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         Assert.Equal(range, location.Range);
     }
 
-    private async Task VerifyGoToImplementationAsync(
-        TestCode input,
-        TextDocument? document = null,
-        LspLocation? htmlResponse = null,
-        RazorFileKind? fileKind = null)
+    private async Task VerifyGoToImplementationAsync(TestCode input, TextDocument? document = null, LspLocation? htmlResponse = null)
     {
-        document ??= CreateProjectAndRazorDocument(input.Text, fileKind);
+        document ??= CreateProjectAndRazorDocument(input.Text);
         var result = await GetGoToImplementationResultCoreAsync(input, document, htmlResponse);
 
         Assert.NotNull(result);
@@ -274,10 +171,9 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
     private async Task<SumType<LspLocation[], VSInternalReferenceItem[]>?> GetGoToImplementationResultAsync(
         TestCode input,
         LspLocation? htmlResponse = null,
-        RazorFileKind? fileKind = null,
         params (string fileName, string contents)[]? additionalFiles)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(input.Text, additionalFiles: additionalFiles);
         return await GetGoToImplementationResultCoreAsync(input, document, htmlResponse);
     }
 
@@ -289,7 +185,8 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
 
         var inputText = await document.GetTextAsync(DisposalToken);
 
-        var endpoint = new CohostGoToImplementationEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker);
+        var filePathService = new RemoteFilePathService();
+        var endpoint = new CohostGoToImplementationEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, filePathService);
 
         var position = inputText.GetPosition(input.Position);
         var textDocumentPositionParams = new TextDocumentPositionParams

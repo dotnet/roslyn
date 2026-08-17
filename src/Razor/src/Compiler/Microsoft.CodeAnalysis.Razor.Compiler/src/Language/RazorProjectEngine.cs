@@ -258,14 +258,12 @@ public sealed class RazorProjectEngine
     {
         phases.Add(new DefaultRazorParsingPhase());
         phases.Add(new DefaultRazorSyntaxTreePhase());
-        phases.Add(new DefaultRazorIntermediateNodeLoweringPhase());
-        phases.Add(new DefaultRazorDocumentClassifierPhase());
-        phases.Add(new DefaultRazorDirectiveClassifierPhase());
-        phases.Add(new DefaultRazorMarkupSplitPhase());
-        phases.Add(new DefaultRazorDeclCSharpLoweringPhase());
         phases.Add(new DefaultRazorTagHelperContextDiscoveryPhase());
+        phases.Add(new DefaultRazorIntermediateNodeLoweringPhase());
         phases.Add(new DefaultTagHelperResolutionPhase());
         phases.Add(new DefaultRazorTagHelperRewritePhase());
+        phases.Add(new DefaultRazorDocumentClassifierPhase());
+        phases.Add(new DefaultRazorDirectiveClassifierPhase());
         phases.Add(new DefaultRazorOptimizationPhase());
         phases.Add(new DefaultRazorCSharpLoweringPhase());
     }

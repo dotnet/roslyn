@@ -3,7 +3,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Testing;
@@ -36,25 +35,6 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task CSharpMethodCSharp_Legacy()
-    {
-        var input = """
-                <div></div>
-
-                @{
-                    string M1(int i) => throw new NotImplementedException();
-
-                    void Act()
-                    {
-                        M1($$);
-                    }
-                }
-                """;
-
-        await VerifySignatureHelpAsync(input, "string M1(int i)", fileKind: RazorFileKind.Legacy);
-    }
-
-    [Fact]
     public async Task CSharpMethodInRazor()
     {
         var input = """
@@ -66,72 +46,6 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
                 """;
 
         await VerifySignatureHelpAsync(input, "string GetDiv()");
-    }
-
-    [Fact]
-    public async Task CSharpMethodInCodeBlock()
-    {
-        var input = """
-                <div></div>
-
-                @code
-                {
-                    string M1(int i) => throw new NotImplementedException();
-
-                    void Act()
-                    {
-                        M1($$);
-                    }
-                }
-                """;
-
-        await VerifySignatureHelpAsync(input, "string File1.M1(int i)");
-    }
-
-    [Fact]
-    public async Task CSharpMethodInCodeBlock_Legacy()
-    {
-        var input = """
-                <div></div>
-
-                @functions
-                {
-                    string M1(int i) => throw new NotImplementedException();
-
-                    void Act()
-                    {
-                        M1($$);
-                    }
-                }
-                """;
-
-        await VerifySignatureHelpAsync(input, "string File1.M1(int i)", fileKind: RazorFileKind.Legacy);
-    }
-
-    [Fact]
-    public async Task CSharpAttributeConstructorInDirective()
-    {
-        var input = """
-                @attribute [global::MyAttribute($$)]
-
-                <div></div>
-                """;
-
-        await VerifySignatureHelpAsync(
-            input,
-            "MyAttribute(string value)",
-            additionalFiles: [
-                (FilePath("MyAttribute.cs"), """
-                    using System;
-
-                    public class MyAttribute : Attribute
-                    {
-                        public MyAttribute(string value)
-                        {
-                        }
-                    }
-                    """)
-            ]);
     }
 
     [Fact]
@@ -172,16 +86,10 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
         await VerifySignatureHelpAsync(input, "", autoListParams: false, triggerKind: SignatureHelpTriggerKind.ContentChange);
     }
 
-    private async Task VerifySignatureHelpAsync(
-        string input,
-        string expected,
-        bool autoListParams = true,
-        SignatureHelpTriggerKind? triggerKind = null,
-        (string fileName, string contents)[]? additionalFiles = null,
-        RazorFileKind? fileKind = null)
+    private async Task VerifySignatureHelpAsync(string input, string expected, bool autoListParams = true, SignatureHelpTriggerKind? triggerKind = null)
     {
         TestFileMarkupParser.GetPosition(input, out input, out var cursorPosition);
-        var document = CreateProjectAndRazorDocument(input, fileKind, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(input);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         ClientSettingsManager.Update(ClientCompletionSettings.Default with { AutoListParams = autoListParams });

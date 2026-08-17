@@ -4,9 +4,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -30,80 +30,57 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            snapshot => GetCodeActionRequestInfoAsync(snapshot, request, cancellationToken),
+            context => GetCodeActionRequestInfoAsync(context, request, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<CodeActionRequestInfo> GetCodeActionRequestInfoAsync(RemoteDocumentSnapshot snapshot, VSCodeActionParams request, CancellationToken cancellationToken)
+    private async ValueTask<CodeActionRequestInfo> GetCodeActionRequestInfoAsync(RemoteDocumentContext context, VSCodeActionParams request, CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var absoluteIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(request.Range.Start);
-        var positionInfo = GetPositionInfo(codeDocument, absoluteIndex);
+        var languageKind = GetPositionInfo(codeDocument, absoluteIndex).LanguageKind;
 
         VSCodeActionParams? csharpRequest = null;
-        VSCodeActionParams? csharpDeclRequest = null;
-        if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
+        if (languageKind == RazorLanguageKind.CSharp)
         {
-            // Some Razor positions can map to both C# documents. For example, @using directives and the generated class declaration
-            // can exist in both impl and decl documents. Diagnostics can be reported on whichever C# document the Roslyn compiler
-            // happened to see first, so ask both documents for code actions.
-            await SetCSharpRequestAsync(positionInfo.InDeclDocument).ConfigureAwait(false);
+            csharpRequest = await _codeActionsService.GetCSharpCodeActionsRequestAsync(context.Snapshot, request, cancellationToken).ConfigureAwait(false);
 
-            // Impl documents always exist, but decl documents are optional. If the other C# document exists, ask Roslyn for code actions there too.
-            if (codeDocument.GetCSharpDocument(!positionInfo.InDeclDocument) is not null)
+            if (csharpRequest is not null)
             {
-                await SetCSharpRequestAsync(!positionInfo.InDeclDocument).ConfigureAwait(false);
+                // Since we're here, we may as well fill in the generated document Uri so the other caller won't have to calculate it
+                var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+                csharpRequest.TextDocument.DocumentUri = generatedDocument.GetURI();
             }
         }
 
-        return new CodeActionRequestInfo(positionInfo.LanguageKind, csharpRequest, csharpDeclRequest);
-
-        async Task SetCSharpRequestAsync(bool inDeclDocument)
-        {
-            var generatedRequest = await _codeActionsService.GetCSharpCodeActionsRequestAsync(snapshot, request, inDeclDocument, cancellationToken).ConfigureAwait(false);
-
-            if (generatedRequest is null)
-            {
-                return;
-            }
-
-            // Since we're here, we may as well fill in the generated document Uri so the other caller won't have to calculate it
-            var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
-            generatedRequest.TextDocument.DocumentUri = generatedDocument.GetURI();
-
-            if (inDeclDocument)
-            {
-                csharpDeclRequest = generatedRequest;
-            }
-            else
-            {
-                csharpRequest = generatedRequest;
-            }
-        }
+        return new CodeActionRequestInfo(languageKind, csharpRequest);
     }
 
-    public ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, VSCodeActionParams request, RazorVSInternalCodeAction[] htmlCodeActions, RazorVSInternalCodeAction[] csharpCodeActions, RazorVSInternalCodeAction[] csharpDeclCodeActions, CancellationToken cancellationToken)
+    public ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, VSCodeActionParams request, RazorVSInternalCodeAction[] delegatedCodeActions, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            snapshot => GetCodeActionsAsync(snapshot, request, htmlCodeActions, csharpCodeActions, csharpDeclCodeActions, cancellationToken),
+            context => GetCodeActionsAsync(context, request, delegatedCodeActions, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(RemoteDocumentSnapshot snapshot, VSCodeActionParams request, RazorVSInternalCodeAction[] htmlCodeActions, RazorVSInternalCodeAction[] csharpCodeActions, RazorVSInternalCodeAction[] csharpDeclCodeActions, CancellationToken cancellationToken)
+    private async ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(RemoteDocumentContext context, VSCodeActionParams request, RazorVSInternalCodeAction[] delegatedCodeActions, CancellationToken cancellationToken)
     {
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var generatedDocumentUri = generatedDocument.CreateSystemUri();
+
         var supportsCodeActionResolve = _clientCapabilitiesService.ClientCapabilities.TextDocument?.CodeAction?.ResolveSupport is not null;
-        return await _codeActionsService.GetCodeActionsAsync(request, snapshot, htmlCodeActions, csharpCodeActions, csharpDeclCodeActions, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
+        return await _codeActionsService.GetCodeActionsAsync(request, context.Snapshot, delegatedCodeActions, generatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
     }
 
-    public ValueTask<CodeAction> ResolveCodeActionAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, CodeAction request, CodeAction? delegatedCodeAction, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
+    public ValueTask<CodeAction> ResolveCodeActionAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, CodeAction request, CodeAction? delegatedCodeAction, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            snapshot => ResolveCodeActionAsync(snapshot, request, delegatedCodeAction, formattingOptions, cancellationToken),
+            context => ResolveCodeActionAsync(context, request, delegatedCodeAction, cancellationToken),
             cancellationToken);
 
-    private ValueTask<CodeAction> ResolveCodeActionAsync(RemoteDocumentSnapshot snapshot, CodeAction request, CodeAction? delegatedCodeAction, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
+    private ValueTask<CodeAction> ResolveCodeActionAsync(RemoteDocumentContext context, CodeAction request, CodeAction? delegatedCodeAction, CancellationToken cancellationToken)
     {
-        return new(_codeActionResolveService.ResolveCodeActionAsync(snapshot, request, delegatedCodeAction, formattingOptions, cancellationToken));
+        return new(_codeActionResolveService.ResolveCodeActionAsync(context, request, delegatedCodeAction, cancellationToken));
     }
 }
