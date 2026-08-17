@@ -57,12 +57,15 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     [Fact]
     public void TestStandaloneSessionUsesVSDefaultCollectorSettings()
     {
-        Environment.SetEnvironmentVariable("CommonPropertyBagPath", Path.GetTempFileName());
+        using var service = CreateReporter(ServerConfigurationWithoutDevKit);
+        service.InitializeSession("off", sessionId: null, isDefaultSession: false);
 
         var settings = JsonNode.Parse(Microsoft.VisualStudio.Telemetry.TelemetryService.DefaultSession.SerializeSettings())!.AsObject();
 
         Assert.Equal(1000, settings["AppId"]!.GetValue<int>());
-        Assert.False(string.IsNullOrWhiteSpace(settings["CollectorApiKey"]!.GetValue<string>()));
+        Assert.Equal(
+            "f3e86b4023cc43f0be495508d51f588a-f70d0e59-0fb0-4473-9f19-b4024cc340be-7296",
+            settings["CollectorApiKey"]!.GetValue<string>());
     }
 
     [Theory]
