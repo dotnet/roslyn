@@ -1846,6 +1846,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
         }
 
+        private bool IsPartialConstructor(int peekIndex)
+        {
+            return this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword &&
+                this.PeekToken(peekIndex + 1).Kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(peekIndex + 2).Kind == SyntaxKind.OpenParenToken &&
+                IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
+        }
+
         private bool IsPartialMember()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
