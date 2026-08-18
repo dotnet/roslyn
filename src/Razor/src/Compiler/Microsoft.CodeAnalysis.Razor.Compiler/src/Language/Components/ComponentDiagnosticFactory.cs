@@ -442,4 +442,44 @@ internal static class ComponentDiagnosticFactory
     {
         return RazorDiagnostic.Create(RenderModeAttribute_ComponentDeclaredRenderMode, source, component);
     }
+
+    public static readonly RazorDiagnosticDescriptor UnknownComponentParameter =
+        new($"{DiagnosticPrefix}10025",
+            "The component '{0}' does not have a parameter named '{1}'.",
+            RazorDiagnosticSeverity.Warning,
+            warningLevel: 11);
+
+    public static RazorDiagnostic Create_UnknownComponentParameter(SourceSpan? source, string component, string parameter)
+        => RazorDiagnostic.Create(UnknownComponentParameter, source, component, parameter);
+
+    public static readonly RazorDiagnosticDescriptor BindAttribute_MissingTarget =
+        new($"{DiagnosticPrefix}10026",
+            "The bind attribute '{0}' does not match any parameter on component '{1}'.",
+            RazorDiagnosticSeverity.Warning,
+            warningLevel: 11);
+
+    public static RazorDiagnostic CreateBindAttribute_MissingTarget(SourceSpan? source, string attribute, string component)
+        => RazorDiagnostic.Create(BindAttribute_MissingTarget, source, attribute, component);
+
+    public static readonly RazorDiagnosticDescriptor BindAttribute_MissingChangeAttribute =
+        new($"{DiagnosticPrefix}10027",
+            "The bind attribute '{0}' requires a matching change parameter named '{1}' on component '{2}'.",
+            RazorDiagnosticSeverity.Warning,
+            warningLevel: 11);
+
+    public static RazorDiagnostic CreateBindAttribute_MissingChangeAttribute(
+        SourceSpan? source,
+        string attribute,
+        string changeAttribute,
+        string component)
+        => RazorDiagnostic.Create(BindAttribute_MissingChangeAttribute, source, attribute, changeAttribute, component);
+
+    public static readonly RazorDiagnosticDescriptor UnboundDirectiveAttribute =
+        new($"{DiagnosticPrefix}10028",
+            "The attribute '{0}' could not be bound to any directive attribute.",
+            RazorDiagnosticSeverity.Warning,
+            warningLevel: 11);
+
+    public static RazorDiagnostic Create_UnboundDirectiveAttribute(SourceSpan? source, string attribute)
+        => RazorDiagnostic.Create(UnboundDirectiveAttribute, source, attribute);
 }

@@ -45,7 +45,20 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
     private DebuggingSessionProxy? _debuggingSession;
 
     private Solution? _pendingUpdatedSolution;
-    private Solution? _committedSolution;
+
+    private Solution? CommittedSolution
+    {
+        get;
+        set
+        {
+            field = value;
+
+            if (value != null)
+            {
+                SolutionCommitted?.Invoke(value);
+            }
+        }
+    }
 
     public event Action<Solution>? SolutionCommitted;
 
@@ -84,7 +97,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
             sourceTextProvider.Activate();
 
             var currentSolution = await solutionSnapshotProvider.GetCurrentSolutionAsync(cancellationToken).ConfigureAwait(false);
-            _committedSolution = currentSolution;
+            CommittedSolution = currentSolution;
 
             sourceTextProvider.SetBaseline(currentSolution);
 
@@ -162,15 +175,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
         var committedSolution = Interlocked.Exchange(ref _pendingUpdatedSolution, null);
         Contract.ThrowIfNull(committedSolution);
 
-        try
-        {
-            SolutionCommitted?.Invoke(committedSolution);
-        }
-        catch (Exception e) when (FatalError.ReportAndCatch(e))
-        {
-        }
-
-        _committedSolution = committedSolution;
+        CommittedSolution = committedSolution;
 
         try
         {
@@ -226,7 +231,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
         sourceTextProvider.Deactivate();
         _debuggingSession = null;
-        _committedSolution = null;
+        CommittedSolution = null;
         _pendingUpdatedSolution = null;
     }
 
@@ -252,8 +257,8 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
                 return false;
             }
 
-            Contract.ThrowIfNull(_committedSolution);
-            var oldSolution = _committedSolution;
+            Contract.ThrowIfNull(CommittedSolution);
+            var oldSolution = CommittedSolution;
             var newSolution = await solutionSnapshotProvider.GetCurrentSolutionAsync(cancellationToken).ConfigureAwait(false);
 
             return (sourceFilePath != null)
@@ -285,7 +290,14 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
     {
         if (_disabled)
         {
-            return new ManagedHotReloadUpdates([], [], [], []);
+            return new ManagedHotReloadUpdates()
+            {
+                Updates = [],
+                Diagnostics = [],
+                ProjectsToRebuild = [],
+                ProjectsToRestart = [],
+                HasPendingUpdates = false
+            };
         }
 
         var solution = await solutionSnapshotProvider.GetCurrentSolutionAsync(cancellationToken).ConfigureAwait(false);
@@ -294,18 +306,18 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
         var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectOptions, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-        switch (result.ModuleUpdates.Status)
+        switch (result.SolutionAction)
         {
-            case ModuleUpdateStatus.Ready:
+            case SolutionAction.PendingUpdate:
                 // The debugger will call Commit/Discard on the solution
                 // based on whether the updates will be applied successfully or not.
                 _pendingUpdatedSolution = solution;
                 break;
 
-            case ModuleUpdateStatus.None:
+            case SolutionAction.Committed:
                 // No significant changes have been made.
                 // Commit the solution to apply any changes in comments that do not generate updates.
-                _committedSolution = solution;
+                CommittedSolution = solution;
                 break;
         }
 
@@ -329,11 +341,14 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
         UpdateApplyChangesDiagnostics(applyChangesDiagnostics.ToImmutableOrEmptyAndFree());
 
-        return new ManagedHotReloadUpdates(
-            result.ModuleUpdates.Updates,
-            result.GetAllDiagnostics(),
-            ToProjectIntanceIds(result.ProjectsToRebuild),
-            ToProjectIntanceIds(result.ProjectsToRestart.Keys));
+        return new ManagedHotReloadUpdates()
+        {
+            Updates = result.ModuleUpdates.Updates,
+            Diagnostics = result.GetAllDiagnostics(),
+            ProjectsToRebuild = ToProjectIntanceIds(result.ProjectsToRebuild),
+            ProjectsToRestart = ToProjectIntanceIds(result.ProjectsToRestart.Keys),
+            HasPendingUpdates = result.SolutionAction == SolutionAction.PendingUpdate
+        };
 
         ImmutableArray<ProjectInstanceId> ToProjectIntanceIds(IEnumerable<ProjectId> ids)
             => ids.SelectAsArray(id =>
@@ -341,5 +356,14 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
                 var project = solution.GetRequiredProject(id);
                 return new ProjectInstanceId(project.FilePath!, project.State.NameAndFlavor.flavor ?? "");
             });
+    }
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor(ManagedHotReloadLanguageServiceImpl instance)
+    {
+        public Solution? PendingUpdatedSolution => instance._pendingUpdatedSolution;
+        public Solution? CommittedSolution => instance.CommittedSolution;
     }
 }

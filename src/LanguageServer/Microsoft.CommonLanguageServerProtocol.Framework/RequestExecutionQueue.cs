@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using StreamJsonRpc.Protocol;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -54,6 +55,14 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// </remarks>
 internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
 {
+    private delegate Task ProcessQueueCoreAsyncDelegate(
+        QueueItem<TRequestContext> work,
+        IMethodHandler handler,
+        RequestHandlerMetadata metadata,
+        ConcurrentDictionary<Task, CancellationTokenSource> concurrentlyExecutingTasks,
+        CancellationTokenSource? currentWorkCts,
+        CancellationToken cancellationToken);
+
     private static readonly MethodInfo s_processQueueCoreAsync = typeof(RequestExecutionQueue<TRequestContext>)
         .GetMethod(nameof(RequestExecutionQueue<>.ProcessQueueCoreAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
 
@@ -70,10 +79,10 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
 
     /// <summary>
     /// Map of method to the handler info for each language.
-    /// The handler info is created lazily to avoid instantiating any types or handlers until a request is recieved for
+    /// The handler info is created lazily to avoid instantiating any types or handlers until a request is received for
     /// that particular method and language.
     /// </summary>
-    private readonly FrozenDictionary<string, FrozenDictionary<string, Lazy<(RequestHandlerMetadata Metadata, IMethodHandler Handler, MethodInfo MethodInfo)>>> _handlerInfoMap;
+    private readonly FrozenDictionary<string, FrozenDictionary<string, Lazy<(RequestHandlerMetadata Metadata, IMethodHandler Handler, ProcessQueueCoreAsyncDelegate ProcessQueueCoreAsync)>>> _handlerInfoMap;
 
     /// <summary>
     /// For test purposes only.
@@ -91,16 +100,16 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         _handlerInfoMap = BuildHandlerMap(handlerProvider, languageServer.TypeRefResolver);
     }
 
-    private static FrozenDictionary<string, FrozenDictionary<string, Lazy<(RequestHandlerMetadata, IMethodHandler, MethodInfo)>>> BuildHandlerMap(AbstractHandlerProvider handlerProvider, AbstractTypeRefResolver typeRefResolver)
+    private FrozenDictionary<string, FrozenDictionary<string, Lazy<(RequestHandlerMetadata, IMethodHandler, ProcessQueueCoreAsyncDelegate)>>> BuildHandlerMap(AbstractHandlerProvider handlerProvider, AbstractTypeRefResolver typeRefResolver)
     {
-        var genericMethodMap = new Dictionary<string, FrozenDictionary<string, Lazy<(RequestHandlerMetadata, IMethodHandler, MethodInfo)>>>();
+        var genericMethodMap = new Dictionary<string, FrozenDictionary<string, Lazy<(RequestHandlerMetadata, IMethodHandler, ProcessQueueCoreAsyncDelegate)>>>();
         var noValueType = NoValue.Instance.GetType();
         // Get unique set of methods from the handler provider for the default language.
         foreach (var methodGroup in handlerProvider
             .GetRegisteredMethods()
             .GroupBy(m => m.MethodName))
         {
-            var languages = new Dictionary<string, Lazy<(RequestHandlerMetadata, IMethodHandler, MethodInfo)>>();
+            var languages = new Dictionary<string, Lazy<(RequestHandlerMetadata, IMethodHandler, ProcessQueueCoreAsyncDelegate)>>();
             foreach (var metadata in methodGroup)
             {
                 languages.Add(metadata.Language, new(() =>
@@ -113,8 +122,9 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                             : noValueType;
 
                     var method = s_processQueueCoreAsync.MakeGenericMethod(requestType, responseType);
+                    var processQueueCoreAsync = (ProcessQueueCoreAsyncDelegate)method.CreateDelegate(typeof(ProcessQueueCoreAsyncDelegate), this);
                     var handler = handlerProvider.GetMethodHandler(metadata.MethodName, metadata.RequestTypeRef, metadata.ResponseTypeRef, metadata.Language);
-                    return (metadata, handler, method);
+                    return (metadata, handler, processQueueCoreAsync);
                 }));
             }
 
@@ -258,11 +268,13 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                         // 1. We were unable to determine the language and there is no default handler for this method.
                         // 2. A client sends a request for a method the server does not handle for this language.
                         // In either case, we should not crash - just fail the request gracefully.
-                        work.FailRequest($"Missing handler for {work.MethodName} and language {resolvedLanguage}");
+                        work.FailRequest(
+                            $"Missing handler for {work.MethodName} and language {resolvedLanguage}",
+                            (int)JsonRpcErrorCode.MethodNotFound);
                         continue;
                     }
 
-                    var (metadata, handler, methodInfo) = handlerResult;
+                    var (metadata, handler, processQueueCoreAsync) = handlerResult;
 
                     // We had an issue determining the language.  Generally this is very rare and only occurs
                     // when a client sends us requests for files where we haven't saved the languageId.
@@ -285,7 +297,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     }
 
                     // We now have the actual handler and language, so we can process the work item using the concrete types defined by the metadata.
-                    await InvokeProcessCoreAsync(work, metadata, handler, methodInfo, concurrentlyExecutingTasks, currentWorkCts, cancellationToken).ConfigureAwait(false);
+                    await processQueueCoreAsync(work, handler, metadata, concurrentlyExecutingTasks, currentWorkCts, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -311,29 +323,6 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             await DisposeAsync().ConfigureAwait(false);
             return;
         }
-    }
-
-    /// <summary>
-    /// Reflection invokes <see cref="ProcessQueueCoreAsync{TRequest, TResponse}(QueueItem{TRequestContext}, IMethodHandler, RequestHandlerMetadata, ConcurrentDictionary{Task, CancellationTokenSource}, CancellationTokenSource?, CancellationToken)"/>
-    /// using the concrete types defined by the handler's metadata.
-    /// </summary>
-    private async Task InvokeProcessCoreAsync(
-        QueueItem<TRequestContext> work,
-        RequestHandlerMetadata metadata,
-        IMethodHandler handler,
-        MethodInfo methodInfo,
-        ConcurrentDictionary<Task, CancellationTokenSource> concurrentlyExecutingTasks,
-        CancellationTokenSource? currentWorkCts,
-        CancellationToken cancellationToken)
-    {
-        var result = methodInfo.Invoke(this, [work, handler, metadata, concurrentlyExecutingTasks, currentWorkCts, cancellationToken]);
-        if (result is null)
-        {
-            throw new InvalidOperationException($"ProcessQueueCoreAsync result task cannot be null");
-        }
-
-        var task = (Task)result;
-        await task.ConfigureAwait(false);
     }
 
     /// <summary>
@@ -424,11 +413,11 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         return;
     }
 
-    private bool TryGetHandlerForRequest(QueueItem<TRequestContext> work, string language, out (RequestHandlerMetadata Metadata, IMethodHandler Handler, MethodInfo MethodInfo) result)
+    private bool TryGetHandlerForRequest(QueueItem<TRequestContext> work, string language, out (RequestHandlerMetadata Metadata, IMethodHandler Handler, ProcessQueueCoreAsyncDelegate ProcessQueueCoreAsync) result)
     {
-        var handlersForMethod = _handlerInfoMap[work.MethodName];
-        if (handlersForMethod.TryGetValue(language, out var lazyData) ||
-            handlersForMethod.TryGetValue(LanguageServerConstants.DefaultLanguageName, out lazyData))
+        if (_handlerInfoMap.TryGetValue(work.MethodName, out var handlersForMethod) &&
+            (handlersForMethod.TryGetValue(language, out var lazyData) ||
+             handlersForMethod.TryGetValue(LanguageServerConstants.DefaultLanguageName, out lazyData)))
         {
             result = lazyData.Value;
             return true;

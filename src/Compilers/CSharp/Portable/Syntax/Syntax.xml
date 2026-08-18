@@ -1879,7 +1879,7 @@
     </Field>
     <Field Name="ValueExpression" Type="ExpressionSyntax" />
   </Node>
-  <Node Name="WithElementSyntax" Base="CollectionElementSyntax" ExperimentalUrl="https://github.com/dotnet/roslyn/issues/82210">
+  <Node Name="WithElementSyntax" Base="CollectionElementSyntax">
     <Kind Name="WithElement"/>
     <Field Name="WithKeyword" Type="SyntaxToken">
       <Kind Name="WithKeyword"/>
@@ -2508,6 +2508,7 @@
     <Field Name="BreakKeyword" Type="SyntaxToken">
       <Kind Name="BreakKeyword"/>
     </Field>
+    <Field Name="Name" Type="IdentifierNameSyntax" Optional="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
     </Field>
@@ -2518,6 +2519,7 @@
     <Field Name="ContinueKeyword" Type="SyntaxToken">
       <Kind Name="ContinueKeyword"/>
     </Field>
+    <Field Name="Name" Type="IdentifierNameSyntax" Optional="true"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">
       <Kind Name="SemicolonToken"/>
     </Field>
@@ -3516,7 +3518,7 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="UnionDeclarationSyntax" Base="TypeDeclarationSyntax" SkipConvenienceFactories="true" ExperimentalUrl="https://github.com/dotnet/roslyn/issues/82567">
+  <Node Name="UnionDeclarationSyntax" Base="TypeDeclarationSyntax" SkipConvenienceFactories="true">
     <TypeComment>
       <summary>Union type declaration syntax.</summary>
     </TypeComment>
