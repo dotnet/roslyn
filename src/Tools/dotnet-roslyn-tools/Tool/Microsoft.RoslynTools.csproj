@@ -25,6 +25,12 @@
     <DebugType>portable</DebugType>
     <IncludeSymbols>true</IncludeSymbols>
     <NoWarn>$(NoWarn);CS8002</NoWarn>
+
+    <!-- 
+      We do not set the NuGet package versions centrally because transitive pinning
+      creates conflicts with the way Microsoft.CodeAnalysis.Testing works.
+    -->
+    <NuGetVersion>6.14.3</NuGetVersion>
   </PropertyGroup>
 
   <ItemGroup>

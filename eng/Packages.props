@@ -20,7 +20,6 @@
     <SqliteVersion>2.1.6</SqliteVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
     <HumanizerVersion>2.14.1</HumanizerVersion>
-    <NuGetVersion>6.14.3</NuGetVersion>
   </PropertyGroup>
 
   <!--
