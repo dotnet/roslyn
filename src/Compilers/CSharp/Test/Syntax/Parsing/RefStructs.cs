@@ -6,6 +6,7 @@
 
 using Xunit;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -80,19 +81,51 @@ class Program
 
             var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (4,9): error CS1031: Type expected
+                // (4,15): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref class S1{}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class"),
-                // (8,9): error CS1031: Type expected
-                //     ref interface I1{};
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(8, 9),
-                // (10,16): error CS1031: Type expected
-                //     public ref delegate ref int D1();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(10, 16),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S1").WithArguments("ref").WithLocation(4, 15),
                 // (6,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2")
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2").WithLocation(6, 30),
+                // (8,19): error CS0106: The modifier 'ref' is not valid for this item
+                //     ref interface I1{};
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("ref").WithLocation(8, 19),
+                // (10,33): error CS0106: The modifier 'ref' is not valid for this item
+                //     public ref delegate ref int D1();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D1").WithArguments("ref").WithLocation(10, 33)
             );
+        }
+
+        [Theory]
+        [InlineData("ref class C { }", "C", SyntaxKind.ClassDeclaration)]
+        [InlineData("ref interface I { }", "I", SyntaxKind.InterfaceDeclaration)]
+        [InlineData("ref enum E { }", "E", SyntaxKind.EnumDeclaration)]
+        [InlineData("ref delegate void D();", "D", SyntaxKind.DelegateDeclaration)]
+        public void RefTypeDeclarationLookahead_InvalidTypeKind(string source, string typeName, SyntaxKind declarationKind)
+        {
+            var tree = ParseTree(source, TestOptions.Regular);
+            tree.GetDiagnostics().Verify();
+
+            var root = tree.GetCompilationUnitRoot();
+            var declaration = Assert.Single(root.Members);
+            Assert.Equal(declarationKind, declaration.Kind());
+            Assert.Equal(SyntaxKind.RefKeyword, declaration.GetFirstToken().Kind());
+
+            CreateCompilation(source).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, typeName).WithArguments("ref"));
+        }
+
+        [Fact]
+        public void RefTypeDeclarationLookahead_FunctionPointerRemainsReturnType()
+        {
+            var tree = ParseTree("unsafe class C { ref delegate*<void> M(); }", TestOptions.Regular);
+            tree.GetDiagnostics().Verify();
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var method = Assert.IsType<MethodDeclarationSyntax>(Assert.Single(containingType.Members));
+            var refType = Assert.IsType<RefTypeSyntax>(method.ReturnType);
+            Assert.IsType<FunctionPointerTypeSyntax>(refType.Type);
         }
 
         [Fact]
@@ -121,6 +154,45 @@ class C
     ref partial struct S {}
 }");
             comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("unsafe")]
+        [InlineData("readonly")]
+        [InlineData("partial")]
+        [InlineData("unsafe readonly")]
+        [InlineData("partial readonly")]
+        [InlineData("readonly partial")]
+        public void RefTypeDeclarationLookahead_SkipsNonScopedModifiers(string modifiers)
+        {
+            var tree = ParseTree($"class C {{ ref {modifiers} struct S {{}} }}", TestOptions.Regular);
+            tree.GetDiagnostics().Verify();
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var refStruct = Assert.IsType<StructDeclarationSyntax>(Assert.Single(containingType.Members));
+            Assert.Equal($"ref {modifiers}", string.Join(" ", refStruct.Modifiers.Select(static token => token.Text)));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("readonly ")]
+        public void RefTypeDeclarationLookahead_DoesNotSkipScoped(string prefix)
+        {
+            var tree = ParseTree($"class C {{ ref {prefix}scoped struct S {{}} }}", TestOptions.Regular);
+            Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, Assert.Single(tree.GetDiagnostics()).Code);
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            Assert.Collection(
+                containingType.Members,
+                member =>
+                {
+                    var incompleteMember = Assert.IsType<IncompleteMemberSyntax>(member);
+                    var refType = Assert.IsType<RefTypeSyntax>(incompleteMember.Type);
+                    Assert.Equal($"ref {prefix}scoped", refType.ToString());
+                },
+                member => Assert.IsType<StructDeclarationSyntax>(member));
         }
 
         [Fact]

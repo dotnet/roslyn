@@ -1429,7 +1429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     case DeclarationModifiers.Ref:
                         {
-                            if (this.IsRefTypeDeclarationAfterModifiers(peekIndex: 1))
+                            if (isRefTypeDeclarationAfterModifiers())
                             {
                                 modTok = this.EatToken();
                             }
@@ -1498,6 +1498,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 tokens.Add(modTok);
             }
 
+            bool isRefTypeDeclarationAfterModifiers()
+            {
+                var peekIndex = 1;
+
+                // Skip ordinary modifiers while looking for the type declaration. 'scoped' is
+                // intentionally excluded: it is contextual and may instead be the type in a
+                // 'ref scoped ...' return-type prefix.
+                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+                {
+                    peekIndex++;
+                }
+
+                return this.IsTypeDeclarationStart(peekIndex);
+            }
+
             bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)
             {
                 // When 'requiredFeature' is enabled, the associated contextual keyword is always a keyword if not escaped. Otherwise, we reuse the async detection
@@ -1514,7 +1529,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 modTok = ConvertToKeyword(EatToken());
                 return true;
             }
-
         }
 
         private bool ShouldContextualKeywordBeTreatedAsModifier(bool parsingStatementNotDeclaration)
@@ -1732,22 +1746,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // We're now positioned at what should be the declaration head.  Return true if the
             // current token begins a declaration for which 'partial' is a plausible modifier.
 
-            var kind = this.CurrentToken.Kind;
-
-            // Type declarations where 'partial' is legal.
-            if (kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword)
-            {
-                return true;
-            }
-
-            if (this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
+            if (this.IsTypeDeclarationStart())
             {
                 return true;
             }
 
             // Constructs where 'partial' is illegal but we still want to consume it so the binder
             // can produce a targeted diagnostic instead of cascading parse errors.
-            if (kind is SyntaxKind.NamespaceKeyword or SyntaxKind.EnumKeyword or SyntaxKind.DelegateKeyword)
+            if (this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword)
             {
                 return true;
             }
@@ -1763,7 +1769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // we commit to treating 'partial' as a modifier regardless of whether partial events
             // are actually supported by the current language version.  The binder reports a
             // feature-availability diagnostic if needed.
-            if (kind == SyntaxKind.EventKeyword)
+            if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
             {
                 return true;
             }
@@ -1826,9 +1832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
 
-            var token = this.PeekToken(peekIndex);
-            return token.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
-                this.IsEnabledRecordOrUnionKeyword(token);
+            return this.IsTypeDeclarationStart(peekIndex);
         }
 
         private bool IsRefTypeDeclarationAfterModifiers(int peekIndex)
@@ -1838,8 +1842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 peekIndex++;
             }
 
-            var token = this.PeekToken(peekIndex);
-            return token.Kind == SyntaxKind.StructKeyword || this.IsEnabledRecordOrUnionKeyword(token);
+            return this.IsTypeDeclarationStart(peekIndex);
         }
 
         private bool IsPartialType()
@@ -1852,16 +1855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 peekIndex++;
             }
 
-            var nextToken = this.PeekToken(peekIndex);
-            switch (nextToken.Kind)
-            {
-                case SyntaxKind.StructKeyword:
-                case SyntaxKind.ClassKeyword:
-                case SyntaxKind.InterfaceKeyword:
-                    return true;
-            }
-
-            return this.IsEnabledRecordOrUnionKeyword(nextToken);
+            return this.IsTypeDeclarationStart(peekIndex);
         }
 
         private bool IsPartialConstructor(int peekIndex)
@@ -2691,6 +2685,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     return false;
             }
+        }
+
+        private bool IsTypeDeclarationStart(int peekIndex)
+        {
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            while (peekIndex > 0)
+            {
+                this.EatToken();
+                peekIndex--;
+            }
+
+            return this.IsTypeDeclarationStart();
         }
 
         private bool CanReuseMemberDeclaration(SyntaxKind kind, bool isGlobal)
