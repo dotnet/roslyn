@@ -1404,7 +1404,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // ModifierUtils.ToDeclarationModifiers.
                         if (forTopLevelStatements &&
                             !seenPartial &&
-                            this.IsPartialConstructor(peekIndex: 1))
+                            this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword &&
+                            this.IsPartialConstructor(peekIndex: 2))
                         {
                             // At top level, preserve the existing statement/member ambiguity rather than
                             // committing the first 'partial' as a declaration modifier.
@@ -1780,10 +1781,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // support partial constructors.  On earlier language versions the same tokens must
             // be parsed as a method whose return type is 'Identifier', so we explicitly gate on
             // the feature here to avoid changing the parse of existing code.
-            if (kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+            if (this.IsPartialConstructor(peekIndex: 0))
             {
-                return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
+                return true;
             }
 
             // 'partial ReturnType MemberName ...' -- partial method or property.  We reuse ScanType
@@ -1811,8 +1811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // token is the constructor name. Only prefer that interpretation when partial
             // constructors are available; earlier language versions parse this as a method whose
             // return type and name are both 'partial'.
-            if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
-                IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors))
+            if (this.IsPartialConstructor(peekIndex: 0))
             {
                 return true;
             }
@@ -3460,7 +3459,8 @@ parse_member_name:;
                 // (possibly void).
                 TypeSyntax type;
                 if (modifiers.Any((int)SyntaxKind.PartialKeyword) &&
-                    this.IsPartialConstructor(peekIndex: 0))
+                    this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
+                    this.IsPartialConstructor(peekIndex: 1))
                 {
                     // Modifier parsing has already committed the first 'partial' as the modifier.
                     // Preserve the second as the return-type identifier rather than reconsidering
