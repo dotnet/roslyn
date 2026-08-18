@@ -614,7 +614,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                     // Remove placeholder child and populate real children.
                     item.Items.RemoveAt(0);
 
-                    foreach (var child in operation.Children)
+                    foreach (var child in operation.ChildOperations)
                     {
                         AddOperation(item, child);
                     }
@@ -631,7 +631,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                 parentItem.Items.Add(item);
             }
 
-            if (operation.Children.Any())
+            if (operation.ChildOperations.Any())
             {
                 if (IsLazy)
                 {
@@ -641,7 +641,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                 else
                 {
                     // Recursively populate all descendants.
-                    foreach (var child in operation.Children)
+                    foreach (var child in operation.ChildOperations)
                     {
                         AddOperation(item, child);
                     }

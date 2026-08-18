@@ -42,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
     <PackageReference Include="Microsoft.VisualBasic" Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" VersionOverride="16.1.8" />
     <PackageReference Include="Nullable" PrivateAssets="all" />

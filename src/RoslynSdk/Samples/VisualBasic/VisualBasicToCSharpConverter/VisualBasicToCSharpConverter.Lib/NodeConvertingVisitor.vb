@@ -235,7 +235,10 @@ Namespace VisualBasicToCSharpConverter
                        Into
                            SelectMany(Flatten(node))
 
+            End Function
 
+            Private Function VisitStatements(statements As IEnumerable(Of VB.Syntax.StatementSyntax)) As IEnumerable(Of CS.Syntax.StatementSyntax)
+                Return Visit(statements).Cast(Of CS.Syntax.StatementSyntax)()
             End Function
 
             ' TODO: This suppression should be removed once we have rulesets in place for Roslyn.sln
@@ -276,7 +279,7 @@ Namespace VisualBasicToCSharpConverter
                         Throw New NotSupportedException(node.Kind.ToString())
                 End Select
 
-                Return TransferTrivia(accessorBlock, AccessorDeclaration(kind).WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))).WithModifiers(TokenList(VisitModifiers(node.Modifiers))).WithBody(Block(List(Visit(accessorBlock.Statements)))))
+                Return TransferTrivia(accessorBlock, AccessorDeclaration(kind).WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))).WithModifiers(TokenList(VisitModifiers(node.Modifiers))).WithBody(Block(List(VisitStatements(accessorBlock.Statements)))))
 
             End Function
 
@@ -645,7 +648,7 @@ Namespace VisualBasicToCSharpConverter
 
             Public Overrides Function VisitCatchBlock(node As VB.Syntax.CatchBlockSyntax) As SyntaxNode
 
-                Return CatchClause().WithDeclaration(VisitCatchStatement(node.CatchStatement)).WithBlock(Block(List(Visit(node.Statements))))
+                Return CatchClause().WithDeclaration(VisitCatchStatement(node.CatchStatement)).WithBlock(Block(List(VisitStatements(node.Statements))))
 
             End Function
 
@@ -772,7 +775,7 @@ Namespace VisualBasicToCSharpConverter
                                                 .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
                                                 .WithParameterList(VisitParameterList(node.ParameterList)) _
                                                 .WithInitializer(initializer) _
-                                                .WithBody(Block(List(Visit(If(initializer Is Nothing, subNewBlock.Statements, subNewBlock.Statements.Skip(1))))))
+                                                .WithBody(Block(List(VisitStatements(If(initializer Is Nothing, subNewBlock.Statements, subNewBlock.Statements.Skip(1))))))
                                                 )
 
             End Function
@@ -873,15 +876,15 @@ Namespace VisualBasicToCSharpConverter
                 Select Case node.Kind
                     Case VB.SyntaxKind.DoWhileLoopBlock, VB.SyntaxKind.DoUntilLoopBlock
 
-                        Return WhileStatement(VisitWhileOrUntilClause(node.DoStatement.WhileOrUntilClause), Block(List(Visit(node.Statements))))
+                        Return WhileStatement(VisitWhileOrUntilClause(node.DoStatement.WhileOrUntilClause), Block(List(VisitStatements(node.Statements))))
 
                     Case VB.SyntaxKind.DoLoopWhileBlock, VB.SyntaxKind.DoLoopUntilBlock
 
-                        Return DoStatement(Block(List(Visit(node.Statements))), VisitWhileOrUntilClause(node.LoopStatement.WhileOrUntilClause))
+                        Return DoStatement(Block(List(VisitStatements(node.Statements))), VisitWhileOrUntilClause(node.LoopStatement.WhileOrUntilClause))
 
                     Case VB.SyntaxKind.SimpleDoLoopBlock
 
-                        Return WhileStatement(LiteralExpression(CS.SyntaxKind.TrueLiteralExpression), Block(List(Visit(node.Statements))))
+                        Return WhileStatement(LiteralExpression(CS.SyntaxKind.TrueLiteralExpression), Block(List(VisitStatements(node.Statements))))
 
                     Case Else
                         Throw New NotSupportedException(node.Kind.ToString())
@@ -1139,7 +1142,7 @@ Namespace VisualBasicToCSharpConverter
 
                 If node Is Nothing Then Return Nothing
 
-                Return FinallyClause(Block(List(Visit(node.Statements))))
+                Return FinallyClause(Block(List(VisitStatements(node.Statements))))
 
             End Function
 
@@ -1192,7 +1195,7 @@ Namespace VisualBasicToCSharpConverter
                                                     type,
                                                     identifier,
                                                     Visit(node.Expression),
-                                                    Block(List(Visit(forBlock.Statements)))
+                                                    Block(List(VisitStatements(forBlock.Statements)))
                                                 )
                        )
 
@@ -1275,7 +1278,7 @@ Namespace VisualBasicToCSharpConverter
                     End If
                 End If
 
-                Return TransferTrivia(forBlock, ForStatement(Block(List(Visit(forBlock.Statements)))).WithDeclaration(declarationOpt).WithCondition(conditionOpt).WithIncrementors(SingletonSeparatedList(incrementor)))
+                Return TransferTrivia(forBlock, ForStatement(Block(List(VisitStatements(forBlock.Statements)))).WithDeclaration(declarationOpt).WithCondition(conditionOpt).WithIncrementors(SingletonSeparatedList(incrementor)))
 
             End Function
 
@@ -1644,9 +1647,9 @@ Namespace VisualBasicToCSharpConverter
             Public Overrides Function VisitSimpleImportsClause(node As VB.Syntax.SimpleImportsClauseSyntax) As SyntaxNode
 
                 If node.Alias Is Nothing Then
-                    Return TransferTrivia(node.Parent, UsingDirective(Visit(node.Name)))
+                    Return TransferTrivia(node.Parent, UsingDirective(DirectCast(Visit(node.Name), CS.Syntax.NameSyntax)))
                 Else
-                    Return TransferTrivia(node.Parent, UsingDirective(Visit(node.Name)).WithAlias(NameEquals(CS.SyntaxFactory.IdentifierName(VisitIdentifier(node.Alias.Identifier)))))
+                    Return TransferTrivia(node.Parent, UsingDirective(DirectCast(Visit(node.Name), CS.Syntax.NameSyntax)).WithAlias(NameEquals(CS.SyntaxFactory.IdentifierName(VisitIdentifier(node.Alias.Identifier)))))
                 End If
 
             End Function
@@ -1703,7 +1706,7 @@ Namespace VisualBasicToCSharpConverter
                                                     .WithTypeParameterList(VisitTypeParameterList(node.TypeParameterList)) _
                                                     .WithParameterList(VisitParameterList(node.ParameterList)) _
                                                     .WithConstraintClauses(List(VisitTypeParameterConstraintClauses(node.TypeParameterList))) _
-                                                    .WithBody(If(methodBlock Is Nothing, Nothing, Block(List(Visit(methodBlock.Statements))))) _
+                                                    .WithBody(If(methodBlock Is Nothing, Nothing, Block(List(VisitStatements(methodBlock.Statements))))) _
                                                     .WithSemicolonToken(If(methodBlock Is Nothing, Token(CS.SyntaxKind.SemicolonToken), Nothing))
                                         )
 
@@ -1799,21 +1802,21 @@ Namespace VisualBasicToCSharpConverter
 
                 ' TODO: Transfer trivia for each elseif/else block.
                 If node.ElseBlock IsNot Nothing Then
-                    elseOpt = ElseClause(Block(List(Visit(node.ElseBlock.Statements))))
+                    elseOpt = ElseClause(Block(List(VisitStatements(node.ElseBlock.Statements))))
                 End If
 
                 For i = node.ElseIfBlocks.Count - 1 To 0 Step -1
                     elseOpt = ElseClause(
                                   IfStatement(
                                       Visit(node.ElseIfBlocks(i).ElseIfStatement.Condition),
-                                      Block(List(Visit(node.ElseIfBlocks(i).Statements)))) _
+                                      Block(List(VisitStatements(node.ElseIfBlocks(i).Statements)))) _
                                     .WithElse(elseOpt)
                                   )
                 Next
 
                 Return TransferTrivia(node, IfStatement(
                                                 Visit(node.IfStatement.Condition),
-                                                Block(List(Visit(node.Statements)))) _
+                                                Block(List(VisitStatements(node.Statements)))) _
                                                 .WithElse(elseOpt)
                                             )
 
@@ -1829,7 +1832,7 @@ Namespace VisualBasicToCSharpConverter
 
                 Dim arrowToken = Token(CS.SyntaxKind.EqualsGreaterThanToken)
 
-                Dim body = Block(List(Visit(node.Statements)))
+                Dim body = Block(List(VisitStatements(node.Statements)))
 
                 Return ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, body)
 
@@ -1971,7 +1974,7 @@ Namespace VisualBasicToCSharpConverter
                                                                 .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                                 .WithModifiers(TokenList(VisitModifiers(otherModifiers))) _
                                                                 .WithParameterList(VisitParameterList(node.ParameterList)) _
-                                                                .WithBody(Block(List(Visit(operatorBlock.Statements))))
+                                                                .WithBody(Block(List(VisitStatements(operatorBlock.Statements))))
                                                              )
 
                     Case VB.SyntaxKind.IsTrueKeyword
@@ -2030,7 +2033,7 @@ Namespace VisualBasicToCSharpConverter
                                                      .WithAttributeLists(List(VisitAttributeLists(node.AttributeLists))) _
                                                      .WithModifiers(TokenList(VisitModifiers(node.Modifiers))) _
                                                      .WithParameterList(VisitParameterList(node.ParameterList)) _
-                                                     .WithBody(Block(List(Visit(operatorBlock.Statements))))
+                                                     .WithBody(Block(List(VisitStatements(operatorBlock.Statements))))
                                         )
 
             End Function
@@ -2351,12 +2354,12 @@ Namespace VisualBasicToCSharpConverter
                 Dim elseOpt As CS.Syntax.ElseClauseSyntax = Nothing
 
                 If node.ElseClause IsNot Nothing Then
-                    elseOpt = ElseClause(Block(List(Visit(node.ElseClause.Statements))))
+                    elseOpt = ElseClause(Block(List(VisitStatements(node.ElseClause.Statements))))
                 End If
 
                 Return TransferTrivia(node, IfStatement(
                                                 Visit(node.Condition),
-                                                Block(List(Visit(node.Statements)))) _
+                                                Block(List(VisitStatements(node.Statements)))) _
                                               .WithElse(elseOpt)
                                         )
 
@@ -2375,7 +2378,7 @@ Namespace VisualBasicToCSharpConverter
 
                 Dim body = If(node.IsKind(VB.SyntaxKind.SingleLineFunctionLambdaExpression),
                               Visit(node.Body),
-                              Block(SingletonList(Visit(node.Body))))
+                              Block(SingletonList(DirectCast(Visit(node.Body), CS.Syntax.StatementSyntax))))
 
                 Return ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, body)
 
@@ -2420,7 +2423,7 @@ Namespace VisualBasicToCSharpConverter
 
                 Dim syncLockBlock As VB.Syntax.SyncLockBlockSyntax = node.Parent
 
-                Return LockStatement(Visit(node.Expression), Block(List(Visit(syncLockBlock.Statements))))
+                Return LockStatement(Visit(node.Expression), Block(List(VisitStatements(syncLockBlock.Statements))))
 
             End Function
 
@@ -2487,7 +2490,7 @@ Namespace VisualBasicToCSharpConverter
             Public Overrides Function VisitTryBlock(node As VB.Syntax.TryBlockSyntax) As SyntaxNode
 
                 Return TransferTrivia(node, TryStatement(List(VisitCatchBlocks(node.CatchBlocks))) _
-                                                .WithBlock(Block(List(Visit(node.Statements)))) _
+                                                .WithBlock(Block(List(VisitStatements(node.Statements)))) _
                                                 .WithFinally(VisitFinallyBlock(node.FinallyBlock))
                                             )
 
@@ -2714,7 +2717,7 @@ Namespace VisualBasicToCSharpConverter
 
                 Dim usingBlock As VB.Syntax.UsingBlockSyntax = node.Parent
 
-                Dim body As CS.Syntax.StatementSyntax = Block(List(Visit(usingBlock.Statements)))
+                Dim body As CS.Syntax.StatementSyntax = Block(List(VisitStatements(usingBlock.Statements)))
 
                 If node.Expression IsNot Nothing Then
 
@@ -2809,7 +2812,7 @@ Namespace VisualBasicToCSharpConverter
 
                 Dim whileBlock As VB.Syntax.WhileBlockSyntax = node.Parent
 
-                Return TransferTrivia(node, WhileStatement(Visit(node.Condition), Block(List(Visit(whileBlock.Statements)))))
+                Return TransferTrivia(node, WhileStatement(Visit(node.Condition), Block(List(VisitStatements(whileBlock.Statements)))))
 
             End Function
 
