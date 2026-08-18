@@ -132,6 +132,19 @@ extends:
     - ES365AIMigrationTooling
     stages:
 
+    - stage: localization
+      displayName: localization
+      trigger: manual
+
+      jobs:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.14') }}:
+        - template: /eng/common/templates-official/job/onelocbuild.yml@self
+          parameters:
+            MirrorRepo: roslyn
+            MirrorBranch: release/dev17.14
+            LclSource: lclFilesfromPackage
+            LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
+
     - stage: build
       displayName: Build and Test
 
