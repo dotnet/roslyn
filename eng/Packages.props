@@ -52,6 +52,17 @@
 
   <ItemGroup>
     <!--
+      Roslyn Tools
+    -->
+    <PackageVersion Include="Azure.Identity" Version="1.21.0" />
+    <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.9.0" />
+    <PackageVersion Include="LibGit2Sharp" Version="0.30.0" />
+    <PackageVersion Include="Microsoft.DotNet.DarcLib" Version="1.1.0-beta.25074.4" />
+    <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="20.268.0-preview" />
+    <PackageVersion Include="Microsoft.TeamFoundationServer.ExtendedClient" Version="20.268.0-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="20.268.0-preview" />
+
+    <!--
       BuildHost
     -->
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.10.2" />
