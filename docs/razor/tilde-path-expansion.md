@@ -263,6 +263,7 @@ tests declare stub `[AssetPath]` / `[AcceptsAssetPath]` / `AssetPathAttributes` 
 | `TildePath_ExplicitExpressionNotExpanded` | `@("~/...")` is not expanded (escape mechanism) |
 | `TildePath_NoTilde` | No tilde, no transformation |
 | `TildePath_MultipleElements` | `link/href` and `script/src` opted in |
+| `TildePath_MultipleAttributesSameElement` | `<img srcset="~/a" src="~/b">` -- multiple opted-in attributes on one element both expand |
 | `TildePath_MixedContent` | Mixed content on an opted-in attribute produces RZ10029 |
 | `TildePath_NotExpandedBeforeLanguageVersion11` | Version gating |
 | `TildePath_BackslashInPath` | Backslash escaping in generated C# |

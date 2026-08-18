@@ -13172,6 +13172,7 @@ namespace Test
         namespace Microsoft.AspNetCore.Components.Web
         {
             [Microsoft.AspNetCore.Components.AcceptsAssetPath("img", "src")]
+            [Microsoft.AspNetCore.Components.AcceptsAssetPath("img", "srcset")]
             [Microsoft.AspNetCore.Components.AcceptsAssetPath("link", "href")]
             [Microsoft.AspNetCore.Components.AcceptsAssetPath("script", "src")]
             public static class AssetPathAttributes { }
@@ -13411,6 +13412,23 @@ namespace Test
         var generated = CompileToCSharp("""
             <link href="~/a.css" />
             <script src="~/b.js"></script>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_MultipleAttributesSameElement()
+    {
+        // Arrange - both img/src and img/srcset are opted in, so both expand on the same element.
+        AdditionalSyntaxTrees.Add(Parse(AssetPathStubs));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <img srcset="~/a.gif" src="~/b.gif" />
             """);
 
         // Assert

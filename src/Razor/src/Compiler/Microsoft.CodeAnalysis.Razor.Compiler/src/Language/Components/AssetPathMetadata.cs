@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-// Descriptor-level metadata that records a single element/attribute pair for which the runtime
-// has opted into '~/' asset-path expansion via [AcceptsAssetPath(element, attribute)].
+/// <summary>
+/// Descriptor-level metadata that records a single element/attribute pair for which the runtime
+/// has opted into '~/' asset-path expansion via <c>[AcceptsAssetPath(element, attribute)]</c>.
+/// </summary>
 public sealed record AssetPathMetadata() : MetadataObject(MetadataKind.AssetPath)
 {
     public required string Element { get; init; }

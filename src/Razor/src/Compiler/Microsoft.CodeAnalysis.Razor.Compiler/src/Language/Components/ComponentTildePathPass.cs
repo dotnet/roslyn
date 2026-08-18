@@ -8,15 +8,23 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-// Rewrites ~/-prefixed string literal attribute values into Assets["path"] C# expressions,
-// but only where the target has explicitly opted into asset-path expansion:
-//   * HTML element attributes whose (element, attribute) pair the runtime declared via
-//     [AcceptsAssetPath(elementName, attributeName)] (surfaced as AssetPathMetadata tag helpers).
-//   * Component parameters whose property is marked with [AssetPath] (PropertyMetadata.AcceptsAssetPath).
-// For example, <img src="~/images/logo.png" /> becomes Assets["images/logo.png"] when (img, src)
-// is opted in. When nothing is opted in, no expansion occurs.
-// Runs after ComponentLoweringPass (Order=0) and the Order=50 passes, but before
-// ComponentBindLoweringPass (Order=100).
+/// <summary>
+/// Rewrites <c>~/</c>-prefixed string literal attribute values into <c>Assets["path"]</c> C#
+/// expressions, but only where the target has explicitly opted into asset-path expansion:
+/// <list type="bullet">
+///   <item>HTML element attributes whose (element, attribute) pair the runtime declared via
+///     <c>[AcceptsAssetPath(elementName, attributeName)]</c> (surfaced as <see cref="AssetPathMetadata"/>
+///     tag helpers).</item>
+///   <item>Component parameters whose property is marked with <c>[AssetPath]</c>
+///     (<see cref="PropertyMetadata.AcceptsAssetPath"/>).</item>
+/// </list>
+/// For example, <c>&lt;img src="~/images/logo.png" /&gt;</c> becomes <c>Assets["images/logo.png"]</c>
+/// when (img, src) is opted in. When nothing is opted in, no expansion occurs.
+/// </summary>
+/// <remarks>
+/// Runs after <c>ComponentLoweringPass</c> (Order=0) and the Order=50 passes, but before
+/// <c>ComponentBindLoweringPass</c> (Order=100).
+/// </remarks>
 internal sealed class ComponentTildePathPass(RazorLanguageVersion version) : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
     private const string TildePrefix = "~/";
@@ -58,13 +66,13 @@ internal sealed class ComponentTildePathPass(RazorLanguageVersion version) : Com
         return _allowedElementAttributes;
     }
 
-    // Maps an opted-in HTML element name to the set of its attributes that accept asset paths.
-    // Both element and attribute comparisons are case-insensitive, matching HTML semantics. The
-    // allowlist is global: it comes from the full set of discovered tag helpers (which includes the
-    // AssetPathMetadata carriers produced from [AcceptsAssetPath]), independent of which tag helpers
-    // are in scope for this document. An empty map means nothing is opted in.
     private Dictionary<string, HashSet<string>> BuildAllowedElementAttributes(CancellationToken cancellationToken)
     {
+        // Maps an opted-in HTML element name to the set of its attributes that accept asset paths.
+        // Both element and attribute comparisons are case-insensitive, matching HTML semantics. The
+        // allowlist is global: it comes from the full set of discovered tag helpers (which includes
+        // the AssetPathMetadata carriers produced from [AcceptsAssetPath]), independent of which tag
+        // helpers are in scope for this document. An empty map means nothing is opted in.
         var result = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
         if (!Engine.TryGetFeature(out ITagHelperFeature? tagHelperFeature))
@@ -184,7 +192,7 @@ internal sealed class ComponentTildePathPass(RazorLanguageVersion version) : Com
         // Returns the single literal token that makes up the entire value, or null for mixed/dynamic
         // content (which never expands).
         private static IntermediateToken? GetSingleLiteralToken(IntermediateNode valueContainer)
-            => valueContainer.Children.Count == 1 && valueContainer.Children[0] is IntermediateToken token
+            => valueContainer.Children is [IntermediateToken token]
                 ? token
                 : null;
 
