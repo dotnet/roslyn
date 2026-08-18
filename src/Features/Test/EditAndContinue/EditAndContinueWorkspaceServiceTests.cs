@@ -5784,7 +5784,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var sourceFile = dir.CreateFile("a.cs").WriteAllText(source1, Encoding.UTF8);
 
         using var _1 = CreateWorkspace(out var solution, out var service);
-        (solution, var document) = AddDefaultTestProject(solution, "class C { }");
+        (solution, _) = AddDefaultTestProject(solution, "class C { }");
 
         var document1 = solution.
             AddTestProject("test").

@@ -91,14 +91,13 @@ internal abstract class DebugInformationReaderProvider : IDisposable
             _stream.Dispose();
 
             var symReader = Interlocked.Exchange(ref _symReader, null);
-
+#if NET
+            Debug.Assert(OperatingSystem.IsWindows());
+#endif
             // On .NET the reader is a source-generated COM object, which is released by
             // disposing it. Marshal.ReleaseComObject is not supported for such objects (SYSLIB1099).
             if (symReader is IDisposable disposable)
             {
-#if NET
-                Debug.Assert(OperatingSystem.IsWindows());
-#endif
                 disposable.Dispose();
             }
             else if (symReader != null && Marshal.IsComObject(symReader))
