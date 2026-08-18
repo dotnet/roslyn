@@ -168,7 +168,12 @@
       packages we will keep it untied to the RoslynDiagnosticsAnalyzersPackageVersion we use for
       other analyzers to ensure it stays on a release version.
     -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers"
+                    Version="5.9.0"
+                    Condition="'$(DotNetBuild)' != 'true'" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers"
+                    Version="$(MicrosoftCodeAnalysisAnalyzersPackageVersion)"
+                    Condition="'$(DotNetBuild)' == 'true'" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
