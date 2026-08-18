@@ -613,6 +613,56 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84733")]
+        public void ReassignmentWithReorderedOutVariableArgument()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        TestRefLocal();
+
+                        int x = 1;
+                        int y = 2;
+                        TestOutParameter(out x, ref y);
+                        Console.Write(x);
+                        Console.Write(y);
+                    }
+
+                    static void TestRefLocal()
+                    {
+                        int x = 1;
+                        int y = 2;
+                        ref int z = ref x;
+
+                        M(b: out z, a: (z = ref y));
+                        Console.Write(x);
+                        Console.Write(y);
+                    }
+
+                    static void TestOutParameter(out int z, ref int y)
+                    {
+                        z = 0;
+                        M(b: out z, a: (z = ref y));
+                        z = 4;
+                    }
+
+                    static void M(int a, out int b)
+                    {
+                        Console.Write(a);
+                        b = 3;
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "232234")
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
         public void InReassignmentWithConversion()
         {
             var verifier = CompileAndVerify(@"
