@@ -10991,7 +10991,7 @@ Permettez au compilateur de différencier les méthodes. Par exemple, vous pouve
       </trans-unit>
       <trans-unit id="ERR_AwaitInUnsafeContext">
         <source>Cannot await in an unsafe context</source>
-        <target state="translated">Impossible d'attendre dans un contexte unsafe</target>
+        <target state="new">Cannot await in an unsafe context</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">
