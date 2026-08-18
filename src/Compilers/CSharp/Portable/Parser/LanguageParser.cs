@@ -1423,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
 
                             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-                            if (this.ScanTypeTreatingPartialAsIdentifier() != ScanTypeFlags.NotType &&
+                            if (this.ScanType(ParseTypeMode.Normal, out _, treatPartialAsIdentifier: true) != ScanTypeFlags.NotType &&
                                 IsPossibleMemberName())
                             {
                                 if (!this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
@@ -1751,8 +1751,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return true;
                     }
 
-                    using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-                    if (this.ScanTypeTreatingPartialAsIdentifier() != ScanTypeFlags.NotType &&
+                    using var partialTypeResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+                    if (this.ScanType(ParseTypeMode.Normal, out _, treatPartialAsIdentifier: true) != ScanTypeFlags.NotType &&
                         IsPossibleMemberName())
                     {
                         if (!this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
@@ -7363,9 +7363,25 @@ parse_member_name:;
 
         private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType, bool treatPartialAsIdentifier)
         {
-            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken ||
-                (!treatPartialAsIdentifier || this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword) &&
-                !this.IsTrueIdentifier())
+            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+            {
+                lastTokenOfType = null;
+                return ScanTypeFlags.NotType;
+            }
+
+            bool canScanAsIdentifier;
+            if (treatPartialAsIdentifier && this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+            {
+                // Explicitly allow 'partial' to be interpreted as a type name even when declaration
+                // lookahead would otherwise classify it as a modifier.
+                canScanAsIdentifier = true;
+            }
+            else
+            {
+                canScanAsIdentifier = this.IsTrueIdentifier();
+            }
+
+            if (!canScanAsIdentifier)
             {
                 lastTokenOfType = null;
                 return ScanTypeFlags.NotType;
@@ -7384,12 +7400,6 @@ parse_member_name:;
 
         private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType)
             => ScanType(mode, out lastTokenOfType, treatPartialAsIdentifier: false);
-
-        private ScanTypeFlags ScanTypeTreatingPartialAsIdentifier()
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            return ScanType(ParseTypeMode.Normal, out _, treatPartialAsIdentifier: true);
-        }
 
         private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType, bool treatPartialAsIdentifier)
         {
