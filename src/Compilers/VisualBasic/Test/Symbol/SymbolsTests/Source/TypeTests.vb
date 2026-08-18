@@ -1309,7 +1309,14 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                     Assert.Equal(4, classWithSizeAndPackType.TypeLayout.PackingSize)
                 End Sub
 
-            Dim verifier = CompileAndVerify(code, symbolValidator:=verify, sourceSymbolValidator:=verify)
+            Dim verifier = CompileAndVerify(code,
+                                            symbolValidator:=verify,
+                                            sourceSymbolValidator:=verify,
+                                            references:=Net110.ReferenceInfos.All.Select(
+                                                Function(x)
+                                                    Return MetadataReference.CreateFromImage(x.ImageBytes)
+                                                End Function).ToArray(),
+                                            verify:=Verification.FailsPEVerify)
             verifier.VerifyDiagnostics()
         End Sub
 

@@ -992,7 +992,7 @@ class ClassWithSizeAndPack
     int x;
 }";
 
-            var verifier = CompileAndVerify(text, sourceSymbolValidator: verify, symbolValidator: verify);
+            var verifier = CompileAndVerify(text, sourceSymbolValidator: verify, symbolValidator: verify, targetFramework: TargetFramework.Net110, verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
 
             static void verify(ModuleSymbol module)
