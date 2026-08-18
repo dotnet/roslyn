@@ -1025,7 +1025,7 @@ class ClassWithSizeAndPack
                 Assert.Equal(new TypeLayout(LayoutKind.Sequential, 5, 0), structWithSizeType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout);
-                Assert.Equal(new TypeLayout(CType(1, LayoutKind), 0, 0), structWithExtendedLayoutType.TypeLayout);
+                Assert.Equal(new TypeLayout(LayoutKind.Extended, 0, 0), structWithExtendedLayoutType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classNoFieldsType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.TypeLayout);

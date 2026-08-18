@@ -1294,7 +1294,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                     Assert.Equal(New TypeLayout(LayoutKind.Sequential, 5, 0), structWithSizeType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout)
-                    Assert.Equal(New TypeLayout(LayoutKind.Extended, 0, 0), structWithExtendedLayoutType.TypeLayout)
+                    Assert.Equal(New TypeLayout(CType(1, LayoutKind), 0, 0), structWithExtendedLayoutType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classNoFieldsType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.TypeLayout)
