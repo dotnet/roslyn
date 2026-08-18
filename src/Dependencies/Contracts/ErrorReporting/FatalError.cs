@@ -283,6 +283,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             if (handler == null)
             {
+                // Fail in debug builds if the handler is not set (e.g. in tests):
                 Debug.Fail($"Unexpected exception (severity {severity}): {exception}");
                 return;
             }
