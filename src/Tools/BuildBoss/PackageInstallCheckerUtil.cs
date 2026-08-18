@@ -139,15 +139,10 @@ namespace BuildBoss
         private static bool RunDotnetAndReport(TextWriter textWriter, string description, string arguments, string workingDirectory)
         {
             var result = ProcessUtil.Run("dotnet", arguments, workingDirectory);
-            if (result.Succeeded)
-            {
-                return true;
-            }
-
-            textWriter.WriteLine($"{description}: 'dotnet {arguments}' failed with exit code {result.ExitCode}");
+            textWriter.WriteLine($"{description}: 'dotnet {arguments}' exited with code {result.ExitCode}");
             textWriter.WriteLine(result.Output);
 
-            return false;
+            return result.Succeeded;
         }
 
         /// <summary>
