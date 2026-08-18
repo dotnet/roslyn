@@ -313,8 +313,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureStaticMembersInInterfaces = MessageBase + 12861,
         IDS_FeatureClosedClasses = MessageBase + 12862,
         IDS_FeatureExtensionIndexers = MessageBase + 12863,
+        IDS_FeatureLabeledBreakContinue = MessageBase + 12864,
 
-        IDS_FeatureDictionaryExpressions = MessageBase + 12864,
+        // PROTOTYPE: compact
+        IDS_FeatureDictionaryExpressions = MessageBase + 12900,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -495,14 +497,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
-                case MessageID.IDS_FeatureCollectionExpressionArguments:
                 case MessageID.IDS_FeatureUnsafeEvolution: // https://github.com/dotnet/roslyn/issues/82546: keep this in preview until C# 16
+                case MessageID.IDS_FeatureDictionaryExpressions: // semantic check
+                    return LanguageVersion.Preview;
+
+                // C# 15.0 features.
+                case MessageID.IDS_FeatureCollectionExpressionArguments:
                 case MessageID.IDS_FeatureUnions:
                 case MessageID.IDS_FeatureStaticMembersInInterfaces:
                 case MessageID.IDS_FeatureClosedClasses: // semantic check
+                case MessageID.IDS_FeatureLabeledBreakContinue:
                 case MessageID.IDS_FeatureExtensionIndexers:
-                case MessageID.IDS_FeatureDictionaryExpressions: // semantic check
-                    return LanguageVersion.Preview;
+                    return LanguageVersion.CSharp15;
 
                 // C# 14.0 features.
                 case MessageID.IDS_FeatureFieldKeyword:

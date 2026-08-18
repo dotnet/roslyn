@@ -10,6 +10,7 @@ using Roslyn.Utilities;
 using CoreSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp;
+
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -237,7 +238,6 @@ public partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult? VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
     public virtual TResult? VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
@@ -523,7 +523,6 @@ public partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult? VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a UnionDeclarationSyntax node.</summary>
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82567")]
     public virtual TResult? VisitUnionDeclaration(UnionDeclarationSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a InterfaceDeclarationSyntax node.</summary>
@@ -997,7 +996,6 @@ public partial class CSharpSyntaxVisitor
     public virtual void VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
     public virtual void VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
@@ -1283,7 +1281,6 @@ public partial class CSharpSyntaxVisitor
     public virtual void VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a UnionDeclarationSyntax node.</summary>
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82567")]
     public virtual void VisitUnionDeclaration(UnionDeclarationSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a InterfaceDeclarationSyntax node.</summary>
@@ -1756,7 +1753,6 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
     public override SyntaxNode? VisitKeyValuePairElement(KeyValuePairElementSyntax node)
         => node.Update((ExpressionSyntax?)Visit(node.KeyExpression) ?? throw new ArgumentNullException("keyExpression"), VisitToken(node.ColonToken), (ExpressionSyntax?)Visit(node.ValueExpression) ?? throw new ArgumentNullException("valueExpression"));
 
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
     public override SyntaxNode? VisitWithElement(WithElementSyntax node)
         => node.Update(VisitToken(node.WithKeyword), (ArgumentListSyntax?)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
@@ -1911,10 +1907,10 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
         => node.Update(VisitList(node.AttributeLists), VisitToken(node.GotoKeyword), VisitToken(node.CaseOrDefaultKeyword), (ExpressionSyntax?)Visit(node.Expression), VisitToken(node.SemicolonToken));
 
     public override SyntaxNode? VisitBreakStatement(BreakStatementSyntax node)
-        => node.Update(VisitList(node.AttributeLists), VisitToken(node.BreakKeyword), VisitToken(node.SemicolonToken));
+        => node.Update(VisitList(node.AttributeLists), VisitToken(node.BreakKeyword), (IdentifierNameSyntax?)Visit(node.Name), VisitToken(node.SemicolonToken));
 
     public override SyntaxNode? VisitContinueStatement(ContinueStatementSyntax node)
-        => node.Update(VisitList(node.AttributeLists), VisitToken(node.ContinueKeyword), VisitToken(node.SemicolonToken));
+        => node.Update(VisitList(node.AttributeLists), VisitToken(node.ContinueKeyword), (IdentifierNameSyntax?)Visit(node.Name), VisitToken(node.SemicolonToken));
 
     public override SyntaxNode? VisitReturnStatement(ReturnStatementSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitToken(node.ReturnKeyword), (ExpressionSyntax?)Visit(node.Expression), VisitToken(node.SemicolonToken));
@@ -2042,7 +2038,6 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
     public override SyntaxNode? VisitStructDeclaration(StructDeclarationSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (ParameterListSyntax?)Visit(node.ParameterList), (BaseListSyntax?)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82567")]
     public override SyntaxNode? VisitUnionDeclaration(UnionDeclarationSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (ParameterListSyntax?)Visit(node.ParameterList), (BaseListSyntax?)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
@@ -3516,7 +3511,6 @@ public static partial class SyntaxFactory
         => SyntaxFactory.KeyValuePairElement(keyExpression, SyntaxFactory.Token(SyntaxKind.ColonToken), valueExpression);
 
     /// <summary>Creates a new WithElementSyntax instance.</summary>
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
     public static WithElementSyntax WithElement(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
         if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
@@ -3525,7 +3519,6 @@ public static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new WithElementSyntax instance.</summary>
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
     public static WithElementSyntax WithElement(ArgumentListSyntax? argumentList = default)
         => SyntaxFactory.WithElement(SyntaxFactory.Token(SyntaxKind.WithKeyword), argumentList ?? SyntaxFactory.ArgumentList());
 
@@ -4274,36 +4267,40 @@ public static partial class SyntaxFactory
 #pragma warning restore RS0027
 
     /// <summary>Creates a new BreakStatementSyntax instance.</summary>
-    public static BreakStatementSyntax BreakStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+    public static BreakStatementSyntax BreakStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
         if (breakKeyword.Kind() != SyntaxKind.BreakKeyword) throw new ArgumentException(nameof(breakKeyword));
         if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-        return (BreakStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.BreakStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)breakKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
+        return (BreakStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.BreakStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)breakKeyword.Node!, name == null ? null : (Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
     }
 
     /// <summary>Creates a new BreakStatementSyntax instance.</summary>
-    public static BreakStatementSyntax BreakStatement(SyntaxList<AttributeListSyntax> attributeLists)
-        => SyntaxFactory.BreakStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.BreakKeyword), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+    public static BreakStatementSyntax BreakStatement(SyntaxList<AttributeListSyntax> attributeLists, IdentifierNameSyntax? name)
+        => SyntaxFactory.BreakStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.BreakKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
+#pragma warning disable RS0027
     /// <summary>Creates a new BreakStatementSyntax instance.</summary>
-    public static BreakStatementSyntax BreakStatement()
-        => SyntaxFactory.BreakStatement(default, SyntaxFactory.Token(SyntaxKind.BreakKeyword), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+    public static BreakStatementSyntax BreakStatement(IdentifierNameSyntax? name = default)
+        => SyntaxFactory.BreakStatement(default, SyntaxFactory.Token(SyntaxKind.BreakKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+#pragma warning restore RS0027
 
     /// <summary>Creates a new ContinueStatementSyntax instance.</summary>
-    public static ContinueStatementSyntax ContinueStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+    public static ContinueStatementSyntax ContinueStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
         if (continueKeyword.Kind() != SyntaxKind.ContinueKeyword) throw new ArgumentException(nameof(continueKeyword));
         if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-        return (ContinueStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ContinueStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)continueKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
+        return (ContinueStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ContinueStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)continueKeyword.Node!, name == null ? null : (Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
     }
 
     /// <summary>Creates a new ContinueStatementSyntax instance.</summary>
-    public static ContinueStatementSyntax ContinueStatement(SyntaxList<AttributeListSyntax> attributeLists)
-        => SyntaxFactory.ContinueStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+    public static ContinueStatementSyntax ContinueStatement(SyntaxList<AttributeListSyntax> attributeLists, IdentifierNameSyntax? name)
+        => SyntaxFactory.ContinueStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.ContinueKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
+#pragma warning disable RS0027
     /// <summary>Creates a new ContinueStatementSyntax instance.</summary>
-    public static ContinueStatementSyntax ContinueStatement()
-        => SyntaxFactory.ContinueStatement(default, SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+    public static ContinueStatementSyntax ContinueStatement(IdentifierNameSyntax? name = default)
+        => SyntaxFactory.ContinueStatement(default, SyntaxFactory.Token(SyntaxKind.ContinueKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+#pragma warning restore RS0027
 
     /// <summary>Creates a new ReturnStatementSyntax instance.</summary>
     public static ReturnStatementSyntax ReturnStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken returnKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
@@ -5111,7 +5108,6 @@ public static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new UnionDeclarationSyntax instance.</summary>
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82567")]
     public static UnionDeclarationSyntax UnionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
         if (keyword.Kind() != SyntaxKind.UnionKeyword) throw new ArgumentException(nameof(keyword));

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -18,17 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
 public sealed class CSharpNewDocumentFormattingServiceTests : AbstractNewDocumentFormattingServiceTests
 {
-    public static IEnumerable<object[]> EndOfDocumentSequences
-    {
-        get
-        {
-            yield return new object[] { "" };
-            yield return new object[] { """
-
-                """ };
-        }
-    }
-
     protected override string Language => LanguageNames.CSharp;
     protected override EditorTestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions)
         => EditorTestWorkspace.CreateCSharp(testCode, parseOptions);
@@ -101,9 +89,17 @@ public sealed class CSharpNewDocumentFormattingServiceTests : AbstractNewDocumen
             parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
     }
 
-    [Theory]
-    [MemberData(nameof(EndOfDocumentSequences))]
-    public Task TestBlockScopedNamespaces(string endOfDocumentSequence)
+    [Fact]
+    public Task TestBlockScopedNamespaces()
+        => TestBlockScopedNamespacesAsync(endOfDocumentSequence: "");
+
+    [Fact]
+    public Task TestBlockScopedNamespaces_WithTrailingNewline()
+        => TestBlockScopedNamespacesAsync(endOfDocumentSequence: """
+
+            """);
+
+    private Task TestBlockScopedNamespacesAsync(string endOfDocumentSequence)
         => TestAsync(testCode: $$"""
             namespace Goo;
 

@@ -383,6 +383,28 @@ public abstract class IntegrationTestBase
         IntermediateNodeVerifier.Verify(document, baseline);
     }
 
+    protected void AssertSyntaxTreeMatchesBaseline(RazorCodeDocument codeDocument, [CallerMemberName] string testName = "")
+    {
+        var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".stree.txt");
+        var actualSyntaxNodes = TestSyntaxSerializer.Serialize(codeDocument.GetRequiredSyntaxTree().Root);
+
+        if (GenerateBaselines.ShouldGenerate)
+        {
+            var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
+            File.WriteAllText(baselineFullPath, actualSyntaxNodes, _baselineEncoding);
+            return;
+        }
+
+        var stFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
+        if (!stFile.Exists())
+        {
+            throw new XunitException($"The resource {baselineFileName} was not found.");
+        }
+
+        var syntaxNodeBaseline = stFile.ReadAllText();
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(syntaxNodeBaseline, actualSyntaxNodes);
+    }
+
     internal void AssertHtmlDocumentMatchesBaseline(RazorHtmlDocument htmlDocument, [CallerMemberName] string testName = "")
     {
         var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".codegen.html");

@@ -64,6 +64,26 @@ public partial class FormattingLogTest(ITestOutputHelper testOutput) : DocumentF
     public async Task GameTracAdmin()
         => Assert.NotNull(await GetFormattingEditsAsync());
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9179")]
+    public async Task RanOutOfOriginalLinesFullFormatting()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    public async Task PageForMultiGrid()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3040290")]
+    public async Task PageForGrid()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3041882")]
+    public async Task BoatsSectionRange092858221()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
     private async Task<TextEdit[]?> GetFormattingEditsAsync([CallerMemberName] string? testName = null)
     {
         var contents = GetResource(testName.AssumeNotNull(), "InitialDocument.txt").AssumeNotNull();

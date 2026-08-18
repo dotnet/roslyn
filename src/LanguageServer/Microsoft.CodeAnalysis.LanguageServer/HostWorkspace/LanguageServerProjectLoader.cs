@@ -101,6 +101,16 @@ internal abstract class LanguageServerProjectLoader : IDisposable
         // Don't overload the machine, so leave some CPU cores open. This was chosen without much supporting evidence, other than that it's still pretty close to max.
         => Math.Max(Environment.ProcessorCount / 2, 1);
 
+    /// <summary>
+    /// Maps the set of project file paths that were determined to need a NuGet restore to the set of paths that restore
+    /// should actually be invoked on. The base implementation restores each project individually. Derived loaders may
+    /// override this to coalesce the work, e.g. restoring an entire solution at once instead of restoring each contained
+    /// project one at a time. This is invoked at restore time (rather than cached) so overrides can consult current,
+    /// possibly-changed state such as the on-disk contents of the open solution.
+    /// </summary>
+    protected virtual ValueTask<ImmutableArray<string>> GetPathsToRestoreAsync(ImmutableArray<string> projectsThatNeedRestore, CancellationToken cancellationToken)
+        => new(projectsThatNeedRestore);
+
     protected LanguageServerProjectLoader(
         ILspServices lspServices,
         IGlobalOptionService globalOptionService,
@@ -129,8 +139,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
             TimeSpan.FromMilliseconds(100),
             ReloadProjectsAsync,
             ProjectToLoad.Comparer,
-            Listener,
-            CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
+            Listener);
     }
 
     private static ImmutableDictionary<string, string> BuildAdditionalProperties(ServerConfiguration? serverConfiguration)
@@ -212,8 +221,10 @@ internal abstract class LanguageServerProjectLoader : IDisposable
 
             if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
+                var pathsToRestore = await GetPathsToRestoreAsync(projectsThatNeedRestore, cancellationToken);
+
                 // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync(_workDoneProgressManager, projectsThatNeedRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
+                await ProjectDependencyHelper.RestoreProjectsAsync(_workDoneProgressManager, pathsToRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
             }
         }
         finally
@@ -375,7 +386,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
 
             return projectRestorePath;
         }
-        catch (Exception e)
+        catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken)) // Cancellation is only expected when we're shutting down, in which case there's no reason to do a report.
         {
             // Since our LogDiagnosticsAsync helper takes DiagnosticLogItems, let's just make one for this
             var message = string.Format(LanguageServerResources.Exception_thrown_0, e);
@@ -638,8 +649,13 @@ internal abstract class LanguageServerProjectLoader : IDisposable
             _progressQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.Zero,
                 ReportProgressAsync,
-                listener ?? AsynchronousOperationListenerProvider.NullListener,
-                CancellationToken.None);
+                listener ?? AsynchronousOperationListenerProvider.NullListener);
+
+            reporter.Report(new LSP.WorkDoneProgressReport
+            {
+                Message = string.Format(LanguageServerResources.Loading_0_projects, totalItems),
+                Percentage = 0,
+            });
         }
 
         public void OnItemProcessed()
