@@ -1840,9 +1840,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPartialConstructor(int peekIndex)
         {
-            return this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword &&
-                this.PeekToken(peekIndex + 1).Kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(peekIndex + 2).Kind == SyntaxKind.OpenParenToken &&
+            return this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken &&
                 IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
         }
 
@@ -1859,7 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Check for constructor:
             //   partial Identifier(
-            if (this.IsPartialConstructor(peekIndex: 0))
+            if (this.IsPartialConstructor(peekIndex: 1))
             {
                 return true;
             }
