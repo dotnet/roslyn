@@ -1404,10 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // ModifierUtils.ToDeclarationModifiers.
                         if (forTopLevelStatements &&
                             !seenPartial &&
-                            IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
-                            this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword &&
-                            this.PeekToken(2).Kind == SyntaxKind.IdentifierToken &&
-                            this.PeekToken(3).Kind == SyntaxKind.OpenParenToken)
+                            this.IsPartialConstructor(peekIndex: 1))
                         {
                             // At top level, preserve the existing statement/member ambiguity rather than
                             // committing the first 'partial' as a declaration modifier.
@@ -1800,10 +1797,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// the current <c>partial</c> should instead be interpreted as a constructor name or return
         /// type.
         /// </summary>
+        /// <remarks>
+        /// For example, <c>partial partial()</c> declares a partial constructor named
+        /// <c>partial</c>, while <c>partial partial M()</c> declares a partial method named
+        /// <c>M</c> whose return type is named <c>partial</c>. The latter must not be interpreted
+        /// as a partial constructor named <c>M</c> with two <c>partial</c> modifiers.
+        /// </remarks>
         private bool IsPartialIdentifierDeclarationHead()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
+            // An earlier 'partial' is already the modifier, so in 'partial partial()' the current
+            // token is the constructor name. Only prefer that interpretation when partial
+            // constructors are available; earlier language versions parse this as a method whose
+            // return type and name are both 'partial'.
             if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
                 IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors))
             {
@@ -1831,6 +1838,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.IsEnabledRecordOrUnionKeyword(nextToken);
         }
 
+        private bool IsPartialConstructor(int peekIndex)
+        {
+            return this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword &&
+                this.PeekToken(peekIndex + 1).Kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(peekIndex + 2).Kind == SyntaxKind.OpenParenToken &&
+                IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
+        }
+
         private bool IsPartialMember()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
@@ -1844,10 +1859,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Check for constructor:
             //   partial Identifier(
-            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+            if (this.IsPartialConstructor(peekIndex: 0))
             {
-                return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
+                return true;
             }
 
             // Check for method/property:
@@ -3447,9 +3461,7 @@ parse_member_name:;
                 // (possibly void).
                 TypeSyntax type;
                 if (modifiers.Any((int)SyntaxKind.PartialKeyword) &&
-                    this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-                    this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
-                    this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+                    this.IsPartialConstructor(peekIndex: 0))
                 {
                     // Modifier parsing has already committed the first 'partial' as the modifier.
                     // Preserve the second as the return-type identifier rather than reconsidering
