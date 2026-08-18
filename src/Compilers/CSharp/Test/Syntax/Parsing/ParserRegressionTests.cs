@@ -71,6 +71,27 @@ class Program
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(11, 5));
         }
 
+        [Fact]
+        public void RepeatedPartialTypeModifiers()
+        {
+            UsingTree("partial partial partial class C { }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [WorkItem(540005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540005")]
         [Fact]
         public void c01()
