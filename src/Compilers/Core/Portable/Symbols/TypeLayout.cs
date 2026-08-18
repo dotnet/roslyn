@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// <para>
-    /// Type layout information - this retrieves the <see cref="StructLayoutAttribute" /> information from the type definition.
+    /// Type layout information - this retrieves the <see cref="StructLayoutAttribute" /> information from the type definition, or the default that the compiler emits if absent.
     /// </para>
     /// <para>
     /// In particular, it has the layout kind, the packing size, and the size of the type, as defined in metadata or source - it does not compute the actual size of a type for example.
