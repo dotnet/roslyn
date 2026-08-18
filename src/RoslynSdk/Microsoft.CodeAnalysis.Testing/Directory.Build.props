@@ -1,0 +1,82 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>  
+  <PropertyGroup>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+
+    <!-- Opt-out repo features -->
+    <UsingToolXliff>false</UsingToolXliff>
+  </PropertyGroup>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <SupportsNet10Targeting>$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '18.0'))</SupportsNet10Targeting>
+
+    <!--
+      net8.0: Modern .NET target with current NuGet APIs
+      net10.0: Included when building with MSBuild 18.0+ toolsets
+      All targets compile against Roslyn 4.12.
+    -->
+    <TestingLibraryTargetFrameworks>net8.0;netstandard2.0;net472</TestingLibraryTargetFrameworks>
+    <TestingLibraryTargetFrameworks Condition="'$(SupportsNet10Targeting)' == 'True'">net10.0;$(TestingLibraryTargetFrameworks)</TestingLibraryTargetFrameworks>
+
+    <!--
+      Source generator testing libraries compile against Roslyn 4.12.
+    -->
+    <TestingLibrarySourceGeneratorTargetFrameworks>netstandard2.0;net472</TestingLibrarySourceGeneratorTargetFrameworks>
+  </PropertyGroup>
+  
+  <Choose>
+    <When Condition="'$(Language)' == 'VB'">
+      <PropertyGroup>
+        <LangVersion>15.5</LangVersion>
+      </PropertyGroup>
+    </When>
+
+    <When Condition="'$(Language)' == 'C#'">
+      <PropertyGroup>
+        <LangVersion>11</LangVersion>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);NU3005;NU5125</NoWarn>
+  </PropertyGroup>
+
+  <!-- We always want a good debugging experience in tests -->
+  <PropertyGroup>
+    <Optimize>false</Optimize>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <EmbedAllSources>true</EmbedAllSources>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(CodeAnalysisRuleSet)" Condition="'$(CodeAnalysisRuleSet)' != ''" Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- Public API Analyzer configuration -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="System.Net.Http" PrivateAssets="all" ExcludeAssets="all" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <!-- Needed to override the transitive 9.0.1 version brought in by the 16.1.1 Microsoft.NET.Test.Sdk -->
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" ExcludeAssets="all" />
+  </ItemGroup>
+
+  <!-- Use a different versioning scheme for nuget packages -->
+  <PropertyGroup>
+    <VersionPrefix>$(NugetPackagePrefix)</VersionPrefix>
+  </PropertyGroup>
+
+</Project>
