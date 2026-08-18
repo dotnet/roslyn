@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -777,11 +777,29 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.M").WithArguments("A.M()", "System.Runtime.CompilerServices.MemorySafetyRulesAttribute", "2").WithLocation(3, 17));
         }
 
-        var method = comp.GetMember<MethodSymbol>("B.M");
-        Assert.False(method.ContainingModule.UseUpdatedMemorySafetyRules);
+        var bM = comp.GetMember<MethodSymbol>("B.M");
+        Assert.False(bM.ContainingModule.UseUpdatedMemorySafetyRules);
+
+        var aM = comp.GetMember<MethodSymbol>("A.M");
+        var expectedVersion = correctVersion ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
+        Assert.Equal(expectedVersion, aM.ContainingModule.GetPublicSymbol().MemorySafetyRulesVersion);
+
+        // VB
+        var sourceVB = """
+            Class C
+                Sub M()
+                    A.M()
+                End Sub
+            End Class
+            """;
+
+        // No error reported as VB doesn't have unsafe evolution feature.
+        var compVB = CreateVisualBasicCompilation(sourceVB, referencedAssemblies: [MscorlibRef, refA]);
+        compVB.VerifyEmitDiagnostics();
 
         // 'A.M' not used => no error.
         CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();
+        CreateVisualBasicCompilation("Class C\nEnd Class", referencedAssemblies: [MscorlibRef, refA]).VerifyEmitDiagnostics();
     }
 
     [Theory]
@@ -15214,6 +15232,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var method = comp.GetTypeByMetadataName("C")!.GetMember("M");
         Assert.False(method.RequiresUnsafeContext);
         Assert.Equal(MemorySafetyRulesVersion.Version1, method.ContainingModule.MemorySafetyRulesVersion);
+    }
+
+    [Fact]
+    public void PublicApi_MemorySafetyRulesVersion_VisualBasic()
+    {
+        var sourceComp = CreateCompilation(
+            "public class C { }",
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics();
+        var reference = sourceComp.EmitToImageReference();
+        var comp = CreateVisualBasicCompilation("", referencedAssemblies: [reference]).VerifyDiagnostics();
+        var type = comp.GetTypeByMetadataName("C");
+
+        Assert.NotNull(type);
+        Assert.Equal(MemorySafetyRulesVersion.Version2, type.ContainingModule.MemorySafetyRulesVersion);
     }
 
     [Fact]
