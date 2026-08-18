@@ -1398,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // Standard legal cases.
                             modTok = ConvertToKeyword(this.EatToken());
                         }
-                        else if (seenRef && this.IsRefTypeDeclarationAfterModifiers(peekIndex: 1))
+                        else if (seenRef && isRefTypeDeclarationAfterModifiers())
                         {
                             modTok = ConvertToKeyword(this.EatToken());
                         }
@@ -1423,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     case DeclarationModifiers.Ref:
                         {
-                            if (this.IsRefTypeDeclarationAfterModifiers(peekIndex: 1))
+                            if (isRefTypeDeclarationAfterModifiers())
                             {
                                 modTok = this.EatToken();
                                 seenRef = true;
@@ -1493,6 +1493,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 tokens.Add(modTok);
             }
 
+            bool isRefTypeDeclarationAfterModifiers()
+            {
+                var peekIndex = 1;
+
+                // Skip ordinary modifiers while looking for the type declaration. 'scoped' is
+                // intentionally excluded: it is contextual and may instead be the type in a
+                // 'ref scoped ...' return-type prefix.
+                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+                {
+                    peekIndex++;
+                }
+
+                var token = this.PeekToken(peekIndex);
+                return token.Kind == SyntaxKind.StructKeyword || this.IsEnabledRecordOrUnionKeyword(token);
+            }
+
             bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)
             {
                 // When 'requiredFeature' is enabled, the associated contextual keyword is always a keyword if not escaped. Otherwise, we reuse the async detection
@@ -1509,7 +1525,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 modTok = ConvertToKeyword(EatToken());
                 return true;
             }
-
         }
 
         private bool ShouldContextualKeywordBeTreatedAsModifier(bool parsingStatementNotDeclaration)
@@ -1642,17 +1657,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
                 _ => false,
             };
-        }
-
-        private bool IsRefTypeDeclarationAfterModifiers(int peekIndex)
-        {
-            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
-            {
-                peekIndex++;
-            }
-
-            var token = this.PeekToken(peekIndex);
-            return token.Kind == SyntaxKind.StructKeyword || this.IsEnabledRecordOrUnionKeyword(token);
         }
 
         private bool IsPartialType()

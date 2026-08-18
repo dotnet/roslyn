@@ -6,6 +6,7 @@
 
 using Xunit;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -128,6 +129,45 @@ class C
     ref partial struct S {}
 }");
             comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("unsafe")]
+        [InlineData("readonly")]
+        [InlineData("partial")]
+        [InlineData("unsafe readonly")]
+        [InlineData("partial readonly")]
+        [InlineData("readonly partial")]
+        public void RefTypeDeclarationLookahead_SkipsNonScopedModifiers(string modifiers)
+        {
+            var tree = ParseTree($"class C {{ ref {modifiers} struct S {{}} }}", TestOptions.Regular);
+            tree.GetDiagnostics().Verify();
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var refStruct = Assert.IsType<StructDeclarationSyntax>(Assert.Single(containingType.Members));
+            Assert.Equal($"ref {modifiers}", string.Join(" ", refStruct.Modifiers.Select(static token => token.Text)));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("readonly ")]
+        public void RefTypeDeclarationLookahead_DoesNotSkipScoped(string prefix)
+        {
+            var tree = ParseTree($"class C {{ ref {prefix}scoped struct S {{}} }}", TestOptions.Regular);
+            Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, Assert.Single(tree.GetDiagnostics()).Code);
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            Assert.Collection(
+                containingType.Members,
+                member =>
+                {
+                    var incompleteMember = Assert.IsType<IncompleteMemberSyntax>(member);
+                    var refType = Assert.IsType<RefTypeSyntax>(incompleteMember.Type);
+                    Assert.Equal($"ref {prefix}scoped", refType.ToString());
+                },
+                member => Assert.IsType<StructDeclarationSyntax>(member));
         }
 
         [Fact]
