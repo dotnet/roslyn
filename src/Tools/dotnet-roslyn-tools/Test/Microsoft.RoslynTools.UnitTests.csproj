@@ -4,7 +4,6 @@
   <PropertyGroup>
     <TargetFramework>$(NetRoslyn)</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <IsShipping>false</IsShipping>
     <IsPackable>false</IsPackable>
   </PropertyGroup>

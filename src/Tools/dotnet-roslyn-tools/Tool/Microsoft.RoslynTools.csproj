@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>$(NetRoslynTools)</TargetFramework>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
 
@@ -20,7 +19,7 @@
     <!--
       These identifiers are for generating the shim'd core executables for signing.
     -->
-    <PackAsToolShimRuntimeIdentifiers Condition="'$(DotNetBuildSourceOnly)' != 'true'">win-x64;win-x86;osx-x64</PackAsToolShimRuntimeIdentifiers>
+    <PackAsToolShimRuntimeIdentifiers Condition="'$(DotNetBuildSourceOnly)' != 'true'">win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</PackAsToolShimRuntimeIdentifiers>
 
     <!-- enable building symbol packages -->
     <DebugType>portable</DebugType>
