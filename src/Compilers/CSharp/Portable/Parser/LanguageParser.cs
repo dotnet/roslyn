@@ -1506,7 +1506,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 var token = this.PeekToken(peekIndex);
-                return token.Kind == SyntaxKind.StructKeyword || this.IsEnabledRecordOrUnionKeyword(token);
+                return token.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
+                    this.IsEnabledRecordOrUnionKeyword(token);
             }
 
             bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)
