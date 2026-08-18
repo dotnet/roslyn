@@ -51,18 +51,6 @@ parameters:
   type: string
   default: '(default)'
 
-schedules:
-  - cron: "0 8 23-29 * 0"
-    displayName: "Monthly smoke test"
-    branches:
-      include:
-        - main
-        - release/*
-      exclude:
-        - ""
-    always: true # Run even if there have been no source code changes since the last successful scheduled run
-    batch: false # Do not run the pipeline if the previously scheduled run is in-progress
-
 variables:
   # Defines $(DncEngInternalBuildPool)
   - template: /eng/common/templates-official/variables/pool-providers.yml@self
@@ -145,14 +133,6 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev18.3') }}:
-        - template: /eng/common/templates-official/job/onelocbuild.yml@self
-          parameters:
-            MirrorRepo: roslyn
-            MirrorBranch: release/dev18.3
-            LclSource: lclFilesfromPackage
-            LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
-
       - job: OfficialBuild
         displayName: Official Build
         timeoutInMinutes: 360
