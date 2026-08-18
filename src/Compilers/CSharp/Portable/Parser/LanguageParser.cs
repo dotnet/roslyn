@@ -1437,7 +1437,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             var next = PeekToken(1);
                             if (isStructOrRecordOrUnionKeyword(next) ||
                                 (next.ContextualKind == SyntaxKind.PartialKeyword &&
-                                 isStructOrRecordOrUnionKeyword(PeekToken(2))))
+                                 isStructOrRecordOrUnionKeyword(PeekToken(2))) ||
+                                (seenPartial && this.IsRefModifierInTypeDeclaration(peekIndex: 0)))
                             {
                                 modTok = this.EatToken();
                             }
@@ -1719,7 +1720,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // 'partial static () => ...' would be incorrectly classified as namespace members.
                 if (allowMembers && this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                 {
-                    return true;
+                    return this.CurrentToken.Kind != SyntaxKind.RefKeyword ||
+                        this.IsRefModifierInTypeDeclaration(peekIndex: 0);
                 }
 
                 // A second 'partial' may be the constructor name in 'partial partial()'.
@@ -1816,6 +1818,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+        }
+
+        private bool IsRefModifierInTypeDeclaration(int peekIndex)
+        {
+            Debug.Assert(this.PeekToken(peekIndex).Kind == SyntaxKind.RefKeyword);
+
+            do
+            {
+                peekIndex++;
+            }
+            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None);
+
+            var token = this.PeekToken(peekIndex);
+            return token.Kind == SyntaxKind.StructKeyword || this.IsEnabledRecordOrUnionKeyword(token);
         }
 
         private bool IsPartialType()

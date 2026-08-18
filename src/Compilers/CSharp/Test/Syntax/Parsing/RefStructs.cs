@@ -150,6 +150,30 @@ class C
         [Fact]
         public void RefReadonlyPartialStruct()
         {
+            UsingTree("class C { partial ref readonly struct S {} }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             var comp = CreateCompilation(@"
 class C
 {
@@ -157,15 +181,12 @@ class C
     partial ref readonly struct S {}
 }");
             comp.VerifyDiagnostics(
-                // (4,26): error CS1031: Type expected
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(4, 26),
-                // (5,26): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(5, 26),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5));
         }
 
         [Fact]
