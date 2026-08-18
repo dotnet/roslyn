@@ -1219,6 +1219,11 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                             Public x As Integer
                         End Structure
 
+                        <ExtendedLayout(ExtendedLayoutKind.CStruct)>
+                        Structure StructWithExtendedLayout
+                            Dim x As Integer
+                        End Structure
+
                         Class [Class]
                             Public x As Integer
                         End Class
@@ -1271,6 +1276,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                     Dim structWithSizeType = m.GlobalNamespace.GetMembers("StructWithSize").OfType(Of INamedTypeSymbol)().Single()
                     Dim structWithPackType = m.GlobalNamespace.GetMembers("StructWithPack").OfType(Of INamedTypeSymbol)().Single()
                     Dim structWithSizeAndPackType = m.GlobalNamespace.GetMembers("StructWithSizeAndPack").OfType(Of INamedTypeSymbol)().Single()
+                    Dim structWithExtendedLayoutType = m.GlobalNamespace.GetMembers("StructWithExtendedLayout").OfType(Of INamedTypeSymbol)().Single()
                     Dim classType = m.GlobalNamespace.GetMembers("Class").OfType(Of INamedTypeSymbol)().Single()
                     Dim classNoFieldsType = m.GlobalNamespace.GetMembers("ClassNoFields").OfType(Of INamedTypeSymbol)().Single()
                     Dim classSequentialType = m.GlobalNamespace.GetMembers("ClassSequential").OfType(Of INamedTypeSymbol)().Single()
@@ -1288,6 +1294,7 @@ BC30294: Structure 'Y' cannot contain an instance of itself:
                     Assert.Equal(New TypeLayout(LayoutKind.Sequential, 5, 0), structWithSizeType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout)
+                    Assert.Equal(New TypeLayout(CType(1, LayoutKind), 0, 0), structWithExtendedLayoutType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Auto, 0, 0), classNoFieldsType.TypeLayout)
                     Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.TypeLayout)

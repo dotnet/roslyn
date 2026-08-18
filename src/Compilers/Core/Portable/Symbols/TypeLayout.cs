@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     public readonly struct TypeLayout : IEquatable<TypeLayout>
     {
         private readonly byte _kind;
-        private readonly short _packingSize;
+        private readonly ushort _packingSize;
         private readonly int _size;
 
         internal TypeLayout(LayoutKind kind, int size, byte alignment)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Packing size (PackingSize field in metadata).
         /// </summary>
-        public short PackingSize
+        public ushort PackingSize
         {
             get { return _packingSize; }
         }

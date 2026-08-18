@@ -4,7 +4,7 @@ Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha512 = 4 -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.TypeLayout
 Microsoft.CodeAnalysis.TypeLayout.Equals(Microsoft.CodeAnalysis.TypeLayout other) -> bool
 Microsoft.CodeAnalysis.TypeLayout.Kind.get -> System.Runtime.InteropServices.LayoutKind
-Microsoft.CodeAnalysis.TypeLayout.PackingSize.get -> short
+Microsoft.CodeAnalysis.TypeLayout.PackingSize.get -> ushort
 Microsoft.CodeAnalysis.TypeLayout.Size.get -> int
 Microsoft.CodeAnalysis.TypeLayout.TypeLayout() -> void
 override Microsoft.CodeAnalysis.TypeLayout.Equals(object? obj) -> bool

@@ -941,6 +941,12 @@ struct StructWithSizeAndPack
     [FieldOffset(0)] int x;
 }
 
+[ExtendedLayout(ExtendedLayoutKind.CStruct)]
+struct StructWithExtendedLayout
+{
+    int x;
+}
+
 class Class
 {
     int x;
@@ -1001,6 +1007,7 @@ class ClassWithSizeAndPack
                 var structWithSizeType = m.GlobalNamespace.GetMembers("StructWithSize").OfType<INamedTypeSymbol>().Single();
                 var structWithPackType = m.GlobalNamespace.GetMembers("StructWithPack").OfType<INamedTypeSymbol>().Single();
                 var structWithSizeAndPackType = m.GlobalNamespace.GetMembers("StructWithSizeAndPack").OfType<INamedTypeSymbol>().Single();
+                var structWithExtendedLayoutType = m.GlobalNamespace.GetMembers("StructWithExtendedLayout").OfType<INamedTypeSymbol>().Single();
                 var classType = m.GlobalNamespace.GetMembers("Class").OfType<INamedTypeSymbol>().Single();
                 var classNoFieldsType = m.GlobalNamespace.GetMembers("ClassNoFields").OfType<INamedTypeSymbol>().Single();
                 var classSequentialType = m.GlobalNamespace.GetMembers("ClassSequential").OfType<INamedTypeSymbol>().Single();
@@ -1018,6 +1025,7 @@ class ClassWithSizeAndPack
                 Assert.Equal(new TypeLayout(LayoutKind.Sequential, 5, 0), structWithSizeType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 4), structWithPackType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Explicit, 5, 4), structWithSizeAndPackType.TypeLayout);
+                Assert.Equal(new TypeLayout((LayoutKind)1, 0, 0), structWithExtendedLayoutType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Auto, 0, 0), classNoFieldsType.TypeLayout);
                 Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), classSequentialType.TypeLayout);

@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     var layout = GetTypeLayoutIfStruct();
-                    return (ushort)(layout?.PackingSize ?? 0);
+                    return layout?.PackingSize ?? 0;
                 }
             }
 
