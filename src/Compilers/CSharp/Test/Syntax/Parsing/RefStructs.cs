@@ -83,9 +83,6 @@ class Program
                 // (4,9): error CS1031: Type expected
                 //     ref class S1{}
                 Diagnostic(ErrorCode.ERR_TypeExpected, "class"),
-                // (6,16): error CS1031: Type expected
-                //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe"),
                 // (8,9): error CS1031: Type expected
                 //     ref interface I1{};
                 Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(8, 9),
@@ -129,6 +126,30 @@ class C
         [Fact]
         public void RefPartialReadonlyStruct()
         {
+            UsingTree("class C { ref partial readonly struct S {} }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             var comp = CreateCompilation(@"
 class C
 {
@@ -136,15 +157,44 @@ class C
     ref partial readonly struct S {}
 }");
             comp.VerifyDiagnostics(
-                // (4,17): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (4,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 17),
-                // (5,17): error CS1585: Member modifier 'readonly' must precede the member type and name
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 9),
+                // (5,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(5, 17),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 9));
+        }
+
+        [Fact]
+        public void RefReadonlyPartialStruct_RefFirst()
+        {
+            const string text = "class C { ref readonly partial struct S {} }";
+
+            UsingTree(text);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]

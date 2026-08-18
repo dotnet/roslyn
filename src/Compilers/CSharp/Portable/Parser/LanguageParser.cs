@@ -1410,7 +1410,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // committing the first 'partial' as a declaration modifier.
                             return;
                         }
-
                         if (seenPartial && this.IsPartialIdentifierDeclarationHead())
                         {
                             return;
@@ -1429,16 +1428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
 
                     case DeclarationModifiers.Ref:
-                        // 'ref' is only a modifier if used on a ref struct
-                        // it must be either immediately before the 'struct'
-                        // keyword, or immediately before 'partial struct' if
-                        // this is a partial ref struct declaration
                         {
-                            var next = PeekToken(1);
-                            if (isStructOrRecordOrUnionKeyword(next) ||
-                                (next.ContextualKind == SyntaxKind.PartialKeyword &&
-                                 isStructOrRecordOrUnionKeyword(PeekToken(2))) ||
-                                (seenPartial && this.IsRefModifierInTypeDeclaration(peekIndex: 0)))
+                            if (this.IsRefTypeDeclarationAfterModifiers(peekIndex: 1))
                             {
                                 modTok = this.EatToken();
                             }
@@ -1524,10 +1515,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
-            bool isStructOrRecordOrUnionKeyword(SyntaxToken token)
-            {
-                return token.Kind == SyntaxKind.StructKeyword || IsEnabledRecordOrUnionKeyword(token);
-            }
         }
 
         private bool ShouldContextualKeywordBeTreatedAsModifier(bool parsingStatementNotDeclaration)
@@ -1725,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (allowMembers && this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                 {
                     return this.CurrentToken.Kind != SyntaxKind.RefKeyword ||
-                        this.IsRefModifierInTypeDeclaration(peekIndex: 0);
+                        this.IsRefTypeDeclarationAfterModifiers(peekIndex: 1);
                 }
 
                 // A second 'partial' may be the constructor name in 'partial partial()'.
@@ -1844,15 +1831,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.IsEnabledRecordOrUnionKeyword(token);
         }
 
-        private bool IsRefModifierInTypeDeclaration(int peekIndex)
+        private bool IsRefTypeDeclarationAfterModifiers(int peekIndex)
         {
-            Debug.Assert(this.PeekToken(peekIndex).Kind == SyntaxKind.RefKeyword);
-
-            do
+            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
             {
                 peekIndex++;
             }
-            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None);
 
             var token = this.PeekToken(peekIndex);
             return token.Kind == SyntaxKind.StructKeyword || this.IsEnabledRecordOrUnionKeyword(token);
