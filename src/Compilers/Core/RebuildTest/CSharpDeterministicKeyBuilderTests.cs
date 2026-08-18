@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
-      ""memorySafetyRulesVersion"": 0,
+      ""memorySafetyRulesVersion"": 1,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     },
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
-      ""memorySafetyRulesVersion"": 0,
+      ""memorySafetyRulesVersion"": 1,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     }}
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
-      ""memorySafetyRulesVersion"": 0,
+      ""memorySafetyRulesVersion"": 1,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     },
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "specificDiagnosticOptions": [],
       "localtime": null,
       "unsafe": false,
-      "memorySafetyRulesVersion": 0,
+      "memorySafetyRulesVersion": 1,
       "topLevelBinderFlags": "None",
       "usings": []
     },
