@@ -100,6 +100,44 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
             Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 9));
     }
 
+    [Theory]
+    [InlineData(LanguageVersion.CSharp13)]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void PartialPartial_MethodReturningPartial(LanguageVersion languageVersion)
+    {
+        UsingTree(
+            "class C { partial partial M(); }",
+            TestOptions.Regular.WithLanguageVersion(languageVersion));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
     // ---------- partial on methods ----------
 
     [Theory]

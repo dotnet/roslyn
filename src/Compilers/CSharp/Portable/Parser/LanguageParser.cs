@@ -1402,15 +1402,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // partial-capable type declaration or member declaration.  Historically 'partial' was
                         // required to be the last modifier; that restriction is enforced by the binder in
                         // ModifierUtils.ToDeclarationModifiers.
-                        if (!seenPartial &&
+                        if (forTopLevelStatements &&
+                            !seenPartial &&
                             IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors) &&
                             this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword &&
                             this.PeekToken(2).Kind == SyntaxKind.IdentifierToken &&
                             this.PeekToken(3).Kind == SyntaxKind.OpenParenToken)
                         {
-                            // Preserve the existing interpretation of 'partial partial M()' when partial
-                            // constructors are available. The second 'partial' may be the return type of M,
-                            // rather than another modifier followed by a constructor named M.
+                            // At top level, preserve the existing statement/member ambiguity rather than
+                            // committing the first 'partial' as a declaration modifier.
                             return;
                         }
 
@@ -3449,7 +3449,21 @@ parse_member_name:;
                 // Everything that's left -- methods, fields, properties, 
                 // indexers, and non-conversion operators -- starts with a type 
                 // (possibly void).
-                TypeSyntax type = ParseReturnType();
+                TypeSyntax type;
+                if (modifiers.Any((int)SyntaxKind.PartialKeyword) &&
+                    this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
+                    this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+                {
+                    // Modifier parsing has already committed the first 'partial' as the modifier.
+                    // Preserve the second as the return-type identifier rather than reconsidering
+                    // it as the modifier of a partial constructor.
+                    type = _syntaxFactory.IdentifierName(this.EatToken());
+                }
+                else
+                {
+                    type = ParseReturnType();
+                }
 
                 var afterTypeResetPoint = this.GetResetPoint();
 
