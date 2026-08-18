@@ -13139,4 +13139,400 @@ namespace Test
     }
 
     #endregion
+
+    #region Tilde Path Expansion
+
+    // Runtime attribute + opt-in stubs used by the tilde-path tests. These types are not in the
+    // reference assemblies, so tests that exercise asset-path expansion declare them here. The
+    // AssetPathAttributes convention class opts img/src, link/href, and script/src into '~/'
+    // expansion, matching the built-in HTML allowlist.
+    private const string AssetPathStubs = """
+        namespace Microsoft.AspNetCore.Components
+        {
+            [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+            public sealed class AssetPathAttribute : System.Attribute
+            {
+                public AssetPathAttribute() { }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
+            public sealed class AcceptsAssetPathAttribute : System.Attribute
+            {
+                public AcceptsAssetPathAttribute(string elementName, string attributeName)
+                {
+                    ElementName = elementName;
+                    AttributeName = attributeName;
+                }
+
+                public string ElementName { get; }
+                public string AttributeName { get; }
+            }
+        }
+
+        namespace Microsoft.AspNetCore.Components.Web
+        {
+            [Microsoft.AspNetCore.Components.AcceptsAssetPath("img", "src")]
+            [Microsoft.AspNetCore.Components.AcceptsAssetPath("img", "srcset")]
+            [Microsoft.AspNetCore.Components.AcceptsAssetPath("link", "href")]
+            [Microsoft.AspNetCore.Components.AcceptsAssetPath("script", "src")]
+            public static class AssetPathAttributes { }
+        }
+
+        namespace Test
+        {
+            public sealed class ResourceAssetCollection
+            {
+                public string this[string key] => key;
+            }
+
+            public partial class TestComponent
+            {
+                protected ResourceAssetCollection Assets => new();
+            }
+        }
+        """;
+
+    [Fact]
+    public void TildePath_HtmlElement()
+    {
+        // Arrange -- stub Assets property (not in .NET 8 reference assemblies)
+        AdditionalSyntaxTrees.Add(Parse(AssetPathStubs));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <img src="~/images/logo.png" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_ComponentParam()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Microsoft.AspNetCore.Components
+            {
+                [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+                public sealed class AssetPathAttribute : System.Attribute
+                {
+                    public AssetPathAttribute() { }
+                }
+            }
+
+            namespace Test
+            {
+                public sealed class ResourceAssetCollection
+                {
+                    public string this[string key] => key;
+                }
+
+                public partial class TestComponent
+                {
+                    protected ResourceAssetCollection Assets => new();
+                }
+
+                public class Image : ComponentBase
+                {
+                    [Parameter, AssetPath] public string Source { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Image Source="~/images/logo.png" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_ComponentParam_NotOptedIn()
+    {
+        // Arrange - Source has no [AssetPath], so ~/ is not expanded.
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class Image : ComponentBase
+                {
+                    [Parameter] public string Source { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Image Source="~/images/logo.png" />
+            """);
+
+        // Assert - rendered as a plain string literal.
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_AssetPathOnNonStringParameter_Warns()
+    {
+        // Arrange - [AssetPath] on a non-string parameter has no effect and produces RZ10030.
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class Image : ComponentBase
+                {
+                    [Parameter, AssetPath] public int Size { get; set; }
+                }
+            }
+            """));
+        AdditionalSyntaxTrees.Add(Parse(AssetPathStubs));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Image Size="5" />
+            """);
+
+        // Assert - the RZ10030 declaration warning is emitted.
+        var csharpDoc = generated.CodeDocument.GetRequiredCSharpDocument();
+        Assert.Contains(csharpDoc.Diagnostics, d => d.Id == "RZ10030");
+    }
+
+    [Fact]
+    public void TildePath_WithSlash()
+    {
+        // Arrange -- stub Assets property (not in .NET 8 reference assemblies)
+        AdditionalSyntaxTrees.Add(Parse(AssetPathStubs));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <img src="~/css/app.css" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_HtmlElement_NotOptedIn()
+    {
+        // Arrange - no AssetPathAttributes declaration, so (img, src) is not opted in.
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace Test
+            {
+                public sealed class ResourceAssetCollection
+                {
+                    public string this[string key] => key;
+                }
+
+                public partial class TestComponent
+                {
+                    protected ResourceAssetCollection Assets => new();
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <img src="~/images/logo.png" />
+            """);
+
+        // Assert - rendered as a plain string literal.
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_AttributeNotOptedIn()
+    {
+        // Arrange - only (img, src) is opted in; the 'data-url' attribute is not.
+        AdditionalSyntaxTrees.Add(Parse(AssetPathStubs));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <img data-url="~/images/logo.png" />
+            """);
+
+        // Assert - rendered as a plain string literal.
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_ExplicitExpressionNotExpanded()
+    {
+        // Act - @("~/...") is a C# expression, not a literal, so the pass ignores it.
+        // This is the recommended way to produce a literal "~/" in output.
+        var generated = CompileToCSharp("""
+            <img src="@("~/images/logo.png")" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_NoTilde()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            <img src="images/logo.png" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_MultipleElements()
+    {
+        // Arrange -- stub Assets property (not in .NET 8 reference assemblies)
+        AdditionalSyntaxTrees.Add(Parse(AssetPathStubs));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <link href="~/a.css" />
+            <script src="~/b.js"></script>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_MultipleAttributesSameElement()
+    {
+        // Arrange - both img/src and img/srcset are opted in, so both expand on the same element.
+        AdditionalSyntaxTrees.Add(Parse(AssetPathStubs));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <img srcset="~/a.gif" src="~/b.gif" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_MixedContent()
+    {
+        // Arrange - (img, src) is opted in, so mixed literal/expression content is diagnosed.
+        AdditionalSyntaxTrees.Add(Parse(AssetPathStubs));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @{ var path = "x"; }
+            <img src="~/@(path)" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+
+        // Verify the RZ10029 diagnostic is emitted for mixed content
+        var csharpDoc = generated.CodeDocument.GetRequiredCSharpDocument();
+        Assert.Contains(csharpDoc.Diagnostics, d => d.Id == "RZ10029");
+    }
+
+    [Fact]
+    public void TildePath_NotExpandedBeforeLanguageVersion11()
+    {
+        // Arrange - use version 9.0 which predates tilde path expansion
+        _configuration = base.Configuration with { LanguageVersion = RazorLanguageVersion.Version_9_0 };
+
+        // Act
+        var generated = CompileToCSharp("""
+            <img src="~/images/logo.png" />
+            """);
+
+        // Assert - tilde should NOT be expanded, attribute remains a plain string literal
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_BackslashInPath()
+    {
+        AdditionalSyntaxTrees.Add(Parse(AssetPathStubs));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <img src="~/images\logo.png" />
+            """);
+
+        // Assert - backslash should be escaped in the generated C# string literal
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_BareTildeNotExpanded()
+    {
+        // Act - bare ~path (without /) should not be expanded
+        var generated = CompileToCSharp("""
+            <img src="~images/logo.png" />
+            """);
+
+        // Assert - no transformation, rendered as plain string
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_EmptyPath()
+    {
+        // Act - bare ~ with no path should be left untouched
+        var generated = CompileToCSharp("""
+            <img src="~" />
+            """);
+
+        // Assert - no transformation, rendered as plain string
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void TildePath_EmptyPathWithSlash()
+    {
+        // Act - ~/ with no path should be left untouched
+        var generated = CompileToCSharp("""
+            <img src="~/" />
+            """);
+
+        // Assert - no transformation, rendered as plain string
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    #endregion
 }
