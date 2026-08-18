@@ -574,9 +574,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto case BoundKind.Local;
 
                     case BoundKind.Local:
-                        // A ref to a local variable or formal parameter is safe to reorder; it
-                        // never has a side effect or consumes one.
-                        return kind != RefKind.None;
+                        // A reference to an ordinary local variable or formal parameter is safe to reorder.
+                        // A ref local or ref parameter is not, since a later argument can ref-reassign it.
+                        return kind != RefKind.None && current.GetRefKind() == RefKind.None;
                     case BoundKind.PassByCopy:
                         return IsSafeForReordering(((BoundPassByCopy)current).Expression, kind);
                     case BoundKind.Conversion:
