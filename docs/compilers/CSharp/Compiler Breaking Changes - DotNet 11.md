@@ -329,6 +329,8 @@ class C
 
 ## Dictionary interface overloads are applicable to collection expressions
 
+PROTOTYPE: Move to the right doc/right version
+
 ***Introduced in Visual Studio 2026 version 18.9***
 
 When the LangVersion is set to 15 or greater, collection expressions can convert to dictionary interface types such as `IDictionary<TKey, TValue>` and `IReadOnlyDictionary<TKey, TValue>`.

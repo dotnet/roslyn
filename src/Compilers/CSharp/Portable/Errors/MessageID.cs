@@ -315,7 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExtensionIndexers = MessageBase + 12863,
         IDS_FeatureLabeledBreakContinue = MessageBase + 12864,
 
-        IDS_FeatureDictionaryExpressions = MessageBase + 12864,
+        // PROTOTYPE: compact
+        IDS_FeatureDictionaryExpressions = MessageBase + 12900,
     }
 
     // Message IDs may refer to strings that need to be localized.

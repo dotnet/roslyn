@@ -2510,7 +2510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitInFixed = 9398,
         ERR_FeatureNotAvailableInVersion15 = 9399,
 
-        ERR_CollectionExpressionKeyValuePairNotSupported = 9393,
+        // PROTOTYPE: compact
+        ERR_CollectionExpressionKeyValuePairNotSupported = 9500,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
