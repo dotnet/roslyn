@@ -1433,7 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
                         }
 
-                        if (this.IsPartialModifierInDeclarationHead())
+                        if (this.IsPartialModifierInDeclarationHead(allowMembers: true))
                         {
                             modTok = ConvertToKeyword(this.EatToken());
                             seenPartial = true;
@@ -1572,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // If the remainder is unambiguously a declaration with 'partial' in its modifier
                 // list, this contextual token is also unambiguously a modifier. This handles chains
                 // such as 'closed partial ref struct' without leaving parser diagnostics behind.
-                if (this.IsPartialModifierInDeclarationHead())
+                if (this.IsPartialModifierInDeclarationHead(allowMembers: true))
                 {
                     return true;
                 }
@@ -1699,7 +1699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// (<see cref="Microsoft.CodeAnalysis.CSharp.Symbols.ModifierUtils.ToDeclarationModifiers"/>)
         /// is responsible for reporting diagnostics when <c>partial</c> is misplaced.
         /// </remarks>
-        private bool IsPartialModifierInDeclarationHead(bool allowMembers = true)
+        private bool IsPartialModifierInDeclarationHead(bool allowMembers)
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
