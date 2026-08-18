@@ -118,3 +118,19 @@ A new required parameter `Compilation` has been added. Existing overloads withou
 ### Changes in `Microsoft.CodeAnalysis.Emit.SemanticEdit` constructors
 
 The value of `preserveLocalVariables` passed to the constructors is no longer used.
+
+# Version 5.11.0
+
+### Changed the `default` value of `Microsoft.CodeAnalysis.CSharp.Conversion`
+
+The `default` value of `Microsoft.CodeAnalysis.CSharp.Conversion` struct now returns `false` for all boolean properties. Previously the `Exists` and `IsExplicit` properties returned `true`:
+```cs
+using System;
+using Microsoft.CodeAnalysis.CSharp;
+
+var conv = default(Conversion);
+Console.WriteLine(conv.Exists); // Previously was 'True', now 'False'
+Console.WriteLine(conv.IsExplicit); // Previously was 'True', now 'False'
+```
+
+PR: https://github.com/dotnet/roslyn/pull/84628
