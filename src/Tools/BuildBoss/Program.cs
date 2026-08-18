@@ -116,7 +116,7 @@ namespace BuildBoss
 
             if (checkPackageInstall)
             {
-                allGood &= ProcessPackageInstall(repositoryDirectory, artifactsDirectory, configuration);
+                allGood &= ProcessPackageInstall(artifactsDirectory, configuration);
             }
 
             if (!allGood)
@@ -182,9 +182,9 @@ namespace BuildBoss
             return CheckCore(util, $"OptProf inputs");
         }
 
-        private static bool ProcessPackageInstall(string repositoryDirectory, string artifactsDirectory, string configuration)
+        private static bool ProcessPackageInstall(string artifactsDirectory, string configuration)
         {
-            var util = new PackageInstallChecker(repositoryDirectory, artifactsDirectory, configuration);
+            var util = new PackageInstallChecker(artifactsDirectory, configuration);
             return CheckCore(util, "NuGet package install");
         }
     }
