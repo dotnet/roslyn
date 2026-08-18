@@ -136,14 +136,6 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.14') }}:
-        - template: /eng/common/templates-official/job/onelocbuild.yml@self
-          parameters:
-            MirrorRepo: roslyn
-            MirrorBranch: release/dev17.14
-            LclSource: lclFilesfromPackage
-            LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
-
       - template: /eng/common/templates-official/jobs/source-build.yml@self
 
       - job: OfficialBuild
