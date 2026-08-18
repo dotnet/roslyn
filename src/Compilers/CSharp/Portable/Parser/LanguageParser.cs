@@ -1725,6 +1725,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
+            // Preserve the existing interpretation of 'async' as a type name when that forms a
+            // partial member. Otherwise, the modifier scan below may instead skip it as a modifier.
+            if (allowMembers && this.PeekToken(1).ContextualKind == SyntaxKind.AsyncKeyword)
+            {
+                using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+                this.EatToken();
+                if (this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName())
+                {
+                    return true;
+                }
+            }
+
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
             // Eat 'partial' and then scan past any subsequent modifier tokens.  We want to allow
