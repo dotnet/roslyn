@@ -58,7 +58,7 @@ parameters:
   type: string
   default: '(default)'
 
-- name: localizableBranches
+- name: LocalizableBranches
   type: object
   default:
     - refs/heads/main
@@ -153,7 +153,7 @@ extends:
     - ES365AIMigrationTooling
     stages:
 
-    - ${{ if containsValue(parameters.localizableBranches, variables['Build.SourceBranch']) }}:
+    - ${{ if containsValue(parameters.LocalizableBranches, variables['Build.SourceBranch']) }}:
       - stage: localization
         displayName: Localization
 
