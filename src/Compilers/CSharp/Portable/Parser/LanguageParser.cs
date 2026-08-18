@@ -1725,19 +1725,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+
             // Preserve the existing interpretation of 'async' as a type name when that forms a
             // partial member. Otherwise, the modifier scan below may instead skip it as a modifier.
             if (allowMembers && this.PeekToken(1).ContextualKind == SyntaxKind.AsyncKeyword)
             {
-                using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
                 this.EatToken();
                 if (this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName())
                 {
                     return true;
                 }
-            }
 
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                resetPoint.Reset();
+            }
 
             // Eat 'partial' and then scan past any subsequent modifier tokens.  We want to allow
             // 'partial' to appear anywhere in the modifier list, so we walk forward looking for a
@@ -1772,7 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return true;
                     }
 
-                    using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+                    using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
                     if (this.ScanTypeTreatingPartialAsIdentifier() != ScanTypeFlags.NotType &&
                         IsPossibleMemberName())
                     {
