@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Rename;
@@ -12,17 +13,17 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Rename;
 internal interface IRenameService
 {
     Task<RenameResult> TryGetRazorRenameEditsAsync(
-        RemoteDocumentSnapshot documentSnapshot,
+        RemoteDocumentContext documentContext,
         DocumentPositionInfo positionInfo,
         string newName,
-        RemoteSolutionSnapshot solutionSnapshot,
+        ISolutionQueryOperations solutionQueryOperations,
         CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns an edit that should occur after a .razor file has been renamed
     /// </summary>
     bool TryGetRazorFileRenameEdit(
-        RemoteDocumentSnapshot documentSnapshot,
+        RemoteDocumentContext documentContext,
         string newName,
         [NotNullWhen(true)] out WorkspaceEdit? workspaceEdit);
 }

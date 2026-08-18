@@ -27,7 +27,6 @@ internal sealed class OrganizeUsingsCommand(
     private const uint ContextRemoveAndSortUsingsCommandId = 0x1913;  // cmdidContextOrganizeRemoveAndSort (context menu)
 
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-    private readonly IEditAndContinueSessionTracker _encSessionTracker = encSessionTracker;
 
     public bool QueryStatus(Guid pguidCmdGroup, uint nCmdID)
     {
@@ -65,22 +64,19 @@ internal sealed class OrganizeUsingsCommand(
             return [];
         }
 
-        var csharpDocs = await razorDocument.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (csharpDocs is not { } generatedDocuments)
+        var generatedDocument = await razorDocument.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
         {
             return [];
         }
 
         // C# diagnostics
-        var implDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.ImplDoc, _encSessionTracker, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
-        var declDiagnostics = generatedDocuments.DeclDoc is not null
-            ? await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.DeclDoc, _encSessionTracker, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false)
-            : [];
+        var csharpDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocument, encSessionTracker, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
 
         // Razor diagnostics (to filter and hydrate cache)
         await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetDiagnosticsAsync(solutionInfo, razorDocument.Id, implDiagnostics, declDiagnostics, htmlDiagnostics: [], cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetDiagnosticsAsync(solutionInfo, razorDocument.Id, [.. csharpDiagnostics], htmlDiagnostics: [], cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         // Now do the remove and sort

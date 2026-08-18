@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -26,6 +27,7 @@ using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
+using Roslyn.LanguageServer.Protocol;
 using AspNet80 = Basic.Reference.Assemblies.AspNet80;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Formatting;
@@ -42,12 +44,13 @@ public class DocumentFormattingBenchmark
     private static readonly string s_globalConfigFilePath = Path.Combine(s_benchmarkRootPath, ".globalconfig");
     private static readonly string s_generatedAssemblyPath = Path.Combine(s_benchmarkRootPath, "obj", "DocumentFormattingBenchmark.dll");
     private static readonly string s_documentFilePath = Path.Combine(s_benchmarkRootPath, DocumentRelativePath);
+    private static readonly DocumentUri s_documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(s_documentFilePath);
     private static readonly AnalyzerFileReference s_razorSourceGeneratorReference = new(
         typeof(RazorSourceGenerator).Assembly.Location,
         AnalyzerAssemblyLoader.Instance);
 
     private AdhocWorkspace? _workspace;
-    private RemoteDocumentSnapshot? _documentSnapshot;
+    private DocumentContext? _documentContext;
     private SourceText? _sourceText;
     private ImmutableArray<TextChange> _htmlChanges;
     private RazorFormattingService? _formattingService;
@@ -69,18 +72,19 @@ public class DocumentFormattingBenchmark
         }
 
         var document = _workspace.CurrentSolution.GetAdditionalDocument(documentId).AssumeNotNull();
-        var snapshotManager = new RemoteSnapshotManager(NoOpTelemetryReporter.Instance);
+        var filePathService = new RemoteFilePathService();
+        var snapshotManager = new RemoteSnapshotManager(filePathService, NoOpTelemetryReporter.Instance);
         var documentSnapshot = snapshotManager.GetSnapshot(document);
-        _documentSnapshot = documentSnapshot;
+        _documentContext = new DocumentContext(s_documentUri, documentSnapshot);
 
         var hostServicesProvider = new RemoteHostServicesProvider();
         hostServicesProvider.SetWorkspaceProvider(new WorkspaceProvider(_workspace));
 
         var clientSettingsManager = new RemoteClientSettingsManager();
-        var documentMappingService = new DocumentMappingService(snapshotManager, EmptyLoggerFactory.Instance);
-        var razorEditService = new RazorEditService(documentMappingService, clientSettingsManager, snapshotManager, NoOpTelemetryReporter.Instance);
+        var documentMappingService = new RemoteDocumentMappingService(filePathService, snapshotManager, EmptyLoggerFactory.Instance);
+        var razorEditService = new RemoteRazorEditService(documentMappingService, clientSettingsManager, filePathService, snapshotManager, NoOpTelemetryReporter.Instance);
 
-        _formattingService = new RazorFormattingService(
+        _formattingService = new RemoteRazorFormattingService(
             documentMappingService,
             razorEditService,
             hostServicesProvider,
@@ -122,7 +126,7 @@ public class DocumentFormattingBenchmark
     private int FormatDocumentCore()
     {
         var changes = _formattingService.AssumeNotNull().GetDocumentFormattingChangesAsync(
-            _documentSnapshot.AssumeNotNull(),
+            _documentContext.AssumeNotNull(),
             _htmlChanges,
             range: null,
             _options,

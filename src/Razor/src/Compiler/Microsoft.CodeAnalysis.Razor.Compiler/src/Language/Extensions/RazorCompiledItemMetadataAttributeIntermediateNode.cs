@@ -41,19 +41,6 @@ public class RazorCompiledItemMetadataAttributeIntermediateNode : ExtensionInter
         AcceptExtensionNode(this, visitor);
     }
 
-    protected override IntermediateNode CloneNode()
-    {
-        var clone = new RazorCompiledItemMetadataAttributeIntermediateNode
-        {
-            Key = Key,
-            Value = Value,
-            ValueStringSyntax = ValueStringSyntax,
-            IsSynthesizedHelper = IsSynthesizedHelper,
-        };
-
-        return clone;
-    }
-
     public override void WriteNode(CodeTarget target, CodeRenderingContext context)
     {
         if (target == null)

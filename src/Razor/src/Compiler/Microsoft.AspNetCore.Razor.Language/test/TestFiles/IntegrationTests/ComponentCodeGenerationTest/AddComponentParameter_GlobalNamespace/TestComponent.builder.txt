@@ -1,2 +1,0 @@
-﻿[0000] OpenComponent<global::MyComponent>()
-[0001] AddComponentParameter(nameof(global::MyComponent. Value ), "Hello")

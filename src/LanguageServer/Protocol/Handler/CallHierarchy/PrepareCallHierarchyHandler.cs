@@ -30,13 +30,9 @@ internal sealed class PrepareCallHierarchyHandler() : ILspServiceDocumentRequest
         => request.TextDocument;
 
     public async Task<LSP.CallHierarchyItem[]?> HandleRequestAsync(LSP.CallHierarchyPrepareParams request, RequestContext context, CancellationToken cancellationToken)
-    {
-        var document = context.GetRequiredDocument();
-        return await PrepareCallHierarchyAsync(document, ProtocolConversions.PositionToLinePosition(request.Position), document.Id, cancellationToken)
-            .ConfigureAwait(false);
-    }
+        => await PrepareCallHierarchyAsync(context.GetRequiredDocument(), ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-    internal static async Task<LSP.CallHierarchyItem[]?> PrepareCallHierarchyAsync(Document document, LinePosition linePosition, DocumentId preferredDocumentId, CancellationToken cancellationToken)
+    internal static async Task<LSP.CallHierarchyItem[]?> PrepareCallHierarchyAsync(Document document, LinePosition linePosition, CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
         var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
@@ -51,7 +47,7 @@ internal sealed class PrepareCallHierarchyHandler() : ILspServiceDocumentRequest
         if (itemDescriptor == null)
             return null;
 
-        var item = await CallHierarchyHelpers.CreateItemAsync(itemDescriptor, solution, preferredDocumentId, cancellationToken).ConfigureAwait(false);
+        var item = await CallHierarchyHelpers.CreateItemAsync(itemDescriptor, solution, preferredDocumentId: document.Id, cancellationToken).ConfigureAwait(false);
         return item == null ? null : [item];
     }
 }

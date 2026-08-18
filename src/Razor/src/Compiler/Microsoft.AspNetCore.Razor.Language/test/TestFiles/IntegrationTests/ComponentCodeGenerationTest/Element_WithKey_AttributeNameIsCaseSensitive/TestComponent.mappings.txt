@@ -1,0 +1,9 @@
+﻿Source Location: (95:2,7 [49] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private object someObject = new object();
+|
+Generated Location: (921:24,0 [49] )
+|
+    private object someObject = new object();
+|
+

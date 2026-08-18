@@ -47,16 +47,6 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
         AcceptExtensionNode(this, visitor);
     }
 
-    protected override IntermediateNode CloneNode()
-    {
-        var clone = new ComponentInjectIntermediateNode(TypeName, MemberName, TypeSpan, MemberSpan)
-        {
-            IsSynthesizedHelper = IsSynthesizedHelper,
-        };
-
-        return clone;
-    }
-
     public override void WriteNode(CodeTarget target, CodeRenderingContext context)
     {
         if (target == null)

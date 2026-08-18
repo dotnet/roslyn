@@ -46,6 +46,8 @@ variables:
 extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
+    settings:
+      networkIsolationPolicy: Permissive, CFSClean, CFSClean2, CFSClean3
     sdl:
       enableAllTools: false
     pool:
@@ -310,7 +312,7 @@ extends:
             $versionEndpoint = 'https://maestro.dot.net/api/assets/darc-version?api-version=2019-01-16'
             $darcVersion = $(Invoke-WebRequest -Uri $versionEndpoint -UseBasicParsing).Content
             $arcadeServicesSource = 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
-            & dotnet tool update microsoft.dotnet.darc --version "$darcVersion" --add-source "$arcadeServicesSource" --tool-path $(Agent.ToolsDirectory)\darc -v n
+            & dotnet tool update microsoft.dotnet.darc --version "$darcVersion" --source "$arcadeServicesSource" --tool-path $(Agent.ToolsDirectory)\darc -v n
           displayName: Install darc tool
 
         - task: AzureCLI@2

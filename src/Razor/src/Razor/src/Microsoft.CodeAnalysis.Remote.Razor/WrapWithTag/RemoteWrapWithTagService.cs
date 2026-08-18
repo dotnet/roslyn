@@ -27,15 +27,15 @@ internal sealed partial class RemoteWrapWithTagService(in ServiceArgs args) : Ra
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            snapshot => GetValidWrappingRangeAsync(snapshot, range, cancellationToken),
+            context => GetValidWrappingRangeAsync(context, range, cancellationToken),
             cancellationToken);
 
     private static async ValueTask<Response> GetValidWrappingRangeAsync(
-        RemoteDocumentSnapshot snapshot,
+        RemoteDocumentContext context,
         LinePositionSpan range,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (WrapWithTagHelper.TryGetValidWrappingRange(codeDocument, range, out var adjustedRange))
         {
             return Response.Results(adjustedRange);

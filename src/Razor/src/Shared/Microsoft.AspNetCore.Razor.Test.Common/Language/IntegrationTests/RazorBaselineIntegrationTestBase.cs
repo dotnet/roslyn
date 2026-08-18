@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -10,7 +10,6 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -45,35 +44,11 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
     protected void AssertDocumentNodeMatchesBaseline(RazorCodeDocument codeDocument, [CallerMemberName]string testName = "")
     {
         var document = codeDocument.GetRequiredDocumentNode();
-        AssertIntermediateNodeMatchesBaseline(codeDocument, document, ".ir.txt", testName);
-
-        // When the split partitioned the component, the decl half is lowered from a separate IR subtree
-        // stashed on the document node before tag-helper resolution. Baseline it alongside the impl tree so
-        // the partition is reviewable at the IR level: the members the split moves out of the impl tree show
-        // up here rather than silently disappearing from the impl baseline.
-        AssertIntermediateNodeMatchesBaseline(codeDocument, document.DeclDocumentNode, ".decl.ir.txt", testName);
-    }
-
-    private void AssertIntermediateNodeMatchesBaseline(RazorCodeDocument codeDocument, DocumentIntermediateNode document, string extension, string testName)
-    {
-        var baselineFilePath = GetBaselineFilePath(codeDocument, extension, testName);
+        var baselineFilePath = GetBaselineFilePath(codeDocument, ".ir.txt", testName);
 
         if (GenerateBaselines.ShouldGenerate)
         {
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFilePath);
-
-            if (document is null)
-            {
-                // No decl half (a fallback, a suppressed primary body, or a non-split document) -- remove any
-                // decl baseline on disk, which has no decl half to match.
-                if (File.Exists(baselineFullPath))
-                {
-                    File.Delete(baselineFullPath);
-                }
-
-                return;
-            }
-
             Directory.CreateDirectory(Path.GetDirectoryName(baselineFullPath));
             WriteBaseline(IntermediateNodeSerializer.Serialize(document), baselineFullPath);
 
@@ -81,18 +56,6 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
         }
 
         var irFile = TestFile.Create(baselineFilePath, GetType().Assembly);
-
-        if (document is null)
-        {
-            // No decl half, so its baseline must not exist.
-            if (irFile.Exists())
-            {
-                throw new XunitException($"The resource {baselineFilePath} exists but the document has no matching half.");
-            }
-
-            return;
-        }
-
         if (!irFile.Exists())
         {
             throw new XunitException($"The resource {baselineFilePath} was not found.");
@@ -107,50 +70,16 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
 
     protected void AssertCSharpDocumentMatchesBaseline(RazorCodeDocument codeDocument, bool verifyLinePragmas = true, [CallerMemberName] string testName = "")
     {
-        var implDocument = codeDocument.GetRequiredImplCSharpDocument();
-        AssertCSharpHalfMatchesBaseline(codeDocument, implDocument, ".codegen.cs", ".diagnostics.txt", ".mappings.txt", testName);
+        var document = codeDocument.GetRequiredCSharpDocument();
 
-        // When the split partitioned the component, also assert the decl half against its own set of
-        // baselines. Note that the decl half is written with reportDiagnostics: false: the impl writer
-        // seeds its synthetic root with documentNode.GetAllDiagnostics() and reports the full set, so
-        // suppressing duplicate reporting on the decl side keeps each Razor-detected diagnostic on exactly
-        // one half. As a side effect there is no .decl.diagnostics.txt baseline to commit -- the regen path
-        // treats an empty diagnostics list as "delete the baseline file" and the decl half always has one.
-        //
-        // When there is no decl half (the component lowers as a single document, or isn't a component), a
-        // decl baseline on disk has nothing to match, so delete-stale / assert-absent it to keep orphaned
-        // decl output out of the tree. This mirrors the decl-IR handling in AssertIntermediateNodeMatchesBaseline.
-        if (codeDocument.GetDeclCSharpDocument() is { } declDocument)
-        {
-            AssertCSharpHalfMatchesBaseline(codeDocument, declDocument, ".decl.codegen.cs", ".decl.diagnostics.txt", ".decl.mappings.txt", testName);
-        }
-        else
-        {
-            AssertNoBaseline(codeDocument, ".decl.codegen.cs", testName);
-            AssertNoBaseline(codeDocument, ".decl.diagnostics.txt", testName);
-            AssertNoBaseline(codeDocument, ".decl.mappings.txt", testName);
-        }
-
-        if (verifyLinePragmas)
-        {
-            AssertLinePragmas(codeDocument);
-        }
-    }
-
-    private void AssertCSharpHalfMatchesBaseline(
-        RazorCodeDocument codeDocument,
-        RazorCSharpDocument document,
-        string codegenExtension,
-        string diagnosticsExtension,
-        string mappingsExtension,
-        string testName)
-    {
         // Normalize newlines to match those in the baseline.
         var actualCode = document.Text.ToString().Replace("\r", "").Replace("\n", "\r\n");
 
-        var baselineFilePath = GetBaselineFilePath(codeDocument, codegenExtension, testName);
-        var baselineDiagnosticsFilePath = GetBaselineFilePath(codeDocument, diagnosticsExtension, testName);
-        var baselineMappingsFilePath = GetBaselineFilePath(codeDocument, mappingsExtension, testName);
+        var baselineFilePath = GetBaselineFilePath(codeDocument, ".codegen.cs", testName);
+        var baselineDiagnosticsFilePath = GetBaselineFilePath(codeDocument, ".diagnostics.txt", testName);
+        var baselineMappingsFilePath = GetBaselineFilePath(codeDocument, ".mappings.txt", testName);
+
+        var serializedMappings = SourceMappingsSerializer.Serialize(document, codeDocument.Source);
 
         if (GenerateBaselines.ShouldGenerate)
         {
@@ -212,43 +141,18 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
         var actualMappings = SourceMappingsSerializer.Serialize(document, codeDocument.Source);
         actualMappings = actualMappings.Replace("\r", "").Replace("\n", "\r\n");
         Assert.Equal(baselineMappings, actualMappings);
-    }
 
-    // Ensures a decl-half baseline does not exist: deletes a stale file when generating, asserts its
-    // absence when verifying. A decl baseline is only valid when the document produces a decl half, so a
-    // document with none must have no decl baseline on disk to match against.
-    private void AssertNoBaseline(RazorCodeDocument codeDocument, string extension, string testName)
-    {
-        var baselineFilePath = GetBaselineFilePath(codeDocument, extension, testName);
-
-        if (GenerateBaselines.ShouldGenerate)
+        if (verifyLinePragmas)
         {
-            var baselineFullPath = Path.Combine(TestProjectRoot, baselineFilePath);
-            if (File.Exists(baselineFullPath))
-            {
-                File.Delete(baselineFullPath);
-            }
-
-            return;
-        }
-
-        var file = TestFile.Create(baselineFilePath, GetType().Assembly);
-        if (file.Exists())
-        {
-            throw new XunitException($"The resource {baselineFilePath} exists but the document has no decl half.");
+            AssertLinePragmas(codeDocument);
         }
     }
 
     protected void AssertLinePragmas(RazorCodeDocument codeDocument)
     {
-        var csharpDocument = codeDocument.GetImplCSharpDocument();
+        var csharpDocument = codeDocument.GetCSharpDocument();
         Assert.NotNull(csharpDocument);
         var linePragmas = csharpDocument.LinePragmas;
-        if (codeDocument.GetDeclCSharpDocument() is { } declDocument)
-        {
-            linePragmas = linePragmas.AddRange(declDocument.LinePragmas);
-        }
-
         var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree() ?? codeDocument.GetRequiredSyntaxTree();
         var sourceContent = syntaxTree.Source.Text.ToString();
         var classifiedSpans = syntaxTree.GetClassifiedSpans();
@@ -330,7 +234,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
         }
     }
 
-    protected string GetBaselineFilePath(RazorCodeDocument codeDocument, string extension, string testName)
+    private string GetBaselineFilePath(RazorCodeDocument codeDocument, string extension, string testName)
     {
         if (codeDocument == null)
         {

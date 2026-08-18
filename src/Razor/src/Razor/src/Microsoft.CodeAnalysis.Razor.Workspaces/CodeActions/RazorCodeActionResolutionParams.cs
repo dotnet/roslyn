@@ -18,8 +18,7 @@ internal sealed record RazorCodeActionResolutionParams(TextDocumentIdentifier Te
     public required RazorLanguageKind Language { get; set; }
 
     [JsonPropertyName("delegatedDocumentUri")]
-    [JsonConverter(typeof(DocumentUriConverter))]
-    public required DocumentUri? DelegatedDocumentUri { get; set; }
+    public required Uri? DelegatedDocumentUri { get; set; }
 
     [JsonPropertyName("data")]
     public object? Data { get; set; }
