@@ -1810,6 +1810,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
+            if (this.IsTypeDeclarationAfterPartialModifiers(peekIndex: 0))
+            {
+                return false;
+            }
+
             if (this.IsPartialConstructor(peekIndex: 0))
             {
                 return false;
@@ -1822,6 +1827,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+        }
+
+        private bool IsTypeDeclarationAfterPartialModifiers(int peekIndex)
+        {
+            Debug.Assert(this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
+
+            do
+            {
+                peekIndex++;
+            }
+            while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
+
+            var token = this.PeekToken(peekIndex);
+            return token.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
+                this.IsEnabledRecordOrUnionKeyword(token);
         }
 
         private bool IsRefModifierInTypeDeclaration(int peekIndex)
