@@ -1414,23 +1414,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return;
                         }
 
-                        if (seenPartial)
+                        if (seenPartial && this.IsPartialIdentifierDeclarationHead())
                         {
-                            if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
-                                IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors))
-                            {
-                                return;
-                            }
-
-                            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-                            if (this.ScanType(ParseTypeMode.Normal, out _, treatPartialAsIdentifier: true) != ScanTypeFlags.NotType &&
-                                IsPossibleMemberName())
-                            {
-                                if (!this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
-                                {
-                                    return;
-                                }
-                            }
+                            return;
                         }
 
                         if (this.IsPartialModifierInDeclarationHead(allowMembers: true))
@@ -1745,20 +1731,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Prefer those existing interpretations when they are possible.
                 if (allowMembers && this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
                 {
-                    if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
-                        IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors))
+                    if (this.IsPartialIdentifierDeclarationHead())
                     {
                         return true;
-                    }
-
-                    using var partialTypeResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-                    if (this.ScanType(ParseTypeMode.Normal, out _, treatPartialAsIdentifier: true) != ScanTypeFlags.NotType &&
-                        IsPossibleMemberName())
-                    {
-                        if (!this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
-                        {
-                            return true;
-                        }
                     }
                 }
 
@@ -1818,6 +1793,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // (inside a reset-point, so the advance is local) to determine whether this looks like
             // a member declaration head.
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+        }
+
+        /// <summary>
+        /// Returns true when an earlier <c>partial</c> has already been accepted as a modifier and
+        /// the current <c>partial</c> should instead be interpreted as a constructor name or return
+        /// type.
+        /// </summary>
+        private bool IsPartialIdentifierDeclarationHead()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+
+            if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
+                IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors))
+            {
+                return true;
+            }
+
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+            return this.ScanType(ParseTypeMode.Normal, out _, treatPartialAsIdentifier: true) != ScanTypeFlags.NotType &&
+                IsPossibleMemberName() &&
+                !this.IsEnabledRecordOrUnionKeyword(this.CurrentToken);
         }
 
         private bool IsPartialType()
