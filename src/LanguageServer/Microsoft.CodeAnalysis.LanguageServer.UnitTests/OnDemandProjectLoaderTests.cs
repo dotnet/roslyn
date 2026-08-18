@@ -23,7 +23,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         => _tempRoot.Dispose();
 
     [Fact]
-    public async Task RepeatedTriggersShareDiscoveryAndLoading()
+    public async Task RepeatedTriggersShareOnlyInFlightProjectLoading()
     {
         var workspace = _tempRoot.CreateDirectory();
         var project = workspace.CreateFile("App.csproj");
@@ -38,7 +38,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             {
                 Assert.Equal(project.Path, projectPath);
                 Interlocked.Increment(ref loadCount);
-                loadStarted.SetResult();
+                loadStarted.TrySetResult();
                 await loadCompletion.Task.WaitAsync(cancellationToken);
             });
 
@@ -55,6 +55,9 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         loadCompletion.SetResult();
         await secondOperation.WaitAsync(CancellationToken.None).WaitAsync(TestHelpers.HangMitigatingTimeout);
         Assert.Equal(1, Volatile.Read(ref loadCount));
+
+        await loader.StartLoading(uri).WaitAsync(CancellationToken.None).WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.Equal(2, Volatile.Read(ref loadCount));
     }
 
     [Theory]
@@ -75,6 +78,28 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             (projectPath, cancellationToken) => throw new InvalidOperationException(),
             isEnabled,
             isUsingDevKit);
+
+        var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path));
+        await operation.WaitAsync(CancellationToken.None);
+
+        Assert.Equal(0, Volatile.Read(ref enumerationCount));
+    }
+
+    [Fact]
+    public async Task DocumentInHostWorkspaceDoesNotDiscover()
+    {
+        var workspace = _tempRoot.CreateDirectory();
+        var document = workspace.CreateFile("Program.cs");
+        var enumerationCount = 0;
+        using var loader = CreateLoader(
+            workspace.Path,
+            directory =>
+            {
+                Interlocked.Increment(ref enumerationCount);
+                return [];
+            },
+            (projectPath, cancellationToken) => throw new InvalidOperationException(),
+            isDocumentInHostWorkspace: filePath => StringComparer.OrdinalIgnoreCase.Equals(filePath, document.Path));
 
         var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path));
         await operation.WaitAsync(CancellationToken.None);
@@ -128,7 +153,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
     }
 
     [Fact]
-    public async Task DependencyClosureStartsOnlyForDependencyPreferenceAndIsShared()
+    public async Task DependencyClosureIsLoadedAndShared()
     {
         var workspace = _tempRoot.CreateDirectory();
         var project = workspace.CreateFile("App.csproj");
@@ -151,17 +176,14 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             projectIds => projectIds.Contains(projectId) ? [dependency.Path] : []);
 
         var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path));
-        await operation.WaitAsync(LspSolutionContextPreference.Project, CancellationToken.None);
-        Assert.Equal(0, Volatile.Read(ref dependencyLoadCount));
-
         await Task.WhenAll(
-            operation.WaitAsync(LspSolutionContextPreference.ProjectAndDependencies, CancellationToken.None),
-            operation.WaitAsync(LspSolutionContextPreference.ProjectAndDependencies, CancellationToken.None));
+            operation.WaitAsync(CancellationToken.None),
+            operation.WaitAsync(CancellationToken.None));
         Assert.Equal(1, Volatile.Read(ref dependencyLoadCount));
     }
 
     [Fact]
-    public async Task DependencyPreferenceDoesNotRetryFailedRootWithinOperation()
+    public async Task FailedRootIsNotRetriedWithinOperation()
     {
         var workspace = _tempRoot.CreateDirectory();
         var project = workspace.CreateFile("App.csproj");
@@ -179,8 +201,8 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             getProjectReferences: _ => []);
 
         var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path));
-        await operation.WaitAsync(LspSolutionContextPreference.Project, CancellationToken.None);
-        await operation.WaitAsync(LspSolutionContextPreference.ProjectAndDependencies, CancellationToken.None);
+        await operation.WaitAsync(CancellationToken.None);
+        await operation.WaitAsync(CancellationToken.None);
 
         Assert.Equal(1, Volatile.Read(ref loadCount));
     }
@@ -221,12 +243,8 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             loadedProjectIds => loadedProjectIds.SelectManyAsArray(projectId => references.GetValueOrDefault(projectId, [])));
 
         var operation = loader.StartLoading(ProtocolConversions.CreateAbsoluteDocumentUri(document.Path));
-        var result = await operation.WaitAsync(LspSolutionContextPreference.ProjectAndDependencies, CancellationToken.None);
+        await operation.WaitAsync(CancellationToken.None);
 
-        Assert.True(result.IsProjectLoaded(firstProject.Path));
-        Assert.True(result.IsProjectLoaded(secondProject.Path));
-        Assert.True(result.HasCompleteDependencies(firstProject.Path));
-        Assert.False(result.HasCompleteDependencies(secondProject.Path));
         Assert.Equal(4, loadCounts.Count);
         Assert.Equal(1, loadCounts[firstProject.Path]);
         Assert.Equal(1, loadCounts[secondProject.Path]);
@@ -260,19 +278,21 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         Func<string, ImmutableArray<string>> enumerateFiles,
         Func<string, CancellationToken, Task> loadProjectAsync,
         bool isEnabled = true,
-        bool isUsingDevKit = false)
+        bool isUsingDevKit = false,
+        Func<string, bool>? isDocumentInHostWorkspace = null)
     {
+        var workspaceFolderTracker = CreateWorkspaceFolderTracker(workspaceFolder);
         var discoveryService = new WorkspaceProjectDiscoveryService(
+            workspaceFolderTracker,
             NullLoggerFactory.Instance,
-            new TestFileChangeWatcher(),
             supportedProjectFileExtensions: ["csproj"],
-            enumerateFiles);
-        discoveryService.GetTestAccessor().Initialize([workspaceFolder]);
+            enumerateFiles: enumerateFiles);
         return new OnDemandProjectLoader(
             discoveryService,
             projectPath => BeginLoadAsync(projectPath, loadProjectAsync),
             _ => [],
             static () => [],
+            isDocumentInHostWorkspace ?? (static _ => false),
             () => isEnabled,
             () => isUsingDevKit,
             AsynchronousOperationListenerProvider.NullListener,
@@ -286,17 +306,19 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         Func<ImmutableArray<ProjectId>, ImmutableArray<string>> getProjectReferences,
         Func<ImmutableArray<LanguageServerProjectLoadHandle>>? getPendingProjectLoadHandles = null)
     {
+        var projectLoadHandles = new ConcurrentDictionary<string, LanguageServerProjectLoadHandle>(StringComparer.OrdinalIgnoreCase);
+        var workspaceFolderTracker = CreateWorkspaceFolderTracker(workspaceFolder);
         var discoveryService = new WorkspaceProjectDiscoveryService(
+            workspaceFolderTracker,
             NullLoggerFactory.Instance,
-            new TestFileChangeWatcher(),
             supportedProjectFileExtensions: ["csproj"],
-            enumerateFiles);
-        discoveryService.GetTestAccessor().Initialize([workspaceFolder]);
+            enumerateFiles: enumerateFiles);
         return new OnDemandProjectLoader(
             discoveryService,
-            projectPath => Task.FromResult(CreateCompletedHandle(loadProject(projectPath))),
+            projectPath => Task.FromResult(projectLoadHandles.GetOrAdd(projectPath, path => CreateCompletedHandle(loadProject(path)))),
             getProjectReferences,
             getPendingProjectLoadHandles ?? (static () => []),
+            static _ => false,
             () => true,
             () => false,
             AsynchronousOperationListenerProvider.NullListener,
@@ -317,6 +339,17 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         }
     }
 
+    private static WorkspaceFolderTracker CreateWorkspaceFolderTracker(string workspaceFolder)
+    {
+        var tracker = new WorkspaceFolderTracker();
+        tracker.Initialize([new()
+        {
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspaceFolder),
+            Name = Path.GetFileName(workspaceFolder),
+        }]);
+        return tracker;
+    }
+
     private static LanguageServerProjectLoadHandle CreateCompletedHandle(LanguageServerProjectLoadResult result)
     {
         var handle = new LanguageServerProjectLoadHandle();
@@ -324,25 +357,4 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         return handle;
     }
 
-    private sealed class TestFileChangeWatcher : IFileChangeWatcher
-    {
-        public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
-            => new TestFileChangeContext();
-    }
-
-    private sealed class TestFileChangeContext : IFileChangeContext
-    {
-        public event EventHandler<string>? FileChanged
-        {
-            add { }
-            remove { }
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public IWatchedFile EnqueueWatchingFile(string filePath)
-            => NoOpWatchedFile.Instance;
-    }
 }

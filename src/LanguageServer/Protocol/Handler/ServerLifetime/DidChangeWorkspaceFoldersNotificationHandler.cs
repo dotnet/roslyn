@@ -20,11 +20,11 @@ internal sealed class DidChangeWorkspaceFoldersNotificationHandlerFactory() : IL
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         => new DidChangeWorkspaceFoldersNotificationHandler(
-            lspServices.GetRequiredService<IInitializeManager>());
+            lspServices.GetRequiredService<IWorkspaceFolderTracker>());
 }
 
 [Method(Methods.WorkspaceDidChangeWorkspaceFoldersName)]
-internal sealed class DidChangeWorkspaceFoldersNotificationHandler(IInitializeManager initializeManager)
+internal sealed class DidChangeWorkspaceFoldersNotificationHandler(IWorkspaceFolderTracker workspaceFolderTracker)
     : ILspService, ILspServiceNotificationHandler<DidChangeWorkspaceFoldersParams>
 {
     public bool MutatesSolutionState => true;
@@ -58,9 +58,7 @@ internal sealed class DidChangeWorkspaceFoldersNotificationHandler(IInitializeMa
             removedFolders = builder.ToImmutable();
         }
 
-        // Update the initialize manager with new workspace folder information.
-        // Subscribers (like WorkspaceProjectDiscoveryService) will be notified via the WorkspaceFoldersChanged event.
-        initializeManager.UpdateWorkspaceFolders(addedFolders, removedFolders);
+        workspaceFolderTracker.Update(addedFolders, removedFolders);
 
         return Task.CompletedTask;
     }

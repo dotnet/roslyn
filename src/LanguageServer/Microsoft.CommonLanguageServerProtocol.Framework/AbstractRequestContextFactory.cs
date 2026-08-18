@@ -11,9 +11,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal readonly record struct RequestContextInfo<TRequestContext>(
-    TRequestContext Context,
-    Func<CancellationToken, Task<TRequestContext>>? PrepareContextAsync = null);
+internal readonly record struct RequestContextInfo<TRequestContext>(TRequestContext Context);
 
 /// <summary>
 /// <para>

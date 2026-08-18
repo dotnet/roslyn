@@ -66,8 +66,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        var initializeManager = context.GetRequiredService<IInitializeManager>();
-        _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
+        var workspaceFolderTracker = context.GetRequiredService<IWorkspaceFolderTracker>();
+        _workspaceFolders = workspaceFolderTracker.GetRequiredWorkspaceFolderPaths();
         Task.Run(async () =>
         {
             try

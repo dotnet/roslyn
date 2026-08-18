@@ -5,12 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -21,6 +22,135 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// </summary>
 internal readonly struct RequestContext
 {
+    private sealed class SolutionContext
+    {
+        private readonly object _gate = new();
+        private readonly LspWorkspaceManager _lspWorkspaceManager;
+        private readonly TextDocumentIdentifier? _textDocumentIdentifier;
+        private readonly ImmutableDictionary<DocumentUri, TrackedDocumentInfo> _trackedDocuments;
+        private readonly OnDemandProjectLoadOperation _loadOperation;
+        private readonly ILspLogger _logger;
+        private readonly string _method;
+        private readonly bool _mutatesSolutionState;
+        private readonly (Workspace Workspace, Solution Solution, TextDocument? Document) _initialValue;
+
+        private (Workspace Workspace, Solution Solution, TextDocument? Document) _value;
+        private Task? _resolutionTask;
+        private bool _hasResolved;
+        private bool _isCleared;
+
+        public SolutionContext(
+            Workspace workspace,
+            Solution solution,
+            TextDocument? document,
+            LspWorkspaceManager lspWorkspaceManager,
+            TextDocumentIdentifier? textDocumentIdentifier,
+            ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
+            OnDemandProjectLoadOperation loadOperation,
+            ILspLogger logger,
+            string method,
+            bool mutatesSolutionState)
+        {
+            _initialValue = _value = (workspace, solution, document);
+            _lspWorkspaceManager = lspWorkspaceManager;
+            _textDocumentIdentifier = textDocumentIdentifier;
+            _trackedDocuments = trackedDocuments;
+            _loadOperation = loadOperation;
+            _logger = logger;
+            _method = method;
+            _mutatesSolutionState = mutatesSolutionState;
+        }
+
+        public (Workspace Workspace, Solution Solution, TextDocument? Document) GetCurrentValue()
+        {
+            lock (_gate)
+            {
+                if (_isCleared)
+                    throw new InvalidOperationException();
+
+                return _value;
+            }
+        }
+
+        public (Workspace Workspace, Solution Solution, TextDocument? Document) GetInitialValue()
+            => _initialValue;
+
+        public async ValueTask<(Workspace Workspace, Solution Solution, TextDocument? Document)> GetValueAsync(CancellationToken cancellationToken)
+        {
+            Task? resolutionTask;
+            lock (_gate)
+            {
+                if (_isCleared)
+                    throw new InvalidOperationException();
+
+                if (_mutatesSolutionState || _hasResolved)
+                    return _value;
+
+                resolutionTask = _resolutionTask ??= ResolveAsync();
+            }
+
+            await resolutionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+            return GetCurrentValue();
+        }
+
+        private async Task ResolveAsync()
+        {
+            var resolvedValue = _value;
+            try
+            {
+                var stopwatch = Stopwatch.StartNew();
+                try
+                {
+                    await _loadOperation.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _logger.LogDebug($"Waited {stopwatch.ElapsedMilliseconds} ms for project loading on {_method}.");
+                }
+
+                Workspace? workspace = null;
+                Solution? solution = null;
+                TextDocument? document = null;
+                if (_textDocumentIdentifier is not null)
+                {
+                    (workspace, solution, document) = await _lspWorkspaceManager.GetLspDocumentInfoAsync(
+                        _textDocumentIdentifier, _trackedDocuments, CancellationToken.None).ConfigureAwait(false);
+                }
+
+                if (workspace is null)
+                    (workspace, solution) = await _lspWorkspaceManager.GetLspSolutionInfoAsync(CancellationToken.None).ConfigureAwait(false);
+
+                if (workspace is not null && solution is not null)
+                    resolvedValue = (workspace, solution, document);
+            }
+            catch (Exception exception) when (FatalError.ReportAndCatch(exception))
+            {
+                _logger.LogException(exception);
+                _logger.LogWarning($"Could not refresh solution context after project loading on {_method}.");
+            }
+
+            lock (_gate)
+            {
+                if (!_isCleared)
+                {
+                    _value = resolvedValue;
+                    _hasResolved = true;
+                    _resolutionTask = null;
+                }
+            }
+        }
+
+        public void Clear()
+        {
+            lock (_gate)
+            {
+                _value = default;
+                _resolutionTask = null;
+                _isCleared = true;
+            }
+        }
+    }
+
     /// <summary>
     /// This will be the <see cref="NonMutatingDocumentChangeTracker"/> for non-mutating requests because they're not allowed to change documents
     /// </summary>
@@ -53,19 +183,19 @@ internal readonly struct RequestContext
     /// <remarks>
     /// This field is only initialized for handlers that request solution context.
     /// </remarks>
-    private readonly StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>? _lspSolution;
+    private readonly SolutionContext? _solutionContext;
 
     public ILspLogger Logger { get; }
 
     /// <summary>
-    /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
+    /// The workspace this request is for, if applicable.  This will be present if <see cref="GetDocumentAsync(CancellationToken)"/> returns a document.
     /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
     /// </summary>
     public Workspace? Workspace
     {
         get
         {
-            if (_lspSolution is null)
+            if (_solutionContext is null)
             {
                 // This request context never had a workspace instance
                 return null;
@@ -73,75 +203,7 @@ internal readonly struct RequestContext
 
             // The workspace is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
             // for attempts to access this property after it has been manually cleared.
-            return _lspSolution.Value.Workspace ?? throw new InvalidOperationException();
-        }
-    }
-
-    /// <summary>
-    /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
-    /// </summary>
-    public Solution? Solution
-    {
-        get
-        {
-            if (_lspSolution is null)
-            {
-                // This request context never had a solution instance
-                return null;
-            }
-
-            // The solution is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
-            // for attempts to access this property after it has been manually cleared.
-            return _lspSolution.Value.Solution ?? throw new InvalidOperationException();
-        }
-    }
-
-    /// <summary>
-    /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to 
-    /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
-    /// </summary>
-    public Document? Document
-    {
-        get
-        {
-            if (this.TextDocument is null)
-            {
-                return null;
-            }
-
-            if (this.TextDocument is Document document)
-            {
-                return document;
-            }
-
-            // Explicitly throw for attempts to get a Document when only a TextDocument is available.
-            throw new InvalidOperationException("Attempted to retrieve a Document but a TextDocument was found instead.");
-        }
-    }
-
-    /// <summary>
-    /// The text document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to 
-    /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
-    /// </summary>
-    public TextDocument? TextDocument
-    {
-        get
-        {
-            if (_lspSolution is null)
-            {
-                // This request context never had a solution instance
-                return null;
-            }
-
-            // The solution is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
-            // for attempts to access this property after it has been manually cleared. Note that we can't rely on
-            // Document being null for this check, because it is not always provided as part of the solution context.
-            if (_lspSolution.Value.Workspace is null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            return _lspSolution.Value.Document;
+            return _solutionContext.GetCurrentValue().Workspace;
         }
     }
 
@@ -162,8 +224,6 @@ internal readonly struct RequestContext
 
     public readonly CancellationToken QueueCancellationToken;
 
-    public LspSolutionContextCompleteness SolutionContextCompleteness { get; }
-
     public RequestContext(
         Workspace? workspace,
         Solution? solution,
@@ -176,19 +236,32 @@ internal readonly struct RequestContext
         ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
         ILspServices lspServices,
-        LspSolutionContextCompleteness solutionContextCompleteness,
+        LspWorkspaceManager lspWorkspaceManager,
+        TextDocumentIdentifier? textDocumentIdentifier,
+        OnDemandProjectLoadOperation loadOperation,
+        bool mutatesSolutionState,
         CancellationToken queueCancellationToken)
     {
         if (workspace is not null)
         {
             RoslynDebug.Assert(solution is not null);
-            _lspSolution = new StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>((workspace, solution, document));
+            _solutionContext = new SolutionContext(
+                workspace,
+                solution,
+                document,
+                lspWorkspaceManager,
+                textDocumentIdentifier,
+                trackedDocuments,
+                loadOperation,
+                logger,
+                method,
+                mutatesSolutionState);
         }
         else
         {
             RoslynDebug.Assert(solution is null);
             RoslynDebug.Assert(document is null);
-            _lspSolution = null;
+            _solutionContext = null;
         }
 
         _clientCapabilities = clientCapabilities;
@@ -198,7 +271,6 @@ internal readonly struct RequestContext
         Logger = logger;
         _trackedDocuments = trackedDocuments;
         _lspServices = lspServices;
-        SolutionContextCompleteness = solutionContextCompleteness;
         QueueCancellationToken = queueCancellationToken;
         Method = method;
     }
@@ -210,19 +282,44 @@ internal readonly struct RequestContext
             : _clientCapabilities;
     }
 
-    public Document GetRequiredDocument()
+    public async ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
+        => _solutionContext is null
+            ? null
+            : (await _solutionContext.GetValueAsync(cancellationToken).ConfigureAwait(false)).Solution;
+
+    internal Solution? GetInitialSolution()
+        => _solutionContext?.GetInitialValue().Solution;
+
+    internal TextDocument? GetInitialTextDocument()
+        => _solutionContext?.GetInitialValue().Document;
+
+    public async ValueTask<Solution> GetRequiredSolutionAsync(CancellationToken cancellationToken)
+        => await GetSolutionAsync(cancellationToken).ConfigureAwait(false)
+            ?? throw new ArgumentNullException($"{nameof(Solution)} is null when it was required for {Method}");
+
+    public async ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
+        => _solutionContext is null
+            ? null
+            : (await _solutionContext.GetValueAsync(cancellationToken).ConfigureAwait(false)).Document;
+
+    public async ValueTask<TextDocument> GetRequiredTextDocumentAsync(CancellationToken cancellationToken)
+        => await GetTextDocumentAsync(cancellationToken).ConfigureAwait(false)
+            ?? throw new ArgumentNullException($"{nameof(TextDocument)} is null when it was required for {Method}");
+
+    public async ValueTask<Document?> GetDocumentAsync(CancellationToken cancellationToken)
     {
-        return Document is null
-            ? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}")
-            : Document;
+        var textDocument = await GetTextDocumentAsync(cancellationToken).ConfigureAwait(false);
+        return textDocument switch
+        {
+            null => null,
+            Document document => document,
+            _ => throw new InvalidOperationException("Attempted to retrieve a Document but a TextDocument was found instead."),
+        };
     }
 
-    public TextDocument GetRequiredTextDocument()
-    {
-        return TextDocument is null
-            ? throw new ArgumentNullException($"{nameof(TextDocument)} is null when it was required for {Method}")
-            : TextDocument;
-    }
+    public async ValueTask<Document> GetRequiredDocumentAsync(CancellationToken cancellationToken)
+        => await GetDocumentAsync(cancellationToken).ConfigureAwait(false)
+            ?? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}");
 
     public static async Task<RequestContext> CreateAsync(
         bool mutatesSolutionState,
@@ -234,8 +331,7 @@ internal readonly struct RequestContext
         ILspServices lspServices,
         ILspLogger logger,
         string method,
-        LspSolutionContextPreference solutionContextPreference,
-        OnDemandProjectLoadResult loadResult,
+        OnDemandProjectLoadOperation loadOperation,
         ImmutableDictionary<DocumentUri, TrackedDocumentInfo>? trackedDocuments,
         CancellationToken cancellationToken)
     {
@@ -256,7 +352,7 @@ internal readonly struct RequestContext
             context = new RequestContext(
                 workspace: null, solution: null, logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
                 documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
-                solutionContextCompleteness: LspSolutionContextCompleteness.NotEvaluated,
+                lspWorkspaceManager: lspWorkspaceManager, textDocumentIdentifier: textDocument, loadOperation: loadOperation, mutatesSolutionState: mutatesSolutionState,
                 queueCancellationToken: cancellationToken);
         }
         else
@@ -270,9 +366,7 @@ internal readonly struct RequestContext
                 // There are certain cases where we may be asked for a document that does not exist (for example a
                 // document is removed) For example, document pull diagnostics can ask us after removal to clear
                 // diagnostics for a document.
-                (workspace, solution, document) = solutionContextPreference == LspSolutionContextPreference.NoPreference
-                    ? await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, cancellationToken).ConfigureAwait(false)
-                    : await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, trackedDocuments, cancellationToken).ConfigureAwait(false);
+                (workspace, solution, document) = await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, cancellationToken).ConfigureAwait(false);
             }
 
             if (workspace is null)
@@ -299,40 +393,14 @@ internal readonly struct RequestContext
                 trackedDocuments,
                 supportedLanguages,
                 lspServices,
-                GetSolutionContextCompleteness(solutionContextPreference, document, loadResult),
+                lspWorkspaceManager,
+                textDocument,
+                loadOperation,
+                mutatesSolutionState,
                 cancellationToken);
         }
 
         return context;
-    }
-
-    private static LspSolutionContextCompleteness GetSolutionContextCompleteness(
-        LspSolutionContextPreference preference,
-        TextDocument? document,
-        OnDemandProjectLoadResult loadResult)
-    {
-        if (preference == LspSolutionContextPreference.NoPreference)
-            return LspSolutionContextCompleteness.NotEvaluated;
-
-        if (document is null)
-            return LspSolutionContextCompleteness.None;
-
-        if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
-            return LspSolutionContextCompleteness.Miscellaneous;
-
-        return preference switch
-        {
-            LspSolutionContextPreference.Project => loadResult.IsProjectLoaded(document.Project.FilePath)
-                ? LspSolutionContextCompleteness.Project
-                : LspSolutionContextCompleteness.None,
-            LspSolutionContextPreference.ProjectAndDependencies => !loadResult.IsProjectLoaded(document.Project.FilePath)
-                ? LspSolutionContextCompleteness.None
-                : loadResult.HasCompleteDependencies(document.Project.FilePath)
-                    ? LspSolutionContextCompleteness.ProjectAndDependencies
-                    : LspSolutionContextCompleteness.Project,
-            LspSolutionContextPreference.Workspace => LspSolutionContextCompleteness.Workspace,
-            _ => throw ExceptionUtilities.UnexpectedValue(preference),
-        };
     }
 
     /// <summary>
@@ -340,10 +408,7 @@ internal readonly struct RequestContext
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
     public async ValueTask StartTrackingAsync(DocumentUri uri, SourceText initialText, string languageId, int lspVersion, CancellationToken cancellationToken)
-    {
-        await _documentChangeTracker.StartTrackingAsync(uri, initialText, languageId, lspVersion, cancellationToken).ConfigureAwait(false);
-        _ = GetService<IOnDemandProjectLoader>()?.StartLoading(uri);
-    }
+        => await _documentChangeTracker.StartTrackingAsync(uri, initialText, languageId, lspVersion, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Allows a mutating request to update the contents of a tracked document.
@@ -370,10 +435,10 @@ internal readonly struct RequestContext
 
     public void ClearSolutionContext()
     {
-        if (_lspSolution is null)
+        if (_solutionContext is null)
             return;
 
-        _lspSolution.Value = default;
+        _solutionContext.Clear();
     }
 
     public void TraceDebug(string message)

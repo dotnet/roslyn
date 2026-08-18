@@ -50,7 +50,7 @@ internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandl
         RequestContext context,
         CancellationToken cancellationToken)
     {
-        var document = context.Document;
+        var document = await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
         var workspace = context.Workspace;
         Contract.ThrowIfNull(document);
         Contract.ThrowIfNull(workspace);

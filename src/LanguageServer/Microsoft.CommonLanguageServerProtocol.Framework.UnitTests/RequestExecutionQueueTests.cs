@@ -156,112 +156,6 @@ public sealed class RequestExecutionQueueTests
     }
 
     [Fact]
-    public async Task DeferredPreparation_DoesNotBlockLaterNonMutatingRequest()
-    {
-        var preparationStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var allowPreparation = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var laterRequestHandled = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var factory = new CallbackRequestContextFactory((request, cancellationToken) =>
-            Task.FromResult(request.Param == 1
-                ? new RequestContextInfo<TestRequestContext>(new(), PrepareContextAsync)
-                : new RequestContextInfo<TestRequestContext>(new())));
-        var handler = new CallbackHandler(mutatesSolutionState: false, request =>
-        {
-            if (request.Param == 2)
-                laterRequestHandled.TrySetResult(true);
-        });
-        var metadata = CreateMetadata("DeferredPreparation_DoesNotBlockLaterNonMutatingRequest");
-        var requestExecutionQueue = GetRequestExecutionQueue(false, (metadata, handler));
-        var lspServices = GetLspServices(factory);
-
-        var firstRequest = requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), metadata.MethodName, lspServices, CancellationToken.None);
-        await preparationStarted.Task;
-
-        var laterRequest = requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(2)), metadata.MethodName, lspServices, CancellationToken.None);
-        await laterRequestHandled.Task;
-        Assert.False(firstRequest.IsCompleted);
-
-        allowPreparation.SetResult(true);
-        await Task.WhenAll(firstRequest, laterRequest);
-
-        async Task<TestRequestContext> PrepareContextAsync(CancellationToken cancellationToken)
-        {
-            preparationStarted.SetResult(true);
-            await allowPreparation.Task.ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
-            return new TestRequestContext();
-        }
-    }
-
-    [Fact]
-    public async Task DeferredPreparation_DoesNotBlockLaterMutatingRequest()
-    {
-        var preparationStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var allowPreparation = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var mutatingRequestHandled = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var factory = new CallbackRequestContextFactory((request, cancellationToken) =>
-            Task.FromResult(request.Param == 1
-                ? new RequestContextInfo<TestRequestContext>(new(), PrepareContextAsync)
-                : new RequestContextInfo<TestRequestContext>(new())));
-        var nonMutatingHandler = new CallbackHandler(mutatesSolutionState: false);
-        var mutatingHandler = new CallbackHandler(mutatesSolutionState: true, _ => mutatingRequestHandled.SetResult(true));
-        var nonMutatingMetadata = CreateMetadata("DeferredPreparation_NonMutatingRequest");
-        var mutatingMetadata = CreateMetadata("DeferredPreparation_MutatingRequest");
-        var requestExecutionQueue = GetRequestExecutionQueue(false, (nonMutatingMetadata, nonMutatingHandler), (mutatingMetadata, mutatingHandler));
-        var lspServices = GetLspServices(factory);
-
-        var firstRequest = requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), nonMutatingMetadata.MethodName, lspServices, CancellationToken.None);
-        await preparationStarted.Task;
-
-        var mutatingRequest = requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(2)), mutatingMetadata.MethodName, lspServices, CancellationToken.None);
-        await mutatingRequestHandled.Task;
-        Assert.False(firstRequest.IsCompleted);
-
-        allowPreparation.SetResult(true);
-        await Task.WhenAll(firstRequest, mutatingRequest);
-
-        async Task<TestRequestContext> PrepareContextAsync(CancellationToken cancellationToken)
-        {
-            preparationStarted.SetResult(true);
-            await allowPreparation.Task.ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
-            return new TestRequestContext();
-        }
-    }
-
-    [Fact]
-    public async Task DeferredPreparation_CancellationPreventsHandlerDispatch()
-    {
-        var preparationStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var allowPreparation = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var handlerCalled = false;
-        var factory = new CallbackRequestContextFactory((request, cancellationToken) =>
-            Task.FromResult(new RequestContextInfo<TestRequestContext>(new(), PrepareContextAsync)));
-        var handler = new CallbackHandler(mutatesSolutionState: false, _ => handlerCalled = true);
-        var metadata = CreateMetadata("DeferredPreparation_CancellationPreventsHandlerDispatch");
-        var requestExecutionQueue = GetRequestExecutionQueue(false, (metadata, handler));
-        var lspServices = GetLspServices(factory);
-        using var cancellationSource = new CancellationTokenSource();
-
-        var requestTask = requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), metadata.MethodName, lspServices, cancellationSource.Token);
-        await preparationStarted.Task;
-
-        cancellationSource.Cancel();
-        allowPreparation.SetResult(true);
-
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => requestTask);
-        Assert.False(handlerCalled);
-
-        async Task<TestRequestContext> PrepareContextAsync(CancellationToken cancellationToken)
-        {
-            preparationStarted.SetResult(true);
-            await allowPreparation.Task.ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
-            return new TestRequestContext();
-        }
-    }
-
-    [Fact]
     public async Task ContextFactoryWithoutDeferredPreparation_PreservesSerializedOrdering()
     {
         var contextCreationStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -295,22 +189,6 @@ public sealed class RequestExecutionQueueTests
         allowContextCreation.SetResult(true);
         await Task.WhenAll(firstRequest, laterRequest);
         Assert.True(laterRequestHandled.Task.IsCompleted);
-    }
-
-    [Fact]
-    public async Task DeferredPreparation_MutatingRequestIsRejected()
-    {
-        var handlerCalled = false;
-        var factory = new CallbackRequestContextFactory((request, cancellationToken) =>
-            Task.FromResult(new RequestContextInfo<TestRequestContext>(new(), _ => Task.FromResult(new TestRequestContext()))));
-        var handler = new CallbackHandler(mutatesSolutionState: true, _ => handlerCalled = true);
-        var metadata = CreateMetadata("DeferredPreparation_MutatingRequestIsRejected");
-        var requestExecutionQueue = GetRequestExecutionQueue(false, (metadata, handler));
-        var lspServices = GetLspServices(factory);
-
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), metadata.MethodName, lspServices, CancellationToken.None));
-        Assert.False(handlerCalled);
     }
 
     private static RequestHandlerMetadata CreateMetadata(string methodName)

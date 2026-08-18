@@ -23,24 +23,21 @@ internal sealed record TestConfigurableResponse([property: JsonPropertyName("res
 [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class TestConfigurableDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestWithDocument, TestConfigurableResponse>, ISolutionContextPreference
+internal sealed class TestConfigurableDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestWithDocument, TestConfigurableResponse>
 {
     public const string MethodName = nameof(TestConfigurableDocumentHandler);
 
     private bool? _mutatesSolutionState;
     private bool? _requiresLSPSolution;
-    private Func<RequestContext, Task<TestConfigurableResponse>>? _responseFactory;
+    private Func<RequestContext, CancellationToken, Task<TestConfigurableResponse>>? _responseFactory;
 
     public bool MutatesSolutionState => _mutatesSolutionState ?? throw new InvalidOperationException($"{nameof(ConfigureHandler)} has not been called");
     public bool RequiresLSPSolution => _requiresLSPSolution ?? throw new InvalidOperationException($"{nameof(ConfigureHandler)} has not been called");
-    public LspSolutionContextPreference SolutionContextPreference => MutatesSolutionState
-        ? LspSolutionContextPreference.NoPreference
-        : LspSolutionContextPreference.ProjectAndDependencies;
 
     public void ConfigureHandler(bool mutatesSolutionState, bool requiresLspSolution, Task<TestConfigurableResponse> response)
-        => ConfigureHandler(mutatesSolutionState, requiresLspSolution, _ => response);
+        => ConfigureHandler(mutatesSolutionState, requiresLspSolution, (_, _) => response);
 
-    public void ConfigureHandler(bool mutatesSolutionState, bool requiresLspSolution, Func<RequestContext, Task<TestConfigurableResponse>> responseFactory)
+    public void ConfigureHandler(bool mutatesSolutionState, bool requiresLspSolution, Func<RequestContext, CancellationToken, Task<TestConfigurableResponse>> responseFactory)
     {
         if (_mutatesSolutionState is not null || _requiresLSPSolution is not null || _responseFactory is not null)
         {
@@ -60,7 +57,7 @@ internal sealed class TestConfigurableDocumentHandler() : ILspServiceDocumentReq
     public Task<TestConfigurableResponse> HandleRequestAsync(TestRequestWithDocument request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(_responseFactory, $"{nameof(ConfigureHandler)} has not been called");
-        return _responseFactory(context);
+        return _responseFactory(context, cancellationToken);
     }
 
     public static void ConfigureHandler(TestLspServer server, bool mutatesSolutionState, bool requiresLspSolution, Task<TestConfigurableResponse> response)
@@ -74,7 +71,7 @@ internal sealed class TestConfigurableDocumentHandler() : ILspServiceDocumentReq
         TestLspServer server,
         bool mutatesSolutionState,
         bool requiresLspSolution,
-        Func<RequestContext, Task<TestConfigurableResponse>> responseFactory)
+        Func<RequestContext, CancellationToken, Task<TestConfigurableResponse>> responseFactory)
     {
         var handler = (TestConfigurableDocumentHandler)server.GetQueueAccessor()!.Value.GetHandlerProvider().GetMethodHandler(TestConfigurableDocumentHandler.MethodName,
             TypeRef.From(typeof(TestRequestWithDocument)), TypeRef.From(typeof(TestConfigurableResponse)), LanguageServerConstants.DefaultLanguageName);

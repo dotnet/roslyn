@@ -4,30 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal enum LspSolutionContextPreference
-{
-    NoPreference,
-    Project,
-    ProjectAndDependencies,
-    Workspace,
-}
-
-internal enum LspSolutionContextCompleteness
-{
-    NotEvaluated,
-    None,
-    Miscellaneous,
-    Project,
-    ProjectAndDependencies,
-    Workspace,
-}
-
 internal interface ISolutionRequiredHandler
 {
     bool RequiresLSPSolution { get; }
-}
-
-internal interface ISolutionContextPreference
-{
-    LspSolutionContextPreference SolutionContextPreference { get; }
 }

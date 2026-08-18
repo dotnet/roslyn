@@ -171,11 +171,7 @@ internal sealed class QueueItem<TRequestContext>
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var context = requestContextInfo.PrepareContextAsync is null
-                ? requestContextInfo.Context
-                : await requestContextInfo.PrepareContextAsync(cancellationToken).ConfigureAwait(false);
-
-            cancellationToken.ThrowIfCancellationRequested();
+            var context = requestContextInfo.Context;
 
             _requestHandlingStarted = true;
             _logger.LogDebug("Starting request handler");

@@ -348,11 +348,6 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
 
         var (requestContextInfo, deserializedRequest) = contextInfo.Value;
 
-        if (handler.MutatesSolutionState && requestContextInfo.PrepareContextAsync is not null)
-        {
-            throw new InvalidOperationException("Mutating requests cannot use deferred request context preparation.");
-        }
-
         // Run anything in before request before we start handling the request (for example setting the UI culture).
         BeforeRequest(deserializedRequest);
 

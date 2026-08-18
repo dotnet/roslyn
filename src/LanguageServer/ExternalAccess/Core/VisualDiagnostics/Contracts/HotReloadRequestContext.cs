@@ -2,16 +2,41 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
 
-internal sealed class HotReloadRequestContext(RequestContext context)
+internal sealed class HotReloadRequestContext
 {
-    internal LSP.ClientCapabilities ClientCapabilities => context.GetRequiredClientCapabilities();
-    public TextDocument? TextDocument => context.TextDocument;
-    public Solution? Solution => context.Solution;
-    public bool IsTracking(TextDocument textDocument) => context.IsTracking(textDocument.GetURI());
+    private readonly RequestContext _context;
+    private readonly Solution? _initialSolution;
+    private readonly TextDocument? _initialTextDocument;
+
+    public HotReloadRequestContext(RequestContext context)
+    {
+        _context = context;
+        _initialSolution = context.GetInitialSolution();
+        _initialTextDocument = context.GetInitialTextDocument();
+    }
+
+    internal LSP.ClientCapabilities ClientCapabilities => _context.GetRequiredClientCapabilities();
+
+    [Obsolete("Use GetTextDocumentAsync instead.", error: false)]
+    public TextDocument? TextDocument => _initialTextDocument;
+
+    [Obsolete("Use GetSolutionAsync instead.", error: false)]
+    public Solution? Solution => _initialSolution;
+
+    public ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
+        => _context.GetTextDocumentAsync(cancellationToken);
+
+    public ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
+        => _context.GetSolutionAsync(cancellationToken);
+
+    public bool IsTracking(TextDocument textDocument) => _context.IsTracking(textDocument.GetURI());
 }

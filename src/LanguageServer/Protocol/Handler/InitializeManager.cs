@@ -3,22 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal sealed class InitializeManager : IInitializeManager
+internal sealed class InitializeManager(IWorkspaceFolderTracker workspaceFolderTracker) : IInitializeManager
 {
-    public InitializeManager()
-    {
-    }
-
     private InitializeParams? _initializeParams;
-    private ImmutableArray<string> _workspaceFolderPathsOpt;
-
-    public event EventHandler<WorkspaceFoldersChangedEventArgs>? WorkspaceFoldersChanged;
 
     public ClientCapabilities GetClientCapabilities()
     {
@@ -34,22 +25,7 @@ internal sealed class InitializeManager : IInitializeManager
     {
         Contract.ThrowIfFalse(_initializeParams == null);
         _initializeParams = initializeParams;
-        _workspaceFolderPathsOpt = initializeParams.WorkspaceFolders is [_, ..] workspaceFolders ? GetFolderPaths(workspaceFolders) : [];
-
-        static ImmutableArray<string> GetFolderPaths(WorkspaceFolder[] workspaceFolders)
-        {
-            var builder = ArrayBuilder<string>.GetInstance(workspaceFolders.Length);
-            foreach (var workspaceFolder in workspaceFolders)
-            {
-                if (workspaceFolder.DocumentUri.ParsedUri is not { } parsedUri)
-                    continue;
-
-                var workspaceFolderPath = workspaceFolder.DocumentUri.GetDocumentFilePathFromUri();
-                builder.Add(workspaceFolderPath);
-            }
-
-            return builder.ToImmutableAndFree();
-        }
+        workspaceFolderTracker.Initialize(initializeParams.WorkspaceFolders);
     }
 
     public InitializeParams? TryGetInitializeParams()
@@ -57,41 +33,8 @@ internal sealed class InitializeManager : IInitializeManager
         return _initializeParams;
     }
 
-    public ImmutableArray<string> GetRequiredWorkspaceFolderPaths()
-    {
-        Contract.ThrowIfTrue(_workspaceFolderPathsOpt.IsDefault, $"{nameof(_workspaceFolderPathsOpt)} was not initialized. Was this accessed before the OnInitialized event ran?");
-        return _workspaceFolderPathsOpt;
-    }
-
     public ClientCapabilities? TryGetClientCapabilities()
     {
         return _initializeParams?.Capabilities;
-    }
-
-    public void UpdateWorkspaceFolders(ImmutableArray<string> addedFolders, ImmutableArray<string> removedFolders)
-    {
-        Contract.ThrowIfTrue(_workspaceFolderPathsOpt.IsDefault, $"{nameof(_workspaceFolderPathsOpt)} was not initialized. Was this called before OnInitialized?");
-
-        var builder = _workspaceFolderPathsOpt.ToBuilder();
-
-        // Remove old folders
-        foreach (var removedFolder in removedFolders)
-        {
-            builder.Remove(removedFolder, StringComparer.OrdinalIgnoreCase);
-        }
-
-        // Add new folders
-        foreach (var addedFolder in addedFolders)
-        {
-            if (builder.IndexOf(addedFolder, 0, builder.Count, StringComparer.OrdinalIgnoreCase) < 0)
-            {
-                builder.Add(addedFolder);
-            }
-        }
-
-        _workspaceFolderPathsOpt = builder.ToImmutable();
-
-        // Notify subscribers of the workspace folder changes
-        WorkspaceFoldersChanged?.Invoke(this, new WorkspaceFoldersChangedEventArgs(addedFolders, removedFolders));
     }
 }

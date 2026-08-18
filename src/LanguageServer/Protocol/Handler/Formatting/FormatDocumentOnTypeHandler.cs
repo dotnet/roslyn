@@ -41,7 +41,7 @@ internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHa
         RequestContext context,
         CancellationToken cancellationToken)
     {
-        var document = context.Document;
+        var document = await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (document is null)
             return null;
 

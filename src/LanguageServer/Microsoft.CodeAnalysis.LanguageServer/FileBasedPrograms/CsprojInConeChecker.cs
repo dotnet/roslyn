@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -30,8 +30,8 @@ internal sealed class CsprojInConeChecker : ILspService, IOnInitialized
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        var initializeManager = context.GetRequiredService<IInitializeManager>();
-        _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
+        var workspaceFolderTracker = context.GetRequiredService<IWorkspaceFolderTracker>();
+        _workspaceFolders = workspaceFolderTracker.GetRequiredWorkspaceFolderPaths();
         return Task.CompletedTask;
     }
 

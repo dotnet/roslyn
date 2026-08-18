@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -53,7 +53,7 @@ public sealed class ClientProcessMonitorTests
 
     private static ClientProcessMonitor CreateMonitor(ServerConfiguration configuration, int initializeProcessId)
     {
-        var initializeManager = new InitializeManager();
+        var initializeManager = new InitializeManager(new WorkspaceFolderTracker());
         initializeManager.SetInitializeParams(new InitializeParams
         {
             ProcessId = initializeProcessId,

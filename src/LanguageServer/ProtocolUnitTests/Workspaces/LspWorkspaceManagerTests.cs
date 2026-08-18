@@ -49,25 +49,6 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         Assert.NotNull(document);
     }
 
-    [Fact]
-    public async Task DidOpenTracksTextBeforeStartingOnDemandLoadAndDoesNotWaitForCompletion()
-    {
-        var composition = Composition.AddParts(typeof(TestOnDemandProjectLoaderFactory));
-        await using var testLspServer = await CreateTestLspServerAsync(
-            "Original text",
-            mutatingLspWorkspace: false,
-            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
-            composition);
-        var documentUri = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single().GetURI();
-
-        await testLspServer.OpenDocumentAsync(documentUri, "LSP text");
-
-        var loader = testLspServer.GetRequiredLspService<IOnDemandProjectLoader>();
-        var testLoader = Assert.IsType<TestOnDemandProjectLoader>(loader);
-        Assert.Equal("LSP text", testLoader.TrackedTextWhenStarted);
-        Assert.False(testLoader.LoadCompletion.Task.IsCompleted);
-    }
-
     [Theory, CombinatorialData]
     public async Task TestUsesLspTextOnOpenCloseAsync(bool mutatingLspWorkspace)
     {
@@ -789,31 +770,4 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         }
     }
 
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(IOnDemandProjectLoader)), PartNotDiscoverable, Shared]
-    private sealed class TestOnDemandProjectLoaderFactory : ILspServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestOnDemandProjectLoaderFactory()
-        {
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new TestOnDemandProjectLoader(lspServices.GetRequiredService<LspWorkspaceManager>());
-    }
-
-    private sealed class TestOnDemandProjectLoader(LspWorkspaceManager workspaceManager) : IOnDemandProjectLoader
-    {
-        public TaskCompletionSource<bool> LoadCompletion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public string? TrackedTextWhenStarted { get; private set; }
-
-        public OnDemandProjectLoadOperation StartLoading(DocumentUri uri)
-        {
-            TrackedTextWhenStarted = workspaceManager.GetTrackedLspText()[uri].SourceText.ToString();
-            return new OnDemandProjectLoadOperation(LoadCompletion.Task);
-        }
-
-        public OnDemandProjectLoadOperation GetWorkspaceLoadOperation()
-            => OnDemandProjectLoadOperation.Completed;
-    }
 }
