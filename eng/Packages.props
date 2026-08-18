@@ -172,7 +172,7 @@
                     Version="5.9.0"
                     Condition="'$(DotNetBuild)' != 'true'" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers"
-                    Version="$(MicrosoftCodeAnalysisAnalyzersPackageVersion)"
+                    Version="$(MicrosoftCodeAnalysisAnalyzersVersion)"
                     Condition="'$(DotNetBuild)' == 'true'" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
