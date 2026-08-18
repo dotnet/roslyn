@@ -66,6 +66,36 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
     }
 
+    [Fact]
+    public void Partial_BeforeAccessibilityOnNamespace()
+    {
+        const string src = "partial public namespace N { }";
+
+        UsingTree(src);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.NamespaceDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.NamespaceKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "N");
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation(src).VerifyDiagnostics(
+            // (1,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+            // partial public namespace N { }
+            Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "partial").WithLocation(1, 1));
+    }
+
     [Theory]
     [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
     [InlineData("union", SyntaxKind.UnionDeclaration, SyntaxKind.UnionKeyword)]
