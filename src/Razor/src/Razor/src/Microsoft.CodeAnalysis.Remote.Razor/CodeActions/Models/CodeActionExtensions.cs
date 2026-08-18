@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -19,7 +20,7 @@ internal static class CodeActionExtensions
     private const string CodeActionPathProperty = nameof(CodeActionResolveData.CodeActionPath);
     private const string FixAllFlavorsProperty = nameof(CodeActionResolveData.FixAllFlavors);
 
-    public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction, VSTextDocumentIdentifier textDocument, DocumentUri? delegatedDocumentUri)
+    public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction, VSTextDocumentIdentifier textDocument, Uri? delegatedDocumentUri)
     {
         if (razorCodeAction.Data is null)
         {

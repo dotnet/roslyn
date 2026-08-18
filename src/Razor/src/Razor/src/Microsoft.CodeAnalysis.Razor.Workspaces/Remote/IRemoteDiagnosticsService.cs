@@ -12,15 +12,13 @@ internal interface IRemoteDiagnosticsService : IRemoteJsonService
     ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        LspDiagnostic[] csharpImplDiagnostics,
-        LspDiagnostic[] csharpDeclDiagnostics,
+        LspDiagnostic[] csharpDiagnostics,
         LspDiagnostic[] htmlDiagnostics,
         CancellationToken cancellationToken);
 
     ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        LspDiagnostic[] csharpImplTaskItems,
-        LspDiagnostic[] csharpDeclTaskItems,
+        LspDiagnostic[] csharpTaskItems,
         CancellationToken cancellationToken);
 }

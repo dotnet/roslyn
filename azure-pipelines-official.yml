@@ -146,11 +146,11 @@ extends:
     - ES365AIMigrationTooling
     stages:
 
-    - stage: build
-      displayName: Build and Test
+    - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
+      - stage: localization
+        displayName: Localization
 
-      jobs:
-      - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
+        jobs:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
@@ -158,6 +158,11 @@ extends:
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
+    - stage: build
+      displayName: Build and Test
+      dependsOn: []
+
+      jobs:
       - template: /eng/common/templates-official/jobs/source-build.yml@self
 
       - job: OfficialBuild

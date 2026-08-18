@@ -4,8 +4,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.VSInternalDataTip?>;
@@ -31,25 +31,25 @@ internal sealed class RemoteDataTipRangeService(in ServiceArgs args) : RazorDocu
         return RunServiceAsync(
             solutionInfo,
             documentId,
-            snapshot => GetDataTipRangeAsync(snapshot, position, cancellationToken),
+            context => GetDataTipRangeAsync(context, position, cancellationToken),
             cancellationToken);
     }
 
     private async ValueTask<RemoteResponse<VSInternalDataTip?>> GetDataTipRangeAsync(
-        RemoteDocumentSnapshot snapshot,
+        RemoteDocumentContext context,
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var razorIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(position);
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
-        if (!_documentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, razorIndex, out var csharpPosition, out _, out var inDeclDocument))
+        if (!_documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, razorIndex, out var csharpPosition, out _))
         {
             return NoFurtherHandling;
         }
 
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
-        var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var csharpResult = await DataTipRangeHandler.GetDataTipRangeAsync(generatedDocument, csharpPosition, cancellationToken).ConfigureAwait(false);
         if (csharpResult?.ExpressionRange is null)

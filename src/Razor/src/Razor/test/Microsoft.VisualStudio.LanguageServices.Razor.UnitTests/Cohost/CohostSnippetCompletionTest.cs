@@ -7,7 +7,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -81,7 +80,6 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
             IncompatibleProjectService,
             completionListCache,
             RemoteServiceInvoker,
-            ClientSettingsManager,
             requestInvoker,
             ClientCapabilitiesService,
             snippetCompletionItemProvider,
@@ -95,7 +93,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
         Assert.NotNull(tdi);
         Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
-        var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, CSharpSyntaxFormattingOptions.Default, DisposalToken);
+        var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, DisposalToken);
 
         Assert.NotNull(resolvedItem);
         Assert.Equal(itemToResolve.Label, resolvedItem.Label);
@@ -164,7 +162,6 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
             IncompatibleProjectService,
             completionListCache,
             RemoteServiceInvoker,
-            ClientSettingsManager,
             requestInvoker,
             ClientCapabilitiesService,
             snippetCompletionItemProvider,
@@ -173,7 +170,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
         var itemToResolve = result.Items.First();
         itemToResolve = JsonSerializer.Deserialize<VSInternalCompletionItem>(JsonSerializer.SerializeToElement(itemToResolve, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
 
-        var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, CSharpSyntaxFormattingOptions.Default, DisposalToken);
+        var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, DisposalToken);
 
         Assert.NotNull(resolvedItem);
         Assert.Equal("table", resolvedItem.Label);

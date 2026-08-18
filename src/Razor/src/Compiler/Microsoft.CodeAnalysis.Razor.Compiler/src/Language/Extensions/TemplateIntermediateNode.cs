@@ -23,16 +23,6 @@ public sealed class TemplateIntermediateNode : ExtensionIntermediateNode
         AcceptExtensionNode<TemplateIntermediateNode>(this, visitor);
     }
 
-    protected override IntermediateNode CloneNode()
-    {
-        var clone = new TemplateIntermediateNode
-        {
-            IsSynthesizedHelper = IsSynthesizedHelper,
-        };
-
-        return clone;
-    }
-
     public override void WriteNode(CodeTarget target, CodeRenderingContext context)
     {
         if (target == null)

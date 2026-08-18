@@ -4,7 +4,6 @@
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -56,7 +55,6 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
             IncompatibleProjectService,
             completionListCache,
             RemoteServiceInvoker,
-            ClientSettingsManager,
             requestInvoker,
             ClientCapabilitiesService,
             new ThrowingSnippetResolveProvider(),
@@ -65,8 +63,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
         var context = new DelegatedCompletionResolutionContext(
             OriginalCompletionListData: null,
             ProjectedKind: RazorLanguageKind.Html,
-            ProvisionalTextEdit: null,
-            InDeclDocument: false);
+            ProvisionalTextEdit: null);
 
         var list = new RazorVSInternalCompletionList
         {
@@ -99,7 +96,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
         Assert.NotNull(tdi);
         Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, CSharpSyntaxFormattingOptions.Default, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
         Assert.NotNull(result);
 #if VSCODE

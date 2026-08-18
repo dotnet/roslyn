@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -32,23 +33,23 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            snapshot => GetPresentationAsync(snapshot, span, uris, cancellationToken),
+            context => GetPresentationAsync(context, span, uris, cancellationToken),
             cancellationToken);
 
     private async ValueTask<Response> GetPresentationAsync(
-        RemoteDocumentSnapshot snapshot,
+        RemoteDocumentContext context,
         LinePositionSpan span,
         Uri[]? uris,
         CancellationToken cancellationToken)
     {
-        var sourceText = await snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await context.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         if (!sourceText.TryGetAbsoluteIndex(span.Start, out var index))
         {
             // If the position is invalid then we shouldn't expect to be able to handle a Html response
             return Response.NoFurtherHandling;
         }
 
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var languageKind = codeDocument.GetLanguageKind(index, rightAssociative: true);
         if (languageKind is not RazorLanguageKind.Html)
@@ -66,7 +67,7 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
             return Response.CallHtml;
         }
 
-        var solution = snapshot.TextDocument.Project.Solution;
+        var solution = context.TextDocument.Project.Solution;
         if (!solution.TryGetRazorDocument(razorFileUri, out var otherDocument))
         {
             return Response.CallHtml;

@@ -132,7 +132,7 @@ internal abstract class CodeGenerationSymbol : ISymbol
 
     // CA1822 suppression is needed until all projects using this file are updated to newest Roslyn which has this member on ISymbol.
 #pragma warning disable CA1822 // Mark members as static
-    public bool RequiresUnsafe => false;
+    public bool RequiresUnsafeContext => false;
 #pragma warning restore CA1822
 
     public bool CanBeReferencedByName => true;

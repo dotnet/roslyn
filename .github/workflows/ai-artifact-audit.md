@@ -10,7 +10,6 @@ strict: true
 
 permissions:
   contents: read
-  copilot-requests: write
 
 network:
   allowed: [defaults]

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -47,7 +47,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement GetHtmlDiagnostics");
     }
 
-    protected virtual TRequest CreateHtmlParams(DocumentUri uri)
+    protected virtual TRequest CreateHtmlParams(Uri uri)
     {
         throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement CreateHtmlParams");
     }
@@ -83,13 +83,13 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
             return null;
         }
 
-        var (implDiagnostics, declDiagnostics) = csharpTask.VerifyCompleted();
+        var csharpDiagnostics = csharpTask.VerifyCompleted();
         var htmlDiagnostics = htmlTask.VerifyCompleted();
 
-        _logger.LogDebug($"Calling OOP with the {implDiagnostics.Length} impl C# and {declDiagnostics.Length} decl C# and {htmlDiagnostics.Length} Html diagnostics");
+        _logger.LogDebug($"Calling OOP with the {csharpDiagnostics.Length} C# and {htmlDiagnostics.Length} Html diagnostics");
         var diagnostics = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetDiagnosticsAsync(solutionInfo, razorDocument.Id, implDiagnostics, declDiagnostics, htmlDiagnostics, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetDiagnosticsAsync(solutionInfo, razorDocument.Id, csharpDiagnostics, htmlDiagnostics, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         if (cancellationToken.IsCancellationRequested || diagnostics.IsDefault)
@@ -101,44 +101,37 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         return [.. diagnostics];
     }
 
-    private async Task<(LspDiagnostic[], LspDiagnostic[])> GetCSharpDiagnosticsAsync(TextDocument razorDocument, Guid correlationId, CancellationToken cancellationToken)
+    protected static Task<SourceGeneratedDocument?> TryGetGeneratedDocumentAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        // Because we can't map from a random C# point to a Razor point without knowing which C# document we're talking about, we have to just make two requests
-        // and send back two sets of diagnostics
-
-        var csharpDocs = await razorDocument.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (csharpDocs is not { } generatedDocuments)
-        {
-            return ([], []);
-        }
-
-        using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, "Razor.ExternalAccess", TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold, correlationId);
-        var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
-
-        _logger.LogDebug($"Getting C# diagnostics for {generatedDocuments.ImplDoc.FilePath}");
-        var implDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.ImplDoc, _encSessionTracker, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
-
-        if (generatedDocuments.DeclDoc is null)
-        {
-            return (implDiagnostics, []);
-        }
-
-        _logger.LogDebug($"Getting C# diagnostics for {generatedDocuments.DeclDoc.FilePath}");
-        var declDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.DeclDoc, _encSessionTracker, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
-
-        return (implDiagnostics, declDiagnostics);
+        return razorDocument.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(razorDocument, cancellationToken);
     }
 
-    private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correlationId, CancellationToken cancellationToken)
+    private async Task<LspDiagnostic[]> GetCSharpDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
     {
-        var diagnosticsParams = CreateHtmlParams(razorDocument.GetURI());
+        var generatedDocument = await TryGetGeneratedDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
+        {
+            return [];
+        }
+
+        _logger.LogDebug($"Getting C# diagnostics for {generatedDocument.FilePath}");
+
+        using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, "Razor.ExternalAccess", TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold, correletionId);
+        var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
+        var diagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocument, _encSessionTracker, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+        return [.. diagnostics];
+    }
+
+    private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
+    {
+        var diagnosticsParams = CreateHtmlParams(razorDocument.CreateSystemUri());
 
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequest, TResponse>(
             razorDocument,
             LspMethodName,
             diagnosticsParams,
             TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold,
-            correlationId,
+            correletionId,
             cancellationToken).ConfigureAwait(false);
 
         if (result is null)

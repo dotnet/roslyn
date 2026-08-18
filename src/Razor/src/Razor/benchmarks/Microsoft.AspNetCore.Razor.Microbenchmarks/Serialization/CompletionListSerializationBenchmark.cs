@@ -6,7 +6,7 @@ using System.Text.Json;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Remote.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;

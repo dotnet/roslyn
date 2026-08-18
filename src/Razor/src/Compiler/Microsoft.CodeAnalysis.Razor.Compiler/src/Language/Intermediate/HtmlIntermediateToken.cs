@@ -14,10 +14,4 @@ public sealed class HtmlIntermediateToken : IntermediateToken
         : base(content, source)
     {
     }
-
-    protected override IntermediateNode CloneNode()
-        => new HtmlIntermediateToken(Content, Source)
-        {
-            IsSynthesizedHelper = IsSynthesizedHelper,
-        };
 }
