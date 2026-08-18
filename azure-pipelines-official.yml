@@ -147,6 +147,7 @@ extends:
 
     - stage: build
       displayName: Build and Test
+      dependsOn: []
 
       jobs:
       - template: /eng/common/templates-official/jobs/source-build.yml@self
