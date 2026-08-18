@@ -11,6 +11,7 @@ variables:
 
 # Make sure the pipeline doesn't build on commits.
 trigger: none
+pr: none
 
 resources:
   repositories:
