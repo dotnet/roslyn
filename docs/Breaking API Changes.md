@@ -123,7 +123,7 @@ The value of `preserveLocalVariables` passed to the constructors is no longer us
 
 ### Changed the `default` value of `Microsoft.CodeAnalysis.CSharp.Conversion`
 
-The `default` value of `Microsoft.CodeAnalysis.CSharp.Conversion` struct now returns `false` for all boolean properties. Previously such value had `Exists` and `IsExplicit` properties return `true`:
+The `default` value of `Microsoft.CodeAnalysis.CSharp.Conversion` struct now returns `false` for all boolean properties. Previously the `Exists` and `IsExplicit` properties returned `true`:
 ```cs
 using System;
 using Microsoft.CodeAnalysis.CSharp;
