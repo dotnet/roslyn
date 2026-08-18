@@ -38,8 +38,8 @@
     <PackageReference Include="Microsoft.TeamFoundationServer.ExtendedClient" />
     <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" />
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="NuGet.Versioning" />
-    <PackageReference Include="NuGet.Protocol" />
+    <PackageReference Include="NuGet.Versioning" VersionOverride="$(NuGetVersion)" />
+    <PackageReference Include="NuGet.Protocol" VersionOverride="$(NuGetVersion)" />
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>
