@@ -100,15 +100,12 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
             Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 9));
     }
 
-    [Theory]
-    [InlineData(LanguageVersion.CSharp13)]
-    [InlineData(LanguageVersion.CSharp14)]
-    [InlineData(LanguageVersion.Preview)]
-    public void PartialPartial_MethodReturningPartial(LanguageVersion languageVersion)
+    [Fact]
+    public void PartialPartial_MethodReturningPartial_CSharp13()
     {
         UsingTree(
             "class C { partial partial M(); }",
-            TestOptions.Regular.WithLanguageVersion(languageVersion));
+            TestOptions.Regular13);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -136,6 +133,53 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+    }
+
+    [Theory]
+    [InlineData(LanguageVersion.CSharp14)]
+    [InlineData(LanguageVersion.Preview)]
+    public void PartialPartial_PartialConstructor(LanguageVersion languageVersion)
+    {
+        UsingTree(
+            "class C { partial partial M(); }",
+            TestOptions.Regular.WithLanguageVersion(languageVersion));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation(
+            "partial class M { partial partial M(); }",
+            parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+            // (1,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            // partial class M { partial partial M(); }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 19),
+            // (1,27): error CS1004: Duplicate 'partial' modifier
+            // partial class M { partial partial M(); }
+            Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 27),
+            // (1,35): error CS9275: Partial member 'M.M()' must have an implementation part.
+            // partial class M { partial partial M(); }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "M").WithArguments("M.M()").WithLocation(1, 35));
     }
 
     // ---------- partial on methods ----------

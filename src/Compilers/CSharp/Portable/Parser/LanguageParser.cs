@@ -1722,10 +1722,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
                 }
 
-                // A second 'partial' may be the declaration head rather than another modifier:
-                //   partial partial()     // constructor named 'partial'
-                //   partial partial M()   // method returning a type named 'partial'
-                // Prefer those existing interpretations when they are possible.
+                // A second 'partial' may be the constructor name in 'partial partial()'.
+                // Otherwise, preserve the existing interpretation of the second 'partial' as an
+                // identifier only when it is not itself the modifier of a partial constructor.
                 if (allowMembers && this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
                 {
                     if (this.IsPartialIdentifierDeclarationHead())
@@ -1793,32 +1792,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         /// <summary>
         /// Returns true when an earlier <c>partial</c> has already been accepted as a modifier and
-        /// the current <c>partial</c> should instead be interpreted as a constructor name or return
-        /// type.
+        /// the current <c>partial</c> should instead be interpreted as an identifier.
         /// </summary>
         /// <remarks>
         /// For example, <c>partial partial()</c> declares a partial constructor named
-        /// <c>partial</c>, while <c>partial partial M()</c> declares a partial method named
-        /// <c>M</c> whose return type is named <c>partial</c>. The latter must not be interpreted
-        /// as a partial constructor named <c>M</c> with two <c>partial</c> modifiers.
+        /// <c>partial</c>. However, when partial constructors are available,
+        /// <c>partial partial M()</c> treats both <c>partial</c> tokens as modifiers of the
+        /// constructor named <c>M</c>, preserving the existing parse.
         /// </remarks>
         private bool IsPartialIdentifierDeclarationHead()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
-            // An earlier 'partial' is already the modifier, so in 'partial partial()' the current
-            // token is the constructor name. Only prefer that interpretation when partial
-            // constructors are available; earlier language versions parse this as a method whose
-            // return type and name are both 'partial'.
+            if (this.IsPartialConstructor(peekIndex: 0))
+            {
+                return false;
+            }
+
             if (this.IsPartialConstructorName(peekIndex: 0))
             {
                 return true;
             }
 
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-            return this.ScanType(ParseTypeMode.Normal, out _, treatPartialAsIdentifier: true) != ScanTypeFlags.NotType &&
-                IsPossibleMemberName() &&
-                !this.IsEnabledRecordOrUnionKeyword(this.CurrentToken);
+            return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
         }
 
         private bool IsPartialType()
@@ -3466,19 +3463,7 @@ parse_member_name:;
                 // Everything that's left -- methods, fields, properties, 
                 // indexers, and non-conversion operators -- starts with a type 
                 // (possibly void).
-                TypeSyntax type;
-                if (modifiers.Any((int)SyntaxKind.PartialKeyword) &&
-                    this.IsPartialConstructor(peekIndex: 0))
-                {
-                    // Modifier parsing has already committed the first 'partial' as the modifier.
-                    // Preserve the second as the return-type identifier rather than reconsidering
-                    // it as the modifier of a partial constructor.
-                    type = _syntaxFactory.IdentifierName(this.EatToken());
-                }
-                else
-                {
-                    type = ParseReturnType();
-                }
+                TypeSyntax type = ParseReturnType();
 
                 var afterTypeResetPoint = this.GetResetPoint();
 
@@ -7388,24 +7373,11 @@ parse_member_name:;
         }
 
         private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType)
-            => ScanNamedTypePart(out lastTokenOfType, treatPartialAsIdentifier: false);
-
-        private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType, bool treatPartialAsIdentifier)
         {
-            lastTokenOfType = null;
-            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken || !this.IsTrueIdentifier())
             {
+                lastTokenOfType = null;
                 return ScanTypeFlags.NotType;
-            }
-
-            // Skip the normal identifier check only when explicitly interpreting 'partial' as a
-            // type name. Declaration lookahead may otherwise classify it as a modifier.
-            if (!treatPartialAsIdentifier || this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
-            {
-                if (!this.IsTrueIdentifier())
-                {
-                    return ScanTypeFlags.NotType;
-                }
             }
 
             lastTokenOfType = this.EatToken();
@@ -7420,9 +7392,6 @@ parse_member_name:;
         }
 
         private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType)
-            => ScanType(mode, out lastTokenOfType, treatPartialAsIdentifier: false);
-
-        private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType, bool treatPartialAsIdentifier)
         {
             Debug.Assert(mode != ParseTypeMode.NewExpression);
             ScanTypeFlags result;
@@ -7461,7 +7430,7 @@ parse_member_name:;
                     // We're an alias if we start with an: id::
                     isAlias = this.PeekToken(1).Kind == SyntaxKind.ColonColonToken;
 
-                    result = this.ScanNamedTypePart(out lastTokenOfType, treatPartialAsIdentifier);
+                    result = this.ScanNamedTypePart(out lastTokenOfType);
                     if (result == ScanTypeFlags.NotType)
                     {
                         return ScanTypeFlags.NotType;
