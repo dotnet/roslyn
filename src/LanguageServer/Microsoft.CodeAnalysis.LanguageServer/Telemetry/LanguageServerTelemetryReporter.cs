@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,34 +13,59 @@ using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
+namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 
 [Export(typeof(ITelemetryReporter)), Shared]
-internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
+internal sealed class LanguageServerTelemetryReporter : ITelemetryReporter
 {
-    private TelemetrySession? _telemetrySession;
+    internal const string CopilotTelemetryLevelEnvironmentVariable = "COPILOT_TELEMETRY_LEVEL";
 
-    private const string CollectorApiKey = "0c6ae279ed8443289764825290e4f9e2-1a736e7c-1324-4338-be46-fc2a58ae4d14-7255";
+    /// <summary>
+    /// Collector key used by C# Dev Kit to send language server telemetry to the VS Code cluster.
+    /// </summary>
+    private const string VSCodeCollectorApiKey = "0c6ae279ed8443289764825290e4f9e2-1a736e7c-1324-4338-be46-fc2a58ae4d14-7255";
 
+    /// <summary>
+    /// Collector key used by standalone hosts to send language server telemetry to the Visual Studio cluster.
+    /// </summary>
+    private const string VSCollectorApiKey = "f3e86b4023cc43f0be495508d51f588a-f70d0e59-0fb0-4473-9f19-b4024cc340be-7296";
+
+    private static readonly ConcurrentDictionary<int, object> s_pendingScopes = new(concurrencyLevel: 2, capacity: 10);
+
+    private readonly ServerConfiguration _serverConfiguration;
     private readonly ILogger _logger;
-
-    private static readonly ConcurrentDictionary<int, object> _pendingScopes = new(concurrencyLevel: 2, capacity: 10);
+    private TelemetrySession? _telemetrySession;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSCodeTelemetryLogger(ILoggerFactory loggerFactory)
+    public LanguageServerTelemetryReporter(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
     {
-        _logger = loggerFactory.CreateLogger<VSCodeTelemetryLogger>();
+        _serverConfiguration = serverConfiguration;
+        _logger = loggerFactory.CreateLogger<LanguageServerTelemetryReporter>();
     }
 
     public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession)
     {
-        Debug.Assert(_telemetrySession == null);
+        Debug.Assert(_telemetrySession is null);
 
-        var sessionSettingsJson = CreateSessionSettingsJson(telemetryLevel, sessionId);
-        var session = new TelemetrySession($"{{{sessionSettingsJson}}}");
+        var useDevKitTelemetry = _serverConfiguration.DevKitDependencyPath is not null;
 
-        if (isDefaultSession)
+        var session = useDevKitTelemetry
+            ? new TelemetrySession(CreateDevKitSessionSettings(telemetryLevel, sessionId))
+            : VisualStudio.Telemetry.TelemetryService.CreateAndGetDefaultSession(VSCollectorApiKey);
+
+        if (!useDevKitTelemetry)
+        {
+            // The VS default session is opted out until the standalone host supplies consent.
+            session.IsOptedIn = IsCopilotCliTelemetryEnabled(telemetryLevel);
+
+            if (telemetryLevel is not ("all" or "off"))
+            {
+                _logger.LogInformation("Unsupported Copilot CLI telemetry level. Telemetry will remain disabled.");
+            }
+        }
+
+        if (isDefaultSession && useDevKitTelemetry)
         {
             VisualStudio.Telemetry.TelemetryService.SetDefaultSession(session);
         }
@@ -51,16 +73,27 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         session.Start();
         session.RegisterForReliabilityEvent();
 
-        _logger.LogTrace("Telemetry session started with sessionID: {sessionId}", sessionId);
+        _logger.LogTrace(
+            "Telemetry session started with sessionID {sessionId} for {telemetryDestination}",
+            session.SessionId,
+            useDevKitTelemetry ? "VS Code" : "VS Raw");
 
         _telemetrySession = session;
 
-        TelemetryLogger.Create(_telemetrySession, logDelta: false);
+        TelemetryLogger.Create(session, logDelta: false);
 
         FaultReporter.InitializeFatalErrorHandlers();
         FaultReporter.IncludeServiceHubLogFiles = false;
-        FaultReporter.RegisterTelemetrySesssion(_telemetrySession);
+        FaultReporter.RegisterTelemetrySesssion(session);
     }
+
+    internal static bool IsCopilotCliTelemetryEnabled(string? telemetryLevel)
+        => telemetryLevel == "all";
+
+    internal static string? GetTelemetryLevel(ServerConfiguration serverConfiguration)
+        => serverConfiguration.DevKitDependencyPath is not null
+            ? serverConfiguration.TelemetryLevel
+            : Environment.GetEnvironmentVariable(CopilotTelemetryLevelEnvironmentVariable);
 
     public void Log(string name, List<KeyValuePair<string, object?>> properties)
     {
@@ -81,7 +114,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
             return;
         }
 
-        _pendingScopes[blockId] = kind switch
+        s_pendingScopes[blockId] = kind switch
         {
             0 => _telemetrySession.StartOperation(eventName), // LogType.Trace
             1 => _telemetrySession.StartUserTask(eventName),  // LogType.UserAction
@@ -91,7 +124,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
 
     public void LogBlockEnd(int blockId, List<KeyValuePair<string, object?>> properties, CancellationToken cancellationToken)
     {
-        if (!_pendingScopes.TryRemove(blockId, out var scope))
+        if (!s_pendingScopes.TryRemove(blockId, out var scope))
         {
             return;
         }
@@ -113,11 +146,16 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
     {
         // Ensure that we flush any pending telemetry *before* we dispose of the telemetry session.
         TelemetryLogging.Flush();
-        _telemetrySession?.Dispose();
-        _telemetrySession = null;
+
+        if (_telemetrySession is { } session)
+        {
+            FaultReporter.UnregisterTelemetrySesssion(session);
+            session.Dispose();
+            _telemetrySession = null;
+        }
     }
 
-    private static string CreateSessionSettingsJson(string telemetryLevel, string? sessionId)
+    internal static string CreateDevKitSessionSettings(string telemetryLevel, string? sessionId)
     {
         sessionId ??= Guid.NewGuid().ToString();
 
@@ -141,7 +179,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
             // This means that the SessionID set here by "Id" will be the SessionID used by cloned session
             // further down stream
             { "IsInitialSession", "true" },
-            { "CollectorApiKey", StringToJsonValue(CollectorApiKey) },
+            { "CollectorApiKey", StringToJsonValue(VSCodeCollectorApiKey) },
 
             // using 1010 to indicate VS Code and not to match it to devenv 1000
             { "AppId", "1010" },
@@ -153,7 +191,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
             sb.AppendFormat("\"{0}\":{1},", keyValue.Key, keyValue.Value);
         }
 
-        return sb.ToString().TrimEnd(',');
+        return $"{{{sb.ToString().TrimEnd(',')}}}";
 
         static string StringToJsonValue(string? value)
         {
@@ -166,7 +204,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         }
     }
 
-    private static TelemetryEvent GetEndEvent(object? scope)
+    private static TelemetryEvent GetEndEvent(object scope)
         => scope switch
         {
             TelemetryScope<OperationEvent> operation => operation.EndEvent,
