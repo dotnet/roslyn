@@ -165,10 +165,15 @@
 
     <!--
       Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
-      packages we will keep it untied to the RoslynDiagnosticsAnalyzersPackageVersion we use for
-      other analyzers to ensure it stays on a release version.
+      packages, we pin it to a release package because public release packages that depend on a
+      prerelease package can trigger security-scanner concerns.
     -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers"
+                    Version="5.9.0"
+                    Condition="'$(DotNetBuild)' != 'true'" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers"
+                    Version="$(MicrosoftCodeAnalysisAnalyzersVersion)"
+                    Condition="'$(DotNetBuild)' == 'true'" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
