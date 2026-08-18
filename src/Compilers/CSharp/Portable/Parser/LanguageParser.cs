@@ -1506,8 +1506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 var token = this.PeekToken(peekIndex);
-                return token.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
-                    this.IsEnabledRecordOrUnionKeyword(token);
+                return this.IsClassStructInterfaceRecordOrUnionKeyword(token);
             }
 
             bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)
@@ -1660,19 +1659,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             };
         }
 
+        private bool IsClassStructInterfaceRecordOrUnionKeyword(SyntaxToken token)
+        {
+            return token.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
+                this.IsEnabledRecordOrUnionKeyword(token);
+        }
+
         private bool IsPartialType()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            var nextToken = this.PeekToken(1);
-            switch (nextToken.Kind)
-            {
-                case SyntaxKind.StructKeyword:
-                case SyntaxKind.ClassKeyword:
-                case SyntaxKind.InterfaceKeyword:
-                    return true;
-            }
-
-            return this.IsEnabledRecordOrUnionKeyword(nextToken);
+            return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(1));
         }
 
         private bool IsPartialMember()
