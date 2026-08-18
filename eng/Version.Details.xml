@@ -149,10 +149,6 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="5.10.0-1.26365.3">
-      <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>3d32d464e2949f054086fbb5346e4beea0c6df56</Sha>
-    </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="5.10.0-1.26365.3">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>3d32d464e2949f054086fbb5346e4beea0c6df56</Sha>
