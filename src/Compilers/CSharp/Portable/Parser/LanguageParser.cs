@@ -888,12 +888,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            if (this.IsPartialType() || this.PeekToken(1).Kind == SyntaxKind.NamespaceKeyword)
+            if (this.IsPartialType())
             {
                 return true;
             }
 
             var nextToken = this.PeekToken(1);
+            if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
+            {
+                return true;
+            }
+
             return GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None
                 && this.IsPartialModifierInDeclarationHead(allowMembers: false);
         }
