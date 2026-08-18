@@ -1689,9 +1689,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
 
-            // Preserve the existing interpretation of 'async' as a type name when that forms a
-            // partial member. Otherwise, the modifier scan below may instead skip it as a modifier.
-            if (allowMembers && this.PeekToken(1).ContextualKind == SyntaxKind.AsyncKeyword)
+            // Preserve the existing interpretation of a contextual modifier keyword as a type name
+            // when that forms a partial member. Otherwise, the modifier scan below may skip it and
+            // fail to recognize the member on language versions where the keyword is still an identifier.
+            var nextToken = this.PeekToken(1);
+            if (allowMembers &&
+                nextToken.Kind == SyntaxKind.IdentifierToken &&
+                GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None)
             {
                 this.EatToken();
                 if (this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName())

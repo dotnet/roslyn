@@ -231,6 +231,32 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
         CreateCompilation(src, parseOptions: TestOptions.Regular.WithLanguageVersion(langVer)).VerifyDiagnostics();
     }
 
+    [Theory]
+    [InlineData("required", LanguageVersion.CSharp10)]
+    [InlineData("file", LanguageVersion.CSharp10)]
+    [InlineData("closed", LanguageVersion.CSharp14)]
+    [InlineData("safe", LanguageVersion.CSharp14)]
+    public void Partial_ContextualModifierAsReturnType_OlderLangVersion(
+        string typeName,
+        LanguageVersion languageVersion)
+    {
+        var src = $$"""
+            #pragma warning disable 8981
+
+            class {{typeName}} { }
+
+            partial class C
+            {
+                private partial {{typeName}} M();
+                private partial {{typeName}} M() => new();
+            }
+            """;
+
+        CreateCompilation(
+            src,
+            parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+    }
+
     /// <summary>
     /// When <c>partial</c> is neither last nor second-to-last immediately before <c>async</c>,
     /// it falls outside the historical <c>partial async</c> carve-out and remains an error.
