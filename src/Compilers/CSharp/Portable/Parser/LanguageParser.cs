@@ -1404,8 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // ModifierUtils.ToDeclarationModifiers.
                         if (forTopLevelStatements &&
                             !seenPartial &&
-                            this.PeekToken(1).ContextualKind == SyntaxKind.PartialKeyword &&
-                            this.IsPartialConstructorName(peekIndex: 2))
+                            this.IsPartialConstructor(peekIndex: 1))
                         {
                             // At top level, preserve the existing statement/member ambiguity rather than
                             // committing the first 'partial' as a declaration modifier.
@@ -1837,6 +1836,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.IsEnabledRecordOrUnionKeyword(nextToken);
         }
 
+        private bool IsPartialConstructor(int peekIndex)
+        {
+            return this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword &&
+                this.IsPartialConstructorName(peekIndex + 1);
+        }
+
         /// <summary>
         /// Returns true when the token at <paramref name="peekIndex"/> can be the name of a partial
         /// constructor. The caller must have already established the preceding <c>partial</c> context.
@@ -1861,7 +1866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Check for constructor:
             //   partial Identifier(
-            if (this.IsPartialConstructorName(peekIndex: 1))
+            if (this.IsPartialConstructor(peekIndex: 0))
             {
                 return true;
             }
@@ -3463,8 +3468,7 @@ parse_member_name:;
                 // (possibly void).
                 TypeSyntax type;
                 if (modifiers.Any((int)SyntaxKind.PartialKeyword) &&
-                    this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-                    this.IsPartialConstructorName(peekIndex: 1))
+                    this.IsPartialConstructor(peekIndex: 0))
                 {
                     // Modifier parsing has already committed the first 'partial' as the modifier.
                     // Preserve the second as the return-type identifier rather than reconsidering
