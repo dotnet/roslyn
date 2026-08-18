@@ -41,7 +41,8 @@ parameters:
 
 - name: SkipApplyOptimizationData
   type: boolean
-  default: false
+  # release/dev18.0 no longer inserts into VS, so OptProf data is not needed.
+  default: true
 
 - name: SkipTests
   type: boolean
