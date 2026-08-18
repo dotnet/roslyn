@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return MemorySafetyRulesVersionFromAttribute switch
                 {
                     MemorySafetyRulesAttributeVersion.Version2 => MemorySafetyRulesVersion.Version2,
-                    _ => MemorySafetyRulesVersion.Version0
+                    _ => MemorySafetyRulesVersion.Version1
                 };
             }
         }

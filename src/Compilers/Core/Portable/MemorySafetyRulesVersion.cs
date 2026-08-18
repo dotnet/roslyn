@@ -14,7 +14,7 @@ public enum MemorySafetyRulesVersion
 {
     /// <summary>Legacy rules.</summary>
     [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
-    Version0 = 0,
+    Version1 = 1,
 
     /// <summary>Updated rules introduced with the "unsafe evolution" language feature.</summary>
     [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]

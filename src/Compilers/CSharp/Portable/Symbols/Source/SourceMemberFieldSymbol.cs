@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_IllegalFixedType, loc);
                     }
 
-                    binder.ReportUnsafeIfNotAllowed(declarator.Location, diagnosticsForFirstDeclarator, disallowedUnder: MemorySafetyRulesVersion.Version0);
+                    binder.ReportUnsafeIfNotAllowed(declarator.Location, diagnosticsForFirstDeclarator, disallowedUnder: MemorySafetyRulesVersion.Version1);
                 }
             }
 

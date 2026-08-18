@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
         {
-            Debug.Assert(sizeOfTypeOpt is null || disallowedUnder is MemorySafetyRulesVersion.Version0);
+            Debug.Assert(sizeOfTypeOpt is null || disallowedUnder is MemorySafetyRulesVersion.Version1);
 
             if (this.Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics))
             {
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var featureDiag = MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
 
-                if (disallowedUnder is MemorySafetyRulesVersion.Version0)
+                if (disallowedUnder is MemorySafetyRulesVersion.Version1)
                 {
                     Debug.Assert(customErrorCode is null && customArgs is null);
 
@@ -312,19 +312,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // This location is disallowed only under updated memory safety rules which are not enabled.
                 // We report an error elsewhere, usually at the pointer type itself
-                // (where we are called with `disallowedUnder: MemorySafetyRulesVersion.Version0`).
+                // (where we are called with `disallowedUnder: MemorySafetyRulesVersion.Version1`).
                 return null;
             }
             else if (this.IsIndirectlyInIterator && MessageID.IDS_FeatureRefUnsafeInIteratorAsync.GetFeatureAvailabilityDiagnosticInfo(Compilation) is { } unsafeInIteratorDiagnosticInfo)
             {
-                if (disallowedUnder is MemorySafetyRulesVersion.Version0)
+                if (disallowedUnder is MemorySafetyRulesVersion.Version1)
                 {
                     return unsafeInIteratorDiagnosticInfo;
                 }
 
                 // This location is disallowed only under updated memory safety rules.
                 // We report the RefUnsafeInIteratorAsync langversion error elsewhere, usually at the pointer type itself
-                // (where we are called with `disallowedUnder: MemorySafetyRulesVersion.Version0`).
+                // (where we are called with `disallowedUnder: MemorySafetyRulesVersion.Version1`).
                 Debug.Assert(disallowedUnder is MemorySafetyRulesVersion.Version2);
                 return null;
             }

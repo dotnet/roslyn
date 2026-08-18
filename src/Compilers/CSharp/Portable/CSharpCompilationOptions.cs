@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //     bool publicSign = false,
         //     MetadataImportOptions metadataImportOptions = MetadataImportOptions.Public,
         //     NullableContextOptions nullableContextOptions = NullableContextOptions.Disable,
-        //     MemorySafetyRulesVersion memorySafetyRulesVersion = MemorySafetyRulesVersion.Version0)
+        //     MemorySafetyRulesVersion memorySafetyRulesVersion = MemorySafetyRulesVersion.Version1)
         //     : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
         //            usings, optimizationLevel, checkOverflow, allowUnsafe,
         //            cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    publicSign: publicSign,
                    topLevelBinderFlags: BinderFlags.None,
                    nullableContextOptions: nullableContextOptions,
-                   memorySafetyRulesVersion: MemorySafetyRulesVersion.Version0)
+                   memorySafetyRulesVersion: MemorySafetyRulesVersion.Version1)
         {
         }
 
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal CSharpCompilationOptions WithUpdatedMemorySafetyRules(bool enabled = true)
-            => WithMemorySafetyRulesVersion(enabled ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version0);
+            => WithMemorySafetyRulesVersion(enabled ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1);
 
         internal bool UseUpdatedMemorySafetyRules => MemorySafetyRulesVersion == MemorySafetyRulesVersion.Version2;
 
@@ -810,9 +810,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(MetadataImportOptions), MetadataImportOptions.ToString()));
             }
 
-            if (MemorySafetyRulesVersion is not (MemorySafetyRulesVersion.Version0 or MemorySafetyRulesVersion.Version2))
+            if (MemorySafetyRulesVersion is not (MemorySafetyRulesVersion.Version1 or MemorySafetyRulesVersion.Version2))
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValueAccepted, nameof(MemorySafetyRulesVersion), MemorySafetyRulesVersion, string.Join(", ", [(int)MemorySafetyRulesVersion.Version0, (int)MemorySafetyRulesVersion.Version2])));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValueAccepted, nameof(MemorySafetyRulesVersion), MemorySafetyRulesVersion, string.Join(", ", [(int)MemorySafetyRulesVersion.Version1, (int)MemorySafetyRulesVersion.Version2])));
             }
 
             // TODO: add check for 
@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    publicSign: false,
                    topLevelBinderFlags: BinderFlags.None,
                    nullableContextOptions: NullableContextOptions.Disable,
-                   memorySafetyRulesVersion: MemorySafetyRulesVersion.Version0)
+                   memorySafetyRulesVersion: MemorySafetyRulesVersion.Version1)
         {
         }
     }

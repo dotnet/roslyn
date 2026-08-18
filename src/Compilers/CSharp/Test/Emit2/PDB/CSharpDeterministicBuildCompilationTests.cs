@@ -336,7 +336,7 @@ public struct StructWithValue
                 publicSign: false,
                 topLevelBinderFlags: BinderFlags.None,
                 nullableContextOptions: NullableContextOptions.Enable,
-                memorySafetyRulesVersion: parseOptions.LanguageVersion >= MessageID.IDS_FeatureUnsafeEvolution.RequiredVersion() ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version0);
+                memorySafetyRulesVersion: parseOptions.LanguageVersion >= MessageID.IDS_FeatureUnsafeEvolution.RequiredVersion() ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1);
 
             yield return defaultOptions;
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);

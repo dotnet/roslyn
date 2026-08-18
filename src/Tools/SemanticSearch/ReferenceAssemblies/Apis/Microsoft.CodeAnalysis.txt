@@ -1637,7 +1637,7 @@ Microsoft.CodeAnalysis.LocationKind.SourceFile
 Microsoft.CodeAnalysis.LocationKind.XmlFile
 Microsoft.CodeAnalysis.LocationKind.value__
 Microsoft.CodeAnalysis.MemorySafetyRulesVersion
-Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version0
+Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version1
 Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version2
 Microsoft.CodeAnalysis.MemorySafetyRulesVersion.value__
 Microsoft.CodeAnalysis.Metadata

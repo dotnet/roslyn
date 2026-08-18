@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Whether this symbol is considered requires-unsafe, i.e., the symbol requires an <see langword="unsafe"/> context at its use site.
         /// The value of this property depends on the containing module's <see cref="IModuleSymbol.MemorySafetyRulesVersion"/>.
-        /// Under <see cref="MemorySafetyRulesVersion.Version0"/>, symbols with pointers in their signature are considered requires-unsafe.
+        /// Under <see cref="MemorySafetyRulesVersion.Version1"/>, symbols with pointers in their signature are considered requires-unsafe.
         /// Under <see cref="MemorySafetyRulesVersion.Version2"/>, symbols marked <see langword="unsafe"/> are considered requires-unsafe.
         /// </summary>
         [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]

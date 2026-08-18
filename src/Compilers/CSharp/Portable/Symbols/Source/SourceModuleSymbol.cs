@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeRefSafetyRulesAttribute(version));
             }
 
-            if (MemorySafetyRulesVersion != MemorySafetyRulesVersion.Version0)
+            if (MemorySafetyRulesVersion != MemorySafetyRulesVersion.Version1)
             {
                 var version = ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, (int)MemorySafetyRulesVersion));
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeMemorySafetyRulesAttribute(version));
@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // legacy way to opt in, kept for backwards compatibility
                     _assemblySymbol.DeclaringCompilation.Feature(Feature.UpdatedMemorySafetyRules) != null
                     ? MemorySafetyRulesVersion.Version2
-                    : MemorySafetyRulesVersion.Version0;
+                    : MemorySafetyRulesVersion.Version1;
             }
         }
 

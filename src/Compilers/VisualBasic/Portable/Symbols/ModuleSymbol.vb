@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IModuleSymbol_MemorySafetyRulesVersion As MemorySafetyRulesVersion Implements IModuleSymbol.MemorySafetyRulesVersion
             Get
-                Return MemorySafetyRulesVersion.Version0
+                Return MemorySafetyRulesVersion.Version1
             End Get
         End Property
 

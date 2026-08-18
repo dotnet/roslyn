@@ -303,7 +303,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Assert.Null(attribute);
         }
 
-        var expectedVersion = expectedUpdatedRules ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version0;
+        var expectedVersion = expectedUpdatedRules ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
         Assert.Equal(expectedVersion, module.GetPublicSymbol().MemorySafetyRulesVersion);
     }
 
@@ -427,14 +427,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void RulesOption_Valid()
     {
         var verifier = CompileAndVerify("",
-            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version0),
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version1),
             symbolValidator: module => VerifyMemorySafetyRulesAttribute(
                 module,
                 expectedDefinition: AttributeDefinition.None,
                 expectedUpdatedRules: false))
             .VerifyDiagnostics();
 
-        Assert.Equal(MemorySafetyRulesVersion.Version0, ((CSharpCompilationOptions)verifier.Compilation.Options).MemorySafetyRulesVersion);
+        Assert.Equal(MemorySafetyRulesVersion.Version1, ((CSharpCompilationOptions)verifier.Compilation.Options).MemorySafetyRulesVersion);
         Assert.False(((CSharpCompilationOptions)verifier.Compilation.Options).UseUpdatedMemorySafetyRules);
 
         verifier = CompileAndVerify("",
@@ -450,7 +450,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Theory]
-    [InlineData(1)]
+    [InlineData(0)]
     [InlineData(-1)]
     [InlineData(3)]
     [InlineData(20)]
@@ -459,7 +459,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var comp = CreateCompilation("",
             options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)value))
             .VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", value, $"{(int)MemorySafetyRulesVersion.Version0}, {(int)MemorySafetyRulesVersion.Version2}").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", value, $"{(int)MemorySafetyRulesVersion.Version1}, {(int)MemorySafetyRulesVersion.Version2}").WithLocation(1, 1));
 
         Assert.Equal((MemorySafetyRulesVersion)value, comp.Options.MemorySafetyRulesVersion);
         Assert.False(comp.Options.UseUpdatedMemorySafetyRules);
@@ -15192,7 +15192,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         Assert.Empty(m1.ContainingModule.GetAttributes());
 
-        Assert.Equal(MemorySafetyRulesVersion.Version0, m1.ContainingModule.MemorySafetyRulesVersion);
+        Assert.Equal(MemorySafetyRulesVersion.Version1, m1.ContainingModule.MemorySafetyRulesVersion);
     }
 
     [Theory, CombinatorialData]
@@ -15213,7 +15213,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         comp.VerifyDiagnostics();
         var method = comp.GetTypeByMetadataName("C")!.GetMember("M");
         Assert.False(method.RequiresUnsafeContext);
-        Assert.Equal(MemorySafetyRulesVersion.Version0, method.ContainingModule.MemorySafetyRulesVersion);
+        Assert.Equal(MemorySafetyRulesVersion.Version1, method.ContainingModule.MemorySafetyRulesVersion);
     }
 
     [Fact]

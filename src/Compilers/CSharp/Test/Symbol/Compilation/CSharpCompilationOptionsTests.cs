@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var topLevelBinderFlags = BinderFlags.None;
             var publicSign = false;
             NullableContextOptions nullableContextOptions = NullableContextOptions.Disable;
-            var memorySafetyRulesVersion = MemorySafetyRulesVersion.Version0;
+            var memorySafetyRulesVersion = MemorySafetyRulesVersion.Version1;
 
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication,
                 reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
