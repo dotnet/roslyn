@@ -56,13 +56,13 @@
       NuGet packages are used directly by the LanguageServer and RoslynTool. They are sensitive
       to version mismatch caused by transtive version pinning, so are all set together.
     -->
-    <PackageVersion Include="NuGet.Common" Version="NuGetVersion" />
-    <PackageVersion Include="NuGet.Configuration" Version="NuGetVersion" />
-    <PackageVersion Include="NuGet.Frameworks" Version="NuGetVersion" />
-    <PackageVersion Include="NuGet.Packaging" Version="NuGetVersion" />
-    <PackageVersion Include="NuGet.ProjectModel" Version="NuGetVersion" />
-    <PackageVersion Include="NuGet.Protocol" Version="NuGetVersion" />
-    <PackageVersion Include="NuGet.Versioning" Version="NuGetVersion" />
+    <PackageVersion Include="NuGet.Common" Version="$(NuGetVersion)" />
+    <PackageVersion Include="NuGet.Configuration" Version="$(NuGetVersion)" />
+    <PackageVersion Include="NuGet.Frameworks" Version="$(NuGetVersion)" />
+    <PackageVersion Include="NuGet.Packaging" Version="$(NuGetVersion)" />
+    <PackageVersion Include="NuGet.ProjectModel" Version="$(NuGetVersion)" />
+    <PackageVersion Include="NuGet.Protocol" Version="$(NuGetVersion)" />
+    <PackageVersion Include="NuGet.Versioning" Version="$(NuGetVersion)" />
 
     <!--
       Roslyn Tools
