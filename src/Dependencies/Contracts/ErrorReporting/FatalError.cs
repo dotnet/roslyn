@@ -283,6 +283,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             if (handler == null)
             {
+                Debug.Fail($"Unexpected exception (severity {severity}): {exception}");
                 return;
             }
 

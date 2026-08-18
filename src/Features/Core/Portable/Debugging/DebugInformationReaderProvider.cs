@@ -8,6 +8,8 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
 #if !NET
 using System.Runtime.InteropServices;
 #endif
@@ -89,20 +91,22 @@ internal abstract class DebugInformationReaderProvider : IDisposable
             _stream.Dispose();
 
             var symReader = Interlocked.Exchange(ref _symReader, null);
-#if NET
+
             // On .NET the reader is a source-generated COM object, which is released by
             // disposing it. Marshal.ReleaseComObject is not supported for such objects (SYSLIB1099).
-            if (symReader != null)
+            if (symReader is IDisposable disposable)
             {
+#if NET
                 Debug.Assert(OperatingSystem.IsWindows());
-                ((IDisposable)symReader).Dispose();
-            }
-#else
-            if (symReader != null && Marshal.IsComObject(symReader))
-            {
-                Marshal.ReleaseComObject(symReader);
-            }
 #endif
+                disposable.Dispose();
+            }
+            else if (symReader != null && Marshal.IsComObject(symReader))
+            {
+#pragma warning disable SYSLIB1099 // Marshal.ReleaseComObject is not supported for source-generated COM objects.
+                Marshal.ReleaseComObject(symReader);
+#pragma warning restore SYSLIB1099
+            }
         }
     }
 

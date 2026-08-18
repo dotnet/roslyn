@@ -5773,6 +5773,40 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [], CancellationToken.None)).IsDefault);
     }
 
+    [Theory]
+    [InlineData(DebugInformationFormat.Pdb)]
+    [InlineData(DebugInformationFormat.PortablePdb)]
+    public async Task Disposal_PdbReader(DebugInformationFormat pdbFormat)
+    {
+        var source1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
+
+        var dir = Temp.CreateDirectory();
+        var sourceFile = dir.CreateFile("a.cs").WriteAllText(source1, Encoding.UTF8);
+
+        using var _1 = CreateWorkspace(out var solution, out var service);
+        (solution, var document) = AddDefaultTestProject(solution, "class C { }");
+
+        var document1 = solution.
+            AddTestProject("test").
+            AddDocument("a.cs", SourceText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), filePath: sourceFile.Path);
+
+        var project = document1.Project;
+        solution = project.Solution;
+
+        var moduleId = EmitAndLoadLibraryToDebuggee(project.Id, source1, sourceFilePath: sourceFile.Path, checksumAlgorithm: SourceHashAlgorithms.Default, pdbFormat: pdbFormat);
+
+        var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None);
+
+        // change the source:
+        solution = solution.WithDocumentText(document1.Id, CreateText("class C1 { void M() { System.Console.WriteLine(2); } }"));
+        var document2 = solution.GetDocument(document1.Id);
+
+        // error not reported here since it might be intermittent and will be reported if the issue persist when applying the update:
+        var docDiagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
+
+        EndDebuggingSession(debuggingSession);
+    }
+
     [Fact]
     public async Task MultipleSharedLibraryBaselines()
     {
