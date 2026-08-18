@@ -1365,6 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(!(forAccessors && forTopLevelStatements));
 
             isPossibleTypeDeclaration = true;
+            var seenRef = false;
 
             while (true)
             {
@@ -1397,6 +1398,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // Standard legal cases.
                             modTok = ConvertToKeyword(this.EatToken());
                         }
+                        else if (seenRef && this.IsRefTypeDeclarationAfterModifiers(peekIndex: 1))
+                        {
+                            modTok = ConvertToKeyword(this.EatToken());
+                        }
                         else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
                         {
                             // Error reported in binding
@@ -1417,17 +1422,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
 
                     case DeclarationModifiers.Ref:
-                        // 'ref' is only a modifier if used on a ref struct
-                        // it must be either immediately before the 'struct'
-                        // keyword, or immediately before 'partial struct' if
-                        // this is a partial ref struct declaration
                         {
-                            var next = PeekToken(1);
-                            if (isStructOrRecordOrUnionKeyword(next) ||
-                                (next.ContextualKind == SyntaxKind.PartialKeyword &&
-                                 isStructOrRecordOrUnionKeyword(PeekToken(2))))
+                            if (this.IsRefTypeDeclarationAfterModifiers(peekIndex: 1))
                             {
                                 modTok = this.EatToken();
+                                seenRef = true;
                             }
                             else if (forAccessors && this.IsPossibleAccessorModifier())
                             {
@@ -1511,10 +1510,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
-            bool isStructOrRecordOrUnionKeyword(SyntaxToken token)
-            {
-                return token.Kind == SyntaxKind.StructKeyword || IsEnabledRecordOrUnionKeyword(token);
-            }
         }
 
         private bool ShouldContextualKeywordBeTreatedAsModifier(bool parsingStatementNotDeclaration)
@@ -1647,6 +1642,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
                 _ => false,
             };
+        }
+
+        private bool IsRefTypeDeclarationAfterModifiers(int peekIndex)
+        {
+            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+            {
+                peekIndex++;
+            }
+
+            var token = this.PeekToken(peekIndex);
+            return token.Kind == SyntaxKind.StructKeyword || this.IsEnabledRecordOrUnionKeyword(token);
         }
 
         private bool IsPartialType()
