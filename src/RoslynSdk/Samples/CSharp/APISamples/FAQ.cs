@@ -324,7 +324,7 @@ class Program
                 includeReducedExtensionMethods: true);
             string results = string.Join("\r\n", symbols
                 .Select(symbol => symbol.ToDisplayString())
-                .OrderBy(result => result));
+                .OrderBy(result => result, StringComparer.Ordinal));
 
             Assert.Equal(@"C.ExtensionMethod()
 C.InstanceField
@@ -1329,7 +1329,7 @@ class Program
                 .AddSyntaxTrees(tree);
 
             Version version = compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity.Version;
-            Assert.Equal(4, version.Major);
+            Assert.Equal(typeof(object).Assembly.GetName().Version.Major, version.Major);
         }
 
         [FAQ(24)]

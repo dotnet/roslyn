@@ -1388,7 +1388,7 @@ End Module
             Dim comp = VisualBasicCompilation.Create("MyCompilation", syntaxTrees:={tree}, references:={Mscorlib}, options:=vbOptions)
 
             Dim version As Version = comp.GetSpecialType(SpecialType.System_Object).ContainingAssembly.Identity.Version
-            Assert.Equal(4, version.Major)
+            Assert.Equal(GetType(Object).Assembly.GetName().Version.Major, version.Major)
         End Sub
 
         <FAQAttribute(24)>

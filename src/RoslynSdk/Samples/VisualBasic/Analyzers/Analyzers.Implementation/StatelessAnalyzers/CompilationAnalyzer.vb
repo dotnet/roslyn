@@ -21,7 +21,7 @@ Namespace BasicAnalyzers
         Friend Shared ReadOnly MessageFormat As LocalizableString = "Analyzer diagnostic '{0}' is suppressed, consider removing this compilation wide suppression."
         Friend Shared ReadOnly Description As LocalizableString = "Do not suppress analyzer diagnostics."
 
-        Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CompilationAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateless, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
+        Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CompilationAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateless, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description, Nothing, WellKnownDiagnosticTags.CompilationEnd)
 #End Region
 
         Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
