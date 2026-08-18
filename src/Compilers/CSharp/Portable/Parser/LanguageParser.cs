@@ -1426,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (this.ScanTypeTreatingPartialAsIdentifier() != ScanTypeFlags.NotType &&
                                 IsPossibleMemberName())
                             {
-                                if (!this.IsEnabledRecordOrUnionKeyword())
+                                if (!this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
                                 {
                                     return;
                                 }
@@ -1542,33 +1542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool isStructOrRecordOrUnionKeyword(SyntaxToken token)
             {
-                if (token.Kind == SyntaxKind.StructKeyword)
-                {
-                    return true;
-                }
-
-                switch (token.ContextualKind)
-                {
-                    case SyntaxKind.RecordKeyword:
-                        {
-                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                            // does not support a feature, but in this case we are effectively making a language breaking
-                            // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                            // older code that is not using C# 9 we conditionally parse based on langversion
-                            return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                        }
-
-                    case SyntaxKind.UnionKeyword:
-                        {
-                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                            // does not support a feature, but in this case we are effectively making a language breaking
-                            // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                            // older code that is not using C# 15 we conditionally parse based on langversion
-                            return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                        }
-                }
-
-                return false;
+                return token.Kind == SyntaxKind.StructKeyword || IsEnabledRecordOrUnionKeyword(token);
             }
         }
 
@@ -1698,9 +1672,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None;
         }
 
-        private bool IsEnabledRecordOrUnionKeyword()
+        private bool IsEnabledRecordOrUnionKeyword(SyntaxToken token)
         {
-            return this.CurrentToken.ContextualKind switch
+            // Normally the parser recognizes unsupported features and binding reports a language-version
+            // diagnostic. Record and union are contextual keywords, however, so treating them as type
+            // declarations in every ambiguous context would break older code. Only recognize them here
+            // when the corresponding feature is enabled.
+            return token.ContextualKind switch
             {
                 SyntaxKind.RecordKeyword => IsFeatureEnabled(MessageID.IDS_FeatureRecords),
                 SyntaxKind.UnionKeyword => IsFeatureEnabled(MessageID.IDS_FeatureUnions),
@@ -1777,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (this.ScanTypeTreatingPartialAsIdentifier() != ScanTypeFlags.NotType &&
                         IsPossibleMemberName())
                     {
-                        if (!this.IsEnabledRecordOrUnionKeyword())
+                        if (!this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
                         {
                             return true;
                         }
@@ -1791,7 +1769,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // current token begins a declaration for which 'partial' is a plausible modifier.
 
             var kind = this.CurrentToken.Kind;
-            var contextualKind = this.CurrentToken.ContextualKind;
 
             // Type declarations where 'partial' is legal.
             if (kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword)
@@ -1799,35 +1776,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
-            switch (contextualKind)
+            if (this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
             {
-                case SyntaxKind.RecordKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 9 we conditionally parse based on langversion
-                        if (IsFeatureEnabled(MessageID.IDS_FeatureRecords))
-                        {
-                            return true;
-                        }
-
-                        break;
-                    }
-
-                case SyntaxKind.UnionKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 15 we conditionally parse based on langversion
-                        if (IsFeatureEnabled(MessageID.IDS_FeatureUnions))
-                        {
-                            return true;
-                        }
-
-                        break;
-                    }
+                return true;
             }
 
             // Constructs where 'partial' is illegal but we still want to consume it so the binder
@@ -1881,28 +1832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
             }
 
-            switch (nextToken.ContextualKind)
-            {
-                case SyntaxKind.RecordKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 9 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                    }
-
-                case SyntaxKind.UnionKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 15 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                    }
-            }
-
-            return false;
+            return this.IsEnabledRecordOrUnionKeyword(nextToken);
         }
 
         private bool IsPartialMember()
@@ -2701,25 +2631,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case SyntaxKind.IdentifierToken:
 
-                    switch (CurrentToken.ContextualKind)
+                    if (this.IsEnabledRecordOrUnionKeyword(this.CurrentToken))
                     {
-                        case SyntaxKind.RecordKeyword:
-                            {
-                                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                                // does not support a feature, but in this case we are effectively making a language breaking
-                                // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                                // older code that is not using C# 9 we conditionally parse based on langversion
-                                return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                            }
-
-                        case SyntaxKind.UnionKeyword:
-                            {
-                                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                                // does not support a feature, but in this case we are effectively making a language breaking
-                                // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                                // older code that is not using C# 15 we conditionally parse based on langversion
-                                return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                            }
+                        return true;
                     }
 
                     if (IsExtensionContainerStart())
