@@ -31,11 +31,11 @@ internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestH
     public async Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Workspace);
-        Contract.ThrowIfNull(context.Solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
-        // We specifically don't use context.Document here because we want multiple. We also don't need
+        // We specifically don't use the request document here because we want multiple. We also don't need
         // all of the document info, just the Id is enough
-        var documentIds = context.Solution.GetDocumentIds(request.TextDocument.DocumentUri);
+        var documentIds = solution.GetDocumentIds(request.TextDocument.DocumentUri);
 
         if (!documentIds.Any())
         {
@@ -46,7 +46,7 @@ internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestH
 
         foreach (var documentId in documentIds)
         {
-            var project = context.Solution.GetRequiredProject(documentId.ProjectId);
+            var project = solution.GetRequiredProject(documentId.ProjectId);
             var projectContext = ProtocolConversions.ProjectToProjectContext(project);
             contexts.Add(projectContext);
         }

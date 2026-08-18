@@ -40,10 +40,10 @@ public sealed class RequestExecutionQueueTests
         return executionQueue;
     }
 
-    private static ILspServices GetLspServices()
+    private static ILspServices GetLspServices(AbstractRequestContextFactory<TestRequestContext>? requestContextFactory = null)
         => TestLspServices.Create(
             services: [
-                (typeof(AbstractRequestContextFactory<TestRequestContext>), (object)TestRequestContext.Factory.Instance),
+                (typeof(AbstractRequestContextFactory<TestRequestContext>), requestContextFactory ?? TestRequestContext.Factory.Instance),
                 (typeof(ILspLogger), NoOpLspLogger.Instance)
             ],
             supportsMethodHandlerProvider: false);
@@ -153,6 +153,63 @@ public sealed class RequestExecutionQueueTests
 
         Assert.True(task1.IsCompleted);
         Assert.True(task2.IsCompleted);
+    }
+
+    [Fact]
+    public async Task ContextFactoryWithoutDeferredPreparation_PreservesSerializedOrdering()
+    {
+        var contextCreationStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var allowContextCreation = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var laterRequestHandled = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var factory = new CallbackRequestContextFactory(async (request, cancellationToken) =>
+        {
+            if (request.Param == 1)
+            {
+                contextCreationStarted.SetResult(true);
+                await allowContextCreation.Task.ConfigureAwait(false);
+            }
+
+            return new RequestContextInfo<TestRequestContext>(new());
+        });
+        var handler = new CallbackHandler(mutatesSolutionState: false, request =>
+        {
+            if (request.Param == 2)
+                laterRequestHandled.SetResult(true);
+        });
+        var metadata = CreateMetadata("ContextFactoryWithoutDeferredPreparation_PreservesSerializedOrdering");
+        var requestExecutionQueue = GetRequestExecutionQueue(false, (metadata, handler));
+        var lspServices = GetLspServices(factory);
+
+        var firstRequest = requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), metadata.MethodName, lspServices, CancellationToken.None);
+        await contextCreationStarted.Task;
+
+        var laterRequest = requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(2)), metadata.MethodName, lspServices, CancellationToken.None);
+        Assert.False(laterRequestHandled.Task.IsCompleted);
+
+        allowContextCreation.SetResult(true);
+        await Task.WhenAll(firstRequest, laterRequest);
+        Assert.True(laterRequestHandled.Task.IsCompleted);
+    }
+
+    private static RequestHandlerMetadata CreateMetadata(string methodName)
+        => new(methodName, TypeRef.Of<MockRequest>(), TypeRef.Of<MockResponse>(), LanguageServerConstants.DefaultLanguageName);
+
+    private sealed class CallbackRequestContextFactory(
+        Func<MockRequest, CancellationToken, Task<RequestContextInfo<TestRequestContext>>> createContextAsync) : AbstractRequestContextFactory<TestRequestContext>
+    {
+        public override Task<RequestContextInfo<TestRequestContext>> CreateRequestContextAsync<TRequestParam>(QueueItem<TestRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+            => createContextAsync((MockRequest)(object)requestParam!, cancellationToken);
+    }
+
+    private sealed class CallbackHandler(bool mutatesSolutionState, Action<MockRequest>? callback = null) : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
+    {
+        public bool MutatesSolutionState => mutatesSolutionState;
+
+        public Task<MockResponse> HandleRequestAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
+        {
+            callback?.Invoke(request);
+            return Task.FromResult(new MockResponse(request.Param.ToString()));
+        }
     }
 
     private sealed class TestRequestExecutionQueue : RequestExecutionQueue<TestRequestContext>

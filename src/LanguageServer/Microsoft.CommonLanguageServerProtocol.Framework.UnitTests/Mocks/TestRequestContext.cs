@@ -13,7 +13,7 @@ internal sealed class TestRequestContext
     {
         public static readonly Factory Instance = new();
 
-        public override async Task<TestRequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<TestRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
-            => new TestRequestContext();
+        public override Task<RequestContextInfo<TestRequestContext>> CreateRequestContextAsync<TRequestParam>(QueueItem<TestRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+            => Task.FromResult(new RequestContextInfo<TestRequestContext>(new TestRequestContext()));
     }
 }

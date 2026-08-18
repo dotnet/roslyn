@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.LanguageServer.Protocol;
@@ -117,5 +118,41 @@ internal sealed record class DocumentUri(string UriString)
         return this.ParsedUri.IsAbsoluteUri
             ? StringComparer.OrdinalIgnoreCase.GetHashCode(this.ParsedUri.AbsoluteUri)
             : this.ParsedUri.GetHashCode();
+    }
+}
+
+internal sealed class DocumentUriComparer : IEqualityComparer<DocumentUri>
+{
+    public static readonly DocumentUriComparer Instance = new();
+
+    private DocumentUriComparer()
+    {
+    }
+
+    public bool Equals(DocumentUri? left, DocumentUri? right)
+    {
+        if (ReferenceEquals(left, right))
+            return true;
+
+        if (left is null || right is null)
+            return false;
+
+        if (left.Equals(right))
+            return true;
+
+        return left.ParsedUri?.IsFile == true &&
+            right.ParsedUri?.IsFile == true &&
+            StringComparer.OrdinalIgnoreCase.Equals(left.ParsedUri.Host, right.ParsedUri.Host) &&
+            StringComparer.OrdinalIgnoreCase.Equals(left.ParsedUri.LocalPath, right.ParsedUri.LocalPath);
+    }
+
+    public int GetHashCode(DocumentUri uri)
+    {
+        if (uri.ParsedUri?.IsFile != true)
+            return uri.GetHashCode();
+
+        return HashCode.Combine(
+            StringComparer.OrdinalIgnoreCase.GetHashCode(uri.ParsedUri.Host),
+            StringComparer.OrdinalIgnoreCase.GetHashCode(uri.ParsedUri.LocalPath));
     }
 }

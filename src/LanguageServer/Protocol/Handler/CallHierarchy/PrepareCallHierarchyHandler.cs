@@ -30,7 +30,7 @@ internal sealed class PrepareCallHierarchyHandler() : ILspServiceDocumentRequest
         => request.TextDocument;
 
     public async Task<LSP.CallHierarchyItem[]?> HandleRequestAsync(LSP.CallHierarchyPrepareParams request, RequestContext context, CancellationToken cancellationToken)
-        => await PrepareCallHierarchyAsync(context.GetRequiredDocument(), ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+        => await PrepareCallHierarchyAsync(await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false), ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
     internal static async Task<LSP.CallHierarchyItem[]?> PrepareCallHierarchyAsync(Document document, LinePosition linePosition, CancellationToken cancellationToken)
     {

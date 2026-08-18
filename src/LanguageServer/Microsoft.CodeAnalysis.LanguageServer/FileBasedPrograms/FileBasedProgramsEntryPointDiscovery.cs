@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -66,8 +66,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        var initializeManager = context.GetRequiredService<IInitializeManager>();
-        _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
+        var workspaceFolderTracker = context.GetRequiredService<IWorkspaceFolderTracker>();
+        _workspaceFolders = workspaceFolderTracker.GetRequiredWorkspaceFolderPaths();
         Task.Run(async () =>
         {
             try
@@ -248,9 +248,9 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         public DateTimeOffset CreatedOrModifiedTimeUtc { get; } = createdOrModifiedTimeUtc;
     }
 
-    private class DirectoryEnumerator(string directory) : FileSystemEnumerator<CsFileInfo>(directory, new EnumerationOptions { RecurseSubdirectories = false, IgnoreInaccessible = true })
+    private sealed class DirectoryEnumerator(string directory) : FileSystemEnumerator<CsFileInfo>(directory, new EnumerationOptions { RecurseSubdirectories = false, IgnoreInaccessible = true })
     {
-        private CsFileKind GetKind(ref FileSystemEntry entry)
+        private static CsFileKind GetKind(ref FileSystemEntry entry)
         {
             if (entry.IsDirectory)
                 return CsFileKind.Directory;
@@ -273,14 +273,10 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         }
 
         protected override bool ShouldIncludeEntry(ref FileSystemEntry entry)
-        {
-            return GetKind(ref entry) != CsFileKind.None;
-        }
+            => GetKind(ref entry) != CsFileKind.None;
 
         protected override bool ShouldRecurseIntoEntry(ref FileSystemEntry entry)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
+            => throw ExceptionUtilities.Unreachable();
     }
 
     private class WorkspaceFolderVisitor(Cache cache, ArrayBuilder<string> entryPointsBuilder, ArrayBuilder<string> directoriesContainingCsprojBuilder, ILogger logger)
@@ -375,7 +371,6 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         }
     }
 
-    /// <summary>Get the later of two DateTimeOffsets.</summary>
     private static DateTimeOffset Max(DateTimeOffset lhs, DateTimeOffset rhs)
         => lhs < rhs ? rhs : lhs;
 

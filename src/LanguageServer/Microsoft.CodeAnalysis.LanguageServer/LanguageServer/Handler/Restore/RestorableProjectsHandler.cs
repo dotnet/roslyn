@@ -26,7 +26,7 @@ internal sealed class RestorableProjectsHandler() : ILspServiceRequestHandler<st
 
     public async Task<string[]> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         var projectTargetFrameworkManager = context.GetRequiredService<ProjectTargetFrameworkManager>();
 
@@ -35,7 +35,7 @@ internal sealed class RestorableProjectsHandler() : ILspServiceRequestHandler<st
         //   2.  Removes projects with duplicate file paths (for example multi-targeted projects).  They all get restored
         //       together by file path.
         var projects = new SortedSet<string>();
-        foreach (var project in context.Solution.Projects)
+        foreach (var project in solution.Projects)
         {
             // To restore via the dotnet CLI, we must have a file path and it must be a .NET core project.
             if (project.FilePath != null && projectTargetFrameworkManager.IsDotnetCoreProject(project.Id))

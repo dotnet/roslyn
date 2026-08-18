@@ -5,10 +5,13 @@
 // This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
 #nullable enable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
+
+internal readonly record struct RequestContextInfo<TRequestContext>(TRequestContext Context);
 
 /// <summary>
 /// <para>
@@ -31,7 +34,7 @@ internal abstract class AbstractRequestContextFactory<TRequestContext>
     /// <param name="methodHandler">The <see cref="IMethodHandler"/> for which to create the request context</param>
     /// <param name="requestParam">The request parameters.</param>
     /// <param name="cancellationToken"></param>
-    /// <returns>The <typeparamref name="TRequestContext"/> for this request.</returns>
+    /// <returns>The immediate <typeparamref name="TRequestContext"/> for this request and an optional callback that prepares the context used for dispatch.</returns>
     /// <remarks>This method is called on the queue thread to allow context to be retrieved serially, without the possibility of race conditions from Mutating requests.</remarks>
-    public abstract Task<TRequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<TRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken);
+    public abstract Task<RequestContextInfo<TRequestContext>> CreateRequestContextAsync<TRequestParam>(QueueItem<TRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken);
 }

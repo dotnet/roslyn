@@ -3,10 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,6 +27,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
+    [Fact]
+    public async Task TestProviderFailureAllowsMiscellaneousFallbackAsync()
+    {
+        var composition = Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
+        await using var testLspServer = await CreateTestLspServerAsync(
+            [], mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition);
+        var documentUri = CreateAbsoluteDocumentUri("LooseFile.cs");
+        await testLspServer.OpenDocumentAsync(documentUri, "class C { }");
+
+        var throwingProvider = new ThrowingDocumentContextProvider();
+        testLspServer.GetManagerAccessor().PrependDocumentContextProvider(throwingProvider);
+
+        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(
+            CreateTextDocumentIdentifier(documentUri), CancellationToken.None);
+
+        Assert.True(throwingProvider.WasInvoked);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
+        Assert.NotNull(document);
+    }
+
     [Theory, CombinatorialData]
     public async Task TestUsesLspTextOnOpenCloseAsync(bool mutatingLspWorkspace)
     {
@@ -732,4 +757,17 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     {
         return testLspServer.GetManager().GetLspSolutionInfoAsync(CancellationToken.None);
     }
+
+    private sealed class ThrowingDocumentContextProvider : ILspDocumentContextProvider
+    {
+        public bool WasInvoked { get; private set; }
+
+        public ValueTask<(Workspace workspace, Solution solution, TextDocument document)?> TryGetDocumentContextAsync(
+            LspDocumentContextLookupContext context)
+        {
+            WasInvoked = true;
+            throw new InvalidOperationException("Test provider failure");
+        }
+    }
+
 }
