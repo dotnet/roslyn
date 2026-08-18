@@ -81,9 +81,6 @@ class Program
 
             var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (10,16): error CS1031: Type expected
-                //     public ref delegate ref int D1();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(10, 16),
                 // (4,15): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref class S1{}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S1").WithArguments("ref").WithLocation(4, 15),
@@ -92,26 +89,43 @@ class Program
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2").WithLocation(6, 30),
                 // (8,19): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref interface I1{};
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("ref").WithLocation(8, 19)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("ref").WithLocation(8, 19),
+                // (10,33): error CS0106: The modifier 'ref' is not valid for this item
+                //     public ref delegate ref int D1();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D1").WithArguments("ref").WithLocation(10, 33)
             );
         }
 
         [Theory]
-        [InlineData("class", "C", SyntaxKind.ClassDeclaration)]
-        [InlineData("interface", "I", SyntaxKind.InterfaceDeclaration)]
-        public void RefTypeDeclarationLookahead_InvalidTypeKind(string typeKind, string typeName, SyntaxKind declarationKind)
+        [InlineData("ref class C { }", "C", SyntaxKind.ClassDeclaration)]
+        [InlineData("ref interface I { }", "I", SyntaxKind.InterfaceDeclaration)]
+        [InlineData("ref enum E { }", "E", SyntaxKind.EnumDeclaration)]
+        [InlineData("ref delegate void D();", "D", SyntaxKind.DelegateDeclaration)]
+        public void RefTypeDeclarationLookahead_InvalidTypeKind(string source, string typeName, SyntaxKind declarationKind)
         {
-            var source = $"ref {typeKind} {typeName} {{ }}";
             var tree = ParseTree(source, TestOptions.Regular);
             tree.GetDiagnostics().Verify();
 
             var root = tree.GetCompilationUnitRoot();
-            var declaration = Assert.IsAssignableFrom<TypeDeclarationSyntax>(Assert.Single(root.Members));
+            var declaration = Assert.Single(root.Members);
             Assert.Equal(declarationKind, declaration.Kind());
-            Assert.Equal(SyntaxKind.RefKeyword, Assert.Single(declaration.Modifiers).Kind());
+            Assert.Equal(SyntaxKind.RefKeyword, declaration.GetFirstToken().Kind());
 
             CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, typeName).WithArguments("ref"));
+        }
+
+        [Fact]
+        public void RefTypeDeclarationLookahead_FunctionPointerRemainsReturnType()
+        {
+            var tree = ParseTree("unsafe class C { ref delegate*<void> M(); }", TestOptions.Regular);
+            tree.GetDiagnostics().Verify();
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var method = Assert.IsType<MethodDeclarationSyntax>(Assert.Single(containingType.Members));
+            var refType = Assert.IsType<RefTypeSyntax>(method.ReturnType);
+            Assert.IsType<FunctionPointerTypeSyntax>(refType.Type);
         }
 
         [Fact]

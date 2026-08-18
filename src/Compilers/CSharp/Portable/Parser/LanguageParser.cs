@@ -1505,8 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     peekIndex++;
                 }
 
-                var token = this.PeekToken(peekIndex);
-                return this.IsClassStructInterfaceRecordOrUnionKeyword(token);
+                return this.IsTypeDeclarationStart(peekIndex);
             }
 
             bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)
@@ -1659,16 +1658,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             };
         }
 
-        private bool IsClassStructInterfaceRecordOrUnionKeyword(SyntaxToken token)
-        {
-            return token.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
-                this.IsEnabledRecordOrUnionKeyword(token);
-        }
-
         private bool IsPartialType()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(1));
+            return this.IsTypeDeclarationStart(peekIndex: 1);
         }
 
         private bool IsPartialMember()
@@ -2482,6 +2475,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     return false;
             }
+        }
+
+        private bool IsTypeDeclarationStart(int peekIndex)
+        {
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            while (peekIndex > 0)
+            {
+                this.EatToken();
+                peekIndex--;
+            }
+
+            return this.IsTypeDeclarationStart();
         }
 
         private bool CanReuseMemberDeclaration(SyntaxKind kind, bool isGlobal)

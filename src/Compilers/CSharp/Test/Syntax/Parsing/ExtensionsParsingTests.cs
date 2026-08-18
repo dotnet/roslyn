@@ -2395,25 +2395,17 @@ class C
     [Fact]
     public void WithModifiers_Ref()
     {
-        UsingTree("""
+        var source = """
 class C
 {
     ref extension(Type) { }
 }
-""",
-            TestOptions.RegularPreview,
-            // (3,18): error CS1519: Invalid token '(' in a member declaration
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 18),
-            // (3,23): error CS8124: Tuple must contain at least two elements.
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 23),
-            // (3,25): error CS1519: Invalid token '{' in a member declaration
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 25),
-            // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-            // }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+""";
+
+        CreateCompilation("class Type { } static class C { ref extension(Type) { } }").VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref"));
+
+        UsingTree(source, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2422,39 +2414,24 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "Type");
                             }
                         }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
                         N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -3603,19 +3580,7 @@ class C
     ref extension(Type) { }
 }
 """,
-            TestOptions.RegularPreview,
-            // (3,18): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 18),
-            // (3,23): error CS8124: Tuple must contain at least two elements.
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 23),
-            // (3,25): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 25),
-            // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-            // }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+            TestOptions.RegularPreview);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -3623,39 +3588,24 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "Type");
                             }
                         }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
                         N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
