@@ -571,12 +571,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     case BoundKind.Parameter:
                         Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
-                        goto case BoundKind.Local;
+                        // A ref parameter can be ref-reassigned by a later argument.
+                        return kind != RefKind.None && current.GetRefKind() == RefKind.None;
 
                     case BoundKind.Local:
-                        // A reference to an ordinary local variable or formal parameter is safe to reorder.
-                        // A ref local or ref parameter is not, since a later argument can ref-reassign it.
-                        return kind != RefKind.None && current.GetRefKind() == RefKind.None;
+                        // A user-defined ref local can be ref-reassigned by a later argument.
+                        // Synthesized ref locals are not ref-reassigned.
+                        return kind != RefKind.None &&
+                            (current.GetRefKind() == RefKind.None ||
+                             ((BoundLocal)current).LocalSymbol.SynthesizedKind != SynthesizedLocalKind.UserDefined);
                     case BoundKind.PassByCopy:
                         return IsSafeForReordering(((BoundPassByCopy)current).Expression, kind);
                     case BoundKind.Conversion:
