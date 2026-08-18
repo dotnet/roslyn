@@ -7363,28 +7363,20 @@ parse_member_name:;
 
         private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType, bool treatPartialAsIdentifier)
         {
+            lastTokenOfType = null;
             if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
             {
-                lastTokenOfType = null;
                 return ScanTypeFlags.NotType;
             }
 
-            bool canScanAsIdentifier;
-            if (treatPartialAsIdentifier && this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+            // Skip the normal identifier check only when explicitly interpreting 'partial' as a
+            // type name. Declaration lookahead may otherwise classify it as a modifier.
+            if (!treatPartialAsIdentifier || this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword)
             {
-                // Explicitly allow 'partial' to be interpreted as a type name even when declaration
-                // lookahead would otherwise classify it as a modifier.
-                canScanAsIdentifier = true;
-            }
-            else
-            {
-                canScanAsIdentifier = this.IsTrueIdentifier();
-            }
-
-            if (!canScanAsIdentifier)
-            {
-                lastTokenOfType = null;
-                return ScanTypeFlags.NotType;
+                if (!this.IsTrueIdentifier())
+                {
+                    return ScanTypeFlags.NotType;
+                }
             }
 
             lastTokenOfType = this.EatToken();
