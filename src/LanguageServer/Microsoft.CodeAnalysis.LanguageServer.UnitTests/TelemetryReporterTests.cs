@@ -31,7 +31,9 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     [Fact]
     public void TestVSTelemetryLoadedIntoDefaultAlc()
     {
-        var service = CreateReporter(ServerConfigurationWithoutDevKit);
+        using var service = CreateReporter(DefaultServerConfiguration);
+        service.InitializeSession("off", "test-session", isDefaultSession: false);
+
         var assembly = Assembly.GetAssembly(service.GetType());
         Assert.Contains(AssemblyLoadContext.Default.Assemblies, a => a == assembly);
         Assert.Contains(AssemblyLoadContext.Default.Assemblies, a => a.GetName().Name == "Microsoft.VisualStudio.Telemetry");
