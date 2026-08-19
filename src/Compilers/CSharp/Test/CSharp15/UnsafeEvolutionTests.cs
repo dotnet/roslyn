@@ -9904,6 +9904,73 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Constructor_NewConstraint_IneligibleConstructors()
+    {
+        var source = """
+            using System.Diagnostics.CodeAnalysis;
+
+            #pragma warning disable CS0169 // unused field
+            class Uses
+            {
+                D<Private> privateField;
+                D<Abstract> abstractField;
+                D<Required> requiredField;
+                D<Valid> validField;
+                S<RequiredStruct> structField;
+            }
+
+            class D<T> where T : new();
+            class S<T> where T : struct;
+
+            class Private { unsafe private Private() { } }
+            abstract class Abstract { unsafe public Abstract() { } }
+            class Required
+            {
+                public required int P { get; init; }
+                unsafe public Required() { }
+            }
+            class Valid
+            {
+                public required int P { get; init; }
+                [SetsRequiredMembers]
+                unsafe public Valid() { }
+            }
+            struct RequiredStruct
+            {
+                public required int P { get; init; }
+                unsafe public RequiredStruct() { }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (6,5): error CS9376: An unsafe context is required for constructor 'Private.Private()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            //     D<Private> privateField;
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<Private>").WithArguments("Private.Private()", "T", "D<T>").WithLocation(6, 5),
+            // (6,16): error CS0310: 'Private' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
+            //     D<Private> privateField;
+            Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "privateField").WithArguments("D<T>", "T", "Private").WithLocation(6, 16),
+            // (7,5): error CS9376: An unsafe context is required for constructor 'Abstract.Abstract()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            //     D<Abstract> abstractField;
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<Abstract>").WithArguments("Abstract.Abstract()", "T", "D<T>").WithLocation(7, 5),
+            // (7,17): error CS0310: 'Abstract' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
+            //     D<Abstract> abstractField;
+            Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "abstractField").WithArguments("D<T>", "T", "Abstract").WithLocation(7, 17),
+            // (8,5): error CS9376: An unsafe context is required for constructor 'Required.Required()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            //     D<Required> requiredField;
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<Required>").WithArguments("Required.Required()", "T", "D<T>").WithLocation(8, 5),
+            // (8,17): error CS9040: 'Required' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'D<T>' because 'Required' has required members.
+            //     D<Required> requiredField;
+            Diagnostic(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, "requiredField").WithArguments("D<T>", "T", "Required").WithLocation(8, 17),
+            // (9,5): error CS9376: An unsafe context is required for constructor 'Valid.Valid()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            //     D<Valid> validField;
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<Valid>").WithArguments("Valid.Valid()", "T", "D<T>").WithLocation(9, 5),
+            // (10,5): error CS9376: An unsafe context is required for constructor 'RequiredStruct.RequiredStruct()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'S<T>'
+            //     S<RequiredStruct> structField;
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "S<RequiredStruct>").WithArguments("RequiredStruct.RequiredStruct()", "T", "S<T>").WithLocation(10, 5));
+    }
+
+    [Fact]
     public void Member_Constructor_NewConstraint_MoreConstructors()
     {
         CompileAndVerifyUnsafe(
