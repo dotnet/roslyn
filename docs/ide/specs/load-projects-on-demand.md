@@ -159,7 +159,7 @@ This exposes newly loaded project structure without exposing document edits orde
 
 For workspace-scoped requests without a document identifier, context creation snapshots explicit project-load handles then pending. `GetSolutionAsync` waits only for that fixed snapshot and returns the latest solution; it does not discover every project in workspace folders or continually drain later loads.
 
-`Workspace` remains synchronous because workspace identity does not change when its solution snapshot advances.
+Callers obtain the workspace from the asynchronously resolved document or solution so workspace identity remains paired with the resolved state. This matters when a document moves from the miscellaneous workspace to the host workspace after project loading.
 
 ### Mutating Contexts
 

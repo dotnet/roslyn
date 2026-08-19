@@ -33,7 +33,9 @@ Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.GetDoc
 Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.GetRequiredDocument() -> Microsoft.CodeAnalysis.Document!
 Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.GetRequiredDocumentAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Document!>
 Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.GetRequiredService<T>() -> T!
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.GetRequiredWorkspaceAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Workspace!>
 Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.GetSolutionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Solution?>
+Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.GetWorkspaceAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Workspace?>
 Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.RequestContext() -> void
 Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.RequestContext(Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext context) -> void
 Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.Solution.get -> Microsoft.CodeAnalysis.Solution?

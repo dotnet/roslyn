@@ -11,31 +11,41 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk;
 internal readonly struct RequestContext
 {
     private readonly LspRequestContext _context;
+    private readonly Workspace? _initialWorkspace;
     private readonly Solution? _initialSolution;
     private readonly TextDocument? _initialTextDocument;
+    private readonly Document? _initialDocument;
 
     internal RequestContext(LspRequestContext context)
     {
         _context = context;
+        _initialWorkspace = context.GetInitialWorkspace();
         _initialSolution = context.GetInitialSolution();
         _initialTextDocument = context.GetInitialTextDocument();
+        _initialDocument = _initialTextDocument as Document;
     }
 
-    /// <inheritdoc cref="LspRequestContext.Workspace"/>
-    internal Workspace? Workspace => _context.Workspace;
+    [Obsolete("Use GetWorkspaceAsync instead.", error: false)]
+    internal Workspace? Workspace => _initialWorkspace;
 
     [Obsolete("Use GetSolutionAsync instead.", error: false)]
     internal Solution? Solution => _initialSolution;
 
     [Obsolete("Use GetDocumentAsync instead.", error: false)]
-    internal Document? Document => GetInitialDocument();
+    internal Document? Document => _initialDocument;
 
     [Obsolete("Use GetRequiredDocumentAsync instead.", error: false)]
     internal Document GetRequiredDocument()
-        => GetInitialDocument() ?? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {_context.Method}");
+        => _initialDocument ?? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {_context.Method}");
 
     internal ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
         => _context.GetSolutionAsync(cancellationToken);
+
+    internal ValueTask<Workspace?> GetWorkspaceAsync(CancellationToken cancellationToken)
+        => _context.GetWorkspaceAsync(cancellationToken);
+
+    internal ValueTask<Workspace> GetRequiredWorkspaceAsync(CancellationToken cancellationToken)
+        => _context.GetRequiredWorkspaceAsync(cancellationToken);
 
     internal ValueTask<Document?> GetDocumentAsync(CancellationToken cancellationToken)
         => _context.GetDocumentAsync(cancellationToken);
@@ -44,12 +54,4 @@ internal readonly struct RequestContext
         => _context.GetRequiredDocumentAsync(cancellationToken);
 
     internal T GetRequiredService<T>() where T : class => _context.GetRequiredService<T>();
-
-    private Document? GetInitialDocument()
-        => _initialTextDocument switch
-        {
-            null => null,
-            Document document => document,
-            _ => throw new InvalidOperationException("Attempted to retrieve a Document but a TextDocument was found instead."),
-        };
 }

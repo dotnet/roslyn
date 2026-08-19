@@ -65,7 +65,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             async (context, cancellationToken) =>
             {
                 handlerStarted.TrySetResult(true);
+                var workspace = await context.GetRequiredWorkspaceAsync(cancellationToken).ConfigureAwait(false);
                 var requestDocument = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+                Assert.Same(workspace, requestDocument.Project.Solution.Workspace);
                 var text = await requestDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 return new TestConfigurableResponse(text.ToString());
             });

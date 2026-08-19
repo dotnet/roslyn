@@ -188,26 +188,6 @@ internal readonly struct RequestContext
     public ILspLogger Logger { get; }
 
     /// <summary>
-    /// The workspace this request is for, if applicable.  This will be present if <see cref="GetDocumentAsync(CancellationToken)"/> returns a document.
-    /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
-    /// </summary>
-    public Workspace? Workspace
-    {
-        get
-        {
-            if (_solutionContext is null)
-            {
-                // This request context never had a workspace instance
-                return null;
-            }
-
-            // The workspace is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
-            // for attempts to access this property after it has been manually cleared.
-            return _solutionContext.GetCurrentValue().Workspace;
-        }
-    }
-
-    /// <summary>
     /// The LSP server handling the request.
     /// </summary>
     public readonly WellKnownLspServerKinds ServerKind;
@@ -282,10 +262,22 @@ internal readonly struct RequestContext
             : _clientCapabilities;
     }
 
+    public async ValueTask<Workspace?> GetWorkspaceAsync(CancellationToken cancellationToken)
+        => _solutionContext is null
+            ? null
+            : (await _solutionContext.GetValueAsync(cancellationToken).ConfigureAwait(false)).Workspace;
+
+    public async ValueTask<Workspace> GetRequiredWorkspaceAsync(CancellationToken cancellationToken)
+        => await GetWorkspaceAsync(cancellationToken).ConfigureAwait(false)
+            ?? throw new ArgumentNullException($"{nameof(Workspace)} is null when it was required for {Method}");
+
     public async ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
         => _solutionContext is null
             ? null
             : (await _solutionContext.GetValueAsync(cancellationToken).ConfigureAwait(false)).Solution;
+
+    internal Workspace? GetInitialWorkspace()
+        => _solutionContext?.GetInitialValue().Workspace;
 
     internal Solution? GetInitialSolution()
         => _solutionContext?.GetInitialValue().Solution;
