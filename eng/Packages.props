@@ -72,7 +72,7 @@
     -->
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="18.9.496-Preview" />
     <PackageVersion Include="EnvDTE" Version="18.9.438" />
-    <PackageVersion Include="Microsoft.VisualStudio.Interop" Version="18.9.915" />
+    <PackageVersion Include="Microsoft.VisualStudio.Interop" Version="18.10.605" />
     <PackageVersion Include="Microsoft.VisualStudio.SDK.Analyzers" Version="17.7.122" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop" Version="18.9.438" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="18.9.438" />
@@ -90,8 +90,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="18.0.52-preview1" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="18.0.52-preview1" />
     <PackageVersion Include="Microsoft.VSSDK.Debugger.VSDConfigTool" Version="17.13.1100801-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.0.77-pre-g62a6cb5699" />
-    <PackageVersion Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.0.0-preview-2-31221-277" />
+    <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.3.195-pre" />
     <PackageVersion Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="15.8.27812-alpha" />
@@ -107,8 +106,8 @@
     <PackageVersion Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="17.9.29-preview-0001" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" Version="18.0.634-alpha" />
     <PackageVersion Include="VsWebSite.Interop" Version="8.0.50727" />
-    <PackageVersion Include="NuGet.VisualStudio" Version="6.0.0-preview.0.15" />
-    <PackageVersion Include="NuGet.VisualStudio.Contracts" Version="6.0.0-preview.0.15" />
+    <PackageVersion Include="NuGet.VisualStudio" Version="6.0.0-preview.3.158" />
+    <PackageVersion Include="NuGet.VisualStudio.Contracts" Version="6.0.0-preview.3.158" />
 
     <!-- TODO: Move these to the generate-vssdk-versions.csx-generated versions (https://github.com/dotnet/roslyn/issues/71691) -->
     <PackageVersion Include="Microsoft.VisualStudio.Text.Internal" Version="$(VisualStudioEditorPackagesVersion)" />
@@ -125,7 +124,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.9.915" />
     <PackageVersion Include="Microsoft.VisualStudio.Imaging" Version="18.9.918" />
-    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.9.911" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.10.605" />
     <PackageVersion Include="Microsoft.VisualStudio.Language" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(VisualStudioEditorPackagesVersion)" />

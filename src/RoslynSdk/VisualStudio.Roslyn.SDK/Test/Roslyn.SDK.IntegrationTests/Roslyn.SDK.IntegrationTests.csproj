@@ -19,7 +19,7 @@
     <PackageReference Include="DiffPlex" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" PrivateAssets="all" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" />
-    <PackageReference Include="Microsoft.VisualStudio.Interop" VersionOverride="$(MicrosoftVisualStudioInterop18Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Interop" />
     <PackageReference Include="Nullable" PrivateAssets="all" />
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Memory" />
