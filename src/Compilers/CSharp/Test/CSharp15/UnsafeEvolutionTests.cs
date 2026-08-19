@@ -9742,6 +9742,57 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Constructor_NewConstraint_ExplicitInterfaceImplementations()
+    {
+        var source = """
+            public class C
+            {
+                unsafe public C() { }
+            }
+
+            public interface I<T> where T : new()
+            {
+                void M();
+                int P { get; }
+                event System.Action E;
+                static abstract int operator +(I<T> x, int y);
+            }
+
+            public class Impl : I<C>
+            {
+                void I<C>.M() { }
+                int I<C>.P => 0;
+                event System.Action I<C>.E { add { } remove { } }
+                static int I<C>.operator +(I<C> x, int y) => 0;
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (14,14): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
+            // public class Impl : I<C>
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "Impl").WithArguments("C.C()", "T", "I<T>").WithLocation(14, 14),
+            // (16,10): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
+            //     void I<C>.M() { }
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "I<C>").WithArguments("C.C()", "T", "I<T>").WithLocation(16, 10),
+            // (17,9): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
+            //     int I<C>.P => 0;
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "I<C>").WithArguments("C.C()", "T", "I<T>").WithLocation(17, 9),
+            // (18,25): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
+            //     event System.Action I<C>.E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "I<C>").WithArguments("C.C()", "T", "I<T>").WithLocation(18, 25),
+            // (19,16): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
+            //     static int I<C>.operator +(I<C> x, int y) => 0;
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "I<C>").WithArguments("C.C()", "T", "I<T>").WithLocation(19, 16),
+            // (19,37): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
+            //     static int I<C>.operator +(I<C> x, int y) => 0;
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "x").WithArguments("C.C()", "T", "I<T>").WithLocation(19, 37));
+    }
+
+    [Fact]
     public void Member_Constructor_NewConstraint_ExtensionMember()
     {
         CompileAndVerifyUnsafe(
