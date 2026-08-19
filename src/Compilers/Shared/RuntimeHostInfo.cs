@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 #if !NET || MICROSOFT_CODEANALYSIS_MSBUILD_TASK
 // On .NET Framework, File.ResolveLinkTarget is provided as an extension member in this namespace
@@ -47,22 +46,16 @@ namespace Microsoft.CodeAnalysis
         internal const string DotNetTieredCompilationEnvironmentName = "DOTNET_TieredCompilation";
 
 #if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-        /// <summary>
-        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
-        /// </summary>
+        /// <inheritdoc cref="GetToolDotNetRoot(System.Func{string, string?}, System.Action{string, object[]}?)"/>
         internal static string? GetToolDotNetRoot(
             TaskEnvironment taskEnvironment,
             Action<string, object[]>? logger)
         {
-            var dotnetpath = GetDotNetHostPath(taskEnvironment);
-            return GetToolDotNetRootCore(
-                taskEnvironment.GetFullPath(dotnetpath),
-                logger);
+            var dotnetPath = GetDotNetHostPath(taskEnvironment);
+            return GetToolDotNetRootCore(dotnetPath, logger);
         }
 #else
-        /// <summary>
-        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
-        /// </summary>
+        /// <inheritdoc cref="GetToolDotNetRoot(System.Func{string, string?}, System.Action{string, object[]}?)"/>
         internal static string? GetToolDotNetRoot(Action<string, object[]>? logger) =>
             GetToolDotNetRootCore(GetDotNetHostPath(), logger);
 #endif
@@ -70,6 +63,10 @@ namespace Microsoft.CodeAnalysis
         internal static string? GetToolDotNetRoot(Func<string, string?> getEnvFunc, Action<string, object[]>? logger) =>
             GetToolDotNetRootCore(GetDotNetHostPath(getEnvFunc), logger);
 
+        /// <summary>
+        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools. If the return 
+        /// is non-null then it will be a fully qualified path.
+        /// </summary>
         private static string? GetToolDotNetRootCore(string dotNetPath, Action<string, object[]>? logger)
         {
             if (!Path.IsPathFullyQualified(dotNetPath))

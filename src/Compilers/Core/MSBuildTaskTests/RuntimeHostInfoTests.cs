@@ -140,6 +140,39 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
 
         Assert.Equal(dotNetPath, result);
     }
+
+    [Fact]
+    public void GetToolDotNetRoot_RelativePath_ReturnsNull()
+    {
+        var relativePath = Path.Combine("relative", RuntimeHostInfo.DotNetHostExecutableName);
+        var environment = new Dictionary<string, string>
+        {
+            [RuntimeHostInfo.DotNetHostPathEnvironmentName] = relativePath,
+            [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+        };
+        var result = RuntimeHostInfo.GetToolDotNetRoot(name => environment.TryGetValue(name, out var value) ? value : null, _output.WriteLine);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void GetToolDotNetRoot_ValidPath_ReturnsDirectory()
+    {
+        using var tempRoot = new TempRoot();
+        var testDir = tempRoot.CreateDirectory();
+        var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
+        var globalDotNetExe = globalDotNetDir.CreateFile(RuntimeHostInfo.DotNetHostExecutableName);
+
+        var environment = new Dictionary<string, string>
+        {
+            [RuntimeHostInfo.DotNetHostPathEnvironmentName] = globalDotNetExe.Path,
+            [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+        };
+        var result = RuntimeHostInfo.GetToolDotNetRoot(name => environment.TryGetValue(name, out var value) ? value : null, _output.WriteLine);
+
+        Assert.NotNull(result);
+        Assert.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
+    }
 }
 
 #if !NET
