@@ -12171,7 +12171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
                     method,
-                    new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null, reportUnsafeConstructorConstraintErrors: false),
+                    new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null),
                     diagnosticsBuilder,
                     nullabilityDiagnosticsBuilderOpt: null,
                     ref useSiteDiagnosticsBuilder);
@@ -12283,7 +12283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var substitution = new TypeMap(typeParameters, typeArguments);
                 ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
                 var result = delegateType.CheckConstraints(
-                    new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded, reportUnsafeConstructorConstraintErrors: false),
+                    new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded),
                     substitution,
                     typeParameters,
                     typeArguments,

@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static bool checkConstraintsIncludingExtension(MethodSymbol symbol, CSharpCompilation compilation, TypeConversions conversions)
             {
                 var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
-                   NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded, reportUnsafeConstructorConstraintErrors: false);
+                   NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
 
                 return symbol.CheckConstraints(constraintArgs);
             }

@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)syntax;
                     MessageID.IDS_FeatureFunctionPointers.CheckFeatureAvailability(diagnostics, functionPointerTypeSyntax.DelegateKeyword);
 
-                    if (GetUnsafeDiagnosticInfo(disallowedUnder: MemorySafetyRules.Legacy, sizeOfTypeOpt: null) is CSDiagnosticInfo info)
+                    if (GetUnsafeDiagnosticInfo(disallowedUnder: MemorySafetyRules.Legacy, ignoreSuppression: false, sizeOfTypeOpt: null) is CSDiagnosticInfo info)
                     {
                         var @delegate = functionPointerTypeSyntax.DelegateKeyword;
                         var asterisk = functionPointerTypeSyntax.AsteriskToken;
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportUseSite(constructedType.Type.OriginalDefinition, diagnostics, syntax);
                     var type = (NamedTypeSymbol)constructedType.Type;
                     var location = syntax.Location;
-                    type.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics, reportUnsafeConstructorConstraintErrors: false));
+                    type.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics));
                 }
                 else if (GetNullableUnconstrainedTypeParameterDiagnosticIfNecessary(Compilation.LanguageVersion, constructedType) is { } diagnosticInfo)
                 {
@@ -1642,7 +1642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(type))
             {
                 bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-                type.CheckConstraintsForNamedType(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability, typeSyntax.Location, diagnostics, reportUnsafeConstructorConstraintErrors: false),
+                type.CheckConstraintsForNamedType(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability, typeSyntax.Location, diagnostics),
                                                   typeSyntax, typeArgumentsSyntax, basesBeingResolved);
             }
 

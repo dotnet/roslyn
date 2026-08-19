@@ -802,7 +802,7 @@ outerDefault:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var constraintsArgs = new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null, template, reportUnsafeConstructorConstraintErrors: false);
+            var constraintsArgs = new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null, template);
 
             bool constraintsSatisfied = true;
             if (member is MethodSymbol method)

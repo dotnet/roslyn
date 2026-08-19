@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     TMethodOrPropertySymbol member = result.Member;
                     if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, member, syntax, candidateDiagnostics, invokedAsExtensionMethod: isExtensionMethodGroup && !member.IsExtensionBlockMember()) &&
-                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, candidateDiagnostics, reportUnsafeConstructorConstraintErrors: false))))
+                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, candidateDiagnostics))))
                     {
                         finalCandidates.Add(result);
                         continue;

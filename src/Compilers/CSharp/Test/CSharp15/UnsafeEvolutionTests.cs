@@ -5225,18 +5225,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
-            // (17,25): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
+            // (17,20): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
             //     unsafe void M1(I<C> i) { }
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "i").WithArguments("C.C()", "T", "I<T>").WithLocation(17, 25),
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "I<C>").WithArguments("C.C()", "T", "I<T>").WithLocation(17, 20),
             // (19,6): error CS9362: 'A.A()' must be used in an unsafe context because it is marked as 'unsafe'
             //     [A] unsafe void M2() { }
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A").WithArguments("A.A()").WithLocation(19, 6),
             // (22,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe class UnsafeTest
             Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "UnsafeTest").WithLocation(22, 14),
-            // (24,18): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
+            // (24,13): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
             //     void M1(I<C> i) { }
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "i").WithArguments("C.C()", "T", "I<T>").WithLocation(24, 18),
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "I<C>").WithArguments("C.C()", "T", "I<T>").WithLocation(24, 13),
             // (26,6): error CS9362: 'A.A()' must be used in an unsafe context because it is marked as 'unsafe'
             //     [A] void M2() { }
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A").WithArguments("A.A()").WithLocation(26, 6));
@@ -9581,12 +9581,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (3,9): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
                 // _ = new D<C>();
                 Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(3, 9),
-                // (12,14): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+                // (12,18): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
                 // public class E : D<C>;
-                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "E").WithArguments("C.C()", "T", "D<T>").WithLocation(12, 14),
-                // (15,17): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(12, 18),
+                // (15,12): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
                 //     public D<C> Field = new();
-                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "Field").WithArguments("C.C()", "T", "D<T>").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(15, 12),
             ]);
     }
 
@@ -9660,12 +9660,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (3,9): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
                 // _ = new D<C>();
                 Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(3, 9),
-                // (12,14): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+                // (12,18): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
                 // public class E : D<C>;
-                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "E").WithArguments("C.C()", "T", "D<T>").WithLocation(12, 14),
-                // (15,17): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(12, 18),
+                // (15,12): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
                 //     public D<C> Field = new();
-                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "Field").WithArguments("C.C()", "T", "D<T>").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(15, 12),
             ]);
     }
 
@@ -9702,43 +9702,43 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
-            // (9,14): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+            // (9,25): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             // public class BaseType : D<C>;
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "BaseType").WithArguments("C.C()", "T", "D<T>").WithLocation(9, 14),
-            // (11,18): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'IFace<T>'
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(9, 25),
+            // (11,26): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'IFace<T>'
             // public interface IBase : IFace<C>;
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "IBase").WithArguments("C.C()", "T", "IFace<T>").WithLocation(11, 18),
-            // (15,17): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "IFace<C>").WithArguments("C.C()", "T", "IFace<T>").WithLocation(11, 26),
+            // (15,12): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             //     public D<C> Property { get; set; }
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "Property").WithArguments("C.C()", "T", "D<T>").WithLocation(15, 17),
-            // (16,38): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(15, 12),
+            // (16,32): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             //     public event System.Action<D<C>> Event { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "Event").WithArguments("C.C()", "T", "D<T>").WithLocation(16, 38),
-            // (17,25): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(16, 32),
+            // (17,20): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             //     public Members(D<C> p) { }
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "p").WithArguments("C.C()", "T", "D<T>").WithLocation(17, 25),
-            // (18,17): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(17, 20),
+            // (18,12): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             //     public D<C> Method(D<C> p) => p;
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "Method").WithArguments("C.C()", "T", "D<T>").WithLocation(18, 17),
-            // (18,29): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(18, 12),
+            // (18,24): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             //     public D<C> Method(D<C> p) => p;
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "p").WithArguments("C.C()", "T", "D<T>").WithLocation(18, 29),
-            // (19,17): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(18, 24),
+            // (19,12): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             //     public D<C> this[int i] => null;
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "this").WithArguments("C.C()", "T", "D<T>").WithLocation(19, 17),
-            // (20,33): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(19, 12),
+            // (20,19): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             //     public static D<C> operator +(Members a, int b) => null;
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "+").WithArguments("C.C()", "T", "D<T>").WithLocation(20, 33),
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(20, 19),
             // (23,17): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             // public delegate D<C> Del(D<C> p);
             Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(23, 17),
             // (23,26): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             // public delegate D<C> Del(D<C> p);
             Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(23, 26),
-            // (25,26): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+            // (25,39): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             // public class Constrained<T> where T : D<C>;
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "T").WithArguments("C.C()", "T", "D<T>").WithLocation(25, 26));
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(25, 39));
     }
 
     [Fact]
@@ -9772,9 +9772,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source, targetFramework: TargetFramework.Net100, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics(
-            // (14,14): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
+            // (14,21): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
             // public class Impl : I<C>
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "Impl").WithArguments("C.C()", "T", "I<T>").WithLocation(14, 14),
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "I<C>").WithArguments("C.C()", "T", "I<T>").WithLocation(14, 21),
             // (16,10): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
             //     void I<C>.M() { }
             Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "I<C>").WithArguments("C.C()", "T", "I<T>").WithLocation(16, 10),
@@ -9787,9 +9787,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (19,16): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
             //     static int I<C>.operator +(I<C> x, int y) => 0;
             Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "I<C>").WithArguments("C.C()", "T", "I<T>").WithLocation(19, 16),
-            // (19,37): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
+            // (19,32): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'I<T>'
             //     static int I<C>.operator +(I<C> x, int y) => 0;
-            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "x").WithArguments("C.C()", "T", "I<T>").WithLocation(19, 37));
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "I<C>").WithArguments("C.C()", "T", "I<T>").WithLocation(19, 32));
     }
 
     [Fact]
@@ -9938,6 +9938,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
                 class D1<T> where T : new() { public static void M1() { } }
                 class D2<T> where T : new() { public static void M2() { } }
+
+                #pragma warning disable CS0169, CS0067 // unused field, event
+                class F : X2
+                {
+                    X2 field;
+                    X2 Property { get; set; }
+                    event System.Action<X2> Event;
+                    X2 Method(X2 parameter) => parameter;
+                }
                 """,
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C"],
@@ -10106,9 +10115,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (9,15): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'S<T>'
                 // unsafe S<C> M(S<C> s) => s;
                 Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "S<C>").WithArguments("C.C()", "T", "S<T>").WithLocation(9, 15),
-                // (11,16): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'S<T>'
+                // (11,11): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'S<T>'
                 // class X { S<C> f; }
-                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "f").WithArguments("C.C()", "T", "S<T>").WithLocation(11, 16),
+                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "S<C>").WithArguments("C.C()", "T", "S<T>").WithLocation(11, 11),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [

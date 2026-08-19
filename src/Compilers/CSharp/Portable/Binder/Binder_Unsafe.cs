@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, callerUnsafeMode, arg, location, forConstructorConstraint: false);
 
-            if (useUpdatedMemorySafetyRules && ShouldCheckConstraints)
+            if (useUpdatedMemorySafetyRules)
             {
                 switch (symbol)
                 {
@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(callerUnsafeMode == CallerUnsafeMode.Explicit || !forConstructorConstraint);
                 ReportUnsafeIfNotAllowed(arg, location, diagnostics, disallowedUnder: MemorySafetyRules.Updated,
+                    ignoreSuppression: forConstructorConstraint,
                     customErrorCode: callerUnsafeMode switch
                     {
                         CallerUnsafeMode.Explicit => forConstructorConstraint ? ErrorCode.ERR_UnsafeConstructorConstraint : ErrorCode.ERR_UnsafeMemberOperation,
@@ -188,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 static node => node.GetLocation(),
                 diagnostics,
                 disallowedUnder,
+                ignoreSuppression: false,
                 sizeOfTypeOpt,
                 customErrorCode,
                 customArgs);
@@ -216,6 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 static l => l,
                 diagnostics,
                 disallowedUnder,
+                ignoreSuppression: false,
                 sizeOfTypeOpt: null,
                 customErrorCode,
                 customArgs);
@@ -230,11 +233,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Func<T, Location?> location,
             DiagnosticBag diagnostics,
             MemorySafetyRules disallowedUnder,
+            bool ignoreSuppression,
             TypeSymbol? sizeOfTypeOpt = null,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
         {
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(disallowedUnder, sizeOfTypeOpt, customErrorCode, customArgs);
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(disallowedUnder, ignoreSuppression, sizeOfTypeOpt, customErrorCode, customArgs);
             if (diagnosticInfo == null)
             {
                 return false;
@@ -246,13 +250,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private CSDiagnosticInfo? GetUnsafeDiagnosticInfo(
             MemorySafetyRules disallowedUnder,
+            bool ignoreSuppression,
             TypeSymbol? sizeOfTypeOpt,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
         {
             Debug.Assert(sizeOfTypeOpt is null || disallowedUnder is MemorySafetyRules.Legacy);
 
-            if (this.Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics))
+            if (!ignoreSuppression && this.Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics))
             {
                 return null;
             }

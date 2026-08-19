@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is, then just report that error.
 
             MethodSymbol method = (MethodSymbol)(Symbol)result.Member;
-            if (!method.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, location, diagnostics, reportUnsafeConstructorConstraintErrors: false)))
+            if (!method.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, location, diagnostics)))
             {
                 // The error is already reported into the diagnostics bag.
                 return true;
@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol formalParameterType = method.GetParameterType(result.Result.BadParameter);
 
-            var boxedArgs = ConstraintsHelper.CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability: false, location, diagnostics, reportUnsafeConstructorConstraintErrors: false);
+            var boxedArgs = ConstraintsHelper.CheckConstraintsArgsBoxed.Allocate(compilation, conversions, includeNullability: false, location, diagnostics);
             formalParameterType.CheckAllConstraints(boxedArgs);
             boxedArgs.Free();
 

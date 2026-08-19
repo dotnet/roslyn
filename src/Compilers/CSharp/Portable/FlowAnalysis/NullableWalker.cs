@@ -8957,7 +8957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ConstraintsHelper.CheckMethodConstraints(
                 method,
-                new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded, reportUnsafeConstructorConstraintErrors: false),
+                new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded),
                 diagnosticsBuilder,
                 nullabilityBuilder,
                 ref useSiteDiagnosticsBuilder);
@@ -8986,7 +8986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var nullabilityBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
 
-            var constraintsArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded, reportUnsafeConstructorConstraintErrors: false);
+            var constraintsArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
 
             ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
                 extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
@@ -9419,7 +9419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                     Debug.Assert(diagnostics.DiagnosticBag is { });
 
-                    tupleOpt.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, node.Syntax.Location, diagnostics: null, reportUnsafeConstructorConstraintErrors: false),
+                    tupleOpt.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, node.Syntax.Location, diagnostics: null),
                                               typeSyntax: node.Syntax, locations, nullabilityDiagnosticsOpt: diagnostics);
 
                     Diagnostics.AddRange(diagnostics.DiagnosticBag);

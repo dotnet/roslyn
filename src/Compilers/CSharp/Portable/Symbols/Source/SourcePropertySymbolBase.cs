@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier();
                 Debug.Assert(explicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(compilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics, reportUnsafeConstructorConstraintErrors: true);
+                _explicitInterfaceType.CheckAllConstraints(compilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
 
                 // Note: we delayed nullable-related checks that could pull on NonNullTypes
                 if (explicitlyImplementedProperty is object)
@@ -1855,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     {
                                         // We can't filter out deeper than member level
                                         parameter.ForceComplete(locationOpt, filter: null, cancellationToken);
-                                        parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.GetFirstLocation(), diagnostics, reportUnsafeConstructorConstraintErrors: true);
+                                        parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.GetFirstLocation(), diagnostics);
                                     }
 
                                     this.AddDeclarationDiagnostics(diagnostics);
@@ -1890,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 var diagnostics = BindingDiagnosticBag.GetInstance();
                                 var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
-                                this.Type.CheckAllConstraints(DeclaringCompilation, conversions, Location, diagnostics, reportUnsafeConstructorConstraintErrors: true);
+                                this.Type.CheckAllConstraints(DeclaringCompilation, conversions, Location, diagnostics);
 
                                 ValidatePropertyType(diagnostics);
 

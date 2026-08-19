@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (shouldCheckConstraints && diagnostics != null)
             {
                 Debug.Assert(syntax is object);
-                constructedType.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, compilation.Conversions, includeNullability, syntax.Location, diagnostics, reportUnsafeConstructorConstraintErrors: false),
+                constructedType.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, compilation.Conversions, includeNullability, syntax.Location, diagnostics),
                                                  syntax, elementLocations, nullabilityDiagnosticsOpt: includeNullability ? diagnostics : null);
             }
 

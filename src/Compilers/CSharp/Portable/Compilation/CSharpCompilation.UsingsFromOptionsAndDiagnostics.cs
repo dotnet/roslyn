@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var typeSymbol = (TypeSymbol)target;
                         var location = NoLocation.Singleton;
-                        typeSymbol.CheckAllConstraints(compilation, conversions, location, diagnostics, reportUnsafeConstructorConstraintErrors: false);
+                        typeSymbol.CheckAllConstraints(compilation, conversions, location, diagnostics);
                     }
 
                     semanticDiagnostics.AddRange(diagnostics.DiagnosticBag);
