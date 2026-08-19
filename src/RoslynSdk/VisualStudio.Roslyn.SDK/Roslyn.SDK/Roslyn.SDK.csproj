@@ -5,7 +5,7 @@
     <RootNamespace>Roslyn.SDK</RootNamespace>
     <AssemblyName>Roslyn.SDK</AssemblyName>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <EnableDefaultItems>false</EnableDefaultItems>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <DeployProjectOutput>false</DeployProjectOutput>
