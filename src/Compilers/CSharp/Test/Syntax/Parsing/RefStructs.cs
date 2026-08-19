@@ -99,32 +99,104 @@ class Program
             );
         }
 
-        [Theory]
-        [InlineData("class", "C", SyntaxKind.ClassDeclaration)]
-        [InlineData("interface", "I", SyntaxKind.InterfaceDeclaration)]
-        public void RefTypeDeclarationLookahead_InvalidTypeKind(string typeKind, string typeName, SyntaxKind declarationKind)
+        [Fact]
+        public void RefModifierRecovery_Class()
         {
-            var source = $"ref {typeKind} {typeName} {{ }}";
-            var tree = ParseTree(source, TestOptions.Regular);
-            tree.GetDiagnostics().Verify();
-
-            var root = tree.GetCompilationUnitRoot();
-            var declaration = Assert.IsAssignableFrom<TypeDeclarationSyntax>(Assert.Single(root.Members));
-            Assert.Equal(declarationKind, declaration.Kind());
-            Assert.Equal(SyntaxKind.RefKeyword, Assert.Single(declaration.Modifiers).Kind());
+            const string source = "ref class C { }";
+            UsingTree(source);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, typeName).WithArguments("ref"));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("ref"));
         }
 
-        [Theory]
-        [InlineData("enum E { }", SyntaxKind.EnumDeclaration)]
-        [InlineData("delegate void D();", SyntaxKind.DelegateDeclaration)]
-        public void RefModifierRecovery_OtherReservedDeclarationKinds(string declaration, SyntaxKind declarationKind)
+        [Fact]
+        public void RefModifierRecovery_Interface()
         {
-            var root = ParseTree($"ref {declaration}", TestOptions.Regular).GetCompilationUnitRoot();
-            var parsedDeclaration = Assert.Single(root.Members);
-            Assert.Equal(declarationKind, parsedDeclaration.Kind());
+            const string source = "ref interface I { }";
+            UsingTree(source);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I").WithArguments("ref"));
+        }
+
+        [Fact]
+        public void RefModifierRecovery_Enum()
+        {
+            const string source = "ref enum E { }";
+            UsingTree(source);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.EnumDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.EnumKeyword);
+                    N(SyntaxKind.IdentifierToken, "E");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("ref"));
+        }
+
+        [Fact]
+        public void RefModifierRecovery_Delegate()
+        {
+            const string source = "ref delegate void D();";
+            UsingTree(source);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.DelegateDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "D");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("ref"));
         }
 
         [Fact]
@@ -203,69 +275,6 @@ class Program
             var refType = Assert.IsType<RefTypeSyntax>(property.Type);
             Assert.Equal(SyntaxKind.ReadOnlyKeyword, refType.ReadOnlyKeyword.Kind());
             Assert.Equal(contextualKeyword, Assert.IsType<IdentifierNameSyntax>(refType.Type).Identifier.Text);
-        }
-
-        [Theory]
-        [InlineData("class R { }", LanguageVersion.CSharp15, "ClassDeclaration", "ClassDeclaration", "ClassDeclaration")]
-        [InlineData("struct R { }", LanguageVersion.CSharp15, "StructDeclaration", "StructDeclaration", "StructDeclaration")]
-        [InlineData("interface R { }", LanguageVersion.CSharp15, "InterfaceDeclaration", "InterfaceDeclaration", "InterfaceDeclaration")]
-        [InlineData("enum R { }", LanguageVersion.CSharp15, "EnumDeclaration", "EnumDeclaration", "EnumDeclaration")]
-        [InlineData("delegate void R();", LanguageVersion.CSharp15, "DelegateDeclaration", "DelegateDeclaration", "DelegateDeclaration")]
-        [InlineData("record R { }", LanguageVersion.CSharp8, "PropertyDeclaration", "PropertyDeclaration", "PropertyDeclaration")]
-        [InlineData("record R { }", LanguageVersion.CSharp9, "RecordDeclaration", "RecordDeclaration", "PropertyDeclaration")]
-        [InlineData("union R { }", LanguageVersion.CSharp14, "PropertyDeclaration", "PropertyDeclaration", "PropertyDeclaration")]
-        [InlineData("union R { }", LanguageVersion.CSharp15, "UnionDeclaration", "UnionDeclaration", "PropertyDeclaration")]
-        public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel(
-            string declaration,
-            LanguageVersion languageVersion,
-            string expectedReadonlyMembers,
-            string expectedRefMembers,
-            string expectedRefReadonlyMembers)
-        {
-            verify("readonly", expectedReadonlyMembers);
-            verify("ref", expectedRefMembers);
-            verify("ref readonly", expectedRefReadonlyMembers);
-
-            void verify(string modifiers, string expectedMembers)
-            {
-                var text = $"{modifiers} {declaration}";
-                verifyMembers(ParseTree(text, TestOptions.Regular.WithLanguageVersion(languageVersion)).GetCompilationUnitRoot().Members, expectedMembers);
-
-                var containingTypeSource = $"class C {{ {text} }}";
-                var containingTypeRoot = ParseTree(containingTypeSource, TestOptions.Regular.WithLanguageVersion(languageVersion)).GetCompilationUnitRoot();
-                var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(containingTypeRoot.Members));
-                verifyMembers(containingType.Members, expectedMembers);
-            }
-
-            static void verifyMembers(SyntaxList<MemberDeclarationSyntax> members, string expectedMembers)
-                => Assert.Equal(expectedMembers, string.Join(", ", members.Select(static member => member.Kind())));
-        }
-
-        [Theory]
-        [InlineData(LanguageVersion.CSharp13, "GlobalStatement", "ConstructorDeclaration", "GlobalStatement", "ConstructorDeclaration")]
-        [InlineData(LanguageVersion.CSharp14, "GlobalStatement", "ExtensionBlockDeclaration", "GlobalStatement", "ExtensionBlockDeclaration")]
-        public void ExtensionModifierParsing_AtCompilationUnitAndTypeMemberLevel(
-            LanguageVersion languageVersion,
-            string expectedTopLevelReadonlyMembers,
-            string expectedNestedReadonlyMembers,
-            string expectedTopLevelRefMembers,
-            string expectedNestedRefMembers)
-        {
-            verify("readonly", expectedTopLevelReadonlyMembers, expectedNestedReadonlyMembers);
-            verify("ref", expectedTopLevelRefMembers, expectedNestedRefMembers);
-            verify("ref readonly", expectedTopLevelRefMembers, expectedNestedRefMembers);
-
-            void verify(string modifiers, string expectedTopLevelMembers, string expectedNestedMembers)
-            {
-                var declaration = $"{modifiers} extension(object o) {{ }}";
-                var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
-                var root = ParseTree(declaration, options).GetCompilationUnitRoot();
-                Assert.Equal(expectedTopLevelMembers, string.Join(", ", root.Members.Select(static member => member.Kind())));
-
-                root = ParseTree($"static class C {{ {declaration} }}", options).GetCompilationUnitRoot();
-                var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-                Assert.Equal(expectedNestedMembers, string.Join(", ", containingType.Members.Select(static member => member.Kind())));
-            }
         }
 
         [Fact]

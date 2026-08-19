@@ -2393,40 +2393,87 @@ class C
         EOF();
     }
 
-    [Theory]
-    [InlineData(LanguageVersion.CSharp13)]
-    [InlineData(LanguageVersion.CSharp14)]
-    public void WithModifiers_Ref(LanguageVersion languageVersion)
+    [Fact]
+    public void WithModifiers_Ref_CSharp13()
     {
-        var tree = ParseTree(
+        UsingTree(
             "class C { ref extension(Type) { } }",
-            TestOptions.Regular.WithLanguageVersion(languageVersion));
-
-        tree.GetDiagnostics().Verify(
-            languageVersion == LanguageVersion.CSharp13
-                ?
-                [
-                    // (1,29): error CS1001: Identifier expected
-                    // class C { ref extension(Type) { } }
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 29)
-                ]
-                : []);
-
-        var root = tree.GetCompilationUnitRoot();
-        var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-        var member = Assert.Single(containingType.Members);
-        Assert.Equal(
-            languageVersion == LanguageVersion.CSharp13
-                ? SyntaxKind.ConstructorDeclaration
-                : SyntaxKind.ExtensionBlockDeclaration,
-            member.Kind());
-        var modifiers = member switch
+            TestOptions.Regular13,
+            // (1,29): error CS1001: Identifier expected
+            // class C { ref extension(Type) { } }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 29));
+        N(SyntaxKind.CompilationUnit);
         {
-            ConstructorDeclarationSyntax constructor => constructor.Modifiers,
-            ExtensionBlockDeclarationSyntax extension => extension.Modifiers,
-            _ => throw ExceptionUtilities.UnexpectedValue(member.Kind()),
-        };
-        Assert.Equal(SyntaxKind.RefKeyword, Assert.Single(modifiers).Kind());
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierToken, "extension");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void WithModifiers_Ref_CSharp14()
+    {
+        UsingTree("class C { ref extension(Type) { } }", TestOptions.Regular14);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionBlockDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
     }
 
     [Theory]
