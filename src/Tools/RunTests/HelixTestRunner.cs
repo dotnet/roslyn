@@ -34,6 +34,10 @@ public sealed class HelixWorkItem(
 
 internal sealed class HelixTestRunner
 {
+    private const string IOperationEnvironmentVariable = "ROSLYN_TEST_IOPERATION";
+    private const string RuntimeAsyncEnvironmentVariable = "DOTNET_RuntimeAsync";
+    private const string UsedAssembliesEnvironmentVariable = "ROSLYN_TEST_USEDASSEMBLIES";
+
     /// <summary>
     /// The amount of time we will allocate for each helix work item. When changing this value, consider that test execution time is only part of the 
     /// total time in a work item:
@@ -121,6 +125,7 @@ internal sealed class HelixTestRunner
             : TestOS.Linux;
 
         var platform = !string.IsNullOrEmpty(options.Architecture) ? options.Architecture : "x64";
+        var testRunName = GetTestRunName(options);
         var dotnetSdkVersion = GetDotNetSdkVersion(options.ArtifactsDirectory);
 
         // This is the directory where all of the work item payloads are stored.
@@ -128,7 +133,7 @@ internal sealed class HelixTestRunner
         var logsDir = Path.Combine(options.ArtifactsDirectory, "log", options.Configuration);
 
         // Retrieve test runtimes from azure devops historical data.
-        var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
+        var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, testRunName, cancellationToken);
         var helixWorkItems = AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), platform, testHistory);
         var timeout = testHistory is null ? WorkItemExecutionTimeout * 2 : WorkItemExecutionTimeout;
         var helixProjectFileContent = GetHelixProjectFileContent(
@@ -136,6 +141,7 @@ internal sealed class HelixTestRunner
             testOS,
             dotnetSdkVersion,
             platform,
+            testRunName,
             options.HelixQueueName,
             options.ArtifactsDirectory,
             payloadsDir,
@@ -214,6 +220,7 @@ internal sealed class HelixTestRunner
         TestOS testOS,
         string dotnetSdkVersion,
         string platform,
+        string testRunName,
         string helixQueueName,
         string artifactsDir,
         string payloadsDir,
@@ -237,7 +244,6 @@ internal sealed class HelixTestRunner
         // it's possible we should be using the BUILD_SOURCEVERSIONAUTHOR instead here a la https://github.com/dotnet/arcade/blob/main/src/Microsoft.DotNet.Helix/Sdk/tools/xharness-runner/Readme.md#how-to-use
         // however that variable isn't documented at https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml
         var queuedBy = GetEnv("BUILD_QUEUEDBY", "roslyn").Replace(" ", "");
-        var jobName = GetEnv("SYSTEM_JOBDISPLAYNAME", "");
         var buildNumber = GetEnv("BUILD_BUILDNUMBER", "0");
         var duplicateDir = Path.Combine(Path.GetDirectoryName(artifactsDir)!, ".duplicate");
 
@@ -245,7 +251,7 @@ internal sealed class HelixTestRunner
         builder.AppendLine($"""
             <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
               <PropertyGroup>
-                <TestRunNamePrefix>{jobName}_</TestRunNamePrefix>
+                <TestRunNamePrefix>{testRunName}_</TestRunNamePrefix>
                 <HelixType>test</HelixType>
                 <HelixBuild>{buildNumber}</HelixBuild>
                 <HelixTargetQueues>{helixQueueName}</HelixTargetQueues>
@@ -354,9 +360,9 @@ internal sealed class HelixTestRunner
 
             string[] knownEnvironmentVariables =
             [
-                "ROSLYN_TEST_IOPERATION",
-                "ROSLYN_TEST_USEDASSEMBLIES",
-                "DOTNET_RuntimeAsync"
+                IOperationEnvironmentVariable,
+                UsedAssembliesEnvironmentVariable,
+                RuntimeAsyncEnvironmentVariable
             ];
 
             foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
@@ -466,6 +472,38 @@ internal sealed class HelixTestRunner
             }
 
             return (isUnix ? "post-command.sh" : "post-command.cmd", command);
+        }
+    }
+
+    private static string GetTestRunName(Options options)
+    {
+        var runtime = options.TestRuntime switch
+        {
+            TestRuntime.Core => "CoreClr",
+            TestRuntime.Framework => "Desktop",
+            TestRuntime.Both => "Both",
+            _ => throw new ArgumentOutOfRangeException(nameof(options.TestRuntime)),
+        };
+
+        var nameParts = new List<string>
+        {
+            options.Configuration,
+            runtime,
+            options.Architecture,
+        };
+
+        AddEnvironmentVariableToken(IOperationEnvironmentVariable, "IOperation");
+        AddEnvironmentVariableToken(RuntimeAsyncEnvironmentVariable, "RuntimeAsync");
+        AddEnvironmentVariableToken(UsedAssembliesEnvironmentVariable, "UsedAssemblies");
+
+        return string.Join("_", nameParts);
+
+        void AddEnvironmentVariableToken(string environmentVariable, string token)
+        {
+            if (Environment.GetEnvironmentVariable(environmentVariable) is { Length: > 0 })
+            {
+                nameParts.Add(token);
+            }
         }
     }
 

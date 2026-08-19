@@ -74,7 +74,9 @@ class Program
         [Fact]
         public void RepeatedPartialTypeModifiers()
         {
-            UsingTree("partial partial partial class C { }");
+            const string source = "partial partial partial class C { }";
+
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -90,6 +92,14 @@ class Program
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // partial partial partial class C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
+                // (1,9): error CS1004: Duplicate 'partial' modifier
+                // partial partial partial class C { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 9));
         }
 
         [WorkItem(540005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540005")]
