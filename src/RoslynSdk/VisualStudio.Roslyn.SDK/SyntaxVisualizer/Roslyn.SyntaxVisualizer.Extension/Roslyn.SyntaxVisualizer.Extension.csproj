@@ -18,6 +18,13 @@
     <SetupProductArch>Neutral</SetupProductArch>
   </PropertyGroup>
 
+  <ItemGroup Label="PkgDef">
+    <PkgDefPackageRegistration Include="{1e4ce699-d626-42c3-9803-cac3cd73ed77}"
+                               Name="SyntaxVisualizerExtensionPackage"
+                               Class="Roslyn.SyntaxVisualizer.Extension.SyntaxVisualizerExtensionPackage" />
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+  </ItemGroup>
+
   <!-- References -->
   <ItemGroup>
     <Reference Include="System.Design" />
