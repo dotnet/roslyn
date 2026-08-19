@@ -23,6 +23,11 @@ param(
     [Parameter(Mandatory)][string]$BaselineDir,
     [string[]]$OutputRoots = @('artifacts'),
     [string]$SnapTree = (Join-Path $PSScriptRoot 'Snap-Tree.ps1'),
+    # Optional stat-cache reference: the baseline this run was SEEDED from (its BaselineDir).
+    # Its outputs.clixml lets the output snapshot skip re-hashing any file the build did not
+    # rewrite (unchanged mtime+size), turning a warm capture from "hash 16k files" into "hash
+    # the handful that were rebuilt". Safe: a mismatch just re-hashes.
+    [string]$PriorBaselineDir = '',
     [switch]$Archive,
     [int]$Throttle = 16
 )
@@ -60,9 +65,16 @@ $inputs = $tracked | ForEach-Object -Parallel {
 $inputs | Export-Clixml -Path (Join-Path $BaselineDir 'inputs.clixml') -Depth 2
 Write-Host "[capture] wrote $($inputs.Count) input entries"
 
-# Output set snapshot (the oracle cold side). Reuse the shared Snap-Tree primitive.
+# Output set snapshot (the oracle cold side). Reuse the shared Snap-Tree primitive, handing it
+# the seeded baseline's outputs.clixml as a stat-cache so unchanged outputs are not re-hashed.
 $roots = $OutputRoots | ForEach-Object { Join-Path $RepoRoot $_ } | Where-Object { Test-Path $_ }
-& $SnapTree -Roots $roots -Out (Join-Path $BaselineDir 'outputs.clixml') -Throttle $Throttle
+$priorOutputs = ''
+if ($PriorBaselineDir) {
+    $candidate = Join-Path $PriorBaselineDir 'outputs.clixml'
+    if (Test-Path $candidate) { $priorOutputs = $candidate }
+    else { Write-Host "[capture] prior outputs.clixml not found at $candidate; hashing all outputs" }
+}
+& $SnapTree -Roots $roots -Out (Join-Path $BaselineDir 'outputs.clixml') -PriorManifest $priorOutputs -Throttle $Throttle
 
 # Overlay archive (the portable output tree). Without this the baseline can only be replayed
 # in place (v1 single-machine); with it, a fresh clone at a DIFFERENT path can be seeded via
@@ -77,6 +89,11 @@ if ($Archive) {
         New-Item -ItemType Directory -Force $dst | Out-Null
         # /E all subdirs incl empty, /COPY:DAT preserve data+attrs+timestamps, /MT multithread, quiet.
         robocopy $src $dst /E /COPY:DAT /MT:$Throttle /NFL /NDL /NJH /NJS /NP | Out-Null
+        # robocopy exit codes 0-7 are success (bit flags: 1=copied, 2=extra, etc.); 8+ is failure.
+        # Guard the real failures, then clear $LASTEXITCODE so a benign non-zero (e.g. 1 = files
+        # copied) does not make the ADO PowerShell task report the whole step as failed.
+        if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE) archiving $r" }
+        $global:LASTEXITCODE = 0
     }
     Write-Host "[capture] archived overlay of $($OutputRoots -join ', ') to $overlay"
 }
@@ -90,3 +107,4 @@ $meta = [pscustomobject]@{
 }
 $meta | ConvertTo-Json | Set-Content -Path (Join-Path $BaselineDir 'meta.json') -Encoding ascii
 Write-Host "[capture] baseline written to $BaselineDir"
+exit 0

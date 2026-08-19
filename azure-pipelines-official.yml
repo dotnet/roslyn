@@ -99,6 +99,7 @@ stages:
           Write-Host "==> seeding from $sel"
           & "$(Scripts)/Restore-Baseline.ps1" -RepoRoot . -BaselineDir $sel
           & "$(Scripts)/Replay-Baseline.ps1"  -RepoRoot . -BaselineDir $sel -Mode BackDate
+          Write-Host "##vso[task.setvariable variable=SeededBaselineDir]$sel"
           Write-Host "##vso[task.setvariable variable=Seeded]true"
 
     - task: PowerShell@2
@@ -129,10 +130,21 @@ stages:
           $store = "$(CacheStore)"
           $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
           $sha   = (git rev-parse HEAD).Trim()
+          # Stat-cache: preserve the seeded baseline's outputs.clixml before wiping the store, so
+          # Capture can reuse the Sha of any output the build did not rewrite (unchanged mtime+size)
+          # instead of re-hashing it. Empty/cold -> the Test-Path just fails and we hash everything.
+          $priorArg = @()
+          $seeded = "$(SeededBaselineDir)"
+          if ($seeded -and (Test-Path (Join-Path $seeded 'outputs.clixml'))) {
+            $stash = Join-Path "$(Agent.TempDirectory)" 'prior-baseline'
+            New-Item -ItemType Directory -Force $stash | Out-Null
+            Copy-Item (Join-Path $seeded 'outputs.clixml') (Join-Path $stash 'outputs.clixml') -Force
+            $priorArg = @('-PriorBaselineDir', $stash)
+          }
           # Keep only the current baseline in the published store (one baseline, not growing).
           if (Test-Path $store) { Remove-Item $store -Recurse -Force }
           $baselineDir = Join-Path (Join-Path $store $lane) $sha
-          & "$(Scripts)/Capture-Baseline.ps1" -RepoRoot . -BaselineDir $baselineDir -Archive
+          & "$(Scripts)/Capture-Baseline.ps1" -RepoRoot . -BaselineDir $baselineDir -Archive @priorArg
           Write-Host "==> captured baseline -> $baselineDir"
 
     - task: PublishPipelineArtifact@1
