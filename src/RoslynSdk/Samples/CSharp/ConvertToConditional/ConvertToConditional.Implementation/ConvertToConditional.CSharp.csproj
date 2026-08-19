@@ -10,7 +10,6 @@
     <PackageId>ConvertToConditional</PackageId>
     <PackageVersion>1.0.0.0</PackageVersion>
     <Authors>Microsoft</Authors>
-    <RepositoryUrl>https://github.com/dotnet/roslyn-sdk</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>ConvertToConditional</Description>
     <PackageReleaseNotes>Convert to conditional.</PackageReleaseNotes>

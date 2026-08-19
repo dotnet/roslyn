@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutDirName>Templates\$(MSBuildProjectName)</OutDirName>
   </PropertyGroup>
-  <Import Project="..\..\..\Directory.Build.props"/>
+  <Import Project="$(MSBuildThisFileDirectory)../../../../Directory.Build.props" />
   <PropertyGroup>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>

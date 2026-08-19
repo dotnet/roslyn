@@ -11,7 +11,6 @@
     <PackageId>Sample.Analyzers</PackageId>
     <PackageVersion>0.0.1</PackageVersion>
     <Authors>Microsoft</Authors>
-    <RepositoryUrl>https://github.com/dotnet/roslyn-sdk</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Analyzers</Description>
     <PackageReleaseNotes>A set of sample analyzers written in C#.</PackageReleaseNotes>
