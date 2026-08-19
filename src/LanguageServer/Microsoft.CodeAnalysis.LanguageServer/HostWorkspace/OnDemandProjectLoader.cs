@@ -41,7 +41,7 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
     private readonly WorkspaceProjectDiscoveryService _discoveryService;
     private readonly Func<string, Task<LanguageServerProjectLoadHandle>> _beginLoadingProjectAsync;
     private readonly Func<ImmutableArray<ProjectId>, ImmutableArray<string>> _getProjectReferences;
-    private readonly Func<ImmutableArray<LanguageServerProjectLoadHandle>> _getPendingProjectLoadHandles;
+    private readonly Func<CancellationToken, Task> _waitForActiveProjectLoadsAsync;
     private readonly Func<string, bool> _isDocumentInHostWorkspace;
     private readonly Func<bool> _isEnabled;
     private readonly Func<bool> _isUsingDevKit;
@@ -62,7 +62,7 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
             discoveryService,
             projectSystem.BeginLoadingProjectAsync,
             projectSystem.GetProjectReferences,
-            projectSystem.GetPendingProjectLoadHandles,
+            projectSystem.WaitForActiveProjectLoadsAsync,
             isDocumentInHostWorkspace,
             () => globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand),
             () => globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures),
@@ -75,7 +75,7 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
         WorkspaceProjectDiscoveryService discoveryService,
         Func<string, Task<LanguageServerProjectLoadHandle>> beginLoadingProjectAsync,
         Func<ImmutableArray<ProjectId>, ImmutableArray<string>> getProjectReferences,
-        Func<ImmutableArray<LanguageServerProjectLoadHandle>> getPendingProjectLoadHandles,
+        Func<CancellationToken, Task> waitForActiveProjectLoadsAsync,
         Func<string, bool> isDocumentInHostWorkspace,
         Func<bool> isEnabled,
         Func<bool> isUsingDevKit,
@@ -85,7 +85,7 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
         _discoveryService = discoveryService;
         _beginLoadingProjectAsync = beginLoadingProjectAsync;
         _getProjectReferences = getProjectReferences;
-        _getPendingProjectLoadHandles = getPendingProjectLoadHandles;
+        _waitForActiveProjectLoadsAsync = waitForActiveProjectLoadsAsync;
         _isDocumentInHostWorkspace = isDocumentInHostWorkspace;
         _isEnabled = isEnabled;
         _isUsingDevKit = isUsingDevKit;
@@ -144,14 +144,8 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
 
     public OnDemandProjectLoadOperation GetWorkspaceLoadOperation()
     {
-        var completion = WaitForPendingProjectLoadsAsync(_shutdownSource.Token);
+        var completion = _waitForActiveProjectLoadsAsync(_shutdownSource.Token);
         return new OnDemandProjectLoadOperation(completion);
-    }
-
-    private async Task WaitForPendingProjectLoadsAsync(CancellationToken cancellationToken)
-    {
-        var handles = _getPendingProjectLoadHandles();
-        await Task.WhenAll(handles.SelectAsArray(handle => handle.Completion.WaitAsync(cancellationToken))).ConfigureAwait(false);
     }
 
     private void RemoveOperation(ProjectKey key, OnDemandProjectLoadOperation operation)

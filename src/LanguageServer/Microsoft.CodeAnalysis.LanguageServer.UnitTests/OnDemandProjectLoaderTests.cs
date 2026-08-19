@@ -263,7 +263,9 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             directory => [],
             projectPath => throw new InvalidOperationException(),
             getProjectReferences: _ => [],
-            getPendingProjectLoadHandles: () => [firstHandle, secondHandle]);
+            waitForActiveProjectLoadsAsync: cancellationToken => Task.WhenAll([
+                firstHandle.Completion.WaitAsync(cancellationToken),
+                secondHandle.Completion.WaitAsync(cancellationToken)]));
 
         var completion = loader.GetWorkspaceLoadOperation().WaitAsync(CancellationToken.None);
         firstHandle.Complete(new LanguageServerProjectLoadResult(LanguageServerProjectLoadStatus.Loaded, []));
@@ -291,7 +293,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             discoveryService,
             projectPath => BeginLoadAsync(projectPath, loadProjectAsync),
             _ => [],
-            static () => [],
+            static _ => Task.CompletedTask,
             isDocumentInHostWorkspace ?? (static _ => false),
             () => isEnabled,
             () => isUsingDevKit,
@@ -304,7 +306,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
         Func<string, ImmutableArray<string>> enumerateFiles,
         Func<string, LanguageServerProjectLoadResult> loadProject,
         Func<ImmutableArray<ProjectId>, ImmutableArray<string>> getProjectReferences,
-        Func<ImmutableArray<LanguageServerProjectLoadHandle>>? getPendingProjectLoadHandles = null)
+        Func<CancellationToken, Task>? waitForActiveProjectLoadsAsync = null)
     {
         var projectLoadHandles = new ConcurrentDictionary<string, LanguageServerProjectLoadHandle>(StringComparer.OrdinalIgnoreCase);
         var workspaceFolderTracker = CreateWorkspaceFolderTracker(workspaceFolder);
@@ -317,7 +319,7 @@ public sealed class OnDemandProjectLoaderTests : IDisposable
             discoveryService,
             projectPath => Task.FromResult(projectLoadHandles.GetOrAdd(projectPath, path => CreateCompletedHandle(loadProject(path)))),
             getProjectReferences,
-            getPendingProjectLoadHandles ?? (static () => []),
+            waitForActiveProjectLoadsAsync ?? (static _ => Task.CompletedTask),
             static _ => false,
             () => true,
             () => false,

@@ -47,9 +47,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
     private readonly ProjectSystemProjectFactory _hostProjectFactory;
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
-    private readonly object _pendingLoadsGate = new();
-    private ImmutableArray<LanguageServerProjectLoadHandle> _pendingLoadHandles = [];
-
     public LanguageServerProjectSystem(
         ILspServices lspServices,
         IGlobalOptionService globalOptionService,
@@ -145,7 +142,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         foreach (var (path, guid) in projects)
         {
             var handle = await BeginLoadingProjectAsync(path, guid);
-            TrackPendingLoad(handle);
             handles.Add(handle);
         }
 
@@ -174,7 +170,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         foreach (var path in projectFilePaths)
         {
             var handle = await BeginLoadingProjectAsync(path, projectGuid: null);
-            TrackPendingLoad(handle);
             handles.Add(handle);
         }
 
@@ -183,23 +178,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
     internal Task<LanguageServerProjectLoadHandle> BeginLoadingProjectAsync(string projectFilePath)
         => BeginLoadingProjectAsync(projectFilePath, projectGuid: null);
-
-    internal ImmutableArray<LanguageServerProjectLoadHandle> GetPendingProjectLoadHandles()
-    {
-        lock (_pendingLoadsGate)
-            return _pendingLoadHandles;
-    }
-
-    private void TrackPendingLoad(LanguageServerProjectLoadHandle handle)
-    {
-        lock (_pendingLoadsGate)
-        {
-            // Drop already-completed handles so this array doesn't grow unbounded over the server's lifetime.
-            _pendingLoadHandles = _pendingLoadHandles
-                .RemoveAll(existing => existing.Completion.IsCompleted)
-                .Add(handle);
-        }
-    }
 
     internal ImmutableArray<string> GetProjectReferences(ImmutableArray<ProjectId> projectIds)
     {

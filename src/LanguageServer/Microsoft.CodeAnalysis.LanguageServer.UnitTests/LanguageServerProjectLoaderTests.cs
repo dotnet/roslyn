@@ -307,6 +307,32 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     }
 
     [Fact]
+    public async Task WaitForActiveProjectLoadsAsyncUsesCanonicalSnapshot()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var firstEvaluation = loader.QueueEvaluation();
+        var secondEvaluation = loader.QueueEvaluation();
+        var firstProjectPath = Path.Combine(TempRoot.Root, "First.csproj");
+        var secondProjectPath = Path.Combine(TempRoot.Root, "Second.csproj");
+
+        var firstHandle = await loader.BeginLoadAsync(firstProjectPath);
+        await firstEvaluation.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var activeLoads = loader.WaitForActiveLoadsAsync();
+        var secondHandle = await loader.BeginLoadAsync(secondProjectPath);
+
+        Assert.False(activeLoads.IsCompleted);
+        firstEvaluation.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, firstProjectPath);
+        await activeLoads.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.False(secondHandle.Completion.IsCompleted);
+
+        await secondEvaluation.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        secondEvaluation.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, secondProjectPath);
+        await secondHandle.Completion.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.Equal(LanguageServerProjectLoadStatus.Loaded, (await firstHandle.Completion).Status);
+    }
+
+    [Fact]
     public async Task ShutdownCancelsOutstandingHandle()
     {
         var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
@@ -424,6 +450,9 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         public Task WaitForLoadsAsync()
             => WaitForProjectsToFinishLoadingAsync();
+
+        public Task WaitForActiveLoadsAsync(CancellationToken cancellationToken = default)
+            => WaitForActiveProjectLoadsAsync(cancellationToken);
 
         public Task WaitForExplicitLoadsAsync(ImmutableArray<LanguageServerProjectLoadHandle> handles, WorkDoneProgressTracker? progressTracker = null)
             => WaitForProjectLoadsAsync(handles, progressTracker);

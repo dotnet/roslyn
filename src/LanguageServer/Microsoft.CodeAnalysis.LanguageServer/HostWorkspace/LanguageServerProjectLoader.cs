@@ -534,6 +534,24 @@ internal abstract partial class LanguageServerProjectLoader : IDisposable
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
+    internal async Task WaitForActiveProjectLoadsAsync(CancellationToken cancellationToken)
+    {
+        ImmutableArray<LanguageServerProjectLoadHandle> handles;
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            var handlesBuilder = ArrayBuilder<LanguageServerProjectLoadHandle>.GetInstance();
+            foreach (var loadState in _loadedProjects.Values)
+            {
+                if (TryGetLoadOperation(loadState) is { } loadOperation)
+                    handlesBuilder.Add(loadOperation.Handle);
+            }
+
+            handles = handlesBuilder.ToImmutableAndFree();
+        }
+
+        await Task.WhenAll(handles.SelectAsArray(handle => handle.Completion.WaitAsync(cancellationToken))).ConfigureAwait(false);
+    }
+
     protected static Task WaitForProjectLoadsAsync(
         ImmutableArray<LanguageServerProjectLoadHandle> handles, WorkDoneProgressTracker? progressTracker, CancellationToken cancellationToken = default)
         => Task.WhenAll(handles.SelectAsArray(handle => ObserveProjectLoadAsync(handle, progressTracker, cancellationToken)));
