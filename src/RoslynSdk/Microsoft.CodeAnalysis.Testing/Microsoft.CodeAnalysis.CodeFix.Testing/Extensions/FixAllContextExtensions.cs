@@ -39,7 +39,9 @@ internal static class FixAllContextExtensions
             else
             {
                 s_createFixAllContextDocument = (document, diagnosticSpan, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken) =>
+#pragma warning disable RS0030 // This compatibility fallback targets Roslyn versions without the newer constructor.
                     new FixAllContext(document!, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken);
+#pragma warning restore RS0030
             }
         }
 
@@ -54,7 +56,9 @@ internal static class FixAllContextExtensions
         else
         {
             s_createFixAllContextProject = (project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, minimumSeverity, fixAllDiagnosticProvider, cancellationToken) =>
+#pragma warning disable RS0030 // This compatibility fallback targets Roslyn versions without the newer constructor.
                 new FixAllContext(project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken);
+#pragma warning restore RS0030
         }
     }
 

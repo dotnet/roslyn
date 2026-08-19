@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             try
             {
-                await RunImplAsync(cancellationToken);
+                await RunImplAsync(cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            return await VerifySourceGeneratorAsync(sourceGenerators, testState, verifier.PushContext("Source generator application"), cancellationToken);
+            return await VerifySourceGeneratorAsync(sourceGenerators, testState, verifier.PushContext("Source generator application"), cancellationToken).ConfigureAwait(false);
         }
 
         private protected async Task<ImmutableArray<Diagnostic>> VerifySourceGeneratorAsync(
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Testing
             IVerifier verifier,
             CancellationToken cancellationToken)
         {
-            var project = await CreateProjectAsync(new EvaluatedProjectState(testState, ReferenceAssemblies), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), cancellationToken);
+            var project = await CreateProjectAsync(new EvaluatedProjectState(testState, ReferenceAssemblies), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), cancellationToken).ConfigureAwait(false);
 
             ImmutableArray<Diagnostic> diagnostics;
             (project, diagnostics) = await ApplySourceGeneratorsAsync(sourceGenerators, project, verifier, cancellationToken).ConfigureAwait(false);
@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <see cref="Diagnostic.Location"/>.</returns>
         private async Task<ImmutableArray<(Project project, Diagnostic diagnostic)>> GetSortedDiagnosticsAsync(EvaluatedProjectState primaryProject, ImmutableArray<EvaluatedProjectState> additionalProjects, ImmutableArray<DiagnosticAnalyzer> analyzers, IVerifier verifier, CancellationToken cancellationToken)
         {
-            var solution = await GetSolutionAsync(primaryProject, additionalProjects, verifier, cancellationToken);
+            var solution = await GetSolutionAsync(primaryProject, additionalProjects, verifier, cancellationToken).ConfigureAwait(false);
             var primaryProjectInSolution = solution.Projects.Single(project => project.Name == DefaultTestProjectName);
             var additionalDiagnostics = primaryProject.AdditionalDiagnostics.Select(diagnostic => (primaryProjectInSolution, diagnostic)).ToImmutableArray();
             foreach (var additionalProject in additionalProjects)
@@ -1132,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 additionalDiagnostics = additionalDiagnostics.AddRange(additionalProject.AdditionalDiagnostics.Select(diagnostic => (additionalProjectInSolution, diagnostic)));
             }
 
-            return await GetSortedDiagnosticsAsync(solution, analyzers, additionalDiagnostics, CompilerDiagnostics, verifier, cancellationToken);
+            return await GetSortedDiagnosticsAsync(solution, analyzers, additionalDiagnostics, CompilerDiagnostics, verifier, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1406,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             verifier.LanguageIsSupported(Language);
 
-            var project = await CreateProjectAsync(primaryProject, additionalProjects, cancellationToken);
+            var project = await CreateProjectAsync(primaryProject, additionalProjects, cancellationToken).ConfigureAwait(false);
             var documents = project.Documents.ToArray();
 
             verifier.Equal(primaryProject.Sources.Length, documents.Length, "Amount of sources did not match amount of Documents created");
@@ -1428,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// strings.</returns>
         protected async Task<Project> CreateProjectAsync(EvaluatedProjectState primaryProject, ImmutableArray<EvaluatedProjectState> additionalProjects, CancellationToken cancellationToken)
         {
-            var project = await CreateProjectImplAsync(primaryProject, additionalProjects, cancellationToken);
+            var project = await CreateProjectImplAsync(primaryProject, additionalProjects, cancellationToken).ConfigureAwait(false);
             return ApplyCompilationOptions(project);
         }
 
@@ -1449,7 +1449,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var projectId = ProjectId.CreateNewId(debugName: primaryProject.Name);
             projectIdMap.Add(primaryProject.Name, projectId);
-            var solution = await CreateSolutionAsync(projectId, primaryProject, cancellationToken);
+            var solution = await CreateSolutionAsync(projectId, primaryProject, cancellationToken).ConfigureAwait(false);
 
             foreach (var projectState in additionalProjects)
             {
@@ -1480,7 +1480,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     additionalProject.ParseOptions!
                         .WithDocumentationMode(projectState.DocumentationMode));
 
-                var metadataReferences = await referenceAssemblies.ResolveAsync(projectState.Language, cancellationToken);
+                var metadataReferences = await referenceAssemblies.ResolveAsync(projectState.Language, cancellationToken).ConfigureAwait(false);
                 solution = solution.AddMetadataReferences(additionalProjectId, metadataReferences)
                     .AddMetadataReferences(additionalProjectId, projectState.AdditionalReferences);
 
@@ -1643,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 .WithProjectCompilationOptions(projectId, compilationOptions)
                 .WithProjectParseOptions(projectId, parseOptions);
 
-            var metadataReferences = await referenceAssemblies.ResolveAsync(projectState.Language, cancellationToken);
+            var metadataReferences = await referenceAssemblies.ResolveAsync(projectState.Language, cancellationToken).ConfigureAwait(false);
             solution = solution.AddMetadataReferences(projectId, metadataReferences);
 
             return solution;
@@ -1739,7 +1739,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <summary>
         /// Filter <see cref="Diagnostic"/>s to only include items of interest to testing. By default, this includes all
         /// unsuppressed diagnostics, and all diagnostics suppressed by a
-        /// <see cref="T:Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor"/>.
+        /// <see cref="DiagnosticSuppressor"/>.
         /// </summary>
         /// <param name="diagnostics">A collection of <see cref="Diagnostic"/>s to be filtered.</param>
         /// <returns>A collection containing the input <paramref name="diagnostics"/>, filtered to only include

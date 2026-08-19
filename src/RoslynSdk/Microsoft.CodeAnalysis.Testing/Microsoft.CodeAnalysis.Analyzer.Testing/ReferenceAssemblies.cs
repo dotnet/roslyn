@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     || !LanguageSpecificAssemblies.TryGetValue(language, out var languageSpecificAssemblies)
                     || languageSpecificAssemblies.IsEmpty)
                 {
-                    return await ResolveAsync(null, cancellationToken);
+                    return await ResolveAsync(null, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
 
-            using (var releaser = await Semaphore.WaitAsync(cancellationToken))
+            using (var releaser = await Semaphore.WaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 lock (_references)
                 {
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
                 }
 
-                var computedReferences = await ResolveCoreAsync(language, cancellationToken);
+                var computedReferences = await ResolveCoreAsync(language, cancellationToken).ConfigureAwait(false);
                 lock (_references)
                 {
                     _references.Add(language, computedReferences);
@@ -292,12 +292,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 if (ReferenceAssemblyPackage is not null)
                 {
-                    await GetPackageDependenciesAsync(ReferenceAssemblyPackage.ToNuGetIdentity(), targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
+                    await GetPackageDependenciesAsync(ReferenceAssemblyPackage.ToNuGetIdentity(), targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken).ConfigureAwait(false);
                 }
 
                 foreach (var packageIdentity in Packages)
                 {
-                    await GetPackageDependenciesAsync(packageIdentity.ToNuGetIdentity(), targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
+                    await GetPackageDependenciesAsync(packageIdentity.ToNuGetIdentity(), targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken).ConfigureAwait(false);
                 }
 
                 var availablePackages = dependencies.ToImmutable();
@@ -388,13 +388,13 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     if (installedPath is null)
                     {
-                        var downloadResource = await availablePackages[packageToInstall].Source.GetResourceAsync<DownloadResource>(cancellationToken);
+                        var downloadResource = await availablePackages[packageToInstall].Source.GetResourceAsync<DownloadResource>(cancellationToken).ConfigureAwait(false);
                         var downloadResult = await downloadResource.GetDownloadResourceResultAsync(
                             packageToInstall,
                             new PackageDownloadContext(cacheContext),
                             temporaryPackagesFolder,
                             logger,
-                            cancellationToken);
+                            cancellationToken).ConfigureAwait(false);
 
                         if (!PackageIdentityComparer.Default.Equals(packageToInstall, ReferenceAssemblyPackage?.ToNuGetIdentity())
                             && !downloadResult.PackageReader.GetItems(PackagingConstants.Folders.Lib).Any()
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Testing
                                 downloadResult.PackageReader,
                                 localPathResolver,
                                 packageExtractionContext,
-                                cancellationToken);
+                                cancellationToken).ConfigureAwait(false);
                         }
                         else
                         {
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Testing
                                 downloadResult.PackageStream,
                                 localPathResolver,
                                 packageExtractionContext,
-                                cancellationToken);
+                                cancellationToken).ConfigureAwait(false);
                         }
 
                         installedPath = GetInstalledPath(localPathResolver, globalPathResolver, packageToInstall);
@@ -438,11 +438,11 @@ namespace Microsoft.CodeAnalysis.Testing
                         continue;
                     }
 
-                    var libItems = await packageReader.GetLibItemsAsync(cancellationToken);
+                    var libItems = await packageReader.GetLibItemsAsync(cancellationToken).ConfigureAwait(false);
                     var nearestLib = frameworkReducer.GetNearest(targetFramework, libItems.Select(x => x.TargetFramework));
-                    var frameworkItems = await packageReader.GetFrameworkItemsAsync(cancellationToken);
+                    var frameworkItems = await packageReader.GetFrameworkItemsAsync(cancellationToken).ConfigureAwait(false);
                     var nearestFramework = frameworkReducer.GetNearest(targetFramework, frameworkItems.Select(x => x.TargetFramework));
-                    var refItems = await packageReader.GetItemsAsync(PackagingConstants.Folders.Ref, cancellationToken);
+                    var refItems = await packageReader.GetItemsAsync(PackagingConstants.Folders.Ref, cancellationToken).ConfigureAwait(false);
                     var nearestRef = frameworkReducer.GetNearest(targetFramework, refItems.Select(x => x.TargetFramework));
                     if (nearestRef is not null)
                     {
@@ -656,13 +656,13 @@ namespace Microsoft.CodeAnalysis.Testing
 
             foreach (var sourceRepository in repositories)
             {
-                var dependencyInfoResource = await sourceRepository.GetResourceAsync<DependencyInfoResource>(cancellationToken);
+                var dependencyInfoResource = await sourceRepository.GetResourceAsync<DependencyInfoResource>(cancellationToken).ConfigureAwait(false);
                 var dependencyInfo = await dependencyInfoResource.ResolvePackage(
                     packageIdentity,
                     targetFramework,
                     cacheContext,
                     logger,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
                 if (dependencyInfo is null)
                 {
                     continue;
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 dependencies.Add(packageIdentity, dependencyInfo);
                 foreach (var dependency in dependencyInfo.Dependencies)
                 {
-                    await GetPackageDependenciesAsync(new NuGet.Packaging.Core.PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion), targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
+                    await GetPackageDependenciesAsync(new NuGet.Packaging.Core.PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion), targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken).ConfigureAwait(false);
                 }
 
                 break;

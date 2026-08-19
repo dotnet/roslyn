@@ -23,6 +23,7 @@ namespace Roslyn.ComponentDebugger
         private readonly UnconfiguredProject _unconfiguredProject;
 
         [ImportingConstructor]
+        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
         public TargetProjectEnumProvider(UnconfiguredProject unconfiguredProject)
         {
             _unconfiguredProject = unconfiguredProject;

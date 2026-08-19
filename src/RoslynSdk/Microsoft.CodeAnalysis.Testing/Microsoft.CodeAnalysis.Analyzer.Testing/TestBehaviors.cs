@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <remarks>
         /// <para>This flag is only used in cases where one or more analyzers does not explicitly configure generated
-        /// code analysis via the <see cref="M:Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.ConfigureGeneratedCodeAnalysis(Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags)"/>
+        /// code analysis via the <see cref="AnalysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags)"/>
         /// API.</para>
         ///
         /// <para>By default, the analyzer test framework verifies that analyzer which report diagnostics do not report

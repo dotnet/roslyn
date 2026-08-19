@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Testing
     /// <typeparam name="TAnalyzer">The <see cref="DiagnosticAnalyzer"/> to test.</typeparam>
     /// <typeparam name="TTest">The test implementation to use.</typeparam>
     /// <typeparam name="TVerifier">The type of verifier to use.</typeparam>
+    [SuppressMessage("Design", "CA1052:Static holder types should be Static or NotInheritable", Justification = "This type is an extensibility base class with shipped derived types.")]
     public class AnalyzerVerifier<TAnalyzer, TTest, TVerifier>
            where TAnalyzer : DiagnosticAnalyzer, new()
            where TTest : AnalyzerTest<TVerifier>, new()

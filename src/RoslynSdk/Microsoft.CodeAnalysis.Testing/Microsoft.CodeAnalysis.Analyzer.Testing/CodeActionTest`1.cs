@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>A <see cref="Project"/> with the changes from the <see cref="CodeAction"/>.</returns>
         protected async Task<(Project updatedProject, ExceptionDispatchInfo? validationError)> ApplyCodeActionAsync(Project project, CodeAction codeAction, IVerifier verifier, CancellationToken cancellationToken)
         {
-            var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+            var operations = await codeAction.GetOperationsAsync(project.Solution, new Progress<CodeAnalysisProgress>(), cancellationToken).ConfigureAwait(false);
             var solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
             var changedProject = solution.GetProject(project.Id)
                 ?? throw new InvalidOperationException($"The changed solution does not contain project '{project.Name}'.");

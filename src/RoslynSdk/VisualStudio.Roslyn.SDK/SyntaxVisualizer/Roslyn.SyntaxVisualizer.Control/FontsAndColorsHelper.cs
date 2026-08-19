@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.VisualStudio;
@@ -20,7 +24,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var fontsAndColorStorage = ServiceProvider.GlobalProvider.GetService<SVsFontAndColorStorage, IVsFontAndColorStorage>();
+            var fontsAndColorStorage = ServiceProvider.GlobalProvider.GetService(typeof(SVsFontAndColorStorage)) as IVsFontAndColorStorage;
 
             if (fontsAndColorStorage is null)
             {
@@ -78,7 +82,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var fontsAndColorStorage = ServiceProvider.GlobalProvider.GetService<SVsFontAndColorStorage, IVsFontAndColorStorage>();
+            var fontsAndColorStorage = ServiceProvider.GlobalProvider.GetService(typeof(SVsFontAndColorStorage)) as IVsFontAndColorStorage;
 
             if (fontsAndColorStorage is null)
             {

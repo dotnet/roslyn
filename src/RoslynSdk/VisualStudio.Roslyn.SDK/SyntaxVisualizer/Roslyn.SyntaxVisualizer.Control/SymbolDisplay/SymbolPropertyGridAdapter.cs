@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -101,8 +105,8 @@ namespace Roslyn.SyntaxVisualizer.Control.SymbolDisplay
 
         private class DictionaryPropertyDescriptor : PropertyDescriptor
         {
-            private Dictionary<string, string> _dictionary;
-            private string _key;
+            private readonly Dictionary<string, string> _dictionary;
+            private readonly string _key;
 
             internal DictionaryPropertyDescriptor(Dictionary<string, string> d, string key)
                 : base(key.ToString(), null)

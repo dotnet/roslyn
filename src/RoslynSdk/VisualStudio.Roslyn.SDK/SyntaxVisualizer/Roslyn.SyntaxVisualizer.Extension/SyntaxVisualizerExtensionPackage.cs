@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
@@ -24,6 +27,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
     [ProvideMenuResource("Menus.ctmenu", 1)] // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))] // This attribute registers a tool window exposed by this package.
     [Guid(GuidList.GuidSyntaxVisualizerExtensionPkgString)]
+    [SuppressMessage("Usage", "VSSDK001:Derive from AsyncPackage", Justification = "Preserve the existing synchronous package behavior during the repository merge.")]
     public sealed class SyntaxVisualizerExtensionPackage : Package
     {
         /// <summary>

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
                     catch (IOException)
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

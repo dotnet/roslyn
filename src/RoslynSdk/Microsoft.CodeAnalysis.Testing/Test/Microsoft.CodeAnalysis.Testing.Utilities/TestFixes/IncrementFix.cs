@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -15,10 +16,16 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing.TestFixes
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     [PartNotDiscoverable]
     public class IncrementFix : CodeFixProvider
     {
+        [ImportingConstructor]
+        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+        public IncrementFix()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(LiteralUnderFiveAnalyzer.Descriptor.Id);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -30,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Testing.TestFixes
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         "LiteralUnderFive",
-                        cancellationToken => CreateChangedDocument(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
+                        cancellationToken => CreateChangedDocumentAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
                         $"{nameof(IncrementFix)}:{int.Parse(diagnostic.Properties[LiteralUnderFiveAnalyzer.CurrentValueProperty]!) + 1}"),
                     diagnostic);
             }
@@ -38,10 +45,10 @@ namespace Microsoft.CodeAnalysis.Testing.TestFixes
             return Task.CompletedTask;
         }
 
-        private static async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private static async Task<Document> CreateChangedDocumentAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
-            var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
-            var root = await tree.GetRootAsync(cancellationToken);
+            var tree = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(sourceSpan.Start);
             var replacement = int.Parse(token.ValueText) + 1;
             var generator = SyntaxGenerator.GetGenerator(document);

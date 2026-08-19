@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Testing
     /// <typeparam name="TCodeRefactoring">The <see cref="CodeRefactoringProvider"/> to test.</typeparam>
     /// <typeparam name="TTest">The test implementation to use.</typeparam>
     /// <typeparam name="TVerifier">The type of verifier to use.</typeparam>
+    [SuppressMessage("Design", "CA1052:Static holder types should be Static or NotInheritable", Justification = "This type is an extensibility base class with shipped derived types.")]
     public class CodeRefactoringVerifier<TCodeRefactoring, TTest, TVerifier>
            where TCodeRefactoring : CodeRefactoringProvider, new()
            where TTest : CodeRefactoringTest<TVerifier>, new()

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     internal static class AnalyzerOptionsExtensions
     {
-        private static Func<AnalyzerOptions, object?> s_analyzerConfigOptionsProvider =
+        private static readonly Func<AnalyzerOptions, object?> s_analyzerConfigOptionsProvider =
             LightupHelpers.CreatePropertyAccessor<AnalyzerOptions, object?>(
                 typeof(AnalyzerOptions),
                 nameof(AnalyzerConfigOptionsProvider),

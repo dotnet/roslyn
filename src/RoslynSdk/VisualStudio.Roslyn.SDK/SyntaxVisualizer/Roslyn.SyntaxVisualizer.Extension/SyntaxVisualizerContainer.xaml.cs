@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -280,21 +282,23 @@ namespace Roslyn.SyntaxVisualizer.Extension
 
             // https://github.com/dotnet/roslyn/issues/84691
 #pragma warning disable VSSDK007
+#pragma warning disable RS0030 // This legacy tool window does not have access to Roslyn's internal threading context.
             _ = ThreadHelper.JoinableTaskFactory.RunAsync(
                 async () =>
                 {
                     // Get the SyntaxTree and SemanticModel corresponding to the Document.
-                    activeSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);
-                    var activeSemanticModel = await document.GetSemanticModelAsync(cancellationToken);
+                    activeSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(true);
+                    var activeSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(true);
 
                     // Display the SyntaxTree.
                     if (activeSyntaxTree is not null)
                     {
-                        await syntaxVisualizer.DisplaySyntaxTreeAsync(document, activeSyntaxTree, activeSemanticModel, lazy: true, document.Project.Solution.Workspace, cancellationToken);
+                        await syntaxVisualizer.DisplaySyntaxTreeAsync(document, activeSyntaxTree, activeSemanticModel, lazy: true, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(true);
                     }
 
                     NavigateFromSource();
                 });
+#pragma warning restore RS0030
 #pragma warning restore VSSDK007
         }
 

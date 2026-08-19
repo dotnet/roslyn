@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.ProjectSystem;
@@ -16,6 +17,7 @@ namespace Roslyn.ComponentDebugger
         private readonly IDebugTokenReplacer _tokenReplacer;
 
         [ImportingConstructor]
+        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
         public LaunchSettingsManager(UnconfiguredProject owningProject, IDebugTokenReplacer tokenReplacer)
         {
             _owningProject = owningProject;

@@ -56,6 +56,7 @@ Microsoft.CodeAnalysis.Testing.DefaultVerifier.Context.get -> System.Collections
 Microsoft.CodeAnalysis.Testing.DefaultVerifier.DefaultVerifier() -> void
 Microsoft.CodeAnalysis.Testing.DefaultVerifier.DefaultVerifier(System.Collections.Immutable.ImmutableStack<string> context) -> void
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation
+Microsoft.CodeAnalysis.Testing.DiagnosticLocation.DiagnosticLocation() -> void
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation.DiagnosticLocation(Microsoft.CodeAnalysis.FileLinePositionSpan span, Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions options) -> void
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation.Options.get -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation.Span.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
@@ -69,6 +70,7 @@ Microsoft.CodeAnalysis.Testing.DiagnosticOptions.IgnoreAdditionalLocations = 1 -
 Microsoft.CodeAnalysis.Testing.DiagnosticOptions.IgnoreSeverity = 2 -> Microsoft.CodeAnalysis.Testing.DiagnosticOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticOptions.None = 0 -> Microsoft.CodeAnalysis.Testing.DiagnosticOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticResult
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.DiagnosticResult() -> void
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.DiagnosticResult(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor) -> void
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.DiagnosticResult(string id, Microsoft.CodeAnalysis.DiagnosticSeverity severity) -> void
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.HasLocation.get -> bool

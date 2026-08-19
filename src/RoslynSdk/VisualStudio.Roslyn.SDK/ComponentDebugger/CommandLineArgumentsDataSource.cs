@@ -20,6 +20,7 @@ namespace Roslyn.ComponentDebugger
         private readonly IActiveConfiguredProjectSubscriptionService _activeProjectSubscriptionService;
 
         [ImportingConstructor]
+        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "MEF ensures not null")]
         public CommandLineArgumentsDataSource(IProjectThreadingService projectThreadingService, IActiveConfiguredProjectSubscriptionService activeProjectSubscriptionService)
             : base(projectThreadingService.JoinableTaskContext)

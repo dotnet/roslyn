@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -43,12 +45,12 @@ namespace Roslyn.SyntaxVisualizer.Control
     // A control for visually displaying the contents of a SyntaxTree.
     public partial class SyntaxVisualizerControl : UserControl
     {
-        private static readonly string SyntaxNodeTextBrushKey = "SyntaxNodeText.Brush";
-        private static readonly string SyntaxTokenTextBrushKey = "SyntaxTokenText.Brush";
-        private static readonly string SyntaxTriviaTextBrushKey = "SyntaxTriviaText.Brush";
-        private static readonly string OperationTextBrushKey = "OperationText.Brush";
-        private static readonly string ErrorSquiggleBrushKey = "ErrorSquiggle.Brush";
-        private static readonly string SquiggleStyleKey = "SquiggleStyle";
+        private const string SyntaxNodeTextBrushKey = "SyntaxNodeText.Brush";
+        private const string SyntaxTokenTextBrushKey = "SyntaxTokenText.Brush";
+        private const string SyntaxTriviaTextBrushKey = "SyntaxTriviaText.Brush";
+        private const string OperationTextBrushKey = "OperationText.Brush";
+        private const string ErrorSquiggleBrushKey = "ErrorSquiggle.Brush";
+        private const string SquiggleStyleKey = "SquiggleStyle";
 
         // Instances of this class are stored in the Tag field of each item in the treeview.
         private class SyntaxTag
@@ -339,12 +341,12 @@ namespace Roslyn.SyntaxVisualizer.Control
                 IsLazy = lazy;
                 SyntaxTree = tree;
                 SemanticModel = model;
-                AddNode(null, await SyntaxTree.GetRootAsync(cancellationToken));
+                AddNode(null, await SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(true));
 
                 if (model != null && workspace != null)
                 {
-                    var root = await tree.GetRootAsync(cancellationToken);
-                    classifiedSpans = (await Classifier.GetClassifiedSpansAsync(document, root.FullSpan, cancellationToken)).ToImmutableArray();
+                    var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(true);
+                    classifiedSpans = (await Classifier.GetClassifiedSpansAsync(document, root.FullSpan, cancellationToken).ConfigureAwait(true)).ToImmutableArray();
                 }
                 else
                 {

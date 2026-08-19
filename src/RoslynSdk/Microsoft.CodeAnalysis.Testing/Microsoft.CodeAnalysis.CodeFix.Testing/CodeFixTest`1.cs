@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Testing
             IVerifier verifier,
             CancellationToken cancellationToken)
         {
-            var project = await CreateProjectAsync(new EvaluatedProjectState(oldState, ReferenceAssemblies), oldState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), cancellationToken);
+            var project = await CreateProjectAsync(new EvaluatedProjectState(oldState, ReferenceAssemblies), oldState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), cancellationToken).ConfigureAwait(false);
             var compilerDiagnostics = await GetCompilerDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
 
             ExceptionDispatchInfo? iterationCountFailure;
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Testing
             foreach (var additionalProject in newState.AdditionalProjects)
             {
                 var actualProject = project.Solution.Projects.Single(p => p.Name == additionalProject.Key);
-                await VerifyProjectAsync(additionalProject.Value, actualProject, verifier, cancellationToken);
+                await VerifyProjectAsync(additionalProject.Value, actualProject, verifier, cancellationToken).ConfigureAwait(false);
             }
 
             // Validate the iteration counts after validating the content
@@ -920,8 +920,10 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>A <see cref="SourceText"/> containing the syntax of the <see cref="Document"/> after formatting.</returns>
         private static async Task<SourceText> GetSourceTextFromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
+#pragma warning disable RS0030 // This package supports Roslyn 4.12, which does not expose the options-based overloads.
             var simplifiedDoc = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             var formatted = await Formatter.FormatAsync(simplifiedDoc, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+#pragma warning restore RS0030
             return await formatted.GetTextAsync(cancellationToken).ConfigureAwait(false);
         }
 

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 new Dictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>(),
                 Enumerable.Empty<ImportDefinitionBinding>(),
                 sharingBoundary: string.Empty,
-                default(MethodRef),
+                null,
                 MethodRef.Get(serviceImplType.GetConstructors(BindingFlags.Instance | BindingFlags.Public).First(), Resolver.DefaultInstance),
                 new List<ImportDefinitionBinding>(),
                 CreationPolicy.Shared,

@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Testing
         protected async Task VerifyRefactoringAsync(SolutionState testState, SolutionState fixedState, DiagnosticResult triggerSpan, IVerifier verifier, CancellationToken cancellationToken)
         {
             var numberOfIncrementalIterations = OffersEmptyRefactoring || HasAnyChange(testState, fixedState, recursive: true) ? 1 : 0;
-            await VerifyRefactoringAsync(triggerSpan, GetCodeRefactoringProviders().ToImmutableArray(), testState, fixedState, numberOfIncrementalIterations, ApplyRefactoringAsync, verifier.PushContext("Code refactoring application"), cancellationToken);
+            await VerifyRefactoringAsync(triggerSpan, GetCodeRefactoringProviders().ToImmutableArray(), testState, fixedState, numberOfIncrementalIterations, ApplyRefactoringAsync, verifier.PushContext("Code refactoring application"), cancellationToken).ConfigureAwait(false);
         }
 
         private async Task VerifyRefactoringAsync(
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Testing
             IVerifier verifier,
             CancellationToken cancellationToken)
         {
-            var project = await CreateProjectAsync(new EvaluatedProjectState(oldState, ReferenceAssemblies), oldState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), cancellationToken);
+            var project = await CreateProjectAsync(new EvaluatedProjectState(oldState, ReferenceAssemblies), oldState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), cancellationToken).ConfigureAwait(false);
             _ = await GetCompilerDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
 
             ExceptionDispatchInfo? iterationCountFailure;
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Testing
             foreach (var additionalProject in newState.AdditionalProjects)
             {
                 var actualProject = project.Solution.Projects.Single(p => p.Name == additionalProject.Key);
-                await VerifyProjectAsync(additionalProject.Value, actualProject, verifier, cancellationToken);
+                await VerifyProjectAsync(additionalProject.Value, actualProject, verifier, cancellationToken).ConfigureAwait(false);
             }
 
             // Validate the iteration counts after validating the content
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 var anyActions = false;
                 var actions = ImmutableArray.CreateBuilder<CodeAction>();
 
-                var location = await GetTriggerLocationAsync();
+                var location = await GetTriggerLocationAsync().ConfigureAwait(false);
                 var triggerDocument = project.Solution.GetDocument(location.SourceTree)
                     ?? throw new InvalidOperationException("The refactoring source document is not part of the solution.");
 
@@ -363,8 +363,10 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>A <see cref="SourceText"/> containing the syntax of the <see cref="Document"/> after formatting.</returns>
         private static async Task<SourceText> GetSourceTextFromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
+#pragma warning disable RS0030 // This package supports Roslyn 4.12, which does not expose the options-based overloads.
             var simplifiedDoc = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             var formatted = await Formatter.FormatAsync(simplifiedDoc, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+#pragma warning restore RS0030
             return await formatted.GetTextAsync(cancellationToken).ConfigureAwait(false);
         }
     }

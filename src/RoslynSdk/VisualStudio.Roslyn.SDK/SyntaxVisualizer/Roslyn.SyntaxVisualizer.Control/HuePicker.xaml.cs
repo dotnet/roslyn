@@ -1,4 +1,8 @@
-﻿using System.Diagnostics;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -18,8 +22,6 @@ namespace Roslyn.SyntaxVisualizer.Control
                 typeof(double),
                 typeof(HuePicker),
                 new PropertyMetadata(0.0, OnHueChanged));
-
-
         private readonly HuePickerAdorner _adorner;
         private bool _isMouseUpdate = false;
 
@@ -153,8 +155,6 @@ namespace Roslyn.SyntaxVisualizer.Control
                 transformGroup.Children.Add(new ScaleTransform(-1, 1));
                 transformGroup.Children.Add(new TranslateTransform(ElementSize.Width, 0));
                 rightTri.Transform = transformGroup;
-
-
                 drawingContext.DrawGeometry(_brush, Pen, triangleGeometry);
                 drawingContext.DrawGeometry(_brush, Pen, rightTri);
             }

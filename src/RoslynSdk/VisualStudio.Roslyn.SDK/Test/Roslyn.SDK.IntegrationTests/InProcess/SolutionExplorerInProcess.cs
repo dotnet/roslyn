@@ -220,16 +220,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var buildManager = await GetRequiredGlobalServiceAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(cancellationToken);
-            using var semaphore = new SemaphoreSlim(1);
+            var buildCompleted = new AsyncAutoResetEvent();
             using var solutionEvents = new UpdateSolutionEvents(buildManager);
 
-            await semaphore.WaitAsync();
-
-            void HandleUpdateSolutionDone(bool succeeded, bool modified, bool canceled) => semaphore.Release();
+            void HandleUpdateSolutionDone(bool succeeded, bool modified, bool canceled) => buildCompleted.Set();
             solutionEvents.OnUpdateSolutionDone += HandleUpdateSolutionDone;
             try
             {
-                await semaphore.WaitAsync();
+                await buildCompleted.WaitAsync(cancellationToken);
             }
             finally
             {
@@ -283,7 +281,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IVsUpdateSolutionEvents2, IDisposable
         {
             private uint _cookie;
-            private IVsSolutionBuildManager2 _solutionBuildManager;
+            private readonly IVsSolutionBuildManager2 _solutionBuildManager;
 
             internal delegate void UpdateSolutionDoneEvent(bool succeeded, bool modified, bool canceled);
 
