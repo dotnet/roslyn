@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {"pattern": "**/*.cache",                                  "reason": "MSBuild internal caches",          "reviewed": true, "added_by": "chsienki", "added_at_run_id": ""},
+    {"pattern": "**/artifacts/log/**",                         "reason": "logs",                             "reviewed": true, "added_by": "chsienki", "added_at_run_id": ""},
+    {"pattern": "**/artifacts/tmp/**",                         "reason": "temp files",                       "reviewed": true, "added_by": "chsienki", "added_at_run_id": ""},
+    {"pattern": "**/artifacts/TestResults/**",                 "reason": "test results (timestamped)",       "reviewed": true, "added_by": "chsienki", "added_at_run_id": ""},
+    {"pattern": "**/bin/**/Microsoft.NET.Build.Tasks*.binlog", "reason": "sub-build binlogs",                "reviewed": true, "added_by": "chsienki", "added_at_run_id": ""},
+    {"pattern": "**/*.swix",                                   "reason": "VS extension manifest timestamps", "reviewed": true, "added_by": "chsienki", "added_at_run_id": ""},
+    {"pattern": "**/*.FileListAbsolute.txt",                   "reason": "MSBuild incremental-clean absolute-path list; stores abs paths by design, not a compiler output", "reviewed": true, "added_by": "chsienki", "added_at_run_id": ""},
+    {"pattern": "**/XlfSources.txt",                           "reason": "XLIFF localization source list; absolute paths by design", "reviewed": true, "added_by": "chsienki", "added_at_run_id": ""},
+    {"pattern": "**/*msCoverageSourceRootsMapping*",           "reason": "coverage source-root mapping; absolute paths by design", "reviewed": true, "added_by": "chsienki", "added_at_run_id": ""}
+  ]
+}
