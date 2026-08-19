@@ -154,6 +154,90 @@ class Program
             Assert.Equal(contextualKeyword, Assert.IsType<IdentifierNameSyntax>(refType.Type).Identifier.Text);
         }
 
+        [Theory]
+        [InlineData("record", LanguageVersion.CSharp8)]
+        [InlineData("record", LanguageVersion.CSharp9)]
+        [InlineData("union", LanguageVersion.CSharp14)]
+        [InlineData("union", LanguageVersion.CSharp15)]
+        [InlineData("extension", LanguageVersion.CSharp13)]
+        [InlineData("extension", LanguageVersion.CSharp14)]
+        public void RefReadonlyContextualKeywordRemainsPropertyType(string contextualKeyword, LanguageVersion languageVersion)
+        {
+            var source = $"class C {{ ref readonly {contextualKeyword} A {{ }} }}";
+            var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            tree.GetDiagnostics().Verify();
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var property = Assert.IsType<PropertyDeclarationSyntax>(Assert.Single(containingType.Members));
+            var refType = Assert.IsType<RefTypeSyntax>(property.Type);
+            Assert.Equal(SyntaxKind.ReadOnlyKeyword, refType.ReadOnlyKeyword.Kind());
+            Assert.Equal(contextualKeyword, Assert.IsType<IdentifierNameSyntax>(refType.Type).Identifier.Text);
+        }
+
+        [Theory]
+        [InlineData("class R { }", LanguageVersion.CSharp15, "ClassDeclaration", "ClassDeclaration", "ClassDeclaration")]
+        [InlineData("struct R { }", LanguageVersion.CSharp15, "StructDeclaration", "StructDeclaration", "StructDeclaration")]
+        [InlineData("interface R { }", LanguageVersion.CSharp15, "InterfaceDeclaration", "InterfaceDeclaration", "InterfaceDeclaration")]
+        [InlineData("enum R { }", LanguageVersion.CSharp15, "EnumDeclaration", "IncompleteMember, EnumDeclaration", "IncompleteMember, EnumDeclaration")]
+        [InlineData("delegate void R();", LanguageVersion.CSharp15, "DelegateDeclaration", "IncompleteMember, DelegateDeclaration", "IncompleteMember, DelegateDeclaration")]
+        [InlineData("record R { }", LanguageVersion.CSharp8, "PropertyDeclaration", "PropertyDeclaration", "PropertyDeclaration")]
+        [InlineData("record R { }", LanguageVersion.CSharp9, "RecordDeclaration", "RecordDeclaration", "PropertyDeclaration")]
+        [InlineData("union R { }", LanguageVersion.CSharp14, "PropertyDeclaration", "PropertyDeclaration", "PropertyDeclaration")]
+        [InlineData("union R { }", LanguageVersion.CSharp15, "UnionDeclaration", "UnionDeclaration", "PropertyDeclaration")]
+        public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel(
+            string declaration,
+            LanguageVersion languageVersion,
+            string expectedReadonlyMembers,
+            string expectedRefMembers,
+            string expectedRefReadonlyMembers)
+        {
+            verify("readonly", expectedReadonlyMembers);
+            verify("ref", expectedRefMembers);
+            verify("ref readonly", expectedRefReadonlyMembers);
+
+            void verify(string modifiers, string expectedMembers)
+            {
+                var text = $"{modifiers} {declaration}";
+                verifyMembers(ParseTree(text, TestOptions.Regular.WithLanguageVersion(languageVersion)).GetCompilationUnitRoot().Members, expectedMembers);
+
+                var containingTypeSource = $"class C {{ {text} }}";
+                var containingTypeRoot = ParseTree(containingTypeSource, TestOptions.Regular.WithLanguageVersion(languageVersion)).GetCompilationUnitRoot();
+                var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(containingTypeRoot.Members));
+                verifyMembers(containingType.Members, expectedMembers);
+            }
+
+            static void verifyMembers(SyntaxList<MemberDeclarationSyntax> members, string expectedMembers)
+                => Assert.Equal(expectedMembers, string.Join(", ", members.Select(static member => member.Kind())));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp13, "GlobalStatement", "ConstructorDeclaration", "IncompleteMember, GlobalStatement, GlobalStatement", "IncompleteMember, IncompleteMember")]
+        [InlineData(LanguageVersion.CSharp14, "GlobalStatement", "ExtensionBlockDeclaration", "IncompleteMember, GlobalStatement, GlobalStatement", "IncompleteMember, IncompleteMember")]
+        public void ExtensionModifierParsing_AtCompilationUnitAndTypeMemberLevel(
+            LanguageVersion languageVersion,
+            string expectedTopLevelReadonlyMembers,
+            string expectedNestedReadonlyMembers,
+            string expectedTopLevelRefMembers,
+            string expectedNestedRefMembers)
+        {
+            verify("readonly", expectedTopLevelReadonlyMembers, expectedNestedReadonlyMembers);
+            verify("ref", expectedTopLevelRefMembers, expectedNestedRefMembers);
+            verify("ref readonly", expectedTopLevelRefMembers, expectedNestedRefMembers);
+
+            void verify(string modifiers, string expectedTopLevelMembers, string expectedNestedMembers)
+            {
+                var declaration = $"{modifiers} extension(object o) {{ }}";
+                var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+                var root = ParseTree(declaration, options).GetCompilationUnitRoot();
+                Assert.Equal(expectedTopLevelMembers, string.Join(", ", root.Members.Select(static member => member.Kind())));
+
+                root = ParseTree($"static class C {{ {declaration} }}", options).GetCompilationUnitRoot();
+                var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+                Assert.Equal(expectedNestedMembers, string.Join(", ", containingType.Members.Select(static member => member.Kind())));
+            }
+        }
+
         [Fact]
         public void RefReadonlyRecordReturnType_BindsAsBefore()
         {
