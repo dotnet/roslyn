@@ -115,6 +115,67 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, typeName).WithArguments("ref"));
         }
 
+        [Theory]
+        [InlineData("enum E { }", "E", SyntaxKind.EnumDeclaration)]
+        [InlineData("delegate void D();", "D", SyntaxKind.DelegateDeclaration)]
+        public void RefTypeDeclarationLookahead_OtherReservedDeclarationKinds(
+            string declaration, string typeName, SyntaxKind declarationKind)
+        {
+            var source = $"ref {declaration}";
+            var root = ParseTree(source, TestOptions.Regular).GetCompilationUnitRoot();
+            Assert.Equal(declarationKind, Assert.Single(root.Members).Kind());
+
+            CreateCompilation(source).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, typeName).WithArguments("ref"));
+        }
+
+        [Fact]
+        public void RefTypeDeclarationLookahead_FunctionPointerRemainsType()
+        {
+            var root = ParseTree("class C { ref delegate*<void> F; }", TestOptions.Regular).GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var field = Assert.IsType<FieldDeclarationSyntax>(Assert.Single(containingType.Members));
+            var refType = Assert.IsType<RefTypeSyntax>(field.Declaration.Type);
+            Assert.IsType<FunctionPointerTypeSyntax>(refType.Type);
+        }
+
+        [Theory]
+        [InlineData("record", LanguageVersion.CSharp8)]
+        [InlineData("record", LanguageVersion.CSharp9)]
+        [InlineData("union", LanguageVersion.CSharp14)]
+        [InlineData("union", LanguageVersion.CSharp15)]
+        [InlineData("extension", LanguageVersion.CSharp13)]
+        [InlineData("extension", LanguageVersion.CSharp14)]
+        public void RefReadonlyContextualKeywordRemainsReturnType(string contextualKeyword, LanguageVersion languageVersion)
+        {
+            var source = $"class C {{ ref readonly {contextualKeyword} M(); }}";
+            var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            tree.GetDiagnostics().Verify();
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var method = Assert.IsType<MethodDeclarationSyntax>(Assert.Single(containingType.Members));
+            var refType = Assert.IsType<RefTypeSyntax>(method.ReturnType);
+            Assert.Equal(SyntaxKind.ReadOnlyKeyword, refType.ReadOnlyKeyword.Kind());
+            Assert.Equal(contextualKeyword, Assert.IsType<IdentifierNameSyntax>(refType.Type).Identifier.Text);
+        }
+
+        [Fact]
+        public void RefReadonlyRecordReturnType_BindsAsBefore()
+        {
+            var source = """
+                #pragma warning disable CS8860
+                class record { }
+
+                class C
+                {
+                    public ref readonly record M() => throw null;
+                }
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics();
+        }
+
         [Fact]
         public void RefTypeDeclarationLookahead_FunctionPointerRemainsReturnType()
         {
