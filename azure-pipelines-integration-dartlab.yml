@@ -11,8 +11,8 @@ resources:
   repositories:
   - repository: DartLabTemplates
     type: git
-    name: DevDiv/DartLab.Templates
-    ref: refs/heads/main
+    name: DevDiv/DartLab
+    ref: refs/tags/Production
   - repository: VSTemplates
     type: git
     name: DevDiv/VS.Templates
