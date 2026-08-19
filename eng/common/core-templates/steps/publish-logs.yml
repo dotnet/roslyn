@@ -26,7 +26,7 @@ steps:
     # Sensitive data can as well be added to $(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
     #  If the file exists - sensitive data for redaction will be sourced from it
     #  (single entry per line, lines starting with '# ' are considered comments and skipped)
-    ${{ if and(parameters.enableInternalRuntimes, ne(variables['System.TeamProject'], 'public')) }}:
+    ${{ if and(eq(parameters.enableInternalRuntimes, true), ne(variables['System.TeamProject'], 'public')) }}:
       arguments: -InputPath '$(System.DefaultWorkingDirectory)/PostBuildLogs'
         -BinlogToolVersion '${{parameters.BinlogToolVersion}}'
         -TokensFilePath '$(System.DefaultWorkingDirectory)/eng/BinlogSecretsRedactionFile.txt'
