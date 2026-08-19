@@ -75,6 +75,9 @@ stages:
         project: $(System.TeamProjectId)
         definition: $(System.DefinitionId)
         buildVersionToDownload: latestFromBranch
+        # our seed/warm runs are partiallySucceeded (the cold-run download-skip), which latestFromBranch
+        # excludes by default -> "No builds currently exist". Include them so the baseline is found.
+        allowPartiallySucceededBuilds: true
         branchName: $(Build.SourceBranch)
         artifactName: warmcache
         targetPath: $(CacheStore)
