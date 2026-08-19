@@ -14,5 +14,6 @@
     <!-- Explicit reference to avoid missing package warning -->
     <PackageReference Include="Microsoft.VisualStudio.Interop" />
     <PackageReference Include="VSLangProj" />
+    <PackageReference Include="xunit.assert" />
   </ItemGroup>
 </Project>
