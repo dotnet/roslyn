@@ -443,16 +443,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         mods, allowedModifiers, declaration.Declarations[i].NameLocation, diagnostics,
                         modifierTokens: null, modifierErrors: out modifierErrors);
 
-                    if (!modifierErrors && (mods & DeclarationModifiers.Ref) != 0)
-                    {
-                        // Ref is only an allowed type modifier on ordinary struct declarations.
-                        var typeDeclaration = (TypeDeclarationSyntax)decl.SyntaxReference.GetSyntax();
-                        if (reportMisplacedRef(typeDeclaration.Modifiers, diagnostics))
-                        {
-                            modifierErrors = true;
-                        }
-                    }
-
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)
                     {
@@ -524,33 +514,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return result;
-
-            static bool reportMisplacedRef(SyntaxTokenList modifiers, BindingDiagnosticBag diagnostics)
-            {
-                var refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
-                if (refToken == default)
-                    return false;
-
-                // Leave duplicate 'ref' modifiers to the existing duplicate-modifier check.
-                if (modifiers.Count(static modifier => modifier.Kind() == SyntaxKind.RefKeyword) > 1)
-                    return false;
-
-                var refIndex = modifiers.IndexOf(refToken);
-
-                // 'ref' is valid when it is the final modifier.
-                if (refIndex == modifiers.Count - 1)
-                    return false;
-
-                // It is also valid when followed only by 'partial', as in 'ref partial struct'.
-                if (refIndex == modifiers.Count - 2 &&
-                    modifiers[refIndex + 1].ContextualKind() == SyntaxKind.PartialKeyword)
-                {
-                    return false;
-                }
-
-                diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
-                return true;
-            }
         }
 
         internal static bool IsReservedTypeName(string? name)

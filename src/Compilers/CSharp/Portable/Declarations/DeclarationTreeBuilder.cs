@@ -785,6 +785,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
+            if (kind == DeclarationKind.Struct)
+            {
+                ReportMisplacedRef(node.Modifiers, diagnostics);
+            }
+
             var quickAttributes = GetQuickAttributes(node.AttributeLists);
 
             foreach (var modifier in node.Modifiers)
@@ -816,6 +821,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 children: VisitTypeChildren(node),
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
                 _nonGlobalAliasedQuickAttributes | quickAttributes);
+        }
+
+        private static void ReportMisplacedRef(SyntaxTokenList modifiers, DiagnosticBag diagnostics)
+        {
+            var refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
+            if (refToken == default)
+                return;
+
+            // Leave duplicate 'ref' modifiers to the existing duplicate-modifier check.
+            if (modifiers.Count(static modifier => modifier.Kind() == SyntaxKind.RefKeyword) > 1)
+                return;
+
+            var refIndex = modifiers.IndexOf(refToken);
+
+            // 'ref' is valid when it is the final modifier.
+            if (refIndex == modifiers.Count - 1)
+                return;
+
+            // It is also valid when followed only by 'partial', as in 'ref partial struct'.
+            if (refIndex == modifiers.Count - 2 &&
+                modifiers[refIndex + 1].ContextualKind() == SyntaxKind.PartialKeyword)
+            {
+                return;
+            }
+
+            diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
         }
 
         private ImmutableArray<SingleTypeDeclaration> VisitTypeChildren(TypeDeclarationSyntax node)
