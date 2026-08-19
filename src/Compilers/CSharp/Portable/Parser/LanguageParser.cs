@@ -1496,17 +1496,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool isRefTypeDeclarationAfterModifiers()
             {
                 var peekIndex = 1;
+                var skippedNonPartialModifier = false;
 
                 // Skip ordinary modifiers while looking for the type declaration. 'scoped' is
                 // intentionally excluded: it is contextual and may instead be the type in a
                 // 'ref scoped ...' return-type prefix.
-                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) is var modifier and not DeclarationModifiers.None)
                 {
+                    skippedNonPartialModifier |= modifier != DeclarationModifiers.Partial;
                     peekIndex++;
                 }
 
                 var token = this.PeekToken(peekIndex);
-                return this.IsClassStructInterfaceRecordOrUnionKeyword(token);
+                if (!this.IsClassStructInterfaceRecordOrUnionKeyword(token))
+                {
+                    return false;
+                }
+
+                // If reaching a contextual type-declaration keyword required looking past a modifier
+                // that the previous parser did not support here, preserve a possible ref-returning
+                // member interpretation. For example, 'ref readonly record M()' may use 'record' as
+                // the return type even when records are enabled.
+                if (skippedNonPartialModifier &&
+                    token.Kind == SyntaxKind.IdentifierToken)
+                {
+                    using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                    if (this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName())
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)

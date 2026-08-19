@@ -2392,8 +2392,10 @@ class C
         EOF();
     }
 
-    [Fact]
-    public void WithModifiers_Ref()
+    [Theory]
+    [InlineData(LanguageVersion.CSharp13)]
+    [InlineData(LanguageVersion.CSharp14)]
+    public void WithModifiers_Ref(LanguageVersion languageVersion)
     {
         UsingTree("""
 class C
@@ -2401,7 +2403,7 @@ class C
     ref extension(Type) { }
 }
 """,
-            TestOptions.RegularPreview,
+            TestOptions.Regular.WithLanguageVersion(languageVersion),
             // (3,18): error CS1519: Invalid token '(' in a member declaration
             //     ref extension(Type) { }
             Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 18),
