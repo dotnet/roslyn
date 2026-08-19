@@ -1747,8 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // 'partial static () => ...' would be incorrectly classified as namespace members.
                 if (allowMembers && this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
                 {
-                    return this.CurrentToken.Kind != SyntaxKind.RefKeyword ||
-                        this.IsRefTypeDeclarationAfterModifiers(peekIndex: 1);
+                    return true;
                 }
 
                 // A second 'partial' may be the constructor name in 'partial partial()'.
@@ -1853,16 +1852,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 peekIndex++;
             }
             while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword);
-
-            return this.IsTypeDeclarationStart(peekIndex);
-        }
-
-        private bool IsRefTypeDeclarationAfterModifiers(int peekIndex)
-        {
-            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
-            {
-                peekIndex++;
-            }
 
             return this.IsTypeDeclarationStart(peekIndex);
         }

@@ -235,6 +235,20 @@ public sealed partial class ModifierParserRecoveryTests : ParsingTests
 
     // ---------- partial on methods ----------
 
+    [Fact]
+    public void Partial_RefReturn()
+    {
+        var src = """
+            partial class C
+            {
+                private static partial ref int M();
+                private static partial ref int M() => throw null;
+            }
+            """;
+
+        CreateCompilation(src).VerifyDiagnostics();
+    }
+
     [Theory]
     [InlineData(LanguageVersion.CSharp14)]
     [InlineData(LanguageVersion.Preview)]
