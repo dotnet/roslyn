@@ -550,200 +550,450 @@ class Program
 
         [Fact]
         public void ModifierParsing_Class_Readonly()
-            => VerifyModifierParsing("readonly", "class R { }", LanguageVersion.CSharp15, "ClassDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Class_Ref()
-            => VerifyModifierParsing("ref", "class R { }", LanguageVersion.CSharp15, "ClassDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Class_RefReadonly()
-            => VerifyModifierParsing("ref readonly", "class R { }", LanguageVersion.CSharp15, "ClassDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Struct_Readonly()
-            => VerifyModifierParsing("readonly", "struct R { }", LanguageVersion.CSharp15, "StructDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Struct_Ref()
-            => VerifyModifierParsing("ref", "struct R { }", LanguageVersion.CSharp15, "StructDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Struct_RefReadonly()
-            => VerifyModifierParsing("ref readonly", "struct R { }", LanguageVersion.CSharp15, "StructDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Interface_Readonly()
-            => VerifyModifierParsing("readonly", "interface R { }", LanguageVersion.CSharp15, "InterfaceDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Interface_Ref()
-            => VerifyModifierParsing("ref", "interface R { }", LanguageVersion.CSharp15, "InterfaceDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Interface_RefReadonly()
-            => VerifyModifierParsing("ref readonly", "interface R { }", LanguageVersion.CSharp15, "InterfaceDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Enum_Readonly()
-            => VerifyModifierParsing("readonly", "enum R { }", LanguageVersion.CSharp15, "EnumDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Enum_Ref()
-            => VerifyModifierParsing("ref", "enum R { }", LanguageVersion.CSharp15, "EnumDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Enum_RefReadonly()
-            => VerifyModifierParsing("ref readonly", "enum R { }", LanguageVersion.CSharp15, "EnumDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Delegate_Readonly()
-            => VerifyModifierParsing("readonly", "delegate void R();", LanguageVersion.CSharp15, "DelegateDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Delegate_Ref()
-            => VerifyModifierParsing("ref", "delegate void R();", LanguageVersion.CSharp15, "DelegateDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Delegate_RefReadonly()
-            => VerifyModifierParsing("ref readonly", "delegate void R();", LanguageVersion.CSharp15, "DelegateDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Record_CSharp8_Readonly()
-            => VerifyModifierParsing("readonly", "record R { }", LanguageVersion.CSharp8, "PropertyDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Record_CSharp8_Ref()
-            => VerifyModifierParsing("ref", "record R { }", LanguageVersion.CSharp8, "PropertyDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Record_CSharp8_RefReadonly()
-            => VerifyModifierParsing("ref readonly", "record R { }", LanguageVersion.CSharp8, "PropertyDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Record_CSharp9_Readonly()
-            => VerifyModifierParsing("readonly", "record R { }", LanguageVersion.CSharp9, "RecordDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Record_CSharp9_Ref()
-            => VerifyModifierParsing("ref", "record R { }", LanguageVersion.CSharp9, "RecordDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Record_CSharp9_RefReadonly()
-            => VerifyModifierParsing("ref readonly", "record R { }", LanguageVersion.CSharp9, "PropertyDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Union_CSharp14_Readonly()
-            => VerifyModifierParsing("readonly", "union R { }", LanguageVersion.CSharp14, "PropertyDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Union_CSharp14_Ref()
-            => VerifyModifierParsing("ref", "union R { }", LanguageVersion.CSharp14, "PropertyDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Union_CSharp14_RefReadonly()
-            => VerifyModifierParsing("ref readonly", "union R { }", LanguageVersion.CSharp14, "PropertyDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Union_CSharp15_Readonly()
-            => VerifyModifierParsing("readonly", "union R { }", LanguageVersion.CSharp15, "UnionDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Union_CSharp15_Ref()
-            => VerifyModifierParsing("ref", "union R { }", LanguageVersion.CSharp15, "UnionDeclaration");
-
-        [Fact]
-        public void ModifierParsing_Union_CSharp15_RefReadonly()
-            => VerifyModifierParsing("ref readonly", "union R { }", LanguageVersion.CSharp15, "PropertyDeclaration");
-
-        private void VerifyModifierParsing(
-            string modifiers,
-            string declaration,
-            LanguageVersion languageVersion,
-            string expectedMember)
         {
-            var text = $"{modifiers} {declaration}";
-            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
-            UsingTree(text, options);
+            UsingTree("readonly class R { } class C { readonly class R { } }");
             N(SyntaxKind.CompilationUnit);
             {
-                VerifyMember();
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-
-            var containingTypeSource = $"class C {{ {text} }}";
-            UsingTree(containingTypeSource, options);
-            N(SyntaxKind.CompilationUnit);
-            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    VerifyMember();
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+        }
 
-            void VerifyMember()
+        [Fact]
+        public void ModifierParsing_Class_Ref()
+        {
+            UsingTree("ref class R { } class C { ref class R { } }");
+            N(SyntaxKind.CompilationUnit);
             {
-                if (expectedMember == "PropertyDeclaration")
+                N(SyntaxKind.ClassDeclaration);
                 {
-                    N(SyntaxKind.PropertyDeclaration);
-                    {
-                        if (modifiers == "readonly")
-                        {
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            IdentifierName(declaration[..declaration.IndexOf(' ')]);
-                        }
-                        else
-                        {
-                            N(SyntaxKind.RefType);
-                            {
-                                N(SyntaxKind.RefKeyword);
-                                if (modifiers == "ref readonly")
-                                {
-                                    N(SyntaxKind.ReadOnlyKeyword);
-                                }
-                                IdentifierName(declaration[..declaration.IndexOf(' ')]);
-                            }
-                        }
-                        N(SyntaxKind.IdentifierToken, "R");
-                        N(SyntaxKind.AccessorList);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    return;
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
-
-                N(expectedMember switch
+                N(SyntaxKind.ClassDeclaration);
                 {
-                    "ClassDeclaration" => SyntaxKind.ClassDeclaration,
-                    "StructDeclaration" => SyntaxKind.StructDeclaration,
-                    "InterfaceDeclaration" => SyntaxKind.InterfaceDeclaration,
-                    "EnumDeclaration" => SyntaxKind.EnumDeclaration,
-                    "DelegateDeclaration" => SyntaxKind.DelegateDeclaration,
-                    "RecordDeclaration" => SyntaxKind.RecordDeclaration,
-                    "UnionDeclaration" => SyntaxKind.UnionDeclaration,
-                    _ => throw ExceptionUtilities.UnexpectedValue(expectedMember),
-                });
-                {
-                    if (modifiers.StartsWith("ref"))
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
                     {
                         N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
-                    if (modifiers.EndsWith("readonly"))
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Class_RefReadonly()
+        {
+            UsingTree("ref readonly class R { } class C { ref readonly class R { } }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Struct_Readonly()
+        {
+            UsingTree("readonly struct R { } class C { readonly struct R { } }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
                     {
                         N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
 
-                    if (expectedMember == "DelegateDeclaration")
+        [Fact]
+        public void ModifierParsing_Struct_Ref()
+        {
+            UsingTree("ref struct R { } class C { ref struct R { } }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Struct_RefReadonly()
+        {
+            UsingTree("ref readonly struct R { } class C { ref readonly struct R { } }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Interface_Readonly()
+        {
+            UsingTree("readonly interface R { } class C { readonly interface R { } }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InterfaceDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.InterfaceKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Interface_Ref()
+        {
+            UsingTree("ref interface R { } class C { ref interface R { } }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InterfaceDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.InterfaceKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Interface_RefReadonly()
+        {
+            UsingTree("ref readonly interface R { } class C { ref readonly interface R { } }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.InterfaceDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.InterfaceKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Enum_Readonly()
+        {
+            UsingTree("readonly enum R { } class C { readonly enum R { } }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.EnumDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.EnumKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EnumDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.EnumKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Enum_Ref()
+        {
+            UsingTree("ref enum R { } class C { ref enum R { } }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.EnumDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.EnumKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EnumDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.EnumKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Enum_RefReadonly()
+        {
+            UsingTree("ref readonly enum R { } class C { ref readonly enum R { } }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.EnumDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.EnumKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EnumDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.EnumKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Delegate_Readonly()
+        {
+            UsingTree("readonly delegate void R(); class C { readonly delegate void R(); }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.DelegateDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.DelegateDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
@@ -756,32 +1006,662 @@ class Program
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.SemicolonToken);
-                        return;
                     }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
 
-                    N(expectedMember switch
+        [Fact]
+        public void ModifierParsing_Delegate_Ref()
+        {
+            UsingTree("ref delegate void R(); class C { ref delegate void R(); }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.DelegateDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.PredefinedType);
                     {
-                        "ClassDeclaration" => SyntaxKind.ClassKeyword,
-                        "StructDeclaration" => SyntaxKind.StructKeyword,
-                        "InterfaceDeclaration" => SyntaxKind.InterfaceKeyword,
-                        "EnumDeclaration" => SyntaxKind.EnumKeyword,
-                        "RecordDeclaration" => SyntaxKind.RecordKeyword,
-                        "UnionDeclaration" => SyntaxKind.UnionKeyword,
-                        _ => throw ExceptionUtilities.UnexpectedValue(expectedMember),
-                    });
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.DelegateDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Delegate_RefReadonly()
+        {
+            UsingTree("ref readonly delegate void R(); class C { ref readonly delegate void R(); }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.DelegateDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.DelegateDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp8_Readonly()
+        {
+            UsingTree("readonly record R { } class C { readonly record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "record");
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "record");
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp8_Ref()
+        {
+            UsingTree("ref record R { } class C { ref record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "record");
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp8_RefReadonly()
+        {
+            UsingTree("ref readonly record R { } class C { ref readonly record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "record");
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp9_Readonly()
+        {
+            UsingTree("readonly record R { } class C { readonly record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-            }
-
-            void IdentifierName(string name)
-            {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.ClassDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, name);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.RecordDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
+                N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp9_Ref()
+        {
+            UsingTree("ref record R { } class C { ref record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.RecordDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp9_RefReadonly()
+        {
+            UsingTree("ref readonly record R { } class C { ref readonly record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "record");
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp14_Readonly()
+        {
+            UsingTree("readonly union R { } class C { readonly union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "union");
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "union");
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp14_Ref()
+        {
+            UsingTree("ref union R { } class C { ref union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "union");
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "union");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp14_RefReadonly()
+        {
+            UsingTree("ref readonly union R { } class C { ref readonly union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "union");
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "union");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp15_Readonly()
+        {
+            UsingTree("readonly union R { } class C { readonly union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UnionDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.UnionKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UnionDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.UnionKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp15_Ref()
+        {
+            UsingTree("ref union R { } class C { ref union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UnionDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.UnionKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UnionDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.UnionKeyword);
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp15_RefReadonly()
+        {
+            UsingTree("ref readonly union R { } class C { ref readonly union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "union");
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "union");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
