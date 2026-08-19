@@ -1493,9 +1493,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Preserve the existing feature-gated preference for parsing direct 'ref record',
                 // 'ref partial record', 'ref union', and 'ref partial union' as type declarations.
                 var nextToken = this.PeekToken(1);
-                if (this.IsEnabledRecordOrUnionKeyword(nextToken) ||
-                    (nextToken.ContextualKind == SyntaxKind.PartialKeyword &&
-                     this.IsEnabledRecordOrUnionKeyword(this.PeekToken(2))))
+                if (this.IsEnabledRecordOrUnionKeyword(nextToken))
+                {
+                    return false;
+                }
+
+                if (nextToken.ContextualKind == SyntaxKind.PartialKeyword &&
+                    this.IsEnabledRecordOrUnionKeyword(this.PeekToken(2)))
                 {
                     return false;
                 }
@@ -1665,6 +1669,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
             var peekIndex = 1;
+
+            // Look through intervening modifiers to determine whether 'partial' belongs to a type
+            // declaration. Stop at 'ref' because it may instead begin a ref-returning member;
+            // ParseModifiers handles that ambiguity separately.
             while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) is
                    not (DeclarationModifiers.None or DeclarationModifiers.Ref))
             {
