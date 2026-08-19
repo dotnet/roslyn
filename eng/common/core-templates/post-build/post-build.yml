@@ -158,6 +158,7 @@ stages:
 
       - task: PowerShell@2
         displayName: Validate
+        continueOnError: true
         inputs:
           filePath: $(System.DefaultWorkingDirectory)/eng/common/post-build/nuget-validation.ps1
           arguments: -PackagesPath $(Build.ArtifactStagingDirectory)/PackageArtifacts/

@@ -464,5 +464,5 @@ extends:
         parameters:
           publishAssetsImmediately: true
           enableSigningValidation: false
-          enableNugetValidation: false
+          enableNugetValidation: true
           enableSourceLinkValidation: false

@@ -83,6 +83,10 @@ parameters:
   displayName: Timeout in Minutes
   type: number
   default: 150
+- name: runNuGetPackageUpgradeValidation
+  displayName: Run NuGet Package Upgrade Validation (TestGate=NuGetPackageUpgrade)
+  type: boolean
+  default: false
 
 stages:
 - template: eng/pipelines/test-integration-helix.yml
@@ -91,6 +95,7 @@ stages:
     queueName: ${{ parameters.queueName }}
     buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
+    testFilter: TestGate!=NuGetPackageUpgrade
     configuration: Debug
     testRuns:
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
@@ -107,6 +112,7 @@ stages:
     queueName: ${{ parameters.queueName }}
     buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
+    testFilter: TestGate!=NuGetPackageUpgrade
     configuration: Release
     testRuns:
       - oop64bit: false
@@ -116,3 +122,13 @@ stages:
         - oop64bit: true
           lspEditor: false
           runName: VS_Integration_Release_64
+
+# Manual, opt-in validation of upgrading Roslyn NuGet packages in legacy packages.config projects
+# (TestGate=NuGetPackageUpgrade). Not run automatically: enable the 'runNuGetPackageUpgradeValidation'
+# parameter when queuing the build to run it. See eng/pipelines/test-integration-nuget-upgrade.yml.
+- ${{ if eq(parameters.runNuGetPackageUpgradeValidation, true) }}:
+  - template: eng/pipelines/test-integration-nuget-upgrade.yml
+    parameters:
+      poolName: ${{ parameters.poolName }}
+      queueName: ${{ parameters.queueName }}
+      timeout: ${{ parameters.timeout }}
