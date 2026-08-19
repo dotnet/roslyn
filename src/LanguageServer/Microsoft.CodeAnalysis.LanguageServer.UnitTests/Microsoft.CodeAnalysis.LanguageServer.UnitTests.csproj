@@ -19,7 +19,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Basic.Reference.Assemblies.Net100" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="IdeCoreBenchmarks" />
   </ItemGroup>
 
   <ItemGroup Label="Shared named-pipe helper for daemon client tests">
@@ -60,4 +65,3 @@
     </ItemGroup>
   </Target>
 </Project>
-

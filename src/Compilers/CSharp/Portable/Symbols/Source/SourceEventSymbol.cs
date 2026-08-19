@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
             if (!explicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
@@ -590,11 +590,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isInterface)
             {
                 allowedModifiers |= DeclarationModifiers.Extern;
-            }
-
-            if ((allowedModifiers & DeclarationModifiers.Extern) != 0)
-            {
-                allowedModifiers |= DeclarationModifiers.Safe;
             }
 
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
@@ -969,21 +964,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberExtendedModDifference, implementation.GetFirstLocation());
             }
-        }
-
-        internal sealed override void AfterTypeMembersCompletedChecks(BindingDiagnosticBag diagnostics)
-        {
-            base.AfterTypeMembersCompletedChecks(diagnostics);
-
-            if (HasSafeModifier && (!(IsExtern || hasExplicitOrExtendedLayoutField()) || HasUnsafeModifier))
-            {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                    (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, GetFirstLocation()));
-            }
-
-            return;
-
-            bool hasExplicitOrExtendedLayoutField() => AssociatedField != null && !IsStatic && (ContainingType.Layout.Kind == LayoutKind.Explicit || ContainingType.Layout.Kind == LayoutKind.Extended);
         }
 
         internal bool IsPartial => (this.Modifiers & DeclarationModifiers.Partial) != 0;

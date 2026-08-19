@@ -139,8 +139,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
             TimeSpan.FromMilliseconds(100),
             ReloadProjectsAsync,
             ProjectToLoad.Comparer,
-            Listener,
-            CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
+            Listener);
     }
 
     private static ImmutableDictionary<string, string> BuildAdditionalProperties(ServerConfiguration? serverConfiguration)
@@ -387,7 +386,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
 
             return projectRestorePath;
         }
-        catch (Exception e)
+        catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken)) // Cancellation is only expected when we're shutting down, in which case there's no reason to do a report.
         {
             // Since our LogDiagnosticsAsync helper takes DiagnosticLogItems, let's just make one for this
             var message = string.Format(LanguageServerResources.Exception_thrown_0, e);
@@ -650,8 +649,13 @@ internal abstract class LanguageServerProjectLoader : IDisposable
             _progressQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.Zero,
                 ReportProgressAsync,
-                listener ?? AsynchronousOperationListenerProvider.NullListener,
-                CancellationToken.None);
+                listener ?? AsynchronousOperationListenerProvider.NullListener);
+
+            reporter.Report(new LSP.WorkDoneProgressReport
+            {
+                Message = string.Format(LanguageServerResources.Loading_0_projects, totalItems),
+                Percentage = 0,
+            });
         }
 
         public void OnItemProcessed()

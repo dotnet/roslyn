@@ -1,4 +1,5 @@
 #nullable enable
+*REMOVED*static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmnisharpAnalyzerAssemblyLoaderFactory.CreateShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null) -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader!
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmnisharpAnalyzerAssemblyLoaderFactory
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmniSharpWorkspaceAnalyzerOptionsFactory
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeFixContextFactory
@@ -304,7 +305,7 @@ readonly Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.OmniSharpPi
 readonly Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.OmniSharpPickMembersResult.Members -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol!>
 readonly Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.OmniSharpPickMembersResult.Options -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.OmniSharpPickMembersOption!>
 readonly Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.OmniSharpPickMembersResult.SelectedAll -> bool
-static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmnisharpAnalyzerAssemblyLoaderFactory.CreateShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null) -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader!
+static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmnisharpAnalyzerAssemblyLoaderFactory.CreateShadowCopyAnalyzerAssemblyLoader() -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader!
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmniSharpWorkspaceAnalyzerOptionsFactory.Create(Microsoft.CodeAnalysis.Solution! solution, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions! options) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions!
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeFixContextFactory.CreateCodeFixContext(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!> diagnostics, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>! registerCodeFix, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.CodeFixes.CodeFixContext
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeFixContextFactory.CreateCodeRefactoringContext(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction!, Microsoft.CodeAnalysis.Text.TextSpan?>! registerRefactoring, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext
