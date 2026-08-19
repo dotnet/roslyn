@@ -66,12 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var typeArguments = methodSymbol.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(methodSymbol.TypeArgumentsWithAnnotations);
                                 for (int i = 0; i < arity; i++)
                                 {
-                                    var typeParameter = typeParameters[i];
-                                    if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
-                                        typeArguments[i].Type is NamedTypeSymbol typeArgument)
-                                    {
-                                        checkTypeArgumentWithConstructorConstraint(this, typeParameter, typeArgument, symbol, arg, location, diagnostics);
-                                    }
+                                    checkTypeArgumentWithConstructorConstraint(this, typeParameters[i], typeArguments[i].Type, symbol, arg, location, diagnostics);
                                 }
                             }
                         }
@@ -82,19 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var arity = typeSymbol.TypeParameters.Length;
                             for (int i = 0; i < arity; i++)
                             {
-                                var typeParameter = typeSymbol.TypeParameters[i];
-                                if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
-                                    typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type is NamedTypeSymbol typeArgument)
-                                {
-                                    checkTypeArgumentWithConstructorConstraint(this, typeParameter, typeArgument, symbol, arg, location, diagnostics);
-                                }
+                                checkTypeArgumentWithConstructorConstraint(this, typeSymbol.TypeParameters[i], typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type, symbol, arg, location, diagnostics);
                             }
                         }
                         break;
                 }
             }
 
-            static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, NamedTypeSymbol typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics)
+            static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, TypeSymbol typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics)
             {
                 if (ConstraintsHelper.GetUnsafeConstructorForConstraint(typeParameter, typeArgument) is { } unsafeConstructor)
                 {
