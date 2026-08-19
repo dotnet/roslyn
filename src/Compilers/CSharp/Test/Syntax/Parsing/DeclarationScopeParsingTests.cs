@@ -2011,37 +2011,82 @@ scoped ref int b;
 ref scoped int c;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (2,12): error CS1001: Identifier expected
+                // (2,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // ref scoped int c;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(2, 12),
-                // (2,12): error CS1003: Syntax error, ',' expected
-                // ref scoped int c;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(2, 12)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(2, 5)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                    }
+                }
                 N(SyntaxKind.GlobalStatement);
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.RefType);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "scoped");
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
-                            M(SyntaxKind.VariableDeclarator);
+                            N(SyntaxKind.VariableDeclarator);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "c");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RefBeforeTopLevelFieldModifier()
+        {
+            const string source = "ref public int F;";
+            UsingTree(
+                source,
+                Diagnostic(ErrorCode.ERR_TypeExpected, "public").WithLocation(1, 5));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "F");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -2989,9 +3034,9 @@ ref scoped var;
 @"ref scoped readonly S a;
 ";
             UsingTree(source, TestOptions.Regular11,
-                // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,12): error CS1585: Member modifier 'readonly' must precede the member type and name
                 // ref scoped readonly S a;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(1, 5),
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(1, 12),
                 // (1,12): error CS0106: The modifier 'readonly' is not valid for this item
                 // ref scoped readonly S a;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 12));
@@ -3000,8 +3045,14 @@ ref scoped var;
             {
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                    }
                 }
                 N(SyntaxKind.GlobalStatement);
                 {

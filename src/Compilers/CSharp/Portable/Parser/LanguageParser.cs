@@ -1429,6 +1429,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 return;
                             }
 
+                            // At the top level, only consume 'ref' as a modifier when the following
+                            // modifier chain actually leads to a type declaration. Otherwise, leave
+                            // it for return-type/statement parsing so malformed declarations remain
+                            // split into useful syntax nodes rather than swallowing subsequent tokens.
+                            if (forTopLevelStatements && !shouldConsumeRefAtTopLevel())
+                            {
+                                return;
+                            }
+
                             modTok = this.EatToken();
                             break;
                         }
@@ -1508,6 +1517,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // If both are present, leave 'ref' unconsumed so the return-type parser handles it.
                 using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
                 return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+            }
+
+            bool shouldConsumeRefAtTopLevel()
+            {
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
+
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                this.EatToken();
+
+                while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
+                {
+                    this.EatToken();
+                }
+
+                // Preserve existing recovery for contextual declaration keywords in older language
+                // versions. isRefReturningMember() has already handled cases where one of these is
+                // instead the type of a ref-returning member.
+                return this.CurrentToken.ContextualKind is
+                    SyntaxKind.RecordKeyword or SyntaxKind.UnionKeyword or SyntaxKind.ExtensionKeyword ||
+                    this.IsTypeDeclarationStart();
             }
 
             bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)
