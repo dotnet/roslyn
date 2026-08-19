@@ -9,10 +9,14 @@ resources:
     source: DD-CB-ReleaseVS
     trigger: true
   repositories:
-  - repository: DartLabTemplates
+  - repository: DartLab
     type: git
     name: DevDiv/DartLab
     ref: refs/tags/Production
+  - repository: DartLabTemplates
+    type: git
+    name: DevDiv/DartLab.Templates
+    ref: refs/heads/main
   - repository: VSTemplates
     type: git
     name: DevDiv/VS.Templates
@@ -65,6 +69,7 @@ parameters:
 extends:
   template: /DartLab/1ES/pipelines/ci/build.yml@VSTemplates
   parameters:
+    dartLabTemplatesRepositoryAlias: DartLab
     testStages:
     - template: /eng/pipelines/test-gates/staging/stages.yml@self
       parameters:
