@@ -752,7 +752,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         // [Failure] Msbuild failed when processing the file 'Program.cs' with message:
         // The project file could not be loaded. Data at the root level is invalid. Line 1, position 1.
-        var diagnostic = Assert.Single(workspace.Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Failure));
+        var diagnostic = Assert.Single(workspace.Diagnostics, d => d.Kind == WorkspaceDiagnosticKind.Failure);
         Assert.Contains("Program.cs", diagnostic.Message);
     }
 
