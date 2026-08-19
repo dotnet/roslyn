@@ -106,69 +106,310 @@ class Program
         }
 
         [Fact]
-        public void RefReadonlyReturn_Unexpected()
+        public void RefReadonlyField()
         {
-            var text = @"
+            UsingTree("""
+                class Program
+                {
+                    ref readonly int Field;
+                }
+                """, TestOptions.Regular9);
 
-class Program
-{
-    static void Main()
-    {
-    }
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.ReadOnlyKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Field");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
 
-    ref readonly int Field;
-
-    public static ref readonly Program  operator  +(Program x, Program y)
-    {
-        throw null;
-    }
-
-    // this parses fine
-    static async ref readonly Task M<T>()
-    {
-        throw null;
-    }
-
-    public ref readonly virtual int* P1 => throw null;
-
-}
-";
-
-            ParseAndValidate(text, TestOptions.Regular9);
-            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (9,5): error CS8773: Feature 'ref fields' is not available in C# 9.0. Please use language version 11.0 or greater.
+            CreateCompilation("""
+                class Program
+                {
+                    ref readonly int Field;
+                }
+                """, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (3,5): error CS8773: Feature 'ref fields' is not available in C# 9.0. Please use language version 11.0 or greater.
                 //     ref readonly int Field;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ref readonly int").WithArguments("ref fields", "11.0").WithLocation(9, 5),
-                // (9,22): error CS9064: Target runtime doesn't support ref fields.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ref readonly int").WithArguments("ref fields", "11.0").WithLocation(3, 5),
+                // (3,22): error CS9064: Target runtime doesn't support ref fields.
                 //     ref readonly int Field;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "Field").WithLocation(9, 22),
-                // (9,22): error CS9059: A ref field can only be declared in a ref struct.
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "Field").WithLocation(3, 22),
+                // (3,22): error CS9059: A ref field can only be declared in a ref struct.
                 //     ref readonly int Field;
-                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "Field").WithLocation(9, 22),
-                // (9,22): warning CS0169: The field 'Program.Field' is never used
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "Field").WithLocation(3, 22),
+                // (3,22): warning CS0169: The field 'Program.Field' is never used
                 //     ref readonly int Field;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field").WithArguments("Program.Field").WithLocation(9, 22),
-                // (11,51): error CS0106: The modifier 'readonly' is not valid for this item
-                //     public static ref readonly Program  operator  +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("readonly").WithLocation(11, 51),
-                // (11,51): error CS0106: The modifier 'ref' is not valid for this item
-                //     public static ref readonly Program  operator  +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("ref").WithLocation(11, 51),
-                // (17,18): error CS1073: Unexpected token 'ref'
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field").WithArguments("Program.Field").WithLocation(3, 22));
+        }
+
+        [Fact]
+        public void RefReadonlyOperatorReturn()
+        {
+            UsingTree("""
+                class Program
+                {
+                    public static ref readonly Program operator +(Program x, Program y)
+                    {
+                        throw null;
+                    }
+                }
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Program");
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Program");
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Program");
+                                }
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ThrowStatement);
+                            {
+                                N(SyntaxKind.ThrowKeyword);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation("""
+                class Program
+                {
+                    public static ref readonly Program operator +(Program x, Program y)
+                    {
+                        throw null;
+                    }
+                }
+                """).VerifyDiagnostics(
+                // (3,49): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static ref readonly Program operator +(Program x, Program y)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("readonly").WithLocation(3, 49),
+                // (3,49): error CS0106: The modifier 'ref' is not valid for this item
+                //     public static ref readonly Program operator +(Program x, Program y)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("ref").WithLocation(3, 49));
+        }
+
+        [Fact]
+        public void RefReadonlyReturnAfterAsync()
+        {
+            UsingTree("""
+                class Program
+                {
+                    static async ref readonly Task M<T>()
+                    {
+                        throw null;
+                    }
+                }
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Task");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.TypeParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.TypeParameter);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ThrowStatement);
+                            {
+                                N(SyntaxKind.ThrowKeyword);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation("""
+                class Program
+                {
+                    static async ref readonly Task M<T>()
+                    {
+                        throw null;
+                    }
+                }
+                """).VerifyDiagnostics(
+                // (3,18): error CS1073: Unexpected token 'ref'
                 //     static async ref readonly Task M<T>()
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 18),
-                // (17,31): error CS0246: The type or namespace name 'Task' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 18),
+                // (3,31): error CS0246: The type or namespace name 'Task' could not be found (are you missing a using directive or an assembly reference?)
                 //     static async ref readonly Task M<T>()
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task").WithArguments("Task").WithLocation(17, 31),
-                // (22,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task").WithArguments("Task").WithLocation(3, 31));
+        }
+
+        [Fact]
+        public void RefReadonlyBeforePropertyModifier()
+        {
+            UsingTree("""
+                class Program
+                {
+                    public ref readonly virtual int* P1 => throw null;
+                }
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.VirtualKeyword);
+                        N(SyntaxKind.PointerType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.AsteriskToken);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P1");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.ThrowExpression);
+                            {
+                                N(SyntaxKind.ThrowKeyword);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation("""
+                class Program
+                {
+                    public ref readonly virtual int* P1 => throw null;
+                }
+                """).VerifyDiagnostics(
+                // (3,38): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public ref readonly virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(22, 33),
-                // (22,38): error CS0106: The modifier 'readonly' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("readonly").WithLocation(3, 38),
+                // (3,38): error CS0106: The modifier 'ref' is not valid for this item
                 //     public ref readonly virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("readonly").WithLocation(22, 38),
-                // (22,38): error CS0106: The modifier 'ref' is not valid for this item
-                //     public ref readonly virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("ref").WithLocation(22, 38));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("ref").WithLocation(3, 38));
         }
 
         [Fact]
@@ -429,6 +670,65 @@ class Test
         [Fact]
         public void RefReadOnlyReturnIllegalInOperators()
         {
+            UsingTree(@"
+public class Test
+{
+    public static ref readonly bool operator!(Test obj) => throw null;
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Test");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.BoolKeyword);
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Test");
+                                }
+                                N(SyntaxKind.IdentifierToken, "obj");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.ThrowExpression);
+                            {
+                                N(SyntaxKind.ThrowKeyword);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             CreateCompilation(@"
 public class Test
 {

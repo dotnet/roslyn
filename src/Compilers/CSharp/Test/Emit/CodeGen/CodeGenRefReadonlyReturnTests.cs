@@ -478,20 +478,20 @@ class Program
         }
 
         [Fact]
-        public void BindingInvalidRefRoCombination()
+        public void BindingInvalidRefReadonlyCombination()
         {
             var text = @"
 class Program
 {
-    // should be a syntax error
-    // just make sure binder is ok with this
+    // Parsing succeeds.
+    // Binding rejects the invalid modifiers.
     static ref readonly ref int M(int x)
     {
         return ref M(x);
     }
 
-    // should be a syntax error
-    // just make sure binder is ok with this
+    // Parsing succeeds.
+    // Binding rejects the invalid modifier.
     static readonly int M1(int x)
     {
         return ref M(x);

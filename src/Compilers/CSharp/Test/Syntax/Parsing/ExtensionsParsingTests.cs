@@ -2484,68 +2484,78 @@ class C
     }
 
     [Fact]
-    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp13_Readonly()
-        => VerifyExtensionModifierParsing("readonly", TestOptions.Regular13, SyntaxKind.ConstructorDeclaration);
-
-    [Fact]
-    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp13_Ref()
-        => VerifyExtensionModifierParsing("ref", TestOptions.Regular13, SyntaxKind.ConstructorDeclaration);
-
-    [Fact]
-    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp13_RefReadonly()
-        => VerifyExtensionModifierParsing("ref readonly", TestOptions.Regular13, SyntaxKind.ConstructorDeclaration);
-
-    [Fact]
-    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp14_Readonly()
-        => VerifyExtensionModifierParsing("readonly", TestOptions.Regular14, SyntaxKind.ExtensionBlockDeclaration);
-
-    [Fact]
-    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp14_Ref()
-        => VerifyExtensionModifierParsing("ref", TestOptions.Regular14, SyntaxKind.ExtensionBlockDeclaration);
-
-    [Fact]
-    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp14_RefReadonly()
-        => VerifyExtensionModifierParsing("ref readonly", TestOptions.Regular14, SyntaxKind.ExtensionBlockDeclaration);
-
-    private void VerifyExtensionModifierParsing(
-        string modifiers,
-        CSharpParseOptions parseOptions,
-        SyntaxKind expectedTypeMemberKind)
+    public void ModifierParsing_CSharp13_Readonly_CompilationUnit()
     {
-        var declaration = $"{modifiers} extension(object) {{ }}";
-        DiagnosticDescription[] diagnostics = modifiers == "readonly"
-            ? [
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly"),
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "("),
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-            ]
-            : new[]
-            {
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "("),
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-            };
-        UsingTree(declaration, parseOptions, diagnostics);
+        UsingTree(
+            "readonly extension(object) { }",
+            TestOptions.Regular13,
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.GlobalStatement);
             {
                 N(SyntaxKind.LocalFunctionStatement);
                 {
-                    if (modifiers == "readonly")
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        IdentifierName("extension");
+                        N(SyntaxKind.IdentifierToken, "extension");
                     }
-                    else
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            if (modifiers == "ref readonly")
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.ReadOnlyKeyword);
+                                N(SyntaxKind.ObjectKeyword);
                             }
-                            IdentifierName("extension");
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation("readonly extension(object) { }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 10),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 19),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp13_Ref_CompilationUnit()
+    {
+        UsingTree(
+            "ref extension(object) { }",
+            TestOptions.Regular13,
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
                         }
                     }
                     M(SyntaxKind.IdentifierToken);
@@ -2573,44 +2583,37 @@ class C
         }
         EOF();
 
-        var containingTypeSource = $"class C {{ {declaration} }}";
-        if (expectedTypeMemberKind == SyntaxKind.ConstructorDeclaration)
-        {
-            UsingTree(
-                containingTypeSource,
-                parseOptions,
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
-        }
-        else
-        {
-            UsingTree(containingTypeSource, parseOptions);
-        }
+        CreateCompilation("ref extension(object) { }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 5),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp13_RefReadonly_CompilationUnit()
+    {
+        UsingTree(
+            "ref readonly extension(object) { }",
+            TestOptions.Regular13,
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(expectedTypeMemberKind);
+                N(SyntaxKind.LocalFunctionStatement);
                 {
-                    if (modifiers.StartsWith("ref"))
+                    N(SyntaxKind.RefType);
                     {
                         N(SyntaxKind.RefKeyword);
-                    }
-                    if (modifiers.EndsWith("readonly"))
-                    {
                         N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
+                        }
                     }
-
-                    if (expectedTypeMemberKind == SyntaxKind.ConstructorDeclaration)
-                    {
-                        N(SyntaxKind.IdentifierToken, "extension");
-                    }
-                    else
-                    {
-                        N(SyntaxKind.ExtensionKeyword);
-                    }
+                    M(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -2620,22 +2623,222 @@ class C
                             {
                                 N(SyntaxKind.ObjectKeyword);
                             }
-                            if (expectedTypeMemberKind == SyntaxKind.ConstructorDeclaration)
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
-                    if (expectedTypeMemberKind == SyntaxKind.ConstructorDeclaration)
+                    N(SyntaxKind.Block);
                     {
-                        N(SyntaxKind.Block);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation("ref readonly extension(object) { }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp14_Readonly_CompilationUnit()
+    {
+        UsingTree(
+            "readonly extension(object) { }",
+            TestOptions.Regular14,
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "extension");
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation("readonly extension(object) { }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 10),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 19),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 26));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp14_Ref_CompilationUnit()
+    {
+        UsingTree(
+            "ref extension(object) { }",
+            TestOptions.Regular14,
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
                         }
                     }
-                    else
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation("ref extension(object) { }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 5),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp14_RefReadonly_CompilationUnit()
+    {
+        UsingTree(
+            "ref readonly extension(object) { }",
+            TestOptions.Regular14,
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
+                        }
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation("ref readonly extension(object) { }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 23),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp13_Readonly_TypeMember()
+    {
+        UsingTree(
+            "class C { readonly extension(object) { } }",
+            TestOptions.Regular13,
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 36));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.IdentifierToken, "extension");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.CloseBraceToken);
@@ -2647,13 +2850,235 @@ class C
         }
         EOF();
 
-        void IdentifierName(string name)
+        CreateCompilation("class C { readonly extension(object) { } }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "readonly extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 20),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 36));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp13_Ref_TypeMember()
+    {
+        UsingTree(
+            "class C { ref extension(object) { } }",
+            TestOptions.Regular13,
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 31));
+        N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IdentifierName);
+            N(SyntaxKind.ClassDeclaration);
             {
-                N(SyntaxKind.IdentifierToken, name);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierToken, "extension");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
             }
+            N(SyntaxKind.EndOfFileToken);
         }
+        EOF();
+
+        CreateCompilation("class C { ref extension(object) { } }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "ref extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 15),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 31));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp13_RefReadonly_TypeMember()
+    {
+        UsingTree(
+            "class C { ref readonly extension(object) { } }",
+            TestOptions.Regular13,
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 40));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.IdentifierToken, "extension");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation("class C { ref readonly extension(object) { } }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "ref readonly extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 24),
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 24),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 40));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp14_Readonly_TypeMember()
+    {
+        UsingTree("static class C { readonly extension(object) { } }", TestOptions.Regular14);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionBlockDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation("static class C { readonly extension(object) { } }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 27));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp14_Ref_TypeMember()
+    {
+        UsingTree("static class C { ref extension(object) { } }", TestOptions.Regular14);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionBlockDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation("static class C { ref extension(object) { } }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 22));
+    }
+
+    [Fact]
+    public void ModifierParsing_CSharp14_RefReadonly_TypeMember()
+    {
+        UsingTree("static class C { ref readonly extension(object) { } }", TestOptions.Regular14);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionBlockDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation("static class C { ref readonly extension(object) { } }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 31),
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 31));
     }
 
     [Theory]
