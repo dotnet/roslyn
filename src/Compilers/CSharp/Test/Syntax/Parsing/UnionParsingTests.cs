@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -383,45 +384,18 @@ ref union U1(E1);
         var src = """
 ref partial union U1(E1);
 """;
-        UsingTree(src, TestOptions.Regular14,
-            // (1,5): error CS1031: Type expected
+        var tree = ParseTree(src, TestOptions.Regular14);
+        tree.GetDiagnostics().Verify(
+            // (1,24): error CS1001: Identifier expected
             // ref partial union U1(E1);
-            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 5),
-            // (1,5): error CS1525: Invalid expression term 'partial'
-            // ref partial union U1(E1);
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 5),
-            // (1,5): error CS1003: Syntax error, ',' expected
-            // ref partial union U1(E1);
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 5)
-            );
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 24));
 
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
+        var method = Assert.IsType<MethodDeclarationSyntax>(Assert.Single(tree.GetCompilationUnitRoot().Members));
+        Assert.Collection(
+            method.Modifiers,
+            modifier => Assert.Equal("ref", modifier.Text),
+            modifier => Assert.Equal("partial", modifier.Text));
+        Assert.Equal("union", method.ReturnType.ToString());
 
         UsingTree(src, useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview);
 

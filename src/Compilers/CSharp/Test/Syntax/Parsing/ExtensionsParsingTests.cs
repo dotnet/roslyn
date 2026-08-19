@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -2397,72 +2398,35 @@ class C
     [InlineData(LanguageVersion.CSharp14)]
     public void WithModifiers_Ref(LanguageVersion languageVersion)
     {
-        UsingTree("""
-class C
-{
-    ref extension(Type) { }
-}
-""",
-            TestOptions.Regular.WithLanguageVersion(languageVersion),
-            // (3,18): error CS1519: Invalid token '(' in a member declaration
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 18),
-            // (3,23): error CS8124: Tuple must contain at least two elements.
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 23),
-            // (3,25): error CS1519: Invalid token '{' in a member declaration
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 25),
-            // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-            // }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+        var tree = ParseTree(
+            "class C { ref extension(Type) { } }",
+            TestOptions.Regular.WithLanguageVersion(languageVersion));
 
-        N(SyntaxKind.CompilationUnit);
+        tree.GetDiagnostics().Verify(
+            languageVersion == LanguageVersion.CSharp13
+                ?
+                [
+                    // (1,29): error CS1001: Identifier expected
+                    // class C { ref extension(Type) { } }
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 29)
+                ]
+                : []);
+
+        var root = tree.GetCompilationUnitRoot();
+        var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+        var member = Assert.Single(containingType.Members);
+        Assert.Equal(
+            languageVersion == LanguageVersion.CSharp13
+                ? SyntaxKind.ConstructorDeclaration
+                : SyntaxKind.ExtensionBlockDeclaration,
+            member.Kind());
+        var modifiers = member switch
         {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Type");
-                            }
-                        }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
+            ConstructorDeclarationSyntax constructor => constructor.Modifiers,
+            ExtensionBlockDeclarationSyntax extension => extension.Modifiers,
+            _ => throw ExceptionUtilities.UnexpectedValue(member.Kind()),
+        };
+        Assert.Equal(SyntaxKind.RefKeyword, Assert.Single(modifiers).Kind());
     }
 
     [Theory]
@@ -3599,71 +3563,13 @@ static class C
     [Fact]
     public void WithRef()
     {
-        UsingTree("""
-class C
-{
-    ref extension(Type) { }
-}
-""",
-            TestOptions.RegularPreview,
-            // (3,18): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 18),
-            // (3,23): error CS8124: Tuple must contain at least two elements.
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 23),
-            // (3,25): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-            //     ref extension(Type) { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 25),
-            // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-            // }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Type");
-                            }
-                        }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
+        var tree = ParseTree("class C { ref extension(Type) { } }", TestOptions.RegularPreview);
+        tree.GetDiagnostics().Verify();
+
+        var root = tree.GetCompilationUnitRoot();
+        var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+        var extension = Assert.IsType<ExtensionBlockDeclarationSyntax>(Assert.Single(containingType.Members));
+        Assert.Equal(SyntaxKind.RefKeyword, Assert.Single(extension.Modifiers).Kind());
     }
 
     [Fact]

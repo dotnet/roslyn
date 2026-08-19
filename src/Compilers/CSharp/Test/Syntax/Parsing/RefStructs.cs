@@ -81,21 +81,21 @@ class Program
 
             var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (6,12): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(6, 12),
-                // (10,16): error CS1031: Type expected
-                //     public ref delegate ref int D1();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(10, 16),
                 // (4,15): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref class S1{}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S1").WithArguments("ref").WithLocation(4, 15),
                 // (6,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     public ref unsafe struct S2{}
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2").WithLocation(6, 30),
+                // (6,12): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     public ref unsafe struct S2{}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(6, 12),
                 // (8,19): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref interface I1{};
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("ref").WithLocation(8, 19)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("ref").WithLocation(8, 19),
+                // (10,33): error CS0106: The modifier 'ref' is not valid for this item
+                //     public ref delegate ref int D1();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D1").WithArguments("ref").WithLocation(10, 33)
             );
         }
 
@@ -118,12 +118,13 @@ class Program
         }
 
         [Theory]
-        [InlineData("enum E { }")]
-        [InlineData("delegate void D();")]
-        public void RefTypeDeclarationLookahead_OtherReservedDeclarationKinds(string declaration)
+        [InlineData("enum E { }", SyntaxKind.EnumDeclaration)]
+        [InlineData("delegate void D();", SyntaxKind.DelegateDeclaration)]
+        public void RefModifierRecovery_OtherReservedDeclarationKinds(string declaration, SyntaxKind declarationKind)
         {
             var root = ParseTree($"ref {declaration}", TestOptions.Regular).GetCompilationUnitRoot();
-            Assert.IsType<IncompleteMemberSyntax>(root.Members[0]);
+            var parsedDeclaration = Assert.Single(root.Members);
+            Assert.Equal(declarationKind, parsedDeclaration.Kind());
         }
 
         [Fact]
@@ -159,6 +160,32 @@ class Program
 
         [Theory]
         [InlineData("record", LanguageVersion.CSharp8)]
+        [InlineData("union", LanguageVersion.CSharp14)]
+        public void RefContextualKeywordRemainsReturnTypeBeforeFeature(string contextualKeyword, LanguageVersion languageVersion)
+        {
+            var source = $$"""
+                class {{contextualKeyword}} { }
+
+                class C
+                {
+                    private {{contextualKeyword}} _field = new {{contextualKeyword}}();
+                    public ref {{contextualKeyword}} M() => ref _field;
+                }
+                """;
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            CreateCompilation(source, parseOptions: options).VerifyDiagnostics(
+                // (1,7): warning CS8981: The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, contextualKeyword).WithArguments(contextualKeyword).WithLocation(1, 7));
+
+            var root = ParseTree(source, options).GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(root.Members[1]);
+            var method = Assert.IsType<MethodDeclarationSyntax>(containingType.Members[1]);
+            var refType = Assert.IsType<RefTypeSyntax>(method.ReturnType);
+            Assert.Equal(contextualKeyword, Assert.IsType<IdentifierNameSyntax>(refType.Type).Identifier.Text);
+        }
+
+        [Theory]
+        [InlineData("record", LanguageVersion.CSharp8)]
         [InlineData("record", LanguageVersion.CSharp9)]
         [InlineData("union", LanguageVersion.CSharp14)]
         [InlineData("union", LanguageVersion.CSharp15)]
@@ -182,8 +209,8 @@ class Program
         [InlineData("class R { }", LanguageVersion.CSharp15, "ClassDeclaration", "ClassDeclaration", "ClassDeclaration")]
         [InlineData("struct R { }", LanguageVersion.CSharp15, "StructDeclaration", "StructDeclaration", "StructDeclaration")]
         [InlineData("interface R { }", LanguageVersion.CSharp15, "InterfaceDeclaration", "InterfaceDeclaration", "InterfaceDeclaration")]
-        [InlineData("enum R { }", LanguageVersion.CSharp15, "EnumDeclaration", "IncompleteMember, EnumDeclaration", "IncompleteMember, EnumDeclaration")]
-        [InlineData("delegate void R();", LanguageVersion.CSharp15, "DelegateDeclaration", "IncompleteMember, DelegateDeclaration", "IncompleteMember, DelegateDeclaration")]
+        [InlineData("enum R { }", LanguageVersion.CSharp15, "EnumDeclaration", "EnumDeclaration", "EnumDeclaration")]
+        [InlineData("delegate void R();", LanguageVersion.CSharp15, "DelegateDeclaration", "DelegateDeclaration", "DelegateDeclaration")]
         [InlineData("record R { }", LanguageVersion.CSharp8, "PropertyDeclaration", "PropertyDeclaration", "PropertyDeclaration")]
         [InlineData("record R { }", LanguageVersion.CSharp9, "RecordDeclaration", "RecordDeclaration", "PropertyDeclaration")]
         [InlineData("union R { }", LanguageVersion.CSharp14, "PropertyDeclaration", "PropertyDeclaration", "PropertyDeclaration")]
@@ -215,8 +242,8 @@ class Program
         }
 
         [Theory]
-        [InlineData(LanguageVersion.CSharp13, "GlobalStatement", "ConstructorDeclaration", "IncompleteMember, GlobalStatement, GlobalStatement", "IncompleteMember, IncompleteMember")]
-        [InlineData(LanguageVersion.CSharp14, "GlobalStatement", "ExtensionBlockDeclaration", "IncompleteMember, GlobalStatement, GlobalStatement", "IncompleteMember, IncompleteMember")]
+        [InlineData(LanguageVersion.CSharp13, "GlobalStatement", "ConstructorDeclaration", "GlobalStatement", "ConstructorDeclaration")]
+        [InlineData(LanguageVersion.CSharp14, "GlobalStatement", "ExtensionBlockDeclaration", "GlobalStatement", "ExtensionBlockDeclaration")]
         public void ExtensionModifierParsing_AtCompilationUnitAndTypeMemberLevel(
             LanguageVersion languageVersion,
             string expectedTopLevelReadonlyMembers,
@@ -328,7 +355,7 @@ class C
         [Theory]
         [InlineData("")]
         [InlineData("readonly ")]
-        public void RefTypeDeclarationLookahead_DoesNotSkipScoped(string prefix)
+        public void RefModifierRecovery_WithScoped(string prefix)
         {
             var tree = ParseTree($"class C {{ ref {prefix}scoped struct S {{}} }}", TestOptions.Regular);
             Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, Assert.Single(tree.GetDiagnostics()).Code);
@@ -340,8 +367,8 @@ class C
                 member =>
                 {
                     var incompleteMember = Assert.IsType<IncompleteMemberSyntax>(member);
-                    var refType = Assert.IsType<RefTypeSyntax>(incompleteMember.Type);
-                    Assert.Equal($"ref {prefix}scoped", refType.ToString());
+                    Assert.Equal($"ref {prefix}", incompleteMember.Modifiers.ToFullString());
+                    Assert.Equal("scoped", Assert.IsType<IdentifierNameSyntax>(incompleteMember.Type).Identifier.Text);
                 },
                 member => Assert.IsType<StructDeclarationSyntax>(member));
         }

@@ -547,32 +547,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Fixed_02(LanguageVersion languageVersion)
         {
             string source = "struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
-                // (1,17): error CS1031: Type expected
-                // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "fixed").WithLocation(1, 17),
-                // (1,47): error CS1031: Type expected
-                // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "fixed").WithLocation(1, 47));
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
 
             N(SyntaxKind.StructDeclaration);
             {
                 N(SyntaxKind.StructKeyword);
                 N(SyntaxKind.IdentifierToken, "S");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.FieldDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.FixedKeyword);
                     N(SyntaxKind.VariableDeclaration);
                     {
@@ -599,20 +583,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.FieldDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.FixedKeyword);
                     N(SyntaxKind.VariableDeclaration);
                     {

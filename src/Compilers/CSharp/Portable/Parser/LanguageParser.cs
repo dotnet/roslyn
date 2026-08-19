@@ -1397,10 +1397,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // Standard legal cases.
                             modTok = ConvertToKeyword(this.EatToken());
                         }
-                        // IsPartialType can skip ordinary modifiers, but not 'ref': it can instead begin a
-                        // ref-returning member, so use the more precise lookahead for that case.
-                        else if (nextToken.Kind == SyntaxKind.RefKeyword && isRefTypeDeclarationAfterPartial())
+                        else if (nextToken.Kind == SyntaxKind.RefKeyword)
                         {
+                            // IsPartialMember has already ruled out a ref-returning member, so consume
+                            // 'partial' here to recover a type declaration such as 'partial ref struct'.
                             modTok = ConvertToKeyword(this.EatToken());
                         }
                         else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
@@ -1424,19 +1424,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     case DeclarationModifiers.Ref:
                         {
-                            if (isRefTypeDeclarationAfterModifiers())
-                            {
-                                modTok = this.EatToken();
-                            }
-                            else if (forAccessors && this.IsPossibleAccessorModifier())
-                            {
-                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
-                                modTok = this.EatToken();
-                            }
-                            else
+                            if (isRefReturningMember())
                             {
                                 return;
                             }
+
+                            modTok = this.EatToken();
                             break;
                         }
 
@@ -1493,49 +1486,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 tokens.Add(modTok);
             }
 
-            bool isRefTypeDeclarationAfterPartial()
+            bool isRefReturningMember()
             {
-                using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-                this.EatToken();
                 Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
-                return isRefTypeDeclarationAfterModifiers();
-            }
 
-            bool isRefTypeDeclarationAfterModifiers()
-            {
-                var peekIndex = 1;
-                var skippedNonPartialModifier = false;
-
-                // Skip ordinary modifiers while looking for the type declaration. 'scoped' is
-                // intentionally excluded: it is contextual and may instead be the type in a
-                // 'ref scoped ...' return-type prefix.
-                while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) is var modifier and not DeclarationModifiers.None)
-                {
-                    skippedNonPartialModifier |= modifier != DeclarationModifiers.Partial;
-                    peekIndex++;
-                }
-
-                var token = this.PeekToken(peekIndex);
-                if (!this.IsClassStructInterfaceRecordOrUnionKeyword(token))
+                // Preserve the existing feature-gated preference for parsing direct 'ref record',
+                // 'ref partial record', 'ref union', and 'ref partial union' as type declarations.
+                var nextToken = this.PeekToken(1);
+                if (this.IsEnabledRecordOrUnionKeyword(nextToken) ||
+                    (nextToken.ContextualKind == SyntaxKind.PartialKeyword &&
+                     this.IsEnabledRecordOrUnionKeyword(this.PeekToken(2))))
                 {
                     return false;
                 }
 
-                // If reaching a contextual type-declaration keyword required looking past a modifier
-                // that the previous parser did not support here, preserve a possible ref-returning
-                // member interpretation. For example, 'ref readonly record M()' may use 'record' as
-                // the return type even when records are enabled.
-                if (skippedNonPartialModifier &&
-                    token.Kind == SyntaxKind.IdentifierToken)
-                {
-                    using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-                    if (this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName())
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
             }
 
             bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)

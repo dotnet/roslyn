@@ -134,25 +134,41 @@ class Program
 }
 ";
 
-            ParseAndValidate(text, TestOptions.Regular9,
-                // (11,41): error CS1519: Invalid token 'operator' in a member declaration
+            ParseAndValidate(text, TestOptions.Regular9);
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (9,5): error CS8773: Feature 'ref fields' is not available in C# 9.0. Please use language version 11.0 or greater.
+                //     ref readonly int Field;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ref readonly int").WithArguments("ref fields", "11.0").WithLocation(9, 5),
+                // (9,22): error CS9064: Target runtime doesn't support ref fields.
+                //     ref readonly int Field;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "Field").WithLocation(9, 22),
+                // (9,22): error CS9059: A ref field can only be declared in a ref struct.
+                //     ref readonly int Field;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "Field").WithLocation(9, 22),
+                // (9,22): warning CS0169: The field 'Program.Field' is never used
+                //     ref readonly int Field;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field").WithArguments("Program.Field").WithLocation(9, 22),
+                // (11,51): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static ref readonly Program  operator  +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(11, 41),
-                // (11,41): error CS1519: Invalid token 'operator' in a member declaration
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("readonly").WithLocation(11, 51),
+                // (11,51): error CS0106: The modifier 'ref' is not valid for this item
                 //     public static ref readonly Program  operator  +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(11, 41),
-                // (11,74): error CS1001: Identifier expected
-                //     public static ref readonly Program  operator  +(Program x, Program y)
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(11, 74),
-                // (13,9): error CS1014: A get or set accessor expected
-                //         throw null;
-                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "throw").WithLocation(13, 9),
-                // (13,19): error CS1014: A get or set accessor expected
-                //         throw null;
-                Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(13, 19),
-                // (22,25): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("ref").WithLocation(11, 51),
+                // (17,18): error CS1073: Unexpected token 'ref'
+                //     static async ref readonly Task M<T>()
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 18),
+                // (17,31): error CS0246: The type or namespace name 'Task' could not be found (are you missing a using directive or an assembly reference?)
+                //     static async ref readonly Task M<T>()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Task").WithArguments("Task").WithLocation(17, 31),
+                // (22,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public ref readonly virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(22, 25));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(22, 33),
+                // (22,38): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public ref readonly virtual int* P1 => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("readonly").WithLocation(22, 38),
+                // (22,38): error CS0106: The modifier 'ref' is not valid for this item
+                //     public ref readonly virtual int* P1 => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("ref").WithLocation(22, 38));
         }
 
         [Fact]
@@ -417,19 +433,13 @@ class Test
 public class Test
 {
     public static ref readonly bool operator!(Test obj) => throw null;
-}").GetParseDiagnostics().Verify(
-                // (4,37): error CS1519: Invalid token 'operator' in class, record, struct, or interface member declaration
+}").VerifyDiagnostics(
+                // (4,45): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static ref readonly bool operator!(Test obj) => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(4, 37),
-                // (4,37): error CS1519: Invalid token 'operator' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!").WithArguments("readonly").WithLocation(4, 45),
+                // (4,45): error CS0106: The modifier 'ref' is not valid for this item
                 //     public static ref readonly bool operator!(Test obj) => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(4, 37),
-                // (4,55): error CS8124: Tuple must contain at least two elements.
-                //     public static ref readonly bool operator!(Test obj) => throw null;
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 55),
-                // (4,57): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-                //     public static ref readonly bool operator!(Test obj) => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(4, 57));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!").WithArguments("ref").WithLocation(4, 45));
         }
 
         [Fact]

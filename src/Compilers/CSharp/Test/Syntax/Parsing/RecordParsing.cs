@@ -3810,13 +3810,10 @@ class C(int X, int Y)
             {
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "record");
-                        }
+                        N(SyntaxKind.IdentifierToken, "record");
                     }
                 }
                 N(SyntaxKind.StructDeclaration);
