@@ -357,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             var mods = MakeAndCheckTypeModifiers(
+                typeKind,
                 defaultAccess,
                 allowedModifiers,
                 diagnostics,
@@ -415,6 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private DeclarationModifiers MakeAndCheckTypeModifiers(
+            TypeKind typeKind,
             DeclarationModifiers defaultAccess,
             DeclarationModifiers allowedModifiers,
             BindingDiagnosticBag diagnostics,
@@ -434,6 +436,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (partCount > 1 && (mods & DeclarationModifiers.Partial) == 0)
                 {
                     missingPartial = true;
+                }
+
+                if (typeKind == TypeKind.Struct &&
+                    decl.SyntaxReference.GetSyntax() is TypeDeclarationSyntax typeDeclaration &&
+                    isRefMisplaced(typeDeclaration.Modifiers, out var refToken))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
+                    modifierErrors = true;
                 }
 
                 if (!modifierErrors)
@@ -514,6 +524,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return result;
+
+            static bool isRefMisplaced(SyntaxTokenList modifiers, out SyntaxToken refToken)
+            {
+                refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
+                if (refToken == default)
+                {
+                    return false;
+                }
+
+                var seenRef = false;
+                foreach (var modifier in modifiers)
+                {
+                    if (modifier.Kind() == SyntaxKind.RefKeyword)
+                    {
+                        seenRef = true;
+                    }
+                    else if (modifier.ContextualKind() == SyntaxKind.PartialKeyword)
+                    {
+                        if (!seenRef)
+                        {
+                            return true;
+                        }
+                    }
+                    else if (seenRef)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         internal static bool IsReservedTypeName(string? name)

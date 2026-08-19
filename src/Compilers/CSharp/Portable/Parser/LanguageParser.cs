@@ -1398,6 +1398,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // Standard legal cases.
                             modTok = ConvertToKeyword(this.EatToken());
                         }
+                        else if (nextToken.Kind == SyntaxKind.RefKeyword && isRefTypeDeclarationAfterPartial())
+                        {
+                            modTok = ConvertToKeyword(this.EatToken());
+                        }
                         else if (seenRef && isRefTypeDeclarationAfterModifiers())
                         {
                             modTok = ConvertToKeyword(this.EatToken());
@@ -1491,6 +1495,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 Debug.Assert(modTok.Kind is not (SyntaxKind.OutKeyword or SyntaxKind.InKeyword));
                 tokens.Add(modTok);
+            }
+
+            bool isRefTypeDeclarationAfterPartial()
+            {
+                using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+                this.EatToken();
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
+                return isRefTypeDeclarationAfterModifiers();
             }
 
             bool isRefTypeDeclarationAfterModifiers()

@@ -81,6 +81,9 @@ class Program
 
             var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
+                // (6,12): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     public ref unsafe struct S2{}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(6, 12),
                 // (10,16): error CS1031: Type expected
                 //     public ref delegate ref int D1();
                 Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(10, 16),
@@ -266,15 +269,18 @@ class Program
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
                 // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
                 // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
-                // (5,24): error CS0102: The type 'Program' already contains a definition for 'S'
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("Program", "S").WithLocation(5, 24));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13));
         }
 
         [Fact]
@@ -305,6 +311,24 @@ class C
             var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
             var refStruct = Assert.IsType<StructDeclarationSyntax>(Assert.Single(containingType.Members));
             Assert.Equal($"ref {modifiers}", string.Join(" ", refStruct.Modifiers.Select(static token => token.Text)));
+        }
+
+        [Fact]
+        public void RefReadonlyStruct_RemainsRejected()
+        {
+            CreateCompilation("""
+                ref readonly struct R { }
+                class C
+                {
+                    ref readonly struct S { }
+                }
+                """).VerifyDiagnostics(
+                // (1,1): error CS1585: Member modifier 'ref' must precede the member type and name
+                // ref readonly struct R { }
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 1),
+                // (4,5): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     ref readonly struct S { }
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 5));
         }
 
         [Theory]
@@ -362,9 +386,15 @@ class C
     ref partial readonly struct S {}
 }");
             comp.VerifyDiagnostics(
+                // (4,5): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 5),
                 // (4,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     ref partial readonly struct S {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 9),
+                // (5,5): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 5),
                 // (5,9): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     ref partial readonly struct S {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 9));
@@ -399,7 +429,10 @@ class C
             }
             EOF();
 
-            CreateCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics(
+                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
+                // class C { ref readonly partial struct S {} }
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
@@ -412,15 +445,18 @@ class C
     partial ref readonly struct S {}
 }");
             comp.VerifyDiagnostics(
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
                 // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
                 // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13));
         }
 
         [Fact]
@@ -433,15 +469,18 @@ class C
     readonly partial ref struct S {}
 }");
             comp.VerifyDiagnostics(
+                // (4,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     readonly partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 14),
                 // (4,22): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     readonly partial ref struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 22),
+                // (5,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     readonly partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 14),
                 // (5,22): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22));
         }
 
         [Fact]
