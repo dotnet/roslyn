@@ -116,12 +116,17 @@ stages:
           # artifacts/log (with its binlog) back in. Logs are per-run, not a cached output, so clear
           # the log dir before building. (Future baselines exclude log via -OutputRoots below.)
           Remove-Item -Recurse -Force "$(Build.SourcesDirectory)/artifacts/log" -ErrorAction SilentlyContinue
-          # Build through eng/build.ps1 so arcade's environment (SDK, feeds, package paths) is set up.
-          # A bare dotnet build outside it resolves no reference assemblies (CS0518 x120k). No -restore
-          # here: the separate Restore step already restored, and on a seeded run re-restoring would
-          # re-timestamp obj and bust the back-date. -ci sets ContinuousIntegrationBuild + DeterministicSourcePaths.
+          # LEAN build: call the bootstrapped dotnet directly, NOT eng/build.ps1 -build. The arcade
+          # wrapper adds ~150s of fixed overhead (toolset init + non-compile targets across every
+          # project) that swamps the cache win. The earlier bare-build CS0518/CS0234 was only because
+          # NUGET_PACKAGES did not point at the -ci restore location, so the ref packs were not found;
+          # set it to $RepoRoot\.packages (what eng/build.ps1 -restore used) and use the same SDK.
+          # No -restore, so a seeded run's back-dated obj is preserved.
+          $env:NUGET_PACKAGES = "$(Build.SourcesDirectory)\.packages"
+          $env:DOTNET_MULTILEVEL_LOOKUP = "0"
+          $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
           $sw = [Diagnostics.Stopwatch]::StartNew()
-          & "$(Build.SourcesDirectory)/eng/build.ps1" -ci -build -solution ${{ parameters.slnf }} -msbuildEngine dotnet -configuration Debug -binaryLogName Build.WarmCache.binlog
+          & $dotnet build ${{ parameters.slnf }} -c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true --no-restore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
           if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
           $sw.Stop()
           Write-Host ("##[section]Build finished in {0:n1}s (seeded=$(Seeded))" -f $sw.Elapsed.TotalSeconds)
@@ -137,25 +142,24 @@ stages:
           $store = "$(CacheStore)"
           $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
           $sha   = (git rev-parse HEAD).Trim()
-          # Stat-cache: preserve the seeded baseline's outputs.clixml before wiping the store, so
-          # Capture can reuse the Sha of any output the build did not rewrite (unchanged mtime+size)
-          # instead of re-hashing it. Empty/cold -> the Test-Path just fails and we hash everything.
-          $priorArg = @()
-          # Read via env (not the $(...) macro): on a cold run the variable is undefined and an
-          # undefined $(...) macro is left verbatim, which PowerShell then mis-evaluates as a command.
+          $baselineDir = Join-Path (Join-Path $store $lane) $sha
+          # Build capture args as a hashtable and splat it: array-splat passes values positionally,
+          # so an optional -PriorBaselineDir only binds by name via a hashtable. Cache only the real
+          # outputs (bin, obj); exclude log/tmp/TestResults (transient; log trips arcade's binlog guard).
+          $capArgs = @{ RepoRoot = '.'; BaselineDir = $baselineDir; OutputRoots = @('artifacts\bin', 'artifacts\obj'); Archive = $true }
+          # Stat-cache: stash the seeded baseline's outputs.clixml before wiping the store so Capture
+          # can reuse the Sha of any output the build did not rewrite. Read the seeded dir via env (a
+          # cold-run $(...) macro is undefined and would be mis-evaluated). Cold -> just hash all.
           $seeded = $env:SEEDEDBASELINEDIR
           if ($seeded -and (Test-Path (Join-Path $seeded 'outputs.clixml'))) {
             $stash = Join-Path "$(Agent.TempDirectory)" 'prior-baseline'
             New-Item -ItemType Directory -Force $stash | Out-Null
             Copy-Item (Join-Path $seeded 'outputs.clixml') (Join-Path $stash 'outputs.clixml') -Force
-            $priorArg = @('-PriorBaselineDir', $stash)
+            $capArgs['PriorBaselineDir'] = $stash
           }
           # Keep only the current baseline in the published store (one baseline, not growing).
           if (Test-Path $store) { Remove-Item $store -Recurse -Force }
-          $baselineDir = Join-Path (Join-Path $store $lane) $sha
-          # Cache only the real build outputs (bin = assemblies, obj = intermediates/markers).
-          # Exclude artifacts/log, tmp, TestResults, VSSetup -- transient, and log breaks arcade's binlog guard.
-          & "$(Scripts)/Capture-Baseline.ps1" -RepoRoot . -BaselineDir $baselineDir -OutputRoots artifacts\bin,artifacts\obj -Archive @priorArg
+          & "$(Scripts)/Capture-Baseline.ps1" @capArgs
           Write-Host "==> captured baseline -> $baselineDir"
 
     - task: PublishPipelineArtifact@1
