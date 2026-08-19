@@ -11,8 +11,11 @@ internal abstract partial class LanguageServerProjectLoader
 {
     /// <summary>
     /// State transitions:
-    /// <see cref="ProjectLoadState.Primordial"/> -> <see cref="ProjectLoadState.Loading"/> -> <see cref="ProjectLoadState.LoadedTargets"/> or <see cref="ProjectLoadState.Failed"/>
+    /// <see cref="ProjectLoadState.Primordial"/> without an active operation -> <see cref="ProjectLoadState.Primordial"/> with an active operation
+    /// <see cref="ProjectLoadState.Primordial"/> with an active operation -> <see cref="ProjectLoadState.LoadedTargets"/> or <see cref="ProjectLoadState.Failed"/>
     /// <see cref="ProjectLoadState.Loading"/> -> <see cref="ProjectLoadState.LoadedTargets"/> or <see cref="ProjectLoadState.Failed"/>
+    /// <see cref="ProjectLoadState.Failed"/> -> <see cref="ProjectLoadState.Primordial"/> or <see cref="ProjectLoadState.Loading"/> when retrying a failed load
+    /// <see cref="ProjectLoadState.LoadedTargets"/> -> <see cref="ProjectLoadState.LoadedTargets"/> after a subsequent design-time build
     /// Any state -> unloaded (which is denoted by removing the <see cref="_loadedProjects"/> entry for the project)
     /// </summary>
     protected abstract record ProjectLoadState
@@ -35,7 +38,7 @@ internal abstract partial class LanguageServerProjectLoader
 
         /// <summary>
         /// Represents a project for which we have loaded zero or more targets.
-        /// Generally a project which has zero loaded targets has not had a design-time build completed for it yet.
+        /// A project with zero loaded targets completed evaluation successfully but produced no target frameworks.
         /// Incrementally updated upon subsequent design-time builds.
         /// The <see cref="LoadedProjectTargets"/> are disposed when unloading.
         /// </summary>
