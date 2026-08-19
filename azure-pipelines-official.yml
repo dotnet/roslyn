@@ -134,7 +134,9 @@ stages:
           # Capture can reuse the Sha of any output the build did not rewrite (unchanged mtime+size)
           # instead of re-hashing it. Empty/cold -> the Test-Path just fails and we hash everything.
           $priorArg = @()
-          $seeded = "$(SeededBaselineDir)"
+          # Read via env (not the $(...) macro): on a cold run the variable is undefined and an
+          # undefined $(...) macro is left verbatim, which PowerShell then mis-evaluates as a command.
+          $seeded = $env:SEEDEDBASELINEDIR
           if ($seeded -and (Test-Path (Join-Path $seeded 'outputs.clixml'))) {
             $stash = Join-Path "$(Agent.TempDirectory)" 'prior-baseline'
             New-Item -ItemType Directory -Force $stash | Out-Null
