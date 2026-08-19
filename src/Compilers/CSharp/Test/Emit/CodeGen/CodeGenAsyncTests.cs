@@ -6006,6 +6006,98 @@ class Driver
                 """);
         }
 
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
+        public void IsPatternExpressionInAsyncMethod_DoesNotAffectHoistedLocals()
+        {
+            var source = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Threading.Tasks;
+
+                await M(ImmutableArray.Create<string>("", new('a', 10), new('a', 20), new('a', 30)));
+                Console.WriteLine("done");
+
+                static void Print(bool value)
+                {
+                    Console.WriteLine(value);
+                }
+
+                static async Task M(ImmutableArray<string> values)
+                {
+                    await Task.Yield();
+                    foreach (var value in values)
+                    {
+                        Print(value.Length is 10 or 20 or 30);
+                        await Task.Delay(1).ConfigureAwait(false);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                source,
+                expectedOutput: """
+                    False
+                    True
+                    True
+                    True
+                    done
+                    """,
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.NetCoreApp);
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/72753"), WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
+        public void IsPatternExpressionInAwaitUsing()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                await using (await GetResourceAsync())
+                {
+                    Exception exception = await GetExceptionAsync();
+                    Console.Write(exception is OperationCanceledException or CustomException { Message: "" });
+                }
+
+                static async Task<Resource> GetResourceAsync()
+                {
+                    await Task.Yield();
+                    return new Resource();
+                }
+
+                static async Task<Exception> GetExceptionAsync()
+                {
+                    await Task.Yield();
+                    return new CustomException("");
+                }
+
+                sealed class Resource : IAsyncDisposable
+                {
+                    public ValueTask DisposeAsync()
+                    {
+                        Console.Write("Disposed");
+                        return default;
+                    }
+                }
+
+                sealed class CustomException : Exception
+                {
+                    public CustomException(string message)
+                        : base(message)
+                    {
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                source,
+                expectedOutput: "TrueDisposed",
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.NetCoreApp);
+            verifier.VerifyDiagnostics();
+        }
+
         [Fact]
         public void MyTask_16()
         {

@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
+        /// <summary>
+        /// Benchmark results (see https://github.com/dotnet/runtime/pull/132452) show that small patterns are more efficient when emitted as comparisons rather than switch dispatch.
+        /// </summary>
+        private const int MaxTestsForInvertedLinearSequence = 4;
+
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             BoundDecisionDag decisionDag = node.GetDecisionDagForLowering(_factory.Compilation);
@@ -20,9 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
             {
                 // If we can build a linear test sequence `(e1 && e2 && e3)` for the dag, do so.
-                var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
-                isPatternRewriter.Free();
+                result = LowerIsPatternAsLinearSequence(node, decisionDag, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
             }
             else if (IsFailureNode(decisionDag.RootNode, node.WhenFalseLabel))
             {
@@ -31,9 +34,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Note that the positive case will be handled by canProduceLinearSequence above, however, we avoid to produce a full inverted linear sequence here
                 // because we may be able to generate better code for a sequence of `or` patterns, using a switch dispatch, for example, which is done in the general rewriter.
                 negated = !negated;
-                var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
-                isPatternRewriter.Free();
+                result = LowerIsPatternAsLinearSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
+            }
+            else if (canProduceLinearSequence(
+                decisionDag.RootNode,
+                whenTrueLabel: node.WhenFalseLabel,
+                whenFalseLabel: node.WhenTrueLabel,
+                maxTests: MaxTestsForInvertedLinearSequence) &&
+                !containsBindings(decisionDag))
+            {
+                negated = !negated;
+                result = LowerIsPatternAsLinearSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
             }
             else
             {
@@ -56,8 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool canProduceLinearSequence(
                 BoundDecisionDagNode node,
                 LabelSymbol whenTrueLabel,
-                LabelSymbol whenFalseLabel)
+                LabelSymbol whenFalseLabel,
+                int maxTests = int.MaxValue)
             {
+                int testCount = 0;
                 while (true)
                 {
                     switch (node)
@@ -72,6 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             node = e.Next;
                             break;
                         case BoundTestDecisionDagNode t:
+                            if (++testCount > maxTests)
+                                return false;
+
                             bool falseFail = IsFailureNode(t.WhenFalse, whenFalseLabel);
                             if (falseFail == IsFailureNode(t.WhenTrue, whenFalseLabel))
                                 return false;
@@ -82,6 +98,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
+            static bool containsBindings(BoundDecisionDag decisionDag)
+            {
+                foreach (var node in decisionDag.TopologicallySortedNodes)
+                {
+                    if (node is BoundWhenDecisionDagNode { Bindings.IsEmpty: false })
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        private BoundExpression LowerIsPatternAsLinearSequence(
+            BoundIsPatternExpression node,
+            BoundDecisionDag decisionDag,
+            LabelSymbol whenTrueLabel,
+            LabelSymbol whenFalseLabel)
+        {
+            var rewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
+            var result = rewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel, whenFalseLabel);
+            rewriter.Free();
+            return result;
         }
 
         /// <summary>
