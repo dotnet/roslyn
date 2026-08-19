@@ -3,5 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Xunit;
+using Xunit.Harness;
 
 [assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly, DisableTestParallelization = true)]
+[assembly: RequireExtension("Roslyn.SDK.vsix")]

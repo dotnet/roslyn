@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <UseWPF>true</UseWPF>
 
     <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
   </PropertyGroup>
@@ -18,8 +19,6 @@
     <PackageReference Include="DiffPlex" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" PrivateAssets="all" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" />
-    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" />
     <PackageReference Include="Microsoft.VisualStudio.Interop" VersionOverride="$(MicrosoftVisualStudioInterop18Version)" />
     <PackageReference Include="Nullable" PrivateAssets="all" />
     <PackageReference Include="System.Collections.Immutable" />
@@ -29,7 +28,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Roslyn.SDK\Roslyn.SDK.csproj" CopyVsix="true" />
+    <ProjectReference Include="..\..\..\..\VisualStudio\IntegrationTest\Harness\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      SetTargetFramework="TargetFramework=netstandard2.0"
+                      SkipGetTargetFrameworkProperties="true" />
+    <ProjectReference Include="..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
   </ItemGroup>
 
   <Target Name="PrepareVsixProjectReferences"
@@ -52,5 +58,7 @@
       <ReferenceCopyLocalPaths Include="@(_ProjectReferenceVsixOutputs)" />
     </ItemGroup>
   </Target>
+
+  <Import Project="..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnitShared\build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.targets" />
 
 </Project>
