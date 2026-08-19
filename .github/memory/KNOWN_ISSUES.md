@@ -28,6 +28,12 @@ per-layer files (load only the one for your area):
 **Description:** BuildValidator reconstructs an assembly from its embedded compilation metadata. It cannot reproduce IL changes made afterward by tools such as BenchmarkDotNet's assembly weaver.
 **Workaround:** Add narrowly scoped assembly exclusions to `eng/test-rebuild.ps1`; do not disable required post-compilation processing merely to make rebuild validation pass.
 
+## Roslyn SDK aggregate project requires VSSDK targets after .NET SDK restore
+
+**Affected area:** `src/RoslynSdk/VisualStudio.Roslyn.SDK/Roslyn.SDK`
+**Description:** Roslyn SDK integration tests invoke `VSIXContainerProjectOutputGroup` on the aggregate SDK project. Arcade's implicit `Microsoft.VSSDK.BuildTools` reference is added only during full-framework MSBuild evaluation, so a preceding .NET SDK restore can omit the package and leave `VSToolsPath` and the output-group targets unavailable.
+**Guidance:** Keep aggregate pkgdef generation enabled, retain its explicit private `Microsoft.VSSDK.BuildTools` reference, and suppress Arcade's later implicit duplicate with `IncludeMicrosoftVSSDKBuildToolsPackageReference=false`.
+
 ## IdeCoreBenchmarks requires BenchmarkDotNet 0.15 and .NET 10
 
 **Affected area:** `src/Tools/IdeCoreBenchmarks`
