@@ -2486,8 +2486,9 @@ class C
     [Fact]
     public void ModifierParsing_CSharp13_Readonly_CompilationUnit()
     {
+        const string source = "readonly extension(object) { }";
         UsingTree(
-            "readonly extension(object) { }",
+            source,
             TestOptions.Regular13,
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
@@ -2528,7 +2529,7 @@ class C
         }
         EOF();
 
-        CreateCompilation("readonly extension(object) { }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 10),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
@@ -2539,8 +2540,9 @@ class C
     [Fact]
     public void ModifierParsing_CSharp13_Ref_CompilationUnit()
     {
+        const string source = "ref extension(object) { }";
         UsingTree(
-            "ref extension(object) { }",
+            source,
             TestOptions.Regular13,
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
@@ -2583,7 +2585,7 @@ class C
         }
         EOF();
 
-        CreateCompilation("ref extension(object) { }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 5),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 14),
@@ -2593,8 +2595,9 @@ class C
     [Fact]
     public void ModifierParsing_CSharp13_RefReadonly_CompilationUnit()
     {
+        const string source = "ref readonly extension(object) { }";
         UsingTree(
-            "ref readonly extension(object) { }",
+            source,
             TestOptions.Regular13,
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
@@ -2638,7 +2641,7 @@ class C
         }
         EOF();
 
-        CreateCompilation("ref readonly extension(object) { }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 14),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 23),
@@ -2648,8 +2651,9 @@ class C
     [Fact]
     public void ModifierParsing_CSharp14_Readonly_CompilationUnit()
     {
+        const string source = "readonly extension(object) { }";
         UsingTree(
-            "readonly extension(object) { }",
+            source,
             TestOptions.Regular14,
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
@@ -2690,7 +2694,7 @@ class C
         }
         EOF();
 
-        CreateCompilation("readonly extension(object) { }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 1),
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 10),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 19),
@@ -2701,8 +2705,9 @@ class C
     [Fact]
     public void ModifierParsing_CSharp14_Ref_CompilationUnit()
     {
+        const string source = "ref extension(object) { }";
         UsingTree(
-            "ref extension(object) { }",
+            source,
             TestOptions.Regular14,
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
@@ -2745,7 +2750,7 @@ class C
         }
         EOF();
 
-        CreateCompilation("ref extension(object) { }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 5),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14),
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 14),
@@ -2755,8 +2760,9 @@ class C
     [Fact]
     public void ModifierParsing_CSharp14_RefReadonly_CompilationUnit()
     {
+        const string source = "ref readonly extension(object) { }";
         UsingTree(
-            "ref readonly extension(object) { }",
+            source,
             TestOptions.Regular14,
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 30));
@@ -2800,7 +2806,7 @@ class C
         }
         EOF();
 
-        CreateCompilation("ref readonly extension(object) { }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "extension").WithArguments("extension").WithLocation(1, 14),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 23),
             Diagnostic(ErrorCode.ERR_ReturnExpected, "").WithArguments("(object)").WithLocation(1, 23),
@@ -2810,8 +2816,9 @@ class C
     [Fact]
     public void ModifierParsing_CSharp13_Readonly_TypeMember()
     {
+        const string source = "class C { readonly extension(object) { } }";
         UsingTree(
-            "class C { readonly extension(object) { } }",
+            source,
             TestOptions.Regular13,
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 36));
         N(SyntaxKind.CompilationUnit);
@@ -2850,7 +2857,7 @@ class C
         }
         EOF();
 
-        CreateCompilation("class C { readonly extension(object) { } }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "readonly extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 20),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 36));
@@ -2859,8 +2866,9 @@ class C
     [Fact]
     public void ModifierParsing_CSharp13_Ref_TypeMember()
     {
+        const string source = "class C { ref extension(object) { } }";
         UsingTree(
-            "class C { ref extension(object) { } }",
+            source,
             TestOptions.Regular13,
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 31));
         N(SyntaxKind.CompilationUnit);
@@ -2899,7 +2907,7 @@ class C
         }
         EOF();
 
-        CreateCompilation("class C { ref extension(object) { } }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "ref extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 15),
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 31));
@@ -2908,8 +2916,9 @@ class C
     [Fact]
     public void ModifierParsing_CSharp13_RefReadonly_TypeMember()
     {
+        const string source = "class C { ref readonly extension(object) { } }";
         UsingTree(
-            "class C { ref readonly extension(object) { } }",
+            source,
             TestOptions.Regular13,
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 40));
         N(SyntaxKind.CompilationUnit);
@@ -2949,7 +2958,7 @@ class C
         }
         EOF();
 
-        CreateCompilation("class C { ref readonly extension(object) { } }", parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "ref readonly extension(object) { }").WithArguments("extensions", "14.0").WithLocation(1, 11),
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 24),
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 24),
@@ -2959,7 +2968,8 @@ class C
     [Fact]
     public void ModifierParsing_CSharp14_Readonly_TypeMember()
     {
-        UsingTree("static class C { readonly extension(object) { } }", TestOptions.Regular14);
+        const string source = "static class C { readonly extension(object) { } }";
+        UsingTree(source, TestOptions.Regular14);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -2993,14 +3003,15 @@ class C
         }
         EOF();
 
-        CreateCompilation("static class C { readonly extension(object) { } }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 27));
     }
 
     [Fact]
     public void ModifierParsing_CSharp14_Ref_TypeMember()
     {
-        UsingTree("static class C { ref extension(object) { } }", TestOptions.Regular14);
+        const string source = "static class C { ref extension(object) { } }";
+        UsingTree(source, TestOptions.Regular14);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -3034,14 +3045,15 @@ class C
         }
         EOF();
 
-        CreateCompilation("static class C { ref extension(object) { } }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 22));
     }
 
     [Fact]
     public void ModifierParsing_CSharp14_RefReadonly_TypeMember()
     {
-        UsingTree("static class C { ref readonly extension(object) { } }", TestOptions.Regular14);
+        const string source = "static class C { ref readonly extension(object) { } }";
+        UsingTree(source, TestOptions.Regular14);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -3076,7 +3088,7 @@ class C
         }
         EOF();
 
-        CreateCompilation("static class C { ref readonly extension(object) { } }", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("readonly").WithLocation(1, 31),
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 31));
     }

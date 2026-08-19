@@ -108,12 +108,14 @@ class Program
         [Fact]
         public void RefReadonlyField()
         {
-            UsingTree("""
+            const string source = """
                 class Program
                 {
                     ref readonly int Field;
                 }
-                """, TestOptions.Regular9);
+                """;
+
+            UsingTree(source, TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -148,12 +150,7 @@ class Program
             }
             EOF();
 
-            CreateCompilation("""
-                class Program
-                {
-                    ref readonly int Field;
-                }
-                """, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (3,5): error CS8773: Feature 'ref fields' is not available in C# 9.0. Please use language version 11.0 or greater.
                 //     ref readonly int Field;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ref readonly int").WithArguments("ref fields", "11.0").WithLocation(3, 5),
@@ -171,7 +168,7 @@ class Program
         [Fact]
         public void RefReadonlyOperatorReturn()
         {
-            UsingTree("""
+            const string source = """
                 class Program
                 {
                     public static ref readonly Program operator +(Program x, Program y)
@@ -179,7 +176,9 @@ class Program
                         throw null;
                     }
                 }
-                """);
+                """;
+
+            UsingTree(source);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -243,15 +242,7 @@ class Program
             }
             EOF();
 
-            CreateCompilation("""
-                class Program
-                {
-                    public static ref readonly Program operator +(Program x, Program y)
-                    {
-                        throw null;
-                    }
-                }
-                """).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,49): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static ref readonly Program operator +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("readonly").WithLocation(3, 49),
@@ -263,7 +254,7 @@ class Program
         [Fact]
         public void RefReadonlyReturnAfterAsync()
         {
-            UsingTree("""
+            const string source = """
                 class Program
                 {
                     static async ref readonly Task M<T>()
@@ -271,7 +262,9 @@ class Program
                         throw null;
                     }
                 }
-                """);
+                """;
+
+            UsingTree(source);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -329,15 +322,7 @@ class Program
             }
             EOF();
 
-            CreateCompilation("""
-                class Program
-                {
-                    static async ref readonly Task M<T>()
-                    {
-                        throw null;
-                    }
-                }
-                """).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,18): error CS1073: Unexpected token 'ref'
                 //     static async ref readonly Task M<T>()
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 18),
@@ -349,12 +334,14 @@ class Program
         [Fact]
         public void RefReadonlyBeforePropertyModifier()
         {
-            UsingTree("""
+            const string source = """
                 class Program
                 {
                     public ref readonly virtual int* P1 => throw null;
                 }
-                """);
+                """;
+
+            UsingTree(source);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -398,12 +385,7 @@ class Program
             }
             EOF();
 
-            CreateCompilation("""
-                class Program
-                {
-                    public ref readonly virtual int* P1 => throw null;
-                }
-                """).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,38): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public ref readonly virtual int* P1 => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("readonly").WithLocation(3, 38),
@@ -670,11 +652,13 @@ class Test
         [Fact]
         public void RefReadOnlyReturnIllegalInOperators()
         {
-            UsingTree(@"
+            const string source = @"
 public class Test
 {
     public static ref readonly bool operator!(Test obj) => throw null;
-}");
+}";
+
+            UsingTree(source);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -729,11 +713,7 @@ public class Test
             }
             EOF();
 
-            CreateCompilation(@"
-public class Test
-{
-    public static ref readonly bool operator!(Test obj) => throw null;
-}").VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,45): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static ref readonly bool operator!(Test obj) => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "!").WithArguments("readonly").WithLocation(4, 45),

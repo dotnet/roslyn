@@ -552,10 +552,12 @@ class Program
         [Fact]
         public void ModifierParsing_Class_Readonly()
         {
-            CreateCompilation("readonly class R { } class C { readonly class R { } }").VerifyDiagnostics(
+            const string source = "readonly class R { } class C { readonly class R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 16),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 47));
-            UsingTree("readonly class R { } class C { readonly class R { } }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -589,10 +591,12 @@ class Program
         [Fact]
         public void ModifierParsing_Class_Ref()
         {
-            CreateCompilation("ref class R { } class C { ref class R { } }").VerifyDiagnostics(
+            const string source = "ref class R { } class C { ref class R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 11),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 37));
-            UsingTree("ref class R { } class C { ref class R { } }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -626,12 +630,14 @@ class Program
         [Fact]
         public void ModifierParsing_Class_RefReadonly()
         {
-            CreateCompilation("ref readonly class R { } class C { ref readonly class R { } }").VerifyDiagnostics(
+            const string source = "ref readonly class R { } class C { ref readonly class R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 20),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 20),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 55),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 55));
-            UsingTree("ref readonly class R { } class C { ref readonly class R { } }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -667,8 +673,10 @@ class Program
         [Fact]
         public void ModifierParsing_Struct_Readonly()
         {
-            CreateCompilation("readonly struct R { } class C { readonly struct R { } }").VerifyDiagnostics();
-            UsingTree("readonly struct R { } class C { readonly struct R { } }");
+            const string source = "readonly struct R { } class C { readonly struct R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics();
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.StructDeclaration);
@@ -702,8 +710,10 @@ class Program
         [Fact]
         public void ModifierParsing_Struct_Ref()
         {
-            CreateCompilation("ref struct R { } class C { ref struct R { } }").VerifyDiagnostics();
-            UsingTree("ref struct R { } class C { ref struct R { } }");
+            const string source = "ref struct R { } class C { ref struct R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics();
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.StructDeclaration);
@@ -737,10 +747,12 @@ class Program
         [Fact]
         public void ModifierParsing_Struct_RefReadonly()
         {
-            CreateCompilation("ref readonly struct R { } class C { ref readonly struct R { } }").VerifyDiagnostics(
+            const string source = "ref readonly struct R { } class C { ref readonly struct R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 1),
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 37));
-            UsingTree("ref readonly struct R { } class C { ref readonly struct R { } }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.StructDeclaration);
@@ -776,10 +788,12 @@ class Program
         [Fact]
         public void ModifierParsing_Interface_Readonly()
         {
-            CreateCompilation("readonly interface R { } class C { readonly interface R { } }").VerifyDiagnostics(
+            const string source = "readonly interface R { } class C { readonly interface R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 20),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 55));
-            UsingTree("readonly interface R { } class C { readonly interface R { } }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.InterfaceDeclaration);
@@ -813,10 +827,12 @@ class Program
         [Fact]
         public void ModifierParsing_Interface_Ref()
         {
-            CreateCompilation("ref interface R { } class C { ref interface R { } }").VerifyDiagnostics(
+            const string source = "ref interface R { } class C { ref interface R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 15),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 45));
-            UsingTree("ref interface R { } class C { ref interface R { } }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.InterfaceDeclaration);
@@ -850,12 +866,14 @@ class Program
         [Fact]
         public void ModifierParsing_Interface_RefReadonly()
         {
-            CreateCompilation("ref readonly interface R { } class C { ref readonly interface R { } }").VerifyDiagnostics(
+            const string source = "ref readonly interface R { } class C { ref readonly interface R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 24),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 24),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 63),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 63));
-            UsingTree("ref readonly interface R { } class C { ref readonly interface R { } }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.InterfaceDeclaration);
@@ -891,10 +909,12 @@ class Program
         [Fact]
         public void ModifierParsing_Enum_Readonly()
         {
-            CreateCompilation("readonly enum R { } class C { readonly enum R { } }").VerifyDiagnostics(
+            const string source = "readonly enum R { } class C { readonly enum R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 15),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 45));
-            UsingTree("readonly enum R { } class C { readonly enum R { } }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.EnumDeclaration);
@@ -928,10 +948,12 @@ class Program
         [Fact]
         public void ModifierParsing_Enum_Ref()
         {
-            CreateCompilation("ref enum R { } class C { ref enum R { } }").VerifyDiagnostics(
+            const string source = "ref enum R { } class C { ref enum R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 10),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 35));
-            UsingTree("ref enum R { } class C { ref enum R { } }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.EnumDeclaration);
@@ -965,12 +987,14 @@ class Program
         [Fact]
         public void ModifierParsing_Enum_RefReadonly()
         {
-            CreateCompilation("ref readonly enum R { } class C { ref readonly enum R { } }").VerifyDiagnostics(
+            const string source = "ref readonly enum R { } class C { ref readonly enum R { } }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 19),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 19),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 53),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 53));
-            UsingTree("ref readonly enum R { } class C { ref readonly enum R { } }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.EnumDeclaration);
@@ -1006,10 +1030,12 @@ class Program
         [Fact]
         public void ModifierParsing_Delegate_Readonly()
         {
-            CreateCompilation("readonly delegate void R(); class C { readonly delegate void R(); }").VerifyDiagnostics(
+            const string source = "readonly delegate void R(); class C { readonly delegate void R(); }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 24),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 62));
-            UsingTree("readonly delegate void R(); class C { readonly delegate void R(); }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.DelegateDeclaration);
@@ -1059,10 +1085,12 @@ class Program
         [Fact]
         public void ModifierParsing_Delegate_Ref()
         {
-            CreateCompilation("ref delegate void R(); class C { ref delegate void R(); }").VerifyDiagnostics(
+            const string source = "ref delegate void R(); class C { ref delegate void R(); }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 19),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 52));
-            UsingTree("ref delegate void R(); class C { ref delegate void R(); }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.DelegateDeclaration);
@@ -1112,12 +1140,14 @@ class Program
         [Fact]
         public void ModifierParsing_Delegate_RefReadonly()
         {
-            CreateCompilation("ref readonly delegate void R(); class C { ref readonly delegate void R(); }").VerifyDiagnostics(
+            const string source = "ref readonly delegate void R(); class C { ref readonly delegate void R(); }";
+
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 28),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 28),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 70),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 70));
-            UsingTree("ref readonly delegate void R(); class C { ref readonly delegate void R(); }");
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.DelegateDeclaration);
@@ -1169,7 +1199,9 @@ class Program
         [Fact]
         public void ModifierParsing_Record_CSharp8_Readonly()
         {
-            CreateCompilation("readonly record R { } class C { readonly record R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics(
+            const string source = "readonly record R { } class C { readonly record R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 10),
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 17),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 17),
@@ -1177,7 +1209,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 42),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 49),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 49));
-            UsingTree("readonly record R { } class C { readonly record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -1223,13 +1255,15 @@ class Program
         [Fact]
         public void ModifierParsing_Record_CSharp8_Ref()
         {
-            CreateCompilation("ref record R { } class C { ref record R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics(
+            const string source = "ref record R { } class C { ref record R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 5),
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 12),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 12),
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 32),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 39));
-            UsingTree("ref record R { } class C { ref record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -1281,13 +1315,15 @@ class Program
         [Fact]
         public void ModifierParsing_Record_CSharp8_RefReadonly()
         {
-            CreateCompilation("ref readonly record R { } class C { ref readonly record R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics(
+            const string source = "ref readonly record R { } class C { ref readonly record R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 14),
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 21),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 21),
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 50),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 57));
-            UsingTree("ref readonly record R { } class C { ref readonly record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -1341,10 +1377,12 @@ class Program
         [Fact]
         public void ModifierParsing_Record_CSharp9_Readonly()
         {
-            CreateCompilation("readonly record R { } class C { readonly record R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)).VerifyDiagnostics(
+            const string source = "readonly record R { } class C { readonly record R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 17),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 49));
-            UsingTree("readonly record R { } class C { readonly record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.RecordDeclaration);
@@ -1378,10 +1416,12 @@ class Program
         [Fact]
         public void ModifierParsing_Record_CSharp9_Ref()
         {
-            CreateCompilation("ref record R { } class C { ref record R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)).VerifyDiagnostics(
+            const string source = "ref record R { } class C { ref record R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 12),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 39));
-            UsingTree("ref record R { } class C { ref record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.RecordDeclaration);
@@ -1415,13 +1455,15 @@ class Program
         [Fact]
         public void ModifierParsing_Record_CSharp9_RefReadonly()
         {
-            CreateCompilation("ref readonly record R { } class C { ref readonly record R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)).VerifyDiagnostics(
+            const string source = "ref readonly record R { } class C { ref readonly record R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 14),
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 21),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 21),
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 50),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 57));
-            UsingTree("ref readonly record R { } class C { ref readonly record R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -1475,7 +1517,9 @@ class Program
         [Fact]
         public void ModifierParsing_Union_CSharp14_Readonly()
         {
-            CreateCompilation("readonly union R { } class C { readonly union R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)).VerifyDiagnostics(
+            const string source = "readonly union R { } class C { readonly union R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 10),
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 16),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 16),
@@ -1483,7 +1527,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 41),
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 47),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 47));
-            UsingTree("readonly union R { } class C { readonly union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -1529,13 +1573,15 @@ class Program
         [Fact]
         public void ModifierParsing_Union_CSharp14_Ref()
         {
-            CreateCompilation("ref union R { } class C { ref union R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)).VerifyDiagnostics(
+            const string source = "ref union R { } class C { ref union R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 5),
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 11),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 11),
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 31),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 37));
-            UsingTree("ref union R { } class C { ref union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -1587,13 +1633,15 @@ class Program
         [Fact]
         public void ModifierParsing_Union_CSharp14_RefReadonly()
         {
-            CreateCompilation("ref readonly union R { } class C { ref readonly union R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)).VerifyDiagnostics(
+            const string source = "ref readonly union R { } class C { ref readonly union R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 14),
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 20),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 20),
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 49),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 55));
-            UsingTree("ref readonly union R { } class C { ref readonly union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -1647,14 +1695,16 @@ class Program
         [Fact]
         public void ModifierParsing_Union_CSharp15_Readonly()
         {
-            CreateCompilation("readonly union R { } class C { readonly union R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(
+            const string source = "readonly union R { } class C { readonly union R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 16),
                 Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 16),
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(1, 16),
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 47),
                 Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 47),
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(1, 47));
-            UsingTree("readonly union R { } class C { readonly union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.UnionDeclaration);
@@ -1688,7 +1738,9 @@ class Program
         [Fact]
         public void ModifierParsing_Union_CSharp15_Ref()
         {
-            CreateCompilation("ref union R { } class C { ref union R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(
+            const string source = "ref union R { } class C { ref union R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 11),
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 11),
                 Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 11),
@@ -1697,7 +1749,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "R").WithArguments("System.Runtime.CompilerServices.IUnion").WithLocation(1, 37),
                 Diagnostic(ErrorCode.ERR_UnionDeclarationNeedsCaseTypes, "R").WithLocation(1, 37),
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.UnionAttribute", ".ctor").WithLocation(1, 37));
-            UsingTree("ref union R { } class C { ref union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.UnionDeclaration);
@@ -1731,13 +1783,15 @@ class Program
         [Fact]
         public void ModifierParsing_Union_CSharp15_RefReadonly()
         {
-            CreateCompilation("ref readonly union R { } class C { ref readonly union R { } }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(
+            const string source = "ref readonly union R { } class C { ref readonly union R { } }";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 14),
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "R").WithLocation(1, 20),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("<invalid-global-code>.R").WithLocation(1, 20),
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(1, 49),
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "R").WithArguments("C.R").WithLocation(1, 55));
-            UsingTree("ref readonly union R { } class C { ref readonly union R { } }", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -1893,7 +1947,9 @@ class C
         [Fact]
         public void RefModifierRecovery_ThroughInvalidStructModifier_Unsafe()
         {
-            UsingTree("class C { ref unsafe struct S {} }");
+            const string source = "class C { ref unsafe struct S {} }";
+
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1916,14 +1972,16 @@ class C
             }
             EOF();
 
-            CreateCompilation("class C { ref unsafe struct S {} }", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
         }
 
         [Fact]
         public void RefModifierRecovery_ThroughInvalidStructModifier_Readonly()
         {
-            UsingTree("class C { ref readonly struct S {} }");
+            const string source = "class C { ref readonly struct S {} }";
+
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1946,14 +2004,16 @@ class C
             }
             EOF();
 
-            CreateCompilation("class C { ref readonly struct S {} }", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
         }
 
         [Fact]
         public void RefModifierRecovery_ThroughInvalidStructModifiers_UnsafeReadonly()
         {
-            UsingTree("class C { ref unsafe readonly struct S {} }");
+            const string source = "class C { ref unsafe readonly struct S {} }";
+
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1977,7 +2037,7 @@ class C
             }
             EOF();
 
-            CreateCompilation("class C { ref unsafe readonly struct S {} }", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
         }
 
