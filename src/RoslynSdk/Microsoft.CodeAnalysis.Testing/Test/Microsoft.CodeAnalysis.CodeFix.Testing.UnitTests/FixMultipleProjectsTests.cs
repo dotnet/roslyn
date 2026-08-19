@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     NONE.
 
                 """.ReplaceLineEndings(),
-                exception.Message);
+                exception.Message.ReplaceLineEndings());
         }
 
         [Fact]

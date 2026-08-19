@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.TestFixes;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -146,6 +147,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
+        [UseCulture("en-US")]
         public async Task TestDiagnosticFixedByRemovingAdditionalFileWithUndeclaredCompileError()
         {
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -185,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
 
                 """.ReplaceLineEndings();
-            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message.ReplaceLineEndings());
         }
 
         [Fact]

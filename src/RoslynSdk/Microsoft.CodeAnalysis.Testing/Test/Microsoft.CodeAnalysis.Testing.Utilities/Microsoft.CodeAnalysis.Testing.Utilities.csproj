@@ -9,5 +9,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" />
     <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.extensibility.core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\..\Compilers\Test\Core\Assert\UseCultureAttribute.cs" Link="UseCultureAttribute.cs" />
   </ItemGroup>
 </Project>

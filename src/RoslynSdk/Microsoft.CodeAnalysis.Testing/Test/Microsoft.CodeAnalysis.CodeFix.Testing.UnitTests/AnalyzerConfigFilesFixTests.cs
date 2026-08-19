@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.TestFixes;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -162,6 +163,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
+        [UseCulture("en-US")]
         public async Task TestDiagnosticFixedByRemovingAnalyzerConfigFileWithUndeclaredCompileError()
         {
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -201,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
 
                 """.ReplaceLineEndings();
-            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message.ReplaceLineEndings());
         }
 
         [Fact]

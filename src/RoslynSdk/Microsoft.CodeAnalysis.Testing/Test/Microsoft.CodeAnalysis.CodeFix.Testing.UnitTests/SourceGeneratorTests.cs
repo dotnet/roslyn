@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources = { testCode },
                     GeneratedSources =
                     {
-                        (typeof(TreeNameGenerator), "Generated.g.cs", "// Test0.cs\r\n"),
+                        (typeof(TreeNameGenerator), "Generated.g.cs", "// Test0.cs\r\n".ReplaceLineEndings()),
                     },
                 },
                 FixedState =
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources = { testCode },
                     GeneratedSources =
                     {
-                        (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 42\r\n"),
+                        (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 42\r\n".ReplaceLineEndings()),
                     },
                 },
                 FixedState =
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources = { fixedCode },
                     GeneratedSources =
                     {
-                        (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 43\r\n"),
+                        (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 43\r\n".ReplaceLineEndings()),
                     },
                 },
             }.RunAsync();
@@ -123,15 +123,15 @@ namespace Microsoft.CodeAnalysis.Testing
             });
 
             var expectedMessage =
-                """
+                $"""
                 Context: Generated sources of test state
                 Context: Source generator application
                 Context: Verifying source generated files
                 Expected source file list to match
-                +Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.SourceGeneratorTests+TreeLengthGenerator\Generated.g.cs
+                +{GetGeneratedFilePath(typeof(TreeLengthGenerator), "Generated.g.cs")}
 
                 """;
-            new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message.ReplaceLineEndings());
 
             CSharpTest<TreeLengthGenerator> CreateTest(TestBehaviors testBehaviors)
             {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         Sources = { fixedCode },
                         GeneratedSources =
                         {
-                            (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 43\r\n"),
+                            (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 43\r\n".ReplaceLineEndings()),
                         },
                     },
                 };
@@ -184,16 +184,16 @@ namespace Microsoft.CodeAnalysis.Testing
             });
 
             var expectedMessage =
-                """
+                $"""
                 Context: Iterative code fix application
                 Context: Generated sources of fixed state
                 Context: Source generator application
                 Context: Verifying source generated files
                 Expected source file list to match
-                +Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.SourceGeneratorTests+TreeLengthGenerator\Generated.g.cs
+                +{GetGeneratedFilePath(typeof(TreeLengthGenerator), "Generated.g.cs")}
 
                 """;
-            new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message.ReplaceLineEndings());
 
             CSharpTest<TreeLengthGenerator> CreateTest(TestBehaviors testBehaviors)
             {
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         Sources = { testCode },
                         GeneratedSources =
                         {
-                            (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 42\r\n"),
+                            (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 42\r\n".ReplaceLineEndings()),
                         },
                     },
                     FixedState =
@@ -216,6 +216,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 };
             }
         }
+
+        private static string GetGeneratedFilePath(Type sourceGeneratorType, string fileName)
+            => Path.Combine(sourceGeneratorType.Assembly.GetName().Name!, sourceGeneratorType.FullName!, fileName);
 
         private class CSharpTest<TSourceGenerator> : CSharpCodeFixWithSourceGeneratorTest<LiteralUnderFiveAnalyzer, IncrementFix, TSourceGenerator>
             where TSourceGenerator : ISourceGenerator, new()

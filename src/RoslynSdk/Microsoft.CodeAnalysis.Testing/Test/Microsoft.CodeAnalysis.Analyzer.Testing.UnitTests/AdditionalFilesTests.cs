@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
 
                 """.ReplaceLineEndings();
-            Assert.Equal(expected, exception.Message);
+            Assert.Equal(expected, exception.Message.ReplaceLineEndings());
         }
 
         [Fact]
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
 
                 """.ReplaceLineEndings();
-            Assert.Equal(expected, exception.Message);
+            Assert.Equal(expected, exception.Message.ReplaceLineEndings());
         }
 
         [Fact]

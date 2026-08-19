@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 using Xunit;
 using CSharpTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.CSharpAnalyzerTest<
     Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer>;
@@ -13,6 +14,7 @@ using VisualBasicTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.VisualBasic
 
 namespace Microsoft.CodeAnalysis.Testing
 {
+    [UseCulture("en-US")]
     public class CompilerErrorTests
     {
         [Fact]
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
 
                 """.ReplaceLineEndings();
-            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message.ReplaceLineEndings());
         }
 
         [Fact]
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
 
                 """.ReplaceLineEndings();
-            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message.ReplaceLineEndings());
         }
 
         [Fact]
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
 
                 """.ReplaceLineEndings();
-            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message.ReplaceLineEndings());
         }
 
         [Fact]
@@ -264,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
 
                 """.ReplaceLineEndings();
-            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message.ReplaceLineEndings());
         }
 
         [Fact]
@@ -327,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
 
                 """.ReplaceLineEndings();
-            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message.ReplaceLineEndings());
         }
 
         [Fact]
@@ -358,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
 
                 """.ReplaceLineEndings();
-            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message.ReplaceLineEndings());
         }
 
         [Fact]

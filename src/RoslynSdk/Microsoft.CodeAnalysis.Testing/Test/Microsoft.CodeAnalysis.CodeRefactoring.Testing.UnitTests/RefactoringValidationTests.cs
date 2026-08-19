@@ -17,23 +17,23 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class RefactoringValidationTests
     {
-        private const string ReplaceThisWithBaseTestCode =
+        private static readonly string ReplaceThisWithBaseTestCode =
             """
 
             class TestClass {
               void TestMethod() { [|this|].Equals(null); }
             }
 
-            """;
+            """.ReplaceLineEndings("\r\n");
 
-        private const string ReplaceThisWithBaseFixedCode =
+        private static readonly string ReplaceThisWithBaseFixedCode =
             """
 
             class TestClass {
               void TestMethod() { base.Equals(null); }
             }
 
-            """;
+            """.ReplaceLineEndings("\r\n");
 
         [Fact]
         [WorkItem(149, "https://github.com/dotnet/roslyn-sdk/pull/149")]

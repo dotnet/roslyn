@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 """.ReplaceLineEndings();
 
-            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message.ReplaceLineEndings());
         }
 
         [Fact]
