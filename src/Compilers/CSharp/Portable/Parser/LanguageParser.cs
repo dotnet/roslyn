@@ -1365,7 +1365,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(!(forAccessors && forTopLevelStatements));
 
             isPossibleTypeDeclaration = true;
-            var seenRef = false;
 
             while (true)
             {
@@ -1398,11 +1397,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // Standard legal cases.
                             modTok = ConvertToKeyword(this.EatToken());
                         }
+                        // IsPartialType can skip ordinary modifiers, but not 'ref': it can instead begin a
+                        // ref-returning member, so use the more precise lookahead for that case.
                         else if (nextToken.Kind == SyntaxKind.RefKeyword && isRefTypeDeclarationAfterPartial())
-                        {
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else if (seenRef && isRefTypeDeclarationAfterModifiers())
                         {
                             modTok = ConvertToKeyword(this.EatToken());
                         }
@@ -1430,7 +1427,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (isRefTypeDeclarationAfterModifiers())
                             {
                                 modTok = this.EatToken();
-                                seenRef = true;
                             }
                             else if (forAccessors && this.IsPossibleAccessorModifier())
                             {
@@ -1703,7 +1699,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
             var peekIndex = 1;
-            while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword)
+            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) is
+                   not (DeclarationModifiers.None or DeclarationModifiers.Ref))
             {
                 peekIndex++;
             }

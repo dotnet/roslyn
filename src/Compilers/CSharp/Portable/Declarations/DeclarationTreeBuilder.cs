@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (refToken == default)
                 return;
 
-            // Leave duplicate 'ref' modifiers to the existing duplicate-modifier check.
+            // Leave duplicate 'ref' modifiers to ModifierUtils.GetDeclarationModifiersAndCheckForDuplicateModifiers.
             if (modifiers.Count(static modifier => modifier.Kind() == SyntaxKind.RefKeyword) > 1)
                 return;
 
