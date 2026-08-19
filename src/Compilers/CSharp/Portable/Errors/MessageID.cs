@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# preview features.
                 case MessageID.IDS_FeatureUnsafeEvolution: // https://github.com/dotnet/roslyn/issues/82546: keep this in preview until C# 16
-                case MessageID.IDS_FeatureTypeParameterInferenceFromConstraints:    
+                case MessageID.IDS_FeatureTypeParameterInferenceFromConstraints:
                     return LanguageVersion.Preview;
 
                 // C# 15.0 features.
