@@ -16,7 +16,7 @@ the one for your area):
 | Type | Location convention |
 |------|---------------------|
 | Unit tests | Sibling `*Test` / `*.UnitTests` project next to the product project (e.g., `Workspaces/Core` ↔ `Workspaces/CoreTest`). |
-| Compiler tests | `src/Compilers/*/Test/`; version-specific C# feature suites use `src/Compilers/CSharp/Test/CSharpN/`. |
+| Compiler tests | `src/Compilers/*/Test/`. |
 | IDE/analyzer tests | `*Test` projects under `src/Features`, `src/Analyzers`, `src/EditorFeatures`. |
 | Integration tests | VS integration tests (`azure-pipelines-integration*.yml`); runnable locally on **Windows** hosts with a VS install, also run in CI. |
 

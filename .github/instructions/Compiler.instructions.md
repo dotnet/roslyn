@@ -14,7 +14,6 @@ Roslyn follows a **layered compiler architecture**:
 ### Key Directories
 - `src/Compilers/Core/Portable/` - Language-agnostic compiler infrastructure
 - `src/Compilers/CSharp/Portable/` - C# compiler implementation  
-- `src/Compilers/CSharp/Test/CSharp*/` - Version-specific C# language feature test projects
 - `src/Compilers/VisualBasic/Portable/` - VB compiler implementation
 - `src/Compilers/Server/` - `VBCSCompiler` build server
 - `src/Dependencies/` - High-performance collections (`PooledObjects`, `Threading`)
