@@ -86,10 +86,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, TypeSymbol typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics)
             {
-                if (ConstraintsHelper.GetUnsafeConstructorForConstraint(typeParameter, typeArgument) is { } unsafeConstructor)
+                if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
+                    typeArgument is NamedTypeSymbol namedTypeArgument)
                 {
-                    // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
-                    @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, unsafeConstructor, CallerUnsafeMode.Explicit, arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
+                    foreach (var constructor in namedTypeArgument.InstanceConstructors)
+                    {
+                        if (constructor.ParameterCount == 0)
+                        {
+                            if (constructor.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+                            {
+                                // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
+                                @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, constructor, CallerUnsafeMode.Explicit, arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
+                            }
+
+                            break;
+                        }
+                    }
                 }
             }
         }

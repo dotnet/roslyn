@@ -1106,11 +1106,8 @@ hasRelatedInterfaces:
                 hasError = true;
             }
 
-            if (reportConstructorConstraintError(
-                constructedContainingSymbol,
-                typeParameter,
-                typeArgument,
-                diagnosticsBuilder))
+            // Check the constructor constraint.
+            if (typeParameter.HasConstructorConstraint && errorIfNotSatisfiesConstructorConstraint(constructedContainingSymbol, typeParameter, typeArgument, diagnosticsBuilder))
             {
                 return false;
             }
@@ -1118,33 +1115,25 @@ hasRelatedInterfaces:
             return !hasError;
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            static bool reportConstructorConstraintError(
-                Symbol containingSymbol,
-                TypeParameterSymbol typeParameter,
-                TypeWithAnnotations typeArgument,
-                ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder)
+            static bool errorIfNotSatisfiesConstructorConstraint(Symbol containingSymbol, TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder)
             {
-                if (typeParameter.HasConstructorConstraint)
-                {
-                    var error = GetConstructorConstraintError(typeArgument.Type);
-                    switch (error)
-                    {
-                        case ConstructorConstraintError.None:
-                            break;
-                        case ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType:
-                            // "'{2}' must be a non-abstract type with a public parameterless constructor in order to use it as parameter '{1}' in the generic type or method '{0}'"
-                            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
-                            return true;
-                        case ConstructorConstraintError.HasRequiredMembers:
-                            // '{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.
-                            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
-                            return true;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(error);
-                    }
-                }
+                var error = GetConstructorConstraintError(typeArgument.Type);
 
-                return false;
+                switch (error)
+                {
+                    case ConstructorConstraintError.None:
+                        return false;
+                    case ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType:
+                        // "'{2}' must be a non-abstract type with a public parameterless constructor in order to use it as parameter '{1}' in the generic type or method '{0}'"
+                        diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
+                        return true;
+                    case ConstructorConstraintError.HasRequiredMembers:
+                        // '{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.
+                        diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
+                        return true;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(error);
+                }
             }
         }
 
@@ -1553,27 +1542,6 @@ hasRelatedInterfaces:
                 (true, false) => ConstructorConstraintError.None,
             };
         }
-
-#nullable enable
-        internal static MethodSymbol? GetUnsafeConstructorForConstraint(TypeParameterSymbol typeParameter, TypeSymbol typeArgument)
-        {
-            if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
-                typeArgument is NamedTypeSymbol namedTypeArgument)
-            {
-                foreach (var constructor in namedTypeArgument.InstanceConstructors)
-                {
-                    if (constructor.ParameterCount == 0)
-                    {
-                        return constructor.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit
-                            ? constructor
-                            : null;
-                    }
-                }
-            }
-
-            return null;
-        }
-#nullable disable
 
         /// <summary>
         /// Returns true if type a is encompassed by type b (spec 6.4.3),
