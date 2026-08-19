@@ -533,27 +533,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                var seenRef = false;
-                foreach (var modifier in modifiers)
+                // Leave duplicate 'ref' modifiers to the existing duplicate-modifier check.
+                if (modifiers.Count(static modifier => modifier.Kind() == SyntaxKind.RefKeyword) > 1)
                 {
-                    if (modifier.Kind() == SyntaxKind.RefKeyword)
-                    {
-                        seenRef = true;
-                    }
-                    else if (modifier.ContextualKind() == SyntaxKind.PartialKeyword)
-                    {
-                        if (!seenRef)
-                        {
-                            return true;
-                        }
-                    }
-                    else if (seenRef)
-                    {
-                        return true;
-                    }
+                    return false;
                 }
 
-                return false;
+                var refIndex = modifiers.IndexOf(refToken);
+                if (refIndex == modifiers.Count - 1)
+                {
+                    return false;
+                }
+
+                if (refIndex == modifiers.Count - 2 &&
+                    modifiers[refIndex + 1].ContextualKind() == SyntaxKind.PartialKeyword)
+                {
+                    return false;
+                }
+
+                return true;
             }
         }
 
