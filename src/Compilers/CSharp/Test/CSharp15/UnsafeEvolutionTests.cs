@@ -7707,6 +7707,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var localFunctions = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Select(s => model.GetDeclaredSymbol(s)!).ToArray();
         Assert.Equal(2, localFunctions.Length);
 
+        // pre-existing behavior: local functions don't have any modifiers displayed
         AssertEx.Equal("void M1()", localFunctions[0].ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
         AssertEx.Equal("void M2()", localFunctions[1].ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
 
@@ -7815,15 +7816,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 AssertEx.Equal("int C.P1", comp.GetMember("C.P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("int C.P1.get", comp.GetMember("C.get_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P1.set", comp.GetMember("C.set_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("int C.P2", comp.GetMember("C.P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("int C.P2.get", comp.GetMember("C.get_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P2.set", comp.GetMember("C.set_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
             },
             updatedLibValidator: static comp =>
             {
                 AssertEx.Equal("int C.P1", comp.GetMember("C.P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("int C.P1.get", comp.GetMember("C.get_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P1.set", comp.GetMember("C.set_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("unsafe int C.P2", comp.GetMember("C.P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("unsafe int C.P2.get", comp.GetMember("C.get_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe void C.P2.set", comp.GetMember("C.set_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
             });
     }
 
@@ -8050,15 +8055,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 AssertEx.Equal("int C.P1", comp.GetMember("C.P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("int C.P1.get", comp.GetMember("C.get_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P1.set", comp.GetMember("C.set_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("int C.P2", comp.GetMember("C.P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("int C.P2.get", comp.GetMember("C.get_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P2.set", comp.GetMember("C.set_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
             },
             updatedLibValidator: static comp =>
             {
                 AssertEx.Equal("int C.P1", comp.GetMember("C.P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("unsafe int C.P1.get", comp.GetMember("C.get_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.P1.set", comp.GetMember("C.set_P1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("int C.P2", comp.GetMember("C.P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("int C.P2.get", comp.GetMember("C.get_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe void C.P2.set", comp.GetMember("C.set_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
             });
 
         CreateCompilation([lib], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
@@ -8684,12 +8693,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             legacyLibValidator: static comp =>
             {
                 AssertEx.Equal("int C1.this[int i]", comp.GetMember("C1.this[]").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C1.this[int i].get", comp.GetMember("C1.get_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C1.this[int i].set", comp.GetMember("C1.set_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("int C2.this[int i]", comp.GetMember("C2.this[]").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C2.this[int i].get", comp.GetMember("C2.get_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C2.this[int i].set", comp.GetMember("C2.set_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
             },
             updatedLibValidator: static comp =>
             {
                 AssertEx.Equal("int C1.this[int i]", comp.GetMember("C1.this[]").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("int C1.this[int i].get", comp.GetMember("C1.get_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C1.this[int i].set", comp.GetMember("C1.set_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("unsafe int C2.this[int i]", comp.GetMember("C2.this[]").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe int C2.this[int i].get", comp.GetMember("C2.get_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe void C2.this[int i].set", comp.GetMember("C2.set_Item").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
             });
     }
 
@@ -8995,15 +9012,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 AssertEx.Equal("event Action C.E1", comp.GetMember("C.E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("void C.E1.add", comp.GetMember("C.add_E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.E1.remove", comp.GetMember("C.remove_E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("event Action C.E2", comp.GetMember("C.E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("void C.E2.add", comp.GetMember("C.add_E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.E2.remove", comp.GetMember("C.remove_E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
             },
             updatedLibValidator: static comp =>
             {
                 AssertEx.Equal("event Action C.E1", comp.GetMember("C.E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("void C.E1.add", comp.GetMember("C.add_E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("void C.E1.remove", comp.GetMember("C.remove_E1").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("unsafe event Action C.E2", comp.GetMember("C.E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
                 AssertEx.Equal("unsafe void C.E2.add", comp.GetMember("C.add_E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
+                AssertEx.Equal("unsafe void C.E2.remove", comp.GetMember("C.remove_E2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
             });
 
         var source = """
