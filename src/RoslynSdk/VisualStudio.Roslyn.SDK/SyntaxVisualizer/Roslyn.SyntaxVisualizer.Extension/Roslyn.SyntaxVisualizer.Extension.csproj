@@ -7,6 +7,7 @@
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
     <IsProductComponent>false</IsProductComponent>
     <UseWpf>true</UseWpf>
+    <GenerateResourceUsePreserializedResources Condition="'$(MSBuildRuntimeType)' == 'Core'">true</GenerateResourceUsePreserializedResources>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
@@ -51,6 +52,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" />
     <PackageReference Include="Microsoft.VisualStudio.Utilities.Internal" />
     <PackageReference Include="StreamJsonRpc" />
+    <PackageReference Include="System.Resources.Extensions" PrivateAssets="all" />
     <!-- Explicit reference to avoid missing package warning -->
     <PackageReference Include="Microsoft.VisualStudio.Interop" />
   </ItemGroup>
