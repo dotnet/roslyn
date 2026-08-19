@@ -116,6 +116,78 @@ class Program
         }
 
         [Fact]
+        public void RefTypeDeclarationLookahead_FunctionPointerRemainsType()
+        {
+            var root = ParseTree("class C { ref delegate*<void> F; }", TestOptions.Regular).GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var field = Assert.IsType<FieldDeclarationSyntax>(Assert.Single(containingType.Members));
+            var refType = Assert.IsType<RefTypeSyntax>(field.Declaration.Type);
+            Assert.IsType<FunctionPointerTypeSyntax>(refType.Type);
+        }
+
+        [Theory]
+        [InlineData("record", LanguageVersion.CSharp8, SyntaxKind.MethodDeclaration)]
+        [InlineData("record", LanguageVersion.CSharp9, SyntaxKind.RecordDeclaration)]
+        [InlineData("union", LanguageVersion.CSharp14, SyntaxKind.MethodDeclaration)]
+        [InlineData("union", LanguageVersion.CSharp15, SyntaxKind.UnionDeclaration)]
+        [InlineData("extension", LanguageVersion.CSharp13, SyntaxKind.MethodDeclaration)]
+        [InlineData("extension", LanguageVersion.CSharp14, SyntaxKind.ExtensionBlockDeclaration)]
+        public void RefReadonlyContextualKeywordParsing(
+            string contextualKeyword, LanguageVersion languageVersion, SyntaxKind expectedMemberKind)
+        {
+            var source = $"class C {{ ref readonly {contextualKeyword} M(); }}";
+            var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var member = Assert.Single(containingType.Members);
+            Assert.Equal(expectedMemberKind, member.Kind());
+
+            if (member is MethodDeclarationSyntax method)
+            {
+                tree.GetDiagnostics().Verify();
+                var refType = Assert.IsType<RefTypeSyntax>(method.ReturnType);
+                Assert.Equal(SyntaxKind.ReadOnlyKeyword, refType.ReadOnlyKeyword.Kind());
+                Assert.Equal(contextualKeyword, Assert.IsType<IdentifierNameSyntax>(refType.Type).Identifier.Text);
+            }
+            else
+            {
+                Assert.Equal(SyntaxKind.RefKeyword, member.GetFirstToken().Kind());
+            }
+        }
+
+        [Fact]
+        public void RefReadonlyRecordReturnType_BreakingParsingChange()
+        {
+            var source = """
+                #pragma warning disable CS8860
+                class record { }
+
+                class C
+                {
+                    public ref readonly record M() => throw null;
+                }
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (6,32): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public ref readonly record M() => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(6, 32),
+                // (6,32): error CS0106: The modifier 'ref' is not valid for this item
+                //     public ref readonly record M() => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("ref").WithLocation(6, 32),
+                // (6,36): error CS1514: { expected
+                //     public ref readonly record M() => throw null;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "=>").WithLocation(6, 36),
+                // (6,36): error CS1513: } expected
+                //     public ref readonly record M() => throw null;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 36),
+                // (6,36): error CS1519: Invalid token '=>' in a member declaration
+                //     public ref readonly record M() => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 36));
+        }
+
+        [Fact]
         public void RefTypeDeclarationLookahead_FunctionPointerRemainsReturnType()
         {
             var tree = ParseTree("unsafe class C { ref delegate*<void> M(); }", TestOptions.Regular);
