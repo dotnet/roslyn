@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // unsafe is added only for new code (code that opts into unsafe evolution and uses the keyword to annotate caller-unsafe members)
-                if (symbol.RequiresUnsafe &&
+                if (symbol.RequiresUnsafeContext &&
                     // https://github.com/dotnet/roslyn/issues/82546: use public API for this when available
                     symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol.ContainingModule.UseUpdatedMemorySafetyRules: true })
                 {
