@@ -1,591 +1,147 @@
-# Branches that trigger a build on commit
-trigger:
-- main
-- main-vs-deps
-- community
-- release/*
-- features/*
-- demos/*
+# TEST ONLY (do not merge): BigBuild warm-clone cache demo, wired to run on the
+# dotnet-roslyn-test-CI pipeline (def 1233) by replacing its entry YAML on this branch.
+#
+# def 1233 executes /azure-pipelines.yml from whatever branch is queued, as a plain (non-1ES-
+# extends) stages pipeline, so we can drive the whole warm-cache demo from here without needing
+# permission to CREATE a pipeline definition -- we only need Queue rights on an existing def.
+#
+# Self-seeding, per-branch capture/replay cache over Compilers.slnf using ONLY Pipeline Artifacts:
+#   1. pull THIS branch's previous run's `warmcache` artifact (the last baseline),
+#   2. seed this checkout from it (overlay outputs + back-date unchanged inputs),
+#   3. build Compilers.slnf -- only the true delta rebuilds,
+#   4. capture a fresh baseline and publish it as `warmcache` for the NEXT run.
+#
+# Correctness is never at stake, only perf: a stale/missing baseline just means more rebuild
+# (worst case a full cold build), never a wrong output. Demo: run once (cold, seeds), then push a
+# one-line change to a LEAF project and run again -- the second run rebuilds ONLY that leaf.
 
-# Branches that trigger builds on PR
-pr:
-  branches:
-    include:
-    - main
-    - main-vs-deps
-    - community
-    - release/*
-    - features/*
-    - demos/*
-  paths:
-    exclude:
-      - docs/*
-      - eng/config/OptProf.json
-      - eng/config/PublishData.json
-      - eng/setup-pr-validation.ps1
-      - src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
-      - .vscode/*
-      - .github/*
-      - .devcontainer/*
-      - .git-blame-ignore-revs
-      - .vsconfig
-      - azure-pipelines-compliance.yml
-      - azure-pipelines-integration-dartlab.yml
-      - azure-pipelines-integration-scouting.yml
-      - azure-pipelines-official.yml
-      - azure-pipelines-pr-validation.yml
-      - '*.md'
+name: $(Date:yyyyMMdd).$(Rev:r) BigBuild WarmCache Demo
+
+trigger: none
+pr: none
+
+parameters:
+- name: slnf
+  type: string
+  default: 'Compilers.slnf'
+- name: buildArgs
+  type: string
+  # determinism flags are REQUIRED for cross-run byte-stability; marker-space off (vanilla bits).
+  default: '-c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true'
+- name: sdkFingerprint
+  type: string
+  default: 'sdk-11.0.100-preview.6-stock'   # the lane key; bump if the toolchain changes
 
 variables:
-  - template: /eng/common/templates/variables/pool-providers.yml
-
-  # This value is conditionally overriden by the variable group DotNet-HelixApi-Access.
-  # ADO only lets us conditionally include a variable group on individual stages.
-  - name: HelixApiAccessToken
-    value: ''
-
+  - name: CacheStore
+    value: $(Agent.TempDirectory)/wc-store
+  - name: Scripts
+    value: $(Build.SourcesDirectory)/eng/bigbuild-cache/scripts
+  # suppress CodeQL auto-injection (this is a throwaway perf demo, not a shipping build)
   - name: Codeql.Enabled
     value: false
   - name: Codeql.SkipTaskAutoInjection
     value: true
 
-  # Set pool / queue name variables depending on which instance we're running in.
-  - name: PoolName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: NetCore-Public
-    ${{ else }}:
-      value: NetCore1ESPool-Internal
-
-  - name: Vs2022RegularQueueName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.vs2022.amd64.open
-    ${{ else }}:
-      value: windows.vs2022.amd64
-
-  - name: Vs2026PreviewQueueName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.vs2026preview.scout.amd64.open
-    ${{ else }}:
-      value: windows.vs2026preview.scout.amd64
-
-  - name: UbuntuQueueName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Build.Ubuntu.2204.Amd64.Open
-    ${{ else }}:
-      value: Build.Ubuntu.2204.Amd64
-
-  - name: WindowsQueueName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: 1es-windows-2022-open
-    ${{ else }}:
-      value: 1es-windows-2022
-
-  - name: HelixWindowsQueueName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Windows.10.Amd64.Open
-    ${{ else }}:
-      value: Windows.10.Amd64
-
-  - name: HelixWindowsVsQueueName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.amd64.vs2026.pre.scout.open
-    ${{ else }}:
-      value: windows.amd64.vs2026.pre.scout
-
-  - name: HelixWindowsSpanishQueueName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Windows.10.Amd64.Server2022.ES.Open
-    ${{ else }}:
-      value: Windows.10.Amd64.Server2022.ES
-
-  - name: HelixUbuntuQueueName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Ubuntu.2204.Amd64.Open
-    ${{ else }}:
-      value: Ubuntu.2204.Amd64
-
-  - name: HelixMacOsQueueName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: OSX.15.Amd64.Open
-    ${{ else }}:
-      value: OSX.15.Amd64
-
-parameters:
-  # These pools allow us to configure the pools once for multiple jobs.
-  # We have to use parameters here as these are object typed.
-  - name: ubuntuPool
-    type: object
-    default:
-      name: $(PoolName)
-      demands: ImageOverride -equals $(UbuntuQueueName)
-  - name: windowsPool
-    type: object
-    default:
-      name: $(PoolName)
-      demands: ImageOverride -equals $(WindowsQueueName)
-  - name: macOSPool
-    type: object
-    default:
-      vmImage: macOS-15
-  - name: vs2026PreviewPool
-    type: object
-    default:
-      name: $(PoolName)
-      demands: ImageOverride -equals $(Vs2026PreviewQueueName)
-
 stages:
-- stage: Windows_Debug_Build
+- stage: warmcache
   dependsOn: []
   jobs:
-  - template: eng/pipelines/build-windows-job.yml
-    parameters:
-      jobName: Build_Windows_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      poolParameters: ${{ parameters.vs2026PreviewPool }}
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
-
-- stage: Windows_Release_Build
-  dependsOn: []
-  jobs:
-  - template: eng/pipelines/build-windows-job.yml
-    parameters:
-      jobName: Build_Windows_Release
-      testArtifactName: Transport_Artifacts_Windows_Release
-      configuration: Release
-      poolParameters: ${{ parameters.vs2026PreviewPool }}
-      restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
-      buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
-
-- stage: Unix_Build
-  dependsOn: []
-  jobs:
-  - template: eng/pipelines/build-unix-job.yml
-    parameters:
-      jobName: Build_Unix_Debug
-      testArtifactName: Transport_Artifacts_Unix_Debug
-      poolParameters: ${{ parameters.ubuntuPool }}
-
-- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - stage: MacOS_Build
-    dependsOn: []
-    jobs:
-    - template: eng/pipelines/build-unix-job.yml
-      parameters:
-        jobName: Build_macOS_Debug
-        testArtifactName: Transport_Artifacts_macOS_Debug
-        poolParameters: ${{ parameters.macOSPool }}
-
-- stage: Source_Build
-  dependsOn: []
-  jobs:
-  # Like template `eng/common/templates/jobs/source-build.yml`
-  - job: Source_Build_Managed
-    displayName: Source-Build (Managed)
-    container: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9
+  - job: warmcache
+    displayName: Warm-clone cache demo (Compilers.slnf)
+    timeoutInMinutes: 150
     pool:
-      ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public')]
-        demands: ImageOverride -equals Build.Ubuntu.2204.Amd64.Open
-
-      ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-        name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore1ESPool-Svc-Internal'), False, 'NetCore1ESPool-Internal')]
-        demands: ImageOverride -equals Build.Ubuntu.2204.Amd64
-    workspace:
-      clean: all
+      name: NetCore1ESPool-Internal
+      demands: ImageOverride -equals windows.vs2022.amd64
     steps:
-    - template: /eng/common/templates/steps/source-build.yml
-      parameters:
-        platform:
-          name: 'Managed'
-          container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9'
+    - checkout: self
+      # Pin the checkout path so the absolute source path is identical run-to-run (path-stability).
+      path: s
+      clean: true
+      fetchDepth: 0           # Select-Baseline walks first-parent history to the nearest cached ancestor
 
-- stage: Windows_Debug_Tests
-  dependsOn: Windows_Debug_Build
-  variables:
-  - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-    - group: DotNet-HelixApi-Access
-  jobs:
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows Desktop Debug 64'
-      jobName: Test_Windows_Desktop_Debug_64
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testDesktop -testArch x64
-      helixQueueName: $(HelixWindowsVsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+    - task: PowerShell@2
+      displayName: Restore (bootstrap SDK + packages)
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -restore -prepareMachine -binaryLogName Restore.binlog
 
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreClr Debug'
-      jobName: Test_Windows_CoreClr_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testCoreClr
-      helixQueueName: $(HelixWindowsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+    # Pull THIS branch's previous run's baseline. First run has none -> cold (continueOnError).
+    - task: DownloadPipelineArtifact@2
+      displayName: Pull last warmcache (this branch)
+      continueOnError: true
+      inputs:
+        buildType: specific
+        project: $(System.TeamProjectId)
+        definition: $(System.DefinitionId)
+        buildVersionToDownload: latestFromBranch
+        branchName: $(Build.SourceBranch)
+        artifactName: warmcache
+        targetPath: $(CacheStore)
 
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - template: eng/pipelines/test-windows-job.yml
-      parameters:
-        testRunName: 'Test Windows CoreClr Debug Spanish'
-        jobName: Test_Windows_CoreClr_Debug_Spanish
-        testArtifactName: Transport_Artifacts_Windows_Debug
-        configuration: Debug
-        testArguments: -testCoreClr
-        helixQueueName: $(HelixWindowsSpanishQueueName)
-        helixApiAccessToken: $(HelixApiAccessToken)
-        poolParameters: ${{ parameters.windowsPool }}
+    - task: PowerShell@2
+      displayName: Seed from baseline (select + overlay + back-date)
+      inputs:
+        targetType: inline
+        pwsh: true
+        script: |
+          $ErrorActionPreference = 'Stop'
+          $store = "$(CacheStore)"
+          $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
+          $laneDir = Join-Path $store $lane
+          if (-not (Test-Path $laneDir)) {
+            Write-Host "##[warning]No baseline for this branch yet -- COLD build (this run will seed one)."
+            Write-Host "##vso[task.setvariable variable=Seeded]false"
+            exit 0
+          }
+          $sel = & "$(Scripts)/Select-Baseline.ps1" -RepoRoot . -LaneDir $laneDir | Select-Object -Last 1
+          if ($LASTEXITCODE -ne 0 -or -not $sel) { Write-Host "##[warning]No ancestor baseline -- COLD build."; Write-Host "##vso[task.setvariable variable=Seeded]false"; exit 0 }
+          Write-Host "==> seeding from $sel"
+          & "$(Scripts)/Restore-Baseline.ps1" -RepoRoot . -BaselineDir $sel
+          & "$(Scripts)/Replay-Baseline.ps1"  -RepoRoot . -BaselineDir $sel -Mode BackDate
+          Write-Host "##vso[task.setvariable variable=Seeded]true"
 
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - template: eng/pipelines/test-windows-job-single-machine.yml
-      parameters:
-        testRunName: 'Test Windows CoreClr Debug Single Machine'
-        jobName: Test_Windows_CoreClr_Debug_Single_Machine
-        testArtifactName: Transport_Artifacts_Windows_Debug
-        configuration: Debug
-        poolParameters: ${{ parameters.vs2026PreviewPool }}
-        testArguments: -testCoreClr
+    - task: PowerShell@2
+      displayName: Build Compilers.slnf (measure cold vs warm)
+      inputs:
+        targetType: inline
+        pwsh: true
+        script: |
+          $ErrorActionPreference = 'Stop'
+          # --no-restore when seeded so the overlaid obj/assets are not re-timestamped (would bust back-date).
+          $noRestore = if ("$(Seeded)" -eq "true") { "--no-restore" } else { "" }
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          & "$(Build.SourcesDirectory)/.dotnet/dotnet.exe" build ${{ parameters.slnf }} ${{ parameters.buildArgs }} $noRestore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
+          if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
+          $sw.Stop()
+          Write-Host ("##[section]Build finished in {0:n1}s (seeded=$(Seeded))" -f $sw.Elapsed.TotalSeconds)
+          Write-Host ("##vso[task.setvariable variable=BuildSeconds]{0:n1}" -f $sw.Elapsed.TotalSeconds)
 
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreCLR IOperation Debug'
-      jobName: Test_Windows_CoreClr_IOperation_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testCoreClr -testIOperation -testCompilerOnly
-      helixQueueName: $(HelixWindowsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+    - task: PowerShell@2
+      displayName: Capture fresh baseline
+      inputs:
+        targetType: inline
+        pwsh: true
+        script: |
+          $ErrorActionPreference = 'Stop'
+          $store = "$(CacheStore)"
+          $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
+          $sha   = (git rev-parse HEAD).Trim()
+          # Keep only the current baseline in the published store (one baseline, not growing).
+          if (Test-Path $store) { Remove-Item $store -Recurse -Force }
+          $baselineDir = Join-Path (Join-Path $store $lane) $sha
+          & "$(Scripts)/Capture-Baseline.ps1" -RepoRoot . -BaselineDir $baselineDir -Archive
+          Write-Host "==> captured baseline -> $baselineDir"
 
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreCLR RuntimeAsync Debug'
-      jobName: Test_Windows_CoreClr_RuntimeAsync_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testCoreClr -testRuntimeAsync -testCompilerOnly
-      helixQueueName: $(HelixWindowsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+    - task: PublishPipelineArtifact@1
+      displayName: Publish warmcache (for next run)
+      inputs:
+        targetPath: $(CacheStore)
+        artifactName: warmcache
 
-  # This leg runs almost all the compiler tests supported on CoreCLR, but
-  #  with additional validation for used assemblies and GetEmitDiagnostics
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
-      jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
-      helixQueueName: $(HelixWindowsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
-
-  - template: /eng/common/core-templates/job/helix-job-monitor.yml
-    parameters:
-      helixAccessToken: $(HelixApiAccessToken)
-
-- stage: Windows_Release_Tests
-  dependsOn: Windows_Release_Build
-  variables:
-  - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-    - group: DotNet-HelixApi-Access
-  jobs:
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - template: eng/pipelines/test-windows-job.yml
-      parameters:
-        testRunName: 'Test Windows Desktop Release 32'
-        jobName: Test_Windows_Desktop_Release_32
-        testArtifactName: Transport_Artifacts_Windows_Release
-        configuration: Release
-        testArguments: -testDesktop -testArch x86
-        helixQueueName: $(HelixWindowsVsQueueName)
-        helixApiAccessToken: $(HelixApiAccessToken)
-        poolParameters: ${{ parameters.windowsPool }}
-
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows Desktop Release 64'
-      jobName: Test_Windows_Desktop_Release_64
-      testArtifactName: Transport_Artifacts_Windows_Release
-      configuration: Release
-      testArguments: -testDesktop -testArch x64
-      helixQueueName: $(HelixWindowsVsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
-
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - template: eng/pipelines/test-windows-job.yml
-      parameters:
-        testRunName: 'Test Windows Desktop Spanish Release 64'
-        jobName: Test_Windows_Desktop_Spanish_Release_64
-        testArtifactName: Transport_Artifacts_Windows_Release
-        configuration: Release
-        testArguments: -testDesktop -testArch x64
-        helixQueueName: $(HelixWindowsSpanishQueueName)
-        helixApiAccessToken: $(HelixApiAccessToken)
-        poolParameters: ${{ parameters.windowsPool }}
-
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreClr Release'
-      jobName: Test_Windows_CoreClr_Release
-      testArtifactName: Transport_Artifacts_Windows_Release
-      configuration: Release
-      testArguments: -testCoreClr
-      helixQueueName: $(HelixWindowsQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
-
-  - template: /eng/common/core-templates/job/helix-job-monitor.yml
-    parameters:
-      helixAccessToken: $(HelixApiAccessToken)
-
-- stage: Unix_Debug_CoreClr
-  dependsOn: Unix_Build
-  variables:
-  - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-    - group: DotNet-HelixApi-Access
-  jobs:
-  - template: eng/pipelines/test-unix-job-single-machine.yml
-    parameters:
-      testRunName: 'Test Linux Debug'
-      jobName: Test_Linux_Debug
-      testArtifactName: Transport_Artifacts_Unix_Debug
-      configuration: Debug
-      testArguments: --testCoreClr
-      poolParameters: ${{ parameters.ubuntuPool }}
-
-  - template: eng/pipelines/test-unix-job-single-machine.yml
-    parameters:
-      testRunName: 'Test Linux Debug Spanish Single Machine'
-      jobName: Test_Linux_Debug_Spanish_Single_Machine
-      testArtifactName: Transport_Artifacts_Unix_Debug
-      configuration: Debug
-      testArguments: --testCoreClr
-      poolParameters: ${{ parameters.ubuntuPool }}
-      locale: es_ES.UTF-8
-
-- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - stage: MacOS_Debug_CoreClr
-    dependsOn: MacOS_Build
-    variables:
-    - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-      - group: DotNet-HelixApi-Access
-    jobs:
-    # https://github.com/dotnet/runtime/issues/97186
-    - template: eng/pipelines/test-unix-job.yml
-      parameters:
-        testRunName: 'Test macOS Debug'
-        jobName: Test_macOS_Debug
-        testArtifactName: Transport_Artifacts_macOS_Debug
-        configuration: Debug
-        testArguments: --testCoreClr
-        helixQueueName: $(HelixMacOsQueueName)
-        helixApiAccessToken: $(HelixApiAccessToken)
-        poolParameters: ${{ parameters.ubuntuPool }}
-
-    - template: /eng/common/core-templates/job/helix-job-monitor.yml
-      parameters:
-        helixAccessToken: $(HelixApiAccessToken)
-
-- stage: Correctness
-  dependsOn: []
-  jobs:
-  - template: eng/pipelines/evaluate-changed-files.yml
-    parameters:
-      jobName: Determine_Changes
-      poolParameters: ${{ parameters.ubuntuPool }}
-      paths:
-        # this subset includes infra changes (we want to run all legs when there are infra changes)
-        - subset: compilers
-          include:
-          - src/Compilers/*
-          - src/Dependencies/*
-          - src/NuGet/Microsoft.Net.Compilers.Toolset/*
-          - eng/*
-          - src/Tools/CompilerGeneratorTools/*
-          - '*.sln*'
-          - '*.yml'
-          - '*.props'
-          - '*.targets'
-          - '*.rsp'
-          - '*.*config'
-          - 'global.json'
-
-  - job: Correctness_Build_Artifacts
-    dependsOn: Determine_Changes
-    pool: ${{ parameters.vs2026PreviewPool }}
-    timeoutInMinutes: 90
-    variables:
-      - template: eng/pipelines/variables-build.yml
-        parameters:
-          configuration: Release
-      - name: compilerChange
-        value: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
-      # Set NUGET_PACKAGES to fix issues with package Restore when building with `-ci`.
-      # Workaround for https://github.com/dotnet/arcade/issues/15970
-      - name: NUGET_PACKAGES
-        value: $(Build.SourcesDirectory)\.packages
-    steps:
-      - template: eng/pipelines/checkout-windows-task.yml
-
-      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog
-        displayName: Restore
-
-      # We additionally restore during the build because the Microsoft.DotNet.Build.Tasks.Feed package only restores when we pass `-publish`. See https://github.com/dotnet/arcade/blob/37ccfd66358af6a37a0ec385ec31d1d71bdd8723/src/Microsoft.DotNet.Arcade.Sdk/tools/Tools.proj#L61-L66
-      # Passing `-publish` during the restore step above fails due to no items needing published.
-      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
-        displayName: Build
-
-      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.slnx --check-package-install
-        displayName: Validate Build Artifacts
-
-      - powershell: eng/validate-rules-missing-documentation.ps1 -ci
-        displayName: Validate rules missing documentation
-
-      - task: DotNetCoreCLI@2
-        displayName: Generate Syntax Files
-        inputs:
-          command: 'custom'
-          custom: 'run'
-          arguments: '--file $(Build.SourcesDirectory)/eng/generate-compiler-code.cs -- -test -configuration Release'
-
-      - task: DotNetCoreCLI@2
-        displayName: Verify Synchronized Sources
-        inputs:
-          command: 'custom'
-          custom: 'run'
-          arguments: '--file $(Build.SourcesDirectory)/eng/ensure-sources-synced.cs -- --verify'
-
-      - powershell: eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\
-        displayName: Validate Generated Syntax Files
-        condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
-
-      - powershell: eng/validate-benchmarks.ps1 -configuration Release -ci
-        displayName: Validate Benchmarks
-
-      - script: dotnet build-server shutdown
-        displayName: Shutdown Build Server
-        continueOnError: true
-        condition: always()
-
-      - template: eng/pipelines/publish-logs.yml
-        parameters:
-          jobName: Correctness_Build_Artifacts
-          configuration: Release
-
-  - job: Correctness_Determinism
-    dependsOn: Determine_Changes
-    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-    pool: ${{ parameters.vs2026PreviewPool }}
-    timeoutInMinutes: 90
-    variables:
-      - template: eng/pipelines/variables-build.yml
-        parameters:
-          configuration: Debug
-      - name: bootstrapDir
-        value: $(Build.SourcesDirectory)/artifacts/bootstrap/determinism
-    steps:
-      - template: eng/pipelines/checkout-windows-task.yml
-
-      - powershell: eng/make-bootstrap.ps1 -output $(bootstrapDir) -ci
-        displayName: Build Bootstrap Compiler
-
-      - powershell: eng/test-determinism.ps1 -configuration Debug -bootstrapDir $(bootstrapDir) -ci
-        displayName: Build - Validate determinism
-
-      - template: eng/pipelines/publish-logs.yml
-        parameters:
-          jobName: Correctness_Determinism
-          configuration: Debug
-
-  - job: Correctness_Bootstrap_Build_Default
-    dependsOn: Determine_Changes
-    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-    pool: ${{ parameters.vs2026PreviewPool }}
-    timeoutInMinutes: 90
-    variables:
-      - template: eng/pipelines/variables-build.yml
-        parameters:
-          configuration: Release
-    steps:
-      - template: eng/pipelines/build-bootstrap.yml
-        parameters:
-          toolset: Default
-
-  - job: Correctness_Bootstrap_Build_Framework
-    dependsOn: Determine_Changes
-    condition: ne(variables['Build.Reason'], 'PullRequest')
-    pool: ${{ parameters.vs2026PreviewPool }}
-    timeoutInMinutes: 90
-    variables:
-      - template: eng/pipelines/variables-build.yml
-        parameters:
-          configuration: Release
-    steps:
-      - template: eng/pipelines/build-bootstrap.yml
-        parameters:
-          toolset: Framework
-
-  - job: Correctness_TodoCheck
-    pool: ${{ parameters.ubuntuPool }}
-    timeoutInMinutes: 10
-    steps:
-      - template: eng/pipelines/checkout-unix-task.yml
-
-      - powershell: eng/todo-check.ps1
-        displayName: Validate TODO/PROTOTYPE comments are not present
-
-  - job: Correctness_Rebuild
-    dependsOn: Determine_Changes
-    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-    pool: ${{ parameters.vs2026PreviewPool }}
-    timeoutInMinutes: 90
-    variables:
-      - template: eng/pipelines/variables-build.yml
-        parameters:
-          configuration: Release
-    steps:
-      - template: eng/pipelines/checkout-windows-task.yml
-
-      - script: .\eng\test-rebuild.cmd -ci -configuration Release -bootstrap
-        displayName: Run BuildValidator
-
-      - task: PublishBuildArtifacts@1
-        displayName: Publish BuildValidator debug outputs
-        inputs:
-          PathtoPublish: '$(Build.SourcesDirectory)/artifacts/BuildValidator'
-          ArtifactName: 'BuildValidator_DebugOut'
-          publishLocation: Container
-        continueOnError: true
-        condition: failed()
-
-      - template: eng/pipelines/publish-logs.yml
-        parameters:
-          jobName: Correctness_Rebuild
-          configuration: Release
-
-  - job: Correctness_Analyzers
-    pool: ${{ parameters.ubuntuPool }}
-    timeoutInMinutes: 40
-    variables:
-      - template: eng/pipelines/variables-build.yml
-        parameters:
-          configuration: Debug
-
-    steps:
-      - template: eng/pipelines/checkout-unix-task.yml
-
-      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
-        displayName: Build with analyzers
-
-      - template: eng/pipelines/publish-logs.yml
-        parameters:
-          jobName: Correctness_Analyzers
-          configuration: Debug
+    - task: PublishPipelineArtifact@1
+      displayName: Publish binlogs
+      condition: succeededOrFailed()
+      inputs:
+        targetPath: $(Build.SourcesDirectory)/artifacts/log
+        artifactName: binlogs

@@ -1,461 +1,147 @@
-trigger:
-  branches:
-    include:
-    - main
-    - main-vs-deps
-    - community
-    - release/dev16.*-vs-deps
-    - release/dev17.*
-    - release/dev18.*
-    - release/insiders
-    - release/stable
-    - demos/mvu-experimentation
-    - features/lsp_tools_host
-    - features/runtime-async
-    exclude:
-    - release/dev17.0
+# TEST ONLY (do not merge): BigBuild warm-clone cache demo, wired to run on the
+# dotnet-roslyn-test-CI pipeline (def 1233) by replacing its entry YAML on this branch.
+#
+# def 1233 executes /azure-pipelines.yml from whatever branch is queued, as a plain (non-1ES-
+# extends) stages pipeline, so we can drive the whole warm-cache demo from here without needing
+# permission to CREATE a pipeline definition -- we only need Queue rights on an existing def.
+#
+# Self-seeding, per-branch capture/replay cache over Compilers.slnf using ONLY Pipeline Artifacts:
+#   1. pull THIS branch's previous run's `warmcache` artifact (the last baseline),
+#   2. seed this checkout from it (overlay outputs + back-date unchanged inputs),
+#   3. build Compilers.slnf -- only the true delta rebuilds,
+#   4. capture a fresh baseline and publish it as `warmcache` for the NEXT run.
+#
+# Correctness is never at stake, only perf: a stale/missing baseline just means more rebuild
+# (worst case a full cold build), never a wrong output. Demo: run once (cold, seeds), then push a
+# one-line change to a LEAF project and run again -- the second run rebuilds ONLY that leaf.
+
+name: $(Date:yyyyMMdd).$(Rev:r) BigBuild WarmCache Demo
+
+trigger: none
 pr: none
 
-resources:
-  repositories:
-  - repository: 1ESPipelineTemplates
-    type: git
-    name: 1ESPipelineTemplates/1ESPipelineTemplates
-    ref: refs/tags/release
-  pipelines:
-    - pipeline: profilingInputs
-      source: dotnet-vscode-csharp-profiling
-      branch: main
-      trigger: none
-
 parameters:
-- name: IbcDrop
+- name: slnf
   type: string
-  default: default
-
-- name: SignType
-  default: real
+  default: 'Compilers.slnf'
+- name: buildArgs
   type: string
-  values:
-  - real
-  - test
-
-- name: SkipApplyOptimizationData
-  type: boolean
-  default: false
-
-- name: SkipTests
-  type: boolean
-  default: true
-
-- name: PMEOverride
-  type: boolean
-  default: false
-
-# An optional VS commit SHA that will be automatically cherry-picked
-# to the insertion PR created by this build.
-- name: VisualStudioCherryPickSHA
+  # determinism flags are REQUIRED for cross-run byte-stability; marker-space off (vanilla bits).
+  default: '-c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true'
+- name: sdkFingerprint
   type: string
-  default: '(default)'
-
-schedules:
-  - cron: "0 8 23-29 * 0"
-    displayName: "Monthly smoke test"
-    branches:
-      include:
-        - main
-        - release/*
-      exclude:
-        - ""
-    always: true # Run even if there have been no source code changes since the last successful scheduled run
-    batch: false # Do not run the pipeline if the previously scheduled run is in-progress
+  default: 'sdk-11.0.100-preview.6-stock'   # the lane key; bump if the toolchain changes
 
 variables:
-  # Defines $(DncEngInternalBuildPool)
-  - template: /eng/common/templates-official/variables/pool-providers.yml@self
-
-  - group: DotNet-Roslyn-SDLValidation-Params
+  - name: CacheStore
+    value: $(Agent.TempDirectory)/wc-store
+  - name: Scripts
+    value: $(Build.SourcesDirectory)/eng/bigbuild-cache/scripts
+  # suppress CodeQL auto-injection (this is a throwaway perf demo, not a shipping build)
   - name: Codeql.Enabled
+    value: false
+  - name: Codeql.SkipTaskAutoInjection
     value: true
 
-  # To retrieve OptProf data we need to authenticate to the VS drop storage.
-  # DevDiv drop access token is acquired via WIF service connection (dnceng-devdiv-drop-rw-code-rw-wif)
-  # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
-  - group: DotNet-Versions-Publish
-  - group: DotNet-DevDiv-Insertion-Workflow-Variables
-  - group: AzureDevOps-Artifact-Feeds-Pats
-  - name: _DevDivDropAccessToken
-    value: ''
-  - name: ArtifactServices.Drop.PAT
-    value: ''
-  - group: AzureDevOps-Artifact-Feeds-Pats
-
-  - name: BranchName
-    value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
-
-  - name: BuildConfiguration
-    value: release
-  - name: Roslyn.GitHubEmail
-    value: dotnet-build-bot@microsoft.com
-  - name: Roslyn.GitHubToken
-    value: $(AccessToken-dotnet-build-bot-public-repo)
-  - name: Roslyn.GitHubUserName
-    value: dotnet-build-bot
-
-  - name: Insertion.InsertToolset
-    value: true
-  - name: Insertion.CreateDraftPR
-    value: true
-  - name: Insertion.TitlePrefix
-    value: '[Auto Insertion]'
-  - name: Insertion.TitleSuffix
-    value: ''
-
-  - name: VSCodeOptimizationDataRoot
-    value: $(Pipeline.Workspace)/profilingInputs/merged mibc
-
-
-extends:
-  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
-  parameters:
-    settings:
-      networkIsolationPolicy: Permissive, CFSClean, CFSClean2
-    featureFlags:
-      autoBaseline: true
-      autoEnablePREfastWithNewRuleset: false
-      autoEnableRoslynWithNewRuleset: false
-    sdl:
-      sourceAnalysisPool:
-        name: $(DncEngInternalBuildPool)
-        image: 1es-windows-2022
-        os: windows
-      sbom:
-        enabled: false
-      suppression:
-        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppress
-      policheck:
-          enabled: true
-      tsa:
-        enabled: true
-        configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
+stages:
+- stage: warmcache
+  dependsOn: []
+  jobs:
+  - job: warmcache
+    displayName: Warm-clone cache demo (Compilers.slnf)
+    timeoutInMinutes: 150
     pool:
-      name: $(DncEngInternalBuildPool)
-      image: windows.vs2026.amd64
-      os: windows
-    customBuildTags:
-    - ES365AIMigrationTooling
-    stages:
+      name: NetCore1ESPool-Internal
+      demands: ImageOverride -equals windows.vs2022.amd64
+    steps:
+    - checkout: self
+      # Pin the checkout path so the absolute source path is identical run-to-run (path-stability).
+      path: s
+      clean: true
+      fetchDepth: 0           # Select-Baseline walks first-parent history to the nearest cached ancestor
 
-    - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
-      - stage: localization
-        displayName: Localization
+    - task: PowerShell@2
+      displayName: Restore (bootstrap SDK + packages)
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -restore -prepareMachine -binaryLogName Restore.binlog
 
-        jobs:
-        - template: /eng/common/templates-official/job/onelocbuild.yml@self
-          parameters:
-            MirrorRepo: roslyn
-            MirrorBranch: $(BranchName)
-            LclSource: lclFilesfromPackage
-            LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
+    # Pull THIS branch's previous run's baseline. First run has none -> cold (continueOnError).
+    - task: DownloadPipelineArtifact@2
+      displayName: Pull last warmcache (this branch)
+      continueOnError: true
+      inputs:
+        buildType: specific
+        project: $(System.TeamProjectId)
+        definition: $(System.DefinitionId)
+        buildVersionToDownload: latestFromBranch
+        branchName: $(Build.SourceBranch)
+        artifactName: warmcache
+        targetPath: $(CacheStore)
 
-    - stage: build
-      displayName: Build and Test
-      dependsOn: []
+    - task: PowerShell@2
+      displayName: Seed from baseline (select + overlay + back-date)
+      inputs:
+        targetType: inline
+        pwsh: true
+        script: |
+          $ErrorActionPreference = 'Stop'
+          $store = "$(CacheStore)"
+          $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
+          $laneDir = Join-Path $store $lane
+          if (-not (Test-Path $laneDir)) {
+            Write-Host "##[warning]No baseline for this branch yet -- COLD build (this run will seed one)."
+            Write-Host "##vso[task.setvariable variable=Seeded]false"
+            exit 0
+          }
+          $sel = & "$(Scripts)/Select-Baseline.ps1" -RepoRoot . -LaneDir $laneDir | Select-Object -Last 1
+          if ($LASTEXITCODE -ne 0 -or -not $sel) { Write-Host "##[warning]No ancestor baseline -- COLD build."; Write-Host "##vso[task.setvariable variable=Seeded]false"; exit 0 }
+          Write-Host "==> seeding from $sel"
+          & "$(Scripts)/Restore-Baseline.ps1" -RepoRoot . -BaselineDir $sel
+          & "$(Scripts)/Replay-Baseline.ps1"  -RepoRoot . -BaselineDir $sel -Mode BackDate
+          Write-Host "##vso[task.setvariable variable=Seeded]true"
 
-      jobs:
-      - template: /eng/common/templates-official/jobs/source-build.yml@self
+    - task: PowerShell@2
+      displayName: Build Compilers.slnf (measure cold vs warm)
+      inputs:
+        targetType: inline
+        pwsh: true
+        script: |
+          $ErrorActionPreference = 'Stop'
+          # --no-restore when seeded so the overlaid obj/assets are not re-timestamped (would bust back-date).
+          $noRestore = if ("$(Seeded)" -eq "true") { "--no-restore" } else { "" }
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          & "$(Build.SourcesDirectory)/.dotnet/dotnet.exe" build ${{ parameters.slnf }} ${{ parameters.buildArgs }} $noRestore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
+          if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
+          $sw.Stop()
+          Write-Host ("##[section]Build finished in {0:n1}s (seeded=$(Seeded))" -f $sw.Elapsed.TotalSeconds)
+          Write-Host ("##vso[task.setvariable variable=BuildSeconds]{0:n1}" -f $sw.Elapsed.TotalSeconds)
 
-      - job: OfficialBuild
-        displayName: Official Build
-        timeoutInMinutes: 360
-        templateContext:
-          outputs:
+    - task: PowerShell@2
+      displayName: Capture fresh baseline
+      inputs:
+        targetType: inline
+        pwsh: true
+        script: |
+          $ErrorActionPreference = 'Stop'
+          $store = "$(CacheStore)"
+          $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
+          $sha   = (git rev-parse HEAD).Trim()
+          # Keep only the current baseline in the published store (one baseline, not growing).
+          if (Test-Path $store) { Remove-Item $store -Recurse -Force }
+          $baselineDir = Join-Path (Join-Path $store $lane) $sha
+          & "$(Scripts)/Capture-Baseline.ps1" -RepoRoot . -BaselineDir $baselineDir -Archive
+          Write-Host "==> captured baseline -> $baselineDir"
 
-          # Publish OptProf generated JSON files as a pipeline artifact. This allows for easy inspection from
-          # a build execution.
-          - output: pipelineArtifact
-            displayName: 'Publish OptProf Data Files'
-            condition: succeeded()
-            targetPath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
-            artifactName: 'OptProf Data Files'
+    - task: PublishPipelineArtifact@1
+      displayName: Publish warmcache (for next run)
+      inputs:
+        targetPath: $(CacheStore)
+        artifactName: warmcache
 
-          - output: pipelineArtifact
-            displayName: 'Publish Logs'
-            condition: succeededOrFailed()
-            targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)'
-            artifactName: 'Build Diagnostic Files - $(System.JobAttempt)'
-            publishLocation: Container
-
-          - output: pipelineArtifact
-            displayName: 'Publish Ngen Logs'
-            condition: and(succeeded(), ${{ not(parameters.SkipApplyOptimizationData) }})
-            targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
-            artifactName: 'NGen Logs'
-            publishLocation: Container
-
-          # Publishes setup VSIXes to a drop.
-          # Note: The insertion tool looks for the display name of this task in the logs.
-          - output: microBuildVstsDrop
-            displayName: Upload VSTS Drop
-            condition: succeeded()
-            dropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
-            dropName: $(VisualStudio.DropName)
-            accessToken: $(_DevDivDropAccessToken)
-            dropRetentionDays: 90
-
-          # Publish an artifact that the RoslynInsertionTool is able to find by its name.
-          - output: pipelineArtifact
-            displayName: 'Publish Artifact VSSetup'
-            condition: succeeded()
-            targetPath: 'artifacts\VSSetup\$(BuildConfiguration)'
-            artifactName: 'VSSetup'
-
-          # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the
-          # arcade templates depend on the name.
-          - output: buildArtifacts
-            displayName: 'Publish Artifact Packages'
-            condition: succeeded()
-            PathtoPublish: 'artifacts\packages\$(BuildConfiguration)'
-            ArtifactName: 'PackageArtifacts'
-
-          # Publish Asset Manifests for Build Asset Registry job
-          - output: buildArtifacts
-            displayName: 'Publish Asset Manifests'
-            condition: succeeded()
-            PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
-            ArtifactName: AssetManifests
-
-        steps:
-        - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
-          displayName: Disable Real-time Monitoring
-
-        - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
-          displayName: Setting SourceBranchName variable
-          condition: succeeded()
-
-        - task: Powershell@2
-          displayName: Tag official build
-          inputs:
-            targetType: inline
-            script: |
-              Write-Host "##vso[build.addBuildTag]OfficialBuild"
-          condition: succeeded()
-
-        # Don't run this while we don't have a main-vs-deps to merge. Should be uncommented when the branch comes back. Also need to change the condition of the tagging task above.
-        #
-        # - task: Powershell@2
-        #  displayName: Tag main validation build
-        #  inputs:
-        #    targetType: inline
-        #    script: |
-        #      Write-Host "##vso[build.addBuildTag]MainValidationBuild"
-        #  condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
-
-        # Don't run this while we don't have a main-vs-deps to merge. Should be uncommented when the branch comes back.
-        #
-        # - task: PowerShell@2
-        #  displayName: Merge main-vs-deps into source branch
-        #  inputs:
-        #    filePath: 'scripts\merge-vs-deps.ps1'
-        #    arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
-        #  condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
-
-        - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
-          displayName: Setting VisualStudio.DropName variable
-
-        - task: AzureCLI@2
-          displayName: Get DevDiv Drop Access Token
-          inputs:
-            azureSubscription: 'dnceng-devdiv-drop-rw-code-rw-wif'
-            scriptType: pscore
-            scriptLocation: inlineScript
-            inlineScript: |
-              $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
-              Write-Host "##vso[task.setvariable variable=_DevDivDropAccessToken;issecret=true]$token"
-              Write-Host "##vso[task.setvariable variable=ArtifactServices.Drop.PAT;issecret=true]$token"
-          condition: succeeded()
-
-        - task: NodeTool@0
-          inputs:
-            versionSpec: '16.x'
-          displayName: 'Install Node.js'
-
-        - task: NuGetToolInstaller@0
-          inputs:
-            versionSpec: '4.9.2'
-
-        # Authenticate to azure-public/vs-impl feed via WIF service connection
-        - task: NuGetAuthenticate@1
-          inputs:
-            azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
-            feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json
-
-        # Authenticate to azure-public/vssdk feed via WIF service connection
-        - task: NuGetAuthenticate@1
-          inputs:
-            azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
-            feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json
-
-        # Authenticate to DevDiv engineering feed via WIF service connection
-        - task: NuGetAuthenticate@1
-          inputs:
-            azureDevOpsServiceConnection: devdiv-engineering-feed-r-wif
-            feedUrl: https://devdiv.pkgs.visualstudio.com/_packaging/Engineering/nuget/v3/index.json
-
-        # Authenticate to DevDiv dotnet-core-internal-tooling feed via WIF service connection
-        - task: NuGetAuthenticate@1
-          inputs:
-            azureDevOpsServiceConnection: dnceng-devdiv-dotnet-core-internal-tooling-feed-rw-wif
-            feedUrl: https://pkgs.dev.azure.com/devdiv/_packaging/dotnet-core-internal-tooling/nuget/v3/index.json
-
-        # Authenticate to DevDiv VS (CoreXT) feed via WIF service connection
-        - task: NuGetAuthenticate@1
-          inputs:
-            azureDevOpsServiceConnection: dnceng-devdiv-vs-feed-push
-            feedUrl: https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json
-
-        # Needed for SBOM tool
-        - task: UseDotNet@2
-          displayName: 'Use .NET Core 3.1 runtime'
-          inputs:
-            packageType: runtime
-            version: 3.1.28
-            installationPath: '$(Build.SourcesDirectory)\.dotnet'
-
-        - task: MicroBuildSigningPlugin@4
-          inputs:
-            signType: ${{ parameters.SignType }}
-            zipSources: false
-            feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
-            # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
-            ${{ if or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Schedule'), parameters.PMEOverride) }}:
-              ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
-          condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
-
-        - download: profilingInputs
-          artifact: merged mibc
-          displayName: Download VSCode optimization inputs
-
-        - task: PowerShell@2
-          displayName: Build
-          inputs:
-            filePath: eng/build.ps1
-            arguments: -ci
-                       -prepareMachine
-                       -restore
-                       -build
-                       -pack
-                       -sign
-                       -publish
-                       -binaryLog
-                       -configuration $(BuildConfiguration)
-                       -officialBuildId $(Build.BuildNumber)
-                       -officialSkipTests ${{ parameters.SkipTests }}
-                       -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
-                       -officialSourceBranchName $(SourceBranchName)
-                       -officialIbcDrop ${{ parameters.IbcDrop }}
-                       -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
-                       /p:RepositoryName=$(Build.Repository.Name)
-                       /p:VisualStudioDropName=$(VisualStudio.DropName)
-                       /p:VSCodeOptimizationDataRoot="$(VSCodeOptimizationDataRoot)"
-                       /p:DotNetSignType=${{ parameters.SignType }}
-                       /p:DotnetPublishUsingPipelines=true
-                       /p:IgnoreIbcMergeErrors=true
-                       /p:GenerateSbom=true
-          condition: succeeded()
-
-        - template: /eng/common/templates-official/steps/generate-sbom.yml@self
-
-        - task: PowerShell@2
-          displayName: Publish Assets
-          inputs:
-            filePath: 'eng\publish-assets.ps1'
-            arguments: '-configuration $(BuildConfiguration)'
-          condition: succeeded()
-
-        # Publish insertion packages to CoreXT store (DevDiv/VS feed)
-        # Uses ambient credentials from NuGetAuthenticate@1 above
-        - task: PowerShell@2
-          displayName: 'Publish CoreXT Packages'
-          condition: succeeded()
-          inputs:
-            targetType: inline
-            script: |
-              $feedUrl = "https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json"
-              $packages = Get-ChildItem -Path "$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages" -Recurse -Filter "*.nupkg"
-              Write-Host "Found $($packages.Count) packages to push"
-              foreach ($pkg in $packages) {
-                Write-Host "Pushing $($pkg.Name)..."
-                & dotnet nuget push $pkg.FullName --source $feedUrl --api-key AzureDevOps --skip-duplicate
-                if ($LASTEXITCODE -ne 0) {
-                  Write-Error "Failed to push $($pkg.Name)"
-                  exit 1
-                }
-              }
-              Write-Host "Successfully pushed $($packages.Count) packages"
-
-        # Publish OptProf configuration files to the artifact service
-        # ArtifactServices.Drop.PAT is set via WIF service connection for cross account access (dnceng -> devdiv)
-        - task: 1ES.PublishArtifactsDrop@1
-          inputs:
-            dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
-            buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
-            sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
-            toLowerCase: false
-            usePat: false
-            retentionDays: 90
-          displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
-          condition: succeeded()
-
-        - task: PublishTestResults@2
-          displayName: Publish xUnit Test Results
-          inputs:
-            testRunner: XUnit
-            testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
-            mergeTestResults: true
-            testRunTitle: 'Unit Tests'
-          condition: and(succeededOrFailed(), ${{ not(parameters.SkipTests) }})
-
-      # Publish to Build Asset Registry
-      - template: /eng/common/templates-official/job/publish-build-assets.yml@self
-        parameters:
-          publishUsingPipelines: true
-          publishAssetsImmediately: true
-          dependsOn:
-          - OfficialBuild
-          pool:
-            name: $(DncEngInternalBuildPool)
-            demands: ImageOverride -equals windows.vs2022.amd64
-
-    - stage: insert
-      dependsOn:
-      - build
-      displayName: Insert to VS
-
-      jobs:
-      - job: insert
-        displayName: Insert to VS
-        steps:
-        - download: current
-          artifact: VSSetup
-        - powershell: |
-            $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
-            Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
-          displayName: Get Branch Name
-        - template: /eng/pipelines/insert.yml@self
-          parameters:
-            dncEngAzureSubscription: 'DncEng Insertion: Roslyn and Razor'
-            componentBuildProjectName: internal
-            sourceBranch: "$(ComponentBranchName)"
-            publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&version=$(ComponentBranchName)&api-version=6.0"
-            publishDataAccessToken: "$(System.AccessToken)"
-            dropPath: '$(Pipeline.Workspace)\VSSetup'
-            cherryPick: ${{ parameters.VisualStudioCherryPickSHA }}
-
-    - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-      - template: /eng/common/templates-official/post-build/post-build.yml@self
-        parameters:
-          publishAssetsImmediately: true
-          enableSigningValidation: false
-          enableNugetValidation: false
-          enableSourceLinkValidation: false
+    - task: PublishPipelineArtifact@1
+      displayName: Publish binlogs
+      condition: succeededOrFailed()
+      inputs:
+        targetPath: $(Build.SourcesDirectory)/artifacts/log
+        artifactName: binlogs
