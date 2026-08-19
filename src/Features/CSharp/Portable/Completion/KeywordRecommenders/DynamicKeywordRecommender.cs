@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using CSharpCompletionUtilities = Microsoft.CodeAnalysis.CSharp.Completion.Providers.CompletionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
@@ -69,23 +70,5 @@ internal sealed class DynamicKeywordRecommender : IKeywordRecommender<CSharpSynt
     }
 
     private static bool IsAfterRefTypeContext(CSharpSyntaxContext context)
-    {
-        var targetToken = context.TargetToken;
-        if (targetToken.Kind() is not (SyntaxKind.RefKeyword or SyntaxKind.ReadOnlyKeyword))
-        {
-            return false;
-        }
-
-        if (targetToken.Parent.IsKind(SyntaxKind.RefType))
-        {
-            return true;
-        }
-
-        // In an incomplete member, the parser may represent 'ref' and 'ref readonly' as
-        // modifiers rather than as a RefType. Keep treating the following position as a
-        // type context, while excluding ref expressions and other syntax shapes.
-        return targetToken.Parent.IsKind(SyntaxKind.IncompleteMember) &&
-            (targetToken.Kind() == SyntaxKind.RefKeyword ||
-             targetToken.GetPreviousToken().Kind() == SyntaxKind.RefKeyword);
-    }
+        => CSharpCompletionUtilities.IsAfterRefTypeContext(context.TargetToken);
 }
