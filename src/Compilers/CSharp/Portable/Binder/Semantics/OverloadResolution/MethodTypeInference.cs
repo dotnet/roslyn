@@ -3512,7 +3512,7 @@ OuterBreak:
             }
             LowerBoundInference(_extensions.GetTypeWithAnnotations(argument), dest, ref useSiteInfo);
 
-            // Preserve sequential fixing for existing language versions. Constraint inference
+            // Preserve sequential fixing for previous language versions. Constraint inference
             // instead collects all applicable parameters and fixes them from one shared snapshot.
             if (!IsFeatureTypeParameterInferenceFromConstraintsEnabled)
             {
