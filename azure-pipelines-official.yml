@@ -108,8 +108,10 @@ stages:
         pwsh: true
         script: |
           $ErrorActionPreference = 'Stop'
-          # --no-restore when seeded so the overlaid obj/assets are not re-timestamped (would bust back-date).
-          $noRestore = if ("$(Seeded)" -eq "true") { "--no-restore" } else { "" }
+          # Always --no-restore: the eng/build.ps1 -restore step already restored (matches the proven
+          # local flow). A second bare restore here produced no ref assemblies (CS0518 x75k). When seeded,
+          # --no-restore also preserves the overlaid/back-dated obj so the up-to-date check can skip.
+          $noRestore = "--no-restore"
           $sw = [Diagnostics.Stopwatch]::StartNew()
           & "$(Build.SourcesDirectory)/.dotnet/dotnet.exe" build ${{ parameters.slnf }} ${{ parameters.buildArgs }} $noRestore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
           if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
