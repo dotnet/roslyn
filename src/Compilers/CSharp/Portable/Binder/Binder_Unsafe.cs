@@ -63,7 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (arity != 0)
                             {
                                 var typeParameters = methodSymbol.GetTypeParametersIncludingExtension();
-                                var typeArguments = methodSymbol.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(methodSymbol.TypeArgumentsWithAnnotations);
+                                var typeArguments = methodSymbol.IsExtensionBlockMember()
+                                    ? methodSymbol.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(methodSymbol.TypeArgumentsWithAnnotations)
+                                    : methodSymbol.TypeArgumentsWithAnnotations;
                                 for (int i = 0; i < arity; i++)
                                 {
                                     checkTypeArgumentWithConstructorConstraint(this, typeParameters[i], typeArguments[i].Type, symbol, arg, location, diagnostics);

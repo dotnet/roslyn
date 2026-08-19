@@ -9879,6 +9879,31 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Constructor_NewConstraint_GenericContainingType()
+    {
+        var source = """
+            G<Unsafe>.M<Safe>();
+            G<Safe>.M<Unsafe>();
+
+            class G<TType> where TType : new()
+            {
+                public static void M<TMethod>() where TMethod : new() { }
+            }
+            class Safe { public Safe() { } }
+            class Unsafe { unsafe public Unsafe() { } }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS9376: An unsafe context is required for constructor 'Unsafe.Unsafe()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'TType' in 'G<TType>'
+            // G<Unsafe>.M<Safe>();
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "G<Unsafe>").WithArguments("Unsafe.Unsafe()", "TType", "G<TType>").WithLocation(1, 1),
+            // (2,1): error CS9376: An unsafe context is required for constructor 'Unsafe.Unsafe()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'TMethod' in 'G<TType>.M<TMethod>()'
+            // G<Safe>.M<Unsafe>();
+            Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "G<Safe>.M<Unsafe>()").WithArguments("Unsafe.Unsafe()", "TMethod", "G<TType>.M<TMethod>()").WithLocation(2, 1));
+    }
+
+    [Fact]
     public void Member_Constructor_NewConstraint_MoreConstructors()
     {
         CompileAndVerifyUnsafe(
