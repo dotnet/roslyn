@@ -357,7 +357,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             var mods = MakeAndCheckTypeModifiers(
-                typeKind,
                 defaultAccess,
                 allowedModifiers,
                 diagnostics,
@@ -416,7 +415,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private DeclarationModifiers MakeAndCheckTypeModifiers(
-            TypeKind typeKind,
             DeclarationModifiers defaultAccess,
             DeclarationModifiers allowedModifiers,
             BindingDiagnosticBag diagnostics,
@@ -438,20 +436,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     missingPartial = true;
                 }
 
-                if (typeKind == TypeKind.Struct &&
-                    decl.SyntaxReference.GetSyntax() is TypeDeclarationSyntax typeDeclaration &&
-                    isRefMisplaced(typeDeclaration.Modifiers, out var refToken))
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
-                    modifierErrors = true;
-                }
-
                 if (!modifierErrors)
                 {
                     mods = ModifierUtils.CheckModifiers(
                         isForTypeDeclaration: true, isForInterfaceMember: false,
                         mods, allowedModifiers, declaration.Declarations[i].NameLocation, diagnostics,
                         modifierTokens: null, modifierErrors: out modifierErrors);
+
+                    if (!modifierErrors && (mods & DeclarationModifiers.Ref) != 0)
+                    {
+                        // Ref is only an allowed type modifier on ordinary struct declarations.
+                        var typeDeclaration = (TypeDeclarationSyntax)decl.SyntaxReference.GetSyntax();
+                        if (reportMisplacedRef(typeDeclaration.Modifiers, diagnostics))
+                        {
+                            modifierErrors = true;
+                        }
+                    }
 
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)
@@ -525,9 +525,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return result;
 
-            static bool isRefMisplaced(SyntaxTokenList modifiers, out SyntaxToken refToken)
+            static bool reportMisplacedRef(SyntaxTokenList modifiers, BindingDiagnosticBag diagnostics)
             {
-                refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
+                var refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
                 if (refToken == default)
                     return false;
 
@@ -548,6 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
+                diagnostics.Add(ErrorCode.ERR_BadModifierLocation, refToken.GetLocation(), refToken.Text);
                 return true;
             }
         }
