@@ -2440,10 +2440,10 @@ class C
     }
 
     [Fact]
-    public void WithModifiers_Ref()
+    public void WithModifiers_Ref_CSharp14()
     {
         const string source = "static class C { ref extension(object) { } }";
-        UsingTree(source);
+        UsingTree(source, TestOptions.Regular14);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -2477,10 +2477,38 @@ class C
         }
         EOF();
 
-        CreateCompilation(source).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             // (1,22): error CS0106: The modifier 'ref' is not valid for this item
             // static class C { ref extension(object) { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 22));
+    }
+
+    [Theory]
+    [InlineData("readonly")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp13(string modifiers)
+        => VerifyExtensionModifierParsing(modifiers, TestOptions.Regular13, SyntaxKind.ConstructorDeclaration);
+
+    [Theory]
+    [InlineData("readonly")]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp14(string modifiers)
+        => VerifyExtensionModifierParsing(modifiers, TestOptions.Regular14, SyntaxKind.ExtensionBlockDeclaration);
+
+    private void VerifyExtensionModifierParsing(
+        string modifiers,
+        CSharpParseOptions parseOptions,
+        SyntaxKind expectedTypeMemberKind)
+    {
+        var declaration = $"{modifiers} extension(object) {{ }}";
+        var compilationUnit = ParseTree(declaration, parseOptions).GetCompilationUnitRoot();
+        Assert.IsType<GlobalStatementSyntax>(Assert.Single(compilationUnit.Members));
+
+        var containingTypeRoot = ParseTree($"class C {{ {declaration} }}", parseOptions).GetCompilationUnitRoot();
+        var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(containingTypeRoot.Members));
+        Assert.Equal(expectedTypeMemberKind, Assert.Single(containingType.Members).Kind());
     }
 
     [Theory]
@@ -3612,6 +3640,60 @@ static class C
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+    }
+
+    [Fact]
+    public void WithRef()
+    {
+        const string source = """
+            class C
+            {
+                ref extension(Type) { }
+            }
+            """;
+        UsingTree(source);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionBlockDeclaration);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,9): error CS0106: The modifier 'ref' is not valid for this item
+            //     ref extension(Type) { }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(3, 9),
+            // (3,9): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     ref extension(Type) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 9),
+            // (3,19): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+            //     ref extension(Type) { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(3, 19));
     }
 
     [Fact]

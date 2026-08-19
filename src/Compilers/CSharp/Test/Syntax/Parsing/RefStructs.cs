@@ -212,6 +212,28 @@ class Program
             Assert.IsType<FunctionPointerTypeSyntax>(refType.Type);
         }
 
+        [Fact]
+        public void RefFunctionPointerFieldRemainsType()
+        {
+            const string source = "class C { ref delegate*<void> F; }";
+            var root = ParseTree(source, TestOptions.Regular).GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var field = Assert.IsType<FieldDeclarationSyntax>(Assert.Single(containingType.Members));
+            var refType = Assert.IsType<RefTypeSyntax>(field.Declaration.Type);
+            Assert.IsType<FunctionPointerTypeSyntax>(refType.Type);
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,31): error CS9064: Target runtime doesn't support ref fields.
+                // class C { ref delegate*<void> F; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "F").WithLocation(1, 31),
+                // (1,31): error CS9059: A ref field can only be declared in a ref struct.
+                // class C { ref delegate*<void> F; }
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(1, 31),
+                // (1,31): warning CS0169: The field 'C.F' is never used
+                // class C { ref delegate*<void> F; }
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("C.F").WithLocation(1, 31));
+        }
+
         [Theory]
         [InlineData("record", LanguageVersion.CSharp8)]
         [InlineData("record", LanguageVersion.CSharp9)]
@@ -295,6 +317,132 @@ class Program
         }
 
         [Fact]
+        public void ModifierParsing_Class_Readonly()
+            => VerifyModifierParsing("readonly", "class R { }", LanguageVersion.CSharp15, "ClassDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Class_Ref()
+            => VerifyModifierParsing("ref", "class R { }", LanguageVersion.CSharp15, "ClassDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Class_RefReadonly()
+            => VerifyModifierParsing("ref readonly", "class R { }", LanguageVersion.CSharp15, "ClassDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Struct_Readonly()
+            => VerifyModifierParsing("readonly", "struct R { }", LanguageVersion.CSharp15, "StructDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Struct_Ref()
+            => VerifyModifierParsing("ref", "struct R { }", LanguageVersion.CSharp15, "StructDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Struct_RefReadonly()
+            => VerifyModifierParsing("ref readonly", "struct R { }", LanguageVersion.CSharp15, "StructDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Interface_Readonly()
+            => VerifyModifierParsing("readonly", "interface R { }", LanguageVersion.CSharp15, "InterfaceDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Interface_Ref()
+            => VerifyModifierParsing("ref", "interface R { }", LanguageVersion.CSharp15, "InterfaceDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Interface_RefReadonly()
+            => VerifyModifierParsing("ref readonly", "interface R { }", LanguageVersion.CSharp15, "InterfaceDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Enum_Readonly()
+            => VerifyModifierParsing("readonly", "enum R { }", LanguageVersion.CSharp15, "EnumDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Enum_Ref()
+            => VerifyModifierParsing("ref", "enum R { }", LanguageVersion.CSharp15, "EnumDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Enum_RefReadonly()
+            => VerifyModifierParsing("ref readonly", "enum R { }", LanguageVersion.CSharp15, "EnumDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Delegate_Readonly()
+            => VerifyModifierParsing("readonly", "delegate void R();", LanguageVersion.CSharp15, "DelegateDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Delegate_Ref()
+            => VerifyModifierParsing("ref", "delegate void R();", LanguageVersion.CSharp15, "DelegateDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Delegate_RefReadonly()
+            => VerifyModifierParsing("ref readonly", "delegate void R();", LanguageVersion.CSharp15, "DelegateDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp8_Readonly()
+            => VerifyModifierParsing("readonly", "record R { }", LanguageVersion.CSharp8, "PropertyDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp8_Ref()
+            => VerifyModifierParsing("ref", "record R { }", LanguageVersion.CSharp8, "PropertyDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp8_RefReadonly()
+            => VerifyModifierParsing("ref readonly", "record R { }", LanguageVersion.CSharp8, "PropertyDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp9_Readonly()
+            => VerifyModifierParsing("readonly", "record R { }", LanguageVersion.CSharp9, "RecordDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp9_Ref()
+            => VerifyModifierParsing("ref", "record R { }", LanguageVersion.CSharp9, "RecordDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Record_CSharp9_RefReadonly()
+            => VerifyModifierParsing("ref readonly", "record R { }", LanguageVersion.CSharp9, "PropertyDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp14_Readonly()
+            => VerifyModifierParsing("readonly", "union R { }", LanguageVersion.CSharp14, "PropertyDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp14_Ref()
+            => VerifyModifierParsing("ref", "union R { }", LanguageVersion.CSharp14, "PropertyDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp14_RefReadonly()
+            => VerifyModifierParsing("ref readonly", "union R { }", LanguageVersion.CSharp14, "PropertyDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp15_Readonly()
+            => VerifyModifierParsing("readonly", "union R { }", LanguageVersion.CSharp15, "UnionDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp15_Ref()
+            => VerifyModifierParsing("ref", "union R { }", LanguageVersion.CSharp15, "UnionDeclaration");
+
+        [Fact]
+        public void ModifierParsing_Union_CSharp15_RefReadonly()
+            => VerifyModifierParsing("ref readonly", "union R { }", LanguageVersion.CSharp15, "PropertyDeclaration");
+
+        private void VerifyModifierParsing(
+            string modifiers,
+            string declaration,
+            LanguageVersion languageVersion,
+            string expectedMember)
+        {
+            var text = $"{modifiers} {declaration}";
+            VerifyMembers(ParseTree(text, TestOptions.Regular.WithLanguageVersion(languageVersion)).GetCompilationUnitRoot().Members);
+
+            var containingTypeSource = $"class C {{ {text} }}";
+            var containingTypeRoot = ParseTree(containingTypeSource, TestOptions.Regular.WithLanguageVersion(languageVersion)).GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(containingTypeRoot.Members));
+            VerifyMembers(containingType.Members);
+
+            void VerifyMembers(SyntaxList<MemberDeclarationSyntax> members)
+                => Assert.Equal(expectedMember, Assert.Single(members).Kind().ToString());
+        }
+
+        [Fact]
         public void RefReadonlyRecordReturnType_BindsAsBefore()
         {
             var source = """
@@ -333,6 +481,29 @@ class Program
         [Fact]
         public void RefPartialStruct()
         {
+            UsingTree("class C { ref partial struct S {} }");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             var comp = CreateCompilation(@"
 class C
 {
@@ -340,6 +511,25 @@ class C
     ref partial struct S {}
 }");
             comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("unsafe")]
+        [InlineData("readonly")]
+        [InlineData("unsafe readonly")]
+        public void RefModifierRecovery_ThroughInvalidStructModifiers(string modifiers)
+        {
+            var source = $"class C {{ ref {modifiers} struct S {{}} }}";
+            var tree = ParseTree(source, TestOptions.Regular);
+            tree.GetDiagnostics().Verify();
+
+            var root = tree.GetCompilationUnitRoot();
+            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var refStruct = Assert.IsType<StructDeclarationSyntax>(Assert.Single(containingType.Members));
+            Assert.Equal($"ref {modifiers}", string.Join(" ", refStruct.Modifiers.Select(static token => token.Text)));
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
         }
 
         [Fact]

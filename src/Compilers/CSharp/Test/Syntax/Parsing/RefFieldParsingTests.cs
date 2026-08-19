@@ -548,6 +548,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = "struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }";
             UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                    // (1,27): error CS0106: The modifier 'ref' is not valid for this item
+                    // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("ref").WithLocation(1, 27),
+                    // (1,27): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F1[1]").WithLocation(1, 27),
+                    // (1,57): error CS0106: The modifier 'ref' is not valid for this item
+                    // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("ref").WithLocation(1, 57),
+                    // (1,57): error CS0106: The modifier 'readonly' is not valid for this item
+                    // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("readonly").WithLocation(1, 57),
+                    // (1,57): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F2[2]").WithLocation(1, 57));
 
             N(SyntaxKind.StructDeclaration);
             {

@@ -384,18 +384,40 @@ ref union U1(E1);
         var src = """
 ref partial union U1(E1);
 """;
-        var tree = ParseTree(src, TestOptions.Regular14);
-        tree.GetDiagnostics().Verify(
+        UsingTree(src, TestOptions.Regular14,
             // (1,24): error CS1001: Identifier expected
             // ref partial union U1(E1);
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 24));
 
-        var method = Assert.IsType<MethodDeclarationSyntax>(Assert.Single(tree.GetCompilationUnitRoot().Members));
-        Assert.Collection(
-            method.Modifiers,
-            modifier => Assert.Equal("ref", modifier.Text),
-            modifier => Assert.Equal("partial", modifier.Text));
-        Assert.Equal("union", method.ReturnType.ToString());
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.RefKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "union");
+                }
+                N(SyntaxKind.IdentifierToken, "U1");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "E1");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
 
         UsingTree(src, useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview);
 
