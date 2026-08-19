@@ -9,7 +9,7 @@
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)../../../../Directory.Build.props" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

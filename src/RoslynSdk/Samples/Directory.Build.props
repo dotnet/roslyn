@@ -15,7 +15,7 @@
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)../../../Directory.Build.props" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <ItemGroup>
     <PackageReference Include="System.Net.Http" PrivateAssets="all" ExcludeAssets="all" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />

@@ -9,7 +9,7 @@
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)../../../../Directory.Build.props" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
     <TestTargetFrameworks>net10.0;net472</TestTargetFrameworks>
