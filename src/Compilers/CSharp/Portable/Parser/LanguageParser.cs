@@ -1504,6 +1504,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return false;
                 }
 
+                // Speculatively scan the complete ref type and check for a following member name.
+                // If both are present, leave 'ref' unconsumed so the return-type parser handles it.
                 using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
                 return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
             }
