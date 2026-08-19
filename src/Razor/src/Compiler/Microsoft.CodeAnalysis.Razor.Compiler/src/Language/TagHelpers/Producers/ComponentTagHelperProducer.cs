@@ -311,6 +311,20 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
                 builder.AcceptsStringLiteral = true;
             }
 
+            // [AssetPath] enables ~/ expansion only for string parameters. On any other type the
+            // rewritten Assets[...] value wouldn't be assignable, so ignore the opt-in and warn.
+            if (property.GetAttributes().Any(static a => a.HasFullName(ComponentsApi.AssetPathAttribute.MetadataName)))
+            {
+                if (property.Type.SpecialType == SpecialType.System_String)
+                {
+                    builder.AcceptsAssetPath = true;
+                }
+                else
+                {
+                    pb.Diagnostics.Add(ComponentDiagnosticFactory.CreateAssetPath_NonStringParameter(source: null, property.Name));
+                }
+            }
+
             pb.SetMetadata(builder.Build());
 
             var xml = property.GetDocumentationCommentXml();

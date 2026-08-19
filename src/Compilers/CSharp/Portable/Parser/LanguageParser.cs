@@ -1689,7 +1689,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool IsPartialType()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(1));
+
+            var peekIndex = 1;
+            while (this.PeekToken(peekIndex).ContextualKind == SyntaxKind.PartialKeyword)
+            {
+                peekIndex++;
+            }
+
+            return this.IsClassStructInterfaceRecordOrUnionKeyword(this.PeekToken(peekIndex));
         }
 
         private bool IsPartialMember()
