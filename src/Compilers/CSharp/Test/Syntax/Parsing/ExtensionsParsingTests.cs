@@ -2483,19 +2483,29 @@ class C
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 22));
     }
 
-    [Theory]
-    [InlineData("readonly")]
-    [InlineData("ref")]
-    [InlineData("ref readonly")]
-    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp13(string modifiers)
-        => VerifyExtensionModifierParsing(modifiers, TestOptions.Regular13, SyntaxKind.ConstructorDeclaration);
+    [Fact]
+    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp13_Readonly()
+        => VerifyExtensionModifierParsing("readonly", TestOptions.Regular13, SyntaxKind.ConstructorDeclaration);
 
-    [Theory]
-    [InlineData("readonly")]
-    [InlineData("ref")]
-    [InlineData("ref readonly")]
-    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp14(string modifiers)
-        => VerifyExtensionModifierParsing(modifiers, TestOptions.Regular14, SyntaxKind.ExtensionBlockDeclaration);
+    [Fact]
+    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp13_Ref()
+        => VerifyExtensionModifierParsing("ref", TestOptions.Regular13, SyntaxKind.ConstructorDeclaration);
+
+    [Fact]
+    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp13_RefReadonly()
+        => VerifyExtensionModifierParsing("ref readonly", TestOptions.Regular13, SyntaxKind.ConstructorDeclaration);
+
+    [Fact]
+    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp14_Readonly()
+        => VerifyExtensionModifierParsing("readonly", TestOptions.Regular14, SyntaxKind.ExtensionBlockDeclaration);
+
+    [Fact]
+    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp14_Ref()
+        => VerifyExtensionModifierParsing("ref", TestOptions.Regular14, SyntaxKind.ExtensionBlockDeclaration);
+
+    [Fact]
+    public void ModifierParsing_AtCompilationUnitAndTypeMemberLevel_CSharp14_RefReadonly()
+        => VerifyExtensionModifierParsing("ref readonly", TestOptions.Regular14, SyntaxKind.ExtensionBlockDeclaration);
 
     private void VerifyExtensionModifierParsing(
         string modifiers,
@@ -2503,12 +2513,147 @@ class C
         SyntaxKind expectedTypeMemberKind)
     {
         var declaration = $"{modifiers} extension(object) {{ }}";
-        var compilationUnit = ParseTree(declaration, parseOptions).GetCompilationUnitRoot();
-        Assert.IsType<GlobalStatementSyntax>(Assert.Single(compilationUnit.Members));
+        DiagnosticDescription[] diagnostics = modifiers == "readonly"
+            ? [
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "("),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
+            ]
+            : new[]
+            {
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "("),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
+            };
+        UsingTree(declaration, parseOptions, diagnostics);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    if (modifiers == "readonly")
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        IdentifierName("extension");
+                    }
+                    else
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            if (modifiers == "ref readonly")
+                            {
+                                N(SyntaxKind.ReadOnlyKeyword);
+                            }
+                            IdentifierName("extension");
+                        }
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
 
-        var containingTypeRoot = ParseTree($"class C {{ {declaration} }}", parseOptions).GetCompilationUnitRoot();
-        var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(containingTypeRoot.Members));
-        Assert.Equal(expectedTypeMemberKind, Assert.Single(containingType.Members).Kind());
+        var containingTypeSource = $"class C {{ {declaration} }}";
+        if (expectedTypeMemberKind == SyntaxKind.ConstructorDeclaration)
+        {
+            UsingTree(
+                containingTypeSource,
+                parseOptions,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
+        }
+        else
+        {
+            UsingTree(containingTypeSource, parseOptions);
+        }
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(expectedTypeMemberKind);
+                {
+                    if (modifiers.StartsWith("ref"))
+                    {
+                        N(SyntaxKind.RefKeyword);
+                    }
+                    if (modifiers.EndsWith("readonly"))
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                    }
+
+                    if (expectedTypeMemberKind == SyntaxKind.ConstructorDeclaration)
+                    {
+                        N(SyntaxKind.IdentifierToken, "extension");
+                    }
+                    else
+                    {
+                        N(SyntaxKind.ExtensionKeyword);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            if (expectedTypeMemberKind == SyntaxKind.ConstructorDeclaration)
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    if (expectedTypeMemberKind == SyntaxKind.ConstructorDeclaration)
+                    {
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    else
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        void IdentifierName(string name)
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, name);
+            }
+        }
     }
 
     [Theory]

@@ -204,23 +204,114 @@ class Program
         {
             const string source = "unsafe class C { ref delegate*<void> M() => throw null; }";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-
-            var root = ParseTree(source, TestOptions.Regular).GetCompilationUnitRoot();
-            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-            var method = Assert.IsType<MethodDeclarationSyntax>(Assert.Single(containingType.Members));
-            var refType = Assert.IsType<RefTypeSyntax>(method.ReturnType);
-            Assert.IsType<FunctionPointerTypeSyntax>(refType.Type);
+            UsingTree(source);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.FunctionPointerType);
+                            {
+                                N(SyntaxKind.DelegateKeyword);
+                                N(SyntaxKind.AsteriskToken);
+                                N(SyntaxKind.FunctionPointerParameterList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.FunctionPointerParameter);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.VoidKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.ThrowExpression);
+                            {
+                                N(SyntaxKind.ThrowKeyword);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
         public void RefFunctionPointerFieldRemainsType()
         {
             const string source = "class C { ref delegate*<void> F; }";
-            var root = ParseTree(source, TestOptions.Regular).GetCompilationUnitRoot();
-            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-            var field = Assert.IsType<FieldDeclarationSyntax>(Assert.Single(containingType.Members));
-            var refType = Assert.IsType<RefTypeSyntax>(field.Declaration.Type);
-            Assert.IsType<FunctionPointerTypeSyntax>(refType.Type);
+            UsingTree(source);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.FunctionPointerType);
+                                {
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.AsteriskToken);
+                                    N(SyntaxKind.FunctionPointerParameterList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.FunctionPointerParameter);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.VoidKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "F");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
                 // (1,31): error CS9064: Target runtime doesn't support ref fields.
@@ -250,16 +341,45 @@ class Program
                 """;
             var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
             CreateCompilation(source, parseOptions: options).VerifyDiagnostics();
-
-            var tree = ParseTree(source, options);
-            tree.GetDiagnostics().Verify();
-
-            var root = tree.GetCompilationUnitRoot();
-            var containingType = Assert.IsType<InterfaceDeclarationSyntax>(root.Members[1]);
-            var method = Assert.IsType<MethodDeclarationSyntax>(Assert.Single(containingType.Members));
-            var refType = Assert.IsType<RefTypeSyntax>(method.ReturnType);
-            Assert.Equal(SyntaxKind.ReadOnlyKeyword, refType.ReadOnlyKeyword.Kind());
-            Assert.Equal(contextualKeyword, Assert.IsType<IdentifierNameSyntax>(refType.Type).Identifier.Text);
+            UsingTree(source, options);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, $"@{contextualKeyword}");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, contextualKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Theory]
@@ -281,11 +401,90 @@ class Program
                 // (1,7): warning CS8981: The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, contextualKeyword).WithArguments(contextualKeyword).WithLocation(1, 7));
 
-            var root = ParseTree(source, options).GetCompilationUnitRoot();
-            var containingType = Assert.IsType<ClassDeclarationSyntax>(root.Members[1]);
-            var method = Assert.IsType<MethodDeclarationSyntax>(containingType.Members[1]);
-            var refType = Assert.IsType<RefTypeSyntax>(method.ReturnType);
-            Assert.Equal(contextualKeyword, Assert.IsType<IdentifierNameSyntax>(refType.Type).Identifier.Text);
+            UsingTree(source, options);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, contextualKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, contextualKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "_field");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ObjectCreationExpression);
+                                    {
+                                        N(SyntaxKind.NewKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, contextualKeyword);
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, contextualKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "_field");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Theory]
@@ -304,16 +503,49 @@ class Program
                 """;
             var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
             CreateCompilation(source, parseOptions: options).VerifyDiagnostics();
-
-            var tree = ParseTree(source, options);
-            tree.GetDiagnostics().Verify();
-
-            var root = tree.GetCompilationUnitRoot();
-            var containingType = Assert.IsType<InterfaceDeclarationSyntax>(root.Members[1]);
-            var property = Assert.IsType<PropertyDeclarationSyntax>(Assert.Single(containingType.Members));
-            var refType = Assert.IsType<RefTypeSyntax>(property.Type);
-            Assert.Equal(SyntaxKind.ReadOnlyKeyword, refType.ReadOnlyKeyword.Kind());
-            Assert.Equal(contextualKeyword, Assert.IsType<IdentifierNameSyntax>(refType.Type).Identifier.Text);
+            UsingTree(source, options);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, $"@{contextualKeyword}");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, contextualKeyword);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -431,15 +663,125 @@ class Program
             string expectedMember)
         {
             var text = $"{modifiers} {declaration}";
-            VerifyMembers(ParseTree(text, TestOptions.Regular.WithLanguageVersion(languageVersion)).GetCompilationUnitRoot().Members);
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            UsingTree(text, options);
+            N(SyntaxKind.CompilationUnit);
+            {
+                VerifyMember();
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
 
             var containingTypeSource = $"class C {{ {text} }}";
-            var containingTypeRoot = ParseTree(containingTypeSource, TestOptions.Regular.WithLanguageVersion(languageVersion)).GetCompilationUnitRoot();
-            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(containingTypeRoot.Members));
-            VerifyMembers(containingType.Members);
+            UsingTree(containingTypeSource, options);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    VerifyMember();
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
 
-            void VerifyMembers(SyntaxList<MemberDeclarationSyntax> members)
-                => Assert.Equal(expectedMember, Assert.Single(members).Kind().ToString());
+            void VerifyMember()
+            {
+                if (expectedMember == "PropertyDeclaration")
+                {
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        if (modifiers == "readonly")
+                        {
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            IdentifierName(declaration[..declaration.IndexOf(' ')]);
+                        }
+                        else
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                if (modifiers == "ref readonly")
+                                {
+                                    N(SyntaxKind.ReadOnlyKeyword);
+                                }
+                                IdentifierName(declaration[..declaration.IndexOf(' ')]);
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    return;
+                }
+
+                N(expectedMember switch
+                {
+                    "ClassDeclaration" => SyntaxKind.ClassDeclaration,
+                    "StructDeclaration" => SyntaxKind.StructDeclaration,
+                    "InterfaceDeclaration" => SyntaxKind.InterfaceDeclaration,
+                    "EnumDeclaration" => SyntaxKind.EnumDeclaration,
+                    "DelegateDeclaration" => SyntaxKind.DelegateDeclaration,
+                    "RecordDeclaration" => SyntaxKind.RecordDeclaration,
+                    "UnionDeclaration" => SyntaxKind.UnionDeclaration,
+                    _ => throw ExceptionUtilities.UnexpectedValue(expectedMember),
+                });
+                {
+                    if (modifiers.StartsWith("ref"))
+                    {
+                        N(SyntaxKind.RefKeyword);
+                    }
+                    if (modifiers.EndsWith("readonly"))
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                    }
+
+                    if (expectedMember == "DelegateDeclaration")
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                        return;
+                    }
+
+                    N(expectedMember switch
+                    {
+                        "ClassDeclaration" => SyntaxKind.ClassKeyword,
+                        "StructDeclaration" => SyntaxKind.StructKeyword,
+                        "InterfaceDeclaration" => SyntaxKind.InterfaceKeyword,
+                        "EnumDeclaration" => SyntaxKind.EnumKeyword,
+                        "RecordDeclaration" => SyntaxKind.RecordKeyword,
+                        "UnionDeclaration" => SyntaxKind.UnionKeyword,
+                        _ => throw ExceptionUtilities.UnexpectedValue(expectedMember),
+                    });
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+
+            void IdentifierName(string name)
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, name);
+                }
+            }
         }
 
         [Fact]
@@ -520,13 +862,35 @@ class C
         public void RefModifierRecovery_ThroughInvalidStructModifiers(string modifiers)
         {
             var source = $"class C {{ ref {modifiers} struct S {{}} }}";
-            var tree = ParseTree(source, TestOptions.Regular);
-            tree.GetDiagnostics().Verify();
-
-            var root = tree.GetCompilationUnitRoot();
-            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-            var refStruct = Assert.IsType<StructDeclarationSyntax>(Assert.Single(containingType.Members));
-            Assert.Equal($"ref {modifiers}", string.Join(" ", refStruct.Modifiers.Select(static token => token.Text)));
+            UsingTree(source);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        if (modifiers.StartsWith("unsafe"))
+                        {
+                            N(SyntaxKind.UnsafeKeyword);
+                        }
+                        if (modifiers.EndsWith("readonly"))
+                        {
+                            N(SyntaxKind.ReadOnlyKeyword);
+                        }
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref"));
@@ -555,20 +919,42 @@ class C
         [InlineData("readonly ")]
         public void RefModifierRecovery_WithScoped(string prefix)
         {
-            var tree = ParseTree($"class C {{ ref {prefix}scoped struct S {{}} }}", TestOptions.Regular);
-            Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, Assert.Single(tree.GetDiagnostics()).Code);
-
-            var root = tree.GetCompilationUnitRoot();
-            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-            Assert.Collection(
-                containingType.Members,
-                member =>
+            var source = $"class C {{ ref {prefix}scoped struct S {{}} }}";
+            UsingTree(
+                source,
+                TestOptions.Regular,
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "struct").WithArguments("struct"));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
                 {
-                    var incompleteMember = Assert.IsType<IncompleteMemberSyntax>(member);
-                    Assert.Equal($"ref {prefix}", incompleteMember.Modifiers.ToFullString());
-                    Assert.Equal("scoped", Assert.IsType<IdentifierNameSyntax>(incompleteMember.Type).Identifier.Text);
-                },
-                member => Assert.IsType<StructDeclarationSyntax>(member));
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        if (prefix.Length > 0)
+                        {
+                            N(SyntaxKind.ReadOnlyKeyword);
+                        }
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                    }
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
