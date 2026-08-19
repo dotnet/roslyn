@@ -112,6 +112,10 @@ stages:
         pwsh: true
         script: |
           $ErrorActionPreference = 'Stop'
+          # Arcade refuses to overwrite an existing binlog, and the seed overlays the baseline's
+          # artifacts/log (with its binlog) back in. Logs are per-run, not a cached output, so clear
+          # the log dir before building. (Future baselines exclude log via -OutputRoots below.)
+          Remove-Item -Recurse -Force "$(Build.SourcesDirectory)/artifacts/log" -ErrorAction SilentlyContinue
           # Build through eng/build.ps1 so arcade's environment (SDK, feeds, package paths) is set up.
           # A bare dotnet build outside it resolves no reference assemblies (CS0518 x120k). No -restore
           # here: the separate Restore step already restored, and on a seeded run re-restoring would
@@ -149,7 +153,9 @@ stages:
           # Keep only the current baseline in the published store (one baseline, not growing).
           if (Test-Path $store) { Remove-Item $store -Recurse -Force }
           $baselineDir = Join-Path (Join-Path $store $lane) $sha
-          & "$(Scripts)/Capture-Baseline.ps1" -RepoRoot . -BaselineDir $baselineDir -Archive @priorArg
+          # Cache only the real build outputs (bin = assemblies, obj = intermediates/markers).
+          # Exclude artifacts/log, tmp, TestResults, VSSetup -- transient, and log breaks arcade's binlog guard.
+          & "$(Scripts)/Capture-Baseline.ps1" -RepoRoot . -BaselineDir $baselineDir -OutputRoots artifacts\bin,artifacts\obj -Archive @priorArg
           Write-Host "==> captured baseline -> $baselineDir"
 
     - task: PublishPipelineArtifact@1
