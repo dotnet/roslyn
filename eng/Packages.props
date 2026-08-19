@@ -12,10 +12,10 @@
     <!--
       VS .NET Runtime
 
-      We should try to keep this version in sync with the version of app-local runtime in VS.
+      This branch no longer inserts into VS, so there is no need to keep these packages in sync.
     -->
-    <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.1</MicrosoftNetCoreAppRuntimePackagesVersion>
-    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.1</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
+    <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.11</MicrosoftNetCoreAppRuntimePackagesVersion>
+    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.11</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
     <SqliteVersion>2.1.6</SqliteVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
@@ -119,7 +119,8 @@
     <PackageVersion Include="Nerdbank.Streams" Version="2.12.87" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="StreamJsonRpc" Version="2.23.41-alpha" />
-    <PackageVersion Include="MessagePack" Version="2.5.198" />
+    <!-- This branch is not used for VS servicing, so we do not need to keep in sync -->
+    <PackageVersion Include="MessagePack" Version="2.5.302" />
 
     <!--
       VS Debugger
