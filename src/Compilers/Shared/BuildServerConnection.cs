@@ -482,12 +482,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             AbsolutePath clientDir,
             string pipeName,
             TaskEnvironment taskEnvironment) =>
-            GetServerProcessInfo(clientDir.Value, pipeName, RuntimeHostInfo.GetDotNetPathOrDefault(taskEnvironment).Value);
+            GetServerProcessInfo(clientDir.Value, pipeName, RuntimeHostInfo.GetDotNetHostPath(taskEnvironment));
 #else
         internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
             string clientDir,
             string pipeName) =>
-            GetServerProcessInfo(clientDir, pipeName, RuntimeHostInfo.GetDotNetPathOrDefault());
+            GetServerProcessInfo(clientDir, pipeName, RuntimeHostInfo.GetDotNetHostPath());
 #endif
 
         private static (string processFilePath, string commandLineArguments) GetServerProcessInfo(
@@ -495,6 +495,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string pipeName,
             string dotnetFilePath)
         {
+            Debug.Assert(Path.IsPathFullyQualified(clientDir));
             var processFilePath = Path.Combine(clientDir, $"VBCSCompiler{PlatformInformation.ExeExtension}");
             var commandLineArgs = $@"""-pipename:{pipeName}""";
 

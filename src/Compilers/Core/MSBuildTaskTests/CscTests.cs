@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -502,8 +503,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
         public void BuiltInToolExe(bool useAppHost, bool setToolExe)
         {
-            var csc = new Csc();
-            csc.UseAppHost_TestOnly = useAppHost;
+            using var temp = new TempRoot();
+            var projectDirectory = temp.CreateDirectory();
+            var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+                projectDirectory.Path,
+                new Dictionary<string, string>
+                {
+                    [RuntimeHostInfo.DotNetHostPathEnvironmentName] = TestHelpers.GetRootedPath(RuntimeHostInfo.DotNetHostExecutableName)
+                });
+
+            var csc = new Csc()
+            {
+                UseAppHost_TestOnly = useAppHost,
+                TaskEnvironment = taskEnvironment,
+            };
+
             if (setToolExe)
             {
                 csc.ToolExe = $"csc{PlatformInformation.ExeExtension}";
@@ -515,13 +529,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
             else
             {
-                AssertEx.Equal(RuntimeHostInfo.GetDotNetPathOrDefault(Environment.GetEnvironmentVariable), csc.GeneratePathToTool());
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetHostPath(taskEnvironment), csc.GeneratePathToTool());
                 AssertEx.Equal(RuntimeHostInfo.GetDotNetExecCommandLine(csc.PathToBuiltInTool, ""), csc.GenerateCommandLineContents());
             }
         }
 
         /// <summary>
-        /// A relative path will be resolved off of <see cref="TaskEnvironment.ProjectDirectory"/>.
+        /// The value of `DOTNET_HOST_PATH` will be prefered as is when present
         /// </summary>
         [Fact]
         public void BuiltInToolUsesTaskEnvironmentDotNetHostPathRelative()
@@ -534,11 +548,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     projectDirectory.Path,
                     new Dictionary<string, string>
                     {
-                        [RuntimeHostInfo.DotNetHostPathEnvironmentName] = "dotnet-host"
+                        [RuntimeHostInfo.DotNetHostPathEnvironmentName] = RuntimeHostInfo.DotNetHostExecutableName
                     }),
             };
 
-            Assert.Equal(Path.Combine(projectDirectory.Path, "dotnet-host"), csc.GeneratePathToTool());
+            Assert.Equal(RuntimeHostInfo.DotNetHostExecutableName, csc.GeneratePathToTool());
         }
 
         /// <summary>

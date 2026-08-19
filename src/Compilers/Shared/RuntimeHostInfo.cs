@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static bool ShouldDisableTieredCompilation => !IsCoreClrRuntime;
 
+        internal static string DotNetHostExecutableName => $"dotnet{PlatformInformation.ExeExtension}";
         internal const string DotNetRootEnvironmentName = "DOTNET_ROOT";
         internal const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
         internal const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis
             TaskEnvironment taskEnvironment,
             Action<string, object[]>? logger)
         {
-            var dotnetpath = GetDotNetPathOrDefault(taskEnvironment);
+            var dotnetpath = GetDotNetHostPath(taskEnvironment);
             return GetToolDotNetRootCore(
                 taskEnvironment.GetFullPath(dotnetpath),
                 logger);
@@ -63,18 +64,24 @@ namespace Microsoft.CodeAnalysis
         /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
         /// </summary>
         internal static string? GetToolDotNetRoot(Action<string, object[]>? logger) =>
-            GetToolDotNetRootCore(GetDotNetPathOrDefault(), logger);
+            GetToolDotNetRootCore(GetDotNetHostPath(), logger);
 #endif
 
         internal static string? GetToolDotNetRoot(Func<string, string?> getEnvFunc, Action<string, object[]>? logger) =>
-            GetToolDotNetRootCore(GetDotNetPathOrDefault(getEnvFunc), logger);
+            GetToolDotNetRootCore(GetDotNetHostPath(getEnvFunc), logger);
 
         private static string? GetToolDotNetRootCore(string dotNetPath, Action<string, object[]>? logger)
         {
+            if (!Path.IsPathFullyQualified(dotNetPath))
+            {
+                logger?.Invoke("Cannot resolve root as the dotnet path is not fully qualified: {0}", [dotNetPath]);
+                return null;
+            }
+
             // Resolve symlinks to dotnet
             try
             {
-#pragma warning disable RS0030 // MSBuild Task path guarantees full path
+#pragma warning disable RS0030 // Validated as fully qualified above.
                 var resolvedPath = File.ResolveLinkTarget(dotNetPath, returnFinalTarget: true);
 #pragma warning restore RS0030
                 if (resolvedPath != null)
@@ -98,26 +105,19 @@ namespace Microsoft.CodeAnalysis
         }
 
 #if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-        /// <summary>
-        /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
-        /// in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
-        /// this will return simply "dotnet".
-        /// </summary>
-        internal static AbsolutePath GetDotNetPathOrDefault(TaskEnvironment taskEnvironment)
-        {
-            var path = GetDotNetPathOrDefault(taskEnvironment.GetEnvironmentVariable);
-            return taskEnvironment.GetAbsolutePath(path);
-        }
+        /// <inheritdoc cref="GetDotNetHostPath(System.Func{string, string?})"/>
+        internal static string GetDotNetHostPath(TaskEnvironment taskEnvironment)
+            => GetDotNetHostPath(taskEnvironment.GetEnvironmentVariable);
 #else
-        /// <summary>
-        /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
-        /// in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
-        /// this will return simply "dotnet".
-        /// </summary>
-        internal static string GetDotNetPathOrDefault() => GetDotNetPathOrDefault(Environment.GetEnvironmentVariable);
+        /// <inheritdoc cref="GetDotNetHostPath(System.Func{string, string?})"/>
+        internal static string GetDotNetHostPath()
+            => GetDotNetHostPath(Environment.GetEnvironmentVariable);
 #endif
 
-        internal static string GetDotNetPathOrDefault(Func<string, string?> getEnvironmentVariable)
+        /// <summary>
+        /// Get the path to the dotnet host executable. The path returned is not guaranteed to be fully qualified.
+        /// </summary>
+        private static string GetDotNetHostPath(Func<string, string?> getEnvironmentVariable)
         {
             if (getEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
             {
@@ -129,45 +129,7 @@ namespace Microsoft.CodeAnalysis
                 return pathToDotNetExperimental;
             }
 
-            var fileName = $"dotnet{PlatformInformation.ExeExtension}";
-            var path = getEnvironmentVariable("PATH") ?? "";
-            foreach (var item in SplitPath(path))
-            {
-                try
-                {
-                    var filePath = Path.Combine(item, fileName);
-#pragma warning disable RS0030 // SplitPaths only returns fully qualified paths
-                    if (File.Exists(filePath))
-#pragma warning restore RS0030
-                    {
-                        return filePath;
-                    }
-                }
-                catch
-                {
-                    // If we can't read a directory for any reason just skip it
-                }
-            }
-
-            return fileName;
-        }
-
-        /// <summary>
-        /// This method splits a PATH environment variable into its constituent paths, filtering out any relative paths.
-        /// </summary>
-        /// <remarks>
-        /// This method will only return fully qualified paths
-        /// </remarks>
-        internal static IEnumerable<string> SplitPath(string pathEnvVariable)
-        {
-            char[] separator = PlatformInformation.IsWindows ? [';'] : [':'];
-            foreach (var item in pathEnvVariable.Split(separator, StringSplitOptions.RemoveEmptyEntries))
-            {
-                if (Path.IsPathFullyQualified(item))
-                {
-                    yield return item;
-                }
-            }
+            return DotNetHostExecutableName;
         }
 
         internal static string GetDotNetExecCommandLine(string toolFilePath, string commandLineArguments) =>

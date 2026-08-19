@@ -39,40 +39,65 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         return path;
     }
 
+    /// <summary>
+    /// Our code only ships in .NET 11 SDK and higher now where this DOTNET_HOST_PATH will be set.
+    /// </summary>
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     public void DotNetInPath()
     {
         using var tempRoot = new TempRoot();
         var testDir = tempRoot.CreateDirectory();
         var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
-        var globalDotNetExe = globalDotNetDir.CreateFile($"dotnet{PlatformInformation.ExeExtension}");
+        var globalDotNetExe = globalDotNetDir.CreateFile(RuntimeHostInfo.DotNetHostExecutableName);
 
-        var result = ApplyEnvironmentVariables(
-        [
-            new("PATH", globalDotNetDir.Path),
-            new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
-            new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
-        ],
-        () => RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, _output.WriteLine));
+        var environment = new Dictionary<string, string>
+        {
+            ["PATH"] = globalDotNetDir.Path,
+            [RuntimeHostInfo.DotNetHostPathEnvironmentName] = "",
+            [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+        };
+        var result = RuntimeHostInfo.GetToolDotNetRoot(name => environment.TryGetValue(name, out var value) ? value : null, _output.WriteLine);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void DotNetInPath2()
+    {
+        using var tempRoot = new TempRoot();
+        var testDir = tempRoot.CreateDirectory();
+        var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
+        var globalDotNetExe = globalDotNetDir.CreateFile(RuntimeHostInfo.DotNetHostExecutableName);
+
+        var environment = new Dictionary<string, string>
+        {
+            ["PATH"] = globalDotNetDir.Path,
+            [RuntimeHostInfo.DotNetHostPathEnvironmentName] = globalDotNetExe.Path,
+            [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+        };
+        var result = RuntimeHostInfo.GetToolDotNetRoot(name => environment.TryGetValue(name, out var value) ? value : null, _output.WriteLine);
 
         Assert.NotNull(result);
-        AssertEx.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
+        Assert.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     public void DotNetInPath_None()
     {
-        var result = ApplyEnvironmentVariables(
-        [
-            new("PATH", ""),
-            new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
-            new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
-        ],
-        () => RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, _output.WriteLine));
+        var environment = new Dictionary<string, string>
+        {
+            ["PATH"] = "",
+            [RuntimeHostInfo.DotNetHostPathEnvironmentName] = "",
+            [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+        };
+        var result = RuntimeHostInfo.GetToolDotNetRoot(name => environment.TryGetValue(name, out var value) ? value : null, _output.WriteLine);
 
         Assert.Null(result);
     }
 
+    /// <summary>
+    /// Our code only ships in .NET 11 SDK and higher now where this DOTNET_HOST_PATH will be set.
+    /// </summary>
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     public void DotNetInPath_Symlinked()
     {
@@ -86,16 +111,15 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         // Create symlink from binDir to the actual dotnet executable
         File.CreateSymbolicLink(path: symlinkPath, pathToTarget: globalDotNetExe.Path);
 
-        var result = ApplyEnvironmentVariables(
-        [
-            new("PATH", binDir.Path),
-            new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
-            new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
-        ],
-        () => RuntimeHostInfo.GetToolDotNetRoot(Environment.GetEnvironmentVariable, _output.WriteLine));
+        var environment = new Dictionary<string, string>
+        {
+            ["PATH"] = binDir.Path,
+            [RuntimeHostInfo.DotNetHostPathEnvironmentName] = "",
+            [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
+        };
+        var result = RuntimeHostInfo.GetToolDotNetRoot(name => environment.TryGetValue(name, out var value) ? value : null, _output.WriteLine);
 
-        Assert.NotNull(result);
-        AssertEx.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
+        Assert.Null(result);
     }
 
     [Fact]
@@ -103,41 +127,18 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
     {
         var projectDirectory = Temp.CreateDirectory();
         var binDirectory = projectDirectory.CreateDirectory("bin");
-        var dotNetPath = binDirectory.CreateFile($"dotnet{PlatformInformation.ExeExtension}").Path;
+        var dotNetPath = binDirectory.CreateFile(RuntimeHostInfo.DotNetHostExecutableName).Path;
         var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
             projectDirectory.Path,
             new Dictionary<string, string>
             {
-                ["PATH"] = binDirectory.Path,
-                [RuntimeHostInfo.DotNetHostPathEnvironmentName] = "",
+                [RuntimeHostInfo.DotNetHostPathEnvironmentName] = dotNetPath,
                 [RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName] = "",
             });
 
-        var result = RuntimeHostInfo.GetDotNetPathOrDefault(taskEnvironment.GetEnvironmentVariable);
+        var result = RuntimeHostInfo.GetDotNetHostPath(taskEnvironment);
 
         Assert.Equal(dotNetPath, result);
-    }
-
-    [ConditionalTheory(typeof(WindowsOnly))]
-    [InlineData("", new string[0])]
-    [InlineData(@"C:\dotnet", new[] { @"C:\dotnet" })]
-    [InlineData(@"relative;C:drive-relative;\root-relative", new string[0])]
-    [InlineData(@";C:\one;;D:/two;", new[] { @"C:\one", "D:/two" })]
-    [InlineData(@"relative;C:\one;C:drive-relative;\root-relative;\\server\share;D:/two", new[] { @"C:\one", @"\\server\share", "D:/two" })]
-    public void SplitPath_Windows(string path, string[] expected)
-    {
-        AssertEx.Equal(expected, RuntimeHostInfo.SplitPath(path));
-    }
-
-    [ConditionalTheory(typeof(LinuxOnly))]
-    [InlineData("", new string[0])]
-    [InlineData("/usr/bin", new[] { "/usr/bin" })]
-    [InlineData("relative:./local:../other", new string[0])]
-    [InlineData(":/usr/bin::/opt/dotnet:", new[] { "/usr/bin", "/opt/dotnet" })]
-    [InlineData("relative:/usr/bin:../other:/opt/dotnet", new[] { "/usr/bin", "/opt/dotnet" })]
-    public void SplitPath_Linux(string path, string[] expected)
-    {
-        AssertEx.Equal(expected, RuntimeHostInfo.SplitPath(path));
     }
 }
 

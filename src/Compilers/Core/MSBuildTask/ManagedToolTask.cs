@@ -168,9 +168,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // which means `ToolExe` is not really overridden by user (yes, the user sets it but basically to its default value).
                 ToolExe = null;
 
+                // This calls GetDotNetHostPath which can return a relative path. That is okay even though
+                // the method name suggests it returns a full path. There is no requirement it's a full path
+                // and several implementations return partial ones.
                 return UseAppHost
                     ? PathToBuiltInTool
-                    : RuntimeHostInfo.GetDotNetPathOrDefault(TaskEnvironment);
+                    : RuntimeHostInfo.GetDotNetHostPath(TaskEnvironment);
             }
 
             return Path.Combine(ToolPath ?? "", ToolExe);
