@@ -122,9 +122,13 @@ stages:
           # NUGET_PACKAGES did not point at the -ci restore location, so the ref packs were not found;
           # set it to $RepoRoot\.packages (what eng/build.ps1 -restore used) and use the same SDK.
           # No -restore, so a seeded run's back-dated obj is preserved.
-          $env:NUGET_PACKAGES = "$(Build.SourcesDirectory)\.packages"
           $env:DOTNET_MULTILEVEL_LOOKUP = "0"
           $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
+          # Point NUGET_PACKAGES at the SAME global-packages folder the restore step used, by asking
+          # the SDK (robust to the agent image: 1ES presets it to the user global cache, not .packages).
+          $gp = & $dotnet nuget locals global-packages --list 2>$null
+          if ("$gp" -match 'global-packages:\s*(.+?)\s*$') { $env:NUGET_PACKAGES = $matches[1].Trim() }
+          Write-Host "using NUGET_PACKAGES=$env:NUGET_PACKAGES"
           $sw = [Diagnostics.Stopwatch]::StartNew()
           & $dotnet build ${{ parameters.slnf }} -c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true --no-restore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
           if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
