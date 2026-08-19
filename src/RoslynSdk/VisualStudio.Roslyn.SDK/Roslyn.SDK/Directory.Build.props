@@ -4,9 +4,6 @@
     <OutDirName>Templates\$(MSBuildProjectName)</OutDirName>
   </PropertyGroup>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
-  <PropertyGroup>
-    <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest" />
   </ItemGroup>

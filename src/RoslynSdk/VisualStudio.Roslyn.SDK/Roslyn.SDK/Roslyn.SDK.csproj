@@ -22,7 +22,7 @@
   <!-- Setting Template Content to None -->
   <ItemGroup>
     <None Include="ItemTemplates\**\*" />
-    <None Include="ProjectTemplates\**\*" />
+    <None Include="ProjectTemplates\**\*" Exclude="ProjectTemplates\Directory.Build.props" />
     <None Include="Properties\launchSettings.json" />
     <None Include="*.vstemplate" />
   </ItemGroup>
