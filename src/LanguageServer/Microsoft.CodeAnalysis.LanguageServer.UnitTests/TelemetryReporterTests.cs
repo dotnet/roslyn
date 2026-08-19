@@ -31,8 +31,8 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     [Fact]
     public void TestVSTelemetryLoadedIntoDefaultAlc()
     {
-        using var service = CreateReporter(ServerConfigurationWithoutDevKit);
-        service.InitializeSession("off", sessionId: null, isDefaultSession: false);
+        using var service = CreateReporter(DefaultServerConfiguration);
+        service.InitializeSession("off", "test-session", isDefaultSession: false);
 
         var assembly = Assembly.GetAssembly(service.GetType());
         Assert.Contains(AssemblyLoadContext.Default.Assemblies, a => a == assembly);
