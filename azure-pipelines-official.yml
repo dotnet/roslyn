@@ -64,7 +64,7 @@ stages:
       displayName: Restore (bootstrap SDK + packages)
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci -restore -prepareMachine -binaryLogName Restore.binlog
+        arguments: -ci -restore -prepareMachine -solution ${{ parameters.slnf }} -binaryLogName Restore.binlog
 
     # Pull THIS branch's previous run's baseline. First run has none -> cold (continueOnError).
     - task: DownloadPipelineArtifact@2
@@ -108,12 +108,12 @@ stages:
         pwsh: true
         script: |
           $ErrorActionPreference = 'Stop'
-          # Always --no-restore: the eng/build.ps1 -restore step already restored (matches the proven
-          # local flow). A second bare restore here produced no ref assemblies (CS0518 x75k). When seeded,
-          # --no-restore also preserves the overlaid/back-dated obj so the up-to-date check can skip.
-          $noRestore = "--no-restore"
+          # Build through eng/build.ps1 so arcade's environment (SDK, feeds, package paths) is set up.
+          # A bare dotnet build outside it resolves no reference assemblies (CS0518 x120k). No -restore
+          # here: the separate Restore step already restored, and on a seeded run re-restoring would
+          # re-timestamp obj and bust the back-date. -ci sets ContinuousIntegrationBuild + DeterministicSourcePaths.
           $sw = [Diagnostics.Stopwatch]::StartNew()
-          & "$(Build.SourcesDirectory)/.dotnet/dotnet.exe" build ${{ parameters.slnf }} ${{ parameters.buildArgs }} $noRestore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
+          & "$(Build.SourcesDirectory)/eng/build.ps1" -ci -build -solution ${{ parameters.slnf }} -msbuildEngine dotnet -configuration Debug -binaryLogName Build.WarmCache.binlog
           if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
           $sw.Stop()
           Write-Host ("##[section]Build finished in {0:n1}s (seeded=$(Seeded))" -f $sw.Elapsed.TotalSeconds)
