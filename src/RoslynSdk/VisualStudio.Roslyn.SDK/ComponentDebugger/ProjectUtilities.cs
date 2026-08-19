@@ -16,7 +16,7 @@ namespace Roslyn.ComponentDebugger
     {
         public static async Task<ImmutableArray<UnconfiguredProject>> GetComponentReferencingProjectsAsync(this UnconfiguredProject unconfiguredProject)
         {
-            var targetProjects = ArrayBuilder<UnconfiguredProject>.GetInstance();
+            var targetProjects = ImmutableArray.CreateBuilder<UnconfiguredProject>();
 
             // get the output assembly for this project
             var projectArgs = await unconfiguredProject.GetCompilationArgumentsAsync().ConfigureAwait(false);
@@ -36,7 +36,7 @@ namespace Roslyn.ComponentDebugger
                     }
                 }
             }
-            return targetProjects.ToImmutableAndFree();
+            return targetProjects.ToImmutable();
         }
 
         public static Task<ImmutableArray<string>> GetCompilationArgumentsAsync(this UnconfiguredProject project)
