@@ -2440,13 +2440,15 @@ class C
     }
 
     [Fact]
-    public void WithModifiers_Ref_CSharp14()
+    public void WithModifiers_Ref()
     {
-        UsingTree("class C { ref extension(Type) { } }", TestOptions.Regular14);
+        const string source = "static class C { ref extension(object) { } }";
+        UsingTree(source);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2459,9 +2461,9 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                         }
                         N(SyntaxKind.CloseParenToken);
@@ -2474,6 +2476,11 @@ class C
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (1,22): error CS0106: The modifier 'ref' is not valid for this item
+            // static class C { ref extension(object) { } }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments("ref").WithLocation(1, 22));
     }
 
     [Theory]
@@ -3605,18 +3612,6 @@ static class C
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
-    }
-
-    [Fact]
-    public void WithRef()
-    {
-        var tree = ParseTree("class C { ref extension(Type) { } }", TestOptions.RegularPreview);
-        tree.GetDiagnostics().Verify();
-
-        var root = tree.GetCompilationUnitRoot();
-        var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-        var extension = Assert.IsType<ExtensionBlockDeclarationSyntax>(Assert.Single(containingType.Members));
-        Assert.Equal(SyntaxKind.RefKeyword, Assert.Single(extension.Modifiers).Kind());
     }
 
     [Fact]

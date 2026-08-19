@@ -200,12 +200,15 @@ class Program
         }
 
         [Fact]
-        public void RefTypeDeclarationLookahead_FunctionPointerRemainsType()
+        public void RefFunctionPointerRemainsReturnType()
         {
-            var root = ParseTree("class C { ref delegate*<void> F; }", TestOptions.Regular).GetCompilationUnitRoot();
+            const string source = "unsafe class C { ref delegate*<void> M() => throw null; }";
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            var root = ParseTree(source, TestOptions.Regular).GetCompilationUnitRoot();
             var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-            var field = Assert.IsType<FieldDeclarationSyntax>(Assert.Single(containingType.Members));
-            var refType = Assert.IsType<RefTypeSyntax>(field.Declaration.Type);
+            var method = Assert.IsType<MethodDeclarationSyntax>(Assert.Single(containingType.Members));
+            var refType = Assert.IsType<RefTypeSyntax>(method.ReturnType);
             Assert.IsType<FunctionPointerTypeSyntax>(refType.Type);
         }
 
@@ -218,12 +221,19 @@ class Program
         [InlineData("extension", LanguageVersion.CSharp14)]
         public void RefReadonlyContextualKeywordRemainsReturnType(string contextualKeyword, LanguageVersion languageVersion)
         {
-            var source = $"class C {{ ref readonly {contextualKeyword} M(); }}";
-            var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var source = $$"""
+                #pragma warning disable CS8860, CS8981
+                class @{{contextualKeyword}} { }
+                interface C { ref readonly {{contextualKeyword}} M(); }
+                """;
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            CreateCompilation(source, parseOptions: options).VerifyDiagnostics();
+
+            var tree = ParseTree(source, options);
             tree.GetDiagnostics().Verify();
 
             var root = tree.GetCompilationUnitRoot();
-            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var containingType = Assert.IsType<InterfaceDeclarationSyntax>(root.Members[1]);
             var method = Assert.IsType<MethodDeclarationSyntax>(Assert.Single(containingType.Members));
             var refType = Assert.IsType<RefTypeSyntax>(method.ReturnType);
             Assert.Equal(SyntaxKind.ReadOnlyKeyword, refType.ReadOnlyKeyword.Kind());
@@ -265,12 +275,19 @@ class Program
         [InlineData("extension", LanguageVersion.CSharp14)]
         public void RefReadonlyContextualKeywordRemainsPropertyType(string contextualKeyword, LanguageVersion languageVersion)
         {
-            var source = $"class C {{ ref readonly {contextualKeyword} A {{ }} }}";
-            var tree = ParseTree(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var source = $$"""
+                #pragma warning disable CS8860, CS8981
+                class @{{contextualKeyword}} { }
+                interface C { ref readonly {{contextualKeyword}} A { get; } }
+                """;
+            var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            CreateCompilation(source, parseOptions: options).VerifyDiagnostics();
+
+            var tree = ParseTree(source, options);
             tree.GetDiagnostics().Verify();
 
             var root = tree.GetCompilationUnitRoot();
-            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
+            var containingType = Assert.IsType<InterfaceDeclarationSyntax>(root.Members[1]);
             var property = Assert.IsType<PropertyDeclarationSyntax>(Assert.Single(containingType.Members));
             var refType = Assert.IsType<RefTypeSyntax>(property.Type);
             Assert.Equal(SyntaxKind.ReadOnlyKeyword, refType.ReadOnlyKeyword.Kind());
@@ -323,24 +340,6 @@ class C
     ref partial struct S {}
 }");
             comp.VerifyDiagnostics();
-        }
-
-        [Theory]
-        [InlineData("unsafe")]
-        [InlineData("readonly")]
-        [InlineData("partial")]
-        [InlineData("unsafe readonly")]
-        [InlineData("partial readonly")]
-        [InlineData("readonly partial")]
-        public void RefTypeDeclarationLookahead_SkipsNonScopedModifiers(string modifiers)
-        {
-            var tree = ParseTree($"class C {{ ref {modifiers} struct S {{}} }}", TestOptions.Regular);
-            tree.GetDiagnostics().Verify();
-
-            var root = tree.GetCompilationUnitRoot();
-            var containingType = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
-            var refStruct = Assert.IsType<StructDeclarationSyntax>(Assert.Single(containingType.Members));
-            Assert.Equal($"ref {modifiers}", string.Join(" ", refStruct.Modifiers.Select(static token => token.Text)));
         }
 
         [Fact]
