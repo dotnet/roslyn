@@ -64,8 +64,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
     <PackageReference Include="System.Net.Http" PrivateAssets="all" ExcludeAssets="all" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
-    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
-    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" Condition="Exists('$(MSBuildProjectDirectory)\PublicAPI.Shipped.txt')" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" Condition="Exists('$(MSBuildProjectDirectory)\PublicAPI.Unshipped.txt')" />
   </ItemGroup>
 
   <!-- Needed to override the transitive 9.0.1 version brought in by the 16.1.1 Microsoft.NET.Test.Sdk -->
