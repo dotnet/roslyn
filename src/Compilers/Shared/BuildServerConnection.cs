@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <param name="envMap">Current environment variables to use as a base</param>
         /// <param name="logger">Optional logger for logging environment variable setup</param>
         /// <returns>Dictionary of environment variables to set</returns>
-        internal static Dictionary<string, string> GetServerEnvironmentVariables(
+        internal static Dictionary<string, string>? GetServerEnvironmentVariables(
             IReadOnlyDictionary<string, string> envMap,
             ICompilerServerLogger? logger = null)
         {
@@ -555,6 +555,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     x => envMap.TryGetValue(x, out var value) ? value : null,
                     logger is null ? null : logger.Log)
                 : null;
+            if (dotNetRoot == null && !RuntimeHostInfo.ShouldDisableTieredCompilation)
+            {
+                return null;
+            }
 
             // Start with current environment
             var environmentVariables = new Dictionary<string, string>(Environment.EnvironmentVariableComparer);

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
         internal const string DotNetTieredCompilationEnvironmentName = "DOTNET_TieredCompilation";
 
 #if MICROSOFT_CODEANALYSIS_MSBUILD_TASK
-        /// <inheritdoc cref="GetToolDotNetRoot(System.Func{string, string?}, System.Action{string, object[]}?)"/>
+        /// <inheritdoc cref="GetToolDotNetRootCore(string, System.Action{string, object[]}?)"/>
         internal static string? GetToolDotNetRoot(
             TaskEnvironment taskEnvironment,
             Action<string, object[]>? logger)
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
             return GetToolDotNetRootCore(dotnetPath, logger);
         }
 #else
-        /// <inheritdoc cref="GetToolDotNetRoot(System.Func{string, string?}, System.Action{string, object[]}?)"/>
+        /// <inheritdoc cref="GetToolDotNetRootCore(string, System.Action{string, object[]}?)"/>
         internal static string? GetToolDotNetRoot(Action<string, object[]>? logger) =>
             GetToolDotNetRootCore(GetDotNetHostPath(), logger);
 #endif
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
             GetToolDotNetRootCore(GetDotNetHostPath(getEnvFunc), logger);
 
         /// <summary>
-        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools. If the return 
+        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools. If the return
         /// is non-null then it will be a fully qualified path.
         /// </summary>
         private static string? GetToolDotNetRootCore(string dotNetPath, Action<string, object[]>? logger)
