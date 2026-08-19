@@ -52,7 +52,7 @@ stages:
     timeoutInMinutes: 150
     pool:
       name: NetCore1ESPool-Internal
-      demands: ImageOverride -equals windows.vs2026preview.scout.amd64
+      demands: ImageOverride -equals windows.vs2026.amd64
     steps:
     - checkout: self
       # Pin the checkout path so the absolute source path is identical run-to-run (path-stability).
