@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Basic_IEnumerable()
+        public void Basic_IEnumerable_LanguageVersions()
         {
             var source = """
                 using System.Collections.Generic;
@@ -48,13 +48,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
+                // (8,9): error CS0411: The type arguments for method 'C.M<TEnumerable, TElement>(TEnumerable)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(l);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable)").WithLocation(8, 9));
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
             Assert.Equal(
                 "void C.M<System.Collections.Generic.List<System.Int32>, System.Int32>(System.Collections.Generic.List<System.Int32> t)",
                 method.ToTestDisplayString());
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
@@ -72,11 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             CompileAndVerify(
-                CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.DebugExe),
+                CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.DebugExe),
                 expectedOutput: "B").VerifyDiagnostics();
 
             CompileAndVerify(
-                CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe),
+                CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe),
                 expectedOutput: "B").VerifyDiagnostics();
         }
 
@@ -95,34 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             CompileAndVerify(
-                CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe),
+                CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe),
                 expectedOutput: "B").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void Basic_FailsWithoutFeature()
-        {
-            var source = """
-                using System.Collections.Generic;
-
-                class C
-                {
-                    static void Main()
-                    {
-                        List<int> l = [1, 2, 3];
-                        M(l);
-                    }
-
-                    static void M<TEnumerable, TElement>(TEnumerable t) where TEnumerable : IEnumerable<TElement>
-                    {
-                    }
-                }
-                """;
-
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-                // (8,9): error CS0411: The type arguments for method 'C.M<TEnumerable, TElement>(TEnumerable)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M(l);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable)").WithLocation(8, 9));
         }
 
         [Fact]
@@ -153,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -182,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -212,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -245,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -279,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "6").VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -310,11 +291,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             CompileAndVerify(
-                CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe),
+                CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe),
                 expectedOutput: "generic").VerifyDiagnostics();
 
             CompileAndVerify(
-                CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.DebugExe),
+                CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.DebugExe),
                 expectedOutput: "non-generic").VerifyDiagnostics();
         }
 
@@ -339,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (11,9): error CS0411: The type arguments for method 'C.M<TEnumerable, TElement>(TEnumerable)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(1);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable)").WithLocation(11, 9));
@@ -366,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -398,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -428,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -456,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -488,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]
@@ -512,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (11,9): error CS0311: The type 'System.Collections.Generic.List<int>' cannot be used as type parameter 'TEnumerable' in the generic type or method 'C.M<TEnumerable, TElement>(TEnumerable, TElement)'. There is no implicit reference conversion from 'System.Collections.Generic.List<int>' to 'System.Collections.Generic.IEnumerable<string>'.
                 //         M(new List<int>(), "hello");
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable, TElement)", "System.Collections.Generic.IEnumerable<string>", "TEnumerable", "System.Collections.Generic.List<int>").WithLocation(11, 9));
@@ -539,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -570,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -603,11 +584,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             CompileAndVerify(
-                CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe),
+                CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe),
                 expectedOutput: "generic").VerifyDiagnostics();
 
             CompileAndVerify(
-                CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.DebugExe),
+                CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.DebugExe),
                 expectedOutput: "object").VerifyDiagnostics();
         }
 
@@ -634,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             CompileAndVerify(
-                CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe),
+                CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe),
                 expectedOutput: "specific").VerifyDiagnostics();
         }
 
@@ -658,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -688,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (11,9): error CS0411: The type arguments for method 'C.M<TEnumerable, TElement>(TElement)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(42);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<TEnumerable, TElement>(TElement)").WithLocation(11, 9));
@@ -720,14 +701,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
             Assert.Equal("System.Object", method.TypeArguments[2].ToTestDisplayString());
 
             // Without the feature TElement is not inferable at all (it only appears in constraints).
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (13,9): error CS0411: The type arguments for method 'C.M<TA, TB, TElement>(TA, TB)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(new List<string>(), new List<object>());
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<TA, TB, TElement>(TA, TB)").WithLocation(13, 9));
@@ -753,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
@@ -783,14 +764,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (13,9): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'TElement' in the generic type or method 'C.M<TEnumerable, TElement>(TEnumerable)'
                 //         M(new List<int>());
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable)", "TElement", "int").WithLocation(13, 9));
 
             // Without the feature TElement is not inferred at all, so the user sees a different
             // (arguably clearer) error: CS0411 rather than the primary-constraint violation.
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (13,9): error CS0411: The type arguments for method 'C.M<TEnumerable, TElement>(TEnumerable)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(new List<int>());
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable)").WithLocation(13, 9));
@@ -818,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (11,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'C.M<T, U>(T, U)'. There is no boxing conversion from 'int' to 'System.Collections.Generic.IEnumerable<int>'.
                 //         M(1, 2);
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M").WithArguments("C.M<T, U>(T, U)", "System.Collections.Generic.IEnumerable<int>", "T", "int").WithLocation(11, 9),
@@ -860,8 +841,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M2").WithArguments("Program.M2<U, T>(U, T)", "I<B2>", "T", "A").WithLocation(15, 9)
             };
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expected);
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -889,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (16,9): error CS0411: The type arguments for method 'Program.M1<S, T, U>(S)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(new Seed());
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<S, T, U>(S)").WithLocation(16, 9),
@@ -897,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //         M2(new Seed());
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Program.M2<S, U, T>(S)").WithLocation(17, 9));
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (16,9): error CS0311: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'Program.M1<S, T, U>(S)'. There is no implicit reference conversion from 'A' to 'I<B2>'.
                 //         M1(new Seed());
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M1").WithArguments("Program.M1<S, T, U>(S)", "I<B2>", "T", "A").WithLocation(16, 9),
@@ -954,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
             var inv = comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
             var m = (IMethodSymbol)comp.GetSemanticModel(comp.SyntaxTrees.Single()).GetSymbolInfo(inv).Symbol;
@@ -963,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("System.Int32", m.TypeArguments[2].ToTestDisplayString());
 
             // Without the feature none of the constraint-only parameters can be inferred.
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (35,22): error CS0411: The type arguments for method 'Ext.Where<TEnumerable, TEnumerator, T>(TEnumerable)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         new MyList().Where();
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Where").WithArguments("Ext.Where<TEnumerable, TEnumerator, T>(TEnumerable)").WithLocation(35, 22));
@@ -990,14 +971,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
             var m = GetInferredMethod(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", m.TypeArguments[0].ToTestDisplayString());
             Assert.Equal("System.Int32", m.TypeArguments[1].ToTestDisplayString());
 
             // Without the feature TResult only appears in the constraint and cannot be inferred.
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (11,9): error CS0411: The type arguments for method 'C.M<TTask, TResult>(Func<TTask>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(async () => 42);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<TTask, TResult>(System.Func<TTask>)").WithLocation(11, 9));
@@ -1024,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
             var m = GetInferredMethod(comp);
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", m.TypeArguments[0].ToTestDisplayString());
@@ -1056,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
             var m = GetInferredMethod(comp);
             Assert.Equal("System.Collections.Generic.List<System.Int32>", m.TypeArguments[0].ToTestDisplayString());
@@ -1088,12 +1069,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (14,9): error CS0311: The type 'System.Collections.Generic.List<object>' cannot be used as type parameter 'TEnumerable' in the generic type or method 'C.M<TEnumerable, TElement>(TEnumerable, Func<Task<TElement>>)'. There is no implicit reference conversion from 'System.Collections.Generic.List<object>' to 'System.Collections.Generic.IEnumerable<int>'.
                 //         M(new List<object>(), async () => 42);
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable, System.Func<System.Threading.Tasks.Task<TElement>>)", "System.Collections.Generic.IEnumerable<int>", "TEnumerable", "System.Collections.Generic.List<object>").WithLocation(14, 9));
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (14,9): error CS0311: The type 'System.Collections.Generic.List<object>' cannot be used as type parameter 'TEnumerable' in the generic type or method 'C.M<TEnumerable, TElement>(TEnumerable, Func<Task<TElement>>)'. There is no implicit reference conversion from 'System.Collections.Generic.List<object>' to 'System.Collections.Generic.IEnumerable<int>'.
                 //         M(new List<object>(), async () => 42);
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable, System.Func<System.Threading.Tasks.Task<TElement>>)", "System.Collections.Generic.IEnumerable<int>", "TEnumerable", "System.Collections.Generic.List<object>").WithLocation(14, 9));

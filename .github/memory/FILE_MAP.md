@@ -15,7 +15,7 @@ This file is a **top-level map only**. For per-area directory detail, read the m
 
 | Area | Layer | Purpose |
 |------|-------|---------|
-| `Compilers/` | compiler | C#/VB compilers (`Core`, `CSharp`, `VisualBasic`, `Server`). |
+| `Compilers/` | compiler | C#/VB compilers (`Core`, `CSharp`, `VisualBasic`, `Server`); version-specific C# tests live in `CSharp/Test/CSharpN/`. |
 | `Dependencies/` | compiler | High-performance pooled collections & threading. |
 | `ExpressionEvaluator/` | compiler | Debugger expression evaluator. |
 | `Tools/` | compiler | Compiler and infrastructure tooling (including `dotnet-roslyn-tools`) and benchmark harnesses. |

@@ -110052,7 +110052,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable());
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.RegularNext, options: WithNullableEnable());
             // https://github.com/dotnet/roslyn/issues/29983: Should not report warning for `x6.ToString()`.
             // Note: `CopyOutInherit(u, out var x7)` now succeeds because T2 is inferred from the
             // constraint `where T1 : T2` (type parameter inference from constraints).
@@ -110078,6 +110078,30 @@ class C
                 // (30,9): warning CS8602: Dereference of a possibly null reference.
                 //         x7.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x7").WithLocation(30, 9));
+
+            comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular15, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (29,9): error CS0411: The type arguments for method 'C.CopyOutInherit<T1, T2>(T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         CopyOutInherit(u, out var x7);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "CopyOutInherit").WithArguments("C.CopyOutInherit<T1, T2>(T1, out T2)").WithLocation(29, 9),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         x1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(10, 9),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         x2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(13, 9),
+                // (16,9): warning CS8602: Dereference of a possibly null reference.
+                //         x3.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x3").WithLocation(16, 9),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         x4.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(21, 9),
+                // (24,9): warning CS8602: Dereference of a possibly null reference.
+                //         x5.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x5").WithLocation(24, 9),
+                // (27,9): warning CS8602: Dereference of a possibly null reference.
+                //         x6.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x6").WithLocation(27, 9));
         }
 
         [Fact]
