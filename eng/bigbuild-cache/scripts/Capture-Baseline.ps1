@@ -28,6 +28,10 @@ param(
     # rewrite (unchanged mtime+size), turning a warm capture from "hash 16k files" into "hash
     # the handful that were rebuilt". Safe: a mismatch just re-hashes.
     [string]$PriorBaselineDir = '',
+    # Record inputs by content hash (SHA256) instead of the default: git blob object ids taken
+    # straight from `git ls-files -s` (no file reads). The git ids are exact content identities
+    # and effectively free, so hashing is only for non-git or auditing scenarios.
+    [switch]$HashInputs,
     [switch]$Archive,
     [int]$Throttle = 16
 )
@@ -40,30 +44,45 @@ Write-Host "[capture] repo=$RepoRoot sha=$sha"
 
 # Input set = git-tracked files. Tracked source is the real build input; the global
 # NuGet cache and generated obj/ live outside this set (obj is under an output root).
-$tracked = @(git -C $RepoRoot ls-files) | Where-Object { $_ }
-Write-Host "[capture] $($tracked.Count) tracked paths; hashing inputs with $Throttle threads..."
-
-$inputs = $tracked | ForEach-Object -Parallel {
-    $rel = $_
-    $full = Join-Path $using:RepoRoot ($rel -replace '/', '\')
-    if (-not (Test-Path -LiteralPath $full)) { return }   # tracked but not materialized
-    try {
-        $fi = Get-Item -LiteralPath $full -Force
-        $h = [System.Security.Cryptography.SHA256]::Create()
-        $fs = [System.IO.File]::Open($full, 'Open', 'Read', 'ReadWrite')
-        try { $hash = $h.ComputeHash($fs) } finally { $fs.Dispose(); $h.Dispose() }
-        [pscustomobject]@{
-            Rel   = $rel
-            Path  = $full
-            Sha   = [BitConverter]::ToString($hash).Replace('-', '').ToLowerInvariant()
-            Mtime = $fi.LastWriteTimeUtc.Ticks
-            Size  = $fi.Length
+# By default the manifest records git's own blob object ids (from `git ls-files -s`) as the
+# per-file content identity -- git already content-addresses every tracked blob, so this is
+# exact and needs no file reads. Replay classifies changed-vs-unchanged with `git diff` and
+# never consumes these ids, so they are primarily provenance; -HashInputs restores SHA256.
+if ($HashInputs) {
+    $tracked = @(git -C $RepoRoot ls-files) | Where-Object { $_ }
+    Write-Host "[capture] $($tracked.Count) tracked paths; hashing inputs (SHA256) with $Throttle threads..."
+    $inputs = $tracked | ForEach-Object -Parallel {
+        $rel = $_
+        $full = Join-Path $using:RepoRoot ($rel -replace '/', '\')
+        if (-not (Test-Path -LiteralPath $full)) { return }   # tracked but not materialized
+        try {
+            $fi = Get-Item -LiteralPath $full -Force
+            $h = [System.Security.Cryptography.SHA256]::Create()
+            $fs = [System.IO.File]::Open($full, 'Open', 'Read', 'ReadWrite')
+            try { $hash = $h.ComputeHash($fs) } finally { $fs.Dispose(); $h.Dispose() }
+            [pscustomobject]@{
+                Rel   = $rel
+                Path  = $full
+                Sha   = [BitConverter]::ToString($hash).Replace('-', '').ToLowerInvariant()
+                Mtime = $fi.LastWriteTimeUtc.Ticks
+                Size  = $fi.Length
+            }
+        } catch { }
+    } -ThrottleLimit $Throttle
+}
+else {
+    # `git ls-files -s` prints "<mode> <oid> <stage>\t<relpath>" for every tracked file -- instant.
+    $lines = git -c core.quotepath=false -C $RepoRoot ls-files -s
+    $inputs = foreach ($line in $lines) {
+        if ($line -match '^\d+\s+([0-9a-f]+)\s+\d+\t(.*)$') {
+            [pscustomobject]@{ Rel = $matches[2]; Sha = $matches[1] }
         }
-    } catch { }
-} -ThrottleLimit $Throttle
+    }
+    Write-Host "[capture] recorded $(@($inputs).Count) input blob ids from git (no hashing)"
+}
 
 $inputs | Export-Clixml -Path (Join-Path $BaselineDir 'inputs.clixml') -Depth 2
-Write-Host "[capture] wrote $($inputs.Count) input entries"
+Write-Host "[capture] wrote $(@($inputs).Count) input entries"
 
 # Output set snapshot (the oracle cold side). Reuse the shared Snap-Tree primitive, handing it
 # the seeded baseline's outputs.clixml as a stat-cache so unchanged outputs are not re-hashed.

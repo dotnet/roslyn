@@ -27,6 +27,10 @@ param(
     [Parameter(Mandatory)][string]$RepoRoot,
     [Parameter(Mandatory)][string]$BaselineDir,
     [Parameter(Mandatory)][ValidateSet('Simulate', 'BackDate')][string]$Mode,
+    # Force the content-hash classification (SHA256 every input vs the baseline manifest) instead
+    # of the default git-diff fast path. Only needed for a baseline captured with -HashInputs, or
+    # to operate without git.
+    [switch]$HashInputs,
     [int]$Throttle = 16
 )
 $ErrorActionPreference = 'Stop'
@@ -45,14 +49,52 @@ if ($Mode -eq 'Simulate') {
     return
 }
 
-# BackDate: load the baseline input manifest keyed by repo-relative path.
-$base = @{}
-Import-Clixml (Join-Path $BaselineDir 'inputs.clixml') | ForEach-Object { $base[$_.Rel] = $_ }
-
 # Guarantee the back-date target is older than the oldest output.
 $outMin = (Import-Clixml (Join-Path $BaselineDir 'outputs.clixml') | Measure-Object -Property Mtime -Minimum).Minimum
 $floor = [DateTime]::FromFileTimeUtc(0)
 if ($outMin) { $floor = ([DateTime]::new([long]$outMin, [DateTimeKind]::Utc)).AddHours(-1) }
+$floorUtc = $floor.ToUniversalTime()
+$now = Get-Date
+
+# Fast path: let git classify changed vs unchanged inputs instead of hashing all of them.
+# `git diff --name-only <baseSha>` lists every TRACKED file whose current WORKING-TREE content
+# differs from the baseline commit -- committed deltas and uncommitted edits alike. Every tracked
+# file NOT listed is byte-identical to the baseline (git content-addresses blobs), so it can be
+# back-dated below the outputs; everything listed changed and must stay newer so its targets
+# rebuild. This replaces a full SHA256 pass over ~32k inputs with one git command, and is exact.
+$meta = Get-Content (Join-Path $BaselineDir 'meta.json') -Raw | ConvertFrom-Json
+$baseSha = $meta.Sha
+$haveBase = $false
+if ($baseSha) { git -C $RepoRoot cat-file -e "$baseSha^{commit}" 2>$null; $haveBase = ($LASTEXITCODE -eq 0) }
+
+if (-not $HashInputs -and $haveBase) {
+    $changed = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($rel in (git -c core.quotepath=false -C $RepoRoot diff --name-only $baseSha)) {
+        if ($rel) { [void]$changed.Add($rel) }
+    }
+    $matched = 0; $changedN = 0
+    foreach ($rel in $tracked) {
+        $full = Join-Path $RepoRoot ($rel -replace '/', '\')
+        if (-not (Test-Path -LiteralPath $full)) { continue }
+        if ($changed.Contains($rel)) {
+            (Get-Item -LiteralPath $full -Force).LastWriteTime = $now; $changedN++       # rebuild
+        }
+        else {
+            (Get-Item -LiteralPath $full -Force).LastWriteTimeUtc = $floorUtc; $matched++  # skip
+        }
+    }
+    "[replay:BackDate/git] matched(back-dated)={0} changed={1} (baseline {2})" -f $matched, $changedN, $baseSha | Write-Host
+    return
+}
+
+if (-not $haveBase) {
+    Write-Host "[replay:BackDate] baseline commit '$baseSha' not resolvable here; using content-hash path"
+}
+
+# Fallback / -HashInputs: content-hash classification. Hash each tracked input and compare to the
+# baseline input manifest (Sha per repo-relative path).
+$base = @{}
+Import-Clixml (Join-Path $BaselineDir 'inputs.clixml') | ForEach-Object { $base[$_.Rel] = $_ }
 
 $results = $tracked | ForEach-Object -Parallel {
     $rel = $_
@@ -71,13 +113,12 @@ $results = $tracked | ForEach-Object -Parallel {
     return [pscustomobject]@{ Cls = 'changed'; Rel = $rel; Full = $full }
 } -ThrottleLimit $Throttle
 
-$now = Get-Date
-$floorTicks = $floor.ToUniversalTime().Ticks
+$floorTicks = $floorUtc.Ticks
 foreach ($r in $results) {
     switch ($r.Cls) {
         'match' {
             $t = [long]$r.Mtime
-            if ($t -ge $floorTicks) { $t = $floorTicks }   # keep strictly older than outputs
+            if (-not $t -or $t -ge $floorTicks) { $t = $floorTicks }   # keep strictly older than outputs
             (Get-Item -LiteralPath $r.Full -Force).LastWriteTimeUtc = [DateTime]::new($t, [DateTimeKind]::Utc)
         }
         'changed' { (Get-Item -LiteralPath $r.Full -Force).LastWriteTime = $now }
