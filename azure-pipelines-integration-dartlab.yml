@@ -4,6 +4,10 @@ trigger: none
 pr: none
 
 resources:
+  pipelines:
+  - pipeline: VisualStudioBuildUnderTest
+    source: DD-CB-ReleaseVS
+    trigger: true
   repositories:
   - repository: DartLabTemplates
     type: git
@@ -59,7 +63,7 @@ parameters:
     default: 1:0:0:0 # 1 day default
 
 extends:
-  template: /DartLab/1ES/pipelines/ci/real-sign.yml@VSTemplates
+  template: /DartLab/1ES/pipelines/ci/build.yml@VSTemplates
   parameters:
     testStages:
     - template: /eng/pipelines/test-gates/staging/stages.yml@self
