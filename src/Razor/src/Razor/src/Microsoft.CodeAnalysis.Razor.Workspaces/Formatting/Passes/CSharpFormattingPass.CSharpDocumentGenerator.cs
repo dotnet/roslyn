@@ -369,23 +369,38 @@ internal partial class CSharpFormattingPass
 
                 // We can't use node.Span because it can contain newlines from the line before, so we have to work a little.
 
-                // If we're inside an Html attribute, the indentation recorded in the Razor file already includes the fixed
-                // attribute indentation that will be reapplied when we map the formatted C# back. Remove that baseline here
-                // so Roslyn only sees the relative indentation within the expression instead of compounding it each time.
+                // If we're inside an Html attribute, the indentation recorded in the Razor file already includes the containing
+                // markup indentation that Roslyn will recreate, plus fixed attribute indentation that mapping will reapply.
+                // Remove that baseline here so Roslyn only sees the relative indentation within the expression.
                 var htmlIndentLevel = 0;
                 int? additionalIndentation = null;
+                // This is only removed from the generated C# indentation. Unlike additionalIndentation, it must not be
+                // passed through LineInfo and reapplied because Roslyn recreates the containing tag indentation structurally.
+                var startTagIndentationWidth = 0;
                 var attributeNode = node.Ancestors().FirstOrDefault(n => n.IsAnyAttributeSyntax())
                     ?? (previousLineStartedWithAttributeName ? previousTokenParent?.Parent : null);
                 if (attributeNode?.Parent is BaseMarkupStartTagSyntax attributeStartTag)
                 {
                     GetAttributeIndentation(attributeStartTag, out htmlIndentLevel, out var attributeAdditionalIndentation);
                     additionalIndentation = attributeAdditionalIndentation;
+                    // A leading '[' identifies a collection expression. Roslyn preserves its continuation indentation,
+                    // so unlike ordinary expressions we must not subtract the start tag indentation.
+                    if (!expressionStartsBlockLambda &&
+                        _sourceText[node.SpanStart] != '[')
+                    {
+                        startTagIndentationWidth = _sourceText.Lines[GetLineNumber(attributeStartTag.Name)].GetIndentationSize(_tabSize);
+                        if (ElementCausesIndentation(attributeStartTag))
+                        {
+                            // The start tag is emitted as an open brace, so Roslyn contributes one more structural indent.
+                            startTagIndentationWidth += _tabSize;
+                        }
+                    }
                 }
 
                 // First, emit the whitespace, so user spacing is honoured if possible. We do this while taking into account
                 // any indentation we want to add to line up attribute content, otherwise we'd end up pushing that content to
                 // the right repeatedly.
-                var attributeIndentationWidth = (htmlIndentLevel * _tabSize) + additionalIndentation.GetValueOrDefault();
+                var attributeIndentationWidth = startTagIndentationWidth + (htmlIndentLevel * _tabSize) + additionalIndentation.GetValueOrDefault();
 
                 // For lambda attributes like `OnClick=@(() => ...)`, Roslyn already contributes the
                 // lambda-body indentation on wrapped lines. If we keep applying the full attribute
@@ -615,9 +630,21 @@ internal partial class CSharpFormattingPass
                     return EmitCurrentLineAsComment();
                 }
 
-                var lineInfo = ElementCausesIndentation(node)
-                    ? EmitOpenBraceLine()          // When an element causes indentation, we emit an open brace to tell the C# formatter to indent.
-                    : EmitCurrentLineAsComment();  // This is a single line element, so it doesn't cause indentation
+                LineInfo lineInfo;
+                if (ElementCausesIndentation(node))
+                {
+                    // When an element causes indentation, we emit an open brace to tell the C# formatter to indent.
+                    lineInfo = EmitOpenBraceLine();
+                }
+                else if (ContainsMultilineCollectionExpressionStartingOnCurrentLine(node))
+                {
+                    lineInfo = EmitCollectionExpressionAssignmentLine();
+                }
+                else
+                {
+                    // This is a single line element, so it doesn't cause indentation.
+                    lineInfo = EmitCurrentLineAsComment();
+                }
 
                 if (RazorSyntaxFacts.IsScriptOrStyleBlock(node.ParentElement) &&
                     _honourHtmlFormattingUntilLine is null)
@@ -634,6 +661,14 @@ internal partial class CSharpFormattingPass
 
                 return lineInfo;
             }
+
+            private bool ContainsMultilineCollectionExpressionStartingOnCurrentLine(RazorSyntaxNode node)
+                => node.DescendantNodes()
+                    .OfType<CSharpExpressionLiteralSyntax>()
+                    .Any(expression =>
+                        GetLineNumber(expression) == _currentLine.LineNumber &&
+                        _sourceText.GetLinePositionSpan(expression.Span).SpansMultipleLines() &&
+                        _sourceText[expression.SpanStart] == '[');
 
             public override LineInfo VisitMarkupEndTag(MarkupEndTagSyntax node)
             {
@@ -773,6 +808,15 @@ internal partial class CSharpFormattingPass
                 {
                     GetAttributeIndentation(startTag, out var htmlIndentLevel, out var additionalIndentation);
 
+                    // Keep collection-expression scaffolding scoped to this attribute instead of another attribute on the tag.
+                    var attributeNode = node.Parent;
+                    Debug.Assert(attributeNode?.IsAnyAttributeSyntax() == true);
+                    if (attributeNode is not null &&
+                        ContainsMultilineCollectionExpressionStartingOnCurrentLine(attributeNode))
+                    {
+                        return EmitCollectionExpressionAssignmentLine(htmlIndentLevel, additionalIndentation);
+                    }
+
                     // Self-closing tags can be the last line of a multiline template, so emit the synthetic close here.
                     if (startTag.IsSelfClosing() &&
                         GetLineNumber(startTag.CloseAngle) == _currentLine.LineNumber &&
@@ -792,6 +836,14 @@ internal partial class CSharpFormattingPass
                 }
 
                 return null;
+            }
+
+            private LineInfo EmitCollectionExpressionAssignmentLine(int htmlIndentLevel = 0, int? additionalIndentation = null)
+            {
+                // Without an expression context, C# parses the leading '[' as an attribute list and loses the element's
+                // structural indentation. This line is synthetic, so only its indentation is mapped back to Razor.
+                _builder.AppendLine("_ =");
+                return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
             }
 
             private void GetAttributeIndentation(BaseMarkupStartTagSyntax startTag, out int htmlIndentLevel, out int additionalIndentation)

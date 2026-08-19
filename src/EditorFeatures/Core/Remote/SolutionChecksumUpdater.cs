@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// This class runs against the in-process workspace, and when it sees changes proactively pushes them to
 /// the out-of-process workspace through the <see cref="IRemoteAssetSynchronizationService"/>.
 /// </summary>
-internal sealed class SolutionChecksumUpdater
+internal sealed class SolutionChecksumUpdater : IDisposable
 {
     private readonly Workspace _workspace;
 
@@ -66,14 +66,12 @@ internal sealed class SolutionChecksumUpdater
         _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.Short,
             SynchronizePrimaryWorkspaceAsync,
-            listener,
-            shutdownToken);
+            listener);
 
         _synchronizeActiveDocumentQueue = new AsyncBatchingWorkQueue(
             TimeSpan.Zero,
             SynchronizeActiveDocumentAsync,
-            listener,
-            shutdownToken);
+            listener);
 
         // start listening workspace change event
         _workspaceChangedDisposer = _workspace.RegisterWorkspaceChangedHandler(this.OnWorkspaceChanged);
@@ -85,12 +83,13 @@ internal sealed class SolutionChecksumUpdater
         _synchronizeWorkspaceQueue.AddWork();
     }
 
-    public void Shutdown()
+    public void Dispose()
     {
-        // Try to stop any work that is in progress.
+        // Stop any work that is in progress, and prevent any further work from being queued up.
         lock (_gate)
         {
-            _synchronizeWorkspaceQueue.CancelExistingWork();
+            _synchronizeWorkspaceQueue.Dispose();
+            _synchronizeActiveDocumentQueue.Dispose();
         }
 
         _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
