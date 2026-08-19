@@ -12,8 +12,8 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
-    <TestTargetFrameworks>net10.0;net472</TestTargetFrameworks>
-    <SourceGeneratorTestTargetFrameworks>net10.0;net472</SourceGeneratorTestTargetFrameworks>
+    <TestTargetFrameworks>$(NetRoslyn);net472</TestTargetFrameworks>
+    <SourceGeneratorTestTargetFrameworks>$(NetRoslyn);net472</SourceGeneratorTestTargetFrameworks>
 
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>

@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 return NetFramework.Net472.Default;
 #elif NETCOREAPP3_1
                 return NetCore.NetCoreApp31;
-#elif NET8_0_OR_GREATER
-                return Net.Net80;
+#elif NET10_0_OR_GREATER
+                return Net.Net100;
 #endif
             }
         }
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         var assembliesByPrecedence = assemblyNameGroup
                             .Select(static name => (name, framework: GetFrameworkNameFromPath(name)))
                             .OrderBy(static x => x.framework, comparer)
-#if NET8_0_OR_GREATER || NET472
+#if NET10_0_OR_GREATER || NET472
                             .ThenByDescending(static x => x.framework, NuGetFrameworkSorter.Instance)
 #else
                             .ThenByDescending(static x => x.framework, new NuGetFrameworkSorter())
