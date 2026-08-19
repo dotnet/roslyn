@@ -52561,7 +52561,7 @@ class C
                 // 0.cs(17,13): warning CS8794: An expression of type 'bool?' always matches the provided pattern.
                 //         _ = c?.M0(out obj) is true or var x // 3, 4
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "c?.M0(out obj) is true or var x").WithArguments("bool?").WithLocation(17, 13),
-                // 0.cs(17,43): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                // 0.cs(17,43): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         _ = c?.M0(out obj) is true or var x // 3, 4
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(17, 43),
                 // 0.cs(18,15): warning CS8602: Dereference of a possibly null reference.
@@ -52573,7 +52573,7 @@ class C
                 // 0.cs(25,15): warning CS8602: Dereference of a possibly null reference.
                 //             ? obj.ToString() // 7
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "obj").WithLocation(25, 15),
-                // 0.cs(31,44): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
+                // 0.cs(31,44): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         _ = c?.M0(out obj) is true or bool b // 8
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "b").WithLocation(31, 44),
                 // 0.cs(32,15): warning CS8602: Dereference of a possibly null reference.

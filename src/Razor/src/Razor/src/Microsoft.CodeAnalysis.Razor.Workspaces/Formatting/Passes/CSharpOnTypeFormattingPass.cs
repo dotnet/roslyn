@@ -162,27 +162,6 @@ internal sealed class CSharpOnTypeFormattingPass(
         // We need to take into account the lines affected by formatting as well as cleanup.
         var lineDelta = LineDelta(formattedText, cleanupChanges, out var firstLine, out var lastLine);
 
-        // Okay hear me out, I know this looks lazy, but it totally makes sense.
-        // This method is called with edits that the C# formatter wants to make, and from those edits we work out which
-        // other edits to apply etc. Fine, all good so far. BUT its totally possible that the user typed a closing brace
-        // in the same position as the C# formatter thought it should be, on the line _after_ the code that the C# formatter
-        // reformatted.
-        //
-        // For example, given:
-        // if (true){
-        //     }
-        //
-        // If the C# formatter is happy with the placement of that close brace then this method will get two edits:
-        //  * On line 1 to indent the if by 4 spaces
-        //  * On line 1 to add a newline and 4 spaces in front of the opening brace
-        //
-        // We'll happy format lines 1 and 2, and ignore the closing brace altogether. So, by looking one line further
-        // we won't have that problem.
-        if (linePositionSpanAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count - 1)
-        {
-            lineDelta++;
-        }
-
         // Now we know how many lines were affected by the cleanup and formatting, but we don't know where those lines are. For example, given:
         //
         // @if (true)
@@ -199,6 +178,35 @@ internal sealed class CSharpOnTypeFormattingPass(
         var startLine = Math.Min(firstLine, linePositionSpanAfterFormatting.Start.Line);
         var endLineInclusive = Math.Max(lastLine, linePositionSpanAfterFormatting.End.Line + lineDelta);
 
+        if (context.TriggerCharacter != '\0')
+        {
+            // Track through the combined formatting and cleanup changes so the position is translated directly into the cleaned text.
+            var hostDocumentIndex = TrackPositionForward(context.HostDocumentIndex, cleanedText.GetChangeRanges(originalText));
+
+            // The line containing the typed character can follow the last C# edit. Include it when adjacent, but not an arbitrary
+            // following line, which may contain unrelated code that looks nested while the user is still typing.
+            var typedCharacterLine = cleanedText.GetLinePosition(hostDocumentIndex).Line;
+            if (typedCharacterLine == endLineInclusive + 1)
+            {
+                endLineInclusive++;
+            }
+
+            // The C# formatter can leave a following Razor-owned code block closing brace outside the changed range. Include
+            // that brace so its indentation is restored without expanding to arbitrary following lines.
+            var nextLine = typedCharacterLine + 1;
+            if (nextLine == endLineInclusive + 1 &&
+                nextLine < cleanedText.Lines.Count &&
+                IsCodeBlockDirectiveClosingBrace(changedContext.CodeDocument, cleanedText, nextLine))
+            {
+                endLineInclusive++;
+            }
+        }
+        else if (linePositionSpanAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count - 1)
+        {
+            // Without a cursor, include one extra line to ensure inserted constructs have their final line indented.
+            endLineInclusive = Math.Max(endLineInclusive, linePositionSpanAfterFormatting.End.Line + lineDelta + 1);
+        }
+
         Debug.Assert(cleanedText.Lines.Count > endLineInclusive, "Invalid range. This is unexpected.");
 
         var indentationChanges = await AdjustIndentationAsync(changedContext, startLine, endLineInclusive, roslynWorkspaceHelper.HostWorkspaceServices, _logger, cancellationToken).ConfigureAwait(false);
@@ -212,6 +220,56 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
         return SourceTextDiffer.GetMinimalTextChanges(originalText, cleanedText, DiffKind.Char);
+    }
+
+    private static bool IsCodeBlockDirectiveClosingBrace(RazorCodeDocument codeDocument, SourceText sourceText, int lineNumber)
+    {
+        var line = sourceText.Lines[lineNumber];
+        if (line.GetFirstNonWhitespacePosition() is not int firstNonWhitespacePosition)
+        {
+            return false;
+        }
+
+        var owner = codeDocument.GetRequiredSyntaxRoot().FindInnermostNode(firstNonWhitespacePosition, includeWhitespace: true);
+        return IsCodeBlockDirectiveClosingBrace(owner);
+    }
+
+    private static bool IsCodeBlockDirectiveClosingBrace(RazorSyntaxNode? owner)
+        => owner is RazorMetaCodeSyntax { Parent: CSharpCodeBlockSyntax codeBlock } &&
+            owner == codeBlock.Children[^1] &&
+            codeBlock.Parent is RazorDirectiveBodySyntax;
+
+    /// <summary>
+    /// Tracks a position from the original text into the text produced by applying <paramref name="changes"/>.
+    /// </summary>
+    private static int TrackPositionForward(int position, IReadOnlyList<TextChangeRange> changes)
+    {
+        var delta = 0;
+        TextChangeRange? containingChange = null;
+
+        foreach (var change in changes)
+        {
+            // The changes use original-text coordinates, so accumulate the net length of changes before the position.
+            // The strict start check keeps an insertion at the position on the right side of the tracked position.
+            if (change.Span.End <= position && change.Span.Start < position)
+            {
+                delta += change.NewLength - change.Span.Length;
+            }
+            else if (change.Span.Start < position && position < change.Span.End)
+            {
+                // Remember a replacement containing the position; its start still needs the preceding changes' delta.
+                containingChange = change;
+            }
+        }
+
+        if (containingChange is { } containing)
+        {
+            // Preserve the position's relative offset within the replacement, clamping it if the new text is shorter.
+            var offset = Math.Min(position - containing.Span.Start, containing.NewLength);
+            return containing.Span.Start + delta + offset;
+        }
+
+        return position + delta;
     }
 
     // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
@@ -766,6 +824,13 @@ internal sealed class CSharpOnTypeFormattingPass(
             if (owner is CSharpTransitionSyntax { Parent: CSharpStatementSyntax })
             {
                 // An explicit statement delimiter has no C# source mapping, so use only its Razor/HTML indentation.
+                newIndentations[i] = razorDesiredIndentation;
+                continue;
+            }
+
+            if (IsCodeBlockDirectiveClosingBrace(owner))
+            {
+                // A code block directive's closing brace is Razor syntax, so use only its Razor/HTML indentation.
                 newIndentations[i] = razorDesiredIndentation;
                 continue;
             }

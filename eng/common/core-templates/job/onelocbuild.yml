@@ -14,6 +14,17 @@ parameters:
   # exist, and any pipeline that sets this to '' fall back to PAT-based auth via the CeapexPat parameter.
   CeapexServiceConnection: 'dnceng-onelocbuild-ceapex'
 
+  # GitHub App authentication for the OneLoc check-in PR.
+  # The dnceng/internal infrastructure is enabled by default. Other projects must explicitly opt in
+  # after provisioning a project-scoped service connection with access to the App signing key, and
+  # must override GitHubAppServiceConnection with that connection's name.
+  UseGitHubAppAuthentication: true
+  UseGitHubAppAuthenticationInOtherProjects: false
+  GitHubAppServiceConnection: 'dnceng-oneloc-githubapp'
+  GitHubAppClientId: 'Iv23lijBU8x3gc9lDOc9'
+  GitHubAppKeyVaultName: 'EngKeyVault'
+  GitHubAppKeyName: 'oneloc-localization-app-key'
+
   SourcesDirectory: $(System.DefaultWorkingDirectory)
   CreatePr: true
   AutoCompletePr: false
@@ -28,6 +39,7 @@ parameters:
   GitHubOrg: dotnet
   MirrorRepo: ''
   MirrorBranch: main
+  xLocCustomPowerShellScript: ''
   condition: ''
   JobNameSuffix: ''
   is1ESPipeline: ''
@@ -88,6 +100,20 @@ jobs:
           outputVariableName: 'CeapexEntraToken'
           condition: ${{ parameters.condition }}
 
+    # Mint a short-lived GitHub App installation token for the loc check-in PR. Other projects must
+    # opt in explicitly so the dnceng/internal service connection is not referenced outside its scope.
+    - ${{ if and(eq(parameters.RepoType, 'gitHub'), eq(parameters.UseGitHubAppAuthentication, true), or(eq(variables['System.TeamProject'], 'internal'), eq(parameters.UseGitHubAppAuthenticationInOtherProjects, true))) }}:
+      - template: /eng/common/core-templates/steps/get-github-app-token.yml
+        parameters:
+          is1ESPipeline: ${{ parameters.is1ESPipeline }}
+          azureSubscription: ${{ parameters.GitHubAppServiceConnection }}
+          keyVaultName: ${{ parameters.GitHubAppKeyVaultName }}
+          keyName: ${{ parameters.GitHubAppKeyName }}
+          appClientId: ${{ parameters.GitHubAppClientId }}
+          installationOwner: ${{ parameters.GitHubOrg }}
+          outputVariableName: 'GitHubAppInstallationToken'
+          condition: ${{ parameters.condition }}
+
     - task: OneLocBuild@2
       displayName: OneLocBuild
       env:
@@ -109,12 +135,17 @@ jobs:
           patVariable: ${{ parameters.CeapexPat }}
         ${{ if eq(parameters.RepoType, 'gitHub') }}:
           repoType: ${{ parameters.RepoType }}
-          gitHubPatVariable: "${{ parameters.GithubPat }}"
+          ${{ if and(eq(parameters.UseGitHubAppAuthentication, true), or(eq(variables['System.TeamProject'], 'internal'), eq(parameters.UseGitHubAppAuthenticationInOtherProjects, true))) }}:
+            gitHubPatVariable: "$(GitHubAppInstallationToken)"
+          ${{ else }}:
+            gitHubPatVariable: "${{ parameters.GithubPat }}"
         ${{ if ne(parameters.MirrorRepo, '') }}:
           isMirrorRepoSelected: true
           gitHubOrganization: ${{ parameters.GitHubOrg }}
           mirrorRepo: ${{ parameters.MirrorRepo }}
           mirrorBranch: ${{ parameters.MirrorBranch }}
+        ${{ if ne(parameters.xLocCustomPowerShellScript, '') }}:
+          xLocCustomPowerShellScript: ${{ parameters.xLocCustomPowerShellScript }}
       condition: ${{ parameters.condition }}
 
     # Copy the locProject.json to the root of the Loc directory, then publish a pipeline artifact
