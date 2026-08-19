@@ -5,7 +5,8 @@
     <RootNamespace>Roslyn.SDK</RootNamespace>
     <AssemblyName>Roslyn.SDK</AssemblyName>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
-    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <IncludeMicrosoftVSSDKBuildToolsPackageReference>false</IncludeMicrosoftVSSDKBuildToolsPackageReference>
     <EnableDefaultItems>false</EnableDefaultItems>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <DeployProjectOutput>false</DeployProjectOutput>
@@ -16,6 +17,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <!-- Setting Template Content to None -->
   <ItemGroup>
@@ -131,6 +133,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" VersionOverride="$(MicrosoftVSSDKBuildToolsDefaultVersion)" PrivateAssets="all" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" />
     <!-- Explicit reference to avoid missing package warning -->
     <PackageReference Include="Microsoft.VisualStudio.Interop" />
