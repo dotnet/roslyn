@@ -529,22 +529,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 refToken = modifiers.FirstOrDefault(SyntaxKind.RefKeyword);
                 if (refToken == default)
-                {
                     return false;
-                }
 
                 // Leave duplicate 'ref' modifiers to the existing duplicate-modifier check.
                 if (modifiers.Count(static modifier => modifier.Kind() == SyntaxKind.RefKeyword) > 1)
-                {
                     return false;
-                }
 
                 var refIndex = modifiers.IndexOf(refToken);
-                if (refIndex == modifiers.Count - 1)
-                {
-                    return false;
-                }
 
+                // 'ref' is valid when it is the final modifier.
+                if (refIndex == modifiers.Count - 1)
+                    return false;
+
+                // It is also valid when followed only by 'partial', as in 'ref partial struct'.
                 if (refIndex == modifiers.Count - 2 &&
                     modifiers[refIndex + 1].ContextualKind() == SyntaxKind.PartialKeyword)
                 {
