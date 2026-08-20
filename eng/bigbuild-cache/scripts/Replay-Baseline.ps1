@@ -49,41 +49,53 @@ if ($Mode -eq 'Simulate') {
     return
 }
 
-# Guarantee the back-date target is older than the oldest output.
-$outMin = (Import-Clixml (Join-Path $BaselineDir 'outputs.clixml') | Measure-Object -Property Mtime -Minimum).Minimum
-$floor = [DateTime]::FromFileTimeUtc(0)
-if ($outMin) { $floor = ([DateTime]::new([long]$outMin, [DateTimeKind]::Utc)).AddHours(-1) }
-$floorUtc = $floor.ToUniversalTime()
+# The pipeline-artifact round-trip (zip on publish, unzip on download) does NOT preserve mtimes,
+# so the overlaid outputs -- and generated obj "inputs" a restore step refreshes (*.nuget.g.props,
+# XlfSources.txt, ...) -- can end up NEWER than their output dlls, forcing a full rebuild even
+# though nothing changed. So do not trust preserved mtimes: explicitly stamp the entire overlaid
+# output tree to a uniform old time, and back-date unchanged inputs strictly below it. A captured
+# baseline is internally consistent (everything was up-to-date when captured), so a single uniform
+# output timestamp keeps every project up-to-date; changed inputs go to 'now' so their targets rebuild.
 $now = Get-Date
-
-# Fast path: let git classify changed vs unchanged inputs instead of hashing all of them.
-# `git diff --name-only <baseSha>` lists every TRACKED file whose current WORKING-TREE content
-# differs from the baseline commit -- committed deltas and uncommitted edits alike. Every tracked
-# file NOT listed is byte-identical to the baseline (git content-addresses blobs), so it can be
-# back-dated below the outputs; everything listed changed and must stay newer so its targets
-# rebuild. This replaces a full SHA256 pass over ~32k inputs with one git command, and is exact.
 $meta = Get-Content (Join-Path $BaselineDir 'meta.json') -Raw | ConvertFrom-Json
+$outputRoots = @($meta.OutputRoots)
+$tOut = $now.AddDays(-2)
+$tIn = $now.AddDays(-3)
+
+# 1) Stamp the overlaid output tree uniformly (robust to the artifact round-trip resetting mtimes).
+$stamped = 0
+foreach ($r in $outputRoots) {
+    $rootPath = Join-Path $RepoRoot $r
+    if (-not (Test-Path -LiteralPath $rootPath)) { continue }
+    $files = @(Get-ChildItem -LiteralPath $rootPath -Recurse -File -Force -ErrorAction SilentlyContinue)
+    $files | ForEach-Object -Parallel { try { $_.LastWriteTime = $using:tOut } catch { } } -ThrottleLimit $Throttle
+    $stamped += $files.Count
+}
+Write-Host "[replay:BackDate] stamped $stamped output files to $tOut"
+
+# 2) Classify inputs and back-date. Fast path: let git decide changed-vs-unchanged.
 $baseSha = $meta.Sha
 $haveBase = $false
 if ($baseSha) { git -C $RepoRoot cat-file -e "$baseSha^{commit}" 2>$null; $haveBase = ($LASTEXITCODE -eq 0) }
 
 if (-not $HashInputs -and $haveBase) {
+    # `git diff --name-only <baseSha>` lists every TRACKED file whose current WORKING-TREE content
+    # differs from the baseline commit (committed and uncommitted alike). Files not listed are
+    # byte-identical (git blob identity), so they back-date; listed files stay newer and rebuild.
     $changed = [System.Collections.Generic.HashSet[string]]::new()
     foreach ($rel in (git -c core.quotepath=false -C $RepoRoot diff --name-only $baseSha)) {
         if ($rel) { [void]$changed.Add($rel) }
     }
-    $matched = 0; $changedN = 0
+    $changedList = [System.Collections.Generic.List[string]]::new()
+    $matchedList = [System.Collections.Generic.List[string]]::new()
     foreach ($rel in $tracked) {
         $full = Join-Path $RepoRoot ($rel -replace '/', '\')
         if (-not (Test-Path -LiteralPath $full)) { continue }
-        if ($changed.Contains($rel)) {
-            (Get-Item -LiteralPath $full -Force).LastWriteTime = $now; $changedN++       # rebuild
-        }
-        else {
-            (Get-Item -LiteralPath $full -Force).LastWriteTimeUtc = $floorUtc; $matched++  # skip
-        }
+        if ($changed.Contains($rel)) { $changedList.Add($full) } else { $matchedList.Add($full) }
     }
-    "[replay:BackDate/git] matched(back-dated)={0} changed={1} (baseline {2})" -f $matched, $changedN, $baseSha | Write-Host
+    $matchedList | ForEach-Object -Parallel { try { $_.LastWriteTime = $using:tIn } catch { } } -ThrottleLimit $Throttle
+    $changedList | ForEach-Object -Parallel { try { $_.LastWriteTime = $using:now } catch { } } -ThrottleLimit $Throttle
+    "[replay:BackDate/git] matched(back-dated)={0} changed={1} (baseline {2})" -f $matchedList.Count, $changedList.Count, $baseSha | Write-Host
     return
 }
 
@@ -109,20 +121,15 @@ $results = $tracked | ForEach-Object -Parallel {
     } catch { return [pscustomobject]@{ Cls = 'error'; Rel = $rel } }
 
     if ($null -eq $b) { return [pscustomobject]@{ Cls = 'new'; Rel = $rel; Full = $full } }
-    if ($sha -eq $b.Sha) { return [pscustomobject]@{ Cls = 'match'; Rel = $rel; Full = $full; Mtime = $b.Mtime } }
+    if ($sha -eq $b.Sha) { return [pscustomobject]@{ Cls = 'match'; Rel = $rel; Full = $full } }
     return [pscustomobject]@{ Cls = 'changed'; Rel = $rel; Full = $full }
 } -ThrottleLimit $Throttle
 
-$floorTicks = $floorUtc.Ticks
 foreach ($r in $results) {
     switch ($r.Cls) {
-        'match' {
-            $t = [long]$r.Mtime
-            if (-not $t -or $t -ge $floorTicks) { $t = $floorTicks }   # keep strictly older than outputs
-            (Get-Item -LiteralPath $r.Full -Force).LastWriteTimeUtc = [DateTime]::new($t, [DateTimeKind]::Utc)
-        }
-        'changed' { (Get-Item -LiteralPath $r.Full -Force).LastWriteTime = $now }
-        'new'     { (Get-Item -LiteralPath $r.Full -Force).LastWriteTime = $now }
+        'match'   { (Get-Item -LiteralPath $r.Full -Force).LastWriteTime = $tIn }   # unchanged -> below outputs
+        'changed' { (Get-Item -LiteralPath $r.Full -Force).LastWriteTime = $now }   # rebuild
+        'new'     { (Get-Item -LiteralPath $r.Full -Force).LastWriteTime = $now }   # rebuild
     }
 }
 
