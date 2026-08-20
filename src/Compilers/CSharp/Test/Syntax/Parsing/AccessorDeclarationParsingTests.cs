@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-public sealed class AccessorModifierParsingTests(ITestOutputHelper output) : ParsingTests(output)
+public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
     [Fact]
     public void ContextualAndKeywordAccessorModifierOrderings()
