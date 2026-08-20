@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources = { testCode },
                     GeneratedSources =
                     {
-                        (typeof(TreeNameGenerator), "Generated.g.cs", "// Test0.cs\r\n".ReplaceLineEndings()),
+                        (typeof(TreeNameGenerator), "Generated.g.cs", "// Test0.cs"),
                     },
                 },
                 FixedState =
@@ -72,14 +73,14 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 """;
 
-            await new CSharpTest<TreeLengthGenerator>
+            await new CSharpTest<LiteralValueGenerator>
             {
                 TestState =
                 {
                     Sources = { testCode },
                     GeneratedSources =
                     {
-                        (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 42\r\n".ReplaceLineEndings()),
+                        (typeof(LiteralValueGenerator), "Generated.g.cs", "// Test0.cs: 4"),
                     },
                 },
                 FixedState =
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources = { fixedCode },
                     GeneratedSources =
                     {
-                        (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 43\r\n".ReplaceLineEndings()),
+                        (typeof(LiteralValueGenerator), "Generated.g.cs", "// Test0.cs: 5"),
                     },
                 },
             }.RunAsync();
@@ -128,14 +129,14 @@ namespace Microsoft.CodeAnalysis.Testing
                 Context: Source generator application
                 Context: Verifying source generated files
                 Expected source file list to match
-                +{GetGeneratedFilePath(typeof(TreeLengthGenerator), "Generated.g.cs")}
+                +{GetGeneratedFilePath(typeof(LiteralValueGenerator), "Generated.g.cs")}
 
                 """;
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message.ReplaceLineEndings());
 
-            CSharpTest<TreeLengthGenerator> CreateTest(TestBehaviors testBehaviors)
+            CSharpTest<LiteralValueGenerator> CreateTest(TestBehaviors testBehaviors)
             {
-                return new CSharpTest<TreeLengthGenerator>
+                return new CSharpTest<LiteralValueGenerator>
                 {
                     TestBehaviors = testBehaviors,
                     TestState =
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         Sources = { fixedCode },
                         GeneratedSources =
                         {
-                            (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 43\r\n".ReplaceLineEndings()),
+                            (typeof(LiteralValueGenerator), "Generated.g.cs", "// Test0.cs: 5"),
                         },
                     },
                 };
@@ -190,14 +191,14 @@ namespace Microsoft.CodeAnalysis.Testing
                 Context: Source generator application
                 Context: Verifying source generated files
                 Expected source file list to match
-                +{GetGeneratedFilePath(typeof(TreeLengthGenerator), "Generated.g.cs")}
+                +{GetGeneratedFilePath(typeof(LiteralValueGenerator), "Generated.g.cs")}
 
                 """;
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message.ReplaceLineEndings());
 
-            CSharpTest<TreeLengthGenerator> CreateTest(TestBehaviors testBehaviors)
+            CSharpTest<LiteralValueGenerator> CreateTest(TestBehaviors testBehaviors)
             {
-                return new CSharpTest<TreeLengthGenerator>
+                return new CSharpTest<LiteralValueGenerator>
                 {
                     TestBehaviors = testBehaviors,
                     TestState =
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         Sources = { testCode },
                         GeneratedSources =
                         {
-                            (typeof(TreeLengthGenerator), "Generated.g.cs", "// Test0.cs: 42\r\n".ReplaceLineEndings()),
+                            (typeof(LiteralValueGenerator), "Generated.g.cs", "// Test0.cs: 4"),
                         },
                     },
                     FixedState =
@@ -248,7 +249,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 var sourceBuilder = new StringBuilder();
                 foreach (var tree in context.Compilation.SyntaxTrees)
                 {
-                    sourceBuilder.AppendLine($"{prefix} {Path.GetFileName(tree.FilePath)}");
+                    if (sourceBuilder.Length > 0)
+                    {
+                        sourceBuilder.Append('\n');
+                    }
+
+                    sourceBuilder.Append($"{prefix} {Path.GetFileName(tree.FilePath)}");
                 }
 
                 var source = sourceBuilder.ToString();
@@ -265,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        internal class TreeLengthGenerator : ISourceGenerator
+        internal class LiteralValueGenerator : ISourceGenerator
         {
             private const string CSharpCommentPrefix = @"//";
             private const string VisualBasicCommentPrefix = @"'";
@@ -276,7 +282,13 @@ namespace Microsoft.CodeAnalysis.Testing
                 var sourceBuilder = new StringBuilder();
                 foreach (var tree in context.Compilation.SyntaxTrees)
                 {
-                    sourceBuilder.AppendLine($"{prefix} {Path.GetFileName(tree.FilePath)}: {tree.Length}");
+                    if (sourceBuilder.Length > 0)
+                    {
+                        sourceBuilder.Append('\n');
+                    }
+
+                    var literalValue = tree.GetRoot(context.CancellationToken).DescendantTokens().Single(token => token.Value is int).ValueText;
+                    sourceBuilder.Append($"{prefix} {Path.GetFileName(tree.FilePath)}: {literalValue}");
                 }
 
                 var source = sourceBuilder.ToString();
