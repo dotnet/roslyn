@@ -427,6 +427,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\UnicodeDebug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\UnicodeUtility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\Utf16Utility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncPriorityWorkQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EnumValueUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IAsyncEnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ImmutableArrayComparer.cs" />
