@@ -33,33 +33,23 @@ internal sealed class DidChangeWorkspaceFoldersNotificationHandler(IWorkspaceFol
     Task INotificationHandler<DidChangeWorkspaceFoldersParams, RequestContext>.HandleNotificationAsync(
         DidChangeWorkspaceFoldersParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        // Extract folder paths from the change event
-        var addedFolders = ImmutableArray<string>.Empty;
-        if (request.Event?.Added is not null)
-        {
-            var builder = ImmutableArray.CreateBuilder<string>(request.Event.Added.Length);
-            foreach (var folder in request.Event.Added)
-            {
-                var folderPath = folder.DocumentUri.GetDocumentFilePathFromUri();
-                builder.Add(folderPath);
-            }
-            addedFolders = builder.ToImmutable();
-        }
-
-        var removedFolders = ImmutableArray<string>.Empty;
-        if (request.Event?.Removed is not null)
-        {
-            var builder = ImmutableArray.CreateBuilder<string>(request.Event.Removed.Length);
-            foreach (var folder in request.Event.Removed)
-            {
-                var folderPath = folder.DocumentUri.GetDocumentFilePathFromUri();
-                builder.Add(folderPath);
-            }
-            removedFolders = builder.ToImmutable();
-        }
+        var addedFolders = ToFolderPaths(request.Event?.Added);
+        var removedFolders = ToFolderPaths(request.Event?.Removed);
 
         workspaceFolderTracker.Update(addedFolders, removedFolders);
 
         return Task.CompletedTask;
+
+        static ImmutableArray<string> ToFolderPaths(WorkspaceFolder[]? folders)
+        {
+            if (folders is null)
+                return ImmutableArray<string>.Empty;
+
+            var builder = ImmutableArray.CreateBuilder<string>(folders.Length);
+            foreach (var folder in folders)
+                builder.Add(folder.DocumentUri.GetDocumentFilePathFromUri());
+
+            return builder.ToImmutable();
+        }
     }
 }

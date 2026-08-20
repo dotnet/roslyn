@@ -20,7 +20,7 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
         _lspServices = lspServices;
     }
 
-    public override async Task<RequestContextInfo<RequestContext>> CreateRequestContextAsync<TRequestParam>(QueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+    public override async Task<RequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<RequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -91,6 +91,6 @@ internal sealed class RequestContextFactory : AbstractRequestContextFactory<Requ
             trackedDocuments,
             cancellationToken).ConfigureAwait(false);
 
-        return new RequestContextInfo<RequestContext>(requestContext);
+        return requestContext;
     }
 }

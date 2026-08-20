@@ -169,7 +169,7 @@ public sealed class RequestExecutionQueueTests
                 await allowContextCreation.Task.ConfigureAwait(false);
             }
 
-            return new RequestContextInfo<TestRequestContext>(new());
+            return new TestRequestContext();
         });
         var handler = new CallbackHandler(mutatesSolutionState: false, request =>
         {
@@ -195,9 +195,9 @@ public sealed class RequestExecutionQueueTests
         => new(methodName, TypeRef.Of<MockRequest>(), TypeRef.Of<MockResponse>(), LanguageServerConstants.DefaultLanguageName);
 
     private sealed class CallbackRequestContextFactory(
-        Func<MockRequest, CancellationToken, Task<RequestContextInfo<TestRequestContext>>> createContextAsync) : AbstractRequestContextFactory<TestRequestContext>
+        Func<MockRequest, CancellationToken, Task<TestRequestContext>> createContextAsync) : AbstractRequestContextFactory<TestRequestContext>
     {
-        public override Task<RequestContextInfo<TestRequestContext>> CreateRequestContextAsync<TRequestParam>(QueueItem<TestRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+        public override Task<TestRequestContext> CreateRequestContextAsync<TRequestParam>(QueueItem<TestRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
             => createContextAsync((MockRequest)(object)requestParam!, cancellationToken);
     }
 

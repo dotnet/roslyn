@@ -130,7 +130,7 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
             if (_operations.TryGetValue(key, out var operation))
                 return operation;
 
-            var projectCompletion = LoadProjectsAsync(Task.FromResult(ImmutableArray.Create(projectPath)), projectPath);
+            var projectCompletion = LoadProjectsAsync(projectPath);
             operation = new(projectCompletion);
             _operations.Add(key, operation);
             _ = projectCompletion.ContinueWith(
@@ -169,26 +169,20 @@ internal sealed class OnDemandProjectLoader : IOnDemandProjectLoader, IDisposabl
         return result;
     }
 
-    private async Task LoadProjectsAsync(
-        Task<ImmutableArray<string>> candidateProjectsTask,
-        string filePath)
+    private async Task LoadProjectsAsync(string projectPath)
     {
         using var token = _listener.BeginAsyncOperation(nameof(LoadProjectsAsync));
         try
         {
-            var candidateProjects = await candidateProjectsTask.ConfigureAwait(false);
-            if (candidateProjects.IsEmpty)
-                return;
-
-            _logger.LogInformation("Loading {ProjectCount} project(s) on demand for '{DocumentPath}'.", candidateProjects.Length, filePath);
-            await LoadProjectClosureAsync(candidateProjects, _shutdownSource.Token).ConfigureAwait(false);
+            _logger.LogInformation("Loading project on demand for '{DocumentPath}'.", projectPath);
+            await LoadProjectClosureAsync([projectPath], _shutdownSource.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (_shutdownSource.IsCancellationRequested)
         {
         }
         catch (Exception exception) when (FatalError.ReportAndCatch(exception))
         {
-            _logger.LogError(exception, "Failed to load projects on demand for '{DocumentPath}'.", filePath);
+            _logger.LogError(exception, "Failed to load projects on demand for '{DocumentPath}'.", projectPath);
         }
     }
 
