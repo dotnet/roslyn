@@ -67,9 +67,9 @@ $stamped = 0
 foreach ($r in $outputRoots) {
     $rootPath = Join-Path $RepoRoot $r
     if (-not (Test-Path -LiteralPath $rootPath)) { continue }
-    $files = @(Get-ChildItem -LiteralPath $rootPath -Recurse -File -Force -ErrorAction SilentlyContinue)
-    $files | ForEach-Object -Parallel { try { $_.LastWriteTime = $using:tOut } catch { } } -ThrottleLimit $Throttle
-    $stamped += $files.Count
+    $paths = @(Get-ChildItem -LiteralPath $rootPath -Recurse -File -Force -ErrorAction SilentlyContinue | ForEach-Object FullName)
+    $paths | ForEach-Object -Parallel { try { [System.IO.File]::SetLastWriteTime($_, $using:tOut) } catch { } } -ThrottleLimit $Throttle
+    $stamped += $paths.Count
 }
 Write-Host "[replay:BackDate] stamped $stamped output files to $tOut"
 
@@ -93,8 +93,8 @@ if (-not $HashInputs -and $haveBase) {
         if (-not (Test-Path -LiteralPath $full)) { continue }
         if ($changed.Contains($rel)) { $changedList.Add($full) } else { $matchedList.Add($full) }
     }
-    $matchedList | ForEach-Object -Parallel { try { $_.LastWriteTime = $using:tIn } catch { } } -ThrottleLimit $Throttle
-    $changedList | ForEach-Object -Parallel { try { $_.LastWriteTime = $using:now } catch { } } -ThrottleLimit $Throttle
+    $matchedList | ForEach-Object -Parallel { try { [System.IO.File]::SetLastWriteTime($_, $using:tIn) } catch { } } -ThrottleLimit $Throttle
+    $changedList | ForEach-Object -Parallel { try { [System.IO.File]::SetLastWriteTime($_, $using:now) } catch { } } -ThrottleLimit $Throttle
     "[replay:BackDate/git] matched(back-dated)={0} changed={1} (baseline {2})" -f $matchedList.Count, $changedList.Count, $baseSha | Write-Host
     return
 }
