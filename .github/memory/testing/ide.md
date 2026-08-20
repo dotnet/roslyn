@@ -35,3 +35,7 @@ public class MyTests
   test source code.
 - Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()`
   rather than asserting a count then indexing.
+- ProcessHost test-client waits use `TestHelpers.HangMitigatingTimeout` so
+  missing project-initialization or shutdown events fail with process-state
+  diagnostics instead of hanging the test leg. Timeout cleanup may terminate
+  processes owned by that client, but must never terminate a shared daemon.

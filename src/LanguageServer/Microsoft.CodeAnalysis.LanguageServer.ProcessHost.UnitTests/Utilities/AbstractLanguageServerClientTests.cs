@@ -95,8 +95,23 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
                     throw new InvalidOperationException($"Unsupported load path extension: {PathUtilities.GetExtension(workspaceContent.LoadPath)}");
             }
 
-            await lspClient.WaitForProjectInitializationAsync();
-            lspClient.ProjectInitializationCompleted = true;
+            try
+            {
+                await lspClient.WaitForProjectInitializationAsync();
+            }
+            catch (TimeoutException initializationException)
+            {
+                try
+                {
+                    await lspClient.DisposeAsync();
+                }
+                catch (TimeoutException shutdownException)
+                {
+                    throw new AggregateException(initializationException, shutdownException);
+                }
+
+                throw;
+            }
         }
 
         return lspClient;
