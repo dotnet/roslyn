@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     Sources =
                     {
-                        @"public class Type1 [|{|] object field = new Type3(); }",
+                        @"public class Type1 [|{|] object field = new Type3(); object missing = new {|CS0246:MissingType|}(); }",
                         @"public class Type2 [|{|] }",
                     },
                     AdditionalProjectReferences = { "Secondary", },
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         {
                             Sources =
                             {
-                                @"Public Class Type3 : Private field As Object = New {|BC30002:Type1|}() : End Class",
+                                @"Public Class Type3 : End Class",
                                 @"Public Class Type4 : End Class",
                             },
                         },
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     Sources =
                     {
-                        @"Public Class Type1 : Private field As Object = New Type3() : End Class",
+                        @"Public Class Type1 : Private field As Object = New Type3() : Private missing As Object = New {|BC30002:MissingType|}() : End Class",
                         @"Public Class Type2 : End Class",
                     },
                     AdditionalProjectReferences = { "Secondary", },
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         {
                             Sources =
                             {
-                                @"public class Type3 [|{|] object field = new {|CS0246:Type1|}(); }",
+                                @"public class Type3 [|{|] }",
                                 @"public class Type4 [|{|] }",
                             },
                         },
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     Sources =
                     {
-                        @"public class Type1 [|{|] object field = new {|CS0246:Type3|}(); }",
+                        @"public class Type1 [|{|] }",
                         @"public class Type2 [|{|] }",
                     },
                     AdditionalProjects =
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         {
                             Sources =
                             {
-                                @"Public Class Type3 : Private field As Object = New Type1() : End Class",
+                                @"Public Class Type3 : Private field As Object = New Type1() : Private missing As Object = New {|BC30002:MissingType|}() : End Class",
                                 @"Public Class Type4 : End Class",
                             },
                             AdditionalProjectReferences = { "TestProject" },
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     Sources =
                     {
-                        @"Public Class Type1 : Private field As Object = New {|BC30002:Type3|}() : End Class",
+                        @"Public Class Type1 : End Class",
                         @"Public Class Type2 : End Class",
                     },
                     AdditionalProjects =
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         {
                             Sources =
                             {
-                                @"public class Type3 [|{|] object field = new Type1(); }",
+                                @"public class Type3 [|{|] object field = new Type1(); object missing = new {|CS0246:MissingType|}(); }",
                                 @"public class Type4 [|{|] }",
                             },
                             AdditionalProjectReferences = { "TestProject" },
