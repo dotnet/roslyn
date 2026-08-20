@@ -404,14 +404,16 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        [ExportCodeFixProvider(LanguageNames.CSharp)]
+        [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
         [PartNotDiscoverable]
         private class ReplaceZeroFix : CodeFixProvider
         {
             private readonly ImmutableArray<int> _replacements;
             private readonly bool _nested;
 
+#pragma warning disable RS0034 // This test code fix is constructed directly with test-specific state.
             public ReplaceZeroFix(ImmutableArray<int> replacements, bool nested)
+#pragma warning restore RS0034
             {
                 Debug.Assert(replacements.All(replacement => replacement >= 0), $"Assertion failed: {nameof(replacements)}.All(replacement => replacement >= 0)");
                 _replacements = replacements;

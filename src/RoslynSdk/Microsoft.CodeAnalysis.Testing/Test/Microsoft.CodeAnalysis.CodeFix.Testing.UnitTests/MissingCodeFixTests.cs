@@ -170,10 +170,16 @@ namespace Microsoft.CodeAnalysis.Testing
                 exception.Message);
         }
 
-        [ExportCodeFixProvider(LanguageNames.CSharp)]
+        [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
         [PartNotDiscoverable]
         private class CodeFixNotOfferedProvider : CodeFixProvider
         {
+            [ImportingConstructor]
+            [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+            public CodeFixNotOfferedProvider()
+            {
+            }
+
             public override ImmutableArray<string> FixableDiagnosticIds
                 => ImmutableArray.Create(new HighlightBracesAnalyzer().Descriptor.Id);
 
@@ -184,10 +190,16 @@ namespace Microsoft.CodeAnalysis.Testing
                 => Task.CompletedTask;
         }
 
-        [ExportCodeFixProvider(LanguageNames.CSharp)]
+        [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
         [PartNotDiscoverable]
         private class CodeFixOfferedProvider : CodeFixProvider
         {
+            [ImportingConstructor]
+            [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+            public CodeFixOfferedProvider()
+            {
+            }
+
             public override ImmutableArray<string> FixableDiagnosticIds
                 => ImmutableArray.Create(new HighlightBracesAnalyzer().Descriptor.Id);
 

@@ -328,10 +328,16 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        [ExportCodeFixProvider(LanguageNames.CSharp)]
+        [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
         [PartNotDiscoverable]
         private class ToggleAdditionalFileFix : CodeFixProvider
         {
+            [ImportingConstructor]
+            [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+            public ToggleAdditionalFileFix()
+            {
+            }
+
             public override ImmutableArray<string> FixableDiagnosticIds
                 => ImmutableArray.Create(HighlightBracesAnalyzer.Descriptor.Id);
 

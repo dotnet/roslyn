@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -23,10 +24,16 @@ namespace Microsoft.CodeAnalysis.Testing
         {
         }
 
-        [ExportCodeFixProvider(LanguageNames.CSharp)]
+        [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
         [PartNotDiscoverable]
         internal class SomeCodeFix : CodeFixProvider
         {
+            [ImportingConstructor]
+            [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+            public SomeCodeFix()
+            {
+            }
+
             /// <inheritdoc />
             public override FixAllProvider GetFixAllProvider()
             {

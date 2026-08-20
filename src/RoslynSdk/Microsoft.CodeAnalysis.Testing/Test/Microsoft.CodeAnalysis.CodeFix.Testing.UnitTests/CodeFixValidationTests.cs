@@ -329,10 +329,16 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        [ExportCodeFixProvider(LanguageNames.CSharp)]
+        [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
         [PartNotDiscoverable]
         private class ReplaceThisWithBaseTokenFix : CodeFixProvider
         {
+            [ImportingConstructor]
+            [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+            public ReplaceThisWithBaseTokenFix()
+            {
+            }
+
             public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ReplaceThisWithBaseAnalyzer.Descriptor.Id);
 
             public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -362,10 +368,16 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        [ExportCodeFixProvider(LanguageNames.CSharp)]
+        [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
         [PartNotDiscoverable]
         private class ReplaceThisWithBaseShiftWhitespaceFix : CodeFixProvider
         {
+            [ImportingConstructor]
+            [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+            public ReplaceThisWithBaseShiftWhitespaceFix()
+            {
+            }
+
             public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ReplaceThisWithBaseAnalyzer.Descriptor.Id);
 
             public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -409,10 +421,16 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        [ExportCodeFixProvider(LanguageNames.CSharp)]
+        [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
         [PartNotDiscoverable]
         private class ReplaceThisWithBaseNodeFix : CodeFixProvider
         {
+            [ImportingConstructor]
+            [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+            public ReplaceThisWithBaseNodeFix()
+            {
+            }
+
             public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ReplaceThisWithBaseAnalyzer.Descriptor.Id);
 
             public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;

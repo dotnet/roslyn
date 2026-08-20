@@ -388,10 +388,16 @@ namespace Microsoft.CodeAnalysis.Testing
             }.RunAsync();
         }
 
-        [ExportCodeRefactoringProvider(LanguageNames.CSharp)]
+        [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
         [PartNotDiscoverable]
         private class ReplaceThisWithBaseTokenFix : CodeRefactoringProvider
         {
+            [ImportingConstructor]
+            [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+            public ReplaceThisWithBaseTokenFix()
+            {
+            }
+
             public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
                 context.RegisterRefactoring(
@@ -413,10 +419,16 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        [ExportCodeRefactoringProvider(LanguageNames.CSharp)]
+        [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
         [PartNotDiscoverable]
         private class ReplaceThisWithBaseShiftWhitespaceFix : CodeRefactoringProvider
         {
+            [ImportingConstructor]
+            [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+            public ReplaceThisWithBaseShiftWhitespaceFix()
+            {
+            }
+
             public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
                 context.RegisterRefactoring(
@@ -452,10 +464,16 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        [ExportCodeRefactoringProvider(LanguageNames.CSharp)]
+        [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
         [PartNotDiscoverable]
         private class ReplaceThisWithBaseNodeFix : CodeRefactoringProvider
         {
+            [ImportingConstructor]
+            [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+            public ReplaceThisWithBaseNodeFix()
+            {
+            }
+
             public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
                 context.RegisterRefactoring(
