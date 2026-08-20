@@ -4,7 +4,9 @@
 
 namespace Microsoft.CodeAnalysis.Testing.TestGenerators
 {
+#pragma warning disable RS1042 // Do not implement
     public class AddTwoEmptyFiles : ISourceGenerator
+#pragma warning restore RS1042 // Do not implement
     {
         public void Initialize(GeneratorInitializationContext context)
         {

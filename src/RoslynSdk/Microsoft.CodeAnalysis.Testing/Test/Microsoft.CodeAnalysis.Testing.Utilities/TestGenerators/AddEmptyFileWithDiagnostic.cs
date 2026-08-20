@@ -7,7 +7,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Testing.TestGenerators
 {
+#pragma warning disable RS1042 // Do not implement
     public class AddEmptyFileWithDiagnostic : AddEmptyFile
+#pragma warning restore RS1042 // Do not implement
     {
         public static readonly DiagnosticDescriptor Descriptor = new(
             "SG0001",
