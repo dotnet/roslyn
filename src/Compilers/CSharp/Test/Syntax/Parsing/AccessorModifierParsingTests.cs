@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,366 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class AccessorModifierParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
-    private static readonly ImmutableArray<string> s_allModifiers =
-    [
-        "public", "internal", "protected", "private", "sealed", "abstract", "static", "virtual",
-        "extern", "new", "override", "readonly", "volatile", "unsafe", "partial", "async", "ref",
-        "required", "file", "closed", "safe", "scoped",
-    ];
-
-    private static readonly ImmutableArray<string> s_newlyParsedCSharp10Modifiers =
-        ["partial", "async", "required", "file", "closed", "scoped"];
-
-    private static readonly ImmutableArray<string> s_newlyParsedCSharp11And14Modifiers =
-        ["partial", "async", "closed", "scoped"];
-
-    private static readonly ImmutableArray<string> s_newlyParsedPreviewModifiers =
-        ["partial", "async", "scoped"];
-
-    public static TheoryData<LanguageVersion, string, string, string> NewlyParsedAccessorModifiers
-    {
-        get
-        {
-            var data = new TheoryData<LanguageVersion, string, string, string>();
-            var accessorKinds = new[]
-            {
-                ("property", "get"),
-                ("property", "set"),
-                ("property", "init"),
-                ("indexer", "get"),
-                ("event", "add"),
-                ("event", "remove"),
-            };
-
-            add(LanguageVersion.CSharp10, s_newlyParsedCSharp10Modifiers);
-            add(LanguageVersion.CSharp11, s_newlyParsedCSharp11And14Modifiers);
-            add(LanguageVersion.CSharp14, s_newlyParsedCSharp11And14Modifiers);
-            add(LanguageVersion.Preview, s_newlyParsedPreviewModifiers);
-
-            return data;
-
-            void add(LanguageVersion languageVersion, ImmutableArray<string> modifiers)
-            {
-                foreach (var modifier in modifiers)
-                {
-                    foreach (var (declarationKind, accessorKind) in accessorKinds)
-                    {
-                        data.Add(languageVersion, modifier, declarationKind, accessorKind);
-                    }
-                }
-            }
-        }
-    }
-
-    public static TheoryData<LanguageVersion, string, string, string> NewlyParsedAccessorModifierOrderings
-    {
-        get
-        {
-            var data = new TheoryData<LanguageVersion, string, string, string>();
-            var partialFollowers = new[] { "virtual", "extern", "override", "readonly", "volatile", "ref" };
-
-            add(LanguageVersion.CSharp10, s_newlyParsedCSharp10Modifiers);
-            add(LanguageVersion.CSharp11, s_newlyParsedCSharp11And14Modifiers);
-            add(LanguageVersion.CSharp14, s_newlyParsedCSharp11And14Modifiers);
-            add(LanguageVersion.Preview, s_newlyParsedPreviewModifiers);
-
-            return data;
-
-            void add(LanguageVersion languageVersion, ImmutableArray<string> secondModifiers)
-            {
-                var pairs = new HashSet<(string first, string second)>();
-
-                foreach (var first in s_allModifiers)
-                {
-                    foreach (var second in secondModifiers)
-                    {
-                        pairs.Add((first, second));
-                    }
-                }
-
-                foreach (var second in s_allModifiers)
-                {
-                    pairs.Add(("scoped", second));
-                }
-
-                foreach (var second in partialFollowers)
-                {
-                    pairs.Add(("partial", second));
-                }
-
-                foreach (var (first, second) in pairs)
-                {
-                    data.Add(languageVersion, first, second, "property");
-                    data.Add(languageVersion, first, second, "event");
-                }
-            }
-        }
-    }
-
-    [Theory]
-    [MemberData(nameof(NewlyParsedAccessorModifiers))]
-    public void NewlyParsedAccessorModifier(
-        LanguageVersion languageVersion,
-        string modifier,
-        string declarationKind,
-        string accessorKind)
-    {
-        var source = (declarationKind, accessorKind) switch
-        {
-            ("property", "get") => $"class C {{ int P {{ {modifier} get; set; }} }}",
-            ("property", "set") => $"class C {{ int P {{ get; {modifier} set; }} }}",
-            ("property", "init") => $"class C {{ int P {{ get; {modifier} init; }} }}",
-            ("indexer", "get") => $"class C {{ int this[int i] {{ {modifier} get; set; }} }}",
-            ("event", "add") => $"class C {{ event System.Action E {{ {modifier} add {{ }} remove {{ }} }} }}",
-            ("event", "remove") => $"class C {{ event System.Action E {{ add {{ }} {modifier} remove {{ }} }} }}",
-            _ => throw ExceptionUtilities.Unreachable(),
-        };
-        var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
-        var tree = SyntaxFactory.ParseSyntaxTree(source, options);
-
-        Assert.Contains(
-            tree.GetDiagnostics(),
-            diagnostic => diagnostic.Code == (int)(declarationKind == "event"
-                ? ErrorCode.ERR_AddOrRemoveExpected
-                : ErrorCode.ERR_GetOrSetExpected));
-
-        var accessor = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single(
-            accessor => accessor.Keyword.ValueText == accessorKind);
-        Assert.Empty(accessor.Modifiers);
-
-        Assert.Contains(
-            CreateCompilation(source, parseOptions: options).GetDiagnostics(),
-            diagnostic => diagnostic.Code == (int)(declarationKind == "event"
-                ? ErrorCode.ERR_AddOrRemoveExpected
-                : ErrorCode.ERR_GetOrSetExpected));
-    }
-
-    [Theory]
-    [MemberData(nameof(NewlyParsedAccessorModifierOrderings))]
-    public void NewlyParsedAccessorModifierOrdering(
-        LanguageVersion languageVersion,
-        string firstModifier,
-        string secondModifier,
-        string declarationKind)
-    {
-        var source = declarationKind switch
-        {
-            "property" => $"class C {{ int P {{ {firstModifier} {secondModifier} get; set; }} }}",
-            "event" => $"class C {{ event System.Action E {{ {firstModifier} {secondModifier} add {{ }} remove {{ }} }} }}",
-            _ => throw ExceptionUtilities.Unreachable(),
-        };
-        var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
-        var tree = SyntaxFactory.ParseSyntaxTree(source, options);
-
-        Assert.Contains(tree.GetDiagnostics(), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-        Assert.Contains(
-            CreateCompilation(source, parseOptions: options).GetDiagnostics(),
-            diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-    }
-
-    [Theory]
-    [MemberData(nameof(NewlyParsedAccessorModifiers))]
-    public void NewlyParsedAccessorModifierAfterAttribute(
-        LanguageVersion languageVersion,
-        string modifier,
-        string declarationKind,
-        string accessorKind)
-    {
-        var source = (declarationKind, accessorKind) switch
-        {
-            ("property", "get") => $"class C {{ int P {{ [System.Obsolete] {modifier} get; set; }} }}",
-            ("property", "set") => $"class C {{ int P {{ get; [System.Obsolete] {modifier} set; }} }}",
-            ("property", "init") => $"class C {{ int P {{ get; [System.Obsolete] {modifier} init; }} }}",
-            ("indexer", "get") => $"class C {{ int this[int i] {{ [System.Obsolete] {modifier} get; set; }} }}",
-            ("event", "add") => $"class C {{ event System.Action E {{ [System.Obsolete] {modifier} add {{ }} remove {{ }} }} }}",
-            ("event", "remove") => $"class C {{ event System.Action E {{ add {{ }} [System.Obsolete] {modifier} remove {{ }} }} }}",
-            _ => throw ExceptionUtilities.Unreachable(),
-        };
-        var options = TestOptions.Regular.WithLanguageVersion(languageVersion);
-        var tree = SyntaxFactory.ParseSyntaxTree(source, options);
-
-        Assert.Contains(
-            tree.GetDiagnostics(),
-            diagnostic => diagnostic.Code == (int)(declarationKind == "event"
-                ? ErrorCode.ERR_AddOrRemoveExpected
-                : ErrorCode.ERR_GetOrSetExpected));
-
-        var accessor = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single(
-            accessor => accessor.Keyword.ValueText == accessorKind);
-        Assert.Empty(accessor.AttributeLists);
-        Assert.Empty(accessor.Modifiers);
-
-        Assert.Contains(
-            CreateCompilation(source, parseOptions: options).GetDiagnostics(),
-            diagnostic => diagnostic.Code == (int)(declarationKind == "event"
-                ? ErrorCode.ERR_AddOrRemoveExpected
-                : ErrorCode.ERR_GetOrSetExpected));
-    }
-
-    [Fact]
-    public void ModifierBeforeAttributeRecovery()
-    {
-        const string source = "class C { int P { private [System.Obsolete] get; set; } }";
-        var tree = SyntaxFactory.ParseSyntaxTree(source);
-
-        Assert.Contains(tree.GetDiagnostics(), diagnostic => diagnostic.Code == (int)ErrorCode.ERR_RbraceExpected);
-        Assert.Contains(tree.GetDiagnostics(), diagnostic => diagnostic.Code == (int)ErrorCode.ERR_TypeExpected);
-        Assert.Contains(
-            CreateCompilation(source).GetDiagnostics(),
-            diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-    }
-
-    [Theory]
-    [InlineData("property", ";")]
-    [InlineData("property", "{ }")]
-    [InlineData("event", ";")]
-    [InlineData("event", "{ }")]
-    public void NewlyParsedModifierWithMissingAccessorName(string declarationKind, string body)
-    {
-        var options = TestOptions.Regular10;
-
-        foreach (var modifier in s_allModifiers)
-        {
-            var source = declarationKind switch
-            {
-                "property" => $"class C {{ int P {{ {modifier} {body} }} }}",
-                "event" => $"class C {{ event System.Action E {{ {modifier} {body} }} }}",
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
-            var tree = SyntaxFactory.ParseSyntaxTree(source, options);
-            Assert.Contains(tree.GetDiagnostics(), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-            Assert.Contains(
-                CreateCompilation(source, parseOptions: options).GetDiagnostics(),
-                diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-        }
-    }
-
-    [Theory]
-    [InlineData("property", "get")]
-    [InlineData("property", "set")]
-    [InlineData("property", "init")]
-    [InlineData("indexer", "get")]
-    [InlineData("event", "add")]
-    [InlineData("event", "remove")]
-    public void NewlyParsedModifierOnAccessorWithMissingBody(string declarationKind, string accessorKind)
-    {
-        foreach (var modifier in new[] { "partial", "scoped" })
-        {
-            var source = (declarationKind, accessorKind) switch
-            {
-                ("property", "get") => $"class C {{ int P {{ {modifier} get }} }}",
-                ("property", "set") => $"class C {{ int P {{ {modifier} set }} }}",
-                ("property", "init") => $"class C {{ int P {{ {modifier} init }} }}",
-                ("indexer", "get") => $"class C {{ int this[int i] {{ {modifier} get }} }}",
-                ("event", "add") => $"class C {{ event System.Action E {{ {modifier} add }} }}",
-                ("event", "remove") => $"class C {{ event System.Action E {{ {modifier} remove }} }}",
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
-            var tree = SyntaxFactory.ParseSyntaxTree(source, TestOptions.RegularPreview);
-            var accessor = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single(
-                accessor => accessor.Keyword.ValueText == accessorKind);
-
-            Assert.Equal(accessorKind, accessor.Keyword.ValueText);
-            Assert.Empty(accessor.Modifiers);
-            Assert.Contains(tree.GetDiagnostics(), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-            Assert.Contains(
-                CreateCompilation(source, parseOptions: TestOptions.RegularPreview).GetDiagnostics(),
-                diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-        }
-    }
-
-    [Theory]
-    [InlineData("property")]
-    [InlineData("event")]
-    public void NewlyParsedModifierBeforeCloseBrace(string declarationKind)
-    {
-        foreach (var modifier in s_newlyParsedCSharp10Modifiers)
-        {
-            var source = declarationKind switch
-            {
-                "property" => $"class C {{ int P {{ {modifier} }} }}",
-                "event" => $"class C {{ event System.Action E {{ {modifier} }} }}",
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
-            var tree = SyntaxFactory.ParseSyntaxTree(source, TestOptions.Regular10);
-            var accessor = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
-
-            Assert.Equal(SyntaxKind.UnknownAccessorDeclaration, accessor.Kind());
-            Assert.Equal(modifier, accessor.Keyword.ValueText);
-            Assert.Empty(accessor.Modifiers);
-            Assert.Contains(tree.GetDiagnostics(), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-            Assert.Contains(
-                CreateCompilation(source, parseOptions: TestOptions.Regular10).GetDiagnostics(),
-                diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-        }
-    }
-
-    [Theory]
-    [InlineData("=> 0;")]
-    [InlineData("unknown;")]
-    public void ContextualModifierBeforeNonAccessor(string trailingTokens)
-    {
-        var source = $"class C {{ int P {{ partial {trailingTokens} }} }}";
-        var tree = SyntaxFactory.ParseSyntaxTree(source);
-
-        var accessors = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().ToArray();
-        Assert.Equal("partial", accessors[0].Keyword.ValueText);
-        Assert.All(accessors, accessor => Assert.Empty(accessor.Modifiers));
-        Assert.Contains(tree.GetDiagnostics(), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-        Assert.Contains(
-            CreateCompilation(source).GetDiagnostics(),
-            diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-    }
-
-    [Fact]
-    public void ContextualModifierBeforeFollowingMember()
-    {
-        const string source = "class C { int P { partial int F; } }";
-        var tree = SyntaxFactory.ParseSyntaxTree(source);
-
-        var field = Assert.Single(tree.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>());
-        Assert.Equal("F", field.Declaration.Variables.Single().Identifier.ValueText);
-        Assert.Empty(field.Modifiers);
-        var accessor = Assert.Single(tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>());
-        Assert.True(accessor.Keyword.IsMissing);
-        Assert.Equal("partial", Assert.Single(accessor.Modifiers).ValueText);
-        Assert.Contains(tree.GetDiagnostics(), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-        Assert.Contains(
-            CreateCompilation(source).GetDiagnostics(),
-            diagnostic => diagnostic.Code == (int)ErrorCode.ERR_GetOrSetExpected);
-    }
-
-    [Fact]
-    public void NewlyParsedModifierAtEndOfFile()
-    {
-        const string source = "class C { int P { partial";
-        var tree = SyntaxFactory.ParseSyntaxTree(source);
-        var accessor = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
-
-        Assert.Equal("partial", accessor.Keyword.ValueText);
-        Assert.Empty(accessor.Modifiers);
-        Assert.Contains(tree.GetDiagnostics(), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-        Assert.Contains(
-            CreateCompilation(source).GetDiagnostics(),
-            diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-    }
-
-    [Fact]
-    public void NewlyParsedAttributedModifierWithMissingAccessorName()
-    {
-        const string source = "class C { int P { [System.Obsolete] partial } }";
-        var tree = SyntaxFactory.ParseSyntaxTree(source);
-        var accessor = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
-
-        Assert.Single(accessor.AttributeLists);
-        Assert.Equal("partial", accessor.Keyword.ValueText);
-        Assert.Empty(accessor.Modifiers);
-        Assert.Contains(tree.GetDiagnostics(), diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-        Assert.Contains(
-            CreateCompilation(source).GetDiagnostics(),
-            diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-    }
-
     [Fact]
     public void ValidPropertyAndIndexerAccessors()
     {
@@ -969,22 +605,165 @@ public sealed class AccessorModifierParsingTests(ITestOutputHelper output) : Par
             }
             """;
 
-        var tree = SyntaxFactory.ParseSyntaxTree(source, TestOptions.RegularPreview);
-        tree.GetDiagnostics().Verify(
+        UsingTree(
+            source,
+            TestOptions.RegularPreview,
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "scoped").WithLocation(3, 13),
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(4, 13),
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "async").WithLocation(5, 13),
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "async").WithLocation(6, 28),
             Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(7, 28));
-
-        var getAccessors = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>()
-            .Where(accessor => accessor.Keyword.IsKind(SyntaxKind.GetKeyword));
-        Assert.Equal(5, getAccessors.Count());
-        Assert.All(getAccessors, accessor => Assert.Empty(accessor.Modifiers));
-
-        Assert.Contains(
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).GetDiagnostics(),
-            diagnostic => diagnostic.Code == (int)ErrorCode.ERR_GetOrSetExpected);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "P");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.UnknownAccessorDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.SetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.SetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Q");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.UnknownAccessorDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierToken, "partial");
+                        }
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.SetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.SetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.UnknownAccessorDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.SetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.SetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.UnknownAccessorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.SetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.SetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "T");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.UnknownAccessorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.IdentifierToken, "partial");
+                        }
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.SetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.SetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
     }
 
     [Fact]
