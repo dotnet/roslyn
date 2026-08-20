@@ -339,7 +339,9 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "[").WithLocation(1, 27));
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "private").WithLocation(1, 19),
+            Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(1, 27),
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 52));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -357,38 +359,44 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.ArrayType);
                         {
-                            N(SyntaxKind.PrivateKeyword);
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
-                            N(SyntaxKind.AttributeList);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
                             {
                                 N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
+                                N(SyntaxKind.SimpleMemberAccessExpression);
                                 {
-                                    N(SyntaxKind.QualifiedName);
+                                    N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "System");
-                                        }
-                                        N(SyntaxKind.DotToken);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Obsolete");
-                                        }
+                                        N(SyntaxKind.IdentifierToken, "System");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Obsolete");
                                     }
                                 }
                                 N(SyntaxKind.CloseBracketToken);
                             }
-                            N(SyntaxKind.GetKeyword);
-                            N(SyntaxKind.SemicolonToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "get");
+                        }
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }

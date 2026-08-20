@@ -4390,6 +4390,10 @@ parse_member_name:;
 
         private bool IsPossibleAccessor()
         {
+            // An attribute list can begin an accessor declaration.
+            if (IsPossibleAttributeDeclaration())
+                return true;
+
             // There may be an arbitrary number of modifiers before the accessor, as in
             // `{ private readonly get; }`. Look past all of them before checking what follows,
             // retaining even invalid modifiers on the accessor so they can be diagnosed during binding.
@@ -4398,10 +4402,6 @@ parse_member_name:;
             this.ParseAccessorModifiers(modifiers);
             var parsedModifiers = modifiers.Count > 0;
             _pool.Free(modifiers);
-
-            // An attribute list can begin an accessor declaration.
-            if (IsPossibleAttributeDeclaration())
-                return true;
 
             // A recognized accessor name is always sufficient.
             if (SyntaxFacts.GetAccessorDeclarationKind(this.CurrentToken.ContextualKind) != SyntaxKind.None)
