@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15,6 +16,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class AccessorModifierParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
+    private static readonly ImmutableArray<string> s_allModifiers =
+    [
+        "public", "internal", "protected", "private", "sealed", "abstract", "static", "virtual",
+        "extern", "new", "override", "readonly", "volatile", "unsafe", "partial", "async", "ref",
+        "required", "file", "closed", "safe", "scoped",
+    ];
+
+    private static readonly ImmutableArray<string> s_newlyParsedCSharp10Modifiers =
+        ["partial", "async", "required", "file", "closed", "scoped"];
+
+    private static readonly ImmutableArray<string> s_newlyParsedCSharp11And14Modifiers =
+        ["partial", "async", "closed", "scoped"];
+
+    private static readonly ImmutableArray<string> s_newlyParsedPreviewModifiers =
+        ["partial", "async", "scoped"];
+
     public static TheoryData<LanguageVersion, string, string, string> NewlyParsedAccessorModifiers
     {
         get
@@ -30,14 +47,14 @@ public sealed class AccessorModifierParsingTests(ITestOutputHelper output) : Par
                 ("event", "remove"),
             };
 
-            add(LanguageVersion.CSharp10, "partial", "async", "required", "file", "closed", "scoped");
-            add(LanguageVersion.CSharp11, "partial", "async", "closed", "scoped");
-            add(LanguageVersion.CSharp14, "partial", "async", "closed", "scoped");
-            add(LanguageVersion.Preview, "partial", "async", "scoped");
+            add(LanguageVersion.CSharp10, s_newlyParsedCSharp10Modifiers);
+            add(LanguageVersion.CSharp11, s_newlyParsedCSharp11And14Modifiers);
+            add(LanguageVersion.CSharp14, s_newlyParsedCSharp11And14Modifiers);
+            add(LanguageVersion.Preview, s_newlyParsedPreviewModifiers);
 
             return data;
 
-            void add(LanguageVersion languageVersion, params string[] modifiers)
+            void add(LanguageVersion languageVersion, ImmutableArray<string> modifiers)
             {
                 foreach (var modifier in modifiers)
                 {
@@ -55,26 +72,20 @@ public sealed class AccessorModifierParsingTests(ITestOutputHelper output) : Par
         get
         {
             var data = new TheoryData<LanguageVersion, string, string, string>();
-            var modifiers = new[]
-            {
-                "public", "internal", "protected", "private", "sealed", "abstract", "static", "virtual",
-                "extern", "new", "override", "readonly", "volatile", "unsafe", "partial", "async", "ref",
-                "required", "file", "closed", "safe", "scoped",
-            };
             var partialFollowers = new[] { "virtual", "extern", "override", "readonly", "volatile", "ref" };
 
-            add(LanguageVersion.CSharp10, "partial", "async", "required", "file", "closed", "scoped");
-            add(LanguageVersion.CSharp11, "partial", "async", "closed", "scoped");
-            add(LanguageVersion.CSharp14, "partial", "async", "closed", "scoped");
-            add(LanguageVersion.Preview, "partial", "async", "scoped");
+            add(LanguageVersion.CSharp10, s_newlyParsedCSharp10Modifiers);
+            add(LanguageVersion.CSharp11, s_newlyParsedCSharp11And14Modifiers);
+            add(LanguageVersion.CSharp14, s_newlyParsedCSharp11And14Modifiers);
+            add(LanguageVersion.Preview, s_newlyParsedPreviewModifiers);
 
             return data;
 
-            void add(LanguageVersion languageVersion, params string[] secondModifiers)
+            void add(LanguageVersion languageVersion, ImmutableArray<string> secondModifiers)
             {
                 var pairs = new HashSet<(string first, string second)>();
 
-                foreach (var first in modifiers)
+                foreach (var first in s_allModifiers)
                 {
                     foreach (var second in secondModifiers)
                     {
@@ -82,7 +93,7 @@ public sealed class AccessorModifierParsingTests(ITestOutputHelper output) : Par
                     }
                 }
 
-                foreach (var second in modifiers)
+                foreach (var second in s_allModifiers)
                 {
                     pairs.Add(("scoped", second));
                 }
@@ -221,15 +232,9 @@ public sealed class AccessorModifierParsingTests(ITestOutputHelper output) : Par
     [InlineData("event", "{ }")]
     public void NewlyParsedModifierWithMissingAccessorName(string declarationKind, string body)
     {
-        var modifiers = new[]
-        {
-            "public", "internal", "protected", "private", "sealed", "abstract", "static", "virtual",
-            "extern", "new", "override", "readonly", "volatile", "unsafe", "partial", "async", "ref",
-            "required", "file", "closed", "safe", "scoped",
-        };
         var options = TestOptions.Regular10;
 
-        foreach (var modifier in modifiers)
+        foreach (var modifier in s_allModifiers)
         {
             var source = declarationKind switch
             {
@@ -284,7 +289,7 @@ public sealed class AccessorModifierParsingTests(ITestOutputHelper output) : Par
     [InlineData("event")]
     public void NewlyParsedModifierBeforeCloseBrace(string declarationKind)
     {
-        foreach (var modifier in new[] { "partial", "async", "required", "file", "closed", "scoped" })
+        foreach (var modifier in s_newlyParsedCSharp10Modifiers)
         {
             var source = declarationKind switch
             {
