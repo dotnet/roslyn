@@ -66,39 +66,77 @@ stages:
         filePath: eng/build.ps1
         arguments: -ci -restore -prepareMachine -solution ${{ parameters.slnf }} -binaryLogName Restore.binlog
 
-    # Pull THIS branch's previous run's baseline. First run has none -> cold (continueOnError).
+    # One baseline per branch: pull THIS branch's latest run's baseline. A branch keeps a single
+    # rolling baseline (Capture wipes the store and publishes only the newest), so there is nothing
+    # to search -- take whatever we get. First run on a branch has none -> cold (continueOnError).
     - task: DownloadPipelineArtifact@2
-      displayName: Pull last warmcache (this branch)
+      displayName: Pull warmcache (this branch)
       continueOnError: true
       inputs:
         buildType: specific
         project: $(System.TeamProjectId)
         definition: $(System.DefinitionId)
         buildVersionToDownload: latestFromBranch
-        # our seed/warm runs are partiallySucceeded (the cold-run download-skip), which latestFromBranch
-        # excludes by default -> "No builds currently exist". Include them so the baseline is found.
+        # seed/warm runs finish partiallySucceeded (the cold-run download-skip); include them or
+        # latestFromBranch reports "No builds currently exist".
         allowPartiallySucceededBuilds: true
         branchName: $(Build.SourceBranch)
         artifactName: warmcache
         targetPath: $(CacheStore)
 
     - task: PowerShell@2
-      displayName: Seed from baseline (select + overlay + back-date)
+      displayName: Check for branch cache (else fall back to main)
+      inputs:
+        targetType: inline
+        pwsh: true
+        script: |
+          $laneDir = Join-Path "$(CacheStore)" "roslyn-${{ parameters.sdkFingerprint }}-win"
+          $have = (Test-Path $laneDir) -and @(Get-ChildItem -Directory $laneDir -ErrorAction SilentlyContinue |
+                    Where-Object { Test-Path (Join-Path $_.FullName 'meta.json') }).Count -gt 0
+          Write-Host "branch cache present: $have"
+          Write-Host "##vso[task.setvariable variable=HasBranchCache]$($have.ToString().ToLower())"
+
+    # Fallback: a branch with no baseline of its own (a fresh PR's first build) seeds from main's
+    # latest. Correct at any distance -- Replay diffs base->HEAD, so a far baseline just rebuilds
+    # more. (In this single-branch demo main does not run this pipeline, so the fallback is dormant;
+    # it is the real-world path that makes a first PR build warm instead of cold.)
+    - task: DownloadPipelineArtifact@2
+      displayName: Pull warmcache (fall back to main)
+      continueOnError: true
+      condition: and(succeeded(), eq(variables['HasBranchCache'], 'false'))
+      inputs:
+        buildType: specific
+        project: $(System.TeamProjectId)
+        definition: $(System.DefinitionId)
+        buildVersionToDownload: latestFromBranch
+        allowPartiallySucceededBuilds: true
+        branchName: refs/heads/main
+        artifactName: warmcache
+        targetPath: $(CacheStore)
+
+    - task: PowerShell@2
+      displayName: Seed from baseline (overlay + back-date)
       inputs:
         targetType: inline
         pwsh: true
         script: |
           $ErrorActionPreference = 'Stop'
-          $store = "$(CacheStore)"
-          $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
-          $laneDir = Join-Path $store $lane
-          if (-not (Test-Path $laneDir)) {
-            Write-Host "##[warning]No baseline for this branch yet -- COLD build (this run will seed one)."
+          $laneDir = Join-Path "$(CacheStore)" "roslyn-${{ parameters.sdkFingerprint }}-win"
+          # One baseline per branch: take the (single) baseline present, no ancestor search. Replay
+          # reads its commit from meta.json and diffs base->HEAD, so any baseline is correct; a
+          # farther one only rebuilds more. Removes the old first-parent-ancestor requirement that
+          # would cold-build a perfectly usable baseline after a rebase/force-push.
+          $baseline = if (Test-Path $laneDir) {
+            Get-ChildItem -Directory $laneDir -ErrorAction SilentlyContinue |
+              Where-Object { Test-Path (Join-Path $_.FullName 'meta.json') } |
+              Sort-Object LastWriteTime | Select-Object -Last 1
+          }
+          if (-not $baseline) {
+            Write-Host "##[warning]No baseline (branch or main) -- COLD build (this run will seed one)."
             Write-Host "##vso[task.setvariable variable=Seeded]false"
             exit 0
           }
-          $sel = & "$(Scripts)/Select-Baseline.ps1" -RepoRoot . -LaneDir $laneDir | Select-Object -Last 1
-          if ($LASTEXITCODE -ne 0 -or -not $sel) { Write-Host "##[warning]No ancestor baseline -- COLD build."; Write-Host "##vso[task.setvariable variable=Seeded]false"; exit 0 }
+          $sel = $baseline.FullName
           Write-Host "==> seeding from $sel"
           & "$(Scripts)/Restore-Baseline.ps1" -RepoRoot . -BaselineDir $sel
           & "$(Scripts)/Replay-Baseline.ps1"  -RepoRoot . -BaselineDir $sel -Mode BackDate
