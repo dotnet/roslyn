@@ -13379,7 +13379,7 @@ namespace Test
             """);
 
         // Assert - the RZ10030 declaration warning is emitted.
-        var csharpDoc = generated.CodeDocument.GetRequiredCSharpDocument();
+        var csharpDoc = generated.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false);
         Assert.Contains(csharpDoc.Diagnostics, d => d.Id == "RZ10030");
     }
 
@@ -13529,7 +13529,7 @@ namespace Test
         CompileToAssembly(generated);
 
         // Verify the RZ10029 diagnostic is emitted for mixed content
-        var csharpDoc = generated.CodeDocument.GetRequiredCSharpDocument();
+        var csharpDoc = generated.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false);
         Assert.Contains(csharpDoc.Diagnostics, d => d.Id == "RZ10029");
     }
 
