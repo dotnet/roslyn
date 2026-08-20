@@ -190,10 +190,12 @@ stages:
           $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
           $sha   = (git rev-parse HEAD).Trim()
           $baselineDir = Join-Path (Join-Path $store $lane) $sha
-          # Build capture args as a hashtable and splat it: array-splat passes values positionally,
-          # so an optional -PriorBaselineDir only binds by name via a hashtable. Cache only the real
-          # outputs (bin, obj); exclude log/tmp/TestResults (transient; log trips arcade's binlog guard).
-          $capArgs = @{ RepoRoot = '.'; BaselineDir = $baselineDir; OutputRoots = @('artifacts\bin', 'artifacts\obj'); Archive = $true }
+          # Cache ONLY obj. bin is Copy-target output (CopyFilesToOutputDirectory/RAR) derived from
+          # obj + restored packages; a warm build regenerates it in ~12s. On a real baseline bin is
+          # ~11 GB of 92%-duplicated copies vs obj ~0.8 GB of genuinely-unique intermediate state, so
+          # obj-only shrinks the cache ~15x while still letting CoreCompile skip. Exclude log/tmp/
+          # TestResults (transient; log also trips arcade's binlog guard). See design section 30.
+          $capArgs = @{ RepoRoot = '.'; BaselineDir = $baselineDir; OutputRoots = @('artifacts\obj'); Archive = $true }
           # Stat-cache: stash the seeded baseline's outputs.clixml before wiping the store so Capture
           # can reuse the Sha of any output the build did not rewrite. Read the seeded dir via env (a
           # cold-run $(...) macro is undefined and would be mis-evaluated). Cold -> just hash all.
