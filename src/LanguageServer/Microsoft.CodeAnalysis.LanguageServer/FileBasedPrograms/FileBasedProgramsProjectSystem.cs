@@ -58,10 +58,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
 
-    public override void Dispose()
+    public override ValueTask DisposeAsync()
     {
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
-        base.Dispose();
+        return base.DisposeAsync();
     }
 
     private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)
