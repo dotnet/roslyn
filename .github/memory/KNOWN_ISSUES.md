@@ -31,8 +31,8 @@ per-layer files (load only the one for your area):
 ## Roslyn SDK aggregate project requires VSSDK targets after .NET SDK restore
 
 **Affected area:** `src/RoslynSdk/VisualStudio.Roslyn.SDK/Roslyn.SDK`
-**Description:** Roslyn SDK integration tests invoke `VSIXContainerProjectOutputGroup` on the aggregate SDK project. Arcade's implicit `Microsoft.VSSDK.BuildTools` reference is added only during full-framework MSBuild evaluation, so a preceding .NET SDK restore can omit the package and leave `VSToolsPath` and the output-group targets unavailable.
-**Guidance:** Keep aggregate pkgdef generation enabled, retain its explicit private `Microsoft.VSSDK.BuildTools` reference, and suppress Arcade's later implicit duplicate with `IncludeMicrosoftVSSDKBuildToolsPackageReference=false`.
+**Description:** Roslyn SDK integration tests invoke `VSIXContainerProjectOutputGroup` on the aggregate SDK project. Arcade's implicit `Microsoft.VSSDK.BuildTools` reference is added only during full-framework MSBuild evaluation, so a preceding .NET SDK restore can omit the package and leave `VSToolsPath` and the output-group targets unavailable. Roslyn's custom `GeneratePkgDef` target also does not load project assemblies or consume `RegistrationAttribute`s.
+**Guidance:** Keep aggregate pkgdef generation enabled, retain its explicit private `Microsoft.VSSDK.BuildTools` reference, and suppress Arcade's later implicit duplicate with `IncludeMicrosoftVSSDKBuildToolsPackageReference=false`. Express generated binding redirects and codebases with `PkgDefEntry` metadata on the corresponding project or package references.
 
 ## IdeCoreBenchmarks requires BenchmarkDotNet 0.15 and .NET 10
 

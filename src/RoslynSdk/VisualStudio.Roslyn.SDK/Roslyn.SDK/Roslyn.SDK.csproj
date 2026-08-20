@@ -15,10 +15,6 @@
     <SetupProductArch>Neutral</SetupProductArch>
     <Ngen>false</Ngen>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
-  </ItemGroup>
   <!-- Setting Template Content to None -->
   <ItemGroup>
     <None Include="ItemTemplates\**\*" />
@@ -109,6 +105,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Roslyn.SDK.Template.Wizard\Roslyn.SDK.Template.Wizard.csproj">
       <Name>Roslyn.SDK.Template.Wizard</Name>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
       <Ngen>false</Ngen>
     </ProjectReference>
     <ProjectReference Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Control\Roslyn.SyntaxVisualizer.Control.csproj">
@@ -129,6 +126,7 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>CodeBase</PkgDefEntry>
       <Ngen>false</Ngen>
     </ProjectReference>
   </ItemGroup>
