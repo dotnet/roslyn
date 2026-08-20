@@ -58,6 +58,13 @@ parameters:
   type: string
   default: '(default)'
 
+- name: LocalizableBranches
+  type: object
+  default:
+    - refs/heads/main
+    - refs/heads/release/insiders
+    - refs/heads/release/stable
+
 schedules:
   - cron: "0 8 23-29 * 0"
     displayName: "Monthly smoke test"
@@ -146,7 +153,7 @@ extends:
     - ES365AIMigrationTooling
     stages:
 
-    - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
+    - ${{ if containsValue(parameters.LocalizableBranches, variables['Build.SourceBranch']) }}:
       - stage: localization
         displayName: Localization
 
