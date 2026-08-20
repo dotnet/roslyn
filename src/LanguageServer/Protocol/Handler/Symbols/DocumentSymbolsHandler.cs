@@ -29,15 +29,15 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynDocumentSymbolParams request) => request.TextDocument;
 
-    public Task<SumType<DocumentSymbol[], SymbolInformation[]>> HandleRequestAsync(
+    public async Task<SumType<DocumentSymbol[], SymbolInformation[]>> HandleRequestAsync(
         RoslynDocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         var clientCapabilities = context.GetRequiredClientCapabilities();
         var useHierarchicalSymbols = clientCapabilities.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true || request.UseHierarchicalSymbols;
         var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
 
-        return GetDocumentSymbolsAsync(document, useHierarchicalSymbols, supportsVSExtensions, cancellationToken);
+        return await GetDocumentSymbolsAsync(document, useHierarchicalSymbols, supportsVSExtensions, cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(
