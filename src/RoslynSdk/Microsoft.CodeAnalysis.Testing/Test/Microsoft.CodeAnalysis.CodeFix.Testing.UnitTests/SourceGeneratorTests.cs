@@ -242,7 +242,9 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+#pragma warning disable RS1042 // Do not implement
         internal class TreeNameGenerator : ISourceGenerator
+#pragma warning restore RS1042 // Do not implement
         {
             private const string CSharpCommentPrefix = @"//";
             private const string VisualBasicCommentPrefix = @"'";
@@ -275,7 +277,9 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+#pragma warning disable RS1042 // Do not implement
         internal class LiteralValueGenerator : ISourceGenerator
+#pragma warning restore RS1042 // Do not implement
         {
             private const string CSharpCommentPrefix = @"//";
             private const string VisualBasicCommentPrefix = @"'";

@@ -380,7 +380,9 @@ namespace Microsoft.CodeAnalysis.Testing
             => SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256);
 
         [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+#pragma warning disable RS1042 // Do not implement
         internal class GenerateSourceFile : ISourceGenerator
+#pragma warning restore RS1042 // Do not implement
         {
             private const string CSharpSource = @"class TestClass { }";
             private const string VisualBasicSource = @"Class TestClass : End Class";
