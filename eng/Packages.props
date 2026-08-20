@@ -106,8 +106,9 @@
     <PackageVersion Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="17.9.29-preview-0001" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" Version="18.0.634-alpha" />
     <PackageVersion Include="VsWebSite.Interop" Version="8.0.50727" />
-    <PackageVersion Include="NuGet.VisualStudio" Version="6.0.0-preview.3.158" />
-    <PackageVersion Include="NuGet.VisualStudio.Contracts" Version="6.0.0-preview.3.158" />
+    <PackageVersion Include="NuGet.VisualStudio" Version="6.0.0-preview.0.15" />
+    <PackageVersion Include="NuGet.VisualStudio.Contracts" Version="6.0.0-preview.0.15" />
+    <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
 
     <!-- TODO: Move these to the generate-vssdk-versions.csx-generated versions (https://github.com/dotnet/roslyn/issues/71691) -->
     <PackageVersion Include="Microsoft.VisualStudio.Text.Internal" Version="$(VisualStudioEditorPackagesVersion)" />
