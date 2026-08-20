@@ -6,8 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" />
+    <ProjectReference Include="..\..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="xunit.assert" />
     <PackageReference Include="xunit.extensibility.core" />
   </ItemGroup>
