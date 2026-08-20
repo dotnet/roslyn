@@ -4,15 +4,15 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.NET.ProjectData;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -68,7 +68,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         _hostProjectFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>().HostProjectFactory;
         _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var workspace = _hostProjectFactory.Workspace;
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace));
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace), workspace.Services.GetService<IFileBasedProgramService>());
     }
 
     /// <summary>
@@ -189,5 +189,60 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             PreferredBuildHostKind = preferredBuildHostKind,
             ActualBuildHostKind = actualBuildHostKind
         };
+    }
+
+    protected override async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+    {
+        if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
+            return null;
+
+        var projectSnapshots = await CacheFileReader.ReadProjectDataSnapshotsAsync(
+            projectPath, cacheInProject: false, solutionPath: _hostProjectFactory.SolutionPath, cancellationToken: cancellationToken);
+
+        if (projectSnapshots.IsEmpty)
+            return null;
+
+        return (projectSnapshots.SelectAsArray(snapshot =>
+        {
+            return new ProjectFileInfo
+            {
+                IsEmpty = false,
+                Language = languageName,
+                FilePath = snapshot.ProjectPath,
+                OutputFilePath = snapshot.Properties["TargetPath"],
+                OutputRefFilePath = snapshot.Properties["TargetRefPath"],
+                IntermediateOutputFilePath = snapshot.Properties["IntermediateAssembly"],
+                GeneratedFilesOutputDirectory = snapshot.Properties["CompilerGeneratedFilesOutputPath"],
+                DefaultNamespace = snapshot.Properties["RootNamespace"],
+                TargetFramework = snapshot.Properties["TargetFramework"],
+                TargetFrameworkIdentifier = snapshot.Properties["TargetFrameworkIdentifier"],
+                TargetFrameworkVersion = snapshot.Properties["TargetFrameworkVersion"],
+                ProjectAssetsFilePath = snapshot.Properties["ProjectAssetsFile"],
+                CommandLineArgs = GetItems("CommandLineArgument").Select(static item => item.ItemSpec).ToArray(),
+                Documents = GetItems("Compile").Select(CreateDocumentFileInfo).ToArray(),
+                AdditionalDocuments = GetItems("AdditionalFile").Select(CreateDocumentFileInfo).ToArray(),
+                AnalyzerConfigDocuments = GetItems("AnalyzerConfigFile").Select(CreateDocumentFileInfo).ToArray(),
+                ProjectReferences = GetItems("ProjectReference").Select(item =>
+                    new ProjectFileReference(item.ItemSpec, GetAliases(item), referenceOutputAssembly: true)).ToArray(),
+                MetadataReferences = GetItems("MetadataReference").Select(item =>
+                    new MetadataReferenceItem(item.ItemSpec, GetAliases(item))).ToArray(),
+                ProjectCapabilities = [.. snapshot.Capabilities],
+                ContentFilePaths = [],
+                PackageReferences = [],
+                FileGlobs = [],
+            };
+
+            ImmutableArray<ProjectDataItem> GetItems(string itemType)
+                => snapshot.ItemsByType.TryGetValue(itemType, out var items) ? items : [];
+
+            static DocumentFileInfo CreateDocumentFileInfo(ProjectDataItem item)
+            {
+                var link = item.Metadata["Link"];
+                return new DocumentFileInfo(item.ItemSpec, link ?? item.ItemSpec, isLinked: link is not null, isGenerated: false, folders: []);
+            }
+
+            static string[] GetAliases(ProjectDataItem item)
+                => item.Metadata["aliases"] is string aliases ? aliases.Split(',') : [];
+        }), _hostProjectFactory);
     }
 }
