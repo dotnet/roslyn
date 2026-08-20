@@ -13,9 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LocalRewriter
     {
         /// <summary>
-        /// Benchmark results (see https://github.com/dotnet/runtime/pull/132452) show that small patterns are more efficient when emitted as comparisons rather than switch dispatch.
+        /// Benchmark results (see https://github.com/dotnet/roslyn/pull/84961) show that short patterns can be more
+        /// efficient when emitted as comparisons. Larger patterns can benefit from switch dispatch.
         /// </summary>
-        private const int MaxTestsForInvertedLinearSequence = 4;
+        private const int MaxTestsForInvertedLinearSequence = 3;
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {

@@ -6236,7 +6236,7 @@ class C
 
             Assert.Equal(verifier.VisualizeIL("C.Comparison2"), verifier.VisualizeIL("C.Pattern2"));
             Assert.Equal(verifier.VisualizeIL("C.Comparison3"), verifier.VisualizeIL("C.Pattern3"));
-            Assert.Equal(verifier.VisualizeIL("C.Comparison4"), verifier.VisualizeIL("C.Pattern4"));
+            Assert.Contains("switch", verifier.VisualizeIL("C.Pattern4"));
             Assert.Contains("switch", verifier.VisualizeIL("C.Pattern5"));
         }
 
