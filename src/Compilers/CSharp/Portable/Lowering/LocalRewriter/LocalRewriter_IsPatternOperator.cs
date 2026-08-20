@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 maxTests: MaxTestsForInvertedLinearSequence) &&
                 !containsBindings(decisionDag))
             {
+                // If we can build a short linear test sequence with swapped labels and no variable bindings, do so and negate the result.
                 negated = !negated;
                 result = LowerIsPatternAsLinearSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
             }
