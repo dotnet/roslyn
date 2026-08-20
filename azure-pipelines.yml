@@ -130,7 +130,12 @@ stages:
           if ("$gp" -match 'global-packages:\s*(.+?)\s*$') { $env:NUGET_PACKAGES = $matches[1].Trim() }
           Write-Host "using NUGET_PACKAGES=$env:NUGET_PACKAGES"
           $sw = [Diagnostics.Stopwatch]::StartNew()
-          & $dotnet build ${{ parameters.slnf }} -c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true --no-restore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
+          # EnableSourceLink=false compiles in commit-marker space: sourcelink.json embeds the git
+          # SHA, which changes every commit and (being a CoreCompile input) would invalidate every
+          # project across commits. Dropping it keeps the cross-commit cache warm. DeterministicSource-
+          # Paths stays on so cached-project source paths still match the baseline. Real builds keep
+          # SourceLink and late-stamp the commit into the shipping bits (see capture-replay-cache-design section 28).
+          & $dotnet build ${{ parameters.slnf }} -c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true -p:EnableSourceLink=false --no-restore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
           if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
           $sw.Stop()
           Write-Host ("##[section]Build finished in {0:n1}s (seeded=$(Seeded))" -f $sw.Elapsed.TotalSeconds)
