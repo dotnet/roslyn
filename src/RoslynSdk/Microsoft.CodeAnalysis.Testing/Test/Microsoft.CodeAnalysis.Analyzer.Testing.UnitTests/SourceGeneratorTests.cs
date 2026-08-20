@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 TestState =
                 {
                     Sources = { "class MainClass : TestClass { }" },
-                    GeneratedSources = { (typeof(GenerateSourceFile), "Generated.g.cs", "class TestClass { }") },
+                    GeneratedSources = { (typeof(GenerateSourceFile), "Generated.g.cs", CreateExpectedGeneratedSource("class TestClass { }")) },
                 },
             }.RunAsync();
         }
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 TestState =
                 {
                     Sources = { "Class MainClass : Inherits TestClass : End Class" },
-                    GeneratedSources = { (typeof(GenerateSourceFile), "Generated.g.vb", "Class TestClass : End Class") },
+                    GeneratedSources = { (typeof(GenerateSourceFile), "Generated.g.vb", CreateExpectedGeneratedSource("Class TestClass : End Class")) },
                 },
             }.RunAsync();
         }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     },
                     GeneratedSources =
                     {
-                        (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                        (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", CreateExpectedGeneratedSource(string.Empty)),
                     },
                 },
             }.RunAsync();
@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     },
                     GeneratedSources =
                     {
-                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile1.cs", SourceText.From(string.Empty, Encoding.UTF8)),
-                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile2.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile1.cs", CreateExpectedGeneratedSource(string.Empty)),
+                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile2.cs", CreateExpectedGeneratedSource(string.Empty)),
                     },
                 },
             }.RunAsync();
@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     },
                     GeneratedSources =
                     {
-                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile2.cs", SourceText.From(string.Empty, Encoding.UTF8)),
-                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile1.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile2.cs", CreateExpectedGeneratedSource(string.Empty)),
+                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile1.cs", CreateExpectedGeneratedSource(string.Empty)),
                     },
                 },
             }.RunAsync();
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     },
                     GeneratedSources =
                     {
-                        (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", string.Empty),
+                        (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", CreateExpectedGeneratedSource(string.Empty)),
                     },
                 },
             }.RunAsync();
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     },
                     GeneratedSources =
                     {
-                        (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                        (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", CreateExpectedGeneratedSource(string.Empty)),
                     },
                 },
             }.RunAsync();
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     },
                     GeneratedSources =
                     {
-                        (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", string.Empty),
+                        (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", CreateExpectedGeneratedSource(string.Empty)),
                     },
                 },
             }.RunAsync();
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         },
                         GeneratedSources =
                         {
-                            (typeof(AddFileWithCompileError), "ErrorGeneratedFile.cs", @"class C {"),
+                            (typeof(AddFileWithCompileError), "ErrorGeneratedFile.cs", CreateExpectedGeneratedSource(@"class C {")),
                         },
                     },
                 }.RunAsync();
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         },
                         GeneratedSources =
                         {
-                            (typeof(AddFileWithCompileError), "ErrorGeneratedFile.vb", "Class C"),
+                            (typeof(AddFileWithCompileError), "ErrorGeneratedFile.vb", CreateExpectedGeneratedSource("Class C")),
                         },
                     },
                 }.RunAsync();
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     },
                     GeneratedSources =
                     {
-                        (typeof(AddEmptyFileWithDiagnostic), "EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                        (typeof(AddEmptyFileWithDiagnostic), "EmptyGeneratedFile.cs", CreateExpectedGeneratedSource(string.Empty)),
                     },
                     ExpectedDiagnostics =
                     {
@@ -375,6 +375,9 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private static string GetGeneratedFilePath(Type sourceGeneratorType, string fileName)
             => Path.Combine(sourceGeneratorType.Assembly.GetName().Name!, sourceGeneratorType.FullName!, fileName);
+
+        private static SourceText CreateExpectedGeneratedSource(string source)
+            => SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256);
 
         [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         internal class GenerateSourceFile : ISourceGenerator

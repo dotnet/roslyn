@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
 using Microsoft.CodeAnalysis.Testing.TestFixes;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources = { testCode },
                     GeneratedSources =
                     {
-                        (typeof(TreeNameGenerator), "Generated.g.cs", "// Test0.cs"),
+                        (typeof(TreeNameGenerator), "Generated.g.cs", CreateExpectedGeneratedSource("// Test0.cs")),
                     },
                 },
                 FixedState =
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources = { testCode },
                     GeneratedSources =
                     {
-                        (typeof(LiteralValueGenerator), "Generated.g.cs", "// Test0.cs: 4"),
+                        (typeof(LiteralValueGenerator), "Generated.g.cs", CreateExpectedGeneratedSource("// Test0.cs: 4")),
                     },
                 },
                 FixedState =
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources = { fixedCode },
                     GeneratedSources =
                     {
-                        (typeof(LiteralValueGenerator), "Generated.g.cs", "// Test0.cs: 5"),
+                        (typeof(LiteralValueGenerator), "Generated.g.cs", CreateExpectedGeneratedSource("// Test0.cs: 5")),
                     },
                 },
             }.RunAsync();
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         Sources = { fixedCode },
                         GeneratedSources =
                         {
-                            (typeof(LiteralValueGenerator), "Generated.g.cs", "// Test0.cs: 5"),
+                            (typeof(LiteralValueGenerator), "Generated.g.cs", CreateExpectedGeneratedSource("// Test0.cs: 5")),
                         },
                     },
                 };
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         Sources = { testCode },
                         GeneratedSources =
                         {
-                            (typeof(LiteralValueGenerator), "Generated.g.cs", "// Test0.cs: 4"),
+                            (typeof(LiteralValueGenerator), "Generated.g.cs", CreateExpectedGeneratedSource("// Test0.cs: 4")),
                         },
                     },
                     FixedState =
@@ -220,6 +221,9 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private static string GetGeneratedFilePath(Type sourceGeneratorType, string fileName)
             => Path.Combine(sourceGeneratorType.Assembly.GetName().Name!, sourceGeneratorType.FullName!, fileName);
+
+        private static SourceText CreateExpectedGeneratedSource(string source)
+            => SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256);
 
         private class CSharpTest<TSourceGenerator> : CSharpCodeFixWithSourceGeneratorTest<LiteralUnderFiveAnalyzer, IncrementFix, TSourceGenerator>
             where TSourceGenerator : ISourceGenerator, new()
