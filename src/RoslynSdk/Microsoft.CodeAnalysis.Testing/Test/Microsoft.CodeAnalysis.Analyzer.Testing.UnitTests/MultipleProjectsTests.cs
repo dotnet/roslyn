@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
+using Roslyn.Test.Utilities;
 using Xunit;
 using CSharpTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.CSharpAnalyzerTest<
     Microsoft.CodeAnalysis.Testing.TestAnalyzers.HighlightBracesAnalyzer>;
@@ -408,6 +409,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
+        [UseCulture("en-US")]
         public async Task TwoCSharpProjects_DefaultPaths()
         {
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
