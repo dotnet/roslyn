@@ -161,6 +161,13 @@ stages:
           # set it to $RepoRoot\.packages (what eng/build.ps1 -restore used) and use the same SDK.
           # No -restore, so a seeded run's back-dated obj is preserved.
           $env:DOTNET_MULTILEVEL_LOOKUP = "0"
+          # Roslyn's opt-in hardlink mode (ROSLYNUSEHARDLINKS) makes the Copy targets create hard
+          # links instead of byte copies, so regenerating the uncached bin from obj + the NuGet cache
+          # is metadata-only (no bytes moved) and bin costs ~0 extra disk (it shares inodes with obj
+          # and the package cache). This is why bin does not need to be cached: caching it would only
+          # move the same bytes into the artifact round-trip. Safe here because the agent is ephemeral
+          # (the issue-30005 caveat is a developer editing outputs in place, corrupting the cache).
+          $env:ROSLYNUSEHARDLINKS = "1"
           $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
           # Point NUGET_PACKAGES at the SAME global-packages folder the restore step used, by asking
           # the SDK (robust to the agent image: 1ES presets it to the user global cache, not .packages).
