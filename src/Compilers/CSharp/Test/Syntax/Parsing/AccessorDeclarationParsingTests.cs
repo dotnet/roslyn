@@ -2383,14 +2383,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "private").WithLocation(1, 20),
-            Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(1, 28),
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 28),
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 34),
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "private").WithLocation(1, 55),
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 62),
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 62),
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 66));
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "{").WithLocation(1, 28),
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(1, 62));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -2408,20 +2402,16 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        M(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.PropertyDeclaration);
-                {
-                    N(SyntaxKind.PrivateKeyword);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.UnknownAccessorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
@@ -2442,12 +2432,14 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        M(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.UnknownAccessorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
                     }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.PrivateKeyword);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -2463,7 +2455,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
-            Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "scoped").WithLocation(1, 35));
+            Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "}").WithLocation(1, 42));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -2492,7 +2484,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.UnknownAccessorDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "scoped");
+                            N(SyntaxKind.ScopedKeyword);
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CloseBraceToken);
                     }
