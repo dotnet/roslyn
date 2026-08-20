@@ -1,232 +1,183 @@
-# TEST ONLY (do not merge): BigBuild warm-clone cache demo, wired to run on the
-# dotnet-roslyn-test-CI pipeline (def 1233) by replacing its entry YAML on this branch.
+# TEST ONLY (do not merge): BigBuild warm-clone cache demo, authored to EXTEND the 1ES Official
+# pipeline template so it satisfies dnceng's 1ES drift-management enforcement (plain non-extends
+# pipelines are policy-blocked org-wide). Same 7-step capture/replay flow; the two artifact
+# publishes move into templateContext.outputs (the 1ES way) instead of PublishPipelineArtifact@1.
 #
-# def 1233 executes /azure-pipelines.yml from whatever branch is queued, as a plain (non-1ES-
-# extends) stages pipeline, so we can drive the whole warm-cache demo from here without needing
-# permission to CREATE a pipeline definition -- we only need Queue rights on an existing def.
-#
-# Self-seeding, per-branch capture/replay cache over Compilers.slnf using ONLY Pipeline Artifacts:
-#   1. pull THIS branch's previous run's `warmcache` artifact (the last baseline),
-#   2. seed this checkout from it (overlay outputs + back-date unchanged inputs),
-#   3. build Compilers.slnf -- only the true delta rebuilds,
-#   4. capture a fresh baseline and publish it as `warmcache` for the NEXT run.
-#
-# Correctness is never at stake, only perf: a stale/missing baseline just means more rebuild
-# (worst case a full cold build), never a wrong output. Demo: run once (cold, seeds), then push a
-# one-line change to a LEAF project and run again -- the second run rebuilds ONLY that leaf.
-
-name: $(Date:yyyyMMdd).$(Rev:r) BigBuild WarmCache Demo
+# Iterated on branch chsienki/version-stamp-warmcache-1es, queued on dnceng def 327.
 
 trigger: none
 pr: none
 
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
 parameters:
 - name: slnf
   type: string
-  default: 'Roslyn.slnx'
-- name: buildArgs
-  type: string
-  # determinism flags are REQUIRED for cross-run byte-stability; marker-space off (vanilla bits).
-  default: '-c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true'
+  default: 'Compilers.slnf'
 - name: sdkFingerprint
   type: string
-  default: 'sdk-11.0.100-preview.6-stock-fullsln'   # the lane key; bump if the toolchain changes
+  default: 'sdk-11.0.100-preview.6-stock'
 
 variables:
   - name: CacheStore
     value: $(Agent.TempDirectory)/wc-store
   - name: Scripts
     value: $(Build.SourcesDirectory)/eng/bigbuild-cache/scripts
-  # suppress CodeQL auto-injection (this is a throwaway perf demo, not a shipping build)
   - name: Codeql.Enabled
     value: false
   - name: Codeql.SkipTaskAutoInjection
     value: true
 
-stages:
-- stage: warmcache
-  dependsOn: []
-  jobs:
-  - job: warmcache
-    displayName: Warm-clone cache demo (Roslyn.slnx)
-    timeoutInMinutes: 240
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    sdl:
+      sourceAnalysisPool:
+        name: NetCore1ESPool-Internal
+        image: 1es-windows-2022
+        os: windows
     pool:
       name: NetCore1ESPool-Internal
-      demands: ImageOverride -equals windows.vs2026.amd64
-    steps:
-    - checkout: self
-      # Pin the checkout path so the absolute source path is identical run-to-run (path-stability).
-      path: s
-      clean: true
-      fetchDepth: 0           # Select-Baseline walks first-parent history to the nearest cached ancestor
+      image: windows.vs2026.amd64
+      os: windows
+    stages:
+    - stage: warmcache
+      jobs:
+      - job: warmcache
+        displayName: Warm-clone cache demo (1ES)
+        timeoutInMinutes: 240
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: Publish warmcache (for next run)
+            condition: succeededOrFailed()
+            targetPath: $(CacheStore)
+            artifactName: warmcache
+          - output: pipelineArtifact
+            displayName: Publish binlogs
+            condition: succeededOrFailed()
+            targetPath: $(Build.SourcesDirectory)/artifacts/log
+            artifactName: binlogs
+        steps:
+        - checkout: self
+          path: s
+          clean: true
+          fetchDepth: 0
 
-    - task: PowerShell@2
-      displayName: Restore (bootstrap SDK + packages)
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -ci -restore -prepareMachine -solution ${{ parameters.slnf }} -binaryLogName Restore.binlog
+        - task: PowerShell@2
+          displayName: Restore (bootstrap SDK + packages)
+          inputs:
+            filePath: eng/build.ps1
+            arguments: -ci -restore -prepareMachine -solution ${{ parameters.slnf }} -binaryLogName Restore.binlog
 
-    # One baseline per branch: pull THIS branch's latest run's baseline. A branch keeps a single
-    # rolling baseline (Capture wipes the store and publishes only the newest), so there is nothing
-    # to search -- take whatever we get. First run on a branch has none -> cold (continueOnError).
-    - task: DownloadPipelineArtifact@2
-      displayName: Pull warmcache (this branch)
-      continueOnError: true
-      inputs:
-        buildType: specific
-        project: $(System.TeamProjectId)
-        definition: $(System.DefinitionId)
-        buildVersionToDownload: latestFromBranch
-        # seed/warm runs finish partiallySucceeded (the cold-run download-skip); include them or
-        # latestFromBranch reports "No builds currently exist".
-        allowPartiallySucceededBuilds: true
-        branchName: $(Build.SourceBranch)
-        artifactName: warmcache
-        targetPath: $(CacheStore)
+        - task: DownloadPipelineArtifact@2
+          displayName: Pull warmcache (this branch)
+          continueOnError: true
+          inputs:
+            buildType: specific
+            project: $(System.TeamProjectId)
+            definition: $(System.DefinitionId)
+            buildVersionToDownload: latestFromBranch
+            allowPartiallySucceededBuilds: true
+            branchName: $(Build.SourceBranch)
+            artifactName: warmcache
+            targetPath: $(CacheStore)
 
-    - task: PowerShell@2
-      displayName: Check for branch cache (else fall back to main)
-      inputs:
-        targetType: inline
-        pwsh: true
-        script: |
-          $laneDir = Join-Path "$(CacheStore)" "roslyn-${{ parameters.sdkFingerprint }}-win"
-          $have = (Test-Path $laneDir) -and @(Get-ChildItem -Directory $laneDir -ErrorAction SilentlyContinue |
-                    Where-Object { Test-Path (Join-Path $_.FullName 'meta.json') }).Count -gt 0
-          Write-Host "branch cache present: $have"
-          Write-Host "##vso[task.setvariable variable=HasBranchCache]$($have.ToString().ToLower())"
+        - task: PowerShell@2
+          displayName: Check for branch cache (else fall back to main)
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              $laneDir = Join-Path "$(CacheStore)" "roslyn-${{ parameters.sdkFingerprint }}-win"
+              $have = (Test-Path $laneDir) -and @(Get-ChildItem -Directory $laneDir -ErrorAction SilentlyContinue |
+                        Where-Object { Test-Path (Join-Path $_.FullName 'meta.json') }).Count -gt 0
+              Write-Host "branch cache present: $have"
+              Write-Host "##vso[task.setvariable variable=HasBranchCache]$($have.ToString().ToLower())"
 
-    # Fallback: a branch with no baseline of its own (a fresh PR's first build) seeds from main's
-    # latest. Correct at any distance -- Replay diffs base->HEAD, so a far baseline just rebuilds
-    # more. (In this single-branch demo main does not run this pipeline, so the fallback is dormant;
-    # it is the real-world path that makes a first PR build warm instead of cold.)
-    - task: DownloadPipelineArtifact@2
-      displayName: Pull warmcache (fall back to main)
-      continueOnError: true
-      condition: and(succeeded(), eq(variables['HasBranchCache'], 'false'))
-      inputs:
-        buildType: specific
-        project: $(System.TeamProjectId)
-        definition: $(System.DefinitionId)
-        buildVersionToDownload: latestFromBranch
-        allowPartiallySucceededBuilds: true
-        branchName: refs/heads/main
-        artifactName: warmcache
-        targetPath: $(CacheStore)
+        - task: DownloadPipelineArtifact@2
+          displayName: Pull warmcache (fall back to main)
+          continueOnError: true
+          condition: and(succeeded(), eq(variables['HasBranchCache'], 'false'))
+          inputs:
+            buildType: specific
+            project: $(System.TeamProjectId)
+            definition: $(System.DefinitionId)
+            buildVersionToDownload: latestFromBranch
+            allowPartiallySucceededBuilds: true
+            branchName: refs/heads/main
+            artifactName: warmcache
+            targetPath: $(CacheStore)
 
-    - task: PowerShell@2
-      displayName: Seed from baseline (overlay + back-date)
-      inputs:
-        targetType: inline
-        pwsh: true
-        script: |
-          $ErrorActionPreference = 'Stop'
-          $laneDir = Join-Path "$(CacheStore)" "roslyn-${{ parameters.sdkFingerprint }}-win"
-          # One baseline per branch: take the (single) baseline present, no ancestor search. Replay
-          # reads its commit from meta.json and diffs base->HEAD, so any baseline is correct; a
-          # farther one only rebuilds more. Removes the old first-parent-ancestor requirement that
-          # would cold-build a perfectly usable baseline after a rebase/force-push.
-          $baseline = if (Test-Path $laneDir) {
-            Get-ChildItem -Directory $laneDir -ErrorAction SilentlyContinue |
-              Where-Object { Test-Path (Join-Path $_.FullName 'meta.json') } |
-              Sort-Object LastWriteTime | Select-Object -Last 1
-          }
-          if (-not $baseline) {
-            Write-Host "##[warning]No baseline (branch or main) -- COLD build (this run will seed one)."
-            Write-Host "##vso[task.setvariable variable=Seeded]false"
-            exit 0
-          }
-          $sel = $baseline.FullName
-          Write-Host "==> seeding from $sel"
-          & "$(Scripts)/Restore-Baseline.ps1" -RepoRoot . -BaselineDir $sel
-          & "$(Scripts)/Replay-Baseline.ps1"  -RepoRoot . -BaselineDir $sel -Mode BackDate
-          Write-Host "##vso[task.setvariable variable=SeededBaselineDir]$sel"
-          Write-Host "##vso[task.setvariable variable=Seeded]true"
+        - task: PowerShell@2
+          displayName: Seed from baseline (overlay + back-date)
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              $ErrorActionPreference = 'Stop'
+              $laneDir = Join-Path "$(CacheStore)" "roslyn-${{ parameters.sdkFingerprint }}-win"
+              $baseline = if (Test-Path $laneDir) {
+                Get-ChildItem -Directory $laneDir -ErrorAction SilentlyContinue |
+                  Where-Object { Test-Path (Join-Path $_.FullName 'meta.json') } |
+                  Sort-Object LastWriteTime | Select-Object -Last 1
+              }
+              if (-not $baseline) {
+                Write-Host "##[warning]No baseline (branch or main) -- COLD build (this run will seed one)."
+                Write-Host "##vso[task.setvariable variable=Seeded]false"
+                exit 0
+              }
+              $sel = $baseline.FullName
+              Write-Host "==> seeding from $sel"
+              & "$(Scripts)/Restore-Baseline.ps1" -RepoRoot . -BaselineDir $sel
+              & "$(Scripts)/Replay-Baseline.ps1"  -RepoRoot . -BaselineDir $sel -Mode BackDate
+              Write-Host "##vso[task.setvariable variable=SeededBaselineDir]$sel"
+              Write-Host "##vso[task.setvariable variable=Seeded]true"
 
-    - task: PowerShell@2
-      displayName: Build Compilers.slnf (measure cold vs warm)
-      inputs:
-        targetType: inline
-        pwsh: true
-        script: |
-          $ErrorActionPreference = 'Stop'
-          # Arcade refuses to overwrite an existing binlog, and the seed overlays the baseline's
-          # artifacts/log (with its binlog) back in. Logs are per-run, not a cached output, so clear
-          # the log dir before building. (Future baselines exclude log via -OutputRoots below.)
-          Remove-Item -Recurse -Force "$(Build.SourcesDirectory)/artifacts/log" -ErrorAction SilentlyContinue
-          # LEAN build: call the bootstrapped dotnet directly, NOT eng/build.ps1 -build. The arcade
-          # wrapper adds ~150s of fixed overhead (toolset init + non-compile targets across every
-          # project) that swamps the cache win. The earlier bare-build CS0518/CS0234 was only because
-          # NUGET_PACKAGES did not point at the -ci restore location, so the ref packs were not found;
-          # set it to $RepoRoot\.packages (what eng/build.ps1 -restore used) and use the same SDK.
-          # No -restore, so a seeded run's back-dated obj is preserved.
-          $env:DOTNET_MULTILEVEL_LOOKUP = "0"
-          # Roslyn's opt-in hardlink mode (ROSLYNUSEHARDLINKS) makes the Copy targets create hard
-          # links instead of byte copies, so regenerating the uncached bin from obj + the NuGet cache
-          # is metadata-only (no bytes moved) and bin costs ~0 extra disk (it shares inodes with obj
-          # and the package cache). This is why bin does not need to be cached: caching it would only
-          # move the same bytes into the artifact round-trip. Safe here because the agent is ephemeral
-          # (the issue-30005 caveat is a developer editing outputs in place, corrupting the cache).
-          $env:ROSLYNUSEHARDLINKS = "1"
-          $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
-          # Point NUGET_PACKAGES at the SAME global-packages folder the restore step used, by asking
-          # the SDK (robust to the agent image: 1ES presets it to the user global cache, not .packages).
-          $gp = & $dotnet nuget locals global-packages --list 2>$null
-          if ("$gp" -match 'global-packages:\s*(.+?)\s*$') { $env:NUGET_PACKAGES = $matches[1].Trim() }
-          Write-Host "using NUGET_PACKAGES=$env:NUGET_PACKAGES"
-          $sw = [Diagnostics.Stopwatch]::StartNew()
-          # EnableSourceLink=false compiles in commit-marker space: sourcelink.json embeds the git
-          # SHA, which changes every commit and (being a CoreCompile input) would invalidate every
-          # project across commits. Dropping it keeps the cross-commit cache warm. DeterministicSource-
-          # Paths stays on so cached-project source paths still match the baseline. Real builds keep
-          # SourceLink and late-stamp the commit into the shipping bits (see capture-replay-cache-design section 28).
-          & $dotnet build ${{ parameters.slnf }} -c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true -p:EnableSourceLink=false --no-restore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
-          if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
-          $sw.Stop()
-          Write-Host ("##[section]Build finished in {0:n1}s (seeded=$(Seeded))" -f $sw.Elapsed.TotalSeconds)
-          Write-Host ("##vso[task.setvariable variable=BuildSeconds]{0:n1}" -f $sw.Elapsed.TotalSeconds)
+        - task: PowerShell@2
+          displayName: Build (measure cold vs warm)
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              $ErrorActionPreference = 'Stop'
+              Remove-Item -Recurse -Force "$(Build.SourcesDirectory)/artifacts/log" -ErrorAction SilentlyContinue
+              $env:DOTNET_MULTILEVEL_LOOKUP = "0"
+              $env:ROSLYNUSEHARDLINKS = "1"
+              $dotnet = "$(Build.SourcesDirectory)\.dotnet\dotnet.exe"
+              $gp = & $dotnet nuget locals global-packages --list 2>$null
+              if ("$gp" -match 'global-packages:\s*(.+?)\s*$') { $env:NUGET_PACKAGES = $matches[1].Trim() }
+              Write-Host "using NUGET_PACKAGES=$env:NUGET_PACKAGES"
+              $sw = [Diagnostics.Stopwatch]::StartNew()
+              & $dotnet build ${{ parameters.slnf }} -c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true -p:EnableSourceLink=false --no-restore -bl:"$(Build.SourcesDirectory)/artifacts/log/Build.WarmCache.binlog"
+              if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
+              $sw.Stop()
+              Write-Host ("##[section]Build finished in {0:n1}s (seeded=$(Seeded))" -f $sw.Elapsed.TotalSeconds)
 
-    - task: PowerShell@2
-      displayName: Capture fresh baseline
-      inputs:
-        targetType: inline
-        pwsh: true
-        script: |
-          $ErrorActionPreference = 'Stop'
-          $store = "$(CacheStore)"
-          $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
-          $sha   = (git rev-parse HEAD).Trim()
-          $baselineDir = Join-Path (Join-Path $store $lane) $sha
-          # Cache ONLY obj. bin is Copy-target output (CopyFilesToOutputDirectory/RAR) derived from
-          # obj + restored packages; a warm build regenerates it in ~12s. On a real baseline bin is
-          # ~11 GB of 92%-duplicated copies vs obj ~0.8 GB of genuinely-unique intermediate state, so
-          # obj-only shrinks the cache ~15x while still letting CoreCompile skip. Exclude log/tmp/
-          # TestResults (transient; log also trips arcade's binlog guard). See design section 30.
-          $capArgs = @{ RepoRoot = '.'; BaselineDir = $baselineDir; OutputRoots = @('artifacts\obj'); Archive = $true }
-          # Stat-cache: stash the seeded baseline's outputs.clixml before wiping the store so Capture
-          # can reuse the Sha of any output the build did not rewrite. Read the seeded dir via env (a
-          # cold-run $(...) macro is undefined and would be mis-evaluated). Cold -> just hash all.
-          $seeded = $env:SEEDEDBASELINEDIR
-          if ($seeded -and (Test-Path (Join-Path $seeded 'outputs.clixml'))) {
-            $stash = Join-Path "$(Agent.TempDirectory)" 'prior-baseline'
-            New-Item -ItemType Directory -Force $stash | Out-Null
-            Copy-Item (Join-Path $seeded 'outputs.clixml') (Join-Path $stash 'outputs.clixml') -Force
-            $capArgs['PriorBaselineDir'] = $stash
-          }
-          # Keep only the current baseline in the published store (one baseline, not growing).
-          if (Test-Path $store) { Remove-Item $store -Recurse -Force }
-          & "$(Scripts)/Capture-Baseline.ps1" @capArgs
-          Write-Host "==> captured baseline -> $baselineDir"
-
-    - task: PublishPipelineArtifact@1
-      displayName: Publish warmcache (for next run)
-      inputs:
-        targetPath: $(CacheStore)
-        artifactName: warmcache
-
-    - task: PublishPipelineArtifact@1
-      displayName: Publish binlogs
-      condition: succeededOrFailed()
-      inputs:
-        targetPath: $(Build.SourcesDirectory)/artifacts/log
-        artifactName: binlogs
+        - task: PowerShell@2
+          displayName: Capture fresh baseline
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              $ErrorActionPreference = 'Stop'
+              $store = "$(CacheStore)"
+              $lane  = "roslyn-${{ parameters.sdkFingerprint }}-win"
+              $sha   = (git rev-parse HEAD).Trim()
+              $baselineDir = Join-Path (Join-Path $store $lane) $sha
+              $capArgs = @{ RepoRoot = '.'; BaselineDir = $baselineDir; OutputRoots = @('artifacts\obj'); Archive = $true }
+              $seeded = $env:SEEDEDBASELINEDIR
+              if ($seeded -and (Test-Path (Join-Path $seeded 'outputs.clixml'))) {
+                $stash = Join-Path "$(Agent.TempDirectory)" 'prior-baseline'
+                New-Item -ItemType Directory -Force $stash | Out-Null
+                Copy-Item (Join-Path $seeded 'outputs.clixml') (Join-Path $stash 'outputs.clixml') -Force
+                $capArgs['PriorBaselineDir'] = $stash
+              }
+              if (Test-Path $store) { Remove-Item $store -Recurse -Force }
+              & "$(Scripts)/Capture-Baseline.ps1" @capArgs
+              Write-Host "==> captured baseline -> $baselineDir"
