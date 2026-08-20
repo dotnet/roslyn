@@ -1652,7 +1652,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     }
 
     [Fact]
-    public void OlderLanguageVersionDoesNotRecognizeNewAccessorModifiers()
+    public void AccessorModifiersRecognizedInOlderLanguageVersion()
     {
         const string source = """
             class C
@@ -1661,12 +1661,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(
-            source,
-            TestOptions.Regular10,
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "required").WithLocation(3, 13),
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "file").WithLocation(3, 27),
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "closed").WithLocation(3, 37));
+        UsingTree(source, TestOptions.Regular10);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -1684,30 +1679,21 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "required");
-                        }
                         N(SyntaxKind.GetAccessorDeclaration);
                         {
+                            N(SyntaxKind.RequiredKeyword);
                             N(SyntaxKind.GetKeyword);
                             N(SyntaxKind.SemicolonToken);
                         }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
                         N(SyntaxKind.SetAccessorDeclaration);
                         {
+                            N(SyntaxKind.FileKeyword);
                             N(SyntaxKind.SetKeyword);
                             N(SyntaxKind.SemicolonToken);
                         }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "closed");
-                        }
                         N(SyntaxKind.InitAccessorDeclaration);
                         {
+                            N(SyntaxKind.ClosedKeyword);
                             N(SyntaxKind.InitKeyword);
                             N(SyntaxKind.SemicolonToken);
                         }
@@ -1733,7 +1719,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(3, 13));
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "}").WithLocation(3, 21));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -1753,7 +1739,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.UnknownAccessorDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.PartialKeyword);
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CloseBraceToken);
                     }
@@ -1772,7 +1759,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(1, 19),
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "").WithLocation(1, 26),
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 26),
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 26));
         N(SyntaxKind.CompilationUnit);
@@ -1794,7 +1781,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.UnknownAccessorDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.PartialKeyword);
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.CloseBraceToken);
                     }
@@ -1818,7 +1806,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(3, 31));
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "}").WithLocation(3, 39));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -1858,7 +1846,8 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                                 }
                                 N(SyntaxKind.CloseBracketToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.PartialKeyword);
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CloseBraceToken);
                     }
@@ -1885,8 +1874,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
 
         UsingTree(
             source,
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "int").WithLocation(6, 13),
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "int").WithLocation(6, 13));
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 13));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -1909,16 +1897,12 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                             N(SyntaxKind.GetKeyword);
                             N(SyntaxKind.SemicolonToken);
                         }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.PartialKeyword);
-                            M(SyntaxKind.IdentifierToken);
-                        }
                         M(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.FieldDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.VariableDeclaration);
                     {
                         N(SyntaxKind.PredefinedType);
@@ -1949,9 +1933,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(
-            source,
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "scoped").WithLocation(3, 31));
+        UsingTree(source);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -1969,7 +1951,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
+                        N(SyntaxKind.GetAccessorDeclaration);
                         {
                             N(SyntaxKind.AttributeList);
                             {
@@ -1991,10 +1973,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                                 }
                                 N(SyntaxKind.CloseBracketToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                        N(SyntaxKind.GetAccessorDeclaration);
-                        {
+                            N(SyntaxKind.ScopedKeyword);
                             N(SyntaxKind.GetKeyword);
                             N(SyntaxKind.SemicolonToken);
                         }
@@ -2020,12 +1999,7 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
             }
             """;
 
-        UsingTree(
-            source,
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(3, 13),
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "scoped").WithLocation(4, 23),
-            Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "partial").WithLocation(5, 29),
-            Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "scoped").WithLocation(5, 45));
+        UsingTree(source);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
@@ -2043,12 +2017,9 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
                         N(SyntaxKind.InitAccessorDeclaration);
                         {
+                            N(SyntaxKind.PartialKeyword);
                             N(SyntaxKind.InitKeyword);
                             N(SyntaxKind.SemicolonToken);
                         }
@@ -2078,12 +2049,9 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
                         N(SyntaxKind.GetAccessorDeclaration);
                         {
+                            N(SyntaxKind.ScopedKeyword);
                             N(SyntaxKind.GetKeyword);
                             N(SyntaxKind.SemicolonToken);
                         }
@@ -2109,12 +2077,9 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
                         N(SyntaxKind.AddAccessorDeclaration);
                         {
+                            N(SyntaxKind.PartialKeyword);
                             N(SyntaxKind.AddKeyword);
                             N(SyntaxKind.Block);
                             {
@@ -2122,12 +2087,9 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                                 N(SyntaxKind.CloseBraceToken);
                             }
                         }
-                        N(SyntaxKind.UnknownAccessorDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
                         N(SyntaxKind.RemoveAccessorDeclaration);
                         {
+                            N(SyntaxKind.ScopedKeyword);
                             N(SyntaxKind.RemoveKeyword);
                             N(SyntaxKind.Block);
                             {
