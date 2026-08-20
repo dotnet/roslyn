@@ -2684,3 +2684,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             => useWarning ? ErrorCode.WRN_ReturnTypeIsStaticClass : ErrorCode.ERR_ReturnTypeIsStaticClass;
     }
 }
+
+// warmcache leaf demo
