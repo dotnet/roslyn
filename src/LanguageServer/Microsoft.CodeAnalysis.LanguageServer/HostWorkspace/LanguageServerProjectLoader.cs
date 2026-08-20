@@ -252,6 +252,9 @@ internal abstract class LanguageServerProjectLoader : IDisposable
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
+    protected virtual async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+        => null;
+
     /// <returns>The project file path that needs a NuGet restore, if any.</returns>
     private async Task<string?> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
@@ -311,19 +314,24 @@ internal abstract class LanguageServerProjectLoader : IDisposable
             using (await _gate.DisposableWaitAsync(cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!_loadedProjects.TryGetValue(projectPath, out var currentLoadState))
+                if (!_loadedProjects.TryGetValue(projectPath, out var startingLoadState))
                 {
                     // Project was unloaded. Do not proceed with reloading it.
                     return null;
                 }
 
-                var previousProjectTargets = currentLoadState is ProjectLoadState.LoadedTargets loaded ? loaded.LoadedProjectTargets : [];
-                var newProjectTargetsBuilder = ArrayBuilder<LoadedProject>.GetInstance(loadedProjectInfos.Length);
+                if (startingLoadState is ProjectLoadState.Primordial)
+                {
+                    // Transition from Primordial to LoadedTargets state, so that we can add real targets to it.
+                    _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(LoadedProjectTargets: []);
+                }
+
+                var currentTargets = ArrayBuilder<LoadedProject>.GetInstance(loadedProjectInfos.Length);
+
                 foreach (var loadedProjectInfo in loadedProjectInfos)
                 {
-                    var (target, targetAlreadyExists) = await GetOrCreateProjectTargetAsync(previousProjectTargets, projectFactory, loadedProjectInfo);
-                    newProjectTargetsBuilder.Add(target);
-
+                    var (target, targetAlreadyExists) = await GetOrCreateProjectTargetAsync(projectToLoad, projectFactory, loadedProjectInfo, cancellationToken);
+                    currentTargets.Add(target);
                     var (outputKind, metadataReferences, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, remoteProjectLoadResult.HasAllInformation, _logger);
                     if (targetNeedsRestore)
                     {
@@ -345,14 +353,13 @@ internal abstract class LanguageServerProjectLoader : IDisposable
                     }
                 }
 
-                var newProjectTargets = newProjectTargetsBuilder.ToImmutableAndFree();
-                foreach (var target in previousProjectTargets)
+                // If this wasn't our first time loading, we might have old projects we can unload
+                if (startingLoadState is ProjectLoadState.LoadedTargets startingLoadedTargets)
                 {
-                    // Unload targets which were present in a past design-time build, but absent in the current one.
-                    if (!newProjectTargets.Contains(target))
-                    {
-                        target.Dispose();
-                    }
+                    foreach (var staleTarget in startingLoadedTargets.LoadedProjectTargets.Except(currentTargets))
+                        staleTarget.Dispose();
+
+                    _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(LoadedProjectTargets: currentTargets.ToImmutableAndFree());
                 }
 
                 if (projectToLoad.ReportTelemetry)
@@ -360,19 +367,13 @@ internal abstract class LanguageServerProjectLoader : IDisposable
                     await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(telemetryInfos, projectToLoad, cancellationToken);
                 }
 
-                if (currentLoadState is ProjectLoadState.Primordial primordial)
+                if (startingLoadState is ProjectLoadState.Primordial primordial)
                 {
                     // Remove the primordial project from the workspace now that the design-time build has produced real targets.
                     await primordial.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
                         workspace => workspace.OnProjectRemoved(primordial.PrimordialProjectId),
                         cancellationToken);
                 }
-
-                // At this point we expect that all the loaded projects are now in the project factory returned, and any previous ones have been removed.
-                // this is a Debug.Assert() because if this expectation fails, the user's probably still in a state where things will work just fine;
-                // throwing here would mean we don't remember the LoadedProjects we created, and the next update will create more and things will get really broken.
-                Debug.Assert(newProjectTargets.All(target => target.ProjectFactory == projectFactory));
-                _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(newProjectTargets);
             }
 
             if (diagnosticLogItems.Any())
@@ -394,39 +395,6 @@ internal abstract class LanguageServerProjectLoader : IDisposable
             await LogDiagnosticsAsync([diagnosticLogItem]);
 
             return null;
-        }
-
-        async Task<(LoadedProject, bool alreadyExists)> GetOrCreateProjectTargetAsync(ImmutableArray<LoadedProject> previousProjectTargets, ProjectSystemProjectFactory projectFactory, ProjectFileInfo loadedProjectInfo)
-        {
-            var existingProject = previousProjectTargets.FirstOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework && p.ProjectFactory == projectFactory);
-            if (existingProject != null)
-            {
-                return (existingProject, alreadyExists: true);
-            }
-
-            var targetFramework = loadedProjectInfo.TargetFramework;
-            var projectSystemName = targetFramework is null ? projectPath : $"{projectPath} (${targetFramework})";
-
-            var projectCreationInfo = new ProjectSystemProjectCreationInfo
-            {
-                AssemblyName = projectSystemName,
-                // Note: the project file might be for a virtual file that doesn't exist on disk.
-                // In this case, we don't want to pass its path through here, as this will result in trying to take file system timestamps for it, watch it for changes, etc.
-                FilePath = PathUtilities.IsAbsolute(projectPath) && File.Exists(projectPath) ? projectPath : null,
-                CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath,
-            };
-
-            var projectSystemProject = await projectFactory.CreateAndAddToWorkspaceAsync(
-                projectSystemName,
-                loadedProjectInfo.Language,
-                projectCreationInfo,
-                _workspaceFactory.ProjectSystemHostInfo,
-                cancellationToken).ConfigureAwait(false);
-
-            var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _projectTargetFrameworkManager);
-            loadedProject.NeedsReload += (_, _) =>
-                _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false, ProgressTracker = null });
-            return (loadedProject, alreadyExists: false);
         }
 
         async Task LogDiagnosticsAsync(ImmutableArray<DiagnosticLogItem> diagnosticLogItems)
@@ -498,11 +466,54 @@ internal abstract class LanguageServerProjectLoader : IDisposable
         }
     }
 
+    private async Task<(LoadedProject, bool alreadyExists)> GetOrCreateProjectTargetAsync(ProjectToLoad projectToLoad, ProjectSystemProjectFactory projectFactory, ProjectFileInfo loadedProjectInfo, CancellationToken cancellationToken)
+    {
+        var projectPath = projectToLoad.Path;
+        Contract.ThrowIfFalse(_loadedProjects.TryGetValue(projectPath, out var projectLoadState), $"We should already have had a state before calling {nameof(GetOrCreateProjectTargetAsync)}");
+        Contract.ThrowIfFalse(projectLoadState is ProjectLoadState.LoadedTargets, "We should already have transitioned this to ProjectLoadState.LoadedTargets since we're creating real projects.");
+
+        var existingProjects = ((ProjectLoadState.LoadedTargets)projectLoadState).LoadedProjectTargets;
+
+        var existingProject = existingProjects.FirstOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework && p.ProjectFactory == projectFactory);
+        if (existingProject != null)
+        {
+            return (existingProject, alreadyExists: true);
+        }
+
+        var targetFramework = loadedProjectInfo.TargetFramework;
+        var projectSystemName = targetFramework is null ? projectPath : $"{projectPath} (${targetFramework})";
+
+        var projectCreationInfo = new ProjectSystemProjectCreationInfo
+        {
+            AssemblyName = projectSystemName,
+            // Note: the project file might be for a virtual file that doesn't exist on disk.
+            // In this case, we don't want to pass its path through here, as this will result in trying to take file system timestamps for it, watch it for changes, etc.
+            FilePath = PathUtilities.IsAbsolute(projectPath) && File.Exists(projectPath) ? projectPath : null,
+            CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath,
+        };
+
+        var projectSystemProject = await projectFactory.CreateAndAddToWorkspaceAsync(
+            projectSystemName,
+            loadedProjectInfo.Language,
+            projectCreationInfo,
+            _workspaceFactory.ProjectSystemHostInfo,
+            cancellationToken).ConfigureAwait(false);
+
+        var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _projectTargetFrameworkManager);
+        loadedProject.NeedsReload += (_, _) =>
+            _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false, ProgressTracker = null });
+
+        _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(existingProjects.Add(loadedProject));
+        return (loadedProject, alreadyExists: false);
+    }
+
     /// <summary>
     /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
     /// </summary>
     protected async Task BeginLoadingProjectAsync(string projectPath, string? projectGuid, WorkDoneProgressTracker? progressTracker = null)
     {
+        var projectToLoad = new ProjectToLoad(Path: projectPath, ProjectGuid: projectGuid, ReportTelemetry: true, ProgressTracker: progressTracker);
+
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
             Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
@@ -514,7 +525,41 @@ internal abstract class LanguageServerProjectLoader : IDisposable
             }
 
             _loadedProjects.Add(projectPath, new ProjectLoadState.LoadedTargets(LoadedProjectTargets: []));
-            _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, ProjectGuid: projectGuid, ReportTelemetry: true, ProgressTracker: progressTracker));
+            _projectsToReload.AddWork(projectToLoad);
+        }
+
+        // Try to load the contents from the project cache if we have one; we'll do this outside the lock
+        try
+        {
+            var cachedProjectStateAndFactory = await TryLoadProjectFromCacheAsync(projectPath, CancellationToken.None);
+
+            if (cachedProjectStateAndFactory is not null)
+            {
+                var (cachedProjectState, projectFactory) = cachedProjectStateAndFactory.Value;
+
+                // We've loaded state, so acquire the lock again
+                using (await _gate.DisposableWaitAsync(CancellationToken.None))
+                {
+                    if (_isDisposed)
+                        return;
+
+                    // We will only apply the cached data if we still haven't loaded anything for this project
+                    if (_loadedProjects.TryGetValue(projectPath, out var loadState) && loadState is ProjectLoadState.LoadedTargets { LoadedProjectTargets: [] })
+                    {
+                        foreach (var cachedProject in cachedProjectState)
+                        {
+                            (var loadedProject, bool alreadyLoaded) = await GetOrCreateProjectTargetAsync(projectToLoad, projectFactory, cachedProject, CancellationToken.None);
+                            await loadedProject.UpdateWithNewProjectInfoAsync(cachedProject, isMiscellaneousFile: false, hasAllInformation: true, _logger);
+                        }
+
+                        _logger.LogInformation("Loaded {ProjectPath} from the cache.", projectPath);
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "Exception encountered while trying to load cached state for {ProjectPath}", projectPath);
         }
     }
 
