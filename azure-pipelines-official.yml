@@ -23,14 +23,14 @@ pr: none
 parameters:
 - name: slnf
   type: string
-  default: 'Compilers.slnf'
+  default: 'Roslyn.slnx'
 - name: buildArgs
   type: string
   # determinism flags are REQUIRED for cross-run byte-stability; marker-space off (vanilla bits).
   default: '-c Debug -p:ContinuousIntegrationBuild=true -p:DeterministicSourcePaths=true'
 - name: sdkFingerprint
   type: string
-  default: 'sdk-11.0.100-preview.6-stock'   # the lane key; bump if the toolchain changes
+  default: 'sdk-11.0.100-preview.6-stock-fullsln'   # the lane key; bump if the toolchain changes
 
 variables:
   - name: CacheStore
@@ -48,8 +48,8 @@ stages:
   dependsOn: []
   jobs:
   - job: warmcache
-    displayName: Warm-clone cache demo (Compilers.slnf)
-    timeoutInMinutes: 150
+    displayName: Warm-clone cache demo (Roslyn.slnx)
+    timeoutInMinutes: 240
     pool:
       name: NetCore1ESPool-Internal
       demands: ImageOverride -equals windows.vs2026.amd64
