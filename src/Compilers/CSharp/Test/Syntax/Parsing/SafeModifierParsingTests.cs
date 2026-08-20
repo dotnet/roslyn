@@ -418,7 +418,14 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void PropertyAccessor()
     {
-        UsingDeclaration("public int P { safe get; set; }");
+        const string source = "public int P { safe get; set; }";
+        UsingDeclaration(source);
+
+        CreateCompilation($"class C {{ {source} }}", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (1,26): error CS9202: Feature 'updated memory safety rules' is not available in C# 14.0. Please use language version 'Preview' or greater.
+            // class C { public int P { safe get; set; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 26));
+        CreateCompilation($"class C {{ {source} }}", parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
 
         N(SyntaxKind.PropertyDeclaration);
         {
@@ -449,13 +456,17 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Theory]
-    [InlineData("public int P { private safe get; set; }", 0, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
-    [InlineData("public int P { safe private get; set; }", 0, SyntaxKind.SafeKeyword, SyntaxKind.PrivateKeyword)]
-    [InlineData("public int P { get; private safe set; }", 1, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
-    public void PropertyAccessor_WithOtherModifiers(string source, int accessorIndex, params SyntaxKind[] expectedModifiers)
+    [InlineData("public int P { private safe get; set; }", 34, 0, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
+    [InlineData("public int P { safe private get; set; }", 26, 0, SyntaxKind.SafeKeyword, SyntaxKind.PrivateKeyword)]
+    [InlineData("public int P { get; private safe set; }", 39, 1, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
+    public void PropertyAccessor_WithOtherModifiers(string source, int safeColumn, int accessorIndex, params SyntaxKind[] expectedModifiers)
     {
         var declaration = Assert.IsType<PropertyDeclarationSyntax>(SyntaxFactory.ParseMemberDeclaration(source));
         declaration.GetDiagnostics().Verify();
+
+        CreateCompilation($"class C {{ {source} }}", parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, safeColumn));
+        CreateCompilation($"class C {{ {source} }}", parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
 
         var modifiers = declaration.AccessorList!.Accessors[accessorIndex].Modifiers;
         Assert.Equal(expectedModifiers.Length, modifiers.Count);
@@ -469,7 +480,17 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void EventAccessor()
     {
-        UsingDeclaration("public event EHandler E { safe add { } remove { } }");
+        const string source = "public event EHandler E { safe add { } remove { } }";
+        UsingDeclaration(source);
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,63): error CS1609: Modifiers cannot be placed on event accessor declarations
+            // delegate void EHandler(); class C { public event EHandler E { safe add { } remove { } } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "safe").WithLocation(1, 63),
+        };
+        CreateCompilation($"delegate void EHandler(); class C {{ {source} }}", parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation($"delegate void EHandler(); class C {{ {source} }}", parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
 
         N(SyntaxKind.EventDeclaration);
         {
