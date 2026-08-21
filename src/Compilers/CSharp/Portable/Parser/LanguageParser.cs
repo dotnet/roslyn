@@ -1360,10 +1360,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors, bool forTopLevelStatements, out bool isPossibleTypeDeclaration)
+        private void ParseModifiers(SyntaxListBuilder tokens, bool forTopLevelStatements, out bool isPossibleTypeDeclaration)
         {
-            Debug.Assert(!(forAccessors && forTopLevelStatements));
-
             isPossibleTypeDeclaration = true;
 
             while (true)
@@ -1373,15 +1371,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(newMod != DeclarationModifiers.Scoped);
                 if (newMod == DeclarationModifiers.None)
                 {
-                    if (!forAccessors)
+                    SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
+                    if (scopedKeyword != null)
                     {
-                        SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
-
-                        if (scopedKeyword != null)
-                        {
-                            isPossibleTypeDeclaration = false;
-                            tokens.Add(scopedKeyword);
-                        }
+                        isPossibleTypeDeclaration = false;
+                        tokens.Add(scopedKeyword);
                     }
 
                     break;
@@ -1429,11 +1423,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 modTok = this.EatToken();
                             }
-                            else if (forAccessors && this.IsPossibleAccessorModifier())
-                            {
-                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
-                                modTok = this.EatToken();
-                            }
                             else
                             {
                                 return;
@@ -1469,19 +1458,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
 
                     case DeclarationModifiers.Safe:
-                        if (forAccessors)
-                        {
-                            if (!this.IsPossibleAccessorModifier())
-                            {
-                                return;
-                            }
-
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else if (!parseAsModifier(MessageID.IDS_FeatureUnsafeEvolution, out modTok))
-                        {
+                        if (!parseAsModifier(MessageID.IDS_FeatureUnsafeEvolution, out modTok))
                             return;
-                        }
 
                         break;
 
@@ -1514,6 +1492,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool isStructOrRecordOrUnionKeyword(SyntaxToken token)
             {
                 return token.Kind == SyntaxKind.StructKeyword || IsEnabledRecordOrUnionKeyword(token);
+            }
+        }
+
+        private void ParseAccessorModifiers(SyntaxListBuilder tokens)
+        {
+            // We intentionally avoid using ParseModifiers here because that method must disambiguate
+            // contextual keywords that may instead be type names, such as `async M()` declaring a
+            // method that returns `async`, and tokens such as `ref` that may be a modifier or part of
+            // a ref return type. An accessor has no type before its name, so consume all modifier-like
+            // tokens here for better recovery. Binding reports any modifiers that are invalid on the accessor.
+            while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None ||
+                   this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+            {
+                var token = this.EatToken();
+                tokens.Add(token.Kind == SyntaxKind.IdentifierToken ? ConvertToKeyword(token) : token);
             }
         }
 
@@ -2638,7 +2631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // All modifiers that might start an expression are processed above.
                 bool isPossibleTypeDeclaration;
-                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: true, out isPossibleTypeDeclaration);
+                this.ParseModifiers(modifiers, forTopLevelStatements: true, out isPossibleTypeDeclaration);
                 bool haveModifiers = (modifiers.Count > 0);
                 MemberDeclarationSyntax result;
 
@@ -3225,7 +3218,7 @@ parse_member_name:;
                 var attributes = this.ParseAttributeDeclarations(inExpressionContext: false);
 
                 bool isPossibleTypeDeclaration;
-                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: false, out isPossibleTypeDeclaration);
+                this.ParseModifiers(modifiers, forTopLevelStatements: false, out isPossibleTypeDeclaration);
 
                 if (IsExtensionContainerStart())
                 {
@@ -4402,61 +4395,38 @@ parse_member_name:;
 
         private bool IsPossibleAccessor()
         {
-            return this.CurrentToken.Kind == SyntaxKind.IdentifierToken
-                || IsPossibleAttributeDeclaration()
-                || SyntaxFacts.GetAccessorDeclarationKind(this.CurrentToken.ContextualKind) != SyntaxKind.None
-                || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken  // for accessor blocks w/ missing keyword
-                || this.CurrentToken.Kind == SyntaxKind.SemicolonToken // for empty body accessors w/ missing keyword
-                || IsPossibleAccessorModifier();
-        }
-
-        private bool IsPossibleAccessorModifier()
-        {
-            // We only want to accept a modifier as the start of an accessor if the modifiers are
-            // actually followed by "get/set/add/remove".  Otherwise, we might thing think we're 
-            // starting an accessor when we're actually starting a normal class member.  For example:
-            //
-            //      class C {
-            //          public int Prop { get { this.
-            //          private DateTime x;
-            //
-            // We don't want to think of the "private" in "private DateTime x" as starting an accessor
-            // here.  If we do, we'll get totally thrown off in parsing the remainder and that will
-            // throw off the rest of the features that depend on a good syntax tree.
-            // 
-            // Note: we allow all modifiers here.  That's because we want to parse things like
-            // "abstract get" as an accessor.  This way we can provide a good error message
-            // to the user that this is not allowed.
-
-            if (GetModifierExcludingScoped(this.CurrentToken) == DeclarationModifiers.None)
-            {
-                return false;
-            }
-
-            var peekIndex = 1;
-            while (GetModifierExcludingScoped(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
-            {
-                peekIndex++;
-            }
-
-            var token = this.PeekToken(peekIndex);
-            if (token.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.EndOfFileToken)
-            {
-                // If we see "{ get { } public }
-                // then we will think that "public" likely starts an accessor.
+            // An attribute list can begin an accessor declaration.
+            if (IsPossibleAttributeDeclaration())
                 return true;
-            }
 
-            switch (token.ContextualKind)
+            // There may be an arbitrary number of modifiers before the accessor, as in
+            // `{ private readonly get; }`. Look past all of them before checking what follows,
+            // retaining even invalid modifiers on the accessor so they can be diagnosed during binding.
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+            var modifiers = _pool.Allocate();
+            this.ParseAccessorModifiers(modifiers);
+            var parsedModifiers = modifiers.Count > 0;
+            _pool.Free(modifiers);
+
+            // A recognized accessor name is always sufficient.
+            if (SyntaxFacts.GetAccessorDeclarationKind(this.CurrentToken.ContextualKind) != SyntaxKind.None)
+                return true;
+
+            // Recover an accessor with a missing name when its body is present.
+            if (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.SemicolonToken)
+                return true;
+
+            if (parsedModifiers)
             {
-                case SyntaxKind.GetKeyword:
-                case SyntaxKind.SetKeyword:
-                case SyntaxKind.InitKeyword:
-                case SyntaxKind.AddKeyword:
-                case SyntaxKind.RemoveKeyword:
-                    return true;
-                default:
-                    return false;
+                // In `{ protected }`, parsing an accessor consumes `protected` and creates a
+                // missing name. Conversely, `{ private int F;` should remain a following member.
+                return this.CurrentToken.Kind is SyntaxKind.CloseBraceToken or SyntaxKind.EndOfFileToken;
+            }
+            else
+            {
+                // Without modifiers, an arbitrary identifier can be consumed as an unknown accessor,
+                // as in `{ unknown; }`.
+                return this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
             }
         }
 
@@ -4623,7 +4593,7 @@ parse_member_name:;
             var accMods = _pool.Allocate();
 
             var accAttrs = this.ParseAttributeDeclarations(inExpressionContext: false);
-            this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false, isPossibleTypeDeclaration: out _);
+            this.ParseAccessorModifiers(accMods);
 
             var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
                 declaringKind == AccessorDeclaringKind.Event ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
