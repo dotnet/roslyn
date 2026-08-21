@@ -1017,6 +1017,7 @@ done:
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&
+                this is not SynthesizedSimpleProgramEntryPointSymbol &&
                 ShouldEmitNullableContextValue(out _))
             {
                 compilation.EnsureNullableContextAttributeExists(diagnostics, _location, modifyCompilation: true);
