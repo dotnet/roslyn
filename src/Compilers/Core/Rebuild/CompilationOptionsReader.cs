@@ -212,6 +212,8 @@ namespace Microsoft.CodeAnalysis.Rebuild
             }
 
             int uncompressedSize = BitConverter.ToInt32(bytes, 0);
+            // Preserve the original blob because deflate output can vary with the runtime and write boundaries,
+            // which would change deterministic PDB and PE identifiers even when the source text is identical.
             var embeddedTextBlob = bytes.ToImmutableArray();
             var stream = new MemoryStream(bytes, sizeof(int), bytes.Length - sizeof(int));
 
