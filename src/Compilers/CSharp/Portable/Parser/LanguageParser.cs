@@ -1497,11 +1497,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ParseAccessorModifiers(SyntaxListBuilder tokens)
         {
-            // ParseModifiers must disambiguate contextual keywords that may instead be type names,
-            // such as `async M()` declaring a method that returns `async`, and tokens such as `ref`
-            // that may be a modifier or part of a ref return type. An accessor has no type before its
-            // name, so consume all modifier-like tokens here for better recovery. Binding reports
-            // any modifiers that are invalid on the accessor.
+            // We intentionally avoid using ParseModifiers here because that method must disambiguate
+            // contextual keywords that may instead be type names, such as `async M()` declaring a
+            // method that returns `async`, and tokens such as `ref` that may be a modifier or part of
+            // a ref return type. An accessor has no type before its name, so consume all modifier-like
+            // tokens here for better recovery. Binding reports any modifiers that are invalid on the accessor.
             while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None ||
                    this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
             {
