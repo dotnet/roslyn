@@ -9,5 +9,3 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpExpression - (95:5,1 [16] x:\dir\subdir\Test\TestComponent.razor)
                     LazyIntermediateToken - (95:5,1 [16] x:\dir\subdir\Test\TestComponent.razor) - CSharp - GetLength(null!)
-            CSharpCode - (7:0,7 [82] x:\dir\subdir\Test\TestComponent.razor)
-                LazyIntermediateToken - (7:0,7 [82] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    public static int GetLength(string? value)\n        => value?.Length ?? 0;\n

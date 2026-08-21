@@ -9,74 +9,39 @@
       </trans-unit>
       <trans-unit id="Baseline_Newly_Available">
         <source>🆕 Newly available across major browsers{0}</source>
-        <target state="translated">🆕 主要なブラウザー間で新たに使用可能{0}</target>
+        <target state="new">🆕 Newly available across major browsers{0}</target>
         <note>{0} is " (Baseline since YYYY)" or empty</note>
       </trans-unit>
       <trans-unit id="Baseline_Since">
         <source> (Baseline since {0})</source>
-        <target state="translated"> ({0} 以降のベースライン)</target>
+        <target state="new"> (Baseline since {0})</target>
         <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
       </trans-unit>
       <trans-unit id="Baseline_Widely_Available">
         <source>✅ Widely available across major browsers{0}</source>
-        <target state="translated">✅ 主要なブラウザー間で広く利用できます{0}</target>
+        <target state="new">✅ Widely available across major browsers{0}</target>
         <note>{0} is " (Baseline since YYYY)" or empty</note>
-      </trans-unit>
-      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
-        <source>{0} (and req'd attributes...)</source>
-        <target state="translated">{0} (および必須属性...)</target>
-        <note>The term "req'd" is an abbreviation for "required"</note>
       </trans-unit>
       <trans-unit id="Blazor_directive_attributes">
         <source>Blazor directive attributes</source>
-        <target state="translated">Blazor ディレクティブ属性</target>
+        <target state="new">Blazor directive attributes</target>
         <note />
       </trans-unit>
-      <trans-unit id="Diagnostics_after">
-        <source>Diagnostics after:</source>
-        <target state="translated">次の時間が経過した後の診断:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Diagnostics_before">
-        <source>Diagnostics before:</source>
-        <target state="translated">次の時間以前の診断:</target>
-        <note />
+      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
+        <source>{0} (and req'd attributes...)</source>
+        <target state="new">{0} (and req'd attributes...)</target>
+        <note>The term "req'd" is an abbreviation for "required"</note>
       </trans-unit>
       <trans-unit id="Directive">
         <source>directive</source>
-        <target state="translated">ディレクティブ</target>
+        <target state="new">directive</target>
         <note />
       </trans-unit>
       <trans-unit id="DirectiveSnippetDescription">
         <source>Insert a directive code snippet
 [Tab] to navigate between elements, [Enter] to complete</source>
-        <target state="translated">ディレクティブ コード スニペットを挿入する
-[Tab] を挿入して要素間を移動し、[Enter] を押して完了します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_adds">
-        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
-        <target state="translated">{0} で編集すると空白以外のスペース '{1}' が追加されます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_deletes">
-        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
-        <target state="translated">{0} で削除すると空白以外のスペース '{1}' が追加されます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_diagnostics">
-        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
-        <target state="translated">書式設定操作は、さらに診断の 1 つを導入または削除するため、破棄されています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_nonwhitespace">
-        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
-        <target state="translated">書式設定操作は、空白以外のコンテンツを追加または削除するため、破棄されています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_Error">
-        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
-        <target state="translated">書式設定エラーです。ファイルを破損しないようにこれ以上の作業を中止してください。この問題を報告してください。参照: https://aka.ms/razor-formatting-issue</target>
+        <target state="new">Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">
@@ -96,7 +61,7 @@
       </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
-        <target state="translated">{0} キーワード</target>
+        <target state="new">{0} Keyword</target>
         <note />
       </trans-unit>
       <trans-unit id="Language_Services_Missing_Service">
@@ -106,7 +71,7 @@
       </trans-unit>
       <trans-unit id="MDN_Reference">
         <source>MDN Reference</source>
-        <target state="translated">MDN リファレンス</target>
+        <target state="new">MDN Reference</target>
         <note>Link text for MDN documentation URL in HTML completion tooltips</note>
       </trans-unit>
       <trans-unit id="Not_Available_In">
@@ -124,6 +89,11 @@
         <target state="translated">'{2}' の {1} 範囲外の行 '{0}' がクエリされました。ドキュメントが最新ではない可能性があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ReTrigger_Completions_Title">
+        <source>"Re-trigger completions..."</source>
+        <target state="new">"Re-trigger completions..."</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Razor TagHelper 属性のグリフ</target>
@@ -132,16 +102,6 @@
       <trans-unit id="TagHelper_Element_Glyph">
         <source>Razor TagHelper Element Glyph</source>
         <target state="translated">Razor TagHelper 要素のグリフ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ReTrigger_Completions_Title">
-        <source>"Re-trigger completions..."</source>
-        <target state="translated">"再トリガーの完了..."</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">不明なマッピング動作</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">
